@@ -1,0 +1,539 @@
+@import url("./vendor/fonts/fonts.css");
+
+/* ==========================================================================
+   DISCOVERY LAB - DESIGN SYSTEM
+   Concept: "field notebook meets scientific instrument."
+   Warm paper grounds, ink-dark type, hairline rules and measured ticks.
+   Deliberately NOT: pure-white cards, purple-blue gradients, pill-everything,
+   emoji-as-icon, one neutral sans doing all the work.
+
+   Three orthogonal switches drive every surface:
+     [data-theme]      subject identity   earth | biology | spanish | computing | chemistry | physics
+     [data-age-band]   tone and density   primary | lower-secondary | secondary | advanced
+     [data-tint]       reader comfort     paper | warm | cool | dusk | dark
+   ========================================================================== */
+
+/* --- 1. RESET ----------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { min-height: 100vh; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+img, svg, canvas, video { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+p, h1, h2, h3, h4, li { overflow-wrap: break-word; }
+:where(ul, ol)[class] { list-style: none; padding: 0; }
+
+/* --- 2. CORE TOKENS ----------------------------------------------------- */
+:root {
+  /* Typefaces. Fraunces is variable on opsz/wght/SOFT/WONK - the age band
+     drives those axes, so one family covers playful primary through austere
+     A-Level without loading a second display face. */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Public Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* Type scale - fluid, clamped. Multiplied by --text-scale (reader setting). */
+  --step--1: calc(clamp(0.80rem, 0.77rem + 0.14vw, 0.88rem) * var(--text-scale, 1));
+  --step-0:  calc(clamp(1.00rem, 0.96rem + 0.20vw, 1.13rem) * var(--text-scale, 1));
+  --step-1:  calc(clamp(1.25rem, 1.18rem + 0.35vw, 1.50rem) * var(--text-scale, 1));
+  --step-2:  calc(clamp(1.56rem, 1.44rem + 0.62vw, 2.00rem) * var(--text-scale, 1));
+  --step-3:  calc(clamp(1.95rem, 1.74rem + 1.05vw, 2.66rem) * var(--text-scale, 1));
+  --step-4:  calc(clamp(2.44rem, 2.09rem + 1.75vw, 3.55rem) * var(--text-scale, 1));
+
+  /* Space - 4px base, geometric. */
+  --sp-1: 0.25rem; --sp-2: 0.5rem;  --sp-3: 0.75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem;  --sp-6: 2rem;    --sp-7: 3rem;    --sp-8: 4rem;   --sp-9: 6rem;
+
+  --measure: 68ch;          /* readable line length */
+  --shell: 74rem;           /* page max width       */
+
+  /* Motion. Every duration multiplies --motion, which reduced-motion sets to 0. */
+  --motion: 1;
+  --dur-fast: calc(120ms * var(--motion));
+  --dur-mid:  calc(260ms * var(--motion));
+  --dur-slow: calc(480ms * var(--motion));
+  --ease: cubic-bezier(0.2, 0.65, 0.3, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.4, 0.5, 1);
+
+  /* Elevation - restrained. Hairline borders do most of the work; shadow is
+     reserved for things that genuinely float. */
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-2: 0 2px 4px rgb(0 0 0 / 0.05), 0 8px 20px -8px rgb(0 0 0 / 0.12);
+  --shadow-3: 0 4px 8px rgb(0 0 0 / 0.06), 0 20px 48px -16px rgb(0 0 0 / 0.20);
+
+  --radius: 6px;
+  --radius-lg: 12px;
+  --focus-ring: 3px;
+  --density: 1;
+
+  /* Fraunces axis defaults - overridden per age band. */
+  --wonk: 0; --soft: 0; --opsz: 40;
+
+  color-scheme: light;
+}
+
+/* --- 3. SUBJECT THEMES -------------------------------------------------- */
+/* Each theme is a point of view, not a hue rotation. Roles stay identical so
+   every component works unchanged across subjects. */
+
+:root, [data-theme="earth"] {          /* Environmental Science - soil, water, air */
+  --paper:   #F2EFE6;  --surface: #FBF9F3;  --surface-2: #EAE6D9;
+  --ink:     #1D211C;  --ink-2:   #4A5148;  --ink-3:     #757C72;
+  --line:    #1D211C24; --line-strong: #1D211C40;
+  --accent:  #40634C;  --accent-hi: #517B5E; --accent-ink: #FBF9F3;
+  --accent-wash: #40634C14;
+  --signal:  #B5551F;  --signal-wash: #B5551F14;
+  --positive:#2F6B45;  --negative: #A32C1E;  --caution: #A66B00;
+}
+[data-theme="biology"] {               /* living systems - chlorophyll, cool and vivid */
+  --paper:   #EDF2EC;  --surface: #F8FBF7;  --surface-2: #E1EADF;
+  --ink:     #10201A;  --ink-2:   #3C4F45;  --ink-3:     #6C7D73;
+  --line:    #10201A22; --line-strong: #10201A3D;
+  --accent:  #16744F;  --accent-hi: #1E8C60; --accent-ink: #F8FBF7;
+  --accent-wash: #16744F14;
+  --signal:  #9A6E05;  --signal-wash: #9A6E0514;
+  --positive:#16744F;  --negative: #A32C1E;  --caution: #9A6B00;
+}
+[data-theme="spanish"] {               /* Mediterranean - terracotta and indigo, no flag cliches */
+  --paper:   #FAF3E7;  --surface: #FFFBF3;  --surface-2: #F0E5D2;
+  --ink:     #2A1A12;  --ink-2:   #58453A;  --ink-3:     #867365;
+  --line:    #2A1A1220; --line-strong: #2A1A123D;
+  --accent:  #B8420E;  --accent-hi: #D2551D; --accent-ink: #FFFBF3;
+  --accent-wash: #B8420E14;
+  --signal:  #1E4B8F;  --signal-wash: #1E4B8F14;
+  --positive:#3F7A34;  --negative: #A32C1E;  --caution: #B37500;
+}
+[data-theme="computing"] {             /* slate and phosphor - terminal-adjacent, refined */
+  --paper:   #EAEDF0;  --surface: #F7F9FB;  --surface-2: #DDE2E8;
+  --ink:     #11161C;  --ink-2:   #3A434D;  --ink-3:     #69737E;
+  --line:    #11161C20; --line-strong: #11161C3D;
+  --accent:  #2F5871;  --accent-hi: #3D7092; --accent-ink: #F7F9FB;
+  --accent-wash: #2F587114;
+  --signal:  #00807A;  --signal-wash: #00807A14;
+  --positive:#0F7A50;  --negative: #A32C1E;  --caution: #9A6B00;
+}
+[data-theme="chemistry"] {             /* lab glass - teal and amber */
+  --paper:   #EFF2F3;  --surface: #FAFCFC;  --surface-2: #E1E7E9;
+  --ink:     #131A1E;  --ink-2:   #3B474D;  --ink-3:     #6B777D;
+  --line:    #131A1E20; --line-strong: #131A1E3D;
+  --accent:  #0D6470;  --accent-hi: #12808F; --accent-ink: #FAFCFC;
+  --accent-wash: #0D647014;
+  --signal:  #A66300;  --signal-wash: #A6630014;
+  --positive:#0F7A50;  --negative: #A32C1E;  --caution: #A66B00;
+}
+[data-theme="physics"] {               /* graph paper - deep navy and cyan */
+  --paper:   #ECEFF4;  --surface: #F9FBFD;  --surface-2: #DEE4EC;
+  --ink:     #101722;  --ink-2:   #384354;  --ink-3:     #677282;
+  --line:    #10172220; --line-strong: #1017223D;
+  --accent:  #1E3A6E;  --accent-hi: #2C5192; --accent-ink: #F9FBFD;
+  --accent-wash: #1E3A6E14;
+  --signal:  #006D80;  --signal-wash: #006D8014;
+  --positive:#0F7A50;  --negative: #A32C1E;  --caution: #9A6B00;
+}
+
+/* --- 4. AGE BAND -------------------------------------------------------- */
+/* Not a font-size switch. It retunes the display face's own axes, the density,
+   the corner language and how much motion is allowed. */
+
+[data-age-band="primary"] {
+  --wonk: 1; --soft: 60; --opsz: 96;
+  --text-scale: 1.14;
+  --radius: 14px; --radius-lg: 22px;
+  --density: 1.25;
+  --measure: 56ch;
+}
+[data-age-band="lower-secondary"] {
+  --wonk: 0.5; --soft: 30; --opsz: 72;
+  --text-scale: 1.06;
+  --radius: 10px; --radius-lg: 16px;
+  --density: 1.1;
+  --measure: 62ch;
+}
+[data-age-band="secondary"] {
+  --wonk: 0; --soft: 10; --opsz: 44;
+  --text-scale: 1;
+  --radius: 6px; --radius-lg: 12px;
+  --density: 1;
+  --measure: 68ch;
+}
+[data-age-band="advanced"] {
+  --wonk: 0; --soft: 0; --opsz: 24;
+  --text-scale: 0.98;
+  --radius: 4px; --radius-lg: 8px;
+  --density: 0.92;
+  --measure: 72ch;
+}
+
+/* --- 5. READER SETTINGS (the accessibility panel writes these) ----------- */
+[data-text-size="s"]  { --text-scale: 0.92; }
+[data-text-size="m"]  { --text-scale: 1; }
+[data-text-size="l"]  { --text-scale: 1.15; }
+[data-text-size="xl"] { --text-scale: 1.32; }
+
+/* Background tints. Bright white is a genuine barrier for readers with visual
+   stress, so "paper" (a warm off-white) is the default, not an option. */
+[data-tint="warm"] { --paper: #F7EEDD; --surface: #FDF7EC; --surface-2: #EDE1CC; }
+[data-tint="cool"] { --paper: #E7EEF2; --surface: #F5FAFD; --surface-2: #D8E3EA; }
+[data-tint="dusk"] { --paper: #DCD7CE; --surface: #E8E4DC; --surface-2: #CCC6BB; }
+[data-tint="dark"] {
+  color-scheme: dark;
+  --paper: #15181A; --surface: #1E2225; --surface-2: #282D31;
+  --ink: #ECEFF1; --ink-2: #B4BCC1; --ink-3: #8A9399;
+  --line: #ECEFF124; --line-strong: #ECEFF140;
+  --accent-ink: #10141A;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 2px 4px rgb(0 0 0 / 0.4), 0 8px 20px -8px rgb(0 0 0 / 0.6);
+  --shadow-3: 0 4px 8px rgb(0 0 0 / 0.4), 0 20px 48px -16px rgb(0 0 0 / 0.7);
+}
+/* Dark tint needs lighter accents to clear contrast against the dark ground. */
+[data-tint="dark"][data-theme="earth"]     { --accent: #7FB08D; --accent-hi: #96C4A3; --signal: #E8905C; --accent-wash: #7FB08D1F; --signal-wash: #E8905C1F; --positive: #7FB08D; --negative: #E8766A; --caution: #DFA94A; }
+[data-tint="dark"][data-theme="biology"]   { --accent: #4CC08C; --accent-hi: #68D3A2; --signal: #E8C55C; --accent-wash: #4CC08C1F; --signal-wash: #E8C55C1F; --positive: #4CC08C; --negative: #E8766A; --caution: #DFA94A; }
+[data-tint="dark"][data-theme="spanish"]   { --accent: #F0805A; --accent-hi: #FF9A78; --signal: #7FA8E8; --accent-wash: #F0805A1F; --signal-wash: #7FA8E81F; --positive: #86C97A; --negative: #E8766A; --caution: #DFA94A; }
+[data-tint="dark"][data-theme="computing"] { --accent: #79ABCB; --accent-hi: #94C1DE; --signal: #4CC7BE; --accent-wash: #79ABCB1F; --signal-wash: #4CC7BE1F; --positive: #66C79A; --negative: #E8766A; --caution: #DFA94A; }
+[data-tint="dark"][data-theme="chemistry"] { --accent: #4FB8C6; --accent-hi: #6CCFDC; --signal: #F0B34C; --accent-wash: #4FB8C61F; --signal-wash: #F0B34C1F; --positive: #66C79A; --negative: #E8766A; --caution: #DFA94A; }
+[data-tint="dark"][data-theme="physics"]   { --accent: #7B9DDB; --accent-hi: #96B4E8; --signal: #4CC0DB; --accent-wash: #7B9DDB1F; --signal-wash: #4CC0DB1F; --positive: #66C79A; --negative: #E8766A; --caution: #DFA94A; }
+
+/* Dyslexia-friendly face. Atkinson Hyperlegible was drawn by the Braille
+   Institute for exactly this; its stylesheet is fetched only on demand. */
+[data-dyslexia="on"] {
+  --font-ui: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  word-spacing: 0.08em;
+  line-height: 1.7;
+}
+
+/* Reduced motion - the in-page toggle and the OS setting both land here. */
+[data-reduced-motion="on"] { --motion: 0; }
+[data-reduced-motion="on"] *,
+[data-reduced-motion="on"] *::before,
+[data-reduced-motion="on"] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-reduced-motion="off"]) { --motion: 0; }
+  :root:not([data-reduced-motion="off"]) *,
+  :root:not([data-reduced-motion="off"]) *::before,
+  :root:not([data-reduced-motion="off"]) *::after {
+    animation-duration: 1ms !important; transition-duration: 1ms !important;
+  }
+}
+/* Hard rule from the brief: nothing in this system may flash or strobe.
+   No keyframe below exceeds 2Hz, and none animates to full black or white. */
+
+/* --- 6. BASE ------------------------------------------------------------ */
+body {
+  font-family: var(--font-ui);
+  font-size: var(--step-0);
+  color: var(--ink);
+  background-color: var(--paper);
+  /* Faint field-notebook grid. Very low contrast: texture, never noise. */
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px, 48px 48px;
+  background-position: -1px -1px;
+  transition: background-color var(--dur-mid) var(--ease), color var(--dur-mid) var(--ease);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" var(--opsz), "wght" 600, "SOFT" var(--soft), "WONK" var(--wonk);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); }
+h4 { font-size: var(--step-1); }
+p  { max-width: var(--measure); text-wrap: pretty; }
+
+a { color: var(--accent); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:hover { color: var(--accent-hi); }
+
+/* One focus treatment everywhere. Never removed - keyboard users need it, and
+   it is the same ring on every control in the system. */
+:focus-visible {
+  outline: var(--focus-ring) solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute; left: var(--sp-4); top: -100vh; z-index: 999;
+  background: var(--accent); color: var(--accent-ink);
+  padding: var(--sp-3) var(--sp-5); border-radius: var(--radius); font-weight: 600;
+}
+.skip-link:focus { top: var(--sp-4); }
+
+/* --- 7. LAYOUT ---------------------------------------------------------- */
+.shell { width: min(100% - 2 * var(--sp-5), var(--shell)); margin-inline: auto; }
+.shell--narrow { --shell: 52rem; }
+.stack > * + * { margin-top: var(--flow, var(--sp-4)); }
+.cluster { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+.grid-tiles {
+  display: grid; gap: var(--sp-5);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+}
+
+/* --- 8. EYEBROW + RULE -------------------------------------------------- */
+/* The instrument-panel signature: mono, tracked-out, small, with a tick rule. */
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex; align-items: center; gap: var(--sp-3);
+}
+.eyebrow::before {
+  content: ""; width: 1.5rem; height: 1px; background: var(--signal); flex: none;
+}
+.rule { height: 1px; background: var(--line); border: 0; }
+.rule--ticked {
+  height: 8px; background: none; border: 0; border-top: 1px solid var(--line);
+  background-image: linear-gradient(90deg, var(--line-strong) 1px, transparent 1px);
+  background-size: 16px 4px; background-repeat: repeat-x; background-position: 0 0;
+}
+
+/* --- 9. BUTTONS --------------------------------------------------------- */
+.btn {
+  --btn-bg: var(--accent); --btn-fg: var(--accent-ink); --btn-bd: var(--accent);
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--sp-2);
+  padding: calc(var(--sp-3) * var(--density)) calc(var(--sp-5) * var(--density));
+  min-height: 44px;                       /* touch target floor */
+  background: var(--btn-bg); color: var(--btn-fg);
+  border: 1px solid var(--btn-bd); border-radius: var(--radius);
+  font-weight: 650; font-size: var(--step-0); line-height: 1.2;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease),
+              background-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+.btn:hover:not(:disabled) { --btn-bg: var(--accent-hi); --btn-bd: var(--accent-hi); box-shadow: var(--shadow-2); }
+.btn:active:not(:disabled) { transform: translateY(1px); box-shadow: var(--shadow-1); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn--ghost { --btn-bg: transparent; --btn-fg: var(--ink); --btn-bd: var(--line-strong); }
+.btn--ghost:hover:not(:disabled) { --btn-bg: var(--accent-wash); --btn-fg: var(--accent); --btn-bd: var(--accent); }
+.btn--signal { --btn-bg: var(--signal); --btn-bd: var(--signal); --btn-fg: #FFF; }
+.btn--lg { font-size: var(--step-1); padding: var(--sp-4) var(--sp-6); min-height: 54px; }
+
+/* --- 10. CARD / TILE ---------------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: calc(var(--sp-5) * var(--density));
+}
+.tile {
+  position: relative; display: flex; flex-direction: column; gap: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: calc(var(--sp-5) * var(--density));
+  text-decoration: none; color: inherit;
+  overflow: hidden;
+  transition: transform var(--dur-mid) var(--ease),
+              box-shadow var(--dur-mid) var(--ease),
+              border-color var(--dur-mid) var(--ease);
+}
+/* Accent spine, not a coloured header bar. */
+.tile::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
+  background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform var(--dur-mid) var(--ease);
+}
+.tile:hover, .tile:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--line-strong);
+}
+.tile:hover::before, .tile:focus-visible::before { transform: scaleY(1); transform-origin: top; }
+.tile__title { font-family: var(--font-display); font-size: var(--step-1);
+  font-variation-settings: "opsz" var(--opsz), "wght" 600, "SOFT" var(--soft), "WONK" var(--wonk); }
+.tile__meta { font-family: var(--font-data); font-size: var(--step--1); color: var(--ink-3); }
+.tile[aria-disabled="true"] { opacity: 0.6; pointer-events: none; }
+
+/* --- 11. BADGE ---------------------------------------------------------- */
+/* Status never relies on colour alone - each variant carries a glyph too. */
+.badge {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font-family: var(--font-data); font-size: var(--step--1); font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0.2em 0.6em; border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.badge--live     { color: var(--positive); }
+.badge--live::before     { content: "\25CF"; }        /* filled circle */
+.badge--soon     { color: var(--ink-3); }
+.badge--soon::before     { content: "\25CB"; }        /* hollow circle */
+.badge--correct  { color: var(--positive); }
+.badge--correct::before  { content: "\2713"; }        /* check */
+.badge--incorrect{ color: var(--negative); }
+.badge--incorrect::before{ content: "\2715"; }        /* cross */
+
+/* --- 12. PROGRESS RAIL -------------------------------------------------- */
+/* Orient -> Predict -> Investigate -> Record -> Explain -> Apply -> Check -> Evidence */
+.rail { display: flex; align-items: flex-start; gap: 0; overflow-x: auto; padding-block: var(--sp-3); }
+.rail__step {
+  flex: 1 1 0; min-width: 4.5rem; position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
+  background: none; padding: 0;
+  font-family: var(--font-data); font-size: var(--step--1);
+  color: var(--ink-3); text-align: center;
+}
+.rail__step::after {                       /* connector */
+  content: ""; position: absolute; top: 0.68rem; left: 50%; width: 100%; height: 2px;
+  background: var(--line-strong); z-index: 0;
+}
+.rail__step:last-child::after { display: none; }
+.rail__dot {
+  position: relative; z-index: 1;
+  width: 1.35rem; height: 1.35rem; border-radius: 50%;
+  border: 2px solid var(--line-strong); background: var(--paper);
+  display: grid; place-items: center; font-size: 0.7rem; line-height: 1;
+  transition: background-color var(--dur-mid) var(--ease),
+              border-color var(--dur-mid) var(--ease),
+              transform var(--dur-mid) var(--ease-out-back);
+}
+.rail__step[data-state="done"]    { color: var(--ink-2); }
+.rail__step[data-state="done"] .rail__dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.rail__step[data-state="done"]::after { background: var(--accent); }
+.rail__step[data-state="current"] { color: var(--ink); font-weight: 700; }
+.rail__step[data-state="current"] .rail__dot { border-color: var(--signal); background: var(--paper); transform: scale(1.2); }
+.rail__label { max-width: 7ch; }
+
+/* --- 13. STAGE ---------------------------------------------------------- */
+.stage { scroll-margin-top: var(--sp-6); }
+.stage[hidden] { display: none !important; }
+.stage__head { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-5); }
+.stage__enter { animation: stage-in var(--dur-slow) var(--ease) both; }
+@keyframes stage-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- 14. QUESTIONS ------------------------------------------------------ */
+.q { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface);
+     padding: calc(var(--sp-5) * var(--density)); }
+.q__prompt { font-size: var(--step-1); font-weight: 600; max-width: var(--measure); }
+.q__hint { color: var(--ink-2); font-size: var(--step--1); }
+.q__marks { font-family: var(--font-data); font-size: var(--step--1); color: var(--ink-3); white-space: nowrap; }
+
+.options { display: grid; gap: var(--sp-3); margin-top: var(--sp-4); }
+.option {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: calc(var(--sp-3) * var(--density)) var(--sp-4);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  background: var(--paper); cursor: pointer; min-height: 44px;
+  transition: border-color var(--dur-fast) var(--ease),
+              background-color var(--dur-fast) var(--ease),
+              transform var(--dur-fast) var(--ease);
+}
+.option:hover { border-color: var(--accent); background: var(--accent-wash); }
+.option input { margin-top: 0.3em; accent-color: var(--accent); width: 1.1em; height: 1.1em; flex: none; }
+.option:has(input:checked) { border-color: var(--accent); background: var(--accent-wash); box-shadow: inset 0 0 0 1px var(--accent); }
+/* Marked states carry a glyph as well as a colour. */
+.option[data-mark="correct"]   { border-color: var(--positive); background: color-mix(in srgb, var(--positive) 8%, transparent); }
+.option[data-mark="incorrect"] { border-color: var(--negative); background: color-mix(in srgb, var(--negative) 8%, transparent); }
+.option[data-mark]::after { margin-left: auto; font-family: var(--font-data); font-weight: 700; }
+.option[data-mark="correct"]::after   { content: "\2713"; color: var(--positive); }
+.option[data-mark="incorrect"]::after { content: "\2715"; color: var(--negative); }
+
+.field { display: flex; flex-direction: column; gap: var(--sp-2); }
+.field__label { font-weight: 600; font-size: var(--step-0); }
+.input, .textarea, .select {
+  width: 100%; padding: var(--sp-3) var(--sp-4); min-height: 44px;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.input:focus, .textarea:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+.textarea { min-height: 8rem; resize: vertical; line-height: 1.6; font-family: var(--font-ui); }
+.counter { font-family: var(--font-data); font-size: var(--step--1); color: var(--ink-3); text-align: right; }
+
+/* --- 15. INSTRUMENT PANEL + READOUT ------------------------------------- */
+/* The "serious equipment" surface: darker ground, mono numerals, tick marks. */
+.panel {
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  padding: calc(var(--sp-5) * var(--density));
+}
+.readout {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step-3); font-weight: 700;
+  letter-spacing: -0.02em; color: var(--ink);
+}
+.readout__unit { font-size: 0.5em; color: var(--ink-3); font-weight: 500; margin-left: 0.2em; }
+.data-table { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: var(--step--1); }
+.data-table th, .data-table td { padding: var(--sp-2) var(--sp-3); text-align: left; border-bottom: 1px solid var(--line); }
+.data-table th { color: var(--ink-3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+.data-table td { font-variant-numeric: tabular-nums; }
+.data-table tr:last-child td { border-bottom: 0; }
+.table-scroll { overflow-x: auto; }
+
+/* --- 16. FEEDBACK + REWARD ---------------------------------------------- */
+.toast {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); border-radius: var(--radius);
+  border: 1px solid currentColor; font-weight: 600;
+}
+.toast--correct   { color: var(--positive); background: color-mix(in srgb, var(--positive) 8%, transparent); }
+.toast--incorrect { color: var(--negative); background: color-mix(in srgb, var(--negative) 8%, transparent); }
+.toast--info      { color: var(--ink-2); background: var(--surface-2); }
+
+/* Gentle, sub-2Hz, no strobing. */
+@keyframes pop-in { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes nudge  { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.anim-pop   { animation: pop-in var(--dur-mid) var(--ease-out-back) both; }
+.anim-nudge { animation: nudge var(--dur-mid) var(--ease) 1; }
+
+.score-chip {
+  display: inline-flex; align-items: baseline; gap: 0.3em;
+  font-family: var(--font-data); font-weight: 700; font-size: var(--step-1);
+  padding: var(--sp-2) var(--sp-4); border-radius: var(--radius);
+  background: var(--accent-wash); color: var(--accent); border: 1px solid var(--accent);
+}
+.streak { font-family: var(--font-data); font-size: var(--step--1); color: var(--signal); font-weight: 600; }
+
+/* --- 17. RUBRIC --------------------------------------------------------- */
+/* Visible to the student. Never renders expected_points or answer keys. */
+.rubric { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.rubric th, .rubric td { padding: var(--sp-3); border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.rubric th { color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-data); font-weight: 500; }
+.rubric td:last-child { font-family: var(--font-data); text-align: right; white-space: nowrap; }
+
+/* --- 18. RESPONSIVE ----------------------------------------------------- */
+@media (max-width: 48rem) {
+  :root { --sp-7: 2rem; --sp-8: 2.5rem; --sp-9: 3.5rem; }
+  .shell { width: calc(100% - 2 * var(--sp-4)); }
+  .rail__label { font-size: 0.68rem; max-width: 6ch; }
+}
+@media (max-width: 30rem) {
+  .rail__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .rail__step { min-width: 2.5rem; }
+}
+
+/* --- 19. PRINT ---------------------------------------------------------- */
+/* The PDF is generated by jsPDF, not by printing. This is only a courtesy
+   fallback if someone hits Ctrl+P on the page itself. */
+@media print {
+  body { background: #FFF; color: #000; }
+  .no-print, .rail, .btn { display: none !important; }
+  .card, .q, .panel { border: 1px solid #999; break-inside: avoid; }
+}

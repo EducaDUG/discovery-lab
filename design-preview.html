@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="earth" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discovery Lab — Design Direction</title>
+<link rel="stylesheet" href="./engine/style.css">
+<style>
+  /* Preview-page chrome only. Nothing here ships in the engine. */
+  .pv-bar {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding-block: var(--sp-3);
+  }
+  .pv-bar__inner { display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: center; justify-content: space-between; }
+  .pv-set { display: flex; align-items: center; gap: var(--sp-2); }
+  .pv-set > span { font-family: var(--font-data); font-size: 0.7rem; letter-spacing: .12em;
+                   text-transform: uppercase; color: var(--ink-3); }
+  .swatchbar { display: flex; gap: 4px; }
+  .sw { width: 30px; height: 30px; border-radius: var(--radius); border: 1px solid var(--line-strong);
+        cursor: pointer; transition: transform var(--dur-fast) var(--ease); position: relative; }
+  .sw:hover { transform: translateY(-2px); }
+  .sw[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .seg { display: flex; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; }
+  .seg button { padding: 6px 10px; font-family: var(--font-data); font-size: .72rem; letter-spacing: .06em;
+                text-transform: uppercase; color: var(--ink-2); border-right: 1px solid var(--line-strong); }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  section.pv { padding-block: var(--sp-8); border-bottom: 1px solid var(--line); }
+  .pv-h { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4);
+          margin-bottom: var(--sp-6); flex-wrap: wrap; }
+  .pv-note { font-size: var(--step--1); color: var(--ink-2); max-width: 46ch; }
+  .role-grid { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); }
+  .role { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .role__chip { height: 56px; }
+  .role__name { font-family: var(--font-data); font-size: .68rem; padding: 6px 8px; color: var(--ink-2);
+                display: flex; justify-content: space-between; gap: 6px; }
+  .two { display: grid; gap: var(--sp-6); grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); }
+  .specimen { font-family: var(--font-display); line-height: 1; margin: 0; }
+  .hero-mark { width: 68px; height: 68px; flex: none; }
+  .hero { display: flex; gap: var(--sp-5); align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="pv-bar">
+  <div class="shell pv-bar__inner">
+    <div class="pv-set">
+      <span>Subject</span>
+      <div class="swatchbar" id="themes" role="group" aria-label="Subject theme"></div>
+    </div>
+    <div class="pv-set">
+      <span>Age band</span>
+      <div class="seg" id="bands" role="group" aria-label="Age band"></div>
+    </div>
+    <div class="pv-set">
+      <span>Tint</span>
+      <div class="seg" id="tints" role="group" aria-label="Background tint"></div>
+    </div>
+  </div>
+</div>
+
+<main id="main" class="shell">
+
+  <!-- IDENTITY ---------------------------------------------------------- -->
+  <section class="pv">
+    <div class="hero">
+      <svg class="hero-mark" viewBox="0 0 64 64" role="img" aria-label="Discovery Lab mark">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".18"/>
+        <circle cx="32" cy="32" r="11" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".12"/>
+        <g stroke="var(--ink)" stroke-width="1.5" opacity=".45">
+          <path d="M32 2v7M32 55v7M2 32h7M55 32h7"/>
+        </g>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="var(--ink)"/>
+      </svg>
+      <div>
+        <p class="eyebrow">Design direction · v0.1</p>
+        <h1 style="margin-top:var(--sp-3)">Discovery&nbsp;Lab</h1>
+        <p style="color:var(--ink-2);margin-top:var(--sp-3)">
+          Field notebook meets scientific instrument. Warm paper grounds, ink-dark type,
+          hairline rules and measured ticks — a place where the work actually gets done.
+        </p>
+      </div>
+    </div>
+    <div class="cluster" style="margin-top:var(--sp-6)">
+      <a class="btn btn--lg" href="#components">See the components</a>
+      <button class="btn btn--ghost btn--lg" id="tourBtn">Cycle every subject</button>
+    </div>
+  </section>
+
+  <!-- TYPE -------------------------------------------------------------- -->
+  <section class="pv">
+    <div class="pv-h">
+      <div><p class="eyebrow">01 — Typography</p><h2 style="margin-top:var(--sp-3)">Three voices</h2></div>
+      <p class="pv-note">Fraunces is a variable face. The age band drives its own
+        <code>SOFT</code> and <code>WONK</code> axes, so one family covers playful primary
+        through austere A-Level. Switch the age band above and watch the headline reshape.</p>
+    </div>
+    <div class="stack" style="--flow:var(--sp-6)">
+      <div>
+        <p class="eyebrow">Display · Fraunces</p>
+        <p class="specimen" style="font-size:var(--step-4);font-variation-settings:'opsz' var(--opsz),'wght' 600,'SOFT' var(--soft),'WONK' var(--wonk);margin-top:var(--sp-3)">
+          Test the unknown samples
+        </p>
+      </div>
+      <div>
+        <p class="eyebrow">Interface · Public Sans</p>
+        <p style="font-size:var(--step-1);margin-top:var(--sp-3)">
+          Rainwater in a clean city sits near pH 5.6. Anything lower is acid rain —
+          and you are about to find out which of these five samples qualifies.
+        </p>
+      </div>
+      <div>
+        <p class="eyebrow">Data · JetBrains Mono</p>
+        <div class="cluster" style="margin-top:var(--sp-3);gap:var(--sp-6)">
+          <span class="readout">5.6<span class="readout__unit">pH</span></span>
+          <span class="readout">13<span class="readout__unit">tests</span></span>
+          <span class="readout">04:12<span class="readout__unit">elapsed</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLOUR ------------------------------------------------------------ -->
+  <section class="pv">
+    <div class="pv-h">
+      <div><p class="eyebrow">02 — Colour</p><h2 style="margin-top:var(--sp-3)">Six subjects, one set of roles</h2></div>
+      <p class="pv-note">Every subject redefines the same eight role tokens, so each
+        component works unchanged across all of them. No component ever hardcodes a colour.</p>
+    </div>
+    <div class="role-grid" id="roles"></div>
+  </section>
+
+  <!-- COMPONENTS -------------------------------------------------------- -->
+  <section class="pv" id="components">
+    <div class="pv-h">
+      <div><p class="eyebrow">03 — Components</p><h2 style="margin-top:var(--sp-3)">The shared kit</h2></div>
+      <p class="pv-note">Built once in the engine. Every activity assembles from these,
+        which is why activity forty looks as considered as activity one.</p>
+    </div>
+
+    <p class="eyebrow" style="margin-bottom:var(--sp-4)">Progress rail</p>
+    <div class="panel" style="margin-bottom:var(--sp-7)">
+      <nav class="rail" aria-label="Activity progress">
+        <button class="rail__step" data-state="done"><span class="rail__dot">&#10003;</span><span class="rail__label">Orient</span></button>
+        <button class="rail__step" data-state="done"><span class="rail__dot">&#10003;</span><span class="rail__label">Predict</span></button>
+        <button class="rail__step" data-state="current" aria-current="step"><span class="rail__dot"></span><span class="rail__label">Investigate</span></button>
+        <button class="rail__step"><span class="rail__dot"></span><span class="rail__label">Record</span></button>
+        <button class="rail__step"><span class="rail__dot"></span><span class="rail__label">Explain</span></button>
+        <button class="rail__step"><span class="rail__dot"></span><span class="rail__label">Apply</span></button>
+        <button class="rail__step"><span class="rail__dot"></span><span class="rail__label">Check</span></button>
+        <button class="rail__step"><span class="rail__dot"></span><span class="rail__label">Evidence</span></button>
+      </nav>
+    </div>
+
+    <p class="eyebrow" style="margin-bottom:var(--sp-4)">Navigation tiles</p>
+    <div class="grid-tiles" style="margin-bottom:var(--sp-7)">
+      <a class="tile" href="#components">
+        <span class="badge badge--live">Live</span>
+        <span class="tile__title">pH Investigation</span>
+        <span style="color:var(--ink-2);font-size:var(--step--1)">Identify unknown substances by their pH, then crack a mystery sample.</span>
+        <span class="tile__meta">ENV-M01-SIM01 · 6 questions · ~15 min</span>
+      </a>
+      <a class="tile" href="#components">
+        <span class="badge badge--live">Live</span>
+        <span class="tile__title">Quadrat Sampling</span>
+        <span style="color:var(--ink-2);font-size:var(--step--1)">Estimate a population you cannot count, from a field you cannot cross.</span>
+        <span class="tile__meta">ENV-M01-SIM02 · 7 questions · ~18 min</span>
+      </a>
+      <div class="tile" aria-disabled="true">
+        <span class="badge badge--soon">Coming soon</span>
+        <span class="tile__title">Carbon Budget</span>
+        <span style="color:var(--ink-2);font-size:var(--step--1)">Spend a nation's emissions allowance and live with the consequences.</span>
+        <span class="tile__meta">ENV-M02-SIM01</span>
+      </div>
+    </div>
+
+    <div class="two" style="margin-bottom:var(--sp-7)">
+      <div>
+        <p class="eyebrow" style="margin-bottom:var(--sp-4)">Question — auto-marked</p>
+        <div class="q">
+          <div class="cluster" style="justify-content:space-between;align-items:flex-start">
+            <p class="q__prompt">Which sample is most likely to be acid rain?</p>
+            <span class="q__marks">1 mark</span>
+          </div>
+          <div class="options">
+            <label class="option"><input type="radio" name="demoq"><span>Sample A — pH 7.0</span></label>
+            <label class="option" data-mark="correct"><input type="radio" name="demoq" checked><span>Sample B — pH 4.3</span></label>
+            <label class="option" data-mark="incorrect"><input type="radio" name="demoq"><span>Sample C — pH 8.1</span></label>
+          </div>
+          <div class="toast toast--correct anim-pop" style="margin-top:var(--sp-4)">
+            <span>Correct — below 5.6 means acid rain.</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:var(--sp-4)">Question — constructed response</p>
+        <div class="q">
+          <div class="cluster" style="justify-content:space-between;align-items:flex-start">
+            <p class="q__prompt">Explain how your evidence supports your conclusion.</p>
+            <span class="q__marks">3 marks</span>
+          </div>
+          <div class="field" style="margin-top:var(--sp-4)">
+            <label class="field__label sr-only" for="demota">Your answer</label>
+            <textarea class="textarea" id="demota" placeholder="Use at least two of your readings…"></textarea>
+            <p class="counter">0 / 600</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two" style="margin-bottom:var(--sp-7)">
+      <div>
+        <p class="eyebrow" style="margin-bottom:var(--sp-4)">Instrument panel</p>
+        <div class="panel">
+          <div class="cluster" style="justify-content:space-between;margin-bottom:var(--sp-4)">
+            <span class="readout">4.3<span class="readout__unit">pH</span></span>
+            <span class="score-chip">4 <span style="font-weight:400;font-size:.7em">/ 4</span></span>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <caption class="sr-only">Recorded sample readings</caption>
+              <thead><tr><th scope="col">Sample</th><th scope="col">pH</th><th scope="col">Class</th></tr></thead>
+              <tbody>
+                <tr><td>A — Tap water</td><td>7.0</td><td>Neutral</td></tr>
+                <tr><td>B — Rainwater</td><td>4.3</td><td>Acidic</td></tr>
+                <tr><td>C — Soap</td><td>8.1</td><td>Alkaline</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:var(--sp-4)">Rubric — visible to the student</p>
+        <div class="card">
+          <table class="rubric">
+            <thead><tr><th scope="col">Criterion</th><th scope="col">Marks</th></tr></thead>
+            <tbody>
+              <tr><td>Knowledge &amp; accuracy</td><td>4</td></tr>
+              <tr><td>Use of evidence</td><td>3</td></tr>
+              <tr><td>Reasoning</td><td>2</td></tr>
+              <tr><td>Communication</td><td>1</td></tr>
+              <tr><td><strong>Total</strong></td><td><strong>10</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-bottom:var(--sp-4)">Buttons, badges, feedback</p>
+    <div class="cluster" style="gap:var(--sp-4)">
+      <button class="btn">Run the test</button>
+      <button class="btn btn--signal">Generate Learning Evidence</button>
+      <button class="btn btn--ghost">Clear saved work</button>
+      <button class="btn" disabled>Locked until Predict</button>
+      <span class="badge badge--correct">Correct</span>
+      <span class="badge badge--incorrect">Try again</span>
+      <span class="streak">3 in a row</span>
+    </div>
+  </section>
+
+  <section class="pv" style="border-bottom:0">
+    <p class="eyebrow">Accessibility, built in at engine level</p>
+    <ul class="stack" style="--flow:var(--sp-2);margin-top:var(--sp-4);color:var(--ink-2);max-width:var(--measure)">
+      <li>— Every control reaches 44px and takes keyboard focus with one consistent ring.</li>
+      <li>— Correct/incorrect always carries a glyph, never colour alone.</li>
+      <li>— Four text sizes, five background tints, dyslexia-friendly face, reduced motion.</li>
+      <li>— Nothing in the system flashes or strobes. No animation exceeds 2Hz.</li>
+      <li>— Default ground is warm paper, never pure white.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+const THEMES = [
+  ["earth","Environmental Science"],["biology","Biology"],["spanish","Spanish"],
+  ["computing","Computer Skills"],["chemistry","Chemistry"],["physics","Physics"]
+];
+const BANDS = [["primary","Primary"],["lower-secondary","Lower Sec"],["secondary","Secondary"],["advanced","A-Level"]];
+const TINTS = [["paper","Paper"],["warm","Warm"],["cool","Cool"],["dusk","Dusk"],["dark","Dark"]];
+const ROLES = ["--paper","--surface","--surface-2","--ink","--ink-2","--accent","--signal","--positive","--negative","--caution"];
+const root = document.documentElement;
+
+function build(id, items, attr) {
+  const host = document.getElementById(id);
+  host.innerHTML = "";
+  items.forEach(([val, label]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-pressed", root.getAttribute(attr) === val);
+    if (id === "themes") {
+      b.className = "sw"; b.title = label;
+      b.setAttribute("aria-label", label);
+      const probe = document.createElement("div");
+      probe.setAttribute("data-theme", val); document.body.appendChild(probe);
+      const cs = getComputedStyle(probe);
+      b.style.background = `linear-gradient(135deg, ${cs.getPropertyValue("--accent")} 50%, ${cs.getPropertyValue("--signal")} 50%)`;
+      probe.remove();
+    } else { b.textContent = label; }
+    b.onclick = () => {
+      root.setAttribute(attr, val);
+      [...host.children].forEach(c => c.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      if (id === "themes") paintRoles();
+    };
+    host.appendChild(b);
+  });
+}
+function paintRoles() {
+  const cs = getComputedStyle(root);
+  document.getElementById("roles").innerHTML = ROLES.map(r => {
+    const v = cs.getPropertyValue(r).trim();
+    return `<div class="role"><div class="role__chip" style="background:${v}"></div>
+            <div class="role__name"><span>${r.replace("--","")}</span><span style="color:var(--ink-3)">${v}</span></div></div>`;
+  }).join("");
+}
+build("themes", THEMES, "data-theme");
+build("bands", BANDS, "data-age-band");
+build("tints", TINTS, "data-tint");
+paintRoles();
+
+document.getElementById("tourBtn").onclick = () => {
+  let i = 0;
+  const step = () => {
+    root.setAttribute("data-theme", THEMES[i][0]);
+    [...document.getElementById("themes").children].forEach((c, n) => c.setAttribute("aria-pressed", n === i));
+    paintRoles();
+    if (++i < THEMES.length) setTimeout(step, 850);
+  };
+  step();
+};
+
+const ta = document.getElementById("demota");
+ta.addEventListener("input", () => { ta.nextElementSibling.textContent = `${ta.value.length} / 600`; });
+</script>
+</body>
+</html>
