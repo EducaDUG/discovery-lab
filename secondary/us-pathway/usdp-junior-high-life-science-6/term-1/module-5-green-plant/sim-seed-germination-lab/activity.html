@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed Germination Lab — Discovery Lab</title>
+<meta name="description" content="Wake a sleeping seed: change the temperature, oxygen and light and discover what makes different seeds germinate.">
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=3">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%2316744F' stroke-width='4'/><circle cx='45' cy='22' r='7' fill='%239A6E05'/></svg>">
+<!-- Pre-apply saved reader settings before paint, so there is no flash. -->
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Activity-specific styling. Lives with the activity, never in the engine. ---- */
+.lab-grid{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:56rem){.lab-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:start;}}
+
+/* Instrument controls */
+.ctrl{display:flex;flex-direction:column;gap:var(--sp-2);}
+.ctrl__top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
+.ctrl__name{font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+.ctrl__val{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:700;font-size:var(--step-1);color:var(--ink);}
+.ctrl__val small{font-size:.6em;color:var(--ink-3);font-weight:500;margin-left:.15em;}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);height:1.5rem;}
+.ctrl__presets{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.chip-btn{font-family:var(--font-data);font-size:var(--step--1);padding:.25em .7em;border-radius:999px;
+  border:1px solid var(--line-strong);color:var(--ink-2);background:var(--paper);}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash);}
+.chip-btn[aria-pressed=true]{border-color:var(--accent);color:var(--accent-ink);background:var(--accent);}
+
+.water-chip{display:inline-flex;align-items:center;gap:var(--sp-2);font-family:var(--font-data);
+  font-size:var(--step--1);color:var(--positive);border:1px dashed var(--positive);border-radius:999px;padding:.3em .8em;}
+
+/* Species picker */
+.species{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);}
+.seed-card{position:relative;display:flex;flex-direction:column;gap:var(--sp-1);text-align:left;
+  padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);
+  transition:border-color var(--dur-fast) var(--ease),background-color var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease);}
+.seed-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.seed-card[aria-pressed=true]{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1px var(--accent);}
+.seed-card__row{display:flex;align-items:center;gap:var(--sp-2);}
+.seed-card__ico{width:26px;height:26px;flex:none;}
+.seed-card__name{font-weight:700;font-size:var(--step-0);}
+.seed-card__tag{font-family:var(--font-data);font-size:var(--step--1);color:var(--ink-3);}
+.seed-card__blurb{font-size:var(--step--1);color:var(--ink-2);}
+
+/* Chamber */
+.chamber{position:relative;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--line-strong);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));}
+.chamber__stage{width:100%;height:auto;display:block;}
+.chamber__hud{display:flex;flex-wrap:wrap;gap:var(--sp-3);padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--line);
+  background:var(--surface);}
+.hud__cell{display:flex;flex-direction:column;gap:1px;min-width:5.5rem;}
+.hud__k{font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.hud__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:700;font-size:var(--step-1);color:var(--ink);}
+.day-flag{position:absolute;top:var(--sp-3);left:var(--sp-3);font-family:var(--font-data);font-weight:700;
+  font-size:var(--step--1);letter-spacing:.06em;background:var(--ink);color:var(--paper);padding:.2em .7em;border-radius:999px;opacity:.9;}
+.result-note{margin-top:var(--sp-3);}
+.legend{display:flex;flex-wrap:wrap;gap:var(--sp-3);margin-top:var(--sp-3);font-size:var(--step--1);color:var(--ink-2);}
+.legend b{color:var(--ink);}
+
+/* Orient anatomy */
+.anat-grid{display:grid;gap:var(--sp-4);grid-template-columns:1fr;}
+@media(min-width:40rem){.anat-grid{grid-template-columns:1.1fr .9fr;align-items:start;}}
+.anat-svg{width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);}
+.def-list{display:flex;flex-direction:column;gap:var(--sp-2);}
+.def{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);padding:var(--sp-3);
+  background:var(--surface);transition:box-shadow var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease);}
+.def.is-active{border-left-color:var(--signal);box-shadow:var(--shadow-1);}
+.def__row{display:flex;align-items:center;gap:var(--sp-2);}
+.def__dot{width:.9rem;height:.9rem;border-radius:50%;flex:none;border:2px solid var(--paper);box-shadow:0 0 0 1px var(--line-strong);}
+.def__term{font-weight:700;}
+.def__body{font-size:var(--step--1);color:var(--ink-2);margin-top:var(--sp-1);}
+.anat-toggle{display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3);}
+.seq{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2);margin-top:var(--sp-4);}
+.seq__step{text-align:center;font-size:var(--step--1);color:var(--ink-2);}
+.seq__step svg{width:100%;height:auto;max-height:70px;}
+.seq__n{font-family:var(--font-data);color:var(--signal);font-weight:700;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <g stroke="currentColor" stroke-width="1.5" opacity=".45"><path d="M32 2v7M32 55v7M2 32h7M55 32h7"/></g>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">Life Science 6</a></li>
+      <li><a href="../../">Term 1</a></li>
+      <li><a href="../">Green Plant</a></li>
+      <li><span aria-current="page">Seed Germination Lab</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span>Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=3";
+
+/* ======================================================================
+   SEED GERMINATION MODEL  (deterministic, so results are reproducible)
+   ====================================================================== */
+const SPECIES = {
+  cress:   { key:"cress",   name:"Garden Cress", latin:"Lepidium sativum", cots:2, light:"neutral",
+             tMin:4,  tLo:15, tHi:24, tMax:32, o2Min:2, o2Sat:16, baseDays:2, vigor:0.98, color:"#4a8f3c",
+             blurb:"Fast and easy. Sprouts on damp cotton in a couple of warm days." },
+  lettuce: { key:"lettuce", name:"Lettuce", latin:"Lactuca sativa", cots:2, light:"required",
+             tMin:2,  tLo:8,  tHi:18, tMax:26, o2Min:2, o2Sat:16, baseDays:3, vigor:0.95, color:"#6aa84f",
+             blurb:"A cool-weather seed that needs a flash of light to wake up." },
+  mung:    { key:"mung",    name:"Mung Bean", latin:"Vigna radiata", cots:2, light:"neutral",
+             tMin:12, tLo:25, tHi:34, tMax:42, o2Min:5, o2Sat:21, baseDays:3, vigor:0.97, color:"#3f7a34",
+             blurb:"Warm-loving bean with big, hungry cotyledons that need plenty of air." },
+  onion:   { key:"onion",   name:"Onion", latin:"Allium cepa", cots:1, light:"dark",
+             tMin:2,  tLo:10, tHi:22, tMax:30, o2Min:2, o2Sat:17, baseDays:5, vigor:0.90, color:"#5f8c7a",
+             blurb:"Slow and cool, with a single seed-leaf. Germinates best in the dark." },
+};
+
+const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp  = (a,b,t)=>a+(b-a)*t;
+const smooth= (a,b,x)=>{ const t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
+
+function fTemp(sp,T){ if(T<=sp.tMin||T>=sp.tMax)return 0; if(T<sp.tLo)return (T-sp.tMin)/(sp.tLo-sp.tMin); if(T>sp.tHi)return (sp.tMax-T)/(sp.tMax-sp.tHi); return 1; }
+function fO2(sp,o2){ if(o2<=sp.o2Min)return 0; return clamp((o2-sp.o2Min)/(sp.o2Sat-sp.o2Min),0,1); }
+function fLight(sp,L){ if(sp.light==="neutral")return 1; if(sp.light==="required")return 0.12+0.88*clamp(L/4,0,1); return 1-0.55*clamp(L/12,0,1); }
+
+function outcome(sp,T,o2,L){
+  const ft=fTemp(sp,T), fo=fO2(sp,o2), fl=fLight(sp,L);
+  const germ=Math.round(100*sp.vigor*ft*fo*fl);
+  let days=null;
+  if(germ>5){ days=Math.round(sp.baseDays*(1+(1-ft)*1.8+(1-fo)*0.8)); days=Math.round(clamp(days,sp.baseDays,14)); }
+  let limit="ok";
+  if(fo===0) limit="oxygen0";
+  else if(ft===0) limit=(T<=sp.tMin?"cold":"hot");
+  else if(sp.light==="required"&&fl<0.45) limit="needlight";
+  else{
+    const m=Math.min(ft,fo,fl);
+    if(m>0.75) limit="ok";
+    else if(m===ft) limit=(T<sp.tLo?"coolish":"warmish");
+    else if(m===fo) limit="lowoxygen";
+    else limit=(sp.light==="dark"?"toolight":"dim");
+  }
+  return {germ,days,ft,fo,fl,limit};
+}
+
+const FEEDBACK = {
+  ok:        "Great conditions — water, warmth and oxygen. The embryo respired, split the seed coat and grew.",
+  oxygen0:   "No oxygen, no germination. Without oxygen the seed cannot respire, so it has no energy to grow.",
+  lowoxygen: "A bit short of oxygen. Respiration slowed down, so fewer seeds sprouted and more slowly.",
+  cold:      "Too cold. The seed stayed dormant — reactions inside were far too slow to start growth.",
+  coolish:   "A little cool for this seed. It still worked, but slowly.",
+  hot:       "Too hot. Above this seed's range the heat blocks germination.",
+  warmish:   "Slightly too warm for this seed, so germination dropped.",
+  needlight: "This seed needs light to break dormancy, and it was too dark. Most seeds do not — but this one does.",
+  dim:       "This seed wanted more light than it got.",
+  toolight:  "This seed prefers the dark. Bright light held some of it back.",
+};
+
+/* ======================================================================
+   SMALL SVG HELPERS
+   ====================================================================== */
+const NS="http://www.w3.org/2000/svg";
+function svgEl(name,attrs){ const n=document.createElementNS(NS,name); if(attrs) for(const k in attrs) n.setAttribute(k,attrs[k]); return n; }
+function seedIcon(sp){
+  // little coloured seed glyph for the picker
+  return `<svg class="seed-card__ico" viewBox="0 0 24 24" aria-hidden="true">
+    <ellipse cx="12" cy="13" rx="7" ry="9" fill="${sp.color}" opacity=".85"/>
+    <path d="M12 13c-3 0-4-3-4-6" fill="none" stroke="#fff" stroke-width="1.4" opacity=".7" stroke-linecap="round"/>
+  </svg>`;
+}
+
+/* ======================================================================
+   THE ACTIVITY: orient teaching diagram + investigate chamber
+   ====================================================================== */
+let sim = null;               // engine hands this to us
+const stats = { temps:new Set(), o2s:new Set(), lights:new Set(), species:new Set(), lowO2Fail:false, bestGerm:0 };
+
+const simulation = {
+  /* ---------- ORIENT: seed anatomy the student can read on their own ---- */
+  orient(host){
+    host.innerHTML = "";
+    const intro = document.createElement("p");
+    intro.className = "q__hint";
+    intro.textContent = "Cut a seed in half and you find a whole baby plant with its lunch packed. Learn the four parts — you will spot them growing in the lab.";
+    host.append(intro);
+
+    const toggle = document.createElement("div");
+    toggle.className = "anat-toggle";
+    const btnBean = mkChip("Bean — 2 seed leaves", true);
+    const btnOnion= mkChip("Onion — 1 seed leaf", false);
+    toggle.append(btnBean, btnOnion);
+    host.append(toggle);
+
+    const grid = document.createElement("div"); grid.className="anat-grid";
+    const svgWrap = document.createElement("div");
+    grid.append(svgWrap);
+
+    const defs = document.createElement("div");
+    defs.className="def-list";
+    const DEF = [
+      ["seedcoat","Seed coat","#8a5a2b","The tough outer skin. It protects the seed and keeps it from drying out until it is time to grow."],
+      ["embryo","Embryo","#b8420e","The tiny baby plant itself. It has a root end and a shoot end, ready to grow when the seed wakes up."],
+      ["cotyledon","Cotyledon","#3f7a34","The seed leaf, or food store. It feeds the young plant before it can make its own food. A bean has two; an onion has one."],
+      ["firstleaf","First leaf","#1E8C60","The first true leaf that opens after the cotyledons. From now on the plant makes its own food using light — photosynthesis."],
+    ];
+    const defNodes={};
+    DEF.forEach(([id,term,color,body])=>{
+      const d=document.createElement("div"); d.className="def"; d.dataset.part=id; d.tabIndex=0; d.setAttribute("role","button");
+      const row=document.createElement("div"); row.className="def__row";
+      const dot=document.createElement("span"); dot.className="def__dot"; dot.style.background=color;
+      const term_=document.createElement("span"); term_.className="def__term"; term_.textContent=term;
+      row.append(dot,term_);
+      if(sim && sim.ttsEnabled && sim.ttsEnabled()) row.append(sim.speaker(()=>`${term}. ${body}`));
+      const b=document.createElement("p"); b.className="def__body"; b.textContent=body;
+      d.append(row,b);
+      const focus=()=>setPart(id);
+      d.addEventListener("mouseenter",focus); d.addEventListener("focus",focus); d.addEventListener("click",focus);
+      defs.append(d); defNodes[id]=d;
+    });
+    grid.append(defs);
+    host.append(grid);
+
+    // germination sequence strip
+    const seq=document.createElement("div"); seq.className="seq";
+    const STEPS=[
+      ["1","Seed coat splits","M20 40 q12 -22 24 0 q-12 8 -24 0","coat"],
+      ["2","Root pushes down",null,"root"],
+      ["3","Cotyledons rise",null,"cot"],
+      ["4","First leaf opens",null,"leaf"],
+    ];
+    STEPS.forEach(([n,label,,kind])=>{
+      const s=document.createElement("div"); s.className="seq__step";
+      s.innerHTML = seqIcon(kind) + `<div><span class="seq__n">${n}</span> ${label}</div>`;
+      seq.append(s);
+    });
+    host.append(seq);
+
+    let current="bean";
+    function render(){
+      svgWrap.innerHTML = current==="bean" ? beanSVG() : onionSVG();
+      // wire hotspot clicks in the svg
+      svgWrap.querySelectorAll("[data-part]").forEach(elp=>{
+        const id=elp.getAttribute("data-part");
+        elp.style.cursor="pointer";
+        elp.addEventListener("mouseenter",()=>setPart(id));
+        elp.addEventListener("click",()=>setPart(id));
+      });
+    }
+    function setPart(id){
+      Object.values(defNodes).forEach(n=>n.classList.remove("is-active"));
+      if(defNodes[id]) defNodes[id].classList.add("is-active");
+      svgWrap.querySelectorAll("[data-hl]").forEach(h=>{ h.setAttribute("opacity", h.getAttribute("data-part")===id?"1":"0"); });
+    }
+    btnBean.addEventListener("click",()=>{ current="bean"; btnBean.setAttribute("aria-pressed","true"); btnOnion.setAttribute("aria-pressed","false"); render(); });
+    btnOnion.addEventListener("click",()=>{ current="onion"; btnOnion.setAttribute("aria-pressed","true"); btnBean.setAttribute("aria-pressed","false"); render(); });
+    render();
+  },
+
+  /* ---------- INVESTIGATE: the germination chamber --------------------- */
+  investigate(host, api){
+    sim = api;
+    host.innerHTML="";
+    const grid=document.createElement("div"); grid.className="lab-grid";
+
+    /* --- left: controls --- */
+    const controls=document.createElement("div"); controls.className="panel stack"; controls.style.setProperty("--flow","var(--sp-5)");
+    const cHead=document.createElement("div");
+    cHead.innerHTML=`<p class="eyebrow">Set up your trial</p>`;
+    controls.append(cHead);
+
+    // species
+    const specWrap=document.createElement("div");
+    specWrap.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">1 · Choose a seed</p>`;
+    const spec=document.createElement("div"); spec.className="species"; spec.setAttribute("role","group"); spec.setAttribute("aria-label","Choose a seed");
+    let chosen="cress";
+    const cards={};
+    Object.values(SPECIES).forEach(sp=>{
+      const c=document.createElement("button"); c.type="button"; c.className="seed-card"; c.setAttribute("aria-pressed", sp.key===chosen?"true":"false");
+      c.innerHTML=`<div class="seed-card__row">${seedIcon(sp)}<span class="seed-card__name">${sp.name}</span></div>
+        <span class="seed-card__tag">${sp.cots===1?"1 cotyledon (monocot)":"2 cotyledons (dicot)"}</span>
+        <span class="seed-card__blurb">${sp.blurb}</span>`;
+      c.addEventListener("click",()=>{ chosen=sp.key; Object.values(cards).forEach(x=>x.setAttribute("aria-pressed","false")); c.setAttribute("aria-pressed","true"); resetStage(); });
+      cards[sp.key]=c; spec.append(c);
+    });
+    specWrap.append(spec); controls.append(specWrap);
+
+    // temperature
+    const temp=slider("2 · Temperature","°C",0,45,1,20,[["Fridge 4°",4],["Room 20°",20],["Hot 35°",35]]);
+    controls.append(temp.node);
+    // oxygen
+    const oxy=slider("3 · Oxygen in the air","%",0,25,1,21,[["Sealed jar 1%",1],["Normal air 21%",21]]);
+    controls.append(oxy.node);
+    // light
+    const light=slider("4 · Light each day","h",0,24,1,12,[["Dark 0h",0],["Windowsill 12h",12],["Bright 24h",24]]);
+    controls.append(light.node);
+
+    // water constant
+    const waterRow=document.createElement("div");
+    waterRow.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">5 · Water</p>`;
+    const wchip=document.createElement("span"); wchip.className="water-chip";
+    wchip.innerHTML=`<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" fill="currentColor"/></svg> Provided — kept the same every trial`;
+    waterRow.append(wchip);
+    const wnote=document.createElement("p"); wnote.className="q__hint"; wnote.style.marginTop="var(--sp-2)";
+    wnote.textContent="Water is the control — we keep it constant so any change you see is caused by the factor you changed.";
+    waterRow.append(wnote);
+    controls.append(waterRow);
+
+    // incubate button
+    const runBtn=document.createElement("button"); runBtn.className="btn btn--lg btn--signal"; runBtn.type="button";
+    runBtn.textContent="Incubate this seed →";
+    controls.append(runBtn);
+
+    grid.append(controls);
+
+    /* --- right: chamber --- */
+    const right=document.createElement("div"); right.className="stack"; right.style.setProperty("--flow","var(--sp-4)");
+    const chamber=document.createElement("div"); chamber.className="chamber";
+    const dayFlag=document.createElement("div"); dayFlag.className="day-flag"; dayFlag.textContent="Day 0";
+    const stageSVG=svgEl("svg",{class:"chamber__stage",viewBox:"0 0 340 300","aria-label":"Germination chamber"});
+    chamber.append(dayFlag, stageSVG);
+    const hud=document.createElement("div"); hud.className="chamber__hud";
+    const hudGerm=hudCell("Germinated","—"); const hudDays=hudCell("Days to sprout","—"); const hudStage=hudCell("Reached","—");
+    hud.append(hudGerm.node,hudDays.node,hudStage.node);
+    chamber.append(hud);
+    right.append(chamber);
+
+    const legend=document.createElement("div"); legend.className="legend";
+    legend.innerHTML=`Watch for: <b>seed coat</b> splitting · the <b>root</b> from the embryo · the <b>cotyledon(s)</b> · the <b>first leaf</b>.`;
+    right.append(legend);
+
+    const note=document.createElement("div"); note.className="result-note"; note.id="sim-note";
+    right.append(note);
+    grid.append(right);
+    host.append(grid);
+
+    // build the seedling scene once
+    const scene=buildScene(stageSVG);
+
+    let running=false;
+    function resetStage(){ if(running)return; scene.set(0,SPECIES[chosen],0); dayFlag.textContent="Day 0"; hudGerm.set("—"); hudDays.set("—"); hudStage.set("—"); note.innerHTML=""; }
+    resetStage();
+
+    function incubate(){
+      if(running) return;
+      const sp=SPECIES[chosen];
+      const T=temp.value(), o2=oxy.value(), L=light.value();
+      const res=outcome(sp,T,o2,L);
+      running=true; runBtn.disabled=true; setControls(false);
+      note.innerHTML="";
+
+      // target progress from the result: always show the full labelled sequence when it germinates well
+      const finalP = res.germ<=5 ? 0.12
+                   : res.germ<25 ? 0.45
+                   : res.germ<60 ? 0.72
+                   : 0.86 + 0.14*clamp((res.germ-60)/40,0,1);
+      const totalDays = res.days || 10;
+      const reduced = document.documentElement.getAttribute("data-reduced-motion")==="on";
+
+      let done=false;
+      const complete=()=>{ if(done)return; done=true; finish(sp,T,o2,L,res,finalP); };
+
+      if(reduced){ scene.set(finalP,sp,res.germ); dayFlag.textContent="Day "+totalDays; complete(); return; }
+
+      const dur=1900, t0=performance.now();
+      function frame(now){
+        const t = clamp((now-t0)/dur,0,1);
+        scene.set(finalP*smooth(0,1,t), sp, res.germ);
+        dayFlag.textContent = "Day "+Math.round(lerp(0,totalDays,t));
+        if(t<1 && !done){ requestAnimationFrame(frame); } else { complete(); }
+      }
+      requestAnimationFrame(frame);
+      // Safety net: if rAF is throttled (e.g. the tab is in the background),
+      // still finish the trial so the student never returns to a stuck button.
+      setTimeout(complete, dur+500);
+    }
+
+    function finish(sp,T,o2,L,res,finalP){
+      scene.set(finalP,sp,res.germ);
+      hudGerm.set(res.germ+"%");
+      hudDays.set(res.days? res.days : "—");
+      hudStage.set(res.germ<=5?"Dormant": res.germ<25?"Root only": res.germ<60?"Cotyledons": "First leaf");
+      dayFlag.textContent = "Day "+(res.days||10);
+
+      // record trial
+      sim.recordTrial({ seed:sp.name, tempC:T, o2:o2, lightH:L, germPct:res.germ, days: res.days!=null?res.days:"—" });
+
+      // feedback note
+      const kind = res.germ>=70?"toast--correct": res.germ<=5?"toast--incorrect":"toast--info";
+      const box=document.createElement("div"); box.className="toast "+kind+" anim-pop";
+      const msg = FEEDBACK[res.limit] || "Trial complete.";
+      box.textContent = (res.germ>=70?"Success! ":res.germ<=5?"No growth. ":"Partial. ")+msg;
+      note.append(box);
+      if(sim.ttsEnabled && sim.ttsEnabled()) sim.speak(box.textContent);
+
+      // stats + discoveries
+      stats.temps.add(T); stats.o2s.add(o2); stats.lights.add(L); stats.species.add(sp.key);
+      stats.bestGerm=Math.max(stats.bestGerm,res.germ);
+      if(o2<=3 && res.germ===0) stats.lowO2Fail=true;
+      sim.setResult("best_germination", stats.bestGerm);
+      sim.setResult("species_tested", [...stats.species]);
+      sim.mark("varied_temperature", stats.temps.size>=2);
+      sim.mark("varied_oxygen", stats.o2s.size>=2);
+      sim.mark("varied_light", stats.lights.size>=2);
+      sim.mark("proved_oxygen_needed", stats.lowO2Fail);
+
+      if(res.germ>=70) sim.award("green-thumb","First sprout 🌱");
+      if(o2<=3 && res.germ===0) sim.award("suffocation","Proved seeds need oxygen");
+      if(sp.key==="lettuce" && L>=4 && res.germ>=70) sim.award("light-seeker","Cracked the lettuce light code");
+      if(sp.key==="onion" && L<=2 && res.germ>=70) sim.award("night-owl","Onion loves the dark");
+      if(res.germ>=95) sim.award("goldilocks","Found the perfect conditions");
+      if(stats.species.size>=4) sim.award("botanist","Tested every seed");
+
+      running=false; runBtn.disabled=false; setControls(true);
+    }
+
+    function setControls(on){
+      [temp,oxy,light].forEach(s=>s.setEnabled(on));
+      Object.values(cards).forEach(c=>c.disabled=!on);
+    }
+    runBtn.addEventListener("click", incubate);
+  }
+};
+
+/* ---------- reusable control builders ---------- */
+function mkChip(label,pressed){ const b=document.createElement("button"); b.type="button"; b.className="chip-btn"; b.textContent=label; b.setAttribute("aria-pressed",pressed?"true":"false"); return b; }
+function hudCell(k,v){ const node=document.createElement("div"); node.className="hud__cell"; const kk=document.createElement("span"); kk.className="hud__k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="hud__v"; vv.textContent=v; node.append(kk,vv); return {node,set:x=>vv.textContent=x}; }
+
+function slider(name,unit,min,max,step,def,presets){
+  const node=document.createElement("div"); node.className="ctrl";
+  const top=document.createElement("div"); top.className="ctrl__top";
+  const nm=document.createElement("span"); nm.className="ctrl__name"; nm.textContent=name;
+  const val=document.createElement("span"); val.className="ctrl__val"; val.innerHTML=`${def}<small>${unit}</small>`;
+  top.append(nm,val);
+  const input=document.createElement("input"); input.type="range"; input.min=min; input.max=max; input.step=step; input.value=def;
+  input.setAttribute("aria-label",name+" in "+unit);
+  input.addEventListener("input",()=>{ val.innerHTML=`${input.value}<small>${unit}</small>`; syncPresets(); });
+  const pre=document.createElement("div"); pre.className="ctrl__presets";
+  const preBtns=[];
+  (presets||[]).forEach(([lbl,v])=>{ const b=mkChip(lbl, Number(v)===def); b.addEventListener("click",()=>{ input.value=v; input.dispatchEvent(new Event("input")); }); pre.append(b); preBtns.push([b,v]); });
+  function syncPresets(){ preBtns.forEach(([b,v])=>b.setAttribute("aria-pressed", Number(input.value)===Number(v)?"true":"false")); }
+  node.append(top,input,pre);
+  return { node, value:()=>Number(input.value), setEnabled:on=>{ input.disabled=!on; preBtns.forEach(([b])=>b.disabled=!on); } };
+}
+
+/* ======================================================================
+   THE GROWING SEEDLING  (parametric SVG, redrawn each frame)
+   ====================================================================== */
+function buildScene(svg){
+  svg.innerHTML="";
+  // background: chamber + soil
+  const bg=svgEl("g");
+  bg.append(svgEl("rect",{x:0,y:0,width:340,height:300,fill:"var(--surface)"}));
+  // sky glass
+  bg.append(svgEl("rect",{x:14,y:14,width:312,height:176,rx:10,fill:"var(--paper)",stroke:"var(--line-strong)"}));
+  // soil
+  const soil=svgEl("path",{d:"M14 190 h312 v86 a10 10 0 0 1 -10 10 H24 a10 10 0 0 1 -10 -10 Z",fill:"var(--surface-2)",stroke:"var(--line-strong)"});
+  bg.append(soil);
+  bg.append(svgEl("line",{x1:14,y1:190,x2:326,y2:190,stroke:"var(--line-strong)","stroke-dasharray":"3 4"}));
+  // glass reflection
+  const refl=svgEl("path",{d:"M40 22 L70 22 L48 150 L30 150 Z",fill:"#ffffff",opacity:".18"});
+  bg.append(refl);
+  // sun/lamp glow marker
+  svg.append(bg);
+
+  const plant=svgEl("g"); svg.append(plant);
+  const root=svgEl("path",{fill:"none",stroke:"#c9a26b","stroke-width":3,"stroke-linecap":"round"});
+  const rootL=svgEl("path",{fill:"none",stroke:"#c9a26b","stroke-width":2,"stroke-linecap":"round",opacity:0});
+  const stem=svgEl("path",{fill:"none",stroke:"#3f7a34","stroke-width":4,"stroke-linecap":"round"});
+  const cotL=svgEl("path",{fill:"#7bb661",stroke:"#3f7a34","stroke-width":1.5,opacity:0});
+  const cotR=svgEl("path",{fill:"#7bb661",stroke:"#3f7a34","stroke-width":1.5,opacity:0});
+  const leaf=svgEl("path",{fill:"#1E8C60",stroke:"#12613f","stroke-width":1.5,opacity:0});
+  const seed=svgEl("ellipse",{rx:14,ry:10,fill:"#b98a4b",stroke:"#7a5a2b","stroke-width":2});
+  const crack=svgEl("path",{fill:"none",stroke:"#5c3b16","stroke-width":1.6,opacity:0,"stroke-linecap":"round"});
+  plant.append(root,rootL,stem,cotL,cotR,leaf,seed,crack);
+
+  // labels
+  const labels=svgEl("g",{"font-family":"var(--font-data)","font-size":"10",fill:"var(--ink-2)"});
+  const lbl=(id)=>{ const g=svgEl("g",{opacity:0}); const line=svgEl("line",{stroke:"var(--line-strong)","stroke-width":1}); const t=svgEl("text",{}); g.append(line,t); g.dataset&&(g.dataset.id=id); labels.append(g); return {g,line,t}; };
+  const lCoat=lbl("coat"), lRoot=lbl("root"), lCot=lbl("cot"), lLeaf=lbl("leaf");
+  lCoat.t.textContent="seed coat"; lRoot.t.textContent="root (embryo)"; lCot.t.textContent="cotyledon"; lLeaf.t.textContent="first leaf";
+  svg.append(labels);
+
+  const cx=170, cy=190;
+
+  function set(p, sp, germ){
+    const failed = germ<=5;
+    const monocot = sp.cots===1;
+    // seed
+    seed.setAttribute("cx",cx); seed.setAttribute("cy",cy);
+    seed.setAttribute("fill", failed?"#b0a58e":"#b98a4b");
+    // crack
+    crack.setAttribute("d",`M${cx-9} ${cy-2} q9 -6 18 0`);
+    crack.setAttribute("opacity", smooth(0.06,0.2,p));
+    // root down
+    const rl = smooth(0.12,0.5,p)* (failed?0:66);
+    root.setAttribute("d",`M${cx} ${cy+6} q -6 ${rl*0.4} 0 ${rl}`);
+    root.setAttribute("opacity", rl>1?1:0);
+    const showLat = rl>34;
+    rootL.setAttribute("d",`M${cx} ${cy+6+rl*0.7} q -14 6 -20 20 M${cx} ${cy+6+rl*0.7} q 14 6 20 20`);
+    rootL.setAttribute("opacity", showLat?0.9:0);
+    // stem up
+    const sh = smooth(0.40,0.74,p)*(failed?0:78);
+    const topY = cy-6-sh;
+    stem.setAttribute("d",`M${cx} ${cy-4} q 4 ${-sh*0.5} 0 ${-sh}`);
+    stem.setAttribute("opacity", sh>1?1:0);
+    // cotyledons
+    const co = smooth(0.52,0.8,p);
+    if(monocot){
+      // single upright blade
+      const bl=co*46;
+      cotL.setAttribute("d",`M${cx} ${topY} q 10 ${-bl*0.7} 4 ${-bl}`);
+      cotL.setAttribute("fill","none"); cotL.setAttribute("stroke","#5f8c7a"); cotL.setAttribute("stroke-width",5);
+      cotL.setAttribute("stroke-linecap","round");
+      cotL.setAttribute("opacity", co>0.05?1:0);
+      cotR.setAttribute("opacity",0);
+    } else {
+      cotL.setAttribute("fill","#7bb661"); cotL.setAttribute("stroke","#3f7a34"); cotL.setAttribute("stroke-width",1.5);
+      const s=6+co*13;
+      cotL.setAttribute("d",`M${cx} ${topY} q ${-s} ${-s*0.5} ${-s*1.5} ${-2} q ${s*0.6} ${s*0.5} ${s*1.5} 2 Z`);
+      cotR.setAttribute("d",`M${cx} ${topY} q ${s} ${-s*0.5} ${s*1.5} ${-2} q ${-s*0.6} ${s*0.5} ${-s*1.5} 2 Z`);
+      cotL.setAttribute("opacity", co>0.05?1:0); cotR.setAttribute("opacity", co>0.05?1:0);
+    }
+    // first leaf
+    const fl=smooth(0.80,1,p);
+    const ls=fl*13;
+    leaf.setAttribute("d",`M${cx} ${topY-4} q ${-ls} ${-ls*0.7} 0 ${-ls*1.7} q ${ls} ${ls} 0 ${ls*1.7} Z`);
+    leaf.setAttribute("opacity", fl>0.05 && !monocot?1: (fl>0.05&&monocot?0.9:0));
+
+    // labels
+    place(lCoat, cx+18, cy, 250, cy, smooth(0.06,0.22,p));
+    place(lRoot, cx-16, cy+6+rl, 40, cy+40, rl>10?smooth(0.2,0.4,p):0);
+    place(lCot, monocot?cx+6:cx+16, topY-4, 250, topY, co>0.15?1:0);
+    place(lLeaf, cx-2, topY-4-ls*1.4, 40, topY-30, fl>0.15?1:0);
+  }
+  function place(L, x1,y1, x2,y2, op){
+    L.g.setAttribute("opacity", op);
+    L.line.setAttribute("x1",x2); L.line.setAttribute("y1",y2); L.line.setAttribute("x2",x1); L.line.setAttribute("y2",y1);
+    const leftSide = x2<x1;
+    L.t.setAttribute("x", x2 + (leftSide?-2:2));
+    L.t.setAttribute("y", y2-4);
+    L.t.setAttribute("text-anchor", leftSide?"end":"start");
+  }
+  return { set };
+}
+
+/* ======================================================================
+   ORIENT SVG DIAGRAMS (bean = dicot, onion = monocot)
+   ====================================================================== */
+function beanSVG(){
+  return `<svg class="anat-svg" viewBox="0 0 320 240" role="img" aria-label="Cross-section of a bean seed">
+    <rect width="320" height="240" fill="var(--paper)"/>
+    <!-- highlight layers (shown when a term is selected) -->
+    <ellipse data-hl data-part="seedcoat" cx="150" cy="120" rx="104" ry="80" fill="#8a5a2b" opacity="0"/>
+    <path data-hl data-part="cotyledon" d="M150 44 q86 0 92 76 q-6 76 -92 76 q-30 -76 0 -152 Z" fill="#3f7a34" opacity="0"/>
+    <path data-hl data-part="embryo" d="M150 44 q-30 76 0 152 q-40 -6 -46 -76 q6 -70 46 -76 Z" fill="#b8420e" opacity="0"/>
+    <!-- seed coat -->
+    <ellipse data-part="seedcoat" cx="150" cy="120" rx="104" ry="80" fill="#e8d4b0" stroke="#8a5a2b" stroke-width="4"/>
+    <!-- cotyledon (big food store) -->
+    <path data-part="cotyledon" d="M150 48 q80 4 86 72 q-6 68 -86 72 q-26 -72 0 -144 Z" fill="#cfe3b8" stroke="#3f7a34" stroke-width="2.5"/>
+    <!-- embryo: radicle + plumule along the curve -->
+    <path data-part="embryo" d="M150 52 C120 90 120 150 150 188" fill="none" stroke="#b8420e" stroke-width="7" stroke-linecap="round"/>
+    <circle data-part="embryo" cx="150" cy="188" r="9" fill="#b8420e"/>
+    <path data-part="embryo" d="M150 52 q-10 -12 -22 -12" fill="none" stroke="#b8420e" stroke-width="5" stroke-linecap="round"/>
+    <!-- hilum -->
+    <ellipse cx="54" cy="120" rx="5" ry="10" fill="#7a5a2b"/>
+    <!-- labels -->
+    <g font-family="var(--font-data)" font-size="12" fill="var(--ink-2)">
+      <line x1="250" y1="60" x2="215" y2="86" stroke="var(--line-strong)"/><text x="254" y="60">seed coat</text>
+      <line x1="250" y1="120" x2="196" y2="120" stroke="var(--line-strong)"/><text x="254" y="122">cotyledon</text>
+      <line x1="150" y1="212" x2="150" y2="196" stroke="var(--line-strong)"/><text x="150" y="228" text-anchor="middle">embryo (baby plant)</text>
+      <line x1="26" y1="120" x2="49" y2="120" stroke="var(--line-strong)"/><text x="24" y="122" text-anchor="end">hilum</text>
+    </g>
+    <text x="150" y="24" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--ink)">Bean seed — two cotyledons (a dicot)</text>
+  </svg>`;
+}
+function onionSVG(){
+  return `<svg class="anat-svg" viewBox="0 0 320 240" role="img" aria-label="Cross-section of an onion seed">
+    <rect width="320" height="240" fill="var(--paper)"/>
+    <path data-hl data-part="seedcoat" d="M150 40 C90 60 80 180 150 200 C150 150 150 90 150 40 Z" fill="#8a5a2b" opacity="0"/>
+    <path data-hl data-part="cotyledon" d="M150 56 C110 74 104 166 150 184 Z" fill="#3f7a34" opacity="0"/>
+    <circle data-hl data-part="embryo" cx="150" cy="184" r="12" fill="#b8420e" opacity="0"/>
+    <!-- curved onion seed -->
+    <path data-part="seedcoat" d="M150 40 C86 60 78 182 150 202 C158 150 158 92 150 40 Z" fill="#2b2b2f" stroke="#111" stroke-width="3"/>
+    <!-- endosperm food store -->
+    <path d="M150 52 C104 70 98 172 150 190 C154 148 154 96 150 52 Z" fill="#efe4c6" stroke="#b39b5e" stroke-width="1.5" opacity=".9"/>
+    <!-- single curled cotyledon -->
+    <path data-part="cotyledon" d="M150 58 C116 76 112 160 148 182" fill="none" stroke="#5f8c7a" stroke-width="7" stroke-linecap="round"/>
+    <!-- embryo tip -->
+    <circle data-part="embryo" cx="148" cy="182" r="8" fill="#b8420e"/>
+    <g font-family="var(--font-data)" font-size="12" fill="var(--ink-2)">
+      <line x1="250" y1="70" x2="150" y2="70" stroke="var(--line-strong)"/><text x="254" y="72">seed coat</text>
+      <line x1="250" y1="120" x2="132" y2="120" stroke="var(--line-strong)"/><text x="254" y="122">cotyledon (just one)</text>
+      <line x1="250" y1="182" x2="156" y2="182" stroke="var(--line-strong)"/><text x="254" y="184">embryo</text>
+    </g>
+    <text x="150" y="24" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--ink)">Onion seed — one cotyledon (a monocot)</text>
+  </svg>`;
+}
+function seqIcon(kind){
+  const base='<svg viewBox="0 0 60 70" aria-hidden="true"><rect x="4" y="44" width="52" height="22" rx="4" fill="var(--surface-2)" stroke="var(--line-strong)"/>';
+  if(kind==="coat") return base+'<ellipse cx="30" cy="44" rx="12" ry="8" fill="#b98a4b" stroke="#7a5a2b" stroke-width="1.5"/><path d="M22 42 q8 -5 16 0" fill="none" stroke="#5c3b16" stroke-width="1.4"/></svg>';
+  if(kind==="root") return base+'<ellipse cx="30" cy="44" rx="11" ry="7" fill="#b98a4b" stroke="#7a5a2b" stroke-width="1.5"/><path d="M30 48 q-4 10 0 18" fill="none" stroke="#c9a26b" stroke-width="2.5" stroke-linecap="round"/></svg>';
+  if(kind==="cot") return base+'<path d="M30 44 V26" stroke="#3f7a34" stroke-width="3" fill="none"/><path d="M30 28 q-12 -4 -16 -12 q10 0 16 8Z" fill="#7bb661" stroke="#3f7a34"/><path d="M30 28 q12 -4 16 -12 q-10 0 -16 8Z" fill="#7bb661" stroke="#3f7a34"/></svg>';
+  return base+'<path d="M30 44 V20" stroke="#3f7a34" stroke-width="3" fill="none"/><path d="M30 26 q-12 -4 -16 -12 q10 0 16 8Z" fill="#7bb661" stroke="#3f7a34"/><path d="M30 26 q12 -4 16 -12 q-10 0 -16 8Z" fill="#7bb661" stroke="#3f7a34"/><path d="M30 20 q-9 -4 0 -14 q9 10 0 14Z" fill="#1E8C60" stroke="#12613f"/></svg>';
+}
+
+/* ---- go ---- */
+mountActivity({ simulation }).catch(e=>{
+  console.error("Discovery Lab activity failed to start:", e);
+  const r=document.getElementById("lab-root");
+  if(r) r.innerHTML='<p class="nav-empty">Something went wrong starting this lab. Please refresh the page.</p>';
+});
+</script>
+</body>
+</html>

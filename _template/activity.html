@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!--
+  KNOWN-GOOD ACTIVITY SKELETON  (see CLAUDE.md sections 10-11)
+
+  To make a new activity:
+   1. Copy this whole _template/ folder into its place in the tree.
+   2. FIX THE RELATIVE DEPTH: every "../" below must climb from the activity's
+      folder back to the repo root. This template sits one level down, so it uses
+      "../". An activity six levels deep uses "../../../../../../". Update the
+      <link>, the <script> import, the wordmark/footer/breadcrumb links.
+   3. Fill in config.json (content, questions, rubric, marking).
+   4. Replace the simulation below (orient + investigate) with your own.
+   5. Never edit the shared engine for a content change.
+-->
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activity — Discovery Lab</title>
+<link rel="stylesheet" href="../engine/style.css?v=3">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../about/">Diego Urrutia Guevara</a></span>
+    <span>Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../engine/engine.js?v=3";
+
+/* Replace everything in `simulation` with your own activity.
+   - orient(host, sim):      draw the teaching diagram into `host`.
+   - investigate(host, sim): draw the interactive; call sim.recordTrial(row)
+                             each time the student produces a result. The row's
+                             keys must match config.record.columns[].key.
+   The engine draws every other stage from config.json. */
+const simulation = {
+  orient(host){
+    host.innerHTML =
+      `<p class="q__hint">Put your teaching diagram here — an SVG the student can read on their own,
+       so someone who never saw a lesson can still learn the key idea.</p>
+       <svg viewBox="0 0 300 150" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px">
+         <circle cx="150" cy="75" r="46" fill="none" stroke="var(--accent)" stroke-width="3"/>
+         <circle cx="150" cy="75" r="7" fill="var(--signal)"/>
+         <text x="150" y="140" text-anchor="middle" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">your diagram</text>
+       </svg>`;
+  },
+  investigate(host, sim){
+    host.innerHTML="";
+    const panel=document.createElement("div"); panel.className="panel stack";
+    panel.innerHTML=`<p class="eyebrow">Example instrument</p>
+      <label class="field__label" for="tpl-setting">Setting</label>
+      <input id="tpl-setting" class="input" type="range" min="0" max="100" value="50" style="accent-color:var(--accent)">
+      <p class="readout"><span id="tpl-read">50</span><span class="readout__unit"> units</span></p>`;
+    const btn=document.createElement("button"); btn.className="btn btn--signal"; btn.type="button"; btn.textContent="Take a reading →";
+    panel.append(btn);
+    host.append(panel);
+    const range=panel.querySelector("#tpl-setting"), read=panel.querySelector("#tpl-read");
+    range.addEventListener("input",()=>read.textContent=range.value);
+    btn.addEventListener("click",()=>{
+      const input=Number(range.value);
+      const result=(input*2)%100;                 // your model goes here
+      sim.recordTrial({ input, result });
+      sim.toast(`Recorded: set ${input} → result ${result}.`, "info");
+    });
+  }
+};
+
+mountActivity({ simulation }).catch(e=>{
+  console.error("Activity failed to start:", e);
+  const r=document.getElementById("lab-root");
+  if(r) r.innerHTML='<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>

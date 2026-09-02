@@ -1,0 +1,110 @@
+{
+  "_README": "KNOWN-GOOD ACTIVITY SKELETON. Copy this whole folder into the activity's place in the tree, then edit these two files only. Never edit the shared engine for a content change. Question budget: Predict (structured, not scored) + Knowledge Check (3-4 auto items) + Explain + Apply (exactly 2 constructed). See CLAUDE.md sections 3 and 10.",
+
+  "activityId": "XXX-M00-SIM00",
+  "version": "0.1",
+  "title": "Activity Title",
+  "subtitle": "One-line hook that makes a student want to start.",
+  "course": "Course Name",
+  "pathway": "Pathway Name",
+  "module": "Term X - Module Y: Name",
+  "theme": "biology",
+  "ageBand": "lower-secondary",
+  "estimatedMinutes": 20,
+
+  "orient": {
+    "mission": "A short mission statement in plain language — what the student is going to find out.",
+    "steps": [
+      "Learn the key idea from the diagram.",
+      "Predict before you test.",
+      "Run trials in the interactive.",
+      "Explain, apply, then answer the Knowledge Check.",
+      "Generate your Learning Evidence to hand in."
+    ],
+    "realLife": "Where the student meets this concept in their own everyday life."
+  },
+
+  "predict": {
+    "type": "multi",
+    "prompt": "A structured prediction (multiple choice, multi-select or slider only — never prose).",
+    "hint": "One line of guidance.",
+    "options": [
+      { "id": "a", "label": "Option A" },
+      { "id": "b", "label": "Option B" },
+      { "id": "c", "label": "Option C" }
+    ],
+    "revisable": true
+  },
+
+  "investigate": {
+    "title": "The Interactive",
+    "lede": "One or two sentences telling the student what to do and which variable is the control."
+  },
+
+  "record": {
+    "intro": "Every trial is logged here automatically.",
+    "emptyText": "No trials yet. Run one in the interactive.",
+    "columns": [
+      { "key": "input", "label": "What you set", "unit": "" },
+      { "key": "result", "label": "Result", "unit": "" }
+    ]
+  },
+
+  "explain": {
+    "prompt": "Ask the student to interpret a pattern they observed, using their own data.",
+    "lede": "Use the numbers from your Investigation Record.",
+    "maxMarks": 3,
+    "minChars": 80,
+    "expectedPoints": ["Point one (hidden — JSON only).", "Point two.", "Point three."]
+  },
+
+  "apply": {
+    "prompt": "Ask the student to apply the concept to a new, unfamiliar, real-life context.",
+    "lede": "Think about where this happens outside the lab.",
+    "maxMarks": 3,
+    "minChars": 80,
+    "expectedPoints": ["Point one (hidden — JSON only).", "Point two."]
+  },
+
+  "knowledgeCheck": [
+    {
+      "id": "kc1", "type": "mc", "marks": 1,
+      "prompt": "An auto-marked multiple-choice question.",
+      "options": [
+        { "id": "a", "label": "Right answer" },
+        { "id": "b", "label": "Wrong answer" },
+        { "id": "c", "label": "Wrong answer" }
+      ],
+      "answer": "a",
+      "explain": "Shown after checking: why the answer is right."
+    },
+    {
+      "id": "kc2", "type": "numeric", "marks": 1,
+      "prompt": "An auto-marked numeric question.",
+      "answer": 42, "tolerance": 1, "unit": "", "min": 0, "max": 100,
+      "explain": "Shown after checking."
+    },
+    {
+      "id": "kc3", "type": "match", "marks": 3,
+      "prompt": "An auto-marked matching question.",
+      "pairs": [
+        { "left": "Term 1", "right": "Definition 1" },
+        { "left": "Term 2", "right": "Definition 2" },
+        { "left": "Term 3", "right": "Definition 3" }
+      ],
+      "explain": "Shown after checking."
+    }
+  ],
+
+  "rubric": {
+    "note": "You are graded out of the total marks, shown as a percentage.",
+    "criteria": [
+      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 5, "auto": true },
+      { "key": "use_of_evidence", "label": "Use of evidence", "descriptor": "Explain answer uses own data.", "max": 3 },
+      { "key": "reasoning", "label": "Scientific reasoning", "descriptor": "Apply answer reasons about a new context.", "max": 3 },
+      { "key": "communication", "label": "Communication", "descriptor": "Clear sentences, correct terms.", "max": 2 }
+    ]
+  },
+
+  "aiMarkingInstructions": "Mark ONLY the two constructed responses using the rubric and each question's expected_points. Copy auto_marked_score into knowledge_accuracy. Accept valid alternative wording; do not penalise spelling unless meaning is unclear. Report total, percentage, one strength, one correction, one next step, under 80 words."
+}
