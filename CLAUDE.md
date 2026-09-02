@@ -269,6 +269,44 @@ never be described more strongly than that — to the student, the tutor, or in 
 - **`_template/`** holds the known-good activity skeleton. New activities start there, never by
   copy-pasting an existing activity.
 
+**Amendment to Section 5 — every evidence PDF carries a live link and a learning-focus intro
+(default, built into the engine; agreed 2026-09-03).**
+
+- **A clickable link to the live activity.** The PDF's top banner has an "Open the live activity ->"
+  hyperlink, and the foot repeats it as a clickable "Simulation link:". Both are real jsPDF
+  `textWithLink` annotations pointing at the runtime `simulation_url`, so a parent, tutor or head of
+  department can open the actual simulation straight from the PDF — not just read a static record.
+- **An "About this activity" section** — one high-quality paragraph plus a "Skills practised" chip
+  line. It names both the **skills** developed (critical thinking, creativity, mathematical, digital
+  literacy, communication, analytical, research, scientific enquiry…) and the exact **curriculum
+  content** practised, tied to the named course and module, so school leadership and educators can
+  see at a glance why the activity is meaningful. It comes from `config.learningFocus =
+  { skills:[...], summary:"one paragraph" }`, **required in every new activity** (it is in
+  `_template/config.json`). Write it so it genuinely sounds impressive and is accurate — never
+  generic. It also rides in the JSON export as `learning_focus`.
+
+**Amendment to Sections 2 & 11 — navigation snapshots (default, nav-level; agreed 2026-09-03).**
+
+- **Keyword snapshots.** Any node in `subjects.json` may carry a `keywords` array (3–5 short terms).
+  They render as chips on that node's tile, so opening a course shows at a glance what each term or
+  module contains. Add and extend these as a course fills out over time.
+- **Simulation thumbnails.** A `simulation` node may carry `thumbnail` (a filename inside the
+  activity folder, e.g. `"thumbnail.gif"`). It renders as a moving preview at the top of the tile:
+  a short, **seamlessly looping** GIF of the activity's most eye-catching moment (for the Seed
+  Germination Lab, the rotating 3D germination chamber). Generate it with the capture tool rather
+  than by hand:
+
+  ```
+  python tools/make-thumbnail.py           # starts the capture + encode server on :8777
+  # then open in any browser (the in-app browser is fine):
+  # http://localhost:8777/tools/capture/<harness>.html?out=<path-to>/thumbnail.gif
+  ```
+
+  The harness renders the real 3D scene and orbits the camera a full 360° (last frame meets the
+  first, no seam); Pillow encodes the loop and writes the GIF to the activity folder. Copy
+  `tools/capture/germinator.html` as the pattern for a new activity's own scene. Keep thumbnails a
+  few hundred KB. Only the finished GIF is committed (`tools/capture/_frames/` is git-ignored).
+
 **Commit identity:** Diego Urrutia Guevara <duguevara@gmail.com>
 
 **Still to confirm:** logo asset and the PDF footer line (currently placeholder).
@@ -294,12 +332,16 @@ spec it. Ask only if the course or age band is genuinely ambiguous.
 3. If the course has no suitable module yet, create one. He does not need to name modules;
    infer a sensible one from the topic and tell him what you created.
 4. Add the module and simulation entries to `subjects.json`, including `mechanic`, `ageBand`,
-   `version`, `questionCount`, `minutes`, and `status: "coming-soon"`.
+   `version`, `questionCount`, `minutes`, `thumbnail: "thumbnail.gif"`, and `status: "coming-soon"`.
+   Give the term/module a `keywords` snapshot (3–5 terms) if it does not have one yet.
 5. Build the activity in its own folder: `activity.html` + `config.json`. Start from
-   `_template/`. **Never edit the shared engine for a content change.**
-6. Flip that simulation's `status` to `"live"` only once `activity.html` actually works.
-7. Run `python tools/build-nav.py`.
-8. Commit, push, verify the live URL, and give him the direct link to the activity.
+   `_template/`. Write its `learningFocus` (skills + one strong paragraph) — it is required.
+   **Never edit the shared engine for a content change.**
+6. Generate the looping `thumbnail.gif` with `tools/make-thumbnail.py` (see Section 10) — a
+   seamless orbit of the activity's most striking moment.
+7. Flip that simulation's `status` to `"live"` only once `activity.html` actually works.
+8. Run `python tools/build-nav.py`.
+9. Commit, push, verify the live URL, and give him the direct link to the activity.
 
 **For amendments to an existing activity** he will send its link plus feedback. Edit only that
 activity's folder, bump its `activity_version`, commit, push. Nothing else should change.

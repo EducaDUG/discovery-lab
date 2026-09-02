@@ -29,6 +29,10 @@ def collect(node, trail, out):
     where = trail + [node.get("name", node.get("id", "?"))]
     for r in node.get("resources", []):
         out.append((" / ".join(where), r))
+    # A course's featured game is an external link too, and just as bad dead.
+    g = node.get("featuredGame")
+    if g and g.get("url"):
+        out.append((" / ".join(where), g))
     for child in node.get("children", []):
         collect(child, where, out)
 

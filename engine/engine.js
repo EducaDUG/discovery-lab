@@ -756,6 +756,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       student: state.student.trim(), course: config.course, pathway: config.pathway,
       module: config.module, activity_name: config.title,
       simulation_url: simURL,
+      learning_focus: config.learningFocus || null,
       started: state.startedAt, completed,
       record_columns: (config.record && config.record.columns) || [],
       simulation_results: { trials_run: state.trials.length, ...state.simResults, trials: state.trials },
@@ -904,15 +905,33 @@ function buildPDF(jsPDF, p) {
   kv("Activity ID", `${p.activity_id}   v${p.activity_version}`);
   y += 2;
 
-  // Upload banner
-  ensure(40);
+  // Upload banner — with a real clickable link to the live activity
+  ensure(46);
   doc.setFillColor(235, 245, 239); doc.setDrawColor(accent[0], accent[1], accent[2]);
-  doc.roundedRect(M, y, CW, 34, 4, 4, "FD");
+  doc.roundedRect(M, y, CW, 40, 4, 4, "FD");
   doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); setColor(accent);
   doc.text("Upload this PDF to Learning Lab as evidence of your work.", M + 12, y + 15);
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); setColor(mut);
-  doc.text("Open the activity yourself with the link at the foot of this page.", M + 12, y + 27);
-  y += 46;
+  doc.text("Open the live activity yourself:", M + 12, y + 30);
+  doc.setFont("helvetica", "bold"); setColor(accent);
+  doc.textWithLink("Open the live activity ->", M + 12 + doc.getTextWidth("Open the live activity yourself:  "), y + 30, { url: p.simulation_url });
+  y += 52;
+
+  // About this activity — the skills and curriculum content it develops.
+  // One high-quality paragraph for parents, teachers and school leadership.
+  const lf = p.learning_focus;
+  if (lf && (lf.summary || (lf.skills && lf.skills.length))) {
+    h("About this activity");
+    if (lf.skills && lf.skills.length) {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9); setColor(mut);
+      ensure(14); doc.text("Skills practised", M, y);
+      doc.setFont("helvetica", "normal"); setColor(accent);
+      const skillLines = doc.splitTextToSize(pdfSafe(lf.skills.join("  -  ")), CW - 110);
+      doc.text(skillLines, M + 110, y); y += Math.max(14, skillLines.length * 12) + 2;
+      setColor(ink);
+    }
+    if (lf.summary) para(lf.summary, 9.5, "normal", ink, 8);
+  }
 
   // Score summary
   h("Result");
@@ -967,7 +986,15 @@ function buildPDF(jsPDF, p) {
   // Integrity + link
   ensure(60);
   rule();
-  para("Simulation link: " + p.simulation_url, 8.5, "normal", accent, 4);
+  // Clickable link to the live simulation, so staff or parents can open it directly.
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); setColor(mut);
+  ensure(12); doc.text("Simulation link:", M, y);
+  doc.setFont("helvetica", "normal"); setColor(accent);
+  const urlX = M + doc.getTextWidth("Simulation link:  ");
+  const urlLines = doc.splitTextToSize(pdfSafe(p.simulation_url), CW - (urlX - M));
+  doc.textWithLink(urlLines[0], urlX, y, { url: p.simulation_url });
+  for (let i = 1; i < urlLines.length; i++) { y += 11; doc.textWithLink(urlLines[i], M, y, { url: p.simulation_url }); }
+  y += 15; setColor(ink);
   para(`Integrity checksum: ${p.integrity_checksum}. ${p.integrity_note}`, 8, "normal", mut, 0);
 
   footer();

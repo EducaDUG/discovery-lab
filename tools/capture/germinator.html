@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Germinator thumbnail capture</title>
+<style>
+  html,body{margin:0;background:#061310;color:#bfe6cf;font:14px/1.5 system-ui,sans-serif;}
+  #wrap{display:grid;place-items:center;min-height:100vh;gap:1rem;}
+  #stage{border:1px solid #0c1f18;border-radius:12px;overflow:hidden;}
+  #log{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="stage"></canvas>
+  <div id="log">booting…</div>
+</div>
+<!-- served from repo root by tools/make-thumbnail.py -->
+<script src="/engine/vendor/three.min.js"></script>
+<script>
+/* ------------------------------------------------------------------ params */
+const Q = new URLSearchParams(location.search);
+const FRAMES   = +(Q.get("frames")   || 30);
+const W        = +(Q.get("w")        || 380);
+const H        = +(Q.get("h")        || 285);
+const PROGRESS = +(Q.get("progress") || 0.82);
+const AZ0      = +(Q.get("az0")       || 0.7);
+const DURATION = +(Q.get("duration") || 90);
+const COLORS   = +(Q.get("colors")   || 96);
+const OUT      = Q.get("out") || "";
+const SPECIES  = Q.get("species") || "cress";
+
+const log = m => { document.getElementById("log").textContent = m; };
+
+/* ------------------------------------------------------------ growth model */
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
+const gRoot=p=>smooth(0.12,0.50,p), gStem=p=>smooth(0.40,0.74,p),
+      gCot=p=>smooth(0.52,0.80,p), gLeaf=p=>smooth(0.80,1.00,p);
+const SPECIES_DATA = {
+  cress:{cots:2,color:"#4a8f3c"}, lettuce:{cots:2,color:"#6aa84f"},
+  mung:{cots:2,color:"#3f7a34"},  onion:{cots:1,color:"#5f8c7a"},
+};
+
+/* --------------------------------------------------------------- the scene */
+/* Reproduces the germination chamber from the activity (build3D), but static
+   and driven frame-by-frame instead of by a render loop, so a 360-degree
+   azimuth sweep produces a seamless loop. */
+function buildScene(THREE, canvas){
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(2);
+  renderer.setSize(W, H, false);
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0x08201a,9,22);
+  const camera=new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
+
+  const hemi=new THREE.HemisphereLight(0xbfe6cf,0x1a2b22,0.6); scene.add(hemi);
+  const ambient=new THREE.AmbientLight(0xffffff,0.35); scene.add(ambient);
+  const sun=new THREE.DirectionalLight(0xfff2d0,1.1);
+  sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
+  sun.shadow.camera.near=1; sun.shadow.camera.far=30;
+  sun.shadow.camera.left=-6; sun.shadow.camera.right=6; sun.shadow.camera.top=6; sun.shadow.camera.bottom=-6;
+  scene.add(sun);
+  const sunOrb=new THREE.Mesh(new THREE.SphereGeometry(0.32,20,20),new THREE.MeshBasicMaterial({color:0xfff0c0}));
+  scene.add(sunOrb);
+
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(6,48),new THREE.ShadowMaterial({opacity:0.32}));
+  ground.rotation.x=-Math.PI/2; ground.position.y=-1.22; ground.receiveShadow=true; scene.add(ground);
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(2.6,48),new THREE.MeshBasicMaterial({color:0x0e2a20,transparent:true,opacity:0.6}));
+  disc.rotation.x=-Math.PI/2; disc.position.y=-1.205; scene.add(disc);
+
+  const soilMat=new THREE.MeshStandardMaterial({color:0x3a2a1c,roughness:1});
+  const soil=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1.2,40),soilMat);
+  soil.position.y=-0.6; soil.receiveShadow=true; soil.castShadow=true; scene.add(soil);
+  const topSoil=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.12,40),new THREE.MeshStandardMaterial({color:0x4a3826,roughness:1}));
+  topSoil.position.y=0.0; scene.add(topSoil);
+  for(let i=0;i<14;i++){const r=0.9*Math.sqrt(Math.random()),a=Math.random()*Math.PI*2;
+    const peb=new THREE.Mesh(new THREE.SphereGeometry(0.04+Math.random()*0.05,6,6),new THREE.MeshStandardMaterial({color:0x2b2016,roughness:1}));
+    peb.position.set(Math.cos(a)*r,0.06,Math.sin(a)*r); scene.add(peb);}
+
+  const glass=new THREE.Mesh(new THREE.CylinderGeometry(1.72,1.72,3,48,1,true),
+    new THREE.MeshStandardMaterial({color:0xbfe9ff,transparent:true,opacity:0.12,roughness:0.05,metalness:0,side:THREE.DoubleSide}));
+  glass.position.y=0.3; scene.add(glass);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.72,0.05,12,48),new THREE.MeshStandardMaterial({color:0xdff4ff,transparent:true,opacity:0.35,roughness:0.1}));
+  rim.rotation.x=Math.PI/2; rim.position.y=1.8; scene.add(rim);
+
+  // oxygen bubbles — frozen in place (well-oxygenated look), no time animation
+  for(let i=0;i<10;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8),new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.45,roughness:0}));
+    b.position.set((Math.random()-0.5)*2, -0.6+Math.random()*2.2, (Math.random()-0.5)*2); scene.add(b);}
+
+  // seedling
+  const plant=new THREE.Group(); scene.add(plant);
+  const seed=new THREE.Mesh(new THREE.SphereGeometry(0.17,20,16),new THREE.MeshStandardMaterial({color:0xb98a4b,roughness:0.7}));
+  seed.scale.set(1,0.72,0.85); seed.position.y=0.08; seed.castShadow=true; plant.add(seed);
+
+  const rootGroup=new THREE.Group(); plant.add(rootGroup);
+  const rootMat=new THREE.MeshStandardMaterial({color:0xe8e0cf,roughness:0.9});
+  const root=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.09,1.3,8),rootMat);
+  root.position.y=-0.65; rootGroup.add(root);
+  [[-1,0.5],[1,0.62],[-1,0.78]].forEach(([dir,at])=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.035,0.4,6),rootMat);
+    l.position.set(dir*0.12,-at*1.3,0); l.rotation.z=dir*0.9; rootGroup.add(l);});
+  rootGroup.scale.y=0.001;
+
+  const stemGroup=new THREE.Group(); plant.add(stemGroup);
+  const stemMat=new THREE.MeshStandardMaterial({color:0x4f8f3f,roughness:0.6});
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,1.5,10),stemMat);
+  stem.position.y=0.75; stem.castShadow=true; stemGroup.add(stem);
+  const Hs=1.5; stemGroup.scale.y=0.001;
+
+  const topNode=new THREE.Group(); plant.add(topNode);
+  const leafShape=new THREE.Shape(); leafShape.moveTo(0,0);
+  leafShape.bezierCurveTo(0.28,0.18,0.34,0.7,0,1.05); leafShape.bezierCurveTo(-0.34,0.7,-0.28,0.18,0,0);
+  const leafGeo=new THREE.ExtrudeGeometry(leafShape,{depth:0.03,bevelEnabled:false});
+  const cotMat=new THREE.MeshStandardMaterial({color:0x7bb661,roughness:0.5,side:THREE.DoubleSide});
+  const leafMat=new THREE.MeshStandardMaterial({color:0x1E8C60,roughness:0.45,side:THREE.DoubleSide});
+  const bladeMat=new THREE.MeshStandardMaterial({color:0x5f8c7a,roughness:0.5,side:THREE.DoubleSide});
+  const cotL=new THREE.Group(),cotR=new THREE.Group();
+  const cml=new THREE.Mesh(leafGeo,cotMat); cml.castShadow=true; cml.scale.set(0.9,0.9,1); cml.rotation.x=-Math.PI/2.3; cotL.add(cml);
+  const cmr=new THREE.Mesh(leafGeo,cotMat); cmr.castShadow=true; cmr.scale.set(0.9,0.9,1); cmr.rotation.x=-Math.PI/2.3; cotR.add(cmr);
+  cotR.rotation.y=Math.PI; topNode.add(cotL,cotR);
+  const blade=new THREE.Mesh(leafGeo,bladeMat); blade.castShadow=true; blade.scale.set(0.5,1.5,1); topNode.add(blade);
+  const firstLeaf=new THREE.Mesh(leafGeo,leafMat); firstLeaf.castShadow=true; topNode.add(firstLeaf);
+
+  const sp = SPECIES_DATA[SPECIES] || SPECIES_DATA.cress;
+  const monocot = sp.cots===1;
+  cotL.visible=cotR.visible=!monocot; blade.visible=monocot;
+
+  function setProgress(p){
+    const failed=p<=0.13;
+    seed.material.color.set(failed?0xb0a58e:0xb98a4b);
+    const r=gRoot(p); rootGroup.scale.y=Math.max(0.001,r);
+    const s=gStem(p); stemGroup.scale.y=Math.max(0.001,s);
+    topNode.position.y=s*Hs;
+    const co=gCot(p); const open=lerp(0.15,1.15,co);
+    cotL.rotation.z=open; cotR.rotation.z=open; cotL.scale.setScalar(0.2+co*0.8); cotR.scale.setScalar(0.2+co*0.8);
+    cotL.visible=cotR.visible=(sp.cots===2)&&co>0.02;
+    blade.visible=(sp.cots===1)&&co>0.02; blade.scale.set(0.5,0.5+co,1);
+    const fl=gLeaf(p); firstLeaf.visible=fl>0.02; firstLeaf.scale.setScalar(0.15+fl*0.7); firstLeaf.position.y=0.1; firstLeaf.rotation.x=-0.15;
+  }
+
+  // daytime environment, frozen
+  const day=0.66;
+  ambient.intensity=lerp(0.16,0.5,day);
+  hemi.intensity=lerp(0.25,0.75,day);
+  sun.intensity=lerp(0.15,1.15,day);
+  ambient.color.setHSL(lerp(0.58,0.09,0.5),0.25,0.9);
+  const elev=lerp(-0.25,1.35,day);
+  sun.position.set(Math.cos(elev)*5, Math.max(0.6,Math.sin(elev)*6+0.5), 3.2);
+  sunOrb.position.copy(sun.position);
+
+  setProgress(PROGRESS);
+
+  const pol=1.05, rad=6.2;
+  function renderAt(az){
+    const x=rad*Math.sin(pol)*Math.cos(az), z=rad*Math.sin(pol)*Math.sin(az), y=rad*Math.cos(pol);
+    camera.position.set(x,y+0.4,z); camera.lookAt(0,0.4,0);
+    renderer.render(scene,camera);
+  }
+  return {renderAt, gl:renderer.domElement};
+}
+
+/* ---------------------------------------------------------- compositing */
+function makeCompositor(){
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const ctx=c.getContext("2d");
+  const bg=ctx.createRadialGradient(W*0.5,H*0.18,10, W*0.5,H*0.5, Math.max(W,H)*0.95);
+  bg.addColorStop(0,"#14352a"); bg.addColorStop(0.42,"#0d241d"); bg.addColorStop(1,"#061310");
+  const vig=ctx.createRadialGradient(W*0.5,H*0.5,Math.min(W,H)*0.2, W*0.5,H*0.5,Math.max(W,H)*0.72);
+  vig.addColorStop(0,"rgba(0,0,0,0)"); vig.addColorStop(1,"rgba(0,0,0,0.55)");
+  return function(glCanvas){
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+    ctx.drawImage(glCanvas,0,0,W,H);
+    ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+    return c;
+  };
+}
+const toBlob = canvas => new Promise(res=>canvas.toBlob(res,"image/png"));
+
+/* ---------------------------------------------------------------- driver */
+(async function(){
+  if(!window.THREE){ log("ERROR: three.js failed to load"); return; }
+  const stage=document.getElementById("stage");
+  stage.width=W; stage.height=H; stage.style.width=W+"px"; stage.style.height=H+"px";
+  const {renderAt, gl}=buildScene(window.THREE, stage);
+  const composite=makeCompositor();
+
+  // warm-up render (first WebGL frame can be blank). Pace with setTimeout, not
+  // requestAnimationFrame — rAF pauses when the browser pane is hidden.
+  const tick = () => new Promise(r=>setTimeout(r,0));
+  renderAt(AZ0); await tick(); renderAt(AZ0);
+
+  await fetch("/reset");
+  for(let i=0;i<FRAMES;i++){
+    const az = AZ0 + (i/FRAMES)*Math.PI*2;      // exclusive endpoint => seamless
+    renderAt(az);
+    const blob = await toBlob(composite(gl));
+    await fetch("/frame/"+i, {method:"POST", body:blob});
+    log(`frame ${i+1}/${FRAMES}`);
+    await tick();
+  }
+  log("assembling GIF…");
+  const res = await fetch(`/assemble?out=${encodeURIComponent(OUT)}&duration=${DURATION}&colors=${COLORS}`);
+  const txt = await res.text();
+  log(txt);
+  window.__DONE = txt;
+  document.title = "DONE " + txt;
+})();
+</script>
+</body>
+</html>

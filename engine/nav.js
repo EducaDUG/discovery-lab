@@ -58,10 +58,33 @@ function tile(node, href) {
   if (walkable && href) n.href = href; else n.setAttribute("aria-disabled", "true");
   if (node.theme) n.setAttribute("data-theme", node.theme);
 
+  // A moving thumbnail of the activity's best moment — shown before you enter.
+  // node.thumbnail is a filename inside the activity folder; derive its src from
+  // the tile's own href (…/<id>/activity.html → …/<id>/<thumbnail>).
+  if (node.thumbnail && href) {
+    const media = el("span", "tile__media");
+    const img = el("img", "tile__thumb");
+    img.src = href.replace(/[^/]*$/, node.thumbnail);
+    img.alt = "";
+    img.loading = "lazy";
+    img.setAttribute("aria-hidden", "true");
+    media.append(img);
+    n.append(media);
+  }
+
   n.append(el("span", `badge badge--${live ? "live" : "soon"}`, live ? "Live" : "Coming soon"));
   n.append(el("span", "tile__title", node.name));
   if (node.subtitle) n.append(el("span", "tile__sub", node.subtitle));
   if (node.blurb) n.append(el("span", "tile__blurb", node.blurb));
+
+  // Keyword snapshot — a few chips of what this branch contains, so a student
+  // (or Mr Guevara) sees the shape of a term or module before opening it.
+  if (Array.isArray(node.keywords) && node.keywords.length) {
+    const tags = el("span", "tile__tags");
+    node.keywords.forEach(k => tags.append(el("span", "tag", k)));
+    n.append(tags);
+  }
+
   n.append(el("span", "tile__meta", metaFor(node)));
   return n;
 }
@@ -186,6 +209,8 @@ export async function mountNav() {
   crumbs(chain, root, mount);
   header(node, mount);
 
+  renderFeaturedGame(node, mount);
+
   const children = node.children || [];
   if (children.length) {
     const grid = el("div", "grid-tiles");
@@ -199,6 +224,58 @@ export async function mountNav() {
   }
 
   renderResources(node, mount);
+}
+
+/* The course's own learning video game — a full gamified companion app Diego
+   built (e.g. Kiwi & Cóndor for Spanish). Deliberately the loudest thing on the
+   page: this is a reward to reach for, not a muted "also recommended" link. It
+   opens in a new tab and keeps its own progress in the browser — it is not a
+   marked Discovery Lab activity, so we never dress it up as one. */
+function renderFeaturedGame(node, mount) {
+  const g = node.featuredGame;
+  if (!g || !g.url) return;
+
+  const card = el("a", "feature-game");
+  card.href = g.url;
+  card.target = "_blank";
+  card.rel = "noopener noreferrer";
+
+  const glow = el("span", "feature-game__glow");
+  glow.setAttribute("aria-hidden", "true");
+  card.append(glow);
+
+  const body = el("div", "feature-game__body");
+  if (g.kicker) {
+    const k = el("p", "feature-game__kicker");
+    k.append(el("span", "feature-game__badge", "Game"));
+    k.append(document.createTextNode(g.kicker));
+    body.append(k);
+  }
+  body.append(el("h2", "feature-game__title", g.title));
+  if (g.tagline) body.append(el("p", "feature-game__tagline", g.tagline));
+  if (g.blurb) body.append(el("p", "feature-game__blurb", g.blurb));
+
+  if (Array.isArray(g.highlights) && g.highlights.length) {
+    const ul = el("ul", "feature-game__points");
+    g.highlights.forEach(h => ul.append(el("li", "feature-game__point", h)));
+    body.append(ul);
+  }
+
+  const cta = el("span", "feature-game__cta btn btn--lg");
+  cta.append(el("span", null, g.cta || "Play the game"));
+  const arrow = el("span", "feature-game__cta-arrow");
+  arrow.textContent = "↗";
+  arrow.setAttribute("aria-hidden", "true");
+  cta.append(arrow);
+  body.append(cta);
+
+  body.append(el("p", "feature-game__note",
+    "Opens in a new tab and keeps its own progress in your browser. " +
+    "It is a game to practise with — it does not produce learning evidence to hand in."));
+  card.append(el("span", "sr-only", "(opens in a new tab on an external website)"));
+
+  card.append(body);
+  mount.append(card);
 }
 
 /* Third-party simulations Diego recommends. Kept visually distinct from his own
