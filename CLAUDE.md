@@ -205,11 +205,33 @@ The school's own LMS is called *Learning Lab* (CGA School). Discovery Lab is del
 sibling name, not a copy: Learning Lab is where work is **submitted**, Discovery Lab is where
 work is **done**. Never brand this site "Learning Lab".
 
-**Pathway structure** (source of truth: `data/subjects.json`), pathway → stage → subject → module → simulation:
+**Site structure** (confirmed 2026-09-02, replacing the example structure in Section 2).
+`data/subjects.json` holds ONE recursive tree. Every node has `id`, `name`, `type` and
+`children`; node ids are folder names, so the URL mirrors the JSON exactly:
 
-- **US Pathway** — Primary, Secondary
-- **A-Level Pathway** — Lower Secondary Stage 1, Lower Secondary Stage 2, Pre-IG Stage 1,
-  Pre-IG Stage 2, IGCSE (Biology), A-Level (Biology)
+- **Primary** (ages 5-11) → Science · Spanish · Computer Skills
+- **Secondary** (ages 11-18)
+  - **US Pathway** *(US System)* → Biology · Spanish · Computer Skills
+  - **A-Level Pathway** *(British System)* → Lower Secondary Stage 1 · Lower Secondary Stage 2 ·
+    Pre-IG Stage 1 · Pre-IG Stage 2 · IGCSE Biology · A-Level Biology
+
+Primary and Secondary are the two front doors on the home page; the pathway choice only
+appears inside Secondary. Depth is not fixed - the renderer walks whatever tree it is given,
+so a course can gain modules and simulations without any engine change.
+
+**Environmental Science and the pH Investigation were examples in the original brief only.**
+They are not part of this site. Section 9's reference implementation is superseded: the first
+real activity will come from a topic Diego sends.
+
+**Navigation is generated, never hand-written.** After editing `subjects.json`, run:
+
+```
+python tools/build-nav.py
+```
+
+That regenerates an `index.html` shell for every non-simulation node and reports folders whose
+node has been removed from the tree (it never deletes anything itself, because activity folders
+share those directories).
 
 **Amendments to Section 3 — question budget.** As originally written the counts don't close:
 Predict + Explain + Apply + 3–5 Knowledge Check = 6–8 against a stated cap of 5–7, and a free-text

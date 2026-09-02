@@ -1,17 +1,17 @@
 /* ==========================================================================
    DISCOVERY LAB — NAVIGATION RENDERER
-   Every navigation page (home, subject, module) is a thin shell. This reads
-   data/subjects.json and renders the right level, so adding a simulation means
-   editing that one JSON file — the navigation UI is never hand-edited.
 
-   Usage — put one element on the page and declare what it should render:
-     <div id="nav-root" data-level="home"     data-root="./"></div>
-     <div id="nav-root" data-level="subject"  data-root="../../../"
-          data-pathway="us-pathway" data-stage="secondary"
-          data-subject="environmental-science"></div>
-     <div id="nav-root" data-level="module"   data-root="../../../../"
-          data-pathway="us-pathway" data-stage="secondary"
-          data-subject="environmental-science" data-module="module-1-introduction"></div>
+   data/subjects.json holds one tree. Every navigation page is a thin shell that
+   says where it sits; this walks the tree and renders that node's children.
+   Node ids are folder names, so the URL always mirrors the JSON exactly.
+
+   Page contract:
+     <div id="nav-root" data-path=""                      data-root="./"></div>
+     <div id="nav-root" data-path="secondary"             data-root="../"></div>
+     <div id="nav-root" data-path="secondary/us-pathway"  data-root="../../"></div>
+
+   Adding a course or activity means editing subjects.json and running
+   tools/build-nav.py. Navigation markup is never hand-written.
    ========================================================================== */
 
 const el = (tag, cls, text) => {
@@ -21,160 +21,116 @@ const el = (tag, cls, text) => {
   return n;
 };
 
-const statusBadge = (status) => {
-  const live = status === "live";
-  return el("span", `badge badge--${live ? "live" : "soon"}`, live ? "Live" : "Coming soon");
-};
-
-/* A subject is only genuinely live if something inside it is. Prevents a tile
-   promising content that does not exist yet. */
-const liveSims = (subject) =>
-  (subject.modules || []).flatMap(m => m.simulations || []).filter(s => s.status === "live");
-
-const countLabel = (n, singular) =>
-  `${n} ${singular}${n === 1 ? "" : "s"}`;
-
-/* `status` drives the badge; `href` drives whether the tile is walkable. They
-   are deliberately separate — a module with nothing finished in it should still
-   be browsable so a student can see what is coming. */
-function tile({ href, title, blurb, meta, status, theme }) {
-  const node = el(href ? "a" : "div", "tile");
-  if (href) node.href = href; else node.setAttribute("aria-disabled", "true");
-  if (theme) node.setAttribute("data-theme", theme);
-  node.append(statusBadge(status));
-  node.append(el("span", "tile__title", title));
-  if (blurb) node.append(el("span", "tile__blurb", blurb));
-  if (meta) node.append(el("span", "tile__meta", meta));
-  return node;
+/* Count finished activities anywhere beneath a node. A tile should never
+   promise more than actually exists. */
+function liveCount(node) {
+  if (node.type === "simulation") return node.status === "live" ? 1 : 0;
+  return (node.children || []).reduce((n, c) => n + liveCount(c), 0);
+}
+function totalCount(node) {
+  if (node.type === "simulation") return 1;
+  return (node.children || []).reduce((n, c) => n + totalCount(c), 0);
 }
 
-function sectionHead(eyebrow, heading, blurb) {
-  const head = el("div", "nav-sec__head");
-  head.append(el("p", "eyebrow", eyebrow));
-  head.append(el("h2", null, heading));
-  if (blurb) head.append(el("p", "nav-sec__blurb", blurb));
-  return head;
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+function metaFor(node) {
+  if (node.type === "simulation") {
+    const bits = [node.activityId];
+    if (node.questionCount) bits.push(plural(node.questionCount, "question"));
+    if (node.minutes) bits.push(`~${node.minutes} min`);
+    return bits.filter(Boolean).join(" · ");
+  }
+  const live = liveCount(node), total = totalCount(node);
+  if (live) return plural(live, "activity") + (total > live ? ` · ${total - live} coming` : "");
+  if (total) return `${plural(total, "activity")} in preparation`;
+  return "In preparation";
 }
 
-/* --- HOME: pathways, their stages, and the subjects inside each ---------- */
-function renderHome(data, root, mount) {
-  data.pathways.forEach(pathway => {
-    const sec = el("section", "nav-sec");
-    sec.append(sectionHead(pathway.name, pathway.name, pathway.blurb));
+/* Status drives the badge; href drives whether a tile is walkable. Kept
+   separate on purpose — a course with nothing finished should still be
+   browsable so a student can see what is coming. */
+function tile(node, href) {
+  const live = node.type === "simulation" ? node.status === "live" : liveCount(node) > 0;
+  const walkable = node.type === "simulation" ? node.status === "live" : (node.children || []).length > 0;
 
-    pathway.stages.forEach(stage => {
-      const group = el("div", "nav-group");
-      const label = el("p", "nav-group__label", stage.name);
-      group.append(label);
+  const n = el(walkable && href ? "a" : "div", "tile");
+  if (walkable && href) n.href = href; else n.setAttribute("aria-disabled", "true");
+  if (node.theme) n.setAttribute("data-theme", node.theme);
 
-      const grid = el("div", "grid-tiles");
-      stage.subjects.forEach(subject => {
-        const live = liveSims(subject);
-        const walkable = (subject.modules || []).length > 0;
-        grid.append(tile({
-          href: walkable ? `${root}${pathway.slug}/${stage.id}/${subject.id}/` : null,
-          title: subject.name,
-          blurb: subject.blurb,
-          meta: live.length ? countLabel(live.length, "activity") : "In preparation",
-          status: live.length ? "live" : "coming-soon",
-          theme: subject.theme
-        }));
-      });
-      group.append(grid);
-      sec.append(group);
-    });
-    mount.append(sec);
-  });
+  n.append(el("span", `badge badge--${live ? "live" : "soon"}`, live ? "Live" : "Coming soon"));
+  n.append(el("span", "tile__title", node.name));
+  if (node.subtitle) n.append(el("span", "tile__sub", node.subtitle));
+  if (node.blurb) n.append(el("span", "tile__blurb", node.blurb));
+  n.append(el("span", "tile__meta", metaFor(node)));
+  return n;
 }
 
-/* --- SUBJECT: module tiles ---------------------------------------------- */
-function renderSubject(data, root, mount, ds) {
-  const ctx = locate(data, ds);
-  if (!ctx) return fail(mount, "That subject is not in subjects.json.");
-  const { pathway, stage, subject } = ctx;
+/* The two front doors: Primary and Secondary. Deliberately not the same
+   component as a tile — this is the one choice every student makes first. */
+function choice(node, href) {
+  const walkable = (node.children || []).length > 0;
+  const n = el(walkable ? "a" : "div", "choice");
+  if (walkable) n.href = href; else n.setAttribute("aria-disabled", "true");
+  if (node.theme) n.setAttribute("data-theme", node.theme);
 
-  document.documentElement.setAttribute("data-theme", subject.theme || "earth");
-  document.documentElement.setAttribute("data-age-band", stage.ageBand || "secondary");
-  setCrumbs(mount, [
-    { label: "Discovery Lab", href: root },
-    { label: pathway.name },
-    { label: stage.name },
-    { label: subject.name }
-  ]);
-  setTitle(mount, subject.name, `${pathway.name} · ${stage.name}`, subject.blurb);
+  const mark = el("span", "choice__mark");
+  mark.innerHTML = node.id === "primary"
+    ? `<svg viewBox="0 0 48 48" aria-hidden="true">
+         <circle cx="24" cy="24" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+         <circle cx="24" cy="24" r="5" fill="currentColor"/>
+         <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+           <path d="M24 2v6M24 40v6M2 24h6M40 24h6M9 9l4 4M35 35l4 4M39 9l-4 4M13 35l-4 4"/>
+         </g></svg>`
+    : `<svg viewBox="0 0 48 48" aria-hidden="true">
+         <path d="M6 34V14l18-8 18 8v20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+         <path d="M6 34l18 8 18-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+         <path d="M24 22v20" fill="none" stroke="currentColor" stroke-width="2" opacity=".4"/>
+         <circle cx="24" cy="18" r="4" fill="currentColor"/>
+       </svg>`;
+  n.append(mark);
 
-  const grid = el("div", "grid-tiles");
-  const modules = subject.modules || [];
-  if (!modules.length) return mount.append(emptyNote("Modules for this subject are still being written."));
+  const body = el("span", "choice__body");
+  body.append(el("span", "choice__title", node.name));
+  if (node.subtitle) body.append(el("span", "choice__sub", node.subtitle));
+  if (node.blurb) body.append(el("span", "choice__blurb", node.blurb));
+  body.append(el("span", "choice__meta", metaFor(node)));
+  n.append(body);
 
-  modules.forEach(module => {
-    const live = (module.simulations || []).filter(s => s.status === "live");
-    grid.append(tile({
-      href: (module.simulations || []).length ? `./${module.id}/` : null,
-      title: module.name,
-      blurb: module.blurb,
-      meta: live.length ? countLabel(live.length, "activity") : "In preparation",
-      status: live.length ? "live" : "coming-soon"
-    }));
-  });
-  mount.append(grid);
+  n.append(el("span", "choice__go", "→"));
+  return n;
 }
 
-/* --- MODULE: simulation tiles ------------------------------------------- */
-function renderModule(data, root, mount, ds) {
-  const ctx = locate(data, ds);
-  if (!ctx) return fail(mount, "That module is not in subjects.json.");
-  const { pathway, stage, subject } = ctx;
-  const module = (subject.modules || []).find(m => m.id === ds.module);
-  if (!module) return fail(mount, "That module is not in subjects.json.");
-
-  document.documentElement.setAttribute("data-theme", subject.theme || "earth");
-  document.documentElement.setAttribute("data-age-band", stage.ageBand || "secondary");
-  setCrumbs(mount, [
-    { label: "Discovery Lab", href: root },
-    { label: subject.name, href: "../" },
-    { label: module.name }
-  ]);
-  setTitle(mount, module.name, `${subject.name} · Module ${module.number}`, module.blurb);
-
-  const grid = el("div", "grid-tiles");
-  const sims = module.simulations || [];
-  if (!sims.length) return mount.append(emptyNote("Activities for this module are still being built."));
-
-  sims.forEach(sim => {
-    const bits = [sim.activityId];
-    if (sim.questionCount) bits.push(countLabel(sim.questionCount, "question"));
-    if (sim.minutes) bits.push(`~${sim.minutes} min`);
-    grid.append(tile({
-      href: sim.status === "live" ? `./${sim.id}/activity.html` : null,
-      title: sim.name,
-      blurb: sim.summary,
-      meta: bits.join(" · "),
-      status: sim.status
-    }));
-  });
-  mount.append(grid);
+/* --- tree helpers -------------------------------------------------------- */
+function walk(tree, ids) {
+  const chain = [];
+  let level = tree;
+  for (const id of ids) {
+    const found = (level || []).find(n => n.id === id);
+    if (!found) return null;
+    chain.push(found);
+    level = found.children;
+  }
+  return chain;
 }
 
-/* --- shared bits --------------------------------------------------------- */
-function locate(data, ds) {
-  const pathway = data.pathways.find(p => p.slug === ds.pathway || p.id === ds.pathway);
-  const stage = pathway && pathway.stages.find(s => s.id === ds.stage);
-  const subject = stage && stage.subjects.find(s => s.id === ds.subject);
-  return subject ? { pathway, stage, subject } : null;
-}
-
-function setCrumbs(mount, items) {
+function crumbs(chain, root, mount) {
   const nav = el("nav", "crumbs");
   nav.setAttribute("aria-label", "Breadcrumb");
   const ol = el("ol", "crumbs__list");
-  items.forEach((item, i) => {
+
+  const home = el("li");
+  const a = el("a", null, "Discovery Lab"); a.href = root; home.append(a); ol.append(home);
+
+  chain.forEach((node, i) => {
     const li = el("li");
-    if (item.href && i < items.length - 1) {
-      const a = el("a", null, item.label); a.href = item.href; li.append(a);
+    if (i < chain.length - 1) {
+      const link = el("a", null, node.name);
+      link.href = "../".repeat(chain.length - 1 - i);
+      li.append(link);
     } else {
-      li.append(el("span", null, item.label));
-      if (i === items.length - 1) li.setAttribute("aria-current", "page");
+      li.append(el("span", null, node.name));
+      li.setAttribute("aria-current", "page");
     }
     ol.append(li);
   });
@@ -182,46 +138,66 @@ function setCrumbs(mount, items) {
   mount.before(nav);
 }
 
-function setTitle(mount, heading, eyebrow, blurb) {
+function header(node, mount) {
   const head = el("header", "nav-title");
-  head.append(el("p", "eyebrow", eyebrow));
-  head.append(el("h1", null, heading));
-  if (blurb) head.append(el("p", "nav-title__blurb", blurb));
+  head.append(el("p", "eyebrow", node.subtitle || node.type));
+  head.append(el("h1", null, node.name));
+  if (node.blurb) head.append(el("p", "nav-title__blurb", node.blurb));
   mount.before(head);
-  document.title = `${heading} — Discovery Lab`;
+  document.title = `${node.name} — Discovery Lab`;
 }
 
-const emptyNote = (msg) => {
-  const p = el("p", "nav-empty", msg);
-  return p;
-};
-
-function fail(mount, msg) {
-  mount.append(emptyNote(msg));
-  console.error("[nav]", msg);
-}
-
-/* --- boot ---------------------------------------------------------------- */
+/* --- render -------------------------------------------------------------- */
 export async function mountNav() {
   const mount = document.getElementById("nav-root");
   if (!mount) return;
-  const ds = mount.dataset;
-  const root = ds.root || "./";
+
+  const root = mount.dataset.root || "./";
+  const ids = (mount.dataset.path || "").split("/").filter(Boolean);
 
   let data;
   try {
     const res = await fetch(`${root}data/subjects.json`, { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
-  } catch (err) {
-    return fail(mount, "Could not load the site index (data/subjects.json).");
+  } catch {
+    mount.append(el("p", "nav-empty", "Could not load the site index (data/subjects.json)."));
+    return;
   }
 
-  const level = ds.level || "home";
-  if (level === "home") renderHome(data, root, mount);
-  else if (level === "subject") renderSubject(data, root, mount, ds);
-  else if (level === "module") renderModule(data, root, mount, ds);
-  else fail(mount, `Unknown nav level "${level}".`);
+  /* Home — the two front doors. */
+  if (!ids.length) {
+    const grid = el("div", "choice-grid");
+    data.tree.forEach(node => grid.append(choice(node, `./${node.id}/`)));
+    mount.append(grid);
+    return;
+  }
+
+  const chain = walk(data.tree, ids);
+  if (!chain) {
+    mount.append(el("p", "nav-empty", "That page is not in subjects.json."));
+    return;
+  }
+
+  const node = chain[chain.length - 1];
+  document.documentElement.setAttribute("data-theme", node.theme || "earth");
+  document.documentElement.setAttribute("data-age-band", node.ageBand || "secondary");
+
+  crumbs(chain, root, mount);
+  header(node, mount);
+
+  const children = node.children || [];
+  if (!children.length) {
+    mount.append(el("p", "nav-empty", "Activities for this course are still being built."));
+    return;
+  }
+
+  const grid = el("div", "grid-tiles");
+  children.forEach(child => {
+    const href = child.type === "simulation" ? `./${child.id}/activity.html` : `./${child.id}/`;
+    grid.append(tile(child, href));
+  });
+  mount.append(grid);
 }
 
 mountNav();
