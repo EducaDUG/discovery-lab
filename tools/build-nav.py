@@ -43,6 +43,7 @@ SHELL = """<!DOCTYPE html>
       </svg>
       <span class="wordmark__text">Discovery&nbsp;Lab</span>
     </a>
+    <a class="eyebrow" href="{root}about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
   </div>
 </header>
 <main id="main" class="shell">
@@ -50,7 +51,7 @@ SHELL = """<!DOCTYPE html>
 </main>
 <footer class="site-foot">
   <div class="shell site-foot__inner">
-    <span>Discovery Lab &mdash; {owner}</span>
+    <span>Discovery Lab &mdash; <a href="{root}about/">{owner}</a></span>
     <span>Your work stays in your browser.</span>
   </div>
 </footer>
@@ -59,7 +60,7 @@ SHELL = """<!DOCTYPE html>
 </html>
 """
 
-ASSET_VERSION = "2"
+ASSET_VERSION = "3"
 
 
 def walk(nodes, trail, out):
