@@ -303,3 +303,38 @@ spec it. Ask only if the course or age band is genuinely ambiguous.
 
 **For amendments to an existing activity** he will send its link plus feedback. Edit only that
 activity's folder, bump its `activity_version`, commit, push. Nothing else should change.
+
+---
+
+## 12. External simulation recommendations
+
+Any node in `subjects.json` may carry a `resources` array of third-party simulations Diego
+recommends. They render below his own activities in an "Also recommended" section.
+
+**They must stay visually and semantically distinct from Discovery Lab activities.** Dashed
+border, signal colour rather than accent, `target="_blank"`, and an explicit note that they
+produce no learning evidence. A student must never mistake an external link for a marked
+activity.
+
+**Entry shape:**
+
+```json
+{
+  "title": "Natural Selection",
+  "source": "PhET · University of Colorado",
+  "url": "https://...",
+  "practises": "what the student actually does — one sentence",
+  "teaches": "what they take away — one sentence, aimed at the misconception",
+  "added": "YYYY-MM-DD"
+}
+```
+
+**When Diego sends a link:** open it in the browser and read it — PhET and similar are
+JS-rendered, so WebFetch returns an empty shell. Pull the real learning goals off the page,
+then write `practises` and `teaches` **pitched at that course's level**. Pre-IG Stage 1 is
+roughly UK Year 9 (ages 13-14); IGCSE is 14-16; A-Level is 16-18; Primary is 5-11. The second
+line should aim at the idea students usually get wrong, not restate the topic.
+
+Never add a link without opening it first. Run `python tools/check-links.py` afterwards, and
+occasionally thereafter — external links rot, and a dead link on a course page is worse than
+no link at all.

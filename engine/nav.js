@@ -187,17 +187,69 @@ export async function mountNav() {
   header(node, mount);
 
   const children = node.children || [];
-  if (!children.length) {
+  if (children.length) {
+    const grid = el("div", "grid-tiles");
+    children.forEach(child => {
+      const href = child.type === "simulation" ? `./${child.id}/activity.html` : `./${child.id}/`;
+      grid.append(tile(child, href));
+    });
+    mount.append(grid);
+  } else {
     mount.append(el("p", "nav-empty", "Activities for this course are still being built."));
-    return;
   }
 
-  const grid = el("div", "grid-tiles");
-  children.forEach(child => {
-    const href = child.type === "simulation" ? `./${child.id}/activity.html` : `./${child.id}/`;
-    grid.append(tile(child, href));
+  renderResources(node, mount);
+}
+
+/* Third-party simulations Diego recommends. Kept visually distinct from his own
+   activities on purpose: these open elsewhere, are not marked, and produce no
+   learning evidence. A student must never confuse the two. */
+function renderResources(node, mount) {
+  const items = node.resources || [];
+  if (!items.length) return;
+
+  const sec = el("section", "extras");
+  const head = el("div", "extras__head");
+  head.append(el("p", "eyebrow", "Also recommended"));
+  head.append(el("h2", "extras__title", "More practice, elsewhere"));
+  head.append(el("p", "extras__note",
+    "Simulations by other people that Mr Guevara rates. They open in a new tab, " +
+    "and they do not produce learning evidence — they are for practice and curiosity."));
+  sec.append(head);
+
+  const grid = el("div", "extras__grid");
+  items.forEach(r => {
+    const card = el("a", "extra");
+    card.href = r.url;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+
+    const top = el("div", "extra__top");
+    top.append(el("span", "extra__source", r.source || "External"));
+    const out = el("span", "extra__out");
+    out.textContent = "↗";
+    out.setAttribute("aria-hidden", "true");
+    top.append(out);
+    card.append(top);
+
+    card.append(el("h3", "extra__title", r.title));
+    if (r.practises) {
+      const p = el("p", "extra__line");
+      p.append(el("span", "extra__label", "You do"));
+      p.append(document.createTextNode(r.practises));
+      card.append(p);
+    }
+    if (r.teaches) {
+      const p = el("p", "extra__line");
+      p.append(el("span", "extra__label", "You learn"));
+      p.append(document.createTextNode(r.teaches));
+      card.append(p);
+    }
+    card.append(el("span", "sr-only", "(opens in a new tab on an external website)"));
+    grid.append(card);
   });
-  mount.append(grid);
+  sec.append(grid);
+  mount.append(sec);
 }
 
 mountNav();
