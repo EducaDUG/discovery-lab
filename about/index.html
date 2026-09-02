@@ -13,30 +13,50 @@
              grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); align-items: start; }
   @media (max-width: 46rem) { .profile { grid-template-columns: 1fr; gap: var(--sp-5); } }
 
+  /* Circular portrait in a neon ring, tilted 3deg. The whole assembly rotates
+     together, so the arc gap in the ring makes the tilt legible. */
+  .portrait-wrap {
+    --neon: #21E67F;
+    position: relative; width: min(100%, 14rem); aspect-ratio: 1;
+    margin-inline: auto; transform: rotate(3deg);
+    transition: transform var(--dur-mid) var(--ease);
+  }
+  .portrait-wrap:hover { transform: rotate(3deg) translateY(-4px); }
+
+  /* Outer arc: a conic sweep with a deliberate gap, sitting off the photo edge. */
+  .portrait-wrap::before {
+    content: ""; position: absolute; inset: -14px; border-radius: 50%;
+    background: conic-gradient(from 205deg,
+      var(--neon) 0turn, var(--neon) 0.60turn, transparent 0.60turn, transparent 1turn);
+    -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+            mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--neon) 70%, transparent));
+    opacity: .95;
+  }
+
   .portrait {
-    position: relative; aspect-ratio: 4 / 5; border-radius: var(--radius-lg);
+    position: absolute; inset: 0; margin: 0; border-radius: 50%;
     overflow: hidden; background: var(--surface-2);
-    border: 1px solid var(--line-strong); box-shadow: var(--shadow-2);
+    box-shadow:
+      0 0 0 4px var(--paper),
+      0 0 0 7px var(--neon),
+      0 0 16px color-mix(in srgb, var(--neon) 55%, transparent),
+      0 0 40px color-mix(in srgb, var(--neon) 28%, transparent),
+      var(--shadow-2);
   }
   .portrait img { width: 100%; height: 100%; object-fit: cover; }
-  /* Corner ticks — the instrument motif, applied to a photograph. */
-  .portrait::after {
-    content: ""; position: absolute; inset: 8px; pointer-events: none; border-radius: 4px;
-    background:
-      linear-gradient(var(--paper), var(--paper)) 0 0 / 14px 1px no-repeat,
-      linear-gradient(var(--paper), var(--paper)) 0 0 / 1px 14px no-repeat,
-      linear-gradient(var(--paper), var(--paper)) 100% 100% / 14px 1px no-repeat,
-      linear-gradient(var(--paper), var(--paper)) 100% 100% / 1px 14px no-repeat;
-    opacity: .85;
-  }
-  /* Shown until a photo file exists at ./diego.jpg */
+
+  /* Shown only if no photo file is present. */
   .portrait--empty { display: grid; place-items: center; }
   .portrait--empty::before {
-    content: "DUG"; font-family: var(--font-display); font-size: 3.2rem; color: var(--accent);
+    content: "DUG"; font-family: var(--font-display); font-size: 3rem; color: var(--accent);
     font-variation-settings: "opsz" 96, "wght" 600, "SOFT" 20, "WONK" 0; letter-spacing: .02em;
   }
-  .portrait__note { margin-top: var(--sp-3); font-family: var(--font-data);
+  .portrait__note { margin-top: var(--sp-5); font-family: var(--font-data);
                     font-size: var(--step--1); color: var(--ink-3); text-align: center; }
+
+  /* Neon reads brighter against a dark ground; keep it from blooming. */
+  [data-tint="dark"] .portrait-wrap { --neon: #35FF95; }
 
   .profile__role { color: var(--signal); font-family: var(--font-data);
                    font-size: var(--step--1); letter-spacing: .12em; text-transform: uppercase; }
@@ -85,10 +105,12 @@
 
   <div class="profile">
     <div>
-      <figure class="portrait" style="margin:0">
-        <img src="./diego.jpg" alt="Diego Urrutia Guevara"
-             onerror="this.parentElement.classList.add('portrait--empty'); this.remove();">
-      </figure>
+      <div class="portrait-wrap">
+        <figure class="portrait">
+          <img src="./diego.jpg?v=2" alt="Diego Urrutia Guevara"
+               onerror="this.parentElement.classList.add('portrait--empty'); this.remove();">
+        </figure>
+      </div>
       <p class="portrait__note" id="photoNote" hidden>Photograph to follow</p>
     </div>
 
