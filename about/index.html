@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>About Mr Guevara &mdash; Discovery Lab</title>
-<meta name="description" content="Diego Urrutia Guevara — educator, programme leader and former consultant. The teacher behind Discovery Lab.">
+<meta name="description" content="Diego Urrutia Guevara — educator and programme leader. Studied in Norway, Spain and New Zealand; taught in the UK, Spain and New Zealand; teaches students across four continents.">
 <link rel="stylesheet" href="../engine/style.css?v=3">
 <style>
   /* Page-specific layout. Deliberately not in engine/style.css — the engine
@@ -22,8 +22,6 @@
     transition: transform var(--dur-mid) var(--ease);
   }
   .portrait-wrap:hover { transform: rotate(3deg) translateY(-4px); }
-
-  /* Outer arc: a conic sweep with a deliberate gap, sitting off the photo edge. */
   .portrait-wrap::before {
     content: ""; position: absolute; inset: -14px; border-radius: 50%;
     background: conic-gradient(from 205deg,
@@ -33,7 +31,6 @@
     filter: drop-shadow(0 0 6px color-mix(in srgb, var(--neon) 70%, transparent));
     opacity: .95;
   }
-
   .portrait {
     position: absolute; inset: 0; margin: 0; border-radius: 50%;
     overflow: hidden; background: var(--surface-2);
@@ -45,33 +42,18 @@
       var(--shadow-2);
   }
   .portrait img { width: 100%; height: 100%; object-fit: cover; }
-
-  /* Shown only if no photo file is present. */
   .portrait--empty { display: grid; place-items: center; }
   .portrait--empty::before {
     content: "DUG"; font-family: var(--font-display); font-size: 3rem; color: var(--accent);
     font-variation-settings: "opsz" 96, "wght" 600, "SOFT" 20, "WONK" 0; letter-spacing: .02em;
   }
-  .portrait__note { margin-top: var(--sp-5); font-family: var(--font-data);
-                    font-size: var(--step--1); color: var(--ink-3); text-align: center; }
-
-  /* Neon reads brighter against a dark ground; keep it from blooming. */
   [data-tint="dark"] .portrait-wrap { --neon: #35FF95; }
 
   .profile__role { color: var(--signal); font-family: var(--font-data);
                    font-size: var(--step--1); letter-spacing: .12em; text-transform: uppercase; }
-  .lede { font-size: var(--step-1); color: var(--ink); line-height: 1.5; }
-  .bio > p + p { margin-top: var(--sp-4); }
-  .bio p { color: var(--ink-2); }
+  .lede { font-size: var(--step-1); color: var(--ink); line-height: 1.45; max-width: 40ch; }
 
-  .pullquote {
-    margin: var(--sp-7) 0; padding-left: var(--sp-5);
-    border-left: 3px solid var(--signal);
-    font-family: var(--font-display); font-size: var(--step-2); line-height: 1.25;
-    font-variation-settings: "opsz" var(--opsz), "wght" 500, "SOFT" var(--soft), "WONK" var(--wonk);
-    color: var(--ink); max-width: 32ch;
-  }
-  /* Breadth at a glance — the range the prose then explains. */
+  /* Range at a glance, before a word of prose. */
   .facts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-5);
            list-style: none; padding: 0; }
   .facts li {
@@ -82,8 +64,23 @@
   }
   .facts li:first-child { color: var(--accent); border-color: var(--accent); }
 
+  .bio > p + p { margin-top: var(--sp-4); }
+  .bio p { color: var(--ink-2); max-width: 62ch; }
+  .bio p.strong-open { color: var(--ink); font-size: var(--step-1); line-height: 1.5; }
+
+  .pullquote {
+    margin: var(--sp-6) 0; padding-left: var(--sp-5);
+    border-left: 3px solid var(--signal);
+    font-family: var(--font-display); font-size: var(--step-2); line-height: 1.25;
+    font-variation-settings: "opsz" var(--opsz), "wght" 500, "SOFT" var(--soft), "WONK" var(--wonk);
+    color: var(--ink); max-width: 32ch;
+  }
   .linkedin { display: inline-flex; align-items: center; gap: var(--sp-3); }
   .linkedin svg { width: 20px; height: 20px; flex: none; }
+
+  .connect { margin-block: var(--sp-7) var(--sp-8); }
+  .connect__inner { display: flex; flex-wrap: wrap; gap: var(--sp-5);
+                    align-items: center; justify-content: space-between; }
 </style>
 </head>
 <body>
@@ -115,30 +112,26 @@
   </nav>
 
   <div class="profile">
-    <div>
-      <div class="portrait-wrap">
-        <figure class="portrait">
-          <img src="./diego.jpg?v=2" alt="Diego Urrutia Guevara"
-               onerror="this.parentElement.classList.add('portrait--empty'); this.remove();">
-        </figure>
-      </div>
-      <p class="portrait__note" id="photoNote" hidden>Photograph to follow</p>
+    <div class="portrait-wrap">
+      <figure class="portrait">
+        <img src="./diego.jpg?v=2" alt="Diego Urrutia Guevara"
+             onerror="this.parentElement.classList.add('portrait--empty'); this.remove();">
+      </figure>
     </div>
 
     <div>
       <p class="profile__role">The teacher behind Discovery Lab</p>
       <h1 style="margin-top:var(--sp-3)">Diego Urrutia&nbsp;Guevara</h1>
       <p class="lede" style="margin-top:var(--sp-4)">
-        Educator, programme leader and former consultant &mdash; teaching across primary and
-        secondary, and bringing experience from both education and the professional world
-        into his classroom.
+        Studied in Norway, Spain and New Zealand. Taught in the UK, Spain and New Zealand.
+        Now teaching students across four continents.
       </p>
 
       <ul class="facts">
         <li>Primary &amp; Secondary</li>
-        <li>IGCSE &amp; A-Level</li>
-        <li>US Diploma</li>
-        <li>UK &middot; Spain &middot; Online</li>
+        <li>IGCSE &middot; A-Level &middot; US Diploma</li>
+        <li>UK &middot; Spain &middot; New Zealand</li>
+        <li>Students on 4 continents</li>
       </ul>
 
       <div class="cluster" style="margin-top:var(--sp-5)">
@@ -156,59 +149,55 @@
 
   <hr class="rule--ticked">
 
-  <div class="bio shell--narrow" style="margin-inline:0;padding-block:var(--sp-6)">
+  <div class="bio" style="padding-block:var(--sp-6)">
     <h2 style="margin-bottom:var(--sp-5)">About Diego</h2>
 
-    <p>Before and alongside his work in education, Diego worked across international
-      consultancy and biodiversity, experiences that shaped how he approaches learning today.
-      He believes students learn best when knowledge is connected to real problems,
-      investigation, decision-making and the world beyond the classroom.</p>
+    <p class="strong-open">Diego's classroom has never had one nationality in it. He studied in
+      Norway, Spain and New Zealand, taught in both private and state schools in the United
+      Kingdom and Spain, and now teaches from New Zealand to students in Europe, the United
+      States, Japan, China, Southeast Asia and Australia.</p>
 
-    <p>He has taught in both private and state schools in the United Kingdom and in Spain,
-      in classrooms that varied widely in age, language and circumstance. That breadth is where
-      his teaching was formed. The same idea has to be reachable for a nine-year-old meeting it
-      for the first time and for an A-Level student who needs it to hold up in an examination,
-      and the craft lies in knowing what changes between the two.</p>
+    <p>That range is not a travel list &mdash; it is the substance of how he teaches. Students
+      arrive from different school systems, different languages and very different ideas of what
+      a good answer looks like. Teaching all of them well means building lessons around thinking
+      rather than around the habits of any single curriculum.</p>
 
-    <p>At Crimson Global Academy, Diego teaches across both primary and secondary &mdash; from
-      primary science and Spanish through to IGCSE and A-Level Biology, on both the British and
-      US Diploma pathways. Alongside his own classes he supports the development of other
-      teachers across the Primary Programme: coaching and onboarding, instructional quality,
-      enrichment, and new approaches to online learning. That contribution has grown out of his
-      own classroom practice, testing ideas with students first and then sharing what works with
-      other educators.</p>
+    <p>Before and alongside education, Diego worked in international consultancy and
+      biodiversity. He believes students learn best when knowledge is connected to real
+      problems, investigation, decision-making and the world beyond the classroom.</p>
 
     <blockquote class="pullquote">
       Students learn best when knowledge is connected to real problems, investigation,
       decision-making and the world beyond the classroom.
     </blockquote>
 
-    <p>This combination of classroom teaching, educational leadership and professional
-      experience shapes his approach with students. Lessons are designed not simply around
-      completing content, but around helping students become curious, independent and confident
-      learners who know how to think, question, investigate and apply what they know.</p>
+    <p>At Crimson Global Academy he teaches from primary science and Spanish through to IGCSE
+      and A-Level Biology, across both the British and US Diploma pathways, and supports other
+      teachers across the Primary Programme through coaching, onboarding and enrichment.</p>
 
-    <p>Diego has a particular interest in the thoughtful use of technology and AI in education.
-      He develops interactive simulations, virtual investigations and other digital learning
-      experiences that give students opportunities to experiment, make decisions, test ideas
-      and learn through experience.</p>
-
-    <p>At the centre of his work is a simple goal: to help young people enjoy learning while
-      developing the knowledge, skills and independence they will need for what comes next.</p>
-
-    <p>Beyond his own students, Diego works with teachers to strengthen their practice and
-      create engaging, student-centred learning experiences across the school.</p>
+    <p>He has a particular interest in the thoughtful use of technology and AI in education.
+      Discovery Lab is where that becomes something students can click: simulations and
+      investigations where they experiment, decide, test ideas and learn by doing.</p>
   </div>
 
-  <hr class="rule">
-
-  <section style="padding-block:var(--sp-6) var(--sp-8)">
-    <p class="eyebrow">Why this site exists</p>
-    <p style="margin-top:var(--sp-4);color:var(--ink-2)">
-      Discovery Lab is where that last idea becomes something you can actually click. Every
-      activity here is an investigation rather than a worksheet: run the experiment, record
-      what you find, explain what it means, and leave with the evidence to submit.
-    </p>
+  <section class="connect card">
+    <div class="connect__inner">
+      <div>
+        <p class="eyebrow">More about Diego</p>
+        <h3 style="margin-top:var(--sp-3)">Full background and experience</h3>
+        <p style="color:var(--ink-2);margin-top:var(--sp-3);max-width:44ch">
+          Qualifications, teaching history and professional work are all on LinkedIn.
+          Connect there, or get in touch.
+        </p>
+      </div>
+      <a class="btn btn--lg linkedin" href="https://www.linkedin.com/in/diego-urrutia-guevara-150bb641/"
+         target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.75-1.95C20.3 8.75 21 11 21 14v7h-4v-6.2c0-1.5-.03-3.4-2.1-3.4-2.1 0-2.4 1.6-2.4 3.3V21H9z"/>
+        </svg>
+        View LinkedIn profile
+      </a>
+    </div>
   </section>
 </main>
 
@@ -218,12 +207,5 @@
     <span>Your work stays in your browser.</span>
   </div>
 </footer>
-
-<script>
-  /* If no photo file is present the frame falls back to a monogram; say so quietly. */
-  addEventListener("load", () => {
-    if (document.querySelector(".portrait--empty")) document.getElementById("photoNote").hidden = false;
-  });
-</script>
 </body>
 </html>
