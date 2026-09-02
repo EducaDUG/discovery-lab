@@ -272,3 +272,34 @@ never be described more strongly than that — to the student, the tutor, or in 
 **Commit identity:** Diego Urrutia Guevara <duguevara@gmail.com>
 
 **Still to confirm:** logo asset and the PDF footer line (currently placeholder).
+
+---
+
+## 11. How Diego requests a new simulation
+
+**One new chat per simulation**, opened at the `discovery-lab` folder so this file loads
+automatically. He will not repeat the architecture — it is all here.
+
+What he sends is deliberately minimal: a slide screenshot, a PowerPoint file, or one line
+("photosynthesis limiting factors, Pre-IG Stage 2"). **Design everything else yourself** —
+the mission, the mechanic, the questions, the real-life hook, the rubric. Do not ask him to
+spec it. Ask only if the course or age band is genuinely ambiguous.
+
+**Steps for a new activity:**
+
+1. Read `data/subjects.json`. Find the course node he named.
+2. Check the `mechanic` of every existing simulation in that course. **Pick one not yet used
+   there** — the `mechanics` list at the top of that file is the menu. This is the "always
+   different" rule, and it is a lookup, not a memory.
+3. If the course has no suitable module yet, create one. He does not need to name modules;
+   infer a sensible one from the topic and tell him what you created.
+4. Add the module and simulation entries to `subjects.json`, including `mechanic`, `ageBand`,
+   `version`, `questionCount`, `minutes`, and `status: "coming-soon"`.
+5. Build the activity in its own folder: `activity.html` + `config.json`. Start from
+   `_template/`. **Never edit the shared engine for a content change.**
+6. Flip that simulation's `status` to `"live"` only once `activity.html` actually works.
+7. Run `python tools/build-nav.py`.
+8. Commit, push, verify the live URL, and give him the direct link to the activity.
+
+**For amendments to an existing activity** he will send its link plus feedback. Edit only that
+activity's folder, bump its `activity_version`, commit, push. Nothing else should change.
