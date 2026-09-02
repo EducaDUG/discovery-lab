@@ -226,11 +226,11 @@ export async function mountNav() {
   renderResources(node, mount);
 }
 
-/* The course's own learning video game — a full gamified companion app Diego
-   built (e.g. Kiwi & Cóndor for Spanish). Deliberately the loudest thing on the
-   page: this is a reward to reach for, not a muted "also recommended" link. It
-   opens in a new tab and keeps its own progress in the browser — it is not a
-   marked Discovery Lab activity, so we never dress it up as one. */
+/* The course's own learning video game — a gamified companion app Diego built
+   (e.g. Kiwi & Cóndor for Spanish). One compact banner that sits above the unit
+   tiles: cover art on one side, a short pitch and a play button on the other.
+   Distinct from a marked Discovery Lab activity, and honest that it opens in a
+   new tab and produces no evidence — so we never dress it up as one. */
 function renderFeaturedGame(node, mount) {
   const g = node.featuredGame;
   if (!g || !g.url) return;
@@ -244,6 +244,20 @@ function renderFeaturedGame(node, mount) {
   glow.setAttribute("aria-hidden", "true");
   card.append(glow);
 
+  // Cover art. thumbnail is a filename inside the course's own folder, which is
+  // this very page, so it resolves relative to the current URL.
+  if (g.thumbnail) {
+    card.classList.add("feature-game--art");
+    const art = el("span", "feature-game__art");
+    const img = el("img", "feature-game__thumb");
+    img.src = g.thumbnail;
+    img.alt = "";
+    img.loading = "lazy";
+    img.setAttribute("aria-hidden", "true");
+    art.append(img);
+    card.append(art);
+  }
+
   const body = el("div", "feature-game__body");
   if (g.kicker) {
     const k = el("p", "feature-game__kicker");
@@ -255,13 +269,7 @@ function renderFeaturedGame(node, mount) {
   if (g.tagline) body.append(el("p", "feature-game__tagline", g.tagline));
   if (g.blurb) body.append(el("p", "feature-game__blurb", g.blurb));
 
-  if (Array.isArray(g.highlights) && g.highlights.length) {
-    const ul = el("ul", "feature-game__points");
-    g.highlights.forEach(h => ul.append(el("li", "feature-game__point", h)));
-    body.append(ul);
-  }
-
-  const cta = el("span", "feature-game__cta btn btn--lg");
+  const cta = el("span", "feature-game__cta btn");
   cta.append(el("span", null, g.cta || "Play the game"));
   const arrow = el("span", "feature-game__cta-arrow");
   arrow.textContent = "↗";
@@ -270,8 +278,7 @@ function renderFeaturedGame(node, mount) {
   body.append(cta);
 
   body.append(el("p", "feature-game__note",
-    "Opens in a new tab and keeps its own progress in your browser. " +
-    "It is a game to practise with — it does not produce learning evidence to hand in."));
+    "Opens in a new tab · your progress stays in your browser · not marked work."));
   card.append(el("span", "sr-only", "(opens in a new tab on an external website)"));
 
   card.append(body);

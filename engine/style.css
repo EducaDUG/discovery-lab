@@ -637,18 +637,21 @@ a:hover { color: var(--accent-hi); }
 .nav-title__blurb { color: var(--ink-2); margin-top: var(--sp-4); font-size: var(--step-1); }
 .nav-empty { color: var(--ink-3); font-style: italic; }
 
-/* The course's learning video game. The opposite of .extra on purpose: filled,
-   bold, celebratory — a reward the student reaches for, not a footnote. Colour
-   comes from accent-ink on the accent gradient, which flips correctly in dark
-   tint, so contrast holds in every theme. */
+/* The course's learning video game. One compact banner above the unit tiles:
+   cover art beside a short pitch and a play button. Filled and celebratory — the
+   opposite of the muted dashed .extra — but small enough to read as a single
+   item among the course's units, not a page-dominating hero. Colour is
+   accent-ink on the accent gradient, which flips correctly in dark tint, so
+   contrast holds in every theme. */
 .feature-game {
-  position: relative; display: block; overflow: hidden;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: calc(var(--sp-5) * var(--density));
   margin-top: var(--sp-6);
-  padding: calc(var(--sp-7) * var(--density)) calc(var(--sp-6) * var(--density));
-  border-radius: calc(var(--radius-lg) * 1.4);
+  padding: calc(var(--sp-5) * var(--density));
+  border-radius: var(--radius-lg);
   color: var(--accent-ink); text-decoration: none;
   background:
-    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent-hi) 92%, #fff) 0%, transparent 55%),
+    radial-gradient(120% 160% at 100% 0%, color-mix(in srgb, var(--accent-hi) 92%, #fff) 0%, transparent 55%),
     linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
   border: 1px solid color-mix(in srgb, var(--accent) 70%, #000 12%);
   box-shadow: var(--shadow-2);
@@ -656,62 +659,60 @@ a:hover { color: var(--accent-hi); }
               box-shadow var(--dur-mid) var(--ease);
 }
 .feature-game:hover, .feature-game:focus-visible {
-  transform: translateY(-4px); box-shadow: var(--shadow-3);
+  transform: translateY(-3px); box-shadow: var(--shadow-3);
 }
 /* Slow drifting light. Well under 2Hz and never to full black/white. */
 .feature-game__glow {
-  position: absolute; inset: -40% -10% auto auto;
-  width: 26rem; height: 26rem; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, #fff 34%, transparent) 0%, transparent 70%);
+  position: absolute; inset: -50% -20% auto auto;
+  width: 20rem; height: 20rem; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, #fff 30%, transparent) 0%, transparent 70%);
   animation: feature-drift calc(9000ms * var(--motion, 1)) var(--ease) infinite alternate;
 }
 @keyframes feature-drift {
-  from { transform: translate(0, 0) scale(1); opacity: .75; }
-  to   { transform: translate(-3rem, 2rem) scale(1.12); opacity: 1; }
+  from { transform: translate(0, 0) scale(1); opacity: .7; }
+  to   { transform: translate(-2rem, 1.5rem) scale(1.1); opacity: .95; }
 }
-.feature-game__body { position: relative; z-index: 1; display: flex; flex-direction: column; gap: var(--sp-4); }
+/* Cover art panel — the exciting bit, held at a steady aspect so the banner
+   stays short whatever the pitch length. */
+.feature-game__art {
+  position: relative; z-index: 1; flex: none;
+  width: min(40%, 15rem); aspect-ratio: 4 / 3;
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: 0 6px 18px -8px rgb(0 0 0 / .45);
+  transition: transform var(--dur-mid) var(--ease);
+}
+.feature-game:hover .feature-game__art { transform: scale(1.02); }
+.feature-game__thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.feature-game__body {
+  position: relative; z-index: 1; flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; gap: var(--sp-2);
+}
 .feature-game__kicker {
   display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
   font-family: var(--font-data); font-size: var(--step--1);
-  letter-spacing: .12em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--accent-ink) 88%, transparent);
+  letter-spacing: .1em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent-ink) 86%, transparent);
 }
 .feature-game__badge {
   font-weight: 700; letter-spacing: .1em;
-  padding: 0.25em 0.7em; border-radius: 999px;
+  padding: 0.2em 0.6em; border-radius: 999px;
   background: color-mix(in srgb, var(--accent-ink) 88%, transparent);
   color: var(--accent);
 }
-.feature-game__title {
-  font-size: var(--step-3); line-height: 1.02; color: var(--accent-ink);
-  margin-top: calc(-1 * var(--sp-1));
-}
+.feature-game__title { font-size: var(--step-2); line-height: 1.04; color: var(--accent-ink); }
 .feature-game__tagline {
   font-family: var(--font-data); font-size: var(--step--1);
-  letter-spacing: .04em; color: color-mix(in srgb, var(--accent-ink) 82%, transparent);
-  margin-top: calc(-1 * var(--sp-2));
+  letter-spacing: .03em; color: color-mix(in srgb, var(--accent-ink) 80%, transparent);
 }
 .feature-game__blurb {
-  font-size: var(--step-0); max-width: 60ch;
+  font-size: var(--step-0); max-width: 52ch; margin-top: var(--sp-1);
   color: color-mix(in srgb, var(--accent-ink) 94%, transparent);
-}
-.feature-game__points {
-  display: grid; gap: var(--sp-2) var(--sp-4);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-}
-.feature-game__point {
-  position: relative; padding-left: 1.6em;
-  font-size: var(--step--1); color: color-mix(in srgb, var(--accent-ink) 92%, transparent);
-}
-.feature-game__point::before {
-  content: "\2713"; position: absolute; left: 0; top: 0.05em;
-  font-family: var(--font-data); font-weight: 700;
-  color: var(--accent-ink); opacity: .85;
 }
 /* Light button on the dark banner. pointer-events off so the card's own hover
    drives it, rather than .btn:hover darkening it against its own background. */
 .feature-game__cta {
-  align-self: flex-start; pointer-events: none; margin-top: var(--sp-2);
+  align-self: flex-start; pointer-events: none; margin-top: var(--sp-3);
   --btn-bg: var(--surface); --btn-fg: var(--accent); --btn-bd: var(--surface);
   box-shadow: var(--shadow-2);
   transition: transform var(--dur-mid) var(--ease), box-shadow var(--dur-mid) var(--ease);
@@ -721,8 +722,12 @@ a:hover { color: var(--accent-hi); }
 .feature-game__cta-arrow { transition: transform var(--dur-mid) var(--ease); }
 .feature-game:hover .feature-game__cta-arrow { transform: translate(2px, -2px); }
 .feature-game__note {
-  font-size: var(--step--1); max-width: 60ch;
-  color: color-mix(in srgb, var(--accent-ink) 76%, transparent);
+  font-size: var(--step--1); max-width: none; margin-top: var(--sp-2);
+  color: color-mix(in srgb, var(--accent-ink) 74%, transparent);
+}
+@media (max-width: 40rem) {
+  .feature-game { flex-direction: column; align-items: stretch; }
+  .feature-game__art { width: 100%; aspect-ratio: 16 / 9; }
 }
 
 /* External recommendations. Signalled as "not ours" by a dashed border and the
