@@ -811,15 +811,16 @@ export async function mountActivity({ simulation = {} } = {}) {
   }
 
   /* --------- little shared UI ------------------------------------------ */
-  let toastTimer = null;
   function toast(msg, kind = "info") {
     let host = document.getElementById("dl-toast");
     if (!host) { host = el("div"); host.id = "dl-toast"; host.className = "dl-toast-host no-print"; document.body.append(host); }
     const t = el("div", `toast toast--${kind} anim-pop`, msg);
     host.append(t);
+    while (host.children.length > 4) host.firstChild.remove();   // cap the stack
     if (sim && ttsEnabled()) speak(msg);
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 4200);
+    // each toast schedules its OWN removal — never a shared timer, or a fast
+    // burst of toasts would cancel each other's removal and linger forever.
+    setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 4200);
   }
   function celebrate(ratio) {
     if (document.documentElement.getAttribute("data-reduced-motion") === "on") return;
