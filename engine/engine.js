@@ -478,6 +478,35 @@ export async function mountActivity({ simulation = {} } = {}) {
   function buildOrient(host) {
     const o = config.orient || {};
     stageHead(host, "Mission", config.title, o.mission);
+
+    /* CGA Da Vinci policy: every activity states a clear learning objective and
+       visible success criteria up front, and names how it connects to the course.
+       See CLAUDE.md Section 13. All three are optional in config but strongly
+       expected — the panel simply omits whatever an activity has not supplied. */
+    if (o.objective || (o.successCriteria && o.successCriteria.length) || o.courseLink) {
+      const brief = el("div", "card lesson-brief");
+      if (o.objective) {
+        brief.append(el("p", "eyebrow", "What you are learning"));
+        brief.append(el("p", "lesson-brief__obj", o.objective));
+      }
+      if (o.courseLink) {
+        const cl = el("p", "lesson-brief__course");
+        cl.append(el("span", "lesson-brief__tag", "Course link"), document.createTextNode(o.courseLink));
+        brief.append(cl);
+      }
+      if (o.successCriteria && o.successCriteria.length) {
+        brief.append(el("p", "eyebrow", "By the end you will be able to"));
+        const ul = el("ul", "success-list");
+        o.successCriteria.forEach(sc => {
+          const li = el("li");
+          li.append(el("span", "success-list__tick", "✓"), el("span", null, sc));
+          ul.append(li);
+        });
+        brief.append(ul);
+      }
+      host.append(brief);
+    }
+
     const grid = el("div", "orient-grid");
     // teaching diagram (custom) on one side, sequenced steps on the other
     const visual = el("div", "orient-visual panel");
@@ -756,6 +785,8 @@ export async function mountActivity({ simulation = {} } = {}) {
       student: state.student.trim(), course: config.course, pathway: config.pathway,
       module: config.module, activity_name: config.title,
       simulation_url: simURL,
+      learning_objective: (config.orient && config.orient.objective) || null,
+      success_criteria: (config.orient && config.orient.successCriteria) || [],
       learning_focus: config.learningFocus || null,
       started: state.startedAt, completed,
       record_columns: (config.record && config.record.columns) || [],
@@ -1102,6 +1133,16 @@ function injectEngineStyles() {
   .steps-list__n{flex:none;width:1.7rem;height:1.7rem;border-radius:50%;display:grid;place-items:center;
     background:var(--accent);color:var(--accent-ink);font-family:var(--font-data);font-size:var(--step--1);font-weight:700;}
   .real-life{border-left:3px solid var(--signal);}
+  .lesson-brief{border-left:3px solid var(--accent);margin-bottom:var(--sp-5);}
+  .lesson-brief__obj{font-size:var(--step-1);color:var(--ink);max-width:var(--measure);margin-top:var(--sp-2);}
+  .lesson-brief__course{font-size:var(--step--1);color:var(--ink-2);margin-top:var(--sp-3);}
+  .lesson-brief__tag{display:inline-block;font-family:var(--font-data);font-size:0.68rem;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+    padding:.1em .55em;margin-right:var(--sp-2);}
+  .success-list{display:flex;flex-direction:column;gap:var(--sp-2);margin-top:var(--sp-3);}
+  .success-list li{display:flex;gap:var(--sp-3);align-items:flex-start;color:var(--ink);}
+  .success-list__tick{flex:none;width:1.4rem;height:1.4rem;border-radius:50%;display:grid;place-items:center;
+    background:var(--positive);color:#fff;font-size:.8rem;font-weight:700;margin-top:.1em;}
   .badge-shelf{display:flex;flex-wrap:wrap;gap:var(--sp-2);align-items:center;margin-bottom:var(--sp-4);}
   .sim-host{margin-top:var(--sp-2);}
   .dl-toast-host{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);z-index:300;

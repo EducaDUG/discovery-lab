@@ -422,5 +422,20 @@ The success criteria also go into the JSON export (`success_criteria` array) so 
 check the work against the same bar the student saw. Keep them plain and student-facing; they are
 not the hidden `expected_points`.
 
+**Decided 2026-09-03 — BOTH a success-criteria list AND a visible rubric.** They are not the
+same thing and both are required on every activity:
+
+- **Success criteria** = student-facing "by the end you will be able to…" statements (2-3),
+  shown in the Orient panel and exported to JSON as `success_criteria`. What the student aims for.
+- **Rubric** = how the marks are split, shown on the Evidence stage and exported as `rubric`.
+  How the work is scored.
+
+**Diego does NOT write the learning objective or success criteria.** Infer them from the course
+level and what the content sets up for the student's later study, then write them in plain,
+age-appropriate language. Config keys, all under `orient` in config.json:
+`objective` (one sentence), `courseLink` (names the course/module and what it leads to),
+`successCriteria` (array of 2-3 plain "you will be able to…" lines). The engine renders all three
+automatically and omits any that are absent — but absent is a policy miss, so supply all three.
+
 Pitch all four Orient answers at the activity's age band — a single sentence each for Primary,
 slightly fuller for A-Level.
