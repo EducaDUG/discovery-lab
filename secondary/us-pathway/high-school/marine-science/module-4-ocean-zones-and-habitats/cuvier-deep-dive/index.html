@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cuvier's Deep Dive — Ocean Zones &amp; Habitats</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#01030a;
+    font-family:"Segoe UI",system-ui,Arial,sans-serif; color:#eaf6ff; }
+  #game { position:fixed; inset:0; }
+  canvas { display:block; }
+
+  /* ---------- HUD ---------- */
+  #hud { position:fixed; inset:0; pointer-events:none; z-index:10; }
+  .panel { position:absolute; background:rgba(4,16,34,.55); border:1px solid rgba(120,200,255,.25);
+    border-radius:10px; padding:8px 12px; backdrop-filter:blur(3px); }
+  #topleft { top:12px; left:12px; min-width:210px; }
+  #topright { top:12px; right:12px; text-align:right; min-width:170px; }
+  #bottomleft { bottom:12px; left:12px; font-size:12px; line-height:1.5; opacity:.85; max-width:250px; }
+  .stat { font-size:13px; margin:2px 0; display:flex; justify-content:space-between; gap:14px; }
+  .stat b { color:#7fd7ff; font-weight:600; }
+  .big { font-size:22px; font-weight:700; color:#9be8ff; }
+  .zone { font-size:15px; font-weight:700; letter-spacing:.5px; }
+
+  /* meters */
+  .meter { height:9px; border-radius:5px; background:rgba(255,255,255,.12); overflow:hidden; margin-top:3px; }
+  .meter > div { height:100%; width:100%; transition:width .15s linear; }
+  #o2bar { background:linear-gradient(90deg,#39d0ff,#5affc8); }
+  #lightbar { background:linear-gradient(90deg,#fff6c0,#ffd257); }
+
+  /* depth gauge (right side vertical) */
+  #depthGauge { position:absolute; top:185px; right:14px; width:70px; bottom:70px; pointer-events:none; }
+  #depthTrack { position:absolute; right:26px; top:0; bottom:0; width:8px; border-radius:4px;
+    background:linear-gradient(180deg,#79c6ff 0%,#123a7a 12%,#0a1f4a 40%,#040c22 70%,#01030a 100%); border:1px solid rgba(120,200,255,.25); }
+  #depthMarker { position:absolute; right:20px; width:20px; height:3px; background:#ff5a7a; box-shadow:0 0 6px #ff5a7a; border-radius:2px; transform:translateY(-50%); }
+  .zlabel { position:absolute; right:38px; font-size:10px; color:#bfe4ff; white-space:nowrap; transform:translateY(-50%); opacity:.8; }
+  #depthReadout { position:absolute; right:0; bottom:-4px; font-size:11px; }
+
+  /* center messages */
+  #centerMsg { position:absolute; top:20%; left:50%; transform:translateX(-50%); text-align:center;
+    font-size:26px; font-weight:800; text-shadow:0 2px 12px #000,0 0 20px rgba(70,180,255,.5);
+    opacity:0; transition:opacity .4s; max-width:80%; }
+  #subMsg { position:absolute; top:calc(20% + 40px); left:50%; transform:translateX(-50%); text-align:center;
+    font-size:16px; font-weight:600; opacity:0; transition:opacity .4s; text-shadow:0 2px 8px #000; }
+
+  /* prompts (bottom center) */
+  #prompt { position:absolute; bottom:74px; left:50%; transform:translateX(-50%); text-align:center;
+    font-size:17px; font-weight:700; padding:8px 18px; background:rgba(8,26,52,.7);
+    border:1px solid rgba(120,200,255,.35); border-radius:24px; opacity:0; transition:opacity .25s;
+    text-shadow:0 1px 4px #000; }
+  .key { display:inline-block; background:#0c2b52; border:1px solid #4aa3e0; border-radius:5px;
+    padding:1px 7px; margin:0 2px; font-weight:800; color:#bfe6ff; }
+
+  /* question banner */
+  /* box-less, glowing question typography that pops against the blue water */
+  #qbanner { position:absolute; top:64px; left:50%; transform:translateX(-50%); width:min(680px,64%);
+    text-align:center; padding:0; background:none; border:none; opacity:0; transition:opacity .3s; }
+  #qbanner .qz { font-size:13px; letter-spacing:3px; color:#ffd25a; font-weight:800; text-transform:uppercase;
+    text-shadow:0 2px 10px #000, 0 0 16px rgba(255,180,60,.7); }
+  #qbanner .qt { font-family:"Trebuchet MS","Segoe UI",sans-serif; font-size:27px; font-weight:800; line-height:1.15;
+    margin-top:5px; color:#f2feff; letter-spacing:.3px;
+    text-shadow:0 3px 14px #000, 0 0 26px rgba(50,200,255,.85), 0 0 3px #012a3a; }
+  #qbanner .qhint { font-size:15px; font-weight:700; margin-top:9px; color:#c6f2ff;
+    text-shadow:0 2px 8px #000, 0 0 12px rgba(50,200,255,.55); }
+
+  /* oceanographic instrument block */
+  .sci { margin-top:6px; padding-top:5px; border-top:1px solid rgba(120,200,255,.22); }
+  .sci .stat { font-size:12px; opacity:.92; }
+  .sci .stat b { color:#8fe6c8; font-weight:600; }
+
+  /* in-world science concept callout */
+  #sciNote { position:absolute; left:50%; bottom:118px; transform:translateX(-50%); text-align:center;
+    opacity:0; transition:opacity .5s; pointer-events:none; max-width:70%; }
+  #sciNote .sn-t { font-size:15px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+    color:#7affd0; text-shadow:0 2px 8px #000, 0 0 14px rgba(60,255,190,.5); }
+  #sciNote .sn-d { font-size:13px; font-weight:600; color:#dff3ff; margin-top:2px;
+    text-shadow:0 2px 8px #000; }
+
+  /* permanent cinematic vignette for framing */
+  #filmvignette { position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 52%, rgba(0,8,18,0.55) 100%); }
+  /* sonar / danger vignette */
+  #vignette { position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 0 rgba(255,0,0,0); transition:box-shadow .3s; }
+
+  /* start & end screens */
+  .screen { position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse at 50% 30%,#08284f,#010511 70%); pointer-events:auto; }
+  .card { width:min(760px,92%); background:rgba(6,20,42,.85); border:1px solid rgba(120,200,255,.3);
+    border-radius:18px; padding:30px 34px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .card h1 { font-size:30px; color:#a8ecff; margin-bottom:6px; }
+  .card h2 { font-size:16px; color:#7fd7ff; font-weight:600; margin-bottom:16px; }
+  .card p { font-size:14px; line-height:1.6; margin:8px 0; color:#dceefc; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 22px; margin:16px 0; }
+  .grid div { font-size:13px; }
+  .ctrlrow { display:flex; align-items:center; gap:8px; margin:5px 0; font-size:13px; }
+  button.play { margin-top:14px; pointer-events:auto; cursor:pointer; font-size:18px; font-weight:800;
+    color:#04121f; background:linear-gradient(90deg,#5affc8,#39d0ff); border:none; border-radius:30px;
+    padding:12px 34px; box-shadow:0 6px 20px rgba(60,220,200,.35); }
+  button.play:hover { filter:brightness(1.08); }
+  .hidden { display:none !important; }
+  #loadErr { color:#ff9a9a; font-size:14px; margin-top:12px; }
+  .credit { font-size:11px; opacity:.6; margin-top:14px; }
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<!-- ============ HUD ============ -->
+<div id="hud">
+  <div class="panel" id="topleft">
+    <div class="zone" id="zoneName">Surface</div>
+    <div class="stat"><span>Depth</span><b id="depthTxt">0 m</b></div>
+    <div class="stat"><span>Breath (O₂)</span><b id="o2txt">100%</b></div>
+    <div class="meter"><div id="o2bar"></div></div>
+    <div class="stat"><span>Light</span><b id="lightTxt">100%</b></div>
+    <div class="meter"><div id="lightbar"></div></div>
+    <div class="stat"><span id="echoLabel">Echolocation</span><b id="echoTxt">off</b></div>
+    <div class="sci">
+      <div class="stat"><span>Temperature</span><b id="tempTxt">—</b></div>
+      <div class="stat"><span>Salinity</span><b id="salTxt">—</b></div>
+      <div class="stat"><span>Pressure</span><b id="presTxt">—</b></div>
+      <div class="stat"><span>Dissolved O₂</span><b id="doTxt">—</b></div>
+      <div class="stat"><span>Minerals</span><b id="minTxt">—</b></div>
+    </div>
+  </div>
+
+  <div class="panel" id="topright">
+    <div class="stat" style="justify-content:flex-end"><span>Score</span><b class="big" id="scoreTxt">0</b></div>
+    <div class="stat" style="justify-content:flex-end"><span>Streak</span><b id="streakTxt">0×</b></div>
+    <div class="stat" style="justify-content:flex-end"><span>Questions</span><b id="qProg">0 / 10</b></div>
+    <div class="stat" style="justify-content:flex-end"><span>Prey eaten</span><b id="preyTxt">0</b></div>
+    <div class="stat" style="justify-content:flex-end"><span>Deepest</span><b id="bestTxt">0 m</b></div>
+  </div>
+
+  <div id="depthGauge">
+    <div id="depthTrack"></div>
+    <div class="zlabel" style="top:2%">0 m · Sunlight</div>
+    <div class="zlabel" style="top:20%">200 m · Twilight</div>
+    <div class="zlabel" style="top:42%">1000 m · Midnight</div>
+    <div class="zlabel" style="top:98%">3000 m</div>
+    <div id="depthMarker" style="top:2%"></div>
+    <div id="depthReadout">0 m</div>
+  </div>
+
+  <div class="panel" id="bottomleft">
+    <div><span class="key">W</span>/<span class="key">S</span> dive / rise &nbsp; <span class="key">A</span>/<span class="key">D</span> turn</div>
+    <div><span class="key">Shift</span> boost &nbsp; <span class="key">F</span> suction feed</div>
+    <div><span class="key">Q</span> go quiet &nbsp; <span class="key">R</span> confirm answer (body roll)</div>
+    <div><span class="key">M</span> mute</div>
+  </div>
+
+  <div id="qbanner"><div class="qz" id="qz">Question</div><div class="qt" id="qt"></div><div class="qhint" id="qhint">Swim to the marine feature of your chosen answer</div></div>
+
+  <div id="centerMsg"></div>
+  <div id="subMsg"></div>
+  <div id="sciNote"><div class="sn-t" id="snT"></div><div class="sn-d" id="snD"></div></div>
+  <div id="prompt"></div>
+  <div id="filmvignette"></div>
+  <div id="vignette"></div>
+</div>
+
+<!-- ============ START SCREEN ============ -->
+<div class="screen" id="startScreen">
+  <div class="card">
+    <h1>🐋 Cuvier's Deep Dive</h1>
+    <h2>Ocean Zones &amp; Habitats — pilot the deepest-diving mammal on Earth</h2>
+    <p>You are a <b>Cuvier's beaked whale</b>. Breathe at the surface, then dive through the sunlight,
+       twilight and midnight zones toward the seabed — nearly <b>3,000 metres</b> down. Hunt deep-sea squid
+       with suction feeding, dodge orcas, sharks and fishing gear, and answer the ocean each zone asks of you
+       by swimming to <b>real marine features</b> — coral heads, fish schools, hydrothermal vents and rock
+       formations — that carry the possible answers.</p>
+    <div class="grid">
+      <div><b>W / S</b> — pitch nose down (dive) / up (rise)</div>
+      <div><b>A / D</b> — turn left / right</div>
+      <div><b>Shift</b> — boost (burns more breath)</div>
+      <div><b>F</b> — hold near prey to suction-feed</div>
+      <div><b>Q</b> — go quiet (evade sonar &amp; predators)</div>
+      <div><b>R</b> — confirm a chosen answer with a body roll</div>
+    </div>
+    <p style="font-size:13px;opacity:.9">🫁 Surface regularly to breathe. 🔊 Echolocation switches on automatically
+       below ~400 m to reveal glowing prey. 🎯 A question appears in the water just before every reward —
+       swim to the correct feature, then roll to lock it in. Answer all 10 to complete the dive.
+       🌡️ Watch your instruments: temperature, salinity, pressure and dissolved oxygen all change as you descend.</p>
+    <div id="loadErr" class="hidden"></div>
+    <button class="play" id="playBtn">Begin the dive</button>
+    <div class="credit">Educational revision game · content from “Ocean Zones and Habitats”.</div>
+  </div>
+</div>
+
+<!-- ============ END SCREEN ============ -->
+<div class="screen hidden" id="endScreen">
+  <div class="card" style="text-align:center">
+    <h1 id="endTitle">Dive complete 🏆</h1>
+    <h2 id="endSub"></h2>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr; text-align:center">
+      <div>Final score<br><span class="big" id="endScore">0</span></div>
+      <div>Questions correct<br><span class="big" id="endQ">0</span></div>
+      <div>Deepest reach<br><span class="big" id="endDepth">0 m</span></div>
+    </div>
+    <p id="endMsg"></p>
+    <button class="play" id="againBtn">Dive again</button>
+  </div>
+</div>
+
+<!-- Three.js (loaded from CDN with fallback). Opened as a local file, this is allowed. -->
+<script>
+  // ---- Engine loader: Three.js core + (optional) HDR bloom post-processing ----
+  window.__pp = false;
+  function loadScript(src){
+    return new Promise(function(res,rej){
+      var s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+  function showLoadErr(){
+    var e=document.getElementById('loadErr');
+    if(e){ e.classList.remove('hidden');
+      e.innerHTML="⚠️ Couldn't load the 3D engine (Three.js). Please reload the page."; }
+  }
+  async function loadEngine(){
+    // Vendored locally (no CDNs) so it works on filtered school networks and offline.
+    var cores=["./vendor/three.min.js"];
+    var ok=false;
+    for(var i=0;i<cores.length;i++){ try{ await loadScript(cores[i]); if(window.THREE){ok=true;break;} }catch(e){} }
+    if(!ok){ showLoadErr(); return; }
+    // post-processing example modules (r128 classic build attaches to THREE.*)
+    var base="./vendor/";
+    var pp=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js",
+            "shaders/BokehShader.js",
+            "postprocessing/EffectComposer.js","postprocessing/RenderPass.js",
+            "postprocessing/ShaderPass.js","postprocessing/MaskPass.js",
+            "postprocessing/UnrealBloomPass.js","postprocessing/BokehPass.js"];
+    try{ for(var j=0;j<pp.length;j++){ await loadScript(base+pp[j]); }
+      window.__pp = !!(window.THREE && THREE.EffectComposer && THREE.UnrealBloomPass && THREE.RenderPass);
+    }catch(e){ window.__pp=false; }
+    boot();
+  }
+  loadEngine();
+</script>
+
+<script>
+"use strict";
+/* =========================================================================
+   CUVIER'S DEEP DIVE — a 3D ocean-zones revision game
+   Single file. Requires THREE (loaded above).
+   ========================================================================= */
+
+function boot(){
+  if(typeof THREE === "undefined"){ return setTimeout(boot, 120); }
+  startGame();
+}
+
+/* ---------- global-ish handles ---------- */
+let scene, camera, renderer, clock;
+let composer, bloomPass, bokehPass, cinePass, useFX=false;
+let whale, fluke, headLight, glowLight, whaleKey, whaleRim;
+let seabed, surfaceMesh, particleField, plankton, godrays=[], bubbles=[], causticMesh;
+let baseFOV=60;
+let W, H;
+
+/* ambient (non-interactive) wildlife for ecosystem diversity */
+const ambient = [];      // {mesh, update(dt), cullR}
+let ambientTimer = 0;
+
+/* ---------- tuning constants ---------- */
+const SURFACE_Y   = 0;
+const MAX_DEPTH   = 3000;          // metres (world units are metres, negative Y)
+const SEABED_BASE = 2050;          // nominal seabed depth
+const TRENCH_DEPTH= 3000;
+const BREATHE_DEPTH = 6;           // blowhole clears water above this depth
+
+/* ---------- game state ---------- */
+const state = {
+  running:false, ended:false,
+  yaw:0, pitch:0, roll:0,
+  speed:20, boosting:false,
+  o2:100,
+  score:0, streak:0, bestStreak:0,
+  preyEaten:0, deepest:0,
+  echoOn:false, quiet:false,
+  // question flow
+  activeQ:null, selectedRing:null, awaitingConfirm:false, questionsDone:0,
+  // sonar
+  sonar:{active:false, timer:14, duration:0, intensity:0},
+  // rolling animation
+  rollAnim:0,
+  // messaging
+  msgTimer:0,
+  // spawn timers
+  dangerTimer:8, cookieTimer:22,
+  swimPhase:0,
+};
+
+const keys = {};
+const prey = [];      // {mesh, type, vel, alive}
+const dangers = [];   // {mesh, type, vel, ttl, ...}
+const rings = [];     // active answer rings {mesh, label, idx, textSprite}
+let qBannerObj=null;
+let confirmBannerObj=null;
+
+/* =========================================================================
+   QUESTIONS  (sourced from the "Ocean Zones and Habitats" lesson)
+   band: [minDepth, maxDepth] in metres where the question activates.
+   requireSeabed: must be near the seabed to trigger.
+   ========================================================================= */
+const QUESTIONS = [
+  { zone:"Surface · Intertidal", band:[0,60], atype:"rock",
+    q:"Which tidal zone is most exposed to the air?",
+    a:["High tide zone","Low tide zone","Mid tide zone","Deep zone"], correct:0,
+    reward:"Right — the high tide zone dries out most at low water." },
+
+  { zone:"Sunlight Zone · Coral Reefs", band:[0,200], atype:"coral",
+    q:"What builds a coral reef's structure?",
+    a:["Calcium carbonate skeletons","Fish waste","Living algae","Sand"], correct:0,
+    reward:"Right — reefs grow on dead polyps' calcium-carbonate skeletons." },
+
+  { zone:"Sunlight Zone · Biodiversity", band:[0,200], atype:"coral",
+    q:"Coral reefs are the “____ of the sea”.",
+    a:["Rainforests","Deserts","Meadows","Cities"], correct:0,
+    reward:"Yes — reefs are the rainforests of the sea." },
+
+  { zone:"Twilight Zone · Mesopelagic", band:[200,1000], atype:"school",
+    q:"Food that sinks from above is called…",
+    a:["Marine snow","Sea foam","Seaweed","Sunlight"], correct:0,
+    reward:"Right — marine snow drifts down from the sunlit water." },
+
+  { zone:"Twilight Zone · Adaptations", band:[200,1000], atype:"glow",
+    q:"A common deep-sea adaptation is…",
+    a:["Bioluminescence","Bright colours","Fast metabolism","Thick fur"], correct:0,
+    reward:"Right — bioluminescence makes its own light in the dark." },
+
+  { zone:"Midnight Zone · Bathypelagic", band:[1000,3000], atype:"glow",
+    q:"Which zone is the “midnight zone”?",
+    a:["Bathypelagic","Sunlight","Twilight","Intertidal"], correct:0,
+    reward:"Right — no sunlight reaches the bathypelagic midnight zone." },
+
+  { zone:"Midnight Zone · Pelagic Life", band:[1000,3000], atype:"school",
+    q:"Why do deep-sea animals have huge eyes?",
+    a:["To catch faint light","To swim faster","To store oxygen","To crush shells"], correct:0,
+    reward:"Right — big eyes catch the last faint glimmers of light." },
+
+  { zone:"Benthic · Seabed", band:[1500,3000], requireSeabed:true, atype:"rock",
+    q:"What is a brine pool?",
+    a:["Super-salty seabed water","A freshwater lake","A coral garden","An undersea cave"], correct:0,
+    reward:"Right — a dense, super-salty “lake” on the seabed." },
+
+  { zone:"Benthic · Hydrothermal Vents", band:[1600,3000], requireSeabed:true, atype:"vent",
+    q:"Vent life makes energy by…",
+    a:["Chemosynthesis","Photosynthesis","Breathing air","Eating coral"], correct:0,
+    reward:"Right — vent life uses chemosynthesis, not sunlight." },
+
+  { zone:"The Trenches · Hadal", band:[2500,3000], atype:"rock",
+    q:"The deepest zone (the trenches) is the…",
+    a:["Hadal zone","Midnight zone","Twilight zone","Sunlight zone"], correct:0,
+    reward:"Right — the hadal zone, where snailfish survive." },
+];
+
+/* =========================================================================
+   ZONE / LIGHT helpers
+   ========================================================================= */
+function depthNow(){ return Math.max(0, -whale.position.y); }
+function zoneFor(d){
+  if(d < 200)  return {name:"Sunlight Zone (Epipelagic)", short:"Sunlight"};
+  if(d < 1000) return {name:"Twilight Zone (Mesopelagic)", short:"Twilight"};
+  if(d < 4000) return {name:"Midnight Zone (Bathypelagic)", short:"Midnight"};
+  return {name:"The Abyss", short:"Abyss"};
+}
+function lightFactor(d){
+  // 100% at surface → ~1% by 200 m → ~0 by 1000 m
+  return Math.max(0, Math.exp(-d/95));
+}
+
+/* ---- Real oceanographic depth profiles (approximate, but correctly shaped) ---- */
+// Thermocline: warm mixed layer, sharp drop ~100-300 m, near-freezing deep water
+function tempAt(d){ return 3.1 + 19*Math.exp(-d/220); }
+// Salinity rises slightly with depth (fresher, rain-diluted surface water)
+function salinityAt(d){ return 34.4 + 0.8*(1-Math.exp(-d/400)); }
+// Hydrostatic pressure: ~1 atmosphere per 10 m, plus 1 atm at the surface
+function pressureAt(d){ return 1 + d/10; }
+// Dissolved O₂: high at the surface, a genuine Oxygen Minimum Zone ~700 m, moderate below
+function oxygenAt(d){
+  const omzDip=Math.exp(-Math.pow((d-700)/350,2));
+  const baseline=6.0 + (4.2-6.0)*Math.min(1, d/2000);
+  return Math.max(0.4, baseline - (baseline-0.8)*omzDip);
+}
+// Dissolved minerals (iron/sulphides) — trace in open water, spikes at the seabed & vents
+function mineralsAt(d, nearSeabed){ return 0.35 + d*0.00035 + (nearSeabed?1.7:0); }
+function seabedHeightAt(x,z){
+  // gently rolling floor around SEABED_BASE, with a deep trench band near z<-300
+  let base = SEABED_BASE
+    + 90*Math.sin(x*0.004) + 70*Math.cos(z*0.005)
+    + 40*Math.sin((x+z)*0.011);
+  // trench: a valley the player must find for the rarest depths
+  const trench = Math.exp(-Math.pow((x+120)/260,2)) * 950; // up to ~950 m deeper
+  base += trench;
+  return -Math.min(TRENCH_DEPTH, base); // world Y (negative)
+}
+
+/* =========================================================================
+   SETUP
+   ========================================================================= */
+function startGame(){
+  W=window.innerWidth; H=window.innerHeight;
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a5680);
+  scene.fog = new THREE.FogExp2(0x0a5680, 0.0018);
+
+  camera = new THREE.PerspectiveCamera(baseFOV, W/H, 0.5, 6000);
+
+  renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
+  renderer.setSize(W,H);
+  // cinematic colour pipeline for that glossy console look
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.95;
+  if(THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+  document.getElementById("game").appendChild(renderer.domElement);
+
+  clock = new THREE.Clock();
+  setupPostFX();
+
+  // lights
+  const amb = new THREE.AmbientLight(0x8fbfe0, 0.9); amb.name="amb"; scene.add(amb);
+  const sun = new THREE.DirectionalLight(0xffffff, 1.0); sun.position.set(60,200,40); sun.name="sun"; scene.add(sun);
+  glowLight = new THREE.PointLight(0x66ddff, 0.0, 260, 2); scene.add(glowLight); // perception glow in deep
+
+  buildWhale();
+  headLight = new THREE.SpotLight(0xbfe8ff, 0.0, 240, Math.PI/5, 0.5, 1.2);
+  scene.add(headLight); scene.add(headLight.target);
+
+  buildSurface();
+  buildSeabed();
+  buildParticles();
+  buildPlankton();
+  buildGodRays();
+  buildCaustics();
+
+  window.addEventListener("resize", onResize);
+  window.addEventListener("keydown", e=>{
+    keys[e.code]=true;
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code)) e.preventDefault();
+    if(e.code==="KeyR") tryConfirm();
+    if(e.code==="KeyM") toggleMute();
+  });
+  window.addEventListener("keyup", e=>{ keys[e.code]=false; });
+
+  document.getElementById("playBtn").onclick = beginRun;
+  document.getElementById("againBtn").onclick = ()=>location.reload();
+
+  animate();
+}
+
+/* Procedural cetacean skin: mottled tone + the linear "rake" scars that cover
+   real Cuvier's beaked whales — turns flat plastic grey into believable hide. */
+function makeWhaleSkin(base, pale){
+  const w=512,h=256, c=document.createElement("canvas"); c.width=w; c.height=h;
+  const x=c.getContext("2d");
+  x.fillStyle="#"+("000000"+base.toString(16)).slice(-6); x.fillRect(0,0,w,h);
+  // soft mottling
+  for(let i=0;i<1100;i++){
+    const r=6+Math.random()*38, s=Math.random()<0.5?255:0, a=Math.random()*0.18;
+    x.beginPath(); x.arc(Math.random()*w, Math.random()*h, r, 0, 6.28);
+    x.fillStyle="rgba("+s+","+s+","+s+","+a+")"; x.fill();
+  }
+  // paler ventral band
+  const g=x.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,"rgba(255,255,255,0)"); g.addColorStop(0.5,"rgba(215,222,228,"+(pale?0.4:0.28)+")"); g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g; x.fillRect(0,0,w,h);
+  // linear scars (single + paired rake marks)
+  x.lineWidth=1.1;
+  for(let i=0;i<90;i++){
+    x.strokeStyle="rgba(228,233,238,"+(0.25+Math.random()*0.4)+")";
+    const sx=Math.random()*w, sy=Math.random()*h, len=14+Math.random()*90, an=(Math.random()-0.5)*1.3;
+    x.beginPath(); x.moveTo(sx,sy); x.lineTo(sx+Math.cos(an)*len, sy+Math.sin(an)*len); x.stroke();
+  }
+  for(let i=0;i<18;i++){
+    x.strokeStyle="rgba(232,237,242,0.5)";
+    const sx=Math.random()*w, sy=Math.random()*h, len=22+Math.random()*46, an=(Math.random()-0.5)*1.1;
+    for(let k=0;k<2;k++){ x.beginPath(); x.moveTo(sx+k*3.2,sy); x.lineTo(sx+k*3.2+Math.cos(an)*len, sy+Math.sin(an)*len); x.stroke(); }
+  }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t;
+}
+
+/* ---------- whale model (smooth lathe body + realistic notched flukes) ---------- */
+function buildWhale(){
+  whale = new THREE.Group();
+
+  const bodySkin=makeWhaleSkin(0x474d54,false), paleSkin=makeWhaleSkin(0x767c84,true);
+  const bodyMat = new THREE.MeshStandardMaterial({map:bodySkin, bumpMap:bodySkin, bumpScale:0.05, roughness:0.62, metalness:0.06});
+  const paleMat = new THREE.MeshStandardMaterial({map:paleSkin, bumpMap:paleSkin, bumpScale:0.04, roughness:0.66, metalness:0.05});
+  const finMat  = new THREE.MeshStandardMaterial({color:0x3f454b, roughness:0.6, metalness:0.06});
+
+  // --- smooth spindle body revolved from a profile (nose faces -Z) ---
+  const prof=[[0.02,0],[0.30,0.7],[0.62,1.7],[0.92,3.0],[1.10,4.2],[1.08,5.2],
+              [0.95,6.2],[0.82,6.9],[0.62,7.35],[0.40,7.85],[0.17,8.35],[0.02,8.7]];
+  const body=new THREE.Mesh(new THREE.LatheGeometry(prof.map(p=>new THREE.Vector2(p[0],p[1])),30), bodyMat);
+  body.rotation.x=-Math.PI/2; body.position.z=4.35; // centre it, nose at -Z
+  whale.add(body);
+
+  // pale head/back (Cuvier's have a distinctly paler, scarred head)
+  const head=new THREE.Mesh(new THREE.SphereGeometry(1,20,16), paleMat);
+  head.scale.set(0.9,0.86,1.5); head.position.set(0,0.05,-3.25);
+  whale.add(head);
+
+  // mouth marker (suction point) at the short beak
+  whale.userData.mouth = new THREE.Vector3(0,-0.05,-4.7);
+
+  // eyes
+  const eyeMat=new THREE.MeshStandardMaterial({color:0x080809, roughness:0.15, metalness:0.3,
+    emissive:0x0c1016, emissiveIntensity:0.35});
+  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.19,12,12), eyeMat); eyeL.position.set(0.66,0.12,-3.05); whale.add(eyeL);
+  const eyeR=new THREE.Mesh(new THREE.SphereGeometry(0.19,12,12), eyeMat); eyeR.position.set(-0.66,0.12,-3.05); whale.add(eyeR);
+
+  // Hero key/rim lights travel with the whale so it always reads as a character
+  whaleKey = new THREE.PointLight(0xffeece, 0.6, 160, 2); whaleKey.position.set(4,12,-6); whale.add(whaleKey);
+  whaleRim = new THREE.PointLight(0x74c4ff, 1.15, 130, 2); whaleRim.position.set(0,6,14); whale.add(whaleRim);
+  // gentle top fill so the dorsal keeps its textured form when diving away from camera
+  const whaleFill = new THREE.PointLight(0xbfe0ff, 0.4, 120, 2); whaleFill.position.set(0,14,2); whale.add(whaleFill);
+
+  // small backswept dorsal fin, set well back
+  const dorsalShape=new THREE.Shape();
+  dorsalShape.moveTo(0,0); dorsalShape.quadraticCurveTo(0.15,0.9,-0.55,1.05);
+  dorsalShape.quadraticCurveTo(0.05,0.55,0,0);
+  const dorsal=new THREE.Mesh(new THREE.ExtrudeGeometry(dorsalShape,{depth:0.14,bevelEnabled:false}), finMat);
+  dorsal.geometry.center(); dorsal.position.set(0,1.0,2.2); whale.add(dorsal);
+
+  // tapered pectoral flippers (flattened cones)
+  function flipper(side){
+    const f=new THREE.Mesh(new THREE.ConeGeometry(0.4,2.0,12), finMat);
+    f.scale.set(1,0.16,0.62);
+    f.position.set(side*0.95,-0.4,-1.7);
+    f.rotation.z=side*(Math.PI/2)-side*0.35; f.rotation.y=side*0.5;
+    return f;
+  }
+  const finL=flipper(1), finR=flipper(-1); whale.add(finL); whale.add(finR);
+  whale.userData.finL=finL; whale.userData.finR=finR;
+
+  // --- tail stock + realistic two-lobed, notched flukes (animated group) ---
+  fluke = new THREE.Group(); fluke.position.set(0,0,4.2); whale.add(fluke);
+  const stock=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.16,1.2,10), bodyMat);
+  stock.rotation.x=Math.PI/2; stock.position.z=0.3; fluke.add(stock);
+  const fs=new THREE.Shape();
+  fs.moveTo(0,0.12);
+  fs.bezierCurveTo(0.8,0.0, 1.8,0.18, 2.15,0.95);
+  fs.bezierCurveTo(1.3,0.66, 0.5,0.6, 0.0,0.46);
+  fs.bezierCurveTo(-0.5,0.6, -1.3,0.66, -2.15,0.95);
+  fs.bezierCurveTo(-1.8,0.18, -0.8,0.0, 0,0.12);
+  const flukes=new THREE.Mesh(new THREE.ExtrudeGeometry(fs,{depth:0.16,bevelEnabled:false}), finMat);
+  flukes.geometry.center(); flukes.rotation.x=-Math.PI/2; flukes.position.z=0.95;
+  fluke.add(flukes);
+
+  // faint linear scars across the pale back
+  for(let i=0;i<7;i++){
+    const scar=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.02,0.7+Math.random()),
+      new THREE.MeshStandardMaterial({color:0xc9cfd2, roughness:1}));
+    scar.position.set((Math.random()-0.5)*1.3,0.85,(Math.random()-0.5)*4-1);
+    scar.rotation.y=(Math.random()-0.5)*0.8; whale.add(scar);
+  }
+
+  whale.scale.set(1.15,1.15,1.15);
+  whale.position.set(0,-22,0); // start submerged so the opening shot is blue water, not bright sky
+  scene.add(whale);
+}
+
+/* ---------- ocean surface ---------- */
+function buildSurface(){
+  const geo = new THREE.PlaneGeometry(6000,6000,40,40);
+  geo.rotateX(-Math.PI/2);
+  const mat = new THREE.MeshStandardMaterial({color:0x0f6a92, transparent:true, opacity:0.36,
+    roughness:0.25, metalness:0.3, side:THREE.DoubleSide,
+    emissive:0x06283a, emissiveIntensity:0.06});
+  surfaceMesh = new THREE.Mesh(geo, mat);
+  surfaceMesh.position.y = SURFACE_Y;
+  surfaceMesh.userData.base = geo.attributes.position.array.slice();
+  scene.add(surfaceMesh);
+
+  // sky backdrop above the surface (only seen when very shallow)
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(5000,16,12),
+    new THREE.MeshBasicMaterial({color:0x1a5578, side:THREE.BackSide, fog:false}));
+  sky.position.y=200; scene.add(sky); scene.userData.sky=sky;
+  // a warm sun disc for shafts to emanate from
+  const sunDisc=new THREE.Mesh(new THREE.CircleGeometry(120,32),
+    new THREE.MeshBasicMaterial({color:0xfff2cc, fog:false, transparent:true, opacity:0.9}));
+  sunDisc.position.set(140,480,-300); sunDisc.lookAt(0,0,0); scene.add(sunDisc); scene.userData.sunDisc=sunDisc;
+}
+
+/* ---------- seabed heightfield ---------- */
+function buildSeabed(){
+  const size=5000, seg=90;
+  const geo = new THREE.PlaneGeometry(size,size,seg,seg);
+  geo.rotateX(-Math.PI/2);
+  const pos = geo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i), z=pos.getZ(i);
+    pos.setY(i, seabedHeightAt(x,z));
+  }
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({color:0x3a3326, roughness:1, metalness:0,
+    flatShading:true});
+  seabed = new THREE.Mesh(geo, mat);
+  scene.add(seabed);
+
+  // hydrothermal vents + rocks near trench (benthic decoration)
+  for(let i=0;i<14;i++){
+    const x=-120+(Math.random()-0.5)*500, z=-300+(Math.random()-0.5)*500;
+    const y=seabedHeightAt(x,z);
+    const vent=new THREE.Mesh(new THREE.CylinderGeometry(3+Math.random()*3,6+Math.random()*4,20+Math.random()*30,7),
+      new THREE.MeshStandardMaterial({color:0x241c16, roughness:1}));
+    vent.position.set(x,y+15,z); scene.add(vent);
+    // rising "smoke"
+    const smoke=new THREE.Mesh(new THREE.ConeGeometry(4,40,6,1,true),
+      new THREE.MeshBasicMaterial({color:0x111119, transparent:true, opacity:0.35, side:THREE.DoubleSide}));
+    smoke.position.set(x,y+50,z); scene.add(smoke);
+  }
+
+  // Bioluminescent beacons marking the deep TRENCH (a canyon along x ≈ -120).
+  // These make the rare ~3000 m descent findable once you are deep.
+  let bi=0;
+  for(let z=-1400; z<=1000; z+=180){
+    const x=-120;
+    const y=seabedHeightAt(x,z);
+    const beacon=new THREE.Mesh(new THREE.SphereGeometry(6,12,12),
+      new THREE.MeshBasicMaterial({color:0x8affff}));
+    beacon.position.set(x, y+40, z); beacon.userData.beacon=true; scene.add(beacon);
+    // only every 3rd beacon casts an actual light (keeps the light count sane for bloom)
+    if(bi%3===0){ const halo=new THREE.PointLight(0x4affff,1.6,240,2); halo.position.copy(beacon.position); scene.add(halo); }
+    bi++;
+  }
+}
+
+/* ---------- floating particulate (marine snow) ---------- */
+function buildParticles(){
+  // Suspended matter / backscatter — real underwater footage is full of this.
+  // Dense field around the camera; with depth-of-field it blurs into soft specks.
+  const N=3200;
+  const g=new THREE.BufferGeometry();
+  const p=new Float32Array(N*3), sz=new Float32Array(N);
+  for(let i=0;i<N;i++){
+    p[i*3]  =(Math.random()-0.5)*700;
+    p[i*3+1]=-Math.random()*MAX_DEPTH;
+    p[i*3+2]=(Math.random()-0.5)*700;
+    sz[i]=0.7+Math.random()*1.8;
+  }
+  g.setAttribute("position", new THREE.BufferAttribute(p,3));
+  g.setAttribute("size", new THREE.BufferAttribute(sz,1));
+  const m=new THREE.PointsMaterial({color:0xdCeaf6, map:dotTexture(), size:1.9, transparent:true,
+    opacity:0.55, depthWrite:false, sizeAttenuation:true});
+  particleField=new THREE.Points(g,m);
+  scene.add(particleField);
+}
+
+/* =========================================================================
+   ATMOSPHERE — soft-glow dot texture, bioluminescent plankton, bubbles,
+   and volumetric god-ray shafts (all designed to catch the bloom pass)
+   ========================================================================= */
+let _dotTex=null;
+function dotTexture(){
+  if(_dotTex) return _dotTex;
+  const c=document.createElement("canvas"); c.width=c.height=64;
+  const x=c.getContext("2d");
+  const g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,"rgba(255,255,255,1)");
+  g.addColorStop(0.35,"rgba(255,255,255,0.55)");
+  g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g; x.fillRect(0,0,64,64);
+  _dotTex=new THREE.CanvasTexture(c); return _dotTex;
+}
+
+function buildPlankton(){
+  const N=1600;
+  const g=new THREE.BufferGeometry();
+  const p=new Float32Array(N*3), col=new Float32Array(N*3);
+  const pal=[[0.30,1.0,0.90],[0.40,0.80,1.0],[0.75,0.92,1.0],[0.60,1.0,0.75],[0.90,0.70,1.0]];
+  for(let i=0;i<N;i++){
+    p[i*3]=(Math.random()-0.5)*760;
+    p[i*3+1]=-Math.random()*MAX_DEPTH;
+    p[i*3+2]=(Math.random()-0.5)*760;
+    const c=pal[(Math.random()*pal.length)|0];
+    col[i*3]=c[0]; col[i*3+1]=c[1]; col[i*3+2]=c[2];
+  }
+  g.setAttribute("position",new THREE.BufferAttribute(p,3));
+  g.setAttribute("color",new THREE.BufferAttribute(col,3));
+  const m=new THREE.PointsMaterial({size:3.0,map:dotTexture(),vertexColors:true,transparent:true,
+    opacity:0.95,depthWrite:false,blending:THREE.AdditiveBlending});
+  plankton=new THREE.Points(g,m); scene.add(plankton);
+
+  // rising bubbles
+  const B=160; const bg=new THREE.BufferGeometry(); const bp=new Float32Array(B*3);
+  for(let i=0;i<B;i++){ bp[i*3]=(Math.random()-0.5)*320; bp[i*3+1]=-Math.random()*1600; bp[i*3+2]=(Math.random()-0.5)*320; }
+  bg.setAttribute("position",new THREE.BufferAttribute(bp,3));
+  const bm=new THREE.PointsMaterial({size:2.2,map:dotTexture(),color:0xcfeeff,transparent:true,
+    opacity:0.5,depthWrite:false,blending:THREE.AdditiveBlending});
+  bubbles=new THREE.Points(bg,bm); scene.add(bubbles);
+}
+
+function buildCaustics(){
+  const size=256, c=document.createElement("canvas"); c.width=c.height=size;
+  const x=c.getContext("2d"), img=x.createImageData(size,size), d=img.data;
+  for(let j=0;j<size;j++) for(let i=0;i<size;i++){
+    const u=i/size*Math.PI*2, v=j/size*Math.PI*2;
+    let val=(Math.sin(u*4)+Math.sin(v*4)+Math.sin((u+v*1.3)*3)+Math.sin((u*1.7-v)*2.6))/4;
+    val=Math.pow(Math.max(0,val*0.5+0.5), 5.0); // sharpen into caustic filaments
+    const idx=(j*size+i)*4; d[idx]=190; d[idx+1]=235; d[idx+2]=255; d[idx+3]=Math.min(255,val*300);
+  }
+  x.putImageData(img,0,0);
+  const tex=new THREE.CanvasTexture(c); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(7,7);
+  const geo=new THREE.PlaneGeometry(3200,3200); geo.rotateX(-Math.PI/2);
+  const matl=new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:0.0,
+    blending:THREE.AdditiveBlending,depthWrite:false});
+  causticMesh=new THREE.Mesh(geo,matl); causticMesh.position.y=SURFACE_Y-3; scene.add(causticMesh);
+}
+
+function buildGodRays(){
+  for(let i=0;i<8;i++){
+    const geo=new THREE.ConeGeometry(9+Math.random()*12,260,10,1,true);
+    const material=new THREE.MeshBasicMaterial({color:0xbfe4ff,transparent:true,opacity:0.05,
+      side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending,fog:false});
+    const shaft=new THREE.Mesh(geo,material);
+    shaft.position.set((Math.random()-0.5)*380, SURFACE_Y-120, (Math.random()-0.5)*380);
+    shaft.rotation.z=(Math.random()-0.5)*0.25; shaft.rotation.x=(Math.random()-0.5)*0.15;
+    shaft.userData.ox=(Math.random()-0.5)*380; shaft.userData.oz=(Math.random()-0.5)*380;
+    shaft.userData.ph=Math.random()*6.28;
+    scene.add(shaft); godrays.push(shaft);
+  }
+}
+
+/* =========================================================================
+   ECOSYSTEM — diverse ambient wildlife spawned to match each depth zone
+   ========================================================================= */
+function stdMat(color,em,emI,rough,metal){
+  return new THREE.MeshStandardMaterial({color:color, emissive:em||0x000000,
+    emissiveIntensity:emI||0, roughness:(rough==null?0.6:rough), metalness:(metal||0.1)});
+}
+function simpleFish(len,color,em,emI){
+  const g=new THREE.Group();
+  const mat=stdMat(color,em,emI,0.4,0.3);
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,12,10), mat);
+  body.scale.set(0.3*len,0.46*len,1.05*len); g.add(body);        // streamlined
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(0.42*len,0.8*len,4), mat);
+  tail.scale.set(0.25,1,1); tail.rotation.x=Math.PI/2; tail.position.z=1.02*len; g.add(tail); // vertical caudal fin
+  const dfin=new THREE.Mesh(new THREE.ConeGeometry(0.22*len,0.42*len,4), mat);
+  dfin.scale.set(0.35,1,1); dfin.position.set(0,0.4*len,0.15*len); g.add(dfin);              // dorsal
+  g.userData.tail=tail;
+  return g;
+}
+function faceVel(mesh,vel){
+  if(vel.lengthSq()<1e-6) return;
+  const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1), vel.clone().normalize());
+  mesh.quaternion.slerp(q, 0.12);
+}
+// generic wandering swimmer wrapper
+function swimmer(mesh,pos,speed,opts){
+  opts=opts||{};
+  mesh.position.copy(pos);
+  const vel=new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5)*0.3,(Math.random()-0.5))
+    .normalize().multiplyScalar(speed);
+  let ph=Math.random()*6.28;
+  return {
+    mesh, cullR:opts.cullR||600,
+    update(dt){
+      ph+=dt*(opts.wig||6);
+      vel.x+=(Math.random()-0.5)*speed*1.8*dt;
+      vel.z+=(Math.random()-0.5)*speed*1.8*dt;
+      vel.y+=(Math.random()-0.5)*speed*0.6*dt;
+      vel.clampLength(speed*0.5, speed*1.4);
+      mesh.position.addScaledVector(vel,dt);
+      const fl=seabedHeightAt(mesh.position.x,mesh.position.z)+(opts.floorClear||8);
+      if(mesh.position.y<fl){ mesh.position.y=fl; vel.y=Math.abs(vel.y); }
+      const ceil=(opts.ceil!=null?opts.ceil:-4);
+      if(mesh.position.y>ceil){ mesh.position.y=ceil; vel.y=-Math.abs(vel.y); }
+      faceVel(mesh,vel);
+      if(mesh.userData.tail) mesh.userData.tail.rotation.y=Math.sin(ph)*0.5;
+      if(opts.onUpdate) opts.onUpdate(dt,ph,mesh);
+    }
+  };
+}
+
+function createCreature(kind,pos){
+  const t=clock; // for hue cycling closures
+  switch(kind){
+    case "reefschool": {
+      const g=new THREE.Group(); const cols=[0xffcf3f,0xff7a3f,0x3fb0ff,0xffffff,0xff5aa0,0x7affc0]; const fish=[];
+      for(let i=0;i<14;i++){ const f=simpleFish(1.1,cols[(Math.random()*cols.length)|0]);
+        f.position.set((Math.random()-0.5)*11,(Math.random()-0.5)*6,(Math.random()-0.5)*11); g.add(f); fish.push(f); }
+      return swimmer(g,pos,11,{ceil:-6,floorClear:12,cullR:520,onUpdate:(dt,ph)=>{
+        fish.forEach((f,k)=>{ if(f.userData.tail) f.userData.tail.rotation.y=Math.sin(ph*1.6+k)*0.6; }); }});
+    }
+    case "lanternschool": {
+      const g=new THREE.Group(); const fish=[];
+      for(let i=0;i<20;i++){ const f=simpleFish(0.7,0x10202b);
+        const dot=new THREE.Mesh(new THREE.SphereGeometry(0.13,6,6), new THREE.MeshBasicMaterial({color:0x9affff}));
+        dot.position.set(0.18,0.05,-0.3); f.add(dot);
+        f.position.set((Math.random()-0.5)*13,(Math.random()-0.5)*8,(Math.random()-0.5)*13); g.add(f); fish.push(f); }
+      return swimmer(g,pos,9,{cullR:520,onUpdate:(dt,ph)=>{
+        fish.forEach((f,k)=>{ if(f.userData.tail) f.userData.tail.rotation.y=Math.sin(ph*1.6+k)*0.6; }); }});
+    }
+    case "hatchet": {
+      const f=simpleFish(1.0,0xcfe0ea,0x24405c,0.25);
+      const belly=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6), new THREE.MeshBasicMaterial({color:0x9affff}));
+      belly.scale.set(0.6,0.85,0.4); belly.position.y=-0.42; f.add(belly);
+      return swimmer(f,pos,6,{cullR:460});
+    }
+    case "turtle": {
+      const g=new THREE.Group();
+      const shell=new THREE.Mesh(new THREE.SphereGeometry(2.2,14,12), stdMat(0x39562f,0,0,0.7)); shell.scale.set(1,0.5,1.3); g.add(shell);
+      const belly=new THREE.Mesh(new THREE.SphereGeometry(2.0,12,8), stdMat(0x9a8b5a,0,0,0.8)); belly.scale.set(0.9,0.3,1.1); belly.position.y=-0.5; g.add(belly);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.7,8,8), stdMat(0x466a41)); head.position.set(0,0.1,-2.6); g.add(head);
+      const flip=[];
+      for(let s=-1;s<=1;s+=2){ for(let f=0;f<2;f++){ const fl=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.2,0.9), stdMat(0x39562f));
+        fl.position.set(s*1.8,-0.1,(f?1.1:-1.1)); g.add(fl); flip.push({m:fl,s}); } }
+      return swimmer(g,pos,7,{ceil:-6,floorClear:12,wig:3,cullR:540,onUpdate:(dt,ph)=>{
+        flip.forEach(o=>o.m.rotation.z=o.s*(0.15+Math.sin(ph)*0.5)); }});
+    }
+    case "dolphin": {
+      const g=new THREE.Group();
+      const b=new THREE.Mesh(new THREE.SphereGeometry(1,12,10), stdMat(0x8fa3b3,0,0,0.4,0.3)); b.scale.set(0.7,0.8,3.2); g.add(b);
+      const belly=new THREE.Mesh(new THREE.SphereGeometry(0.95,12,8), stdMat(0xe1eaf0,0,0,0.5)); belly.scale.set(0.6,0.5,2.8); belly.position.y=-0.35; g.add(belly);
+      const beak=new THREE.Mesh(new THREE.ConeGeometry(0.32,1.2,8), stdMat(0x8fa3b3)); beak.rotation.x=-Math.PI/2; beak.position.z=-3.2; g.add(beak);
+      const dfin=new THREE.Mesh(new THREE.ConeGeometry(0.4,1.1,4), stdMat(0x8fa3b3)); dfin.position.set(0,1,0.4); dfin.scale.set(1,1,0.4); g.add(dfin);
+      const tail=new THREE.Mesh(new THREE.BoxGeometry(2,0.16,0.8), stdMat(0x8fa3b3)); tail.position.z=3.3; g.add(tail); g.userData.tail=tail;
+      return swimmer(g,pos,15,{ceil:-5,floorClear:10,wig:5,cullR:580,onUpdate:(dt,ph,m)=>{ m.position.y+=Math.sin(ph*0.6)*0.05; }});
+    }
+    case "jelly": case "jellyGlow": {
+      const glow=kind==="jellyGlow";
+      const c=glow?(Math.random()<0.5?0x66ffff:0xc070ff):0xbfe8ff;
+      const em=glow?c:0x2a6a8a;
+      const g=new THREE.Group();
+      const bellMat=new THREE.MeshStandardMaterial({color:c,emissive:em,emissiveIntensity:glow?1.6:0.5,
+        transparent:true,opacity:glow?0.6:0.5,roughness:0.2,side:THREE.DoubleSide});
+      const bell=new THREE.Mesh(new THREE.SphereGeometry(1.6,16,12,0,6.28,0,Math.PI/2), bellMat); g.add(bell);
+      for(let i=0;i<10;i++){ const tt=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.02,2.4,4), bellMat.clone());
+        const a=i/10*6.28; tt.position.set(Math.cos(a)*0.9,-1.1,Math.sin(a)*0.9); g.add(tt); }
+      if(glow){ const gl=new THREE.PointLight(c,0.9,60,2); g.add(gl); }
+      return swimmer(g,pos,3,{ceil:-8,floorClear:8,wig:2,cullR:500,onUpdate:(dt,ph)=>{
+        bell.scale.y=0.9+Math.sin(ph)*0.16; bell.scale.x=bell.scale.z=1-Math.sin(ph)*0.10; }});
+    }
+    case "siphonophore": {
+      const g=new THREE.Group(); const bells=[];
+      const m=new THREE.MeshStandardMaterial({color:0x9fd0ff,emissive:0x3a80ff,emissiveIntensity:1.2,transparent:true,opacity:0.7});
+      for(let i=0;i<12;i++){ const b=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6), m); b.position.y=-i*0.7; g.add(b); bells.push(b); }
+      return swimmer(g,pos,2,{wig:2,cullR:500,onUpdate:(dt,ph)=>{ bells.forEach((b,k)=>{ b.position.x=Math.sin(ph*0.6+k*0.4)*0.6; }); }});
+    }
+    case "anglerfish": {
+      const g=new THREE.Group();
+      const body=new THREE.Mesh(new THREE.SphereGeometry(1.6,12,10), stdMat(0x1a1420,0,0,0.75)); body.scale.set(1,0.9,1.2); g.add(body);
+      const jaw=new THREE.Mesh(new THREE.ConeGeometry(1.1,1.7,12), stdMat(0x0e0a12)); jaw.rotation.x=-Math.PI/2; jaw.position.z=-1.5; g.add(jaw);
+      for(let i=0;i<8;i++){ const th=new THREE.Mesh(new THREE.ConeGeometry(0.07,0.4,4), stdMat(0xdfe5ea));
+        const a=i/8*6.28; th.position.set(Math.cos(a)*0.7,Math.sin(a)*0.5,-1.9); th.rotation.x=Math.PI/2; g.add(th); }
+      const lure=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8), new THREE.MeshBasicMaterial({color:0xaaffee}));
+      lure.position.set(0,2.2,-1.9); g.add(lure);
+      lure.add(new THREE.PointLight(0x7fffe0,1.3,44,2));
+      return swimmer(g,pos,4,{wig:3,floorClear:14,cullR:540,onUpdate:(dt,ph)=>{ lure.position.y=2.2+Math.sin(ph)*0.12; }});
+    }
+    case "giantSquid": {
+      const g=new THREE.Group();
+      const mantle=new THREE.Mesh(new THREE.ConeGeometry(1.8,7,12), stdMat(0x9a2a3a,0x4a0e18,0.4,0.4));
+      mantle.rotation.x=Math.PI; mantle.position.z=2.2; g.add(mantle);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(1.4,10,8), stdMat(0xb03a4a,0x4a0e18,0.35)); g.add(head);
+      const eye=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,8), new THREE.MeshBasicMaterial({color:0xffe9b0}));
+      eye.position.set(0.9,0.3,-0.4); g.add(eye); const eye2=eye.clone(); eye2.position.x=-0.9; g.add(eye2);
+      const arms=[];
+      for(let i=0;i<10;i++){ const a=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.04,7,5), stdMat(0xc04a5a,0x4a0e18,0.3));
+        const an=i/10*6.28; a.position.set(Math.cos(an)*0.7,0,-3.6+Math.sin(an)*0.2); a.rotation.x=-Math.PI/2+0.2; g.add(a); arms.push({m:a,an}); }
+      g.scale.setScalar(1.5);
+      return swimmer(g,pos,5,{wig:2,floorClear:16,cullR:820,onUpdate:(dt,ph)=>{ arms.forEach((o,k)=>{ o.m.rotation.z=Math.sin(ph+k)*0.16; }); }});
+    }
+    case "combjelly": {
+      const g=new THREE.Group();
+      const body=new THREE.Mesh(new THREE.SphereGeometry(1.2,14,12),
+        new THREE.MeshStandardMaterial({color:0xbfe0ff,emissive:0x3a80ff,emissiveIntensity:0.5,transparent:true,opacity:0.35,roughness:0.1}));
+      body.scale.set(0.7,1.15,0.7); g.add(body);
+      const rows=[];
+      for(let i=0;i<8;i++){ const r=new THREE.Mesh(new THREE.BoxGeometry(0.07,1.9,0.07),
+        new THREE.MeshBasicMaterial({color:new THREE.Color().setHSL(i/8,1,0.6)}));
+        const a=i/8*6.28; r.position.set(Math.cos(a)*0.62,0,Math.sin(a)*0.45); g.add(r); rows.push(r); }
+      return swimmer(g,pos,3,{wig:2,floorClear:10,cullR:500,onUpdate:(dt,ph,m)=>{ m.rotation.y+=dt*0.5;
+        rows.forEach((r,k)=>{ r.material.color.setHSL(((t.getElapsedTime()*0.2+k/8)%1),1,0.62); }); }});
+    }
+    case "rattail": {
+      const g=new THREE.Group();
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.9,10,8), stdMat(0x6a6a72,0,0,0.5)); head.scale.set(0.7,0.8,1); head.position.z=-1; g.add(head);
+      const taper=new THREE.Mesh(new THREE.ConeGeometry(0.7,4.5,8), stdMat(0x5a5a62)); taper.rotation.x=-Math.PI/2; taper.position.z=1.6; g.add(taper); g.userData.tail=taper;
+      const e1=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,6), new THREE.MeshBasicMaterial({color:0x88ccff})); e1.position.set(0.35,0.35,-1.5); g.add(e1);
+      const e2=e1.clone(); e2.position.x=-0.35; g.add(e2);
+      const ent=swimmer(g,pos,4,{wig:3,floorClear:6,cullR:480});
+      const base=ent.update; ent.update=(dt)=>{ base(dt); const fl=seabedHeightAt(g.position.x,g.position.z)+7; if(g.position.y>fl+10) g.position.y=fl+10; };
+      return ent;
+    }
+    case "tubeworms": {
+      const g=new THREE.Group();
+      for(let i=0;i<12;i++){ const h=2+Math.random()*3;
+        const tube=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,h,6), stdMat(0xe8e0d0,0,0,0.9));
+        tube.position.set((Math.random()-0.5)*6,h/2,(Math.random()-0.5)*6); g.add(tube);
+        const plume=new THREE.Mesh(new THREE.SphereGeometry(0.38,6,6), stdMat(0xd0202a,0x600000,0.4));
+        plume.position.set(tube.position.x,h,tube.position.z); g.add(plume); }
+      pos.y=seabedHeightAt(pos.x,pos.z); g.position.copy(pos);
+      return {mesh:g,cullR:520,update(dt){ g.children.forEach((c,k)=>{ if(k%2) c.rotation.y+=dt*0.5; }); }};
+    }
+    case "crabField": {
+      const g=new THREE.Group();
+      for(let i=0;i<5;i++){ const crab=makeCrustacean(); crab.scale.setScalar(0.8+Math.random()*0.5);
+        crab.position.set((Math.random()-0.5)*11,0,(Math.random()-0.5)*11); g.add(crab); }
+      pos.y=seabedHeightAt(pos.x,pos.z)+2; g.position.copy(pos);
+      return {mesh:g,cullR:460,update(dt){ g.children.forEach((c,k)=>{ c.position.y=2+Math.abs(Math.sin(t.getElapsedTime()*2+k))*0.3; }); }};
+    }
+  }
+  return null;
+}
+
+function spawnAmbientForZone(){
+  const d=depthNow();
+  const ang=Math.random()*6.28, r=150+Math.random()*160;
+  const pos=new THREE.Vector3(whale.position.x+Math.cos(ang)*r, 0, whale.position.z+Math.sin(ang)*r);
+  let choices, y;
+  if(d<200){ choices=["reefschool","reefschool","turtle","jelly","dolphin"]; y=-12-Math.random()*160; }
+  else if(d<1000){ choices=["lanternschool","jellyGlow","siphonophore","hatchet","jelly"]; y=whale.position.y+(Math.random()-0.5)*170; }
+  else if(d<1700){ choices=["anglerfish","giantSquid","combjelly","jellyGlow","lanternschool"]; y=whale.position.y+(Math.random()-0.5)*170; }
+  else { choices=["tubeworms","crabField","rattail","combjelly","anglerfish"]; y=whale.position.y+(Math.random()-0.5)*130; }
+  pos.y=y;
+  const fl=seabedHeightAt(pos.x,pos.z)+8;
+  if(pos.y<fl) pos.y=fl;
+  if(pos.y>-6) pos.y=-6;
+  const kind=choices[(Math.random()*choices.length)|0];
+  const ent=createCreature(kind,pos.clone());
+  if(ent){ scene.add(ent.mesh); ambient.push(ent); }
+}
+
+function updateAmbient(dt){
+  ambientTimer-=dt;
+  for(let i=ambient.length-1;i>=0;i--){
+    const e=ambient[i];
+    if(e.update) e.update(dt);
+    if(e.mesh.position.distanceTo(whale.position) > (e.cullR||650)){ scene.remove(e.mesh); ambient.splice(i,1); }
+  }
+  if(ambientTimer<=0 && ambient.length<15){ ambientTimer=0.9+Math.random()*1.3; spawnAmbientForZone(); }
+}
+
+/* =========================================================================
+   SCIENCE LAYER — concepts surface naturally as you travel through the water
+   ========================================================================= */
+const SCI_NOTES=[
+  {band:[0,200], t:"Pelagic Zone", d:"Open water — life here drifts and swims, never touching the seabed."},
+  {band:[0,200], t:"Photic Zone", d:"Enough sunlight for photosynthesis — the ocean's only plant-powered layer."},
+  {band:[120,340], t:"Thermocline", d:"Temperature plunges here, separating warm surface water from the cold deep."},
+  {band:[200,1000], t:"Marine Snow", d:"Dead plankton and waste drifting down — the deep sea's food supply."},
+  {band:[200,1000], t:"Mesopelagic", d:"Twilight: too dark to photosynthesise, light enough to hunt by silhouette."},
+  {band:[500,1200], t:"Oxygen Minimum Zone", d:"Dissolved oxygen bottoms out — few animals can linger here."},
+  {band:[1000,3000], t:"Bathypelagic", d:"No sunlight at all. Nearly every light down here is made by life."},
+  {band:[1000,3000], t:"Bioluminescence", d:"Chemical light to lure prey, signal mates and confuse predators."},
+  {band:[900,3000], t:"Pressure Adaptation", d:"Past 100 atm, Cuvier's beaked whales collapse their lungs to survive."},
+  {band:[1400,3000], t:"Benthic Zone", d:"The seafloor itself — a different habitat from the open water above.", seabed:true},
+  {band:[1400,3000], t:"Chemosynthesis", d:"Vent bacteria build food from chemicals instead of sunlight.", seabed:true},
+  {band:[2400,3000], t:"Hadal Zone", d:"The trenches — scavengers and snailfish endure the crushing dark."},
+];
+let sciTimer=14, lastSci=-1;
+function showSciNote(t,d){
+  document.getElementById("snT").textContent=t;
+  document.getElementById("snD").textContent=d;
+  const e=document.getElementById("sciNote"); e.style.opacity=1;
+  clearTimeout(showSciNote._t);
+  showSciNote._t=setTimeout(()=>{ e.style.opacity=0; }, 6800);
+}
+function updateSciNotes(dt){
+  sciTimer-=dt; if(sciTimer>0) return;
+  sciTimer=20+Math.random()*16;
+  const d=depthNow();
+  const nearSeabed=(seabedHeightAt(whale.position.x,whale.position.z)-whale.position.y) > -260;
+  const pool=SCI_NOTES.filter((n,i)=> i!==lastSci && d>=n.band[0] && d<=n.band[1] && (!n.seabed || nearSeabed));
+  if(!pool.length) return;
+  const pick=pool[(Math.random()*pool.length)|0];
+  lastSci=SCI_NOTES.indexOf(pick);
+  showSciNote(pick.t, pick.d);
+}
+
+/* Rare encounters — each only appears at a depth where it genuinely lives */
+const RARE=[
+  {kind:"turtle",       name:"Sea turtle",   note:"An air-breathing reptile — it must surface for air, just like you.", ok:d=>d<220},
+  {kind:"giantSquid",   name:"Giant squid",  note:"The largest eyes in the animal kingdom — up to 27 cm across.",       ok:d=>d>600},
+  {kind:"anglerfish",   name:"Anglerfish",   note:"Its glowing lure is lit by symbiotic bioluminescent bacteria.",      ok:d=>d>800},
+  {kind:"siphonophore", name:"Siphonophore", note:"Not one animal — a colony of clones living as a single body.",       ok:d=>d>200&&d<1600},
+  {kind:"combjelly",    name:"Comb jelly",   note:"Rows of beating cilia scatter light into travelling rainbows.",      ok:d=>d>200},
+];
+let rareTimer=50;
+function updateRareEncounters(dt){
+  rareTimer-=dt; if(rareTimer>0) return;
+  rareTimer=55+Math.random()*70;
+  const d=depthNow();
+  const pool=RARE.filter(r=>r.ok(d));
+  if(!pool.length) return;
+  const pick=pool[(Math.random()*pool.length)|0];
+  const ang=Math.random()*6.28, rr=70+Math.random()*60;
+  const pos=new THREE.Vector3(whale.position.x+Math.cos(ang)*rr,
+    whale.position.y+(Math.random()-0.5)*30, whale.position.z+Math.sin(ang)*rr);
+  const fl=seabedHeightAt(pos.x,pos.z)+10;
+  if(pos.y<fl) pos.y=fl; if(pos.y>-8) pos.y=-8;
+  const ent=createCreature(pick.kind, pos);
+  if(!ent) return;
+  ent.mesh.scale.multiplyScalar(1.6+Math.random()*0.9); // rare sightings loom large
+  ent.cullR=900;
+  scene.add(ent.mesh); ambient.push(ent);
+  centerMsg("✨ Rare sighting — "+pick.name, pick.note, 5200, "#ffe9a8");
+  addScore(120); playChime(700);
+}
+
+/* =========================================================================
+   TEXT SPRITES (for banners & ring labels)
+   ========================================================================= */
+function hx(c){ return "#"+("000000"+(c>>>0).toString(16)).slice(-6); }
+function makeTextSprite(text, opts){
+  opts=opts||{};
+  const noBox = opts.bg===false;
+  const fs=opts.fontSize||44, pad=opts.pad||24, maxW=opts.maxWidth||520;
+  const fam=opts.font||'"Segoe UI",Arial';
+  const weight=opts.weight||"bold";
+  const c=document.createElement("canvas"), ctx=c.getContext("2d");
+  const fontStr=`${weight} ${fs}px ${fam}`;
+  ctx.font=fontStr;
+  // word wrap
+  const words=text.split(" "); const lines=[]; let line="";
+  for(const w of words){
+    const t=line?line+" "+w:w;
+    if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w; } else line=t;
+  }
+  if(line) lines.push(line);
+  const lh=fs*1.28;
+  const marginX = noBox? fs : pad;      // extra room for glow/stroke when box-less
+  const marginY = noBox? fs*0.75 : pad;
+  const cw=Math.min(maxW, Math.max(...lines.map(l=>ctx.measureText(l).width)))+marginX*2;
+  const ch=lines.length*lh+marginY*2;
+  c.width=Math.ceil(cw); c.height=Math.ceil(ch);
+  ctx.font=fontStr; ctx.textAlign="center"; ctx.textBaseline="middle";
+  if(!noBox){
+    ctx.fillStyle=opts.bg||"rgba(6,22,46,0.82)";
+    roundRect(ctx,0,0,cw,ch,18); ctx.fill();
+    ctx.lineWidth=3; ctx.strokeStyle=opts.border||"rgba(120,200,255,0.6)"; ctx.stroke();
+  }
+  const cx=cw/2;
+  lines.forEach((l,i)=>{
+    const y=marginY+lh/2+i*lh;
+    // glow
+    if(opts.glow){ ctx.shadowColor=opts.glow; ctx.shadowBlur=opts.glowBlur||20; }
+    // dark outline so letters read over any background (no box needed)
+    if(opts.stroke){ ctx.lineJoin="round"; ctx.lineWidth=opts.strokeWidth||Math.max(4,fs*0.16);
+      ctx.strokeStyle=opts.stroke; ctx.strokeText(l,cx,y); }
+    // fill (vertical gradient or solid)
+    if(opts.gradient){ const gr=ctx.createLinearGradient(0,marginY,0,ch-marginY);
+      opts.gradient.forEach((col,k)=>gr.addColorStop(k/(opts.gradient.length-1||1),col)); ctx.fillStyle=gr; }
+    else ctx.fillStyle=opts.color||"#eaf6ff";
+    ctx.fillText(l,cx,y);
+    ctx.shadowBlur=0;
+  });
+  const tex=new THREE.CanvasTexture(c); tex.needsUpdate=true;
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:opts.depthTest!==false, fog:false}));
+  const scale=opts.scale||0.06;
+  spr.scale.set(cw*scale, ch*scale, 1);
+  spr.userData.aspect=cw/ch;
+  return spr;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+/* =========================================================================
+   BEGIN RUN
+   ========================================================================= */
+function beginRun(){
+  document.getElementById("startScreen").classList.add("hidden");
+  state.running=true;
+  initAudio();
+  centerMsg("Swim to the marine feature of your answer", "A/D steer · W dive · S rise to the surface to breathe", 3200);
+  playClick(); // wake audio
+}
+
+/* =========================================================================
+   QUESTION SYSTEM
+   ========================================================================= */
+function maybeActivateQuestion(){
+  if(state.activeQ!==null || state.awaitingConfirm) return; // index 0 is a valid active question
+  const d=depthNow();
+  const nearSeabed = (seabedHeightAt(whale.position.x,whale.position.z) - whale.position.y) > -260; // within 260m of floor
+  for(let i=0;i<QUESTIONS.length;i++){
+    const q=QUESTIONS[i];
+    if(q.done) continue;
+    if(d<q.band[0]||d>q.band[1]) continue;
+    if(q.requireSeabed && !nearSeabed) continue;
+    // must be answered in order-ish: don't skip an easier earlier one that's still valid at this depth
+    activateQuestion(i);
+    return;
+  }
+}
+
+function activateQuestion(idx){
+  const q=QUESTIONS[idx];
+  state.activeQ=idx;
+  state.selectedRing=null; state.awaitingConfirm=false;
+
+  // banner in HUD
+  document.getElementById("qz").textContent=q.zone;
+  document.getElementById("qt").textContent=q.q;
+  document.getElementById("qhint").textContent="Swim to the marine feature of your chosen answer";
+  fade("qbanner",1);
+
+  // build rings + banner well ahead of the whale (gives time to read & aim)
+  clearRings();
+  const letters=["A","B","C","D"];
+  const fwd=forwardVec();
+  const anchor=whale.position.clone().add(fwd.clone().multiplyScalar(RING_DIST));
+  // Shuffle which grid slot each answer occupies, so the correct answer never
+  // sits in a predictable spot/letter/colour — students can't game the layout.
+  const slots=shuffle([0,1,2,3]);
+  for(let i=0;i<q.a.length;i++){
+    const slot=slots[i];                          // random on-screen position for answer i
+    const off=ringOffset(fwd, slot);
+    makeRing(anchor.clone().add(off), i, slot, letters[slot], q.a[i], fwd, RING_COLORS[slot], q.atype);
+  }
+  playChime();
+}
+// Fisher–Yates shuffle (returns a new array)
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+// vivid, distinct colour per answer ring (A/B/C/D)
+// four bold, warm, maximally-distinct colours — all high-contrast vs blue-green
+// water at every depth (cool colours like blue/cyan/green blend in and are avoided)
+const RING_COLORS=[0xf51d0a, 0xffd400, 0xff5a0f, 0xff2f9e]; // red · yellow · orange · magenta
+const RING_DIST=108; // how far ahead rings spawn (further = more time to react)
+// 2×2 grid offset for ring i — wide horizontally, gentle vertically, whole
+// cluster nudged down so all four sit centred in the forward view
+function ringOffset(fwd, i){
+  const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
+  const up=new THREE.Vector3(0,1,0);
+  const col=(i%2)? 1:-1;      // B/D right, A/C left
+  const row=(i<2)? 1:-1;      // A/B top, C/D bottom
+  return right.clone().multiplyScalar(col*30).add(up.clone().multiplyScalar(row*10 - 7));
+}
+
+// if the learner drifts away from an active (unselected) question, bring the
+// rings + banner back ahead of them so they can never be stranded.
+function reanchorRings(){
+  if(state.activeQ===null || state.awaitingConfirm || rings.length===0) return;
+  // never yank the features away while the whale is close to one (about to select it)
+  let minD=Infinity; rings.forEach(r=>{ minD=Math.min(minD, whale.position.distanceTo(r.mesh.position)); });
+  if(minD<28) return;
+  const centroid=new THREE.Vector3();
+  rings.forEach(r=>centroid.add(r.mesh.position));
+  centroid.multiplyScalar(1/rings.length);
+  const fwd=forwardVec();
+  const toC=centroid.clone().sub(whale.position);
+  const behind = toC.dot(fwd) < 0;                 // features have slipped behind the whale
+  if(whale.position.distanceTo(centroid) < 150 && !(behind && toC.length()>30)) return;
+  const anchor=whale.position.clone().add(fwd.clone().multiplyScalar(RING_DIST));
+  const faceQ=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), fwd.clone().negate());
+  if(qBannerObj) qBannerObj.position.copy(anchor).add(new THREE.Vector3(0,22,0));
+  rings.forEach(r=>{
+    r.mesh.position.copy(anchor.clone().add(ringOffset(fwd, r.slot)));
+    r.mesh.quaternion.copy(faceQ);
+  });
+}
+
+/* ---- Answer nodes: each option is embodied by a real marine feature ----
+   (coral heads, fish schools, hydrothermal vents, rock formations) so every
+   on-screen answer is something a marine scientist would recognise. */
+function nodeCoral(idx){
+  const cols=[0xd98b8b,0xe0a25c,0xba8fd0,0xd8c98a]; // reef corals vary in colour
+  const g=new THREE.Group(); const mat=stdMat(cols[idx%4],0x200808,0.15,0.9,0);
+  const base=new THREE.Mesh(new THREE.SphereGeometry(1.4,12,10), mat); base.scale.y=0.6; g.add(base);
+  for(let i=0;i<7;i++){
+    const h=2+Math.random()*3.5, br=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.34,h,6), mat);
+    const a=Math.random()*6.28, r=Math.random()*1.6;
+    br.position.set(Math.cos(a)*r, h/2-0.3, Math.sin(a)*r);
+    br.rotation.set((Math.random()-0.5)*0.7,0,(Math.random()-0.5)*0.7); g.add(br);
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.32,8,6), mat);
+    tip.position.set(br.position.x+Math.sin(br.rotation.z)*h/2, br.position.y+h/2, br.position.z); g.add(tip);
+  }
+  return g;
+}
+function nodeSchool(idx){
+  const spec=[{c:0xaeb8c2,l:1.0},{c:0x4a7fa0,l:1.25},{c:0xd0a848,l:0.9},{c:0xb0574a,l:1.15}][idx%4];
+  const g=new THREE.Group(); const fish=[];
+  for(let i=0;i<11;i++){ const f=simpleFish(spec.l, spec.c);
+    f.position.set((Math.random()-0.5)*7,(Math.random()-0.5)*4.5,(Math.random()-0.5)*7);
+    f.rotation.y=(Math.random()-0.5)*0.6; g.add(f); fish.push(f); }
+  g.userData.school=fish; return g;
+}
+function nodeGlow(idx){
+  const cols=[0x66ffff,0xc070ff,0x7affc0,0xff90d0]; const c=cols[idx%4];
+  const g=new THREE.Group();
+  const m=new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:1.5,transparent:true,opacity:0.6,roughness:0.2,side:THREE.DoubleSide});
+  const bell=new THREE.Mesh(new THREE.SphereGeometry(1.7,18,14,0,6.28,0,Math.PI/2), m); bell.position.y=0.6; g.add(bell);
+  for(let i=0;i<12;i++){ const t=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.02,2.6,4), m);
+    const a=i/12*6.28; t.position.set(Math.cos(a)*1.0,-0.6,Math.sin(a)*1.0); g.add(t); }
+  g.add(new THREE.PointLight(c,0.7,50,2)); g.userData.bell=bell; return g;
+}
+function nodeVent(idx){
+  const g=new THREE.Group();
+  const chimney=new THREE.Mesh(new THREE.CylinderGeometry(0.7,1.5,4.5,9), stdMat(0x241c16,0x080402,0.2,1,0));
+  chimney.position.y=1.2; g.add(chimney);
+  const white=idx%2===1; // black smokers vs white smokers — both are real
+  const smoke=new THREE.Mesh(new THREE.ConeGeometry(1.3,7,8,1,true),
+    new THREE.MeshBasicMaterial({color:white?0xd8d8e0:0x14141c, transparent:true, opacity:0.4, side:THREE.DoubleSide, depthWrite:false}));
+  smoke.position.y=6; g.add(smoke); g.userData.smoke=smoke; return g;
+}
+function nodeRock(idx){
+  const g=new THREE.Group(); const mat=stdMat(0x3b3730,0,0,1,0); mat.flatShading=true;
+  for(let i=0;i<4;i++){ const rk=new THREE.Mesh(new THREE.DodecahedronGeometry(1+Math.random()*1.3,0), mat);
+    rk.position.set((Math.random()-0.5)*3.4,Math.random()*2.2-0.5,(Math.random()-0.5)*3.4);
+    rk.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3); rk.scale.y=1.3+Math.random()*0.6; g.add(rk); }
+  return g;
+}
+
+function makeRing(pos, idx, slot, letter, text, faceDir, color, atype){
+  const grp=new THREE.Group();
+  let obj;
+  if(atype==="coral") obj=nodeCoral(idx);
+  else if(atype==="school") obj=nodeSchool(idx);
+  else if(atype==="glow") obj=nodeGlow(idx);
+  else if(atype==="vent") obj=nodeVent(idx);
+  else obj=nodeRock(idx);
+  grp.add(obj);
+  // soft glowing "answer" aura so the marine feature reads as an interactive target
+  const aura=new THREE.Mesh(new THREE.SphereGeometry(6.8,18,14),
+    new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.14,
+      blending:THREE.AdditiveBlending, depthWrite:false}));
+  grp.add(aura);
+  // thin light beam rising from it — findable from a distance
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,44,8),
+    new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.12,
+      blending:THREE.AdditiveBlending, depthWrite:false, fog:false}));
+  beam.position.y=18; grp.add(beam);
+  // orient toward the incoming whale
+  const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), faceDir.clone().negate());
+  grp.quaternion.copy(q); grp.position.copy(pos);
+  // crisp white label with a colour-matched glow
+  const lab=makeTextSprite(letter+" ·  "+text,{fontSize:44, weight:"800",
+    font:'"Trebuchet MS","Segoe UI",sans-serif', maxWidth:360, scale:0.05, bg:false,
+    color:"#ffffff", stroke:"rgba(0,6,16,0.95)", strokeWidth:6, glow:hx(color), glowBlur:14});
+  lab.position.set(0,11,0); grp.add(lab);
+  scene.add(grp);
+  rings.push({mesh:grp, obj, aura, beam, idx, slot, text, letter, color, label:lab, atype});
+}
+function clearRings(){ rings.forEach(r=>scene.remove(r.mesh)); rings.length=0;
+  if(qBannerObj){ scene.remove(qBannerObj); qBannerObj=null; }
+  if(confirmBannerObj){ scene.remove(confirmBannerObj); confirmBannerObj=null; } }
+
+function updateRings(){
+  if(state.activeQ===null) return;
+  const t=clock.getElapsedTime();
+  if(state.awaitingConfirm) return; // keep the chosen highlight steady
+  // gentle life: aura breathes, schools mill, jellies pulse, smoke drifts
+  rings.forEach((r,i)=>{
+    r.aura.material.opacity = 0.12+0.07*Math.sin(t*2.2+i*1.6);
+    r.obj.position.y = Math.sin(t*0.8+i)*0.35;
+    const sch=r.obj.userData.school;
+    if(sch) sch.forEach((f,k)=>{ if(f.userData.tail) f.userData.tail.rotation.y=Math.sin(t*5+k)*0.5; });
+    const bell=r.obj.userData.bell;
+    if(bell){ bell.scale.y=0.9+Math.sin(t*1.6+i)*0.14; bell.scale.x=bell.scale.z=1-Math.sin(t*1.6+i)*0.08; }
+    const smk=r.obj.userData.smoke;
+    if(smk){ smk.rotation.y+=0.004; smk.material.opacity=0.32+0.12*Math.sin(t*1.2+i); }
+  });
+  // proximity selection (marine features are chunkier than the old rings)
+  for(const r of rings){
+    if(whale.position.distanceTo(r.mesh.position) < 12){ selectRing(r); break; }
+  }
+}
+
+function selectRing(r){
+  state.selectedRing=r;
+  state.awaitingConfirm=true;
+  // highlight the chosen feature, fade the others back into the sea
+  rings.forEach(x=>{
+    const chosen=x===r;
+    x.aura.material.opacity = chosen?0.34:0.03;
+    x.beam.material.opacity = chosen?0.3:0.02;
+    x.label.material.opacity = chosen?1:0.2;
+    x.mesh.scale.setScalar(chosen?1.15:0.9);
+  });
+  document.getElementById("qhint").textContent=`Chosen: ${r.letter}. ${r.text} — press R to confirm with a body roll`;
+  prompt(`Confirm answer <span class="key">${r.letter}</span> — press <span class="key">R</span> to body-roll`);
+
+  // in-world confirm banner
+  if(confirmBannerObj) scene.remove(confirmBannerObj);
+  confirmBannerObj=makeTextSprite("Roll to confirm  ↻",{fontSize:34,scale:0.09,
+    bg:"rgba(40,26,4,0.85)",border:"rgba(255,200,80,0.9)",color:"#ffe9b0"});
+  confirmBannerObj.position.copy(whale.position).add(forwardVec().multiplyScalar(26)).add(new THREE.Vector3(0,14,0));
+  scene.add(confirmBannerObj);
+  playChime(660);
+}
+
+function tryConfirm(){
+  if(!state.awaitingConfirm || !state.selectedRing) return;
+  const r=state.selectedRing;
+  const q=QUESTIONS[state.activeQ];
+  // trigger body-roll animation (realistic confirm move)
+  state.rollAnim = Math.PI*2;
+
+  hidePrompt();
+  fade("qbanner",0);
+  const correct = (r.idx===q.correct);
+  if(correct){
+    q.done=true; state.questionsDone++;
+    state.streak++; state.bestStreak=Math.max(state.bestStreak,state.streak);
+    const mult=1+Math.floor(state.streak/2)*0.5;
+    const gained=Math.round(200*mult);
+    addScore(gained);
+    centerMsg("✔ "+q.reward, `+${gained}  ·  streak ${state.streak}× `, 3200, "#8affc0");
+    spawnRewardPrey();          // reward moment right after answering
+    playSuccess();
+    state.activeQ=null; state.awaitingConfirm=false; state.selectedRing=null;
+    clearRings();
+    updateQProgress();
+    if(state.questionsDone>=QUESTIONS.length) winGame();
+  } else {
+    state.streak=0;
+    centerMsg("Not quite — try another ring", "Correct answer: "+q.a[q.correct], 3200, "#ff9a9a");
+    // reset rings for retry
+    state.awaitingConfirm=false; state.selectedRing=null;
+    if(confirmBannerObj){ scene.remove(confirmBannerObj); confirmBannerObj=null; }
+    rings.forEach(x=>{
+      x.aura.material.opacity=0.14; x.beam.material.opacity=0.12;
+      x.label.material.opacity=1; x.mesh.scale.setScalar(1);
+    });
+    document.getElementById("qhint").textContent="Swim to the marine feature of your chosen answer";
+    fade("qbanner",1);
+    playFail();
+  }
+}
+function updateQProgress(){ document.getElementById("qProg").textContent=`${state.questionsDone} / ${QUESTIONS.length}`; }
+
+/* =========================================================================
+   PREY  (deep-sea squid, deep fish, crustaceans)
+   ========================================================================= */
+function makeSquid(){
+  const g=new THREE.Group();
+  const mantle=new THREE.Mesh(new THREE.ConeGeometry(1.2,4,10),
+    new THREE.MeshStandardMaterial({color:0xc23a5a, emissive:0xff5a7a, emissiveIntensity:0.7, roughness:0.5}));
+  mantle.rotation.x=Math.PI; g.add(mantle);
+  for(let i=0;i<7;i++){
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.03,2.4,5),
+      new THREE.MeshStandardMaterial({color:0xd85a72, emissive:0xff5a7a, emissiveIntensity:0.5}));
+    arm.position.set(Math.cos(i/7*6.28)*0.5, 2, Math.sin(i/7*6.28)*0.5);
+    arm.rotation.x=0.3; g.add(arm);
+  }
+  return g;
+}
+function makeFish(){
+  const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),
+    new THREE.MeshStandardMaterial({color:0x334a66, emissive:0x3aa0d0, emissiveIntensity:0.5}));
+  b.scale.set(0.6,0.8,1.6); g.add(b);
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(0.7,1.2,4),
+    new THREE.MeshStandardMaterial({color:0x2a3f5a, emissive:0x3aa0d0, emissiveIntensity:0.4}));
+  tail.rotation.x=-Math.PI/2; tail.position.z=1.6; g.add(tail);
+  // lure light
+  const lure=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,6), new THREE.MeshBasicMaterial({color:0xaeffff}));
+  lure.position.set(0,0.9,-1.1); g.add(lure);
+  return g;
+}
+function makeCrustacean(){
+  const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,6),
+    new THREE.MeshStandardMaterial({color:0xd06a2a, emissive:0xff7a3a, emissiveIntensity:0.4, roughness:0.7}));
+  b.scale.set(1,0.6,1.3); g.add(b);
+  for(let s=-1;s<=1;s+=2){
+    for(let i=0;i<3;i++){
+      const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.03,1.4,4),
+        new THREE.MeshStandardMaterial({color:0xb85a20}));
+      leg.position.set(s*0.7,-0.2,(i-1)*0.5); leg.rotation.z=s*0.9; g.add(leg);
+    }
+  }
+  return g;
+}
+
+function spawnPrey(type, pos){
+  let mesh;
+  if(type==="squid") mesh=makeSquid();
+  else if(type==="fish") mesh=makeFish();
+  else mesh=makeCrustacean();
+  mesh.position.copy(pos);
+  mesh.scale.setScalar(1.4);
+  scene.add(mesh);
+  prey.push({mesh, type, alive:true,
+    vel:new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5)*0.4,(Math.random()-0.5)),
+    wobble:Math.random()*6.28, beingSucked:false});
+}
+
+function ensurePrey(){
+  const d=depthNow();
+  // main feeding band 600–2000, often near seabed; a little in twilight
+  if(d<450) return;                          // no feeding near surface
+  const target = d>600 ? 10 : 4;
+  if(prey.length<target && Math.random()<0.04){
+    const ahead=forwardVec().multiplyScalar(40+Math.random()*120);
+    const side=new THREE.Vector3((Math.random()-0.5)*140,(Math.random()-0.5)*80,(Math.random()-0.5)*140);
+    let pos=whale.position.clone().add(ahead).add(side);
+    // keep prey above the seabed
+    const floor=seabedHeightAt(pos.x,pos.z);
+    pos.y=Math.max(floor+12, Math.min(-450, pos.y));
+    // choose type by realism: mostly squid deep; fish/crustaceans occasional & near seabed
+    let type="squid";
+    const r=Math.random();
+    if(d>1200 && r<0.2) type="crustacean";
+    else if(r<0.28) type="fish";
+    spawnPrey(type,pos);
+  }
+}
+function spawnRewardPrey(){
+  const d=depthNow();
+  if(d<450) return;
+  for(let i=0;i<4;i++){
+    const pos=whale.position.clone().add(forwardVec().multiplyScalar(30+i*10))
+      .add(new THREE.Vector3((Math.random()-0.5)*30,(Math.random()-0.5)*20,(Math.random()-0.5)*30));
+    spawnPrey(Math.random()<0.7?"squid":(Math.random()<0.5?"fish":"crustacean"), pos);
+  }
+}
+
+function updatePrey(dt){
+  const mouth=mouthWorld();
+  const feeding = keys["KeyF"];
+  for(let i=prey.length-1;i>=0;i--){
+    const p=prey[i]; if(!p.alive) continue;
+    p.wobble+=dt*3;
+    // drift + slight flee from whale if close
+    const toWhale=whale.position.clone().sub(p.mesh.position);
+    const dist=toWhale.length();
+    if(!p.beingSucked){
+      p.mesh.position.addScaledVector(p.vel, dt*6);
+      p.mesh.position.y += Math.sin(p.wobble)*0.05;
+      if(dist<40){ // squid jets away a bit unless being sucked
+        p.mesh.position.addScaledVector(toWhale.normalize(), -dt*4);
+      }
+      // keep above floor
+      const floor=seabedHeightAt(p.mesh.position.x,p.mesh.position.z);
+      if(p.mesh.position.y<floor+6) p.mesh.position.y=floor+6;
+    }
+    // suction feeding
+    const dm=p.mesh.position.distanceTo(mouth);
+    const inCone = facingDot(p.mesh.position) > 0.4;
+    if(feeding && dm<26 && inCone){
+      p.beingSucked=true;
+      const dir=mouth.clone().sub(p.mesh.position).normalize();
+      p.mesh.position.addScaledVector(dir, dt*38);
+      p.mesh.scale.multiplyScalar(1-0.9*dt);
+    } else {
+      p.beingSucked=false;
+    }
+    if(dm<3.2){ // consumed
+      scene.remove(p.mesh); p.alive=false; prey.splice(i,1);
+      state.preyEaten++;
+      document.getElementById("preyTxt").textContent=state.preyEaten;
+      addScore(60);
+      state.o2=Math.min(100,state.o2+5); // a good feed buys a little more dive time
+      floatMsg("🦑 suction feed!  +60");
+      playSuction();
+    }
+    // cull far prey
+    if(dist>420){ scene.remove(p.mesh); p.alive=false; prey.splice(i,1); }
+  }
+}
+
+/* =========================================================================
+   DANGERS  (orca/shark surface, cookiecutter, fishing gear) + sonar
+   ========================================================================= */
+function makePredator(kind){
+  const g=new THREE.Group();
+  const col = kind==="orca"?0x0b0b12:0x556072;
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),
+    new THREE.MeshStandardMaterial({color:col, roughness:0.6}));
+  body.scale.set(1.1,1.1, kind==="orca"?4.5:5.2); g.add(body);
+  if(kind==="orca"){
+    const patch=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),
+      new THREE.MeshStandardMaterial({color:0xf4f6ff}));
+    patch.scale.set(1.0,0.55,2.6); patch.position.set(0,-0.5,-0.5); g.add(patch);
+    const dfin=new THREE.Mesh(new THREE.ConeGeometry(0.5,2.4,4),
+      new THREE.MeshStandardMaterial({color:0x0b0b12}));
+    dfin.position.set(0,1.4,0.4); dfin.scale.set(1,1,0.4); g.add(dfin);
+  } else {
+    const dfin=new THREE.Mesh(new THREE.ConeGeometry(0.6,1.8,3),
+      new THREE.MeshStandardMaterial({color:col}));
+    dfin.position.set(0,1.3,0.6); dfin.scale.set(1,1,0.4); g.add(dfin);
+  }
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(1.1,2,4),
+    new THREE.MeshStandardMaterial({color:col})); tail.rotation.x=-Math.PI/2; tail.position.z=4.5; g.add(tail);
+  g.scale.setScalar(kind==="orca"?1.6:1.3);
+  return g;
+}
+function makeFishingGear(){
+  const g=new THREE.Group();
+  // a hanging net panel + float line
+  const netMat=new THREE.MeshStandardMaterial({color:0xbfc7cc, transparent:true, opacity:0.5,
+    wireframe:true, side:THREE.DoubleSide});
+  const net=new THREE.Mesh(new THREE.PlaneGeometry(60,120,10,20), netMat);
+  g.add(net);
+  const line=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,180,6),
+    new THREE.MeshStandardMaterial({color:0x8a9096}));
+  line.position.set(-30,0,0); g.add(line);
+  return g;
+}
+
+function spawnDanger(){
+  const d=depthNow();
+  if(d>=320) return; // predators & gear are near-surface threats
+  let kind = Math.random()<0.5?"orca":"shark";
+  if(d<150 && Math.random()<0.45) kind="gear"; // fishing gear near the surface
+
+  const mesh = kind==="gear"?makeFishingGear():makePredator(kind);
+  const ang=Math.random()*6.28, r=140+Math.random()*80;
+  mesh.position.set(whale.position.x+Math.cos(ang)*r, whale.position.y+(Math.random()-0.5)*40, whale.position.z+Math.sin(ang)*r);
+  if(kind==="gear"){ mesh.position.y=Math.min(-8,-20-Math.random()*120); }
+  scene.add(mesh);
+  dangers.push({mesh, kind, ttl:kind==="gear"?9999:26, hitCd:0});
+  if(kind==="gear") warn("⚠ Fishing gear ahead — steer clear");
+  else warn(kind==="orca"?"⚠ Orcas near the surface!":"⚠ Large shark circling!");
+}
+
+function spawnCookiecutter(){
+  // small, quick nip from any depth — minor
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(1.1,10,8),
+    new THREE.MeshStandardMaterial({color:0x5a4030, emissive:0x2a1a10}));
+  mesh.scale.set(0.7,0.7,1.8);
+  const ang=Math.random()*6.28;
+  mesh.position.copy(whale.position).add(new THREE.Vector3(Math.cos(ang)*60,(Math.random()-0.5)*30,Math.sin(ang)*60));
+  scene.add(mesh);
+  dangers.push({mesh, kind:"cookiecutter", ttl:12, hitCd:0});
+  warn("⚠ Cookiecutter shark — a quick nip!");
+}
+
+function updateDangers(dt){
+  for(let i=dangers.length-1;i>=0;i--){
+    const dg=dangers[i]; dg.ttl-=dt; dg.hitCd-=dt;
+    const toWhale=whale.position.clone().sub(dg.mesh.position);
+    const dist=toWhale.length();
+
+    if(dg.kind==="orca"||dg.kind==="shark"||dg.kind==="cookiecutter"){
+      // pursue, but the whale evades by going quiet / diving / turning away
+      let chase = state.quiet ? 0.25 : 1.0;
+      // if whale diving fast/deep, predators (surface) give up
+      if(depthNow()>340 && dg.kind!=="cookiecutter") chase*=0.2;
+      const spd=(dg.kind==="cookiecutter"?26:16)*chase;
+      dg.mesh.position.addScaledVector(toWhale.normalize(), dt*spd);
+      dg.mesh.lookAt(whale.position);
+      if(dist<7 && dg.hitCd<=0){
+        dg.hitCd=2.5;
+        state.o2=Math.max(0,state.o2- (dg.kind==="cookiecutter"?6:16));
+        state.streak=0;
+        dangerFlash();
+        centerMsg(dg.kind==="cookiecutter"?"Ouch — cookiecutter nip!":"Predator strike! Dive or go quiet!","",1600,"#ff8a8a");
+        playHit();
+      }
+    } else if(dg.kind==="gear"){
+      // static hazard; entanglement slows & drains
+      if(dist<34){
+        state.speed*=0.985;
+        if(dg.hitCd<=0){ dg.hitCd=1.2; state.o2=Math.max(0,state.o2-4); dangerFlash(); }
+      }
+    }
+    if(dg.ttl<=0 || dist>520){ scene.remove(dg.mesh); dangers.splice(i,1); }
+  }
+}
+
+/* ---------- sonar disturbance (sound field, not a projectile) ---------- */
+function updateSonar(dt){
+  const s=state.sonar;
+  if(!s.active){
+    s.timer-=dt;
+    if(s.timer<=0 && depthNow()>250){
+      s.active=true; s.duration=10+Math.random()*6; s.intensity=0;
+      warn("🔊 Sonar! A disturbing sound field — change direction or go quiet");
+      startSonarSound();
+    }
+  } else {
+    s.duration-=dt;
+    s.intensity=Math.min(1, s.intensity+dt);
+    // disrupt echolocation & feeding
+    state.echoOn=false;
+    // reward evasion: turning hard or going quiet or diving reduces duration
+    const turning=(keys["KeyA"]||keys["KeyD"]||keys["ArrowLeft"]||keys["ArrowRight"]);
+    if(state.quiet||turning) s.duration-=dt*1.5;
+    if(s.duration<=0){
+      s.active=false; s.timer=16+Math.random()*10; s.intensity=0;
+      stopSonarSound();
+      centerMsg("Sonar faded — you slipped away","+80 evasion",1800,"#8affc0");
+      addScore(80);
+    }
+  }
+  // vignette
+  const v=document.getElementById("vignette");
+  if(s.active){
+    const a=0.25+0.25*Math.abs(Math.sin(clock.getElapsedTime()*6));
+    v.style.boxShadow=`inset 0 0 220px rgba(120,60,200,${a})`;
+  } else if(state._dangerFlash>0){
+    state._dangerFlash-=dt;
+    v.style.boxShadow=`inset 0 0 200px rgba(255,20,40,${Math.max(0,state._dangerFlash)})`;
+  } else {
+    v.style.boxShadow="inset 0 0 0 rgba(0,0,0,0)";
+  }
+}
+function dangerFlash(){ state._dangerFlash=0.7; }
+
+/* =========================================================================
+   VECTOR helpers
+   ========================================================================= */
+function forwardVec(){ return new THREE.Vector3(0,0,-1).applyQuaternion(whale.quaternion).normalize(); }
+function mouthWorld(){ return whale.userData.mouth.clone().applyMatrix4(whale.matrixWorld); }
+function facingDot(targetPos){
+  const to=targetPos.clone().sub(whale.position).normalize();
+  return to.dot(forwardVec());
+}
+
+/* =========================================================================
+   MAIN LOOP
+   ========================================================================= */
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(0.05, clock.getDelta());
+  if(state.running && !state.ended) update(dt);
+  if(useFX){
+    // keep the whale in crisp focus; everything else falls soft (real lens)
+    if(bokehPass && whale){
+      const f=camera.position.distanceTo(whale.position);
+      bokehPass.uniforms["focus"].value += (f-bokehPass.uniforms["focus"].value)*0.15;
+    }
+    if(cinePass) cinePass.uniforms["time"].value=clock.getElapsedTime();
+  }
+  if(useFX && composer) composer.render(); else renderer.render(scene,camera);
+}
+
+function update(dt){
+  handleControls(dt);
+  moveWhale(dt);
+  updateCamera(dt);
+  updateEnvironment(dt);
+  breathing(dt);
+  maybeActivateQuestion();
+  reanchorRings();
+  updateRings();
+  ensurePrey(); updatePrey(dt);
+  updateAmbient(dt); updateSciNotes(dt); updateRareEncounters(dt);
+  spawnLoop(dt); updateDangers(dt); updateSonar(dt);
+  animateWorld(dt);
+  updateHUD();
+  updateAudioLoop(dt);
+}
+
+/* ---------- controls & movement ---------- */
+function handleControls(dt){
+  const turn=1.5*dt, pitchRate=1.4*dt;
+  if(keys["KeyA"]||keys["ArrowLeft"])  state.yaw+=turn;
+  if(keys["KeyD"]||keys["ArrowRight"]) state.yaw-=turn;
+  if(keys["KeyW"]||keys["ArrowUp"])    state.pitch=Math.max(-1.3, state.pitch-pitchRate); // nose down
+  if(keys["KeyS"]||keys["ArrowDown"])  state.pitch=Math.min( 1.3, state.pitch+pitchRate); // nose up
+  // auto level pitch slightly when no input
+  if(!(keys["KeyW"]||keys["ArrowUp"]||keys["KeyS"]||keys["ArrowDown"])) state.pitch*=(1-0.6*dt);
+
+  state.boosting = (keys["ShiftLeft"]||keys["ShiftRight"]) && state.o2>2;
+  state.quiet = keys["KeyQ"];
+
+  // body roll animation (confirm move)
+  if(state.rollAnim>0){
+    const step=Math.min(state.rollAnim, dt*7);
+    state.roll+=step; state.rollAnim-=step;
+  } else {
+    state.roll*= (1-4*dt); // settle
+  }
+}
+
+function moveWhale(dt){
+  // target speed  (fast enough that a full deep dive fits inside one breath)
+  let target = state.boosting?70:30;
+  // ease off while a question is on screen so the rings approach gently — time to think
+  if(state.activeQ!==null && !state.awaitingConfirm) target=Math.min(target,15);
+  if(state.o2<12) target*=0.6;
+  state.speed += (target-state.speed)*Math.min(1,dt*2);
+
+  whale.rotation.set(state.pitch, state.yaw, state.roll, "YXZ");
+  const fwd=forwardVec();
+  whale.position.addScaledVector(fwd, state.speed*dt);
+
+  // clamp within world & above seabed
+  whale.position.y=Math.min(SURFACE_Y+8, whale.position.y); // can breach a touch
+  const floor=seabedHeightAt(whale.position.x,whale.position.z);
+  if(whale.position.y < floor+5){ whale.position.y=floor+5; if(state.pitch<0) state.pitch=0.2; }
+  const R=2200;
+  whale.position.x=Math.max(-R,Math.min(R,whale.position.x));
+  whale.position.z=Math.max(-R,Math.min(R,whale.position.z));
+
+  // swim tail + pectoral fin animation
+  state.swimPhase += dt*(4+state.speed*0.12);
+  if(fluke) fluke.rotation.x=Math.sin(state.swimPhase)*0.42;
+  if(whale.userData.finL){
+    const flap=Math.sin(state.swimPhase*0.8)*0.16;
+    whale.userData.finL.rotation.x=flap;
+    whale.userData.finR.rotation.x=flap;
+  }
+
+  // track deepest
+  const d=depthNow();
+  if(d>state.deepest){
+    const prev=state.deepest; state.deepest=d;
+    document.getElementById("bestTxt").textContent=Math.round(d)+" m";
+    // depth milestone rewards
+    checkDepthMilestones(prev,d);
+  }
+}
+
+let milestones={200:false,1000:false,1500:false,2000:false,2500:false,3000:false};
+function checkDepthMilestones(prev,d){
+  for(const m of [200,1000,1500,2000,2500,3000]){
+    if(!milestones[m] && d>=m){
+      milestones[m]=true;
+      let label = m===200?"Entering the Twilight Zone":
+                  m===1000?"Entering the Midnight Zone — echolocation echoes in the black":
+                  m===1500?"Follow the glowing blue beacons — they mark the deep trench":
+                  m===2000?"Deep bathypelagic — near the seabed hunting grounds":
+                  m===2500?"Approaching the trench…":
+                  "🏆 Nearly 3,000 m — a rare, extreme dive!";
+      const pts = m>=2500?400:(m===1500?0:150);
+      if(pts) addScore(pts);
+      centerMsg(label, pts?`+${pts}  ·  new depth reached`:"the deepest water is this way", 3200, "#9be8ff");
+      playChime(m>=2000?300:520);
+    }
+  }
+}
+
+/* ---------- camera: third person, above & behind ---------- */
+function updateCamera(dt){
+  const fwd=forwardVec();
+  const boost=state.boosting?1:0;
+  const back=fwd.clone().multiplyScalar(-(34+boost*7));
+  const bob=Math.sin(state.swimPhase)*0.6;
+  const up=new THREE.Vector3(0,1,0).multiplyScalar(11+bob);
+  const desired=whale.position.clone().add(back).add(up);
+  camera.position.lerp(desired, Math.min(1,dt*3.2));
+  // aim ahead of the whale so approaching rings sit in the middle of the view
+  const look=whale.position.clone().add(fwd.clone().multiplyScalar(24)).add(new THREE.Vector3(0,5,0));
+  camera.lookAt(look);
+  // dynamic FOV — a subtle push when boosting for a sense of speed
+  const targetFOV=baseFOV + boost*10;
+  camera.fov += (targetFOV-camera.fov)*Math.min(1,dt*4);
+  camera.updateProjectionMatrix();
+}
+
+/* ---------- environment: light, fog, colour by depth ---------- */
+function updateEnvironment(dt){
+  const d=depthNow();
+  const lf=lightFactor(d);
+  // background & fog colour: vivid tropical teal → rich cobalt → abyssal black.
+  // Deliberately deep & saturated so bloom only catches true highlights.
+  const surf=new THREE.Color(0x0a5680);
+  const mid =new THREE.Color(0x063a63);
+  const deepBlue=new THREE.Color(0x021530);
+  const abyss=new THREE.Color(0x01040c);
+  let col;
+  if(d<200){ col=surf.clone().lerp(mid, d/200); }
+  else if(d<1000){ col=mid.clone().lerp(deepBlue,(d-200)/800); }
+  else col=deepBlue.clone().lerp(abyss, Math.min(1,(d-1000)/1200));
+  scene.background.copy(col);
+  scene.fog.color.copy(col);
+  scene.fog.density = 0.0018 + Math.min(0.007, d*0.0000048);
+
+  // lights — restrained so the water has depth & contrast, not a flat flood
+  const amb=scene.getObjectByName("amb");
+  const sun=scene.getObjectByName("sun");
+  amb.intensity = 0.12 + 0.26*lf;
+  amb.color.setHex(d<300?0x8fc8f0:0x4a80c0);
+  sun.intensity = 0.62*lf;
+  // perception glow grows in the dark so the player can still see the whale
+  const darkness=1-lf;
+  glowLight.intensity = 0.35 + 1.5*darkness;
+  glowLight.color.setHex(d>1000?0x5566aa:0x3aa0d0);
+  glowLight.position.copy(whale.position).add(new THREE.Vector3(0,12,4));
+
+  // echolocation auto-on below 400 m (unless sonar-disrupted or quiet)
+  const shouldEcho = d>400 && !state.sonar.active && !state.quiet;
+  if(shouldEcho && !state.echoOn){ state.echoOn=true; }
+  if(!shouldEcho) state.echoOn=false;
+  headLight.intensity = state.echoOn?1.4:0.0;
+  if(state.echoOn){
+    headLight.position.copy(whale.position);
+    headLight.target.position.copy(whale.position).add(forwardVec().multiplyScalar(60));
+    headLight.target.updateMatrixWorld();
+  }
+
+  // sky & sun visibility (only near the surface)
+  if(scene.userData.sky) scene.userData.sky.visible = d<220;
+  if(scene.userData.sunDisc) scene.userData.sunDisc.visible = d<260;
+}
+
+/* ---------- breathing ---------- */
+function breathing(dt){
+  const d=depthNow();
+  if(d<BREATHE_DEPTH){
+    if(state.o2<100){
+      state.o2=Math.min(100,state.o2+dt*55);
+      if(state.o2<100) prompt("🫁 Breathing at the surface…");
+    }
+    if(state.o2>=99.5) hidePromptIf("🫁 Breathing at the surface…");
+  } else {
+    // O2 drains with depth & exertion — tuned so a full ~3000 m round trip
+    // is *just* possible on one breath (a rare, committed achievement).
+    let drain = 0.4 + d*0.0001 + (state.boosting?0.3:0) + (state.echoOn?0.08:0);
+    state.o2=Math.max(0,state.o2-drain*dt);
+    if(state.o2<=0){
+      // out of breath: the whale's buoyancy pulls the nose UP toward air
+      state.pitch=Math.max(state.pitch, 0.35); // positive pitch = nose up = ascend
+      if(!state._drown){ state._drown=true; warn("💨 Out of breath — the whale rises for air!"); }
+      state.o2=0.01;
+    } else state._drown=false;
+    if(state.o2<25 && !state._lowWarn){ state._lowWarn=true; warn("⚠ Low breath — head for the surface"); }
+    if(state.o2>30) state._lowWarn=false;
+  }
+}
+
+/* ---------- world animation (surface waves, particles) ---------- */
+function animateWorld(dt){
+  const t=clock.getElapsedTime();
+  // surface waves
+  if(surfaceMesh){
+    surfaceMesh.position.x=whale.position.x; surfaceMesh.position.z=whale.position.z;
+    const pos=surfaceMesh.geometry.attributes.position, base=surfaceMesh.userData.base;
+    for(let i=0;i<pos.count;i++){
+      const x=base[i*3], z=base[i*3+2];
+      pos.setY(i, Math.sin(x*0.02+t*1.5)*1.2+Math.cos(z*0.025+t*1.2)*1.2);
+    }
+    pos.needsUpdate=true;
+  }
+  // particles drift down, recycle around whale
+  if(particleField){
+    const p=particleField.geometry.attributes.position;
+    for(let i=0;i<p.count;i++){
+      let y=p.getY(i)-dt*4;
+      let x=p.getX(i), z=p.getZ(i);
+      if(y<whale.position.y-300 || Math.abs(x-whale.position.x)>500 || Math.abs(z-whale.position.z)>500){
+        x=whale.position.x+(Math.random()-0.5)*800;
+        z=whale.position.z+(Math.random()-0.5)*800;
+        y=whale.position.y+150+Math.random()*200;
+      }
+      p.setXYZ(i,x,y,z);
+    }
+    p.needsUpdate=true;
+  }
+  // prey idle animation
+  prey.forEach(pp=>{ pp.mesh.rotation.y+=dt*0.5; });
+
+  const dp=depthNow();
+  // bioluminescent plankton drift + recycle around the whale
+  if(plankton){
+    const p=plankton.geometry.attributes.position;
+    for(let i=0;i<p.count;i++){
+      let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+      x+=Math.sin(t*0.2+i)*0.05; y+=Math.sin(t*0.5+i*0.3)*0.03;
+      if(Math.abs(x-whale.position.x)>430||Math.abs(z-whale.position.z)>430||Math.abs(y-whale.position.y)>380){
+        x=whale.position.x+(Math.random()-0.5)*780;
+        z=whale.position.z+(Math.random()-0.5)*780;
+        y=whale.position.y+(Math.random()-0.5)*520;
+      }
+      p.setXYZ(i,x,y,z);
+    }
+    p.needsUpdate=true;
+    plankton.material.opacity = 0.35 + 0.6*(1-lightFactor(dp)); // glow brighter in the dark
+  }
+  // rising bubbles
+  if(bubbles){
+    const p=bubbles.geometry.attributes.position;
+    for(let i=0;i<p.count;i++){
+      let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+      y+=dt*(10+(i%5)*4); x+=Math.sin(t*2+i)*0.05;
+      if(y>-2 || Math.abs(x-whale.position.x)>320 || Math.abs(z-whale.position.z)>320){
+        x=whale.position.x+(Math.random()-0.5)*300;
+        z=whale.position.z+(Math.random()-0.5)*300;
+        y=whale.position.y-60-Math.random()*220;
+      }
+      p.setXYZ(i,x,y,z);
+    }
+    p.needsUpdate=true;
+  }
+  // god-ray shafts follow the whale and fade with depth
+  godrays.forEach(sh=>{
+    sh.position.x=whale.position.x+sh.userData.ox;
+    sh.position.z=whale.position.z+sh.userData.oz;
+    sh.visible = dp<260;
+    if(sh.visible) sh.material.opacity = 0.05*(1-dp/260)*(0.6+0.4*Math.sin(t*0.8+sh.userData.ph));
+  });
+  // shimmering caustics on the near-surface "ceiling"
+  if(causticMesh){
+    causticMesh.position.x=whale.position.x; causticMesh.position.z=whale.position.z;
+    causticMesh.material.map.offset.set(t*0.015, t*0.011);
+    causticMesh.visible = dp<230;
+    if(causticMesh.visible) causticMesh.material.opacity = 0.16*(1-dp/230);
+  }
+}
+
+/* ---------- spawn scheduling ---------- */
+function spawnLoop(dt){
+  state.dangerTimer-=dt; state.cookieTimer-=dt;
+  if(state.dangerTimer<=0){
+    state.dangerTimer=10+Math.random()*10;
+    if(depthNow()<320 && dangers.filter(d=>d.kind!=="cookiecutter").length<3) spawnDanger();
+  }
+  if(state.cookieTimer<=0){
+    state.cookieTimer=25+Math.random()*25;
+    if(Math.random()<0.6) spawnCookiecutter();
+  }
+}
+
+/* =========================================================================
+   HUD
+   ========================================================================= */
+function updateHUD(){
+  const d=depthNow();
+  const z=zoneFor(d);
+  document.getElementById("zoneName").textContent=z.name;
+  document.getElementById("depthTxt").textContent=Math.round(d)+" m";
+  document.getElementById("o2txt").textContent=Math.round(state.o2)+"%";
+  document.getElementById("o2bar").style.width=state.o2+"%";
+  document.getElementById("o2bar").style.background = state.o2<25?
+    "linear-gradient(90deg,#ff5a5a,#ffb020)":"linear-gradient(90deg,#39d0ff,#5affc8)";
+  const lf=Math.round(lightFactor(d)*100);
+  document.getElementById("lightTxt").textContent=lf+"%";
+  document.getElementById("lightbar").style.width=lf+"%";
+  const echoTxt=document.getElementById("echoTxt");
+  echoTxt.textContent = state.sonar.active?"jammed!":(state.echoOn?"clicking ▮▮▮":(state.quiet?"quiet":"off"));
+  echoTxt.style.color = state.sonar.active?"#c98aff":(state.echoOn?"#7affd0":"#7fd7ff");
+
+  // --- live oceanographic instruments ---
+  const nearSeabed=(seabedHeightAt(whale.position.x,whale.position.z)-whale.position.y) > -260;
+  const temp=tempAt(d), sal=salinityAt(d), pres=pressureAt(d), o2w=oxygenAt(d), min=mineralsAt(d,nearSeabed);
+  document.getElementById("tempTxt").textContent=temp.toFixed(1)+" °C";
+  document.getElementById("salTxt").textContent=sal.toFixed(1)+" PSU";
+  document.getElementById("presTxt").textContent=Math.round(pres)+" atm";
+  const doEl=document.getElementById("doTxt");
+  doEl.textContent=o2w.toFixed(1)+" mL/L"+(o2w<1.5?" (OMZ)":"");
+  doEl.style.color=o2w<1.5?"#ff9a6a":"#8fe6c8";
+  const minEl=document.getElementById("minTxt");
+  minEl.textContent=min.toFixed(2)+" µmol/kg"+(nearSeabed?" ▲":"");
+  minEl.style.color=nearSeabed?"#ffd27f":"#8fe6c8";
+
+  document.getElementById("scoreTxt").textContent=state.score;
+  document.getElementById("streakTxt").textContent=state.streak+"×";
+
+  // depth gauge marker (0..3000 → 2%..98%)
+  const pct=2+ Math.min(1,d/3000)*96;
+  document.getElementById("depthMarker").style.top=pct+"%";
+  document.getElementById("depthReadout").textContent=Math.round(d)+" m";
+}
+
+let _scoreTarget=0;
+function addScore(n){ _scoreTarget+=n; state.score=_scoreTarget; }
+
+/* ---------- messaging helpers ---------- */
+function centerMsg(main, sub, ms, color){
+  const c=document.getElementById("centerMsg"), s=document.getElementById("subMsg");
+  c.textContent=main; c.style.color=color||"#9be8ff"; c.style.opacity=1;
+  s.textContent=sub||""; s.style.opacity=sub?1:0;
+  clearTimeout(centerMsg._t);
+  centerMsg._t=setTimeout(()=>{ c.style.opacity=0; s.style.opacity=0; }, ms||2200);
+}
+function warn(text){ centerMsg(text,"",2200,"#ffd27f"); }
+function floatMsg(text){ // brief small note reuse subMsg-ish via prompt fade
+  prompt(text); clearTimeout(floatMsg._t); floatMsg._t=setTimeout(hidePrompt,1100);
+}
+function fade(id,to){ const e=document.getElementById(id); e.style.opacity=to; }
+function prompt(html){ const e=document.getElementById("prompt"); e.innerHTML=html; e.style.opacity=1; e.dataset.txt=html; }
+function hidePrompt(){ document.getElementById("prompt").style.opacity=0; }
+function hidePromptIf(txt){ const e=document.getElementById("prompt"); if(e.textContent.indexOf("Breathing")>=0) e.style.opacity=0; }
+
+/* =========================================================================
+   WIN
+   ========================================================================= */
+function winGame(){
+  state.ended=true; state.running=false;
+  const bonus=Math.round(state.deepest); addScore(bonus);
+  document.getElementById("endScore").textContent=state.score;
+  document.getElementById("endQ").textContent=state.questionsDone+" / "+QUESTIONS.length;
+  document.getElementById("endDepth").textContent=Math.round(state.deepest)+" m";
+  document.getElementById("endSub").textContent="You answered the whole ocean, from the sunlit reefs to the midnight seabed.";
+  let msg=`Depth bonus +${bonus}. Best streak ${state.bestStreak}×, ${state.preyEaten} prey suction-fed. `;
+  if(state.deepest>=2900) msg+="And you touched the trench near 3,000 m — a rare, extreme dive. 🐋";
+  else msg+="Push a dive all the way to the trench next time to reach ~3,000 m.";
+  document.getElementById("endMsg").textContent=msg;
+  document.getElementById("endScreen").classList.remove("hidden");
+  playSuccess(); stopSonarSound();
+}
+
+/* =========================================================================
+   AUDIO  (WebAudio — echolocation clicks, sonar drone, cues)
+   ========================================================================= */
+let AC=null, master=null, muffle=null, muted=false, sonarNodes=null, ambientNodes=null, clickTimer=0, bubbleTimer=2;
+function initAudio(){
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain(); master.gain.value=0.5;
+    // global low-pass = everything sounds muffled, as it does underwater
+    muffle=AC.createBiquadFilter(); muffle.type="lowpass"; muffle.frequency.value=1600; muffle.Q.value=0.4;
+    master.connect(muffle); muffle.connect(AC.destination);
+    startAmbient();
+  }catch(e){ AC=null; }
+}
+// continuous underwater bed: filtered brown-noise "surge" + deep pressure hum
+function startAmbient(){
+  if(!AC || ambientNodes) return;
+  const len=AC.sampleRate*3, buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0);
+  let last=0;
+  for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+0.02*w)/1.02; d[i]=last*3.2; }
+  const noise=AC.createBufferSource(); noise.buffer=buf; noise.loop=true;
+  const nf=AC.createBiquadFilter(); nf.type="lowpass"; nf.frequency.value=420; nf.Q.value=0.7;
+  const ng=AC.createGain(); ng.gain.value=0.11;
+  noise.connect(nf); nf.connect(ng); ng.connect(master);
+  // slow swell so the rumble breathes
+  const lfo=AC.createOscillator(); lfo.frequency.value=0.08;
+  const lg=AC.createGain(); lg.gain.value=150; lfo.connect(lg); lg.connect(nf.frequency); lfo.start();
+  // deep pressure hum
+  const hum=AC.createOscillator(); hum.type="sine"; hum.frequency.value=60;
+  const hg=AC.createGain(); hg.gain.value=0.05; hum.connect(hg); hg.connect(master); hum.start();
+  noise.start();
+  ambientNodes={noise,ng,hum,lfo};
+}
+function playBubble(){
+  if(!AC||muted) return;
+  const o=AC.createOscillator(), g=AC.createGain(), f=AC.createBiquadFilter();
+  f.type="bandpass"; f.frequency.value=500+Math.random()*500; f.Q.value=9;
+  const t=AC.currentTime; o.type="sine";
+  o.frequency.setValueAtTime(260+Math.random()*180, t);
+  o.frequency.exponentialRampToValueAtTime(760+Math.random()*640, t+0.11);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.05,t+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);
+  o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t+0.2);
+}
+function toggleMute(){ muted=!muted; if(master) master.gain.value=muted?0:0.5; warn(muted?"🔇 Muted":"🔊 Sound on"); }
+function beep(freq,dur,type,vol){
+  if(!AC||muted) return;
+  const o=AC.createOscillator(), g=AC.createGain();
+  o.type=type||"sine"; o.frequency.value=freq;
+  g.gain.value=0; o.connect(g); g.connect(master);
+  const t=AC.currentTime;
+  g.gain.linearRampToValueAtTime(vol||0.3, t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+(dur||0.15));
+  o.start(t); o.stop(t+(dur||0.15)+0.02);
+}
+function playClick(){ beep(1400,0.05,"sine",0.10); }
+function playChime(f){ beep(f||880,0.18,"sine",0.25); setTimeout(()=>beep((f||880)*1.5,0.18,"sine",0.2),90); }
+function playSuccess(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.2,"sine",0.25),i*90)); }
+function playFail(){ beep(220,0.25,"sawtooth",0.2); setTimeout(()=>beep(160,0.3,"sawtooth",0.2),120); }
+function playSuction(){ beep(300,0.18,"sine",0.25); }
+function playHit(){ beep(90,0.3,"sawtooth",0.3); }
+function startSonarSound(){
+  if(!AC||sonarNodes) return;
+  const o=AC.createOscillator(), g=AC.createGain(), lfo=AC.createOscillator(), lg=AC.createGain();
+  o.type="sine"; o.frequency.value=380;
+  lfo.frequency.value=2.2; lg.gain.value=180; lfo.connect(lg); lg.connect(o.frequency);
+  g.gain.value=0.0; o.connect(g); g.connect(master);
+  o.start(); lfo.start();
+  g.gain.linearRampToValueAtTime(muted?0:0.14, AC.currentTime+0.4);
+  sonarNodes={o,g,lfo};
+}
+function stopSonarSound(){
+  if(!sonarNodes) return;
+  try{ sonarNodes.g.gain.linearRampToValueAtTime(0,AC.currentTime+0.3);
+    sonarNodes.o.stop(AC.currentTime+0.35); sonarNodes.lfo.stop(AC.currentTime+0.35);}catch(e){}
+  sonarNodes=null;
+}
+function updateAudioLoop(dt){
+  // echolocation clicks (below ~400 m)
+  if(state.echoOn){
+    clickTimer-=dt;
+    if(clickTimer<=0){ clickTimer=0.4; playClick(); }
+  }
+  // drifting bubbles — more frequent when boosting
+  bubbleTimer-=dt;
+  if(bubbleTimer<=0){
+    bubbleTimer=(state.boosting?0.25:1.0)+Math.random()*2.0;
+    if(Math.random()<0.85) playBubble();
+  }
+  // muffle more with depth (sound carries less as pressure rises)
+  if(muffle){
+    const target=1600-Math.min(1150, depthNow()*0.45);
+    muffle.frequency.value += (target-muffle.frequency.value)*Math.min(1,dt*1.5);
+  }
+}
+
+/* ---------- resize ---------- */
+function onResize(){
+  W=window.innerWidth; H=window.innerHeight;
+  camera.aspect=W/H; camera.updateProjectionMatrix();
+  renderer.setSize(W,H);
+  if(composer) composer.setSize(W,H);
+  if(bloomPass) bloomPass.setSize(W,H);
+}
+
+/* ---------- Cinematic "real underwater camera" grade shader ----------
+   chromatic aberration + teal desaturation grade + lifted blue shadows +
+   filmic contrast + vignette + film grain — the look of documentary footage. */
+const CinematicShader = {
+  uniforms:{
+    tDiffuse:{value:null}, time:{value:0},
+    caAmount:{value:0.9}, vignette:{value:0.85}, grain:{value:0.04}, grade:{value:1.0}
+  },
+  vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader:`
+    uniform sampler2D tDiffuse; uniform float time, caAmount, vignette, grain, grade;
+    varying vec2 vUv;
+    float rand(vec2 c){ return fract(sin(dot(c, vec2(12.9898,78.233)))*43758.5453); }
+    void main(){
+      vec2 uv=vUv; vec2 ctr=uv-0.5; float d=length(ctr);
+      // chromatic aberration, stronger toward the frame edges (lens dispersion)
+      vec2 off=ctr*d*0.012*caAmount;
+      vec3 col=vec3(texture2D(tDiffuse,uv-off).r, texture2D(tDiffuse,uv).g, texture2D(tDiffuse,uv+off).b);
+      // underwater colour grade: desaturate, push teal, lift shadows to blue
+      float lum=dot(col, vec3(0.299,0.587,0.114));
+      col=mix(col, vec3(lum), 0.24*grade);
+      col.r*=1.0-0.05*grade; col.g*=1.0+0.04*grade; col.b*=1.0+0.05*grade;
+      col+=vec3(0.0,0.022,0.028)*grade*(1.0-lum);
+      // gentle filmic contrast
+      col=mix(col, col*col*(3.0-2.0*col), 0.22*grade);
+      // vignette
+      col*=mix(1.0, smoothstep(0.92,0.30,d), vignette);
+      // animated film grain
+      col+=(rand(uv+fract(time*0.7))-0.5)*grain;
+      gl_FragColor=vec4(col,1.0);
+    }`
+};
+
+/* ---------- Cinematic post-processing pipeline (graceful, pass-by-pass) ---------- */
+function setupPostFX(){
+  useFX=false;
+  if(!(window.__pp && THREE.EffectComposer && THREE.RenderPass)) return;
+  try{
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(new THREE.RenderPass(scene,camera));
+    // Depth of field — the single biggest "filmed, not rendered" cue. Focus
+    // locks on the whale each frame; the rest of the water falls soft.
+    if(THREE.BokehPass){ try{
+      bokehPass = new THREE.BokehPass(scene, camera, {focus:34, aperture:0.0003, maxblur:0.012, width:W, height:H});
+      composer.addPass(bokehPass);
+    }catch(e){ bokehPass=null; } }
+    // subtle bloom on genuine highlights only
+    if(THREE.UnrealBloomPass){ try{
+      bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(W,H), 0.45, 0.6, 0.9);
+      composer.addPass(bloomPass);
+    }catch(e){ bloomPass=null; } }
+    // cinematic grade + grain + vignette + chromatic aberration (last pass -> screen)
+    if(THREE.ShaderPass){ try{
+      cinePass = new THREE.ShaderPass(CinematicShader);
+      composer.addPass(cinePass);
+    }catch(e){ cinePass=null; } }
+    useFX = true;
+  }catch(e){ useFX=false; }
+}
+
+/* ---------- go (boot() is invoked by the engine loader above) ---------- */
+</script>
+</body>
+</html>
