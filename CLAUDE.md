@@ -380,3 +380,47 @@ line should aim at the idea students usually get wrong, not restate the topic.
 Never add a link without opening it first. Run `python tools/check-links.py` afterwards, and
 occasionally thereafter — external links rot, and a dead link on a course page is worse than
 no link at all.
+
+---
+
+## 13. CGA lesson policy — the Da Vinci standard (SCHOOL POLICY — mandatory for every simulation)
+
+CGA policy for "Creating Engaging Da Vinci Lessons". This is **school policy, not a preference**:
+every simulation must satisfy it. Reference image: `docs/policy/cga-da-vinci-lessons.png`.
+
+**The eight qualities (the wheel).** Every activity must visibly deliver all eight:
+
+- **Interactive** — the student manipulates something real, not clicks through slides.
+- **Student-centered** — the student drives; the activity responds to what they do.
+- **Purposeful** — every stage earns its place against the objective; no filler.
+- **Responsive to student needs** — feedback adapts to the answer; accessibility panel always present.
+- **Connected to course goals** — explicitly tied to the course, not free-floating content.
+- **Student actively thinks** — Predict and Explain force reasoning before and after.
+- **Student actively practices** — the Investigate stage is genuine practice of the skill.
+- **Student actively applies skills** — the Apply stage transfers the skill to a new context.
+
+**Clear learning objective (top banner) — REQUIRED, and it was not in the original spec.**
+Every activity opens with an explicit, single learning objective. The "Orient" mission stays,
+but it now sits *underneath* a stated objective — a motivating mission is not a substitute for
+a clear objective.
+
+**The Orient panel must answer all four (bottom banner):**
+
+1. **What** they are learning (the objective, in student language)
+2. **Why** it matters (the real-life hook — already required by Section 3)
+3. **How** it connects to the course (name the course/module link explicitly)
+4. **What success looks like** by the end — visible **success criteria**. This was NOT in the
+   original spec and is now mandatory. Show 2-3 "by the end you will be able to…" statements the
+   student can check themselves against before submitting.
+
+**How this changes the fixed sequence.** The sequence is unchanged, but the opening stage is now:
+
+**Orient (Objective · Why · Course link · Success criteria) → Predict → Investigate → Record →
+Explain → Apply → Knowledge Check → Generate Learning Evidence**
+
+The success criteria also go into the JSON export (`success_criteria` array) so the marking AI can
+check the work against the same bar the student saw. Keep them plain and student-facing; they are
+not the hidden `expected_points`.
+
+Pitch all four Orient answers at the activity's age band — a single sentence each for Primary,
+slightly fuller for A-Level.
