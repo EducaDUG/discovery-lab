@@ -1645,6 +1645,31 @@ function update(dt){
   animateWorld(dt);
   updateHUD();
   updateAudioLoop(dt);
+  reportZoneToHost();
+}
+
+/* ---------- Report readings to a host Discovery Lab activity (when embedded
+   as the Investigate step). Each ocean zone is logged once, with the real
+   instrument readings, so the student's Investigation Record fills itself. */
+const _reportedZones=new Set();
+function reportToHost(kind,row){
+  try{ if(window.parent && window.parent!==window){
+    window.parent.postMessage({source:"cuvier-deep-dive", kind:kind, row:row}, "*");
+  }}catch(e){}
+}
+function reportZoneToHost(){
+  if(!state.running) return;
+  const d=depthNow(); const z=zoneFor(d).short;
+  const key = d>=1400 && (seabedHeightAt(whale.position.x,whale.position.z)-whale.position.y)>-260 ? "Seabed" : z;
+  if(_reportedZones.has(key)) return;
+  _reportedZones.add(key);
+  reportToHost("record",{
+    zone:key,
+    depth:Math.round(d)+" m",
+    temp:tempAt(d).toFixed(1)+" °C",
+    pressure:Math.round(pressureAt(d))+" atm",
+    light:Math.round(lightFactor(d)*100)+"%"
+  });
 }
 
 /* ---------- controls & movement ---------- */

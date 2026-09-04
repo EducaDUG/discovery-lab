@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!-- Marine Science · Module 4 · Cuvier's Deep Dive. Content lives here + config.json only. -->
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cuvier's Deep Dive: Ocean Zones — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=6">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span>Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=6";
+
+const simulation = {
+  /* Orient: a stand-alone teaching diagram of the water column, so a student
+     who never saw the lesson can still learn the key idea before diving. */
+  orient(host){
+    host.innerHTML =
+      `<p class="q__hint">The ocean is layered. As you go down, sunlight runs out first, then the
+       water turns cold, and the pressure climbs by about one atmosphere every 10&nbsp;m. Each layer is
+       a different habitat with different life.</p>
+      <svg viewBox="0 0 360 232" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-top:12px" role="img" aria-label="Diagram of ocean zones by depth, showing light fading and temperature falling as depth increases">
+        <defs>
+          <linearGradient id="col" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1aa3d6"/><stop offset="0.10" stop-color="#0e6f9e"/>
+            <stop offset="0.34" stop-color="#063a63"/><stop offset="1" stop-color="#01040c"/>
+          </linearGradient>
+        </defs>
+        <!-- sun -->
+        <circle cx="66" cy="16" r="9" fill="#ffd873"/>
+        <g stroke="#ffd873" stroke-width="1.5" opacity="0.7"><path d="M66 2v6M66 24v4M50 16h6M76 16h6M55 5l4 4M77 23l-4-4"/></g>
+        <!-- water column -->
+        <rect x="24" y="26" width="96" height="196" rx="4" fill="url(#col)"/>
+        <!-- zone dividers (200 m and 1000 m, depth scaled to 3000 m) -->
+        <line x1="24" y1="39" x2="120" y2="39" stroke="#eaf6ff" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>
+        <line x1="24" y1="90" x2="120" y2="90" stroke="#eaf6ff" stroke-width="1" stroke-dasharray="3 3" opacity="0.45"/>
+        <!-- whale, diving -->
+        <g transform="translate(74,120) rotate(20) scale(0.7)">
+          <path d="M -30 0 C -24 -5, -12 -8, 0 -8 C 12 -8, 22 -5, 28 -1 L 36 -6 L 30 0 L 36 6 L 28 1 C 22 6, 10 9, -2 8 C -14 8, -24 5, -30 0 Z" fill="#0a1622"/>
+          <path d="M -30 0 C -24 -5, -12 -8, 0 -8 C 12 -8, 22 -5, 28 -1" fill="none" stroke="#79c8ff" stroke-width="1.4" opacity="0.6"/>
+        </g>
+        <!-- labels -->
+        <g font-family="var(--font-data)" font-size="11" fill="var(--ink-1)">
+          <text x="132" y="34" font-weight="700">Sunlight Zone</text>
+          <text x="132" y="47" font-size="9.5" fill="var(--ink-3)">0–200 m · photosynthesis, coral reefs</text>
+          <text x="132" y="70" font-weight="700">Twilight Zone</text>
+          <text x="132" y="83" font-size="9.5" fill="var(--ink-3)">200–1000 m · faint light, marine snow</text>
+          <text x="132" y="118" font-weight="700">Midnight Zone</text>
+          <text x="132" y="131" font-size="9.5" fill="var(--ink-3)">1000 m+ · no light, bioluminescence</text>
+          <text x="132" y="205" font-weight="700">Benthic seabed</text>
+          <text x="132" y="218" font-size="9.5" fill="var(--ink-3)">the sea floor · vents, chemosynthesis</text>
+        </g>
+        <!-- axis arrows -->
+        <g font-family="var(--font-data)" font-size="8.5" fill="var(--ink-3)">
+          <text x="8" y="30">light ↓</text><text x="4" y="220">cold ↑ · pressure ↑</text>
+        </g>
+      </svg>
+      <p class="q__hint" style="margin-top:10px"><strong>Pelagic</strong> life swims in the open water; <strong>benthic</strong>
+       life lives on the seabed. A Cuvier's beaked whale hunts across both.</p>`;
+  },
+
+  /* Investigate: the whale simulation, embedded. Every zone the student reaches
+     posts its real readings up to this page, which logs them to the Record. */
+  investigate(host, sim){
+    host.innerHTML = "";
+    const wrap = document.createElement("div"); wrap.className = "stack";
+
+    const note = document.createElement("p"); note.className = "q__hint";
+    note.innerHTML = "Click the dive to start it, then pilot the whale: <strong>W</strong>/<strong>S</strong> dive &amp; rise, " +
+      "<strong>A</strong>/<strong>D</strong> steer, <strong>Shift</strong> to boost, <strong>F</strong> to feed. Surface to breathe. " +
+      "Reach the Sunlight, Twilight, Midnight and seabed zones — each one logs its temperature, pressure and light to your Record below.";
+    wrap.append(note);
+
+    const frame = document.createElement("iframe");
+    frame.src = "../cuvier-deep-dive/";
+    frame.title = "Cuvier's Deep Dive simulation";
+    frame.setAttribute("allow", "autoplay; fullscreen");
+    frame.style.cssText = "width:100%;aspect-ratio:16/10;min-height:460px;border:1px solid var(--line);border-radius:12px;background:#01040c;display:block";
+    wrap.append(frame);
+
+    host.append(wrap);
+
+    // Receive readings from the embedded game and log each zone to the Record.
+    if (!window.__cuvierListener) {
+      window.__cuvierListener = true;
+      window.addEventListener("message", (ev) => {
+        const d = ev.data;
+        if (!d || d.source !== "cuvier-deep-dive" || d.kind !== "record" || !d.row) return;
+        sim.recordTrial(d.row);
+        sim.toast("Logged the " + (d.row.zone || "zone") + " to your Record.", "info");
+      });
+    }
+  }
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
