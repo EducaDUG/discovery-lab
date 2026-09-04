@@ -52,6 +52,15 @@
   .key { display:inline-block; background:#0c2b52; border:1px solid #4aa3e0; border-radius:5px;
     padding:1px 7px; margin:0 2px; font-weight:800; color:#bfe6ff; }
 
+  /* clickable mute button */
+  #muteBtn { position:absolute; bottom:14px; right:14px; z-index:12; pointer-events:auto; cursor:pointer;
+    width:46px; height:46px; border-radius:50%; font-size:21px; line-height:1;
+    background:rgba(4,16,34,.72); color:#eaf6ff; border:1px solid rgba(120,200,255,.35);
+    backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center;
+    transition:background .15s, transform .1s; }
+  #muteBtn:hover { background:rgba(12,34,64,.9); }
+  #muteBtn:active { transform:scale(.92); }
+
   /* question banner */
   /* box-less, glowing question typography that pops against the blue water */
   #qbanner { position:absolute; top:64px; left:50%; transform:translateX(-50%); width:min(680px,64%);
@@ -146,9 +155,11 @@
   <div class="panel" id="bottomleft">
     <div><span class="key">W</span>/<span class="key">S</span> dive / rise &nbsp; <span class="key">A</span>/<span class="key">D</span> turn</div>
     <div><span class="key">Shift</span> boost &nbsp; <span class="key">F</span> suction feed</div>
-    <div><span class="key">Q</span> go quiet &nbsp; <span class="key">R</span> confirm answer (body roll)</div>
-    <div><span class="key">M</span> mute</div>
+    <div><span class="key">Q</span> go quiet &nbsp; <span class="key">M</span> mute</div>
+    <div><span class="key">R</span> confirm answer &nbsp; <span class="key">X</span> choose again</div>
   </div>
+
+  <button id="muteBtn" type="button" title="Mute / unmute sound" aria-label="Mute or unmute sound">🔊</button>
 
   <div id="qbanner"><div class="qz" id="qz">Question</div><div class="qt" id="qt"></div><div class="qhint" id="qhint">Swim to the marine feature of your chosen answer</div></div>
 
@@ -441,11 +452,13 @@ function startGame(){
     keys[e.code]=true;
     if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code)) e.preventDefault();
     if(e.code==="KeyR") tryConfirm();
+    if(e.code==="KeyX") cancelSelection();
     if(e.code==="KeyM") toggleMute();
   });
   window.addEventListener("keyup", e=>{ keys[e.code]=false; });
 
   document.getElementById("playBtn").onclick = beginRun;
+  document.getElementById("muteBtn").onclick = ()=>{ toggleMute(); document.getElementById("muteBtn").blur(); };
   document.getElementById("againBtn").onclick = ()=>location.reload();
 
   animate();
@@ -1280,16 +1293,30 @@ function selectRing(r){
     x.label.material.opacity = chosen?1:0.2;
     x.mesh.scale.setScalar(chosen?1.15:0.9);
   });
-  document.getElementById("qhint").textContent=`Chosen: ${r.letter}. ${r.text} — press R to confirm with a body roll`;
-  prompt(`Confirm answer <span class="key">${r.letter}</span> — press <span class="key">R</span> to body-roll`);
+  document.getElementById("qhint").textContent=`You chose ${r.letter}: ${r.text}.  Press R to confirm, or X to choose again.`;
+  prompt(`You chose <b>${r.letter}: ${r.text}</b> &nbsp;·&nbsp; <span class="key">R</span> confirm &nbsp; <span class="key">X</span> choose again`);
 
   // in-world confirm banner
   if(confirmBannerObj) scene.remove(confirmBannerObj);
-  confirmBannerObj=makeTextSprite("Roll to confirm  ↻",{fontSize:34,scale:0.09,
-    bg:"rgba(40,26,4,0.85)",border:"rgba(255,200,80,0.9)",color:"#ffe9b0"});
+  confirmBannerObj=makeTextSprite("R  confirm     ·     X  choose again",{fontSize:32,scale:0.072,
+    bg:"rgba(16,28,48,0.85)",border:"rgba(255,220,120,0.9)",color:"#ffe9b0"});
   confirmBannerObj.position.copy(whale.position).add(forwardVec().multiplyScalar(26)).add(new THREE.Vector3(0,14,0));
   scene.add(confirmBannerObj);
   playChime(660);
+}
+
+function cancelSelection(){
+  if(state.activeQ===null || !state.awaitingConfirm) return;
+  state.awaitingConfirm=false; state.selectedRing=null;
+  if(confirmBannerObj){ scene.remove(confirmBannerObj); confirmBannerObj=null; }
+  // restore every feature so the student can swim to a different answer
+  rings.forEach(x=>{
+    x.aura.material.opacity=0.14; x.beam.material.opacity=0.12;
+    x.label.material.opacity=1; x.mesh.scale.setScalar(1);
+  });
+  document.getElementById("qhint").textContent="Swim to the marine feature of your chosen answer";
+  hidePrompt();
+  playChime(420);
 }
 
 function tryConfirm(){
@@ -1698,7 +1725,7 @@ function moveWhale(dt){
   // target speed  (fast enough that a full deep dive fits inside one breath)
   let target = state.boosting?70:30;
   // ease off while a question is on screen so the rings approach gently — time to think
-  if(state.activeQ!==null && !state.awaitingConfirm) target=Math.min(target,15);
+  if(state.activeQ!==null) target=Math.min(target,15); // slow while choosing AND confirming
   if(state.o2<12) target*=0.6;
   state.speed += (target-state.speed)*Math.min(1,dt*2);
 
@@ -2056,7 +2083,9 @@ function playBubble(){
   g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);
   o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t+0.2);
 }
-function toggleMute(){ muted=!muted; if(master) master.gain.value=muted?0:0.5; warn(muted?"🔇 Muted":"🔊 Sound on"); }
+function toggleMute(){ muted=!muted; if(master) master.gain.value=muted?0:0.5;
+  const b=document.getElementById("muteBtn"); if(b) b.textContent=muted?"🔇":"🔊";
+  warn(muted?"🔇 Muted":"🔊 Sound on"); }
 function beep(freq,dur,type,vol){
   if(!AC||muted) return;
   const o=AC.createOscillator(), g=AC.createGain();
