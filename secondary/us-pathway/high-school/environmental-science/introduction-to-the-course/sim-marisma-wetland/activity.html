@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!-- Environmental Science · Introduction to the course · Marisma Wetland Manager.
+     Content lives here + config.json only. The engine draws every other stage. -->
+<html lang="en" data-theme="earth" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marisma: Manage a Wetland — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=6">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span>Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=6";
+
+const simulation = {
+  /* Orient: a stand-alone teaching diagram of a wetland food web and the
+     eutrophication chain, so a student who never saw the lesson still learns
+     the key idea — energy flows up the web, and fertiliser runoff triggers a
+     DELAYED collapse — before they start managing. */
+  orient(host){
+    host.innerHTML =
+      `<p class="q__hint">A wetland is a food web powered by plants. Energy flows upward: plants and reeds →
+       insects and small fish → large fish, frogs and water birds → birds of prey. Every population has a
+       <strong>carrying capacity</strong> — a ceiling set by food, habitat and water quality. Push one part and
+       the whole web responds, sometimes years later.</p>
+      <svg viewBox="0 0 360 250" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-top:12px" role="img" aria-label="A wetland food web with energy flowing from plants up to birds of prey, and a separate chain showing fertiliser causing a delayed algal bloom and fish die-off">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/>
+          </marker>
+          <marker id="arR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#c74b3f"/>
+          </marker>
+          <linearGradient id="wet" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#bfe0d6"/><stop offset="1" stop-color="#5f8f6e"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="150" width="230" height="92" rx="6" fill="url(#wet)" opacity="0.5"/>
+        <!-- trophic levels (left food web) -->
+        <g font-family="var(--font-data)" font-size="10" fill="var(--ink-1)" text-anchor="middle">
+          <g><circle cx="45" cy="210" r="16" fill="#6f9a4a"/><text x="45" y="213" fill="#fff" font-size="8">plants·reeds</text></g>
+          <g><circle cx="120" cy="188" r="15" fill="#4e9a86"/><text x="120" y="191" fill="#fff" font-size="8">insects·<tspan x="120" dy="9">small fish</tspan></text></g>
+          <g><circle cx="150" cy="140" r="15" fill="#3f7d9a"/><text x="150" y="137" fill="#fff" font-size="8">large fish·<tspan x="150" dy="9">frogs·birds</tspan></text></g>
+          <g><circle cx="120" cy="92" r="14" fill="#6a4b8a"/><text x="120" y="95" fill="#fff" font-size="8">birds of<tspan x="120" dy="9">prey</tspan></text></g>
+        </g>
+        <g stroke="var(--ink-3)" stroke-width="1.6" fill="none" marker-end="url(#ar)">
+          <path d="M56 198 L108 194"/><path d="M132 176 L146 155"/><path d="M146 126 L128 106"/>
+        </g>
+        <!-- invasive -->
+        <g><circle cx="70" cy="150" r="12" fill="#c74b3f"/><text x="70" y="153" fill="#fff" font-size="7.5" font-family="var(--font-data)" text-anchor="middle">invasive</text></g>
+        <path d="M82 152 L104 184" stroke="#c74b3f" stroke-width="1.4" fill="none" stroke-dasharray="3 2" marker-end="url(#arR)"/>
+        <!-- eutrophication chain (right) -->
+        <g font-family="var(--font-data)" font-size="9" fill="var(--ink-1)" text-anchor="middle">
+          <rect x="250" y="26" width="102" height="26" rx="5" fill="#e7d27a"/><text x="301" y="42">fertiliser runoff</text>
+          <rect x="250" y="72" width="102" height="26" rx="5" fill="#cbd06a"/><text x="301" y="88">nutrients rise</text>
+          <rect x="250" y="118" width="102" height="26" rx="5" fill="#8fae4a"/><text x="301" y="134">algal bloom</text>
+          <rect x="250" y="164" width="102" height="26" rx="5" fill="#4e8a86"/><text x="301" y="176">oxygen falls</text><text x="301" y="186" font-size="7.5" fill="#eaf6ff">(a year or two later)</text>
+          <rect x="250" y="210" width="102" height="26" rx="5" fill="#c74b3f"/><text x="301" y="226" fill="#fff">fish die-off</text>
+        </g>
+        <g stroke="#c74b3f" stroke-width="1.6" fill="none" marker-end="url(#arR)">
+          <path d="M301 52 L301 70"/><path d="M301 98 L301 116"/><path d="M301 144 L301 162"/><path d="M301 190 L301 208"/>
+        </g>
+        <text x="301" y="18" text-anchor="middle" font-family="var(--font-data)" font-size="8.5" fill="var(--ink-3)">DELAYED consequence</text>
+      </svg>
+      <p class="q__hint" style="margin-top:10px">You will manage a wetland for <strong>20 years</strong> on a yearly budget, trading off
+       conservation against housing, farming and tourism. Some choices pay off at once; others — like pollution — bite years later.</p>`;
+  },
+
+  /* Investigate: the Marisma wetland manager, embedded. Every simulated year it
+     posts that year's actions, event and key indicators up to this page, which
+     logs them to the Investigation Record automatically. */
+  investigate(host, sim){
+    host.innerHTML = "";
+    const wrap = document.createElement("div"); wrap.className = "stack";
+
+    const note = document.createElement("p"); note.className = "q__hint";
+    note.innerHTML = "<strong>Drag</strong> to orbit the wetland, <strong>scroll</strong> to zoom, and <strong>click</strong> the water, land or animals to inspect them. " +
+      "Each year, choose up to <strong>three actions</strong> on the bottom bar, press <strong>Plan year</strong>, make your prediction, then <strong>Confirm</strong>. " +
+      "Every year you complete logs its actions, any event, and your biodiversity, water quality and resilience to your Record below. Play all 20 years to face the final drought.";
+    wrap.append(note);
+
+    const frame = document.createElement("iframe");
+    frame.src = "../marisma-wetland/";
+    frame.title = "Marisma wetland-management simulation";
+    frame.setAttribute("allow", "autoplay; fullscreen");
+    frame.style.cssText = "width:100%;aspect-ratio:16/10;min-height:480px;border:1px solid var(--line);border-radius:12px;background:#0c1512;display:block";
+    wrap.append(frame);
+
+    host.append(wrap);
+
+    // Receive each year's readings from the embedded sim and log it to the Record.
+    if (!window.__marismaListener) {
+      window.__marismaListener = true;
+      window.addEventListener("message", (ev) => {
+        const d = ev.data;
+        if (!d || d.source !== "marisma-wetland" || d.kind !== "record" || !d.row) return;
+        sim.recordTrial(d.row);
+        sim.toast("Logged " + (d.row.year || "a year") + " to your Record.", "info");
+      });
+    }
+  }
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Marisma — A Wetland Strategy Game</title>
+  <link rel="stylesheet" href="./src/style.css" />
+
+  <!--
+    Import map for the ZERO-BUILD launch path (open with a static server, no npm).
+    Vite rewrites bare `three` imports before the browser sees them, so under
+    `npm run dev` / `npm run build` this map is simply ignored — no conflict.
+  -->
+  <!-- Three.js vendored locally (engine/vendor) so nothing loads from a CDN —
+       school wifi filters block CDNs. See discovery-lab CLAUDE.md §10. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/": "./vendor/addons/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- The 3D world fills the window; all UI is a translucent overlay above it. -->
+  <canvas id="scene"></canvas>
+
+  <!-- Loading veil until the scene is ready -->
+  <div id="loader" class="veil"><div class="loader-inner"><div class="spinner"></div><p>Preparing the marsh…</p></div></div>
+
+  <!-- Overlay root -->
+  <div id="ui" class="ui-root hidden">
+
+    <!-- Top HUD (compact translucent) -->
+    <header id="hud" class="hud"></header>
+    <div class="top-right">
+      <button id="btnMute" class="glass-btn" title="Mute / unmute audio"></button>
+      <button id="btnData" class="glass-btn" title="Scientist View — graphs & data"></button>
+      <button id="btnMenu" class="glass-btn" title="Menu"></button>
+    </div>
+
+    <!-- Bottom action bar -->
+    <footer id="actionBar" class="action-bar"></footer>
+
+    <!-- Floating inspect card (anchored to clicked objects) -->
+    <div id="inspectCard" class="inspect-card hidden"></div>
+
+    <!-- Transient feedback toasts -->
+    <div id="feedback" class="feedback"></div>
+  </div>
+
+  <!-- Cinematic intro / briefing -->
+  <div id="intro" class="veil intro">
+    <div class="intro-content">
+      <h1 class="title">MARISMA</h1>
+      <p class="tagline">A wetland in your hands — for twenty years.</p>
+      <div id="briefing" class="briefing"></div>
+      <div class="mode-row">
+        <button class="mode-card selected" data-mode="guided">
+          <span class="mode-name">Guided</span><span class="mode-age">Ages 12–14</span>
+          <span class="mode-sub">Clear language, hints on every action.</span>
+        </button>
+        <button class="mode-card" data-mode="advanced">
+          <span class="mode-name">Advanced</span><span class="mode-age">Ages 15–18</span>
+          <span class="mode-sub">More data, fewer hints, the model laid bare.</span>
+        </button>
+      </div>
+      <div class="intro-actions">
+        <button id="btnContinue" class="ghost-btn hidden">Continue saved marsh</button>
+        <button id="btnBegin" class="primary-btn">Begin</button>
+      </div>
+      <p class="disclaimer">An educational model of plausible ecology — not a prediction of any real wetland.</p>
+    </div>
+  </div>
+
+  <!-- Prediction dialogue (before confirming a turn) -->
+  <div id="predictDialog" class="modal hidden">
+    <div class="dialog">
+      <div class="dialog-head"><h2>Before you commit</h2></div>
+      <div id="predictBody" class="dialog-body"></div>
+      <textarea id="predictText" rows="2" placeholder="Predict what these actions will do, and why…"></textarea>
+      <div class="dialog-actions">
+        <button id="predictBack" class="ghost-btn">Back</button>
+        <button id="predictConfirm" class="primary-btn">Confirm &amp; advance the year</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Year-review sequence -->
+  <div id="yearReview" class="modal hidden">
+    <div class="review">
+      <div id="reviewEvent" class="review-event"></div>
+      <h2 id="reviewTitle" class="review-title"></h2>
+      <div id="reviewChanges" class="review-changes"></div>
+      <div id="reviewEvidence" class="review-evidence">
+        <label>Explain <strong>one</strong> change you see, using evidence:</label>
+        <textarea id="evidenceText" rows="2" placeholder="e.g. fish fell because algae from fertiliser cut the oxygen…"></textarea>
+      </div>
+      <div class="review-actions">
+        <button id="reviewWhy" class="ghost-btn">Why did this happen?</button>
+        <button id="reviewNext" class="primary-btn">Next year</button>
+      </div>
+      <div id="whyPanel" class="why-panel hidden"></div>
+    </div>
+  </div>
+
+  <!-- Scientist View (graphs / data / equations) -->
+  <aside id="scientistView" class="drawer hidden">
+    <div class="drawer-head"><h2>Scientist View</h2><button id="closeData" class="glass-btn"></button></div>
+    <div class="drawer-tabs">
+      <button class="dtab selected" data-tab="graphs">Trends</button>
+      <button class="dtab" data-tab="variables">Variables</button>
+      <button class="dtab" data-tab="model">Model</button>
+      <button class="dtab" data-tab="glossary">Glossary</button>
+    </div>
+    <div id="drawerBody" class="drawer-body"></div>
+  </aside>
+
+  <!-- Menu -->
+  <div id="menu" class="modal hidden">
+    <div class="dialog small">
+      <div class="dialog-head"><h2>Menu</h2></div>
+      <div class="menu-list">
+        <button id="menuResume" class="menu-item">Resume</button>
+        <button id="menuScientist" class="menu-item">Scientist View</button>
+        <button id="menuRestart" class="menu-item danger">Restart marsh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final report -->
+  <div id="report" class="veil report hidden"><div id="reportInner" class="report-inner"></div></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
