@@ -42,17 +42,23 @@ function metaFor(node) {
     return bits.filter(Boolean).join(" · ");
   }
   const live = liveCount(node), total = totalCount(node);
-  if (live) return plural(live, "activity") + (total > live ? ` · ${total - live} coming` : "");
+  const hasGame = !!node.featuredGame;
+  if (live) return plural(live, "activity") + (total > live ? ` · ${total - live} coming` : "") + (hasGame ? " · learning game" : "");
+  if (hasGame) return total ? `Learning video game · ${plural(total, "activity")} coming` : "Learning video game";
   if (total) return `${plural(total, "activity")} in preparation`;
+  if ((node.resources || []).length) return "Recommended practice";
   return "In preparation";
 }
 
 /* Status drives the badge; href drives whether a tile is walkable. Kept
    separate on purpose — a course with nothing finished should still be
-   browsable so a student can see what is coming. */
+   browsable so a student can see what is coming. A course can be worth opening
+   for its own featured game or recommended links even before any of its own
+   units are built, so those count as walkable too. */
 function tile(node, href) {
-  const live = node.type === "simulation" ? node.status === "live" : liveCount(node) > 0;
-  const walkable = node.type === "simulation" ? node.status === "live" : (node.children || []).length > 0;
+  const hasExtras = !!node.featuredGame || (node.resources || []).length > 0;
+  const live = node.type === "simulation" ? node.status === "live" : (liveCount(node) > 0 || !!node.featuredGame);
+  const walkable = node.type === "simulation" ? node.status === "live" : ((node.children || []).length > 0 || hasExtras);
 
   const n = el(walkable && href ? "a" : "div", "tile");
   if (walkable && href) n.href = href; else n.setAttribute("aria-disabled", "true");
