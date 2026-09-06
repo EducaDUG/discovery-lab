@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Alive or Not? The MRS C GREN Scanner — Discovery Lab</title>
-<meta name="description" content="A 3D containment-chamber scanner: orbit five mystery specimens — bacterium, protist, fungus, carnivorous plant and beetle — and fire eight sensors to prove which life processes give away the living.">
+<meta name="description" content="A 3D containment-chamber scanner: orbit five mystery specimens — bacterium, protist, fungus, carnivorous plant and beetle — watch each unlabelled reaction and work out for yourself which life process it proves.">
 <link rel="stylesheet" href="../../../../../engine/style.css?v=3">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%2316744F' stroke-width='4'/><circle cx='32' cy='32' r='9' fill='%239A6E05'/></svg>">
 <script>
@@ -44,6 +44,12 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   text-transform:uppercase;color:#8fc9a8;opacity:.85;}
 .hud--label{bottom:var(--sp-3);left:var(--sp-3);background:#04120dcc;border:1px solid #2f6b4d;
   padding:.3em .8em;border-radius:999px;font-weight:700;font-size:var(--step--1);letter-spacing:.04em;}
+.hud--caption{top:50%;left:50%;transform:translate(-50%,-50%);max-width:88%;text-align:center;
+  background:#04120de6;border:1px solid #3fd08b;border-radius:var(--radius);padding:.6em 1em;
+  font-size:var(--step-0);font-weight:700;color:#eafff2;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  animation:captionpop .35s var(--ease-out-back);}
+@keyframes captionpop{from{opacity:0;transform:translate(-50%,-50%) scale(.85);}to{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+[data-reduced-motion=on] .hud--caption{animation:none;}
 
 .rankbar{display:flex;align-items:center;gap:var(--sp-3);}
 .rankbar__badge{flex:none;width:2.6rem;height:2.6rem;border-radius:12px;display:grid;place-items:center;
@@ -92,9 +98,19 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .sensor-btn__name{font-size:.55rem;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3);line-height:1.15;text-align:center;}
 .sensor-btn:hover:not(:disabled){border-color:var(--signal);}
 .sensor-btn:disabled{opacity:.45;cursor:default;}
-.sensor-btn[aria-pressed=true]{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 12%,transparent);}
-.sensor-btn[aria-pressed=true] .sensor-btn__letter{color:var(--positive);}
+.sensor-btn:not(:disabled){border-color:var(--signal);box-shadow:0 0 0 2px color-mix(in srgb,var(--signal) 30%,transparent);cursor:pointer;}
+.sensor-btn.solved{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 12%,transparent);opacity:1;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--positive) 30%,transparent);}
+.sensor-btn.solved .sensor-btn__letter{color:var(--positive);}
+.sensor-btn.shake{animation:shakebtn .4s;}
+@keyframes shakebtn{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+[data-reduced-motion=on] .sensor-btn.shake{animation:none;}
 .sensor-progress{font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);margin-top:var(--sp-2);}
+.scan-cta{display:flex;flex-wrap:wrap;gap:var(--sp-3);align-items:center;margin-top:var(--sp-3);}
+.scan-cta .btn{width:auto;}
+.guess-prompt{margin-top:var(--sp-3);font-weight:700;}
+.hint-box{border:1px dashed var(--caution);border-radius:var(--radius);padding:var(--sp-3);margin-top:var(--sp-3);
+  background:color-mix(in srgb,var(--caution) 10%,transparent);font-size:var(--step--1);}
 
 .evidence-box{border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:var(--radius);
   padding:var(--sp-3);background:var(--surface);margin-top:var(--sp-3);}
@@ -201,6 +217,18 @@ const MRS_DEFS = {
   excretion:"Removing waste made by the organism's own chemical reactions.",
   nutrition:"Taking in food, or making it, to fuel every other process on this list.",
 };
+/* Generic "what to look for" cues shown WHILE a blind scan plays — they describe
+   the visual event, never the MRS C GREN term, so identifying it is a real decision. */
+const SCAN_CAPTIONS = {
+  movement:"That was either a change in position, or a part of it moving on its own.",
+  respiration:"Something inside pulsed steadily, over and over, like a heartbeat.",
+  sensitivity:"It reacted the instant something touched or approached it.",
+  control:"It changed for a moment under stress, then settled back to normal.",
+  growth:"Look carefully — is it any bigger than before?",
+  reproduction:"Something new just appeared, or the whole thing split in two.",
+  excretion:"Something left its body and drifted away.",
+  nutrition:"Something arrived from outside and was taken in.",
+};
 
 /* ======================================================================
    CONTENT — the five specimens + per-process evidence
@@ -277,7 +305,7 @@ const QUESTS = [
   { id:"first5",   title:"First contact",        hint:"Run 5 sensor scans on any specimen.",              xp:80,  test:(g)=>g.totalScans>=5 },
   { id:"onecert",  title:"Certified: Alive",     hint:"Fully scan one specimen — all 8 sensors.",         xp:150, test:(g)=>Object.values(g.certified).filter(Boolean).length>=1 },
   { id:"threecert",title:"Life detector",         hint:"Fully certify three different specimens.",         xp:250, test:(g)=>Object.values(g.certified).filter(Boolean).length>=3 },
-  { id:"allcert",  title:"Master xenobiologist",  hint:"Fully certify all five specimens — 40 scans.",     xp:400, test:(g)=>Object.values(g.certified).filter(Boolean).length>=5 },
+  { id:"allcert",  title:"Master Future Biologist", hint:"Fully certify all five specimens — 40 scans.",   xp:400, test:(g)=>Object.values(g.certified).filter(Boolean).length>=5 },
 ];
 const xpForLevel = lvl => lvl*260;
 
@@ -338,33 +366,48 @@ const simulation = {
     hudTL.innerHTML=`<div class="rankbar">
       <div class="rankbar__badge"><span>RANK</span><b id="lvl">1</b></div>
       <div class="rankbar__body">
-        <div class="rankbar__row"><span>Xenobiologist rank</span><span id="xptext">0 XP</span></div>
+        <div class="rankbar__row"><span>Future Biologist rank</span><span id="xptext">0 XP</span></div>
         <div class="rankbar__track"><div class="rankbar__fill" id="xpfill"></div></div>
         <div class="streak-chip" id="streak" hidden></div>
       </div></div>`;
-    const hudDay=document.createElement("div");hudDay.className="hud hud--day";hudDay.id="scancount";hudDay.textContent="0/8 SCANNED";
+    const hudDay=document.createElement("div");hudDay.className="hud hud--day";hudDay.id="scancount";hudDay.textContent="0/8 CONFIRMED";
     const hudLabel=document.createElement("div");hudLabel.className="hud hud--label";hudLabel.id="specimenlabel";hudLabel.textContent="Bacterium";
+    const hudCaption=document.createElement("div");hudCaption.className="hud hud--caption";hudCaption.id="hud-caption";hudCaption.hidden=true;
     const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent="drag to orbit · scroll to zoom";
     const levelup=document.createElement("div");levelup.className="levelup";levelup.id="levelup";
-    levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">RANK UP</div><div class="levelup__n" id="lu-n">2</div><div class="levelup__s" id="lu-s">New xenobiologist rank reached!</div></div>`;
+    levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">RANK UP</div><div class="levelup__n" id="lu-n">2</div><div class="levelup__s" id="lu-s">New Future Biologist rank reached!</div></div>`;
     const burst=document.createElement("div");burst.className="burst";burst.id="burst";
-    stage.append(hudTL,hudDay,hudLabel,hudHint,burst,levelup);
+    stage.append(hudTL,hudDay,hudLabel,hudCaption,hudHint,burst,levelup);
     left.append(stage);
 
     const ro=document.createElement("div");ro.className="readouts";
     ro.innerHTML=`<div class="ro"><span class="ro__k">Specimen</span><span class="ro__v" id="ro-name" style="font-size:var(--step-1)">—</span></div>
-      <div class="ro"><span class="ro__k">Scans logged</span><span class="ro__v" id="ro-scans">0</span></div>
+      <div class="ro"><span class="ro__k">Processes confirmed</span><span class="ro__v" id="ro-scans">0</span></div>
       <div class="ro"><span class="ro__k">Status</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">Not yet certified</span></div>`;
     left.append(ro);
+
+    const scanCta=document.createElement("div");scanCta.className="scan-cta";
+    const scanBtn=document.createElement("button");scanBtn.type="button";scanBtn.className="btn btn--lg btn--signal";scanBtn.textContent="▶  Run an unlabelled scan";
+    const replayBtn=document.createElement("button");replayBtn.type="button";replayBtn.className="btn btn--ghost";replayBtn.textContent="🔁 Watch again";replayBtn.hidden=true;
+    scanCta.append(scanBtn,replayBtn);
+    left.append(scanCta);
+
+    const guessPrompt=document.createElement("p");guessPrompt.className="guess-prompt";guessPrompt.id="guess-prompt";guessPrompt.hidden=true;
+    guessPrompt.textContent="Which life process did you just witness? Choose below.";
+    left.append(guessPrompt);
+
+    const hintBox=document.createElement("div");hintBox.className="hint-box";hintBox.id="hint-box";hintBox.hidden=true;
+    left.append(hintBox);
+
     const evBox=document.createElement("div");evBox.className="evidence-box";evBox.id="ev-box";evBox.hidden=true;
-    evBox.innerHTML=`<div class="evidence-box__k" id="ev-k">Sensor reading</div><div class="evidence-box__v" id="ev-v"></div>`;
+    evBox.innerHTML=`<div class="evidence-box__k" id="ev-k">Confirmed evidence</div><div class="evidence-box__v" id="ev-v"></div>`;
     left.append(evBox);
     const legend=document.createElement("div");legend.className="legend";
-    legend.innerHTML=`Choose a specimen on the right, then fire each sensor at least once. Evidence is unique to every organism — read it before you move on.`;
+    legend.innerHTML=`Every scan is unlabelled. Watch what happens, then work out which MRS C GREN process you just saw — you won't be told in advance.`;
     left.append(legend);
     wrap.append(left);
 
-    /* ---- right: specimen picker + sensors + missions ---- */
+    /* ---- right: specimen picker + answer grid + missions ---- */
     const side=document.createElement("div");side.className="side";
     const specBox=document.createElement("div");
     specBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">1 · Load a specimen</p>`;
@@ -383,13 +426,13 @@ const simulation = {
     specBox.append(specGrid);side.append(specBox);
 
     const sensorBox=document.createElement("div");
-    sensorBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">2 · Fire the sensors</p>`;
-    const sensorGrid=document.createElement("div");sensorGrid.className="sensor-grid";sensorGrid.setAttribute("role","group");sensorGrid.setAttribute("aria-label","Life-process sensors");
+    sensorBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">2 · Identify the process</p>`;
+    const sensorGrid=document.createElement("div");sensorGrid.className="sensor-grid";sensorGrid.setAttribute("role","group");sensorGrid.setAttribute("aria-label","MRS C GREN answer choices");
     const sensorBtns={};
     PROCESSES.forEach(p=>{
-      const b=document.createElement("button");b.type="button";b.className="sensor-btn";b.setAttribute("aria-pressed","false");
+      const b=document.createElement("button");b.type="button";b.className="sensor-btn";b.disabled=true;
       b.innerHTML=`<span class="sensor-btn__letter" style="color:${p.color}">${p.letter}</span><span class="sensor-btn__name">${p.name}</span>`;
-      b.addEventListener("click",()=>fireSensor(p));
+      b.addEventListener("click",()=>submitGuess(p.id));
       sensorBtns[p.id]=b;sensorGrid.append(b);
     });
     sensorBox.append(sensorGrid);
@@ -425,20 +468,32 @@ const simulation = {
     }
     paintGame(false);
 
+    /* ---- challenge state machine: idle -> animating -> guessing -> (correct|wrong) ---- */
+    let phase="idle";        // 'idle' | 'animating' | 'guessing'
+    let currentChallenge=null;
+    let wrongAttempts=0;
+
+    function unsolvedFor(key){ return PROCESSES.map(p=>p.id).filter(id=>!game.scanned[key][id]); }
+
     function paintSpecimenPanel(key){
       const sp=SPECIMENS[key];
       $("specimenlabel").textContent=sp.name;
       $("ro-name").textContent=sp.name;
       const done=Object.keys(game.scanned[key]).length;
-      $("scancount").textContent=`${done}/8 SCANNED`;
-      $("sensor-progress").textContent=`${done} of 8 sensors fired on this specimen.`;
+      $("scancount").textContent=`${done}/8 CONFIRMED`;
+      $("sensor-progress").textContent=game.certified[key]
+        ? "All 8 processes confirmed. Click any green letter to review its evidence."
+        : `${done} of 8 processes confirmed. ${unsolvedFor(key).length} still to identify.`;
       $("ro-scans").textContent=done;
       $("ro-status").textContent=game.certified[key]?"✓ Certified alive":"Not yet certified";
       PROCESSES.forEach(p=>{
-        const pressed=!!game.scanned[key][p.id];
-        sensorBtns[p.id].setAttribute("aria-pressed",pressed?"true":"false");
+        const solved=!!game.scanned[key][p.id];
+        sensorBtns[p.id].classList.toggle("solved",solved);
+        sensorBtns[p.id].classList.remove("armed");
+        sensorBtns[p.id].disabled=true;
       });
-      evBox.hidden=true;
+      evBox.hidden=true;hintBox.hidden=true;guessPrompt.hidden=true;replayBtn.hidden=true;
+      $("hud-caption").hidden=true;
     }
 
     function fireBurst(colors){
@@ -453,7 +508,7 @@ const simulation = {
     function levelUpTo(n){
       $("lu-n").textContent=n;const lu=$("levelup");lu.classList.add("show");
       fireBurst(["#a6ff5c","#3fd08b","#ffd45c","#eafff2"]);
-      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak("Rank up! Xenobiologist rank "+n);
+      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak("Rank up! Future Biologist rank "+n);
       setTimeout(()=>lu.classList.remove("show"),1700);
     }
 
@@ -474,61 +529,163 @@ const simulation = {
     function selectSpecimen(key){
       chosen=key;
       if(scene)scene.setSpecimen(key,game);
-      paintSpecimenPanel(key);
+      newRound();
     }
 
-    /* ---- firing a sensor ---- */
-    function fireSensor(p){
-      if(!scene)return;
-      const sp=SPECIMENS[chosen];
-      const already=!!game.scanned[chosen][p.id];
-      sim.recordTrial({ specimen:sp.name, process:p.name, evidence:sp.evidence[p.id] });
-
-      $("ev-k").textContent=`${sp.name} — ${p.name} sensor`;
-      $("ev-v").textContent=sp.evidence[p.id];
-      evBox.hidden=false;
-      sensorBtns[p.id].setAttribute("aria-pressed","true");
-
-      scene.playProcess(chosen,p.id);
-
-      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(sp.evidence[p.id]);
-      sim.toast(`${sp.name}: ${p.name} confirmed.`, already?"info":"correct");
-
-      /* ---- game bookkeeping ---- */
-      game.totalScans++;
-      if(!already){
-        game.scanned[chosen][p.id]=true;
-        game.streak++; game.best=Math.max(game.best,game.streak);
-        let xpGain=Math.round(XP_PER_SCAN*(game.streak>=3?1+0.1*Math.min(game.streak-2,5):1));
-        const justCertified = Object.keys(game.scanned[chosen]).length>=8 && !game.certified[chosen];
-        if(justCertified){game.certified[chosen]=true;xpGain+=100;}
-        const newlyDone=[];
-        QUESTS.forEach(q=>{if(!game.quests[q.id]&&q.test(game)){game.quests[q.id]=true;xpGain+=q.xp;newlyDone.push(q);}});
-        game.xp+=xpGain;
-        let leveled=false;
-        while(game.xp>=xpForLevel(game.level)){game.level++;leveled=true;}
-
-        sim.mark("total_scans",game.totalScans);
-        sim.mark("specimens_certified",Object.values(game.certified).filter(Boolean).length);
-        sim.mark("xenobiologist_rank",game.level);
-        sim.setResult("specimens_certified_list",SPECIMEN_ORDER.filter(k=>game.certified[k]));
-        sim.state.game=game;sim.saveState();
-
-        paintGame(true);paintSpecimenPanel(chosen);
-        if(justCertified){
-          cards[chosen].classList.add("certified");
-          fireBurst(["#3fd08b","#a6ff5c","#ffd45c"]);
-          sim.toast(`Certified alive: ${sp.name}! All 8 life processes confirmed.`,"correct");
-        }
-        newlyDone.forEach((q,i)=>setTimeout(()=>{
-          const el=qNodes[q.id];el.classList.add("just-done");setTimeout(()=>el.classList.remove("just-done"),700);
-          fireBurst(["#3fd08b","#a6ff5c","#ffd45c"]);
-          sim.toast(`Mission complete: ${q.title}  +${q.xp} XP`,"correct");
-        },i*550));
-        if(leveled)setTimeout(()=>levelUpTo(game.level),newlyDone.length?400:0);
+    /* ---- start a fresh round for the current specimen: idle, ready for "Run a scan" ---- */
+    function newRound(){
+      phase="idle";currentChallenge=null;wrongAttempts=0;
+      paintSpecimenPanel(chosen);
+      const remaining=unsolvedFor(chosen);
+      if(remaining.length===0){
+        scanBtn.hidden=true;replayBtn.hidden=true;
+        guessPrompt.hidden=false;guessPrompt.textContent="Fully certified! Click any green letter below to re-watch its evidence, or choose another specimen.";
+        PROCESSES.forEach(p=>{sensorBtns[p.id].disabled=false;});
       } else {
-        sim.state.game=game;sim.saveState();
-        paintSpecimenPanel(chosen);
+        scanBtn.hidden=false;scanBtn.disabled=false;scanBtn.textContent="▶  Run an unlabelled scan";
+      }
+    }
+
+    function setCaption(text){
+      const c=$("hud-caption");
+      if(!text){c.hidden=true;return;}
+      c.textContent=text;c.hidden=false;
+    }
+
+    /* ---- run a blind scan on a random unsolved process ---- */
+    function runScan(){
+      if(!scene||phase!=="idle")return;
+      const remaining=unsolvedFor(chosen);
+      if(!remaining.length)return;
+      currentChallenge=remaining[Math.floor(Math.random()*remaining.length)];
+      wrongAttempts=0;
+      phase="animating";
+      scanBtn.disabled=true;replayBtn.hidden=true;
+      evBox.hidden=true;hintBox.hidden=true;guessPrompt.hidden=true;
+      PROCESSES.forEach(p=>sensorBtns[p.id].disabled=true);
+      setCaption("👁 Watch closely…");
+      scene.playProcess(chosen,currentChallenge);
+      setTimeout(()=>{
+        if(phase!=="animating")return;
+        phase="guessing";
+        setCaption(SCAN_CAPTIONS[currentChallenge]);
+        guessPrompt.hidden=false;guessPrompt.textContent="Which life process did you just witness? Choose below.";
+        replayBtn.hidden=false;
+        PROCESSES.forEach(p=>{
+          const solved=!!game.scanned[chosen][p.id];
+          sensorBtns[p.id].disabled=solved;
+        });
+      },1700);
+    }
+    scanBtn.addEventListener("click",runScan);
+    replayBtn.addEventListener("click",()=>{ if(scene&&currentChallenge)scene.playProcess(chosen,currentChallenge); });
+
+    /* ---- solved-letter replay (idle phase, no active challenge) ---- */
+    function replaySolved(processId){
+      const sp=SPECIMENS[chosen];
+      if(scene)scene.playProcess(chosen,processId);
+      setCaption(null);
+      $("ev-k").textContent=`${sp.name} — ${PROCESSES.find(p=>p.id===processId).name} (confirmed)`;
+      $("ev-v").textContent=sp.evidence[processId];
+      evBox.hidden=false;
+      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(sp.evidence[processId]);
+    }
+
+    /* ---- submit a guess while phase === 'guessing' ---- */
+    function submitGuess(processId){
+      if(phase==="idle"){ if(game.scanned[chosen][processId]) replaySolved(processId); return; }
+      if(phase!=="guessing")return;
+      const sp=SPECIMENS[chosen];
+      if(processId===currentChallenge){
+        const tries=wrongAttempts+1;
+        const xpGain=tries===1?25:tries===2?18:12;
+        resolveChallenge(true,xpGain,tries===1?"Correct — first try":`Correct after ${tries} tries`);
+      } else {
+        wrongAttempts++;
+        sensorBtns[processId].classList.add("shake");
+        setTimeout(()=>sensorBtns[processId].classList.remove("shake"),400);
+        sim.toast("Not quite — look again.","info");
+        if(wrongAttempts===2){
+          hintBox.hidden=false;
+          hintBox.innerHTML=`<b>Hint:</b> ${MRS_DEFS[currentChallenge]}`;
+        } else if(wrongAttempts>=4){
+          resolveChallenge(false,5,"Revealed after 4 tries");
+        }
+      }
+    }
+
+    function resolveChallenge(firstAttempt,xpGain,resultLabel){
+      const sp=SPECIMENS[chosen];
+      const pName=PROCESSES.find(p=>p.id===currentChallenge).name;
+      sim.recordTrial({ specimen:sp.name, process:pName, result:resultLabel, evidence:sp.evidence[currentChallenge] });
+
+      sensorBtns[currentChallenge].disabled=false;
+      sensorBtns[currentChallenge].classList.add("solved");
+      $("ev-k").textContent=`${sp.name} — ${pName} confirmed`;
+      $("ev-v").textContent=sp.evidence[currentChallenge];
+      evBox.hidden=false;hintBox.hidden=true;guessPrompt.hidden=true;replayBtn.hidden=true;
+      setCaption(null);
+      PROCESSES.forEach(p=>sensorBtns[p.id].disabled=true);
+
+      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(sp.evidence[currentChallenge]);
+      sim.toast(wrongAttempts===0?`Correct! ${pName} confirmed.`:`${pName} confirmed.`, wrongAttempts===0?"correct":"info");
+      if(wrongAttempts===0)fireBurst(["#3fd08b","#a6ff5c"]);
+
+      game.scanned[chosen][currentChallenge]=true;
+      game.totalScans++;
+      if(wrongAttempts===0){game.streak++;game.best=Math.max(game.best,game.streak);} else game.streak=0;
+      let totalXp=Math.round(xpGain*(game.streak>=3?1+0.1*Math.min(game.streak-2,5):1));
+      const justCertified=Object.keys(game.scanned[chosen]).length>=8 && !game.certified[chosen];
+      if(justCertified){game.certified[chosen]=true;totalXp+=100;}
+      const newlyDone=[];
+      QUESTS.forEach(q=>{if(!game.quests[q.id]&&q.test(game)){game.quests[q.id]=true;totalXp+=q.xp;newlyDone.push(q);}});
+      game.xp+=totalXp;
+      let leveled=false;
+      while(game.xp>=xpForLevel(game.level)){game.level++;leveled=true;}
+
+      sim.mark("total_scans",game.totalScans);
+      sim.mark("specimens_certified",Object.values(game.certified).filter(Boolean).length);
+      sim.mark("future_biologist_rank",game.level);
+      sim.setResult("specimens_certified_list",SPECIMEN_ORDER.filter(k=>game.certified[k]));
+      sim.state.game=game;sim.saveState();
+
+      paintGame(true);
+      $("scancount").textContent=`${Object.keys(game.scanned[chosen]).length}/8 CONFIRMED`;
+      $("ro-scans").textContent=Object.keys(game.scanned[chosen]).length;
+
+      if(justCertified){
+        cards[chosen].classList.add("certified");
+        fireBurst(["#3fd08b","#a6ff5c","#ffd45c"]);
+        sim.toast(`Certified alive: ${sp.name}! All 8 life processes confirmed.`,"correct");
+        $("ro-status").textContent="✓ Certified alive";
+      }
+      newlyDone.forEach((q,i)=>setTimeout(()=>{
+        const el=qNodes[q.id];el.classList.add("just-done");setTimeout(()=>el.classList.remove("just-done"),700);
+        fireBurst(["#3fd08b","#a6ff5c","#ffd45c"]);
+        sim.toast(`Mission complete: ${q.title}  +${q.xp} XP`,"correct");
+      },i*550));
+      if(leveled)setTimeout(()=>levelUpTo(game.level),newlyDone.length?400:0);
+
+      phase="idle";currentChallenge=null;wrongAttempts=0;
+      setTimeout(()=>{ if(phase==="idle") newRoundKeepEvidence(); },2200);
+    }
+
+    /* like newRound(), but doesn't clear the just-shown evidence box early */
+    function newRoundKeepEvidence(){
+      const remaining=unsolvedFor(chosen);
+      $("sensor-progress").textContent=game.certified[chosen]
+        ? "All 8 processes confirmed. Click any green letter to review its evidence."
+        : `${Object.keys(game.scanned[chosen]).length} of 8 processes confirmed. ${remaining.length} still to identify.`;
+      PROCESSES.forEach(p=>{
+        const solved=!!game.scanned[chosen][p.id];
+        sensorBtns[p.id].classList.toggle("solved",solved);
+        sensorBtns[p.id].disabled=!solved;
+      });
+      if(remaining.length===0){
+        scanBtn.hidden=true;
+        guessPrompt.hidden=false;guessPrompt.textContent="Fully certified! Click any green letter below to re-watch its evidence, or choose another specimen.";
+      } else {
+        scanBtn.hidden=false;scanBtn.disabled=false;scanBtn.textContent="▶  Run an unlabelled scan";
       }
     }
   }
@@ -750,6 +907,20 @@ function build3D(THREE, stageEl){
   /* ---------------- per-process animation ---------------- */
   const tweens=[];
   function tween(duration,onUpdate,onDone){tweens.push({t:0,duration,onUpdate,onDone});}
+  let shakeMag=0;
+  function triggerShake(mag){shakeMag=mag;}
+  function spawnRing(anchor,color,life){
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(0.3,0.02,8,28),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.8}));
+    ring.position.copy(anchor);ring.rotation.x=Math.PI/2;rig.add(ring);
+    tween(life,t=>{ring.scale.setScalar(lerp(0.4,2.2,t));ring.material.opacity=0.8*(1-t);},()=>rig.remove(ring));
+  }
+  function spawnAlert(anchor){
+    const mark=new THREE.Mesh(new THREE.SphereGeometry(0.09,10,10),new THREE.MeshBasicMaterial({color:0xff4d4d}));
+    mark.position.copy(anchor);mark.scale.setScalar(0.01);rig.add(mark);
+    tween(180,t=>mark.scale.setScalar(lerp(0.01,1,t)),()=>{
+      tween(280,t=>mark.scale.setScalar(lerp(1,0.01,t)),()=>rig.remove(mark));
+    });
+  }
 
   function playProcess(key,processId){
     const s=specimens[key];if(!s)return;
@@ -767,7 +938,10 @@ function build3D(THREE, stageEl){
       }
     } else if(processId==="respiration"){
       const base=s.mainMat.emissiveIntensity!=null?s.mainMat.emissiveIntensity:0.2;
-      tween(1200,t=>{s.mainMat.emissiveIntensity=base+Math.sin(t*Math.PI*3)*0.35;g.scale.setScalar(s.scale*(1+Math.sin(t*Math.PI*3)*0.03));},
+      const anchor=s.particleAnchor?s.particleAnchor.clone().add(g.position):g.position.clone();
+      const beat=()=>spawnRing(anchor,0xffb36b,650);
+      beat();setTimeout(beat,650);
+      tween(1300,t=>{const pulse=Math.abs(Math.sin(t*Math.PI*2));s.mainMat.emissiveIntensity=base+pulse*0.55;g.scale.setScalar(s.scale*(1+pulse*0.06));},
         ()=>{s.mainMat.emissiveIntensity=base;g.scale.setScalar(s.scale);});
     } else if(processId==="sensitivity"){
       if(key==="plant"&&s.traps&&s.traps.length){
@@ -776,6 +950,8 @@ function build3D(THREE, stageEl){
         bug.position.copy(trap.hinge.position).add(new THREE.Vector3(0,0.15,0.6));rig.add(bug);
         tween(500,t=>{bug.position.z=lerp(trap.hinge.position.z+0.6,trap.hinge.position.z+0.15,t);},()=>{
           rig.remove(bug);
+          spawnAlert(trap.hinge.position.clone().add(new THREE.Vector3(0,0.4,0)));
+          triggerShake(0.08);
           tween(260,t=>{trap.pivotA.rotation.z=lerp(0.55,0.04,t);trap.pivotB.rotation.z=lerp(-0.55,-0.04,t);},()=>{
             setTimeout(()=>tween(500,t=>{trap.pivotA.rotation.z=lerp(0.04,0.55,t);trap.pivotB.rotation.z=lerp(-0.04,-0.55,t);},()=>{}),1400);
           });
@@ -785,7 +961,9 @@ function build3D(THREE, stageEl){
         const probe=new THREE.Mesh(new THREE.SphereGeometry(0.05,10,10),new THREE.MeshStandardMaterial({color:0xffe08a,emissive:0xffb000,emissiveIntensity:0.6}));
         probe.position.copy(dir);rig.add(probe);
         tween(500,t=>{probe.position.lerpVectors(dir,new THREE.Vector3(0.3,0.1,0.1),t);},()=>{
-          tween(350,t=>{g.position.x=lerp(0,-0.3,Math.sin(t*Math.PI));probe.material.opacity=1-t;probe.transparent=true;},()=>{g.position.x=0;rig.remove(probe);});
+          spawnAlert(g.position.clone().add(new THREE.Vector3(0,0.5,0)));
+          triggerShake(0.08);
+          tween(300,t=>{g.position.x=lerp(0,-0.45,Math.sin(t*Math.PI));probe.material.opacity=1-t;probe.transparent=true;},()=>{g.position.x=0;rig.remove(probe);});
         });
       }
     } else if(processId==="control"){
@@ -853,7 +1031,8 @@ function build3D(THREE, stageEl){
   /* ---- camera orbit ---- */
   let az=0.7, pol=1.15, rad=6.0, autoT=0, dragging=false, lastX=0,lastY=0;
   function applyCam(){const x=rad*Math.sin(pol)*Math.cos(az),z=rad*Math.sin(pol)*Math.sin(az),y=rad*Math.cos(pol);
-    camera.position.set(x,y+0.2,z);camera.lookAt(0,-0.1,0);}
+    const sx=shakeMag?(Math.random()-0.5)*shakeMag:0,sy=shakeMag?(Math.random()-0.5)*shakeMag:0;
+    camera.position.set(x+sx,y+0.2+sy,z);camera.lookAt(0,-0.1,0);}
   const dom=renderer.domElement;
   dom.addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;autoT=0;dom.setPointerCapture(e.pointerId);});
   dom.addEventListener("pointermove",e=>{if(!dragging)return;az-=(e.clientX-lastX)*0.008;pol=clamp(pol-(e.clientY-lastY)*0.006,0.55,1.5);lastX=e.clientX;lastY=e.clientY;});
@@ -868,6 +1047,7 @@ function build3D(THREE, stageEl){
     const dt=Math.min((now-last)/1000,0.05);last=now;
     const reduced=document.documentElement.getAttribute("data-reduced-motion")==="on";
     if(!dragging&&!reduced){autoT+=dt;if(autoT>1.5)az+=dt*0.1;}
+    if(reduced)shakeMag=0;else if(shakeMag>0)shakeMag=Math.max(0,shakeMag-dt*0.5);
     applyCam();
     for(let i=tweens.length-1;i>=0;i--){
       const tw=tweens[i];tw.t+=dt*1000/tw.duration;
