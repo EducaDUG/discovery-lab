@@ -60,44 +60,68 @@ const simulation = {
        insects and small fish → large fish, frogs and water birds → birds of prey. Every population has a
        <strong>carrying capacity</strong> — a ceiling set by food, habitat and water quality. Push one part and
        the whole web responds, sometimes years later.</p>
-      <svg viewBox="0 0 360 250" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-top:12px" role="img" aria-label="A wetland food web with energy flowing from plants up to birds of prey, and a separate chain showing fertiliser causing a delayed algal bloom and fish die-off">
+      <svg viewBox="0 0 384 262" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-top:12px" role="img" font-family="var(--font-data)" aria-label="Left: a wetland food chain from plants up to birds of prey, with an invasive species feeding into it. Right: the pollution chain in which fertiliser runoff leads, after a delay, to an algal bloom, falling oxygen and a fish die-off.">
         <defs>
-          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-3)"/>
           </marker>
-          <marker id="arR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M0 0 L10 5 L0 10 z" fill="#c74b3f"/>
+          <marker id="arR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#c0392b"/>
           </marker>
-          <linearGradient id="wet" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#bfe0d6"/><stop offset="1" stop-color="#5f8f6e"/>
-          </linearGradient>
         </defs>
-        <rect x="8" y="150" width="230" height="92" rx="6" fill="url(#wet)" opacity="0.5"/>
-        <!-- trophic levels (left food web) -->
-        <g font-family="var(--font-data)" font-size="10" fill="var(--ink-1)" text-anchor="middle">
-          <g><circle cx="45" cy="210" r="16" fill="#6f9a4a"/><text x="45" y="213" fill="#fff" font-size="8">plants·reeds</text></g>
-          <g><circle cx="120" cy="188" r="15" fill="#4e9a86"/><text x="120" y="191" fill="#fff" font-size="8">insects·<tspan x="120" dy="9">small fish</tspan></text></g>
-          <g><circle cx="150" cy="140" r="15" fill="#3f7d9a"/><text x="150" y="137" fill="#fff" font-size="8">large fish·<tspan x="150" dy="9">frogs·birds</tspan></text></g>
-          <g><circle cx="120" cy="92" r="14" fill="#6a4b8a"/><text x="120" y="95" fill="#fff" font-size="8">birds of<tspan x="120" dy="9">prey</tspan></text></g>
+
+        <!-- column headings -->
+        <text x="18" y="20" font-size="12" font-weight="700" fill="var(--ink-1)">Wetland food chain</text>
+        <text x="18" y="34" font-size="9.5" fill="var(--ink-3)">energy flows upward ↑</text>
+        <line x1="232" y1="14" x2="232" y2="250" stroke="var(--line)" stroke-width="1"/>
+        <text x="311" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#b5632a">The pollution chain</text>
+        <text x="311" y="34" text-anchor="middle" font-size="9.5" fill="var(--ink-3)">a delayed consequence</text>
+
+        <!-- LEFT: trophic ladder. Each level is a light chip with a colour dot
+             and dark, high-contrast text (labels sit ON the chip, never inside a
+             tight circle). Arrows show energy passing up the chain. -->
+        <g font-size="11" fill="var(--ink-1)">
+          <!-- apex -->
+          <rect x="20" y="52" width="150" height="30" rx="9" fill="#e7dff2" stroke="#c4b4e0"/>
+          <circle cx="37" cy="67" r="5.5" fill="#6a4b8a"/><text x="50" y="71">Birds of prey</text>
+          <!-- consumers 2 -->
+          <rect x="20" y="98" width="176" height="34" rx="9" fill="#d5e2ef" stroke="#a9c3e0"/>
+          <circle cx="37" cy="115" r="5.5" fill="#3f7d9a"/>
+          <text x="50" y="112">Large fish, frogs</text><text x="50" y="125">&amp; water birds</text>
+          <!-- consumers 1 -->
+          <rect x="20" y="148" width="158" height="30" rx="9" fill="#d3ece0" stroke="#a6d2c3"/>
+          <circle cx="37" cy="163" r="5.5" fill="#4e9a86"/><text x="50" y="167">Insects &amp; small fish</text>
+          <!-- producers -->
+          <rect x="20" y="194" width="150" height="30" rx="9" fill="#e3eecb" stroke="#c6d69a"/>
+          <circle cx="37" cy="209" r="5.5" fill="#6f9a4a"/><text x="50" y="213">Plants &amp; reeds</text>
+          <text x="176" y="213" font-size="8.5" fill="var(--ink-3)">producers</text>
         </g>
-        <g stroke="var(--ink-3)" stroke-width="1.6" fill="none" marker-end="url(#ar)">
-          <path d="M56 198 L108 194"/><path d="M132 176 L146 155"/><path d="M146 126 L128 106"/>
+        <!-- energy arrows up the chain -->
+        <g stroke="var(--ink-3)" stroke-width="1.8" fill="none" marker-end="url(#ar)">
+          <path d="M95 194 L95 184"/><path d="M95 148 L95 138"/><path d="M95 98 L95 88"/>
         </g>
-        <!-- invasive -->
-        <g><circle cx="70" cy="150" r="12" fill="#c74b3f"/><text x="70" y="153" fill="#fff" font-size="7.5" font-family="var(--font-data)" text-anchor="middle">invasive</text></g>
-        <path d="M82 152 L104 184" stroke="#c74b3f" stroke-width="1.4" fill="none" stroke-dasharray="3 2" marker-end="url(#arR)"/>
-        <!-- eutrophication chain (right) -->
-        <g font-family="var(--font-data)" font-size="9" fill="var(--ink-1)" text-anchor="middle">
-          <rect x="250" y="26" width="102" height="26" rx="5" fill="#e7d27a"/><text x="301" y="42">fertiliser runoff</text>
-          <rect x="250" y="72" width="102" height="26" rx="5" fill="#cbd06a"/><text x="301" y="88">nutrients rise</text>
-          <rect x="250" y="118" width="102" height="26" rx="5" fill="#8fae4a"/><text x="301" y="134">algal bloom</text>
-          <rect x="250" y="164" width="102" height="26" rx="5" fill="#4e8a86"/><text x="301" y="176">oxygen falls</text><text x="301" y="186" font-size="7.5" fill="#eaf6ff">(a year or two later)</text>
-          <rect x="250" y="210" width="102" height="26" rx="5" fill="#c74b3f"/><text x="301" y="226" fill="#fff">fish die-off</text>
+
+        <!-- invasive species: a distinct red chip feeding into the small fish -->
+        <g font-size="10" fill="var(--ink-1)">
+          <rect x="196" y="150" width="40" height="46" rx="9" fill="#f4d9d4" stroke="#d98b7e"/>
+          <circle cx="216" cy="164" r="5" fill="#c0392b"/>
+          <text x="216" y="180" text-anchor="middle" font-size="8.5">Invasive</text>
+          <text x="216" y="190" text-anchor="middle" font-size="8.5">species</text>
         </g>
-        <g stroke="#c74b3f" stroke-width="1.6" fill="none" marker-end="url(#arR)">
-          <path d="M301 52 L301 70"/><path d="M301 98 L301 116"/><path d="M301 144 L301 162"/><path d="M301 190 L301 208"/>
+        <path d="M196 168 L180 165" stroke="#c0392b" stroke-width="1.8" fill="none" stroke-dasharray="4 2" marker-end="url(#arR)"/>
+
+        <!-- RIGHT: the eutrophication chain. Light boxes, dark text, a coloured
+             left rail per step, arrows down. -->
+        <g font-size="10.5" fill="var(--ink-1)">
+          <g><rect x="252" y="46" width="120" height="30" rx="7" fill="#f6efd0" stroke="#e2cf86"/><rect x="252" y="46" width="6" height="30" rx="3" fill="#d9b74e"/><text x="314" y="65" text-anchor="middle">Fertiliser runoff</text></g>
+          <g><rect x="252" y="88" width="120" height="30" rx="7" fill="#eef1d4" stroke="#c9d38f"/><rect x="252" y="88" width="6" height="30" rx="3" fill="#a9bd54"/><text x="314" y="107" text-anchor="middle">Nutrients rise</text></g>
+          <g><rect x="252" y="130" width="120" height="30" rx="7" fill="#e2edcb" stroke="#b6cd86"/><rect x="252" y="130" width="6" height="30" rx="3" fill="#8fae4a"/><text x="314" y="149" text-anchor="middle">Algal bloom</text></g>
+          <g><rect x="252" y="172" width="120" height="34" rx="7" fill="#d8e8e3" stroke="#9cc7bd"/><rect x="252" y="172" width="6" height="34" rx="3" fill="#3f8a7e"/><text x="314" y="187" text-anchor="middle">Oxygen falls</text><text x="314" y="199" text-anchor="middle" font-size="8" fill="var(--ink-3)">(a year or two later)</text></g>
+          <g><rect x="252" y="218" width="120" height="30" rx="7" fill="#f4dbd5" stroke="#dc9c90"/><rect x="252" y="218" width="6" height="30" rx="3" fill="#c0392b"/><text x="314" y="237" text-anchor="middle" font-weight="700" fill="#a5342a">Fish die-off</text></g>
         </g>
-        <text x="301" y="18" text-anchor="middle" font-family="var(--font-data)" font-size="8.5" fill="var(--ink-3)">DELAYED consequence</text>
+        <g stroke="#c0392b" stroke-width="1.8" fill="none" marker-end="url(#arR)">
+          <path d="M314 76 L314 86"/><path d="M314 118 L314 128"/><path d="M314 160 L314 170"/><path d="M314 206 L314 216"/>
+        </g>
       </svg>
       <p class="q__hint" style="margin-top:10px">You will manage a wetland for <strong>20 years</strong> on a yearly budget, trading off
        conservation against housing, farming and tourism. Some choices pay off at once; others — like pollution — bite years later.</p>`;
