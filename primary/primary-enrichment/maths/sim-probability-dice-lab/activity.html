@@ -122,8 +122,10 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script src="../../../../engine/vendor/three.min.js"></script>
 <script type="module">
 import { joinSession, addScore, sendReaction, onPlayers, onReactions, todaysSessionId, isLive, REACTIONS } from "../../_shared/live-wall.js";
+import { getLang, localizeConfig } from "../../../../engine/i18n.js?v=1";
 import "../../../../engine/accessibility.js";
 
+const L = (en, es) => getLang() === "es" ? es : en;
 const root = document.getElementById("lab-root");
 const SESSION_ID = todaysSessionId("maths");
 let CONFIG = null;
@@ -272,7 +274,8 @@ const STAGES = ["join", "orient", "predict", "rounds", "explain", "apply", "chec
 let stageIdx = 0, roundIdx = 0;
 
 async function boot() {
-  CONFIG = await fetch("config.json").then(r => r.json());
+  const raw = await fetch("config.json").then(r => r.json());
+  CONFIG = localizeConfig(raw, getLang());
   render();
 }
 
@@ -287,10 +290,10 @@ function liveBarHTML() {
   const on = isLive();
   return `<div class="pl-live">
     <span class="pl-live__dot" data-on="${on}"></span>
-    <span class="pl-live__label">${on ? "Live with your group" : "Practice mode — ask Mr Guevara to switch on Live"}</span>
+    <span class="pl-live__label">${on ? L("Live with your group", "En directo con tu grupo") : L("Practice mode — ask Mr Guevara to switch on Live", "Modo práctica — pide al Sr. Guevara que active el directo")}</span>
     <div class="pl-board" id="pl-board"></div>
-    <div class="pl-reactions" role="group" aria-label="Send a positive reaction">
-      ${REACTIONS.map(e => `<button type="button" data-emoji="${e}" aria-label="Send ${e}">${e}</button>`).join("")}
+    <div class="pl-reactions" role="group" aria-label="${L("Send a positive reaction", "Enviar una reacción positiva")}">
+      ${REACTIONS.map(e => `<button type="button" data-emoji="${e}" aria-label="${L("Send", "Enviar")} ${e}">${e}</button>`).join("")}
     </div>
   </div>`;
 }
@@ -345,12 +348,12 @@ function advance() { stageIdx++; render(); }
 function join(host) {
   host.innerHTML = `
     <div class="pl-join panel stack">
-      <p class="eyebrow">Primary Enrichment · Maths · Tuesday</p>
-      <h1>The Probability Lab: Dice Game Designers</h1>
-      <p class="q__hint">Type your first name, then press Go to join today's live session.</p>
-      <label class="field__label" for="pl-name">Your first name</label>
-      <input id="pl-name" class="input" type="text" maxlength="16" autocomplete="off" placeholder="e.g. Sofia">
-      <button class="btn btn--signal" type="button" id="pl-go" style="margin-top:.75rem">Go! →</button>
+      <p class="eyebrow">${L("Primary Enrichment · Maths · Tuesday", "Refuerzo de Primaria · Matemáticas · Martes")}</p>
+      <h1>${escapeHTML(CONFIG.title)}</h1>
+      <p class="q__hint">${L("Type your first name, then press Go to join today's live session.", "Escribe tu nombre y pulsa Vamos para unirte a la sesión en directo de hoy.")}</p>
+      <label class="field__label" for="pl-name">${L("Your first name", "Tu nombre")}</label>
+      <input id="pl-name" class="input" type="text" maxlength="16" autocomplete="off" placeholder="${L("e.g. Sofia", "p.ej. Sofía")}">
+      <button class="btn btn--signal" type="button" id="pl-go" style="margin-top:.75rem">${L("Go! →", "¡Vamos! →")}</button>
     </div>`;
   const input = host.querySelector("#pl-name");
   const go = () => {
@@ -370,14 +373,14 @@ function orient(host) {
   const o = CONFIG.orient;
   host.innerHTML = `
     <div class="panel stack">
-      <p class="eyebrow">Today's mission</p>
-      <h2>${playerName ? `Welcome, ${escapeHTML(playerName)}!` : "Welcome!"}</h2>
-      <p><strong>What:</strong> ${o.objective}</p>
-      <p><strong>Why it matters:</strong> ${o.realLife}</p>
-      <p><strong>How it connects:</strong> ${o.courseLink}</p>
-      <p><strong>By the end you will be able to:</strong></p>
+      <p class="eyebrow">${L("Today's mission", "La misión de hoy")}</p>
+      <h2>${playerName ? L(`Welcome, ${escapeHTML(playerName)}!`, `¡Bienvenido/a, ${escapeHTML(playerName)}!`) : L("Welcome!", "¡Bienvenido/a!")}</h2>
+      <p><strong>${L("What:", "Qué:")}</strong> ${o.objective}</p>
+      <p><strong>${L("Why it matters:", "Por qué importa:")}</strong> ${o.realLife}</p>
+      <p><strong>${L("How it connects:", "Cómo se conecta:")}</strong> ${o.courseLink}</p>
+      <p><strong>${L("By the end you will be able to:", "Al final serás capaz de:")}</strong></p>
       <ul>${o.successCriteria.map(s => `<li>${s}</li>`).join("")}</ul>
-      <button class="btn btn--signal" type="button" id="pl-next">Let's start →</button>
+      <button class="btn btn--signal" type="button" id="pl-next">${L("Let's start →", "¡Empecemos! →")}</button>
     </div>`;
   host.querySelector("#pl-next").addEventListener("click", advance);
 }
@@ -386,7 +389,7 @@ function orient(host) {
 function predict(host) {
   const p = CONFIG.predict;
   host.innerHTML = `<div class="panel stack">
-    <p class="eyebrow">Quick guess</p>
+    <p class="eyebrow">${L("Quick guess", "Adivina rápido")}</p>
     <h2>${p.prompt}</h2>
     <div class="pl-full">${p.options.map(o => `<button class="pl-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
   </div>`;
@@ -405,10 +408,10 @@ function rounds(host) {
   const r = CONFIG.rounds[roundIdx];
   const words = CONFIG.probabilityWords;
   host.innerHTML = `
-    <p class="eyebrow">Round ${roundIdx + 1} of ${CONFIG.rounds.length} · Pick the probability, then roll to test it</p>
+    <p class="eyebrow">${L(`Round ${roundIdx + 1} of ${CONFIG.rounds.length} · Pick the probability, then roll to test it`, `Ronda ${roundIdx + 1} de ${CONFIG.rounds.length} · Elige la probabilidad y lánzalo para comprobarlo`)}</p>
     <div class="pl-stage3d-wrap">
       <div class="pl-stage3d" id="pl-3d"></div>
-      <span class="pl-3d-badge">3D · Probability Die</span>
+      <span class="pl-3d-badge">${L("3D · Probability Die", "3D · Dado de probabilidad")}</span>
       <span class="pl-3d-result" id="pl-3d-result"></span>
     </div>
     <p class="pl-event">${r.event}</p>
@@ -431,21 +434,21 @@ function rounds(host) {
       wordButtons.forEach(b => b.disabled = true);
       btn.dataset.state = "correct";
       const rollArea = host.querySelector("#pl-roll-area");
-      rollArea.innerHTML = `<button class="btn btn--signal" type="button" id="pl-roll-btn">🎲 Roll the die to test it!</button>`;
+      rollArea.innerHTML = `<button class="btn btn--signal" type="button" id="pl-roll-btn">${L("🎲 Roll the die to test it!", "🎲 ¡Lanza el dado para comprobarlo!")}</button>`;
       rollArea.querySelector("#pl-roll-btn").addEventListener("click", function onRoll() {
         this.disabled = true;
-        this.textContent = "Rolling…";
+        this.textContent = L("Rolling…", "Lanzando…");
         const rolled = 1 + Math.floor(Math.random() * 6);
         rollDieTo(rolled, () => {
           const badge = host.querySelector("#pl-3d-result");
-          badge.textContent = `You rolled a ${rolled}`;
+          badge.textContent = L(`You rolled a ${rolled}`, `Sacaste un ${rolled}`);
           badge.dataset.shown = "true";
           addPoints(10);
           rollArea.innerHTML = `
             <div class="pl-insight">
               <strong>${capitalize(r.answer)}.</strong> ${r.insight}
             </div>
-            <button class="btn btn--signal" type="button" id="pl-round-next" style="margin-top:.9rem">Next round →</button>`;
+            <button class="btn btn--signal" type="button" id="pl-round-next" style="margin-top:.9rem">${L("Next round →", "Siguiente ronda →")}</button>`;
           rollArea.querySelector("#pl-round-next").addEventListener("click", () => { roundIdx++; render(); });
         });
       });
@@ -501,8 +504,8 @@ function check(host) {
   }
   const m = matchState;
   host.innerHTML = `
-    <p class="eyebrow">Knowledge Check · Match each statement to its probability</p>
-    <h2>Tap a statement, then tap the probability word that matches it.</h2>
+    <p class="eyebrow">${L("Knowledge Check · Match each statement to its probability", "Comprobación de conocimientos · Empareja cada afirmación con su probabilidad")}</p>
+    <h2>${L("Tap a statement, then tap the probability word that matches it.", "Toca una afirmación y luego la palabra de probabilidad que le corresponde.")}</h2>
     <div class="pl-match-grid">
       <div class="pl-match-col" id="pl-statements">
         ${m.items.map(it => `<button class="pl-match-item" type="button" data-id="${it.id}" ${m.matched.has(it.id) ? 'disabled data-state="correct"' : ""}>${it.statement}</button>`).join("")}
@@ -525,7 +528,7 @@ function check(host) {
       m.selectedStatement = null; m.selectedWord = null;
       if (m.matched.size === m.items.length * 2) {
         setTimeout(() => {
-          host.insertAdjacentHTML("beforeend", `<div style="text-align:center;margin-top:1.1rem"><button class="btn btn--signal" type="button" id="pl-check-done">Finish Knowledge Check →</button></div>`);
+          host.insertAdjacentHTML("beforeend", `<div style="text-align:center;margin-top:1.1rem"><button class="btn btn--signal" type="button" id="pl-check-done">${L("Finish Knowledge Check →", "Terminar la comprobación →")}</button></div>`);
           host.querySelector("#pl-check-done").addEventListener("click", () => { matchState = null; advance(); });
         }, 300);
       }
@@ -563,11 +566,11 @@ function check(host) {
 function done(host) {
   host.innerHTML = `<div class="pl-done">
     <div class="pl-confetti" id="pl-confetti"></div>
-    <p class="eyebrow">Session complete</p>
-    <h2>Great thinking, ${escapeHTML(playerName)}!</h2>
-    <p class="pl-done__score">${score} points</p>
-    <p class="q__hint">Check the live board above to see how everyone did — every score there is a win worth celebrating.</p>
-    <button class="btn btn--signal" type="button" id="pl-cert">Download my certificate →</button>
+    <p class="eyebrow">${L("Session complete", "Sesión completada")}</p>
+    <h2>${L(`Great thinking, ${escapeHTML(playerName)}!`, `¡Muy buen pensamiento, ${escapeHTML(playerName)}!`)}</h2>
+    <p class="pl-done__score">${L(`${score} points`, `${score} puntos`)}</p>
+    <p class="q__hint">${L("Check the live board above to see how everyone did — every score there is a win worth celebrating.", "Mira el marcador en directo de arriba para ver cómo le fue a todos — cada puntuación ahí es un logro que celebrar.")}</p>
+    <button class="btn btn--signal" type="button" id="pl-cert">${L("Download my certificate →", "Descargar mi certificado →")}</button>
   </div>`;
   const confetti = host.querySelector("#pl-confetti");
   "🎉⭐🎲✨".split("").forEach((c, i) => {
@@ -635,28 +638,28 @@ async function downloadCertificate() {
   doc.setFont("helvetica", "bold"); doc.setFontSize(30); doc.setTextColor(...navy);
   doc.text("Discovery Lab", w / 2, 158, { align: "center" });
   doc.setFontSize(13); doc.setTextColor(...teal); doc.setFont("helvetica", "normal");
-  doc.text("PRIMARY ENRICHMENT · CERTIFICATE OF BRIGHT THINKING", w / 2, 178, { align: "center" });
+  doc.text(L("PRIMARY ENRICHMENT · CERTIFICATE OF BRIGHT THINKING", "REFUERZO DE PRIMARIA · CERTIFICADO DE PENSAMIENTO BRILLANTE"), w / 2, 178, { align: "center" });
 
   doc.setDrawColor(...gold); doc.setLineWidth(1);
   doc.line(w / 2 - 90, 192, w / 2 - 20, 192); doc.line(w / 2 + 20, 192, w / 2 + 90, 192);
   doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...ink);
-  doc.text("this certifies that", w / 2, 197, { align: "center" });
+  doc.text(L("this certifies that", "esto certifica que"), w / 2, 197, { align: "center" });
 
   doc.setFont("helvetica", "bold"); doc.setFontSize(40); doc.setTextColor(...ink);
-  doc.text(playerName || "Student", w / 2, 240, { align: "center" });
+  doc.text(playerName || L("Student", "Estudiante"), w / 2, 240, { align: "center" });
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.setTextColor(70, 78, 92);
-  doc.text("completed The Probability Lab — a live Laws of Probability adventure", w / 2, 264, { align: "center" });
+  doc.text(L("completed The Probability Lab — a live Laws of Probability adventure", "completó El Laboratorio de Probabilidad — una aventura en directo sobre las Leyes de la Probabilidad"), w / 2, 264, { align: "center" });
 
   doc.setFillColor(...navy); doc.roundedRect(w / 2 - 85, 284, 170, 40, 20, 20, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(255, 255, 255);
-  doc.text(`★ ${score} points ★`, w / 2, 310, { align: "center" });
+  doc.text(L(`★ ${score} points ★`, `★ ${score} puntos ★`), w / 2, 310, { align: "center" });
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(110, 118, 130);
-  doc.text(new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" }), w / 2, 345, { align: "center" });
+  doc.text(new Date().toLocaleDateString(L("en-GB", "es-ES"), { weekday: "long", year: "numeric", month: "long", day: "numeric" }), w / 2, 345, { align: "center" });
 
   doc.setTextColor(...teal); doc.setFontSize(11);
-  doc.textWithLink("Open the live activity →", w / 2, 365, { align: "center", url: window.location.href });
+  doc.textWithLink(L("Open the live activity →", "Abrir la actividad en directo →"), w / 2, 365, { align: "center", url: window.location.href });
 
   doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(120, 128, 140);
   doc.text("Discovery Lab · Diego Urrutia Guevara", w / 2, h - 42, { align: "center" });
