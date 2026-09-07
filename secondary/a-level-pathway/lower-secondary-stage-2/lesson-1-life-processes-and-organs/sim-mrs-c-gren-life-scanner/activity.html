@@ -152,6 +152,15 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <body>
 <a class="skip-link" href="#main" data-lang="en">Skip to content</a>
 <a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<script>
+(function(){try{
+  var lang=(localStorage.getItem('dl-lang')||'en');
+  if(lang==='es'){
+    var m=document.querySelector('meta[name="description"]');
+    if(m)m.setAttribute('content','Un escáner de cámara de contención en 3D: orbita cinco especímenes misteriosos —bacteria, protista, hongo, planta carnívora y escarabajo— observa cada reacción sin etiquetar y descubre por ti mismo qué proceso vital demuestra.');
+  }
+}catch(e){}})();
+</script>
 
 <header class="site-head">
   <div class="shell site-head__inner">
@@ -171,7 +180,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 </header>
 
 <main id="main" class="shell">
-  <nav class="crumbs" aria-label="Breadcrumb">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
     <ol class="crumbs__list">
       <li><a href="../../../../../">Discovery Lab</a></li>
       <li><a href="../../../../">Secondary</a></li>
@@ -179,6 +188,16 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
       <li><a href="../../">Lower Secondary Stage 2 Science</a></li>
       <li><a href="../">Lesson 1: Life Processes and Organs</a></li>
       <li><span aria-current="page">MRS C GREN Scanner</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../">Secundaria</a></li>
+      <li><a href="../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../">Ciencias de Lower Secondary, Etapa 2</a></li>
+      <li><a href="../">Lección 1: Procesos vitales y órganos</a></li>
+      <li><span aria-current="page">Escáner MR CRECEN</span></li>
     </ol>
   </nav>
   <div id="lab-root"></div>
@@ -195,108 +214,193 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 
 <script type="module">
 import { mountActivity } from "../../../../../engine/engine.js?v=8";
+import { getLang } from "../../../../../engine/i18n.js?v=2";
 
 const THREE_URL = "../../../../../engine/vendor/three.min.js";
 
+/* Local in-canvas bilingual helper — this activity draws most of its own UI
+   in JS rather than through the engine's config-driven renderer, so every
+   hardcoded string is wrapped in L(en, es). Scoped to this activity only,
+   per CLAUDE.md §15 point 3. */
+const L = (en, es) => getLang() === "es" ? es : en;
+
 /* ======================================================================
    CONTENT — the eight life processes
+   English mnemonic: MRS C GREN (Movement, Respiration, Sensitivity, Control,
+   Growth, Reproduction, Excretion, Nutrition).
+   Spanish mnemonic: MR CRECEN — a genuinely different Spanish device, not a
+   translation of "MRS C GREN" (Diego's explicit request): Movimiento,
+   Respiración, Crecimiento, Reproducción, Excreción, Control, Estimulación
+   (sensibilidad), Nutrición. "Crecen" is a real Spanish word ("they grow"),
+   fitting the biology theme and echoing the English "sounds like a name"
+   trick (Mrs Green -> Mr. Crecen). The underlying `id`s never change language
+   — only the displayed letter/name/order do — so game state/scoring is
+   unaffected by the language switch.
    ====================================================================== */
-const PROCESSES = [
-  { id:"movement",     letter:"M", name:"Movement",     color:"#3f7ad0" },
-  { id:"respiration",  letter:"R", name:"Respiration",  color:"#d0553f" },
-  { id:"sensitivity",  letter:"S", name:"Sensitivity",  color:"#c98f1f" },
-  { id:"control",      letter:"C", name:"Control",      color:"#7a4fd0" },
-  { id:"growth",       letter:"G", name:"Growth",       color:"#3f9d4d" },
-  { id:"reproduction", letter:"R", name:"Reproduction", color:"#d03f9a" },
-  { id:"excretion",    letter:"E", name:"Excretion",    color:"#5f8c7a" },
-  { id:"nutrition",    letter:"N", name:"Nutrition",    color:"#c9601f" },
-];
+const PROCESS_ORDER_EN = ["movement","respiration","sensitivity","control","growth","reproduction","excretion","nutrition"];
+const PROCESS_ORDER_ES = ["movement","respiration","growth","reproduction","excretion","control","sensitivity","nutrition"];
+const PROCESS_META = {
+  movement:     { letter:{en:"M",es:"M"}, name:{en:"Movement",     es:"Movimiento"},   color:"#3f7ad0" },
+  respiration:  { letter:{en:"R",es:"R"}, name:{en:"Respiration",  es:"Respiración"},  color:"#d0553f" },
+  sensitivity:  { letter:{en:"S",es:"E"}, name:{en:"Sensitivity",  es:"Estimulación"}, color:"#c98f1f" },
+  control:      { letter:{en:"C",es:"C"}, name:{en:"Control",      es:"Control"},      color:"#7a4fd0" },
+  growth:       { letter:{en:"G",es:"C"}, name:{en:"Growth",       es:"Crecimiento"},  color:"#3f9d4d" },
+  reproduction: { letter:{en:"R",es:"R"}, name:{en:"Reproduction", es:"Reproducción"}, color:"#d03f9a" },
+  excretion:    { letter:{en:"E",es:"E"}, name:{en:"Excretion",    es:"Excreción"},    color:"#5f8c7a" },
+  nutrition:    { letter:{en:"N",es:"N"}, name:{en:"Nutrition",    es:"Nutrición"},    color:"#c9601f" },
+};
+const LANG = getLang() === "es" ? "es" : "en";
+const PROCESSES = (LANG === "es" ? PROCESS_ORDER_ES : PROCESS_ORDER_EN).map(id => ({
+  id, letter: PROCESS_META[id].letter[LANG], name: PROCESS_META[id].name[LANG], color: PROCESS_META[id].color
+}));
+const MNEMONIC_WORD = L("MRS C GREN", "MR CRECEN");
 const MRS_DEFS = {
-  movement:"Animals move their whole bodies; plants move parts of themselves, such as leaves turning to light.",
-  respiration:"Releasing energy from food — every living cell does this, all the time, awake or asleep.",
-  sensitivity:"Detecting a change in the surroundings and reacting to it.",
-  control:"Keeping internal conditions steady, such as body temperature or water balance.",
-  growth:"Increasing in size or number of cells over time.",
-  reproduction:"Producing offspring — by splitting, spores, seeds or birth.",
-  excretion:"Removing waste made by the organism's own chemical reactions.",
-  nutrition:"Taking in food, or making it, to fuel every other process on this list.",
+  movement:     L("Animals move their whole bodies; plants move parts of themselves, such as leaves turning to light.",
+                   "Los animales mueven todo el cuerpo; las plantas mueven partes de sí mismas, como las hojas girando hacia la luz."),
+  respiration:  L("Releasing energy from food — every living cell does this, all the time, awake or asleep.",
+                   "Liberar energía de los alimentos — todas las células vivas lo hacen constantemente, despiertas o dormidas."),
+  sensitivity:  L("Detecting a change in the surroundings and reacting to it.",
+                   "Detectar un cambio en el entorno y reaccionar ante él."),
+  control:      L("Keeping internal conditions steady, such as body temperature or water balance.",
+                   "Mantener estables las condiciones internas, como la temperatura corporal o el equilibrio de agua."),
+  growth:       L("Increasing in size or number of cells over time.",
+                   "Aumentar de tamaño o de número de células con el tiempo."),
+  reproduction: L("Producing offspring — by splitting, spores, seeds or birth.",
+                   "Producir descendencia — por división, esporas, semillas o nacimiento."),
+  excretion:    L("Removing waste made by the organism's own chemical reactions.",
+                   "Eliminar los desechos producidos por las propias reacciones químicas del organismo."),
+  nutrition:    L("Taking in food, or making it, to fuel every other process on this list.",
+                   "Tomar alimento, o fabricarlo, para impulsar todos los demás procesos de esta lista."),
 };
 /* Generic "what to look for" cues shown WHILE a blind scan plays — they describe
-   the visual event, never the MRS C GREN term, so identifying it is a real decision. */
+   the visual event, never the MRS C GREN / MR CRECEN term, so identifying it is a real decision. */
 const SCAN_CAPTIONS = {
-  movement:"That was either a change in position, or a part of it moving on its own.",
-  respiration:"Something inside pulsed steadily, over and over, like a heartbeat.",
-  sensitivity:"It reacted the instant something touched or approached it.",
-  control:"It changed for a moment under stress, then settled back to normal.",
-  growth:"Look carefully — is it any bigger than before?",
-  reproduction:"Something new just appeared, or the whole thing split in two.",
-  excretion:"Something left its body and drifted away.",
-  nutrition:"Something arrived from outside and was taken in.",
+  movement:     L("That was either a change in position, or a part of it moving on its own.",
+                   "Eso fue un cambio de posición, o una parte moviéndose por sí sola."),
+  respiration:  L("Something inside pulsed steadily, over and over, like a heartbeat.",
+                   "Algo en su interior pulsó de forma constante, una y otra vez, como un latido."),
+  sensitivity:  L("It reacted the instant something touched or approached it.",
+                   "Reaccionó en el instante en que algo lo tocó o se acercó."),
+  control:      L("It changed for a moment under stress, then settled back to normal.",
+                   "Cambió por un momento bajo estrés, y luego volvió a la normalidad."),
+  growth:       L("Look carefully — is it any bigger than before?",
+                   "Mira con atención: ¿es más grande que antes?"),
+  reproduction: L("Something new just appeared, or the whole thing split in two.",
+                   "Algo nuevo acaba de aparecer, o el organismo entero se dividió en dos."),
+  excretion:    L("Something left its body and drifted away.",
+                   "Algo salió de su cuerpo y se alejó flotando."),
+  nutrition:    L("Something arrived from outside and was taken in.",
+                   "Algo llegó desde fuera y fue absorbido."),
 };
 
 /* ======================================================================
    CONTENT — the five specimens + per-process evidence
    ====================================================================== */
 const SPECIMENS = {
-  bacterium:{ key:"bacterium", name:"Bacterium", kingdom:"Kingdom: Bacteria", color:0x3fd0c0,
-    blurb:"A single cell, far smaller than anything else in the chamber. No jaws, no leaves, no legs — still alive.",
+  bacterium:{ key:"bacterium", name:L("Bacterium","Bacteria"), kingdom:L("Kingdom: Bacteria","Reino: Bacteria"), color:0x3fd0c0,
+    blurb:L("A single cell, far smaller than anything else in the chamber. No jaws, no leaves, no legs — still alive.",
+            "Una sola célula, mucho más pequeña que cualquier otra cosa en la cámara. Sin mandíbulas, sin hojas, sin patas — aun así, viva."),
     evidence:{
-      movement:"Its flagella whip round and the whole cell tumbles and spins through the fluid.",
-      respiration:"A faint chemical glow pulses through the cell as it breaks down sugar for energy.",
-      sensitivity:"It swims straight towards a food source and curls away from the probe.",
-      control:"It pumps ions across its membrane to keep its insides stable as the fluid around it changes.",
-      growth:"The cell has visibly swollen since your last scan — bacteria can double in size in under 20 minutes.",
-      reproduction:"It splits clean in half — binary fission — and two identical bacteria drift apart.",
-      excretion:"A stream of waste gas bubbles away from the cell membrane.",
-      nutrition:"It absorbs a dissolved sugar molecule straight through its own membrane.",
+      movement:L("Its flagella whip round and the whole cell tumbles and spins through the fluid.",
+                  "Sus flagelos giran y toda la célula da vueltas y gira en el líquido."),
+      respiration:L("A faint chemical glow pulses through the cell as it breaks down sugar for energy.",
+                     "Un tenue resplandor químico pulsa a través de la célula mientras descompone azúcar para obtener energía."),
+      sensitivity:L("It swims straight towards a food source and curls away from the probe.",
+                     "Nada directo hacia una fuente de alimento y se aleja de la sonda."),
+      control:L("It pumps ions across its membrane to keep its insides stable as the fluid around it changes.",
+                 "Bombea iones a través de su membrana para mantener su interior estable mientras el líquido a su alrededor cambia."),
+      growth:L("The cell has visibly swollen since your last scan — bacteria can double in size in under 20 minutes.",
+                "La célula ha crecido visiblemente desde tu último escaneo — las bacterias pueden duplicar su tamaño en menos de 20 minutos."),
+      reproduction:L("It splits clean in half — binary fission — and two identical bacteria drift apart.",
+                      "Se divide limpiamente en dos — fisión binaria — y dos bacterias idénticas se separan."),
+      excretion:L("A stream of waste gas bubbles away from the cell membrane.",
+                   "Un chorro de gas de desecho se aleja flotando de la membrana celular."),
+      nutrition:L("It absorbs a dissolved sugar molecule straight through its own membrane.",
+                   "Absorbe una molécula de azúcar disuelta directamente a través de su propia membrana."),
     }},
-  protist:{ key:"protist", name:"Protist", kingdom:"Kingdom: Protista", color:0xa080e0,
-    blurb:"A single cell too, but bigger and stranger than a bacterium — this one swims using thousands of tiny hairs.",
+  protist:{ key:"protist", name:L("Protist","Protista"), kingdom:L("Kingdom: Protista","Reino: Protista"), color:0xa080e0,
+    blurb:L("A single cell too, but bigger and stranger than a bacterium — this one swims using thousands of tiny hairs.",
+            "También es una sola célula, pero más grande y extraña que una bacteria — esta nada usando miles de diminutos pelillos."),
     evidence:{
-      movement:"Thousands of tiny cilia beat in waves, rowing the whole cell smoothly across the dish.",
-      respiration:"Its internal glow brightens and dims as it burns food for energy.",
-      sensitivity:"It reverses direction the instant the probe touches its membrane.",
-      control:"A contractile vacuole squeezes rhythmically, pumping out excess water so the cell doesn't burst.",
-      growth:"It has swollen noticeably larger since your last reading.",
-      reproduction:"It pinches down the middle and splits into two identical protists.",
-      excretion:"The same vacuole that controls water also blasts out a puff of waste as it contracts.",
-      nutrition:"It engulfs a smaller food particle whole, folding its body around it.",
+      movement:L("Thousands of tiny cilia beat in waves, rowing the whole cell smoothly across the dish.",
+                  "Miles de diminutos cilios laten en oleadas, impulsando a la célula suavemente por la placa."),
+      respiration:L("Its internal glow brightens and dims as it burns food for energy.",
+                     "Su brillo interior se intensifica y se atenúa mientras quema alimento para obtener energía."),
+      sensitivity:L("It reverses direction the instant the probe touches its membrane.",
+                     "Invierte su dirección en el instante en que la sonda toca su membrana."),
+      control:L("A contractile vacuole squeezes rhythmically, pumping out excess water so the cell doesn't burst.",
+                 "Una vacuola contráctil se contrae rítmicamente, expulsando el exceso de agua para que la célula no estalle."),
+      growth:L("It has swollen noticeably larger since your last reading.",
+                "Ha crecido notablemente más grande desde tu última lectura."),
+      reproduction:L("It pinches down the middle and splits into two identical protists.",
+                      "Se estrecha por el centro y se divide en dos protistas idénticos."),
+      excretion:L("The same vacuole that controls water also blasts out a puff of waste as it contracts.",
+                   "La misma vacuola que controla el agua también expulsa un chorro de desecho al contraerse."),
+      nutrition:L("It engulfs a smaller food particle whole, folding its body around it.",
+                   "Engulle una partícula de alimento más pequeña por completo, envolviéndola con su cuerpo."),
     }},
-  fungus:{ key:"fungus", name:"Fungus", kingdom:"Kingdom: Fungi", color:0xd9b26b,
-    blurb:"Not a plant, not an animal — a mushroom feeds by absorbing, not by eating or photosynthesising.",
+  fungus:{ key:"fungus", name:L("Fungus","Hongo"), kingdom:L("Kingdom: Fungi","Reino: Fungi"), color:0xd9b26b,
+    blurb:L("Not a plant, not an animal — a mushroom feeds by absorbing, not by eating or photosynthesising.",
+            "No es una planta ni un animal — un hongo se alimenta absorbiendo, no comiendo ni haciendo fotosíntesis."),
     evidence:{
-      movement:"It can't relocate itself, but a cloud of spores puffs outward and drifts on the air — its version of getting around.",
-      respiration:"Its cap pulses faintly as it releases energy from absorbed sugars, exactly like any other organism.",
-      sensitivity:"Its threads (hyphae) visibly bend and grow towards the richest patch of nutrients in the soil.",
-      control:"It holds its internal moisture steady even as the air around it dries out.",
-      growth:"Fine white threads — mycelium — have spread further through the soil since your last scan.",
-      reproduction:"Its gills release a burst of spores, each one a potential new mushroom.",
-      excretion:"A faint puff of waste gas escapes from the cap as it breaks food down.",
-      nutrition:"Its mycelium threads absorb dissolved nutrients straight out of the soil.",
+      movement:L("It can't relocate itself, but a cloud of spores puffs outward and drifts on the air — its version of getting around.",
+                  "No puede trasladarse, pero una nube de esporas sale disparada y flota en el aire — su forma de desplazarse."),
+      respiration:L("Its cap pulses faintly as it releases energy from absorbed sugars, exactly like any other organism.",
+                     "Su sombrero pulsa débilmente mientras libera energía de los azúcares absorbidos, igual que cualquier otro organismo."),
+      sensitivity:L("Its threads (hyphae) visibly bend and grow towards the richest patch of nutrients in the soil.",
+                     "Sus hilos (hifas) se doblan y crecen visiblemente hacia el parche más rico en nutrientes del suelo."),
+      control:L("It holds its internal moisture steady even as the air around it dries out.",
+                 "Mantiene estable su humedad interna incluso cuando el aire a su alrededor se seca."),
+      growth:L("Fine white threads — mycelium — have spread further through the soil since your last scan.",
+                "Finos hilos blancos — el micelio — se han extendido más por el suelo desde tu último escaneo."),
+      reproduction:L("Its gills release a burst of spores, each one a potential new mushroom.",
+                      "Sus láminas liberan una ráfaga de esporas, cada una un posible hongo nuevo."),
+      excretion:L("A faint puff of waste gas escapes from the cap as it breaks food down.",
+                   "Un tenue chorro de gas de desecho escapa del sombrero mientras descompone el alimento."),
+      nutrition:L("Its mycelium threads absorb dissolved nutrients straight out of the soil.",
+                   "Sus hilos de micelio absorben nutrientes disueltos directamente del suelo."),
     }},
-  plant:{ key:"plant", name:"Venus Flytrap", kingdom:"Kingdom: Plantae", color:0x3f9d4d,
-    blurb:"It photosynthesises like every plant, but it also traps and digests insects for extra nutrients.",
+  plant:{ key:"plant", name:L("Venus Flytrap","Atrapamoscas de Venus"), kingdom:L("Kingdom: Plantae","Reino: Plantae"), color:0x3f9d4d,
+    blurb:L("It photosynthesises like every plant, but it also traps and digests insects for extra nutrients.",
+            "Hace fotosíntesis como cualquier planta, pero también atrapa y digiere insectos para obtener nutrientes extra."),
     evidence:{
-      movement:"It doesn't walk, but its leaves slowly turn to track the light overhead.",
-      respiration:"Even in the dark it releases energy from stored sugar — a faint pulse deep in the stem.",
-      sensitivity:"Trigger hairs inside a trap fire the instant an insect brushes them, and the lobes snap shut in under a second.",
-      control:"It keeps water pressure steady inside its cells, which is exactly what keeps it standing upright.",
-      growth:"A new leaf has visibly unfurled since your last scan.",
-      reproduction:"A seed pod splits open and scatters seeds onto the soil.",
-      excretion:"Waste oxygen and water vapour are released through tiny pores on its leaves.",
-      nutrition:"A trapped insect is slowly dissolved and absorbed by digestive juices inside the closed trap.",
+      movement:L("It doesn't walk, but its leaves slowly turn to track the light overhead.",
+                  "No camina, pero sus hojas giran lentamente para seguir la luz."),
+      respiration:L("Even in the dark it releases energy from stored sugar — a faint pulse deep in the stem.",
+                     "Incluso en la oscuridad libera energía del azúcar almacenada — un pulso débil en lo profundo del tallo."),
+      sensitivity:L("Trigger hairs inside a trap fire the instant an insect brushes them, and the lobes snap shut in under a second.",
+                     "Los pelos sensores dentro de una trampa se activan en el instante en que un insecto los roza, y los lóbulos se cierran en menos de un segundo."),
+      control:L("It keeps water pressure steady inside its cells, which is exactly what keeps it standing upright.",
+                 "Mantiene estable la presión del agua dentro de sus células, que es justo lo que la mantiene erguida."),
+      growth:L("A new leaf has visibly unfurled since your last scan.",
+                "Una nueva hoja se ha desplegado visiblemente desde tu último escaneo."),
+      reproduction:L("A seed pod splits open and scatters seeds onto the soil.",
+                      "Una vaina de semillas se abre y esparce semillas sobre el suelo."),
+      excretion:L("Waste oxygen and water vapour are released through tiny pores on its leaves.",
+                   "El oxígeno y el vapor de agua de desecho se liberan a través de pequeños poros en sus hojas."),
+      nutrition:L("A trapped insect is slowly dissolved and absorbed by digestive juices inside the closed trap.",
+                   "Un insecto atrapado se disuelve lentamente y se absorbe mediante jugos digestivos dentro de la trampa cerrada."),
     }},
-  animal:{ key:"animal", name:"Beetle", kingdom:"Kingdom: Animalia", color:0x8a5a2b,
-    blurb:"The most obviously 'alive'-looking specimen here — but it shares every single process with the other four.",
+  animal:{ key:"animal", name:L("Beetle","Escarabajo"), kingdom:L("Kingdom: Animalia","Reino: Animalia"), color:0x8a5a2b,
+    blurb:L("The most obviously 'alive'-looking specimen here — but it shares every single process with the other four.",
+            "El espécimen que parece más obviamente 'vivo' aquí — pero comparte cada uno de los procesos con los otros cuatro."),
     evidence:{
-      movement:"All six legs scuttle in sequence and it scurries clean across the rock.",
-      respiration:"Its sides visibly pump in and out as it breathes.",
-      sensitivity:"Its antennae twitch and it flinches away the instant the probe gets close.",
-      control:"It shivers slightly, generating heat to keep its body at a working temperature.",
-      growth:"It has visibly grown since your last scan — insects grow in bursts, moulting out of an old exoskeleton.",
-      reproduction:"It lays a small cluster of eggs beside the rock.",
-      excretion:"A tiny droplet of waste is expelled from the tip of its abdomen.",
-      nutrition:"It seizes a food particle in its jaws and eats it.",
+      movement:L("All six legs scuttle in sequence and it scurries clean across the rock.",
+                  "Sus seis patas se mueven en secuencia y corre rápidamente sobre la roca."),
+      respiration:L("Its sides visibly pump in and out as it breathes.",
+                     "Sus costados se hinchan y contraen visiblemente al respirar."),
+      sensitivity:L("Its antennae twitch and it flinches away the instant the probe gets close.",
+                     "Sus antenas se agitan y se aparta en el instante en que la sonda se acerca."),
+      control:L("It shivers slightly, generating heat to keep its body at a working temperature.",
+                 "Tiembla ligeramente, generando calor para mantener su cuerpo a una temperatura de funcionamiento."),
+      growth:L("It has visibly grown since your last scan — insects grow in bursts, moulting out of an old exoskeleton.",
+                "Ha crecido visiblemente desde tu último escaneo — los insectos crecen a rachas, mudando su antiguo exoesqueleto."),
+      reproduction:L("It lays a small cluster of eggs beside the rock.",
+                      "Pone un pequeño grupo de huevos junto a la roca."),
+      excretion:L("A tiny droplet of waste is expelled from the tip of its abdomen.",
+                   "Se expulsa una diminuta gota de desecho desde la punta de su abdomen."),
+      nutrition:L("It seizes a food particle in its jaws and eats it.",
+                   "Agarra una partícula de alimento con sus mandíbulas y la come."),
     }},
 };
 const SPECIMEN_ORDER = ["bacterium","protist","fungus","plant","animal"];
@@ -306,10 +410,10 @@ const SPECIMEN_ORDER = ["bacterium","protist","fungus","plant","animal"];
    ====================================================================== */
 const XP_PER_SCAN = 20;
 const QUESTS = [
-  { id:"first5",   title:"First contact",        hint:"Run 5 sensor scans on any specimen.",              xp:80,  test:(g)=>g.totalScans>=5 },
-  { id:"onecert",  title:"Certified: Alive",     hint:"Fully scan one specimen — all 8 sensors.",         xp:150, test:(g)=>Object.values(g.certified).filter(Boolean).length>=1 },
-  { id:"threecert",title:"Life detector",         hint:"Fully certify three different specimens.",         xp:250, test:(g)=>Object.values(g.certified).filter(Boolean).length>=3 },
-  { id:"allcert",  title:"Master Future Biologist", hint:"Fully certify all five specimens — 40 scans.",   xp:400, test:(g)=>Object.values(g.certified).filter(Boolean).length>=5 },
+  { id:"first5",   title:L("First contact","Primer contacto"), hint:L("Run 5 sensor scans on any specimen.","Realiza 5 escaneos de sensor en cualquier espécimen."), xp:80,  test:(g)=>g.totalScans>=5 },
+  { id:"onecert",  title:L("Certified: Alive","Certificado: Vivo"), hint:L("Fully scan one specimen — all 8 sensors.","Escanea por completo un espécimen — los 8 sensores."), xp:150, test:(g)=>Object.values(g.certified).filter(Boolean).length>=1 },
+  { id:"threecert",title:L("Life detector","Detector de vida"), hint:L("Fully certify three different specimens.","Certifica completamente tres especímenes diferentes."), xp:250, test:(g)=>Object.values(g.certified).filter(Boolean).length>=3 },
+  { id:"allcert",  title:L("Master Future Biologist","Maestro Futuro Biólogo"), hint:L("Fully certify all five specimens — 40 scans.","Certifica completamente los cinco especímenes — 40 escaneos."), xp:400, test:(g)=>Object.values(g.certified).filter(Boolean).length>=5 },
 ];
 const xpForLevel = lvl => lvl*260;
 
@@ -336,7 +440,8 @@ const simulation = {
       host.append(obs);
     }
     const intro=document.createElement("p");intro.className="q__hint";
-    intro.textContent="Every living thing on Earth — no matter how strange — carries out these same eight processes. Click each one to read what it actually means before you meet your five specimens.";
+    intro.textContent=L("Every living thing on Earth — no matter how strange — carries out these same eight processes. Click each one to read what it actually means before you meet your five specimens.",
+      "Todo ser vivo en la Tierra — sin importar lo extraño que sea — realiza estos mismos ocho procesos. Haz clic en cada uno para leer lo que realmente significa antes de conocer a tus cinco especímenes.");
     host.append(intro);
     const grid=document.createElement("div");grid.className="mrs-grid";grid.setAttribute("role","list");
     PROCESSES.forEach(p=>{
@@ -354,7 +459,10 @@ const simulation = {
     });
     host.append(grid);
     const debate=document.createElement("p");debate.className="debate-note";
-    debate.innerHTML=`<b>Remember MRS C GREN:</b> Movement · Respiration · Sensitivity · Control · Growth · Reproduction · Excretion · Nutrition. Scientists use this exact checklist to settle real arguments about what counts as alive — including the biggest one of all, which you'll meet later in this activity.`;
+    debate.innerHTML=L(
+      `<b>Remember MRS C GREN:</b> Movement · Respiration · Sensitivity · Control · Growth · Reproduction · Excretion · Nutrition. Scientists use this exact checklist to settle real arguments about what counts as alive — including the biggest one of all, which you'll meet later in this activity.`,
+      `<b>Recuerda MR CRECEN:</b> Movimiento · Respiración · Crecimiento · Reproducción · Excreción · Control · Estimulación (sensibilidad) · Nutrición. Los científicos usan exactamente esta lista para resolver debates reales sobre qué cuenta como ser vivo — incluido el más importante de todos, que conocerás más adelante en esta actividad.`
+    );
     host.append(debate);
   },
 
@@ -373,7 +481,7 @@ const simulation = {
     sim.setResult("scientific_question", (sim.config.orient||{}).scientificQuestion || null);
     sim.setResult("variables", {
       independent: "Which specimen is loaded into the chamber (bacterium / protist / fungus / plant / animal).",
-      dependent: "Which MRS C GREN process the student identifies from the unlabelled scan reaction.",
+      dependent: `Which ${MNEMONIC_WORD} process the student identifies from the unlabelled scan reaction.`,
       controlled: "The same eight-process checklist and the same blind-scan procedure is applied to every specimen, so the comparison between specimens is fair."
     });
 
@@ -383,68 +491,76 @@ const simulation = {
     const left=document.createElement("div");
     const stage=document.createElement("div");stage.className="stage3d";
     const boot=document.createElement("div");boot.className="stage3d__boot";
-    boot.innerHTML=`<div><div class="boot-dot"></div><div style="margin-top:.8em">Booting containment scanner…</div></div>`;
+    boot.innerHTML=`<div><div class="boot-dot"></div><div style="margin-top:.8em">${L("Booting containment scanner…","Iniciando escáner de contención…")}</div></div>`;
     stage.append(boot);
 
     const hudTL=document.createElement("div");hudTL.className="hud hud--tl";
     hudTL.innerHTML=`<div class="rankbar">
-      <div class="rankbar__badge"><span>RANK</span><b id="lvl">1</b></div>
+      <div class="rankbar__badge"><span>${L("RANK","RANGO")}</span><b id="lvl">1</b></div>
       <div class="rankbar__body">
-        <div class="rankbar__row"><span>Future Biologist rank</span><span id="xptext">0 XP</span></div>
+        <div class="rankbar__row"><span>${L("Future Biologist rank","Rango de Futuro Biólogo")}</span><span id="xptext">0 XP</span></div>
         <div class="rankbar__track"><div class="rankbar__fill" id="xpfill"></div></div>
         <div class="streak-chip" id="streak" hidden></div>
       </div></div>`;
-    const hudDay=document.createElement("div");hudDay.className="hud hud--day";hudDay.id="scancount";hudDay.textContent="0/8 CONFIRMED";
-    const hudLabel=document.createElement("div");hudLabel.className="hud hud--label";hudLabel.id="specimenlabel";hudLabel.textContent="Bacterium";
+    const hudDay=document.createElement("div");hudDay.className="hud hud--day";hudDay.id="scancount";hudDay.textContent=L("0/8 CONFIRMED","0/8 CONFIRMADOS");
+    const hudLabel=document.createElement("div");hudLabel.className="hud hud--label";hudLabel.id="specimenlabel";hudLabel.textContent=SPECIMENS.bacterium.name;
     const hudCaption=document.createElement("div");hudCaption.className="hud hud--caption";hudCaption.id="hud-caption";hudCaption.hidden=true;
-    const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent="drag to orbit · scroll to zoom";
+    const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent=L("drag to orbit · scroll to zoom","arrastra para orbitar · desplázate para hacer zoom");
     const levelup=document.createElement("div");levelup.className="levelup";levelup.id="levelup";
-    levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">RANK UP</div><div class="levelup__n" id="lu-n">2</div><div class="levelup__s" id="lu-s">New Future Biologist rank reached!</div></div>`;
+    levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">${L("RANK UP","SUBIDA DE RANGO")}</div><div class="levelup__n" id="lu-n">2</div><div class="levelup__s" id="lu-s">${L("New Future Biologist rank reached!","¡Nuevo rango de Futuro Biólogo alcanzado!")}</div></div>`;
     const burst=document.createElement("div");burst.className="burst";burst.id="burst";
     stage.append(hudTL,hudDay,hudLabel,hudCaption,hudHint,burst,levelup);
     left.append(stage);
 
     const ro=document.createElement("div");ro.className="readouts";
-    ro.innerHTML=`<div class="ro"><span class="ro__k">Specimen</span><span class="ro__v" id="ro-name" style="font-size:var(--step-1)">—</span></div>
-      <div class="ro"><span class="ro__k">Processes confirmed</span><span class="ro__v" id="ro-scans">0</span></div>
-      <div class="ro"><span class="ro__k">Status</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">Not yet certified</span></div>`;
+    ro.innerHTML=`<div class="ro"><span class="ro__k">${L("Specimen","Espécimen")}</span><span class="ro__v" id="ro-name" style="font-size:var(--step-1)">—</span></div>
+      <div class="ro"><span class="ro__k">${L("Processes confirmed","Procesos confirmados")}</span><span class="ro__v" id="ro-scans">0</span></div>
+      <div class="ro"><span class="ro__k">${L("Status","Estado")}</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">${L("Not yet certified","Aún no certificado")}</span></div>`;
     left.append(ro);
 
     const scanCta=document.createElement("div");scanCta.className="scan-cta";
-    const scanBtn=document.createElement("button");scanBtn.type="button";scanBtn.className="btn btn--lg btn--signal";scanBtn.textContent="▶  Run an unlabelled scan";
-    const replayBtn=document.createElement("button");replayBtn.type="button";replayBtn.className="btn btn--ghost";replayBtn.textContent="🔁 Watch again";replayBtn.hidden=true;
+    const scanBtn=document.createElement("button");scanBtn.type="button";scanBtn.className="btn btn--lg btn--signal";scanBtn.textContent=L("▶  Run an unlabelled scan","▶  Ejecutar un escaneo sin etiquetar");
+    const replayBtn=document.createElement("button");replayBtn.type="button";replayBtn.className="btn btn--ghost";replayBtn.textContent=L("🔁 Watch again","🔁 Ver de nuevo");replayBtn.hidden=true;
     scanCta.append(scanBtn,replayBtn);
     left.append(scanCta);
 
     const guessPrompt=document.createElement("p");guessPrompt.className="guess-prompt";guessPrompt.id="guess-prompt";guessPrompt.hidden=true;
-    guessPrompt.textContent="Which life process did you just witness? Choose below.";
+    guessPrompt.textContent=L("Which life process did you just witness? Choose below.","¿Qué proceso vital acabas de presenciar? Elige abajo.");
     left.append(guessPrompt);
 
     const hintBox=document.createElement("div");hintBox.className="hint-box";hintBox.id="hint-box";hintBox.hidden=true;
     left.append(hintBox);
 
     const evBox=document.createElement("div");evBox.className="evidence-box";evBox.id="ev-box";evBox.hidden=true;
-    evBox.innerHTML=`<div class="evidence-box__k" id="ev-k">Confirmed evidence</div><div class="evidence-box__v" id="ev-v"></div>`;
+    evBox.innerHTML=`<div class="evidence-box__k" id="ev-k">${L("Confirmed evidence","Evidencia confirmada")}</div><div class="evidence-box__v" id="ev-v"></div>`;
     left.append(evBox);
+    const evSpeakerRow=document.createElement("div");evSpeakerRow.id="ev-speaker-row";evSpeakerRow.style.marginTop="var(--sp-2)";
+    left.append(evSpeakerRow);
     const legend=document.createElement("div");legend.className="legend";
-    legend.innerHTML=`Every scan is unlabelled. Watch what happens, then work out which MRS C GREN process you just saw — you won't be told in advance.`;
+    legend.innerHTML=L(
+      `Every scan is unlabelled. Watch what happens, then work out which MRS C GREN process you just saw — you won't be told in advance.`,
+      `Cada escaneo no está etiquetado. Observa lo que ocurre y luego descubre qué proceso MR CRECEN acabas de ver — no se te dirá de antemano.`
+    );
     left.append(legend);
     const varNote=document.createElement("div");varNote.className="legend";varNote.style.marginTop="var(--sp-2)";
-    varNote.innerHTML=`<b>Fair test:</b> the specimen you load is what changes each time; the checklist and the procedure stay exactly the same for every specimen — that's what makes the comparison fair.`;
+    varNote.innerHTML=L(
+      `<b>Fair test:</b> the specimen you load is what changes each time; the checklist and the procedure stay exactly the same for every specimen — that's what makes the comparison fair.`,
+      `<b>Prueba justa:</b> lo que cambia cada vez es el espécimen que cargas; la lista y el procedimiento siguen siendo exactamente iguales para cada espécimen — eso es lo que hace justa la comparación.`
+    );
     left.append(varNote);
     wrap.append(left);
 
     /* ---- right: specimen picker + answer grid + missions ---- */
     const side=document.createElement("div");side.className="side";
     const specBox=document.createElement("div");
-    specBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">1 · Load a specimen</p>`;
-    const specGrid=document.createElement("div");specGrid.className="specimen-cards";specGrid.setAttribute("role","group");specGrid.setAttribute("aria-label","Choose a specimen");
+    specBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("1 · Load a specimen","1 · Carga un espécimen")}</p>`;
+    const specGrid=document.createElement("div");specGrid.className="specimen-cards";specGrid.setAttribute("role","group");specGrid.setAttribute("aria-label",L("Choose a specimen","Elige un espécimen"));
     let chosen="bacterium";const cards={};
     SPECIMEN_ORDER.forEach(key=>{
       const sp=SPECIMENS[key];
       const c=document.createElement("button");c.type="button";c.className="specimen-card";c.setAttribute("aria-pressed",key===chosen?"true":"false");
       if(game.certified[key])c.classList.add("certified");
-      c.innerHTML=`<span class="specimen-card__badge">CERTIFIED</span>
+      c.innerHTML=`<span class="specimen-card__badge">${L("CERTIFIED","CERTIFICADO")}</span>
         <div class="specimen-card__row"><span class="specimen-swatch" style="background:#${sp.color.toString(16).padStart(6,"0")}"></span><span class="specimen-card__name">${sp.name}</span></div>
         <span class="specimen-card__tag">${sp.kingdom}</span>`;
       c.addEventListener("click",()=>{chosen=key;Object.values(cards).forEach(x=>x.setAttribute("aria-pressed","false"));c.setAttribute("aria-pressed","true");selectSpecimen(key);});
@@ -453,8 +569,8 @@ const simulation = {
     specBox.append(specGrid);side.append(specBox);
 
     const sensorBox=document.createElement("div");
-    sensorBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">2 · Identify the process</p>`;
-    const sensorGrid=document.createElement("div");sensorGrid.className="sensor-grid";sensorGrid.setAttribute("role","group");sensorGrid.setAttribute("aria-label","MRS C GREN answer choices");
+    sensorBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("2 · Identify the process","2 · Identifica el proceso")}</p>`;
+    const sensorGrid=document.createElement("div");sensorGrid.className="sensor-grid";sensorGrid.setAttribute("role","group");sensorGrid.setAttribute("aria-label",L("MRS C GREN answer choices","Opciones de respuesta MR CRECEN"));
     const sensorBtns={};
     PROCESSES.forEach(p=>{
       const b=document.createElement("button");b.type="button";b.className="sensor-btn";b.disabled=true;
@@ -468,7 +584,7 @@ const simulation = {
     side.append(sensorBox);
 
     const qBox=document.createElement("div");
-    qBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Missions</p>`;
+    qBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Missions","Misiones")}</p>`;
     const qList=document.createElement("div");qList.className="quests";
     const qNodes={};
     QUESTS.forEach(q=>{
@@ -489,7 +605,7 @@ const simulation = {
       const fill=$("xpfill");if(!animate)fill.style.transition="none";fill.style.width=pct+"%";if(!animate)requestAnimationFrame(()=>fill.style.transition="");
       $("xptext").textContent=game.xp+" XP";
       const s=$("streak");
-      if(game.streak>=3){s.hidden=false;s.classList.add("hot");s.innerHTML=`🔥 streak x${game.streak}`;}else{s.hidden=true;s.classList.remove("hot");}
+      if(game.streak>=3){s.hidden=false;s.classList.add("hot");s.innerHTML=L(`🔥 streak x${game.streak}`,`🔥 racha x${game.streak}`);}else{s.hidden=true;s.classList.remove("hot");}
       QUESTS.forEach(q=>{qNodes[q.id].classList.toggle("is-done",!!game.quests[q.id]);});
       SPECIMEN_ORDER.forEach(k=>{if(game.certified[k])cards[k].classList.add("certified");});
     }
@@ -507,12 +623,12 @@ const simulation = {
       $("specimenlabel").textContent=sp.name;
       $("ro-name").textContent=sp.name;
       const done=Object.keys(game.scanned[key]).length;
-      $("scancount").textContent=`${done}/8 CONFIRMED`;
+      $("scancount").textContent=L(`${done}/8 CONFIRMED`,`${done}/8 CONFIRMADOS`);
       $("sensor-progress").textContent=game.certified[key]
-        ? "All 8 processes confirmed. Click any green letter to review its evidence."
-        : `${done} of 8 processes confirmed. ${unsolvedFor(key).length} still to identify.`;
+        ? L("All 8 processes confirmed. Click any green letter to review its evidence.","Los 8 procesos están confirmados. Haz clic en cualquier letra verde para repasar su evidencia.")
+        : L(`${done} of 8 processes confirmed. ${unsolvedFor(key).length} still to identify.`,`${done} de 8 procesos confirmados. Quedan ${unsolvedFor(key).length} por identificar.`);
       $("ro-scans").textContent=done;
-      $("ro-status").textContent=game.certified[key]?"✓ Certified alive":"Not yet certified";
+      $("ro-status").textContent=game.certified[key]?L("✓ Certified alive","✓ Certificado como vivo"):L("Not yet certified","Aún no certificado");
       PROCESSES.forEach(p=>{
         const solved=!!game.scanned[key][p.id];
         sensorBtns[p.id].classList.toggle("solved",solved);
@@ -535,7 +651,7 @@ const simulation = {
     function levelUpTo(n){
       $("lu-n").textContent=n;const lu=$("levelup");lu.classList.add("show");
       fireBurst(["#a6ff5c","#3fd08b","#ffd45c","#eafff2"]);
-      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak("Rank up! Future Biologist rank "+n);
+      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(L("Rank up! Future Biologist rank "+n,"¡Subida de rango! Rango de Futuro Biólogo "+n));
       setTimeout(()=>lu.classList.remove("show"),1700);
     }
 
@@ -566,10 +682,10 @@ const simulation = {
       const remaining=unsolvedFor(chosen);
       if(remaining.length===0){
         scanBtn.hidden=true;replayBtn.hidden=true;
-        guessPrompt.hidden=false;guessPrompt.textContent="Fully certified! Click any green letter below to re-watch its evidence, or choose another specimen.";
+        guessPrompt.hidden=false;guessPrompt.textContent=L("Fully certified! Click any green letter below to re-watch its evidence, or choose another specimen.","¡Totalmente certificado! Haz clic en cualquier letra verde de abajo para volver a ver su evidencia, o elige otro espécimen.");
         PROCESSES.forEach(p=>{sensorBtns[p.id].disabled=false;});
       } else {
-        scanBtn.hidden=false;scanBtn.disabled=false;scanBtn.textContent="▶  Run an unlabelled scan";
+        scanBtn.hidden=false;scanBtn.disabled=false;scanBtn.textContent=L("▶  Run an unlabelled scan","▶  Ejecutar un escaneo sin etiquetar");
       }
     }
 
@@ -590,13 +706,13 @@ const simulation = {
       scanBtn.disabled=true;replayBtn.hidden=true;
       evBox.hidden=true;hintBox.hidden=true;guessPrompt.hidden=true;
       PROCESSES.forEach(p=>sensorBtns[p.id].disabled=true);
-      setCaption("👁 Watch closely…");
+      setCaption(L("👁 Watch closely…","👁 Observa con atención…"));
       scene.playProcess(chosen,currentChallenge);
       setTimeout(()=>{
         if(phase!=="animating")return;
         phase="guessing";
         setCaption(SCAN_CAPTIONS[currentChallenge]);
-        guessPrompt.hidden=false;guessPrompt.textContent="Which life process did you just witness? Choose below.";
+        guessPrompt.hidden=false;guessPrompt.textContent=L("Which life process did you just witness? Choose below.","¿Qué proceso vital acabas de presenciar? Elige abajo.");
         replayBtn.hidden=false;
         PROCESSES.forEach(p=>{
           const solved=!!game.scanned[chosen][p.id];
@@ -612,10 +728,22 @@ const simulation = {
       const sp=SPECIMENS[chosen];
       if(scene)scene.playProcess(chosen,processId);
       setCaption(null);
-      $("ev-k").textContent=`${sp.name} — ${PROCESSES.find(p=>p.id===processId).name} (confirmed)`;
+      $("ev-k").textContent=`${sp.name} — ${PROCESSES.find(p=>p.id===processId).name} ${L("(confirmed)","(confirmado)")}`;
       $("ev-v").textContent=sp.evidence[processId];
       evBox.hidden=false;
-      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(sp.evidence[processId]);
+      paintEvidenceSpeaker(sp.evidence[processId]);
+    }
+    /* Visible speaker icon beside the evidence box, discoverable without
+       needing to click the evidence text itself (per accessibility rules —
+       a speaker button must be visible, not just a click side-effect). */
+    function paintEvidenceSpeaker(text){
+      evSpeakerRow.innerHTML="";
+      if(sim.ttsEnabled&&sim.ttsEnabled()){
+        const btn=sim.speaker(()=>text);
+        const label=document.createElement("span");label.className="sensor-progress";label.style.marginLeft="var(--sp-2)";
+        label.textContent=L("Read evidence aloud","Leer la evidencia en voz alta");
+        evSpeakerRow.append(btn,label);
+      }
     }
 
     /* ---- submit a guess while phase === 'guessing' ---- */
@@ -626,17 +754,17 @@ const simulation = {
       if(processId===currentChallenge){
         const tries=wrongAttempts+1;
         const xpGain=tries===1?25:tries===2?18:12;
-        resolveChallenge(true,xpGain,tries===1?"Correct — first try":`Correct after ${tries} tries`);
+        resolveChallenge(true,xpGain,tries===1?L("Correct — first try","Correcto — a la primera"):L(`Correct after ${tries} tries`,`Correcto tras ${tries} intentos`));
       } else {
         wrongAttempts++;
         sensorBtns[processId].classList.add("shake");
         setTimeout(()=>sensorBtns[processId].classList.remove("shake"),400);
-        sim.toast("Not quite — look again.","info");
+        sim.toast(L("Not quite — look again.","No exactamente — vuelve a mirar."),"info");
         if(wrongAttempts===2){
           hintBox.hidden=false;
-          hintBox.innerHTML=`<b>Hint:</b> ${MRS_DEFS[currentChallenge]}`;
+          hintBox.innerHTML=`<b>${L("Hint:","Pista:")}</b> ${MRS_DEFS[currentChallenge]}`;
         } else if(wrongAttempts>=4){
-          resolveChallenge(false,5,"Revealed after 4 tries");
+          resolveChallenge(false,5,L("Revealed after 4 tries","Revelado tras 4 intentos"));
         }
       }
     }
@@ -648,14 +776,14 @@ const simulation = {
 
       sensorBtns[currentChallenge].disabled=false;
       sensorBtns[currentChallenge].classList.add("solved");
-      $("ev-k").textContent=`${sp.name} — ${pName} confirmed`;
+      $("ev-k").textContent=`${sp.name} — ${pName} ${L("confirmed","confirmado")}`;
       $("ev-v").textContent=sp.evidence[currentChallenge];
       evBox.hidden=false;hintBox.hidden=true;guessPrompt.hidden=true;replayBtn.hidden=true;
       setCaption(null);
       PROCESSES.forEach(p=>sensorBtns[p.id].disabled=true);
 
-      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(sp.evidence[currentChallenge]);
-      sim.toast(wrongAttempts===0?`Correct! ${pName} confirmed.`:`${pName} confirmed.`, wrongAttempts===0?"correct":"info");
+      paintEvidenceSpeaker(sp.evidence[currentChallenge]);
+      sim.toast(wrongAttempts===0?L(`Correct! ${pName} confirmed.`,`¡Correcto! ${pName} confirmado.`):L(`${pName} confirmed.`,`${pName} confirmado.`), wrongAttempts===0?"correct":"info");
       if(wrongAttempts===0)fireBurst(["#3fd08b","#a6ff5c"]);
 
       game.scanned[chosen][currentChallenge]=true;
@@ -677,19 +805,19 @@ const simulation = {
       sim.state.game=game;sim.saveState();
 
       paintGame(true);
-      $("scancount").textContent=`${Object.keys(game.scanned[chosen]).length}/8 CONFIRMED`;
+      $("scancount").textContent=L(`${Object.keys(game.scanned[chosen]).length}/8 CONFIRMED`,`${Object.keys(game.scanned[chosen]).length}/8 CONFIRMADOS`);
       $("ro-scans").textContent=Object.keys(game.scanned[chosen]).length;
 
       if(justCertified){
         cards[chosen].classList.add("certified");
         fireBurst(["#3fd08b","#a6ff5c","#ffd45c"]);
-        sim.toast(`Certified alive: ${sp.name}! All 8 life processes confirmed.`,"correct");
-        $("ro-status").textContent="✓ Certified alive";
+        sim.toast(L(`Certified alive: ${sp.name}! All 8 life processes confirmed.`,`Certificado como vivo: ${sp.name}. ¡Los 8 procesos vitales confirmados!`),"correct");
+        $("ro-status").textContent=L("✓ Certified alive","✓ Certificado como vivo");
       }
       newlyDone.forEach((q,i)=>setTimeout(()=>{
         const el=qNodes[q.id];el.classList.add("just-done");setTimeout(()=>el.classList.remove("just-done"),700);
         fireBurst(["#3fd08b","#a6ff5c","#ffd45c"]);
-        sim.toast(`Mission complete: ${q.title}  +${q.xp} XP`,"correct");
+        sim.toast(L(`Mission complete: ${q.title}  +${q.xp} XP`,`Misión completada: ${q.title}  +${q.xp} XP`),"correct");
       },i*550));
       if(leveled)setTimeout(()=>levelUpTo(game.level),newlyDone.length?400:0);
 
@@ -701,8 +829,8 @@ const simulation = {
     function newRoundKeepEvidence(){
       const remaining=unsolvedFor(chosen);
       $("sensor-progress").textContent=game.certified[chosen]
-        ? "All 8 processes confirmed. Click any green letter to review its evidence."
-        : `${Object.keys(game.scanned[chosen]).length} of 8 processes confirmed. ${remaining.length} still to identify.`;
+        ? L("All 8 processes confirmed. Click any green letter to review its evidence.","Los 8 procesos están confirmados. Haz clic en cualquier letra verde para repasar su evidencia.")
+        : L(`${Object.keys(game.scanned[chosen]).length} of 8 processes confirmed. ${remaining.length} still to identify.`,`${Object.keys(game.scanned[chosen]).length} de 8 procesos confirmados. Quedan ${remaining.length} por identificar.`);
       PROCESSES.forEach(p=>{
         const solved=!!game.scanned[chosen][p.id];
         sensorBtns[p.id].classList.toggle("solved",solved);
@@ -710,9 +838,9 @@ const simulation = {
       });
       if(remaining.length===0){
         scanBtn.hidden=true;
-        guessPrompt.hidden=false;guessPrompt.textContent="Fully certified! Click any green letter below to re-watch its evidence, or choose another specimen.";
+        guessPrompt.hidden=false;guessPrompt.textContent=L("Fully certified! Click any green letter below to re-watch its evidence, or choose another specimen.","¡Totalmente certificado! Haz clic en cualquier letra verde de abajo para volver a ver su evidencia, o elige otro espécimen.");
       } else {
-        scanBtn.hidden=false;scanBtn.disabled=false;scanBtn.textContent="▶  Run an unlabelled scan";
+        scanBtn.hidden=false;scanBtn.disabled=false;scanBtn.textContent=L("▶  Run an unlabelled scan","▶  Ejecutar un escaneo sin etiquetar");
       }
     }
   }
@@ -1112,7 +1240,7 @@ function buildFallback(stageEl){
   const label=mk("text",{x:170,y:230,"text-anchor":"middle",fill:"#bfe6cf","font-family":"var(--font-data)","font-size":12});
   svg.append(blob,label);stageEl.appendChild(svg);
   const colorFor={bacterium:"#3fd0c0",protist:"#a080e0",fungus:"#d9b26b",plant:"#3f9d4d",animal:"#8a5a2b"};
-  const nameFor={bacterium:"Bacterium",protist:"Protist",fungus:"Fungus",plant:"Venus Flytrap",animal:"Beetle"};
+  const nameFor={bacterium:SPECIMENS.bacterium.name,protist:SPECIMENS.protist.name,fungus:SPECIMENS.fungus.name,plant:SPECIMENS.plant.name,animal:SPECIMENS.animal.name};
   function setSpecimen(key){blob.setAttribute("fill",colorFor[key]);label.textContent=nameFor[key];}
   function playProcess(key,processId){
     blob.animate([{transform:"scale(1)"},{transform:"scale(1.12)"},{transform:"scale(1)"}],{duration:500,easing:"ease-out"});
@@ -1124,7 +1252,7 @@ function buildFallback(stageEl){
 mountActivity({ simulation }).catch(e=>{
   console.error("Discovery Lab activity failed to start:",e);
   const r=document.getElementById("lab-root");
-  if(r)r.innerHTML='<p class="nav-empty">Something went wrong starting this lab. Please refresh the page.</p>';
+  if(r)r.innerHTML='<p class="nav-empty">'+L("Something went wrong starting this lab. Please refresh the page.","Algo salió mal al iniciar este laboratorio. Por favor, actualiza la página.")+'</p>';
 });
 </script>
 </body>

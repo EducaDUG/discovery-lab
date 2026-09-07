@@ -126,7 +126,24 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script src="../../../../engine/vendor/three.min.js"></script>
 <script type="module">
 import { joinSession, addScore, sendReaction, onPlayers, onReactions, todaysSessionId, isLive, REACTIONS, recordCompletion } from "../../_shared/live-wall.js";
-import "../../../../engine/accessibility.js";
+import { speakerButton } from "../../../../engine/accessibility.js";
+
+/* Speaker buttons need a live DOM node (they carry a click listener), so
+   speakerHTML() only reserves a slot in the markup string; mountSpeakers()
+   (called after every innerHTML render) swaps each slot for the real button. */
+let spkRegistry = {}, spkCounter = 0;
+function speakerHTML(text) {
+  const id = "spk" + (spkCounter++);
+  spkRegistry[id] = text;
+  return `<span class="ce-spk-slot" data-spk-id="${id}" style="display:inline-block;vertical-align:middle;margin-left:.4em"></span>`;
+}
+function mountSpeakers(host) {
+  host.querySelectorAll(".ce-spk-slot").forEach(slot => {
+    const text = spkRegistry[slot.dataset.spkId];
+    if (text == null) return;
+    slot.replaceWith(speakerButton(() => text));
+  });
+}
 
 const root = document.getElementById("lab-root");
 const SESSION_ID = todaysSessionId("english");
@@ -495,13 +512,14 @@ function orient(host) {
     <div class="panel stack">
       <p class="eyebrow">Today's mission</p>
       <h2>${playerName ? `Welcome, ${escapeHTML(playerName)}!` : "Welcome!"}</h2>
-      <p><strong>What:</strong> ${o.objective}</p>
-      <p><strong>Why it matters:</strong> ${o.realLife}</p>
+      <p><strong>What:</strong> ${o.objective}${speakerHTML(o.objective)}</p>
+      <p><strong>Why it matters:</strong> ${o.realLife}${speakerHTML(o.realLife)}</p>
       <p><strong>How it connects:</strong> ${o.courseLink}</p>
       <p><strong>By the end you will be able to:</strong></p>
       <ul>${o.successCriteria.map(s=>`<li>${s}</li>`).join("")}</ul>
       <button class="btn btn--signal" type="button" id="ce-next">Let's start →</button>
     </div>`;
+  mountSpeakers(host);
   host.querySelector("#ce-next").addEventListener("click", advance);
 }
 
@@ -510,9 +528,10 @@ function predict(host) {
   const p = CONFIG.predict;
   host.innerHTML = `<div class="panel stack">
     <p class="eyebrow">Quick guess</p>
-    <h2>${p.prompt}</h2>
+    <h2>${p.prompt}${speakerHTML(p.prompt)}</h2>
     <div class="ce-options">${p.options.map(o=>`<button class="ce-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
   </div>`;
+  mountSpeakers(host);
   host.querySelectorAll(".ce-opt").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       host.querySelectorAll(".ce-opt").forEach(b=>b.disabled=true);
@@ -533,9 +552,10 @@ function rounds(host) {
       <span class="ce-3d-badge">3D · Chain Reaction Table</span>
       <span class="ce-3d-hint">drag to look around</span>
     </div>
-    <p class="ce-cause">${r.cause}</p>
+    <p class="ce-cause">${r.cause}${speakerHTML(r.cause)}</p>
     <div class="ce-options">${r.options.map(o=>`<button class="ce-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>`;
 
+  mountSpeakers(host);
   mountStage3D(host.querySelector("#ce-3d"));
   clearStage3D();
   currentRoundRefs = ROUND3D[r.icon].build(three.group);
@@ -561,9 +581,10 @@ function rounds(host) {
 /* ---- EXPLAIN / APPLY (same structured shape) --------------------------- */
 function structuredQuestion(host, data, onDone) {
   host.innerHTML = `<div class="panel stack">
-    <h2>${data.prompt}</h2>
+    <h2>${data.prompt}${speakerHTML(data.prompt)}</h2>
     <div class="ce-options">${data.options.map(o=>`<button class="ce-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
   </div>`;
+  mountSpeakers(host);
   host.querySelectorAll(".ce-opt").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const opt = data.options.find(o=>o.id===btn.dataset.id);
@@ -699,12 +720,13 @@ function check(host) {
       <span class="ce-drive-badge">🛵 Arcade Drive</span>
       <span class="ce-drive-progress">Stop ${stopIdx + 1} of ${stopChoices.length}</span>
     </div>
-    <p class="ce-drive-cause">${stop.cause}</p>
+    <p class="ce-drive-cause">${stop.cause}${speakerHTML(stop.cause)}</p>
     <div class="ce-lanes">
       <button class="ce-lane" type="button" data-side="left"><span class="ce-lane__arrow">↰</span>${stop.left}</button>
       <button class="ce-lane" type="button" data-side="right"><span class="ce-lane__arrow">↱</span>${stop.right}</button>
     </div>`;
 
+  mountSpeakers(host);
   mountArcade3D(host.querySelector("#ce-arcade"));
   arcade.vehicle.position.x = 0;
 
