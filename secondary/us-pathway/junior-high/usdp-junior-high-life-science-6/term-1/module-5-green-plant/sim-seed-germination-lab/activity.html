@@ -256,6 +256,18 @@ const FEEDBACK={
   dim:"This seed wanted more light than it got.",
   toolight:"This seed prefers the dark. Bright light held some of it back.",
 };
+const NEXT_STEP={
+  ok:"Next: try changing just one condition further to find the edge of what this seed can tolerate.",
+  oxygen0:"Next: raise the oxygen a little at a time to see the smallest amount that still works.",
+  lowoxygen:"Next: compare this to a trial with full air (21%) using the same seed and temperature.",
+  cold:"Next: try warming it up in small steps to find where growth restarts.",
+  coolish:"Next: nudge the temperature toward this seed's ideal range and compare.",
+  hot:"Next: try cooling it down in small steps to find where growth restarts.",
+  warmish:"Next: nudge the temperature down and compare the result.",
+  needlight:"Next: try the same seed with several more hours of light.",
+  dim:"Next: try full daylight hours and compare.",
+  toolight:"Next: try this seed in the dark and compare.",
+};
 
 /* growth sub-progress (shared by 3D and 2D fallback) */
 const gSeed=p=>smooth(0.06,0.20,p), gRoot=p=>smooth(0.12,0.50,p), gStem=p=>smooth(0.40,0.74,p),
@@ -293,8 +305,17 @@ let sim=null;
 const stats={temps:new Set(),o2s:new Set(),lights:new Set(),species:new Set(),lowO2Fail:false,bestGerm:0};
 
 const simulation={
-  orient(host){
+  orient(host, api){
     host.innerHTML="";
+    const sm=(api&&api.config&&api.config.scientificMethod)||{};
+    if(sm.observation||sm.question){
+      const obs=document.createElement("div");obs.className="card";obs.style.marginBottom="var(--sp-4)";
+      if(sm.observation){obs.append(Object.assign(document.createElement("p"),{className:"eyebrow",textContent:"Notice this first"}));
+        obs.append(Object.assign(document.createElement("p"),{textContent:sm.observation}));}
+      if(sm.question){obs.append(Object.assign(document.createElement("p"),{className:"eyebrow",textContent:"The scientific question"}));
+        obs.append(Object.assign(document.createElement("p"),{style:"font-weight:700",textContent:sm.question}));}
+      host.append(obs);
+    }
     const intro=document.createElement("p");intro.className="q__hint";
     intro.textContent="Cut a seed in half and you find a whole baby plant with its lunch packed. Learn the four parts — you will watch every one of them grow in the 3D lab.";
     host.append(intro);
@@ -382,6 +403,50 @@ const simulation={
 
     // right: controls + quests
     const side=document.createElement("div");side.className="side";
+    const smCfg=(api.config&&api.config.scientificMethod)||{};
+
+    // variables card — makes IV/DV/controlled explicit before any trial is run
+    if(smCfg.variables){
+      const vCard=document.createElement("div");vCard.className="card";
+      vCard.innerHTML=`<p class="eyebrow">Fair test — your variables</p>
+        <p style="margin-top:.3em"><b>Independent</b> (you change it): ${smCfg.variables.independent}</p>
+        <p style="margin-top:.3em"><b>Dependent</b> (you measure it): ${smCfg.variables.dependent}</p>
+        <p style="margin-top:.3em"><b>Controlled</b> (kept the same): ${smCfg.variables.controlled}</p>`;
+      side.append(vCard);
+    }
+
+    // hypothesis gate — must be locked in ("If..., then..., because...") before Incubate works
+    let hypothesisLocked=false, hypothesisPayload=null;
+    const hypoCard=document.createElement("div");hypoCard.className="card";hypoCard.style.borderLeft="3px solid var(--signal)";
+    hypoCard.innerHTML=`<p class="eyebrow">Before you begin: your hypothesis</p>
+      <p class="q__hint" style="margin-bottom:var(--sp-2)">If … then … because … — choose the three parts of your hypothesis, then lock it in. You can only do this once, before your first trial.</p>`;
+    const mkSelect=(label,opts)=>{
+      const wr=document.createElement("label");wr.style.display="block";wr.style.marginBottom="var(--sp-2)";
+      wr.innerHTML=`<span class="ctrl__name" style="display:block;margin-bottom:.2em">${label}</span>`;
+      const sel=document.createElement("select");sel.className="select";
+      const ph=document.createElement("option");ph.value="";ph.textContent="Choose one…";ph.disabled=true;ph.selected=true;sel.append(ph);
+      opts.forEach(o=>{const op=document.createElement("option");op.value=o.id;op.textContent=o.label;sel.append(op);});
+      wr.append(sel);return {wr,sel};
+    };
+    const hIf=mkSelect("If a seed is placed where…",smCfg.hypothesisOptions?.condition||[]);
+    const hThen=mkSelect("then I predict…",smCfg.hypothesisOptions?.outcome||[]);
+    const hBecause=mkSelect("because…",smCfg.hypothesisOptions?.reason||[]);
+    hypoCard.append(hIf.wr,hThen.wr,hBecause.wr);
+    const hypoLockRow=document.createElement("div");hypoLockRow.className="cluster";
+    const hypoLockBtn=document.createElement("button");hypoLockBtn.type="button";hypoLockBtn.className="btn";hypoLockBtn.textContent="Lock in my hypothesis";
+    const hypoStatus=document.createElement("span");hypoStatus.className="q__hint";
+    hypoLockRow.append(hypoLockBtn,hypoStatus);hypoCard.append(hypoLockRow);
+    side.append(hypoCard);
+    hypoLockBtn.addEventListener("click",()=>{
+      if(!hIf.sel.value||!hThen.sel.value||!hBecause.sel.value){hypoStatus.textContent="Choose all three parts first.";hypoStatus.style.color="var(--caution)";return;}
+      hypothesisLocked=true;
+      hypothesisPayload={if:hIf.sel.options[hIf.sel.selectedIndex].textContent,then:hThen.sel.options[hThen.sel.selectedIndex].textContent,because:hBecause.sel.options[hBecause.sel.selectedIndex].textContent};
+      [hIf.sel,hThen.sel,hBecause.sel,hypoLockBtn].forEach(x=>x.disabled=true);
+      hypoStatus.textContent="Hypothesis locked in — you can start incubating.";hypoStatus.style.color="var(--positive)";
+      sim.setResult("hypothesis",hypothesisPayload);sim.mark("hypothesis_recorded_before_testing",true);
+      updateRunGate();
+    });
+
     // species
     const specBox=document.createElement("div");
     specBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">1 · Choose a seed</p>`;
@@ -411,7 +476,45 @@ const simulation={
     // incubate
     const runWrap=document.createElement("div");runWrap.className="incubate";
     const runBtn=document.createElement("button");runBtn.className="btn btn--lg btn--signal";runBtn.type="button";runBtn.textContent="▶  Incubate seed";
-    runWrap.append(runBtn);side.append(runWrap);
+    runBtn.disabled=true;
+    const runGateHint=document.createElement("p");runGateHint.className="q__hint";runGateHint.style.marginTop="var(--sp-2)";
+    runGateHint.textContent="Lock in your hypothesis above before your first trial.";
+    runWrap.append(runBtn,runGateHint);side.append(runWrap);
+    function updateRunGate(){
+      if(hypothesisLocked){runBtn.disabled=false;runGateHint.hidden=true;}
+    }
+
+    // reflection panel — revealed once enough trials are done to reflect on
+    const reflBox=document.createElement("div");reflBox.className="card";reflBox.hidden=true;reflBox.style.borderLeft="3px solid var(--positive)";
+    const rOpts=smCfg.reflection||{};
+    reflBox.innerHTML=`<p class="eyebrow">Lab reflection</p>
+      <p class="q__hint" style="margin-bottom:var(--sp-2)">You have run several trials. Before you move on to Explain, reflect on your own investigation.</p>
+      <p class="ctrl__name" style="margin-bottom:.3em">How confident are you in your conclusion?</p>`;
+    const confRow=document.createElement("div");confRow.className="cluster";confRow.style.marginBottom="var(--sp-3)";
+    let confVal=null;const confBtns=[];
+    ["Not sure","Somewhat","Confident","Very confident"].forEach((lbl,i)=>{
+      const b=document.createElement("button");b.type="button";b.className="chip-btn";b.textContent=lbl;b.setAttribute("aria-pressed","false");
+      b.addEventListener("click",()=>{confVal=i+1;confBtns.forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");saveReflection();});
+      confBtns.push(b);confRow.append(b);
+    });
+    reflBox.append(confRow);
+    const mkChipSelect=(label,opts,onPick)=>{
+      const box=document.createElement("div");box.style.marginBottom="var(--sp-3)";
+      box.append(Object.assign(document.createElement("p"),{className:"ctrl__name",style:"margin-bottom:.3em",textContent:label}));
+      const row=document.createElement("div");row.className="cluster";const btns=[];let val=null;
+      (opts||[]).forEach(o=>{const b=document.createElement("button");b.type="button";b.className="chip-btn";b.textContent=o.label;b.setAttribute("aria-pressed","false");
+        b.addEventListener("click",()=>{val=o;btns.forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");onPick(o);});
+        btns.push(b);row.append(b);});
+      box.append(row);return box;
+    };
+    let improveVal=null,nextVal=null;
+    reflBox.append(mkChipSelect("What would make your investigation more reliable?",rOpts.improveOptions,o=>{improveVal=o;saveReflection();}));
+    reflBox.append(mkChipSelect("What would you investigate next?",rOpts.nextOptions,o=>{nextVal=o;saveReflection();}));
+    function saveReflection(){
+      sim.setResult("reflection",{confidence:confVal,more_reliable:improveVal&&improveVal.label,next_investigation:nextVal&&nextVal.label});
+      sim.mark("reflection_recorded",!!(confVal&&improveVal&&nextVal));
+    }
+    side.append(reflBox);
     // quests
     const qBox=document.createElement("div");
     qBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Missions</p>`;
@@ -482,7 +585,7 @@ const simulation={
     /* ---- incubation ---- */
     let running=false;
     runBtn.addEventListener("click",()=>{
-      if(running||!scene)return;
+      if(running||!scene||!hypothesisLocked)return;
       const sp=SPECIES[chosen],T=temp.value(),o2=oxy.value(),L=light.value();
       const res=outcome(sp,T,o2,L);
       const fp=finalProgress(res.germ), totalDays=res.days||10;
@@ -505,10 +608,11 @@ const simulation={
       $("ro-days").textContent=res.days?res.days:"—";
       $("ro-stage").textContent=res.germ<=5?"Dormant":res.germ<25?"Root":res.germ<60?"Cotyledons":"First leaf";
       sim.recordTrial({seed:sp.name,tempC:T,o2:o2,lightH:L,germPct:res.germ,days:res.days!=null?res.days:"—"});
+      if(reflBox.hidden&&sim.trials.length>=3)reflBox.hidden=false;
 
       const kind=res.germ>=70?"toast--correct":res.germ<=5?"toast--incorrect":"toast--info";
       const box=document.createElement("div");box.className="toast "+kind+" anim-pop";
-      box.textContent=(res.germ>=70?"Success! ":res.germ<=5?"No growth. ":"Partial. ")+(FEEDBACK[res.limit]||"Trial complete.");
+      box.textContent=(res.germ>=70?"Success! ":res.germ<=5?"No growth. ":"Partial. ")+(FEEDBACK[res.limit]||"Trial complete.")+" "+(NEXT_STEP[res.limit]||"");
       note.innerHTML="";note.append(box);
       if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(box.textContent);
 

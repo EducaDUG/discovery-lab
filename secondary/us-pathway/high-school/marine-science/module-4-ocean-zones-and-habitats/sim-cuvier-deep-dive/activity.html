@@ -53,7 +53,15 @@ const simulation = {
      who never saw the lesson can still learn the key idea before diving. */
   orient(host){
     host.innerHTML =
-      `<p class="q__hint">The ocean is layered. As you go down, sunlight runs out first, then the
+      `<div class="card" style="margin-bottom:10px">
+        <p class="eyebrow">Observation</p>
+        <p class="q__hint" style="margin:0 0 8px">Notice this before you dive: the sunlit strip at the top of the
+         diagram below is thin, but the dark column beneath it goes on for kilometres.</p>
+        <p class="eyebrow">Scientific question</p>
+        <p class="q__hint" style="margin:0">How do light, temperature and pressure change as you descend
+         from the surface to 3,000&nbsp;m — and how does that limit where life, and photosynthesis, can exist?</p>
+      </div>
+      <p class="q__hint">The ocean is layered. As you go down, sunlight runs out first, then the
        water turns cold, and the pressure climbs by about one atmosphere every 10&nbsp;m. Each layer is
        a different habitat with different life.</p>
       <svg viewBox="0 0 360 232" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-top:12px" role="img" aria-label="Diagram of ocean zones by depth, showing light fading and temperature falling as depth increases">
@@ -101,6 +109,14 @@ const simulation = {
   investigate(host, sim){
     host.innerHTML = "";
     const wrap = document.createElement("div"); wrap.className = "stack";
+
+    const varsCard = document.createElement("div"); varsCard.className = "card";
+    varsCard.innerHTML =
+      '<p class="eyebrow">Your experiment — the variables</p>' +
+      '<p class="q__hint" style="margin:0"><strong>You control (independent):</strong> how deep you dive. ' +
+      '<strong>The sim measures (dependent):</strong> temperature, pressure and light at that depth. ' +
+      '<strong>Kept the same (controlled):</strong> the same whale, the same instruments, reading each zone the moment you arrive — so the comparison between zones is fair.</p>';
+    wrap.append(varsCard);
 
     const note = document.createElement("p"); note.className = "q__hint";
     note.innerHTML = "Click the dive to start it, then pilot the whale: <strong>W</strong>/<strong>S</strong> dive &amp; rise, " +

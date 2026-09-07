@@ -1,6 +1,6 @@
 {
   "activityId": "USDP-MAR-M04-SIM01",
-  "version": "1.0",
+  "version": "1.1",
   "title": "Cuvier's Deep Dive: Ocean Zones",
   "subtitle": "Pilot the deepest-diving mammal on Earth and map the ocean's living layers.",
   "course": "Marine Science",
@@ -35,14 +35,14 @@
   },
 
   "predict": {
-    "type": "multi",
-    "prompt": "You are about to dive from the sunlit surface toward 3,000 m. As you go deeper, what will happen to the water temperature and the amount of light?",
-    "hint": "Think about how far sunlight can reach into water, and where the sun's warmth is added.",
+    "type": "mc",
+    "prompt": "Scientific question: how do temperature and light change as you dive from the surface to 3,000 m? Write your hypothesis by choosing the one statement below whose reasoning you think is correct.",
+    "hint": "A hypothesis needs a reason, not just a guess. Think about how far sunlight can reach into water, and where the sun's warmth is added.",
     "options": [
-      { "id": "a", "label": "Both fall — it gets colder and darker" },
-      { "id": "b", "label": "Both rise — it gets warmer and brighter" },
-      { "id": "c", "label": "Temperature rises but light falls" },
-      { "id": "d", "label": "They stay about the same all the way down" }
+      { "id": "a", "label": "If I dive to 3,000 m, then both temperature and light will fall, because sunlight cannot reach far into water and the sun's warmth only heats the surface layer." },
+      { "id": "b", "label": "If I dive to 3,000 m, then it will get warmer and brighter, because pressure itself generates heat and light as it builds up." },
+      { "id": "c", "label": "If I dive to 3,000 m, then temperature will rise but light will fall, because geothermal heat from the seabed warms the deep water." },
+      { "id": "d", "label": "If I dive to 3,000 m, then temperature and light will stay about the same, because water spreads heat and light evenly through its depth." }
     ],
     "revisable": true
   },
@@ -53,7 +53,7 @@
   },
 
   "record": {
-    "intro": "Each ocean zone you reach logs its conditions here automatically — you never retype data the simulation already produced.",
+    "intro": "This is your evidence. Each ocean zone you reach logs its real conditions here automatically — you never retype data the simulation already produced. You will use these numbers, not a guess, to answer the scientific question.",
     "emptyText": "No zones logged yet. Dive in the simulation to reach the Sunlight, Twilight and Midnight zones.",
     "columns": [
       { "key": "zone", "label": "Zone", "unit": "" },
@@ -65,27 +65,29 @@
   },
 
   "explain": {
-    "prompt": "Look at your Investigation Record. Describe how temperature and light changed as you dived from the Sunlight Zone to the Midnight Zone, and explain why almost no life in the deep ocean relies on photosynthesis.",
-    "lede": "Use the actual numbers from your dive.",
+    "prompt": "Analysis and conclusion: look at your Investigation Record (your evidence). Describe how temperature and light changed as you dived from the Sunlight Zone to the Midnight Zone, say whether this evidence supported or refuted your hypothesis and why, then answer the scientific question — explain why almost no life in the deep ocean relies on photosynthesis.",
+    "lede": "Use the actual numbers from your dive, and refer back to the hypothesis you chose before you dived.",
     "maxMarks": 3,
-    "minChars": 90,
+    "minChars": 100,
     "expectedPoints": [
       "Temperature falls with depth (a warm surface layer then a sharp drop through the thermocline to near-freezing deep water).",
       "Light falls rapidly and is effectively zero by about 1,000 m (the Midnight Zone is completely dark).",
+      "States clearly whether the dive evidence supported or refuted their chosen hypothesis, referencing their own recorded numbers.",
       "Photosynthesis needs light, so it can only happen in the sunlit surface layer; the deep sea instead depends on sinking marine snow, chemosynthesis or bioluminescent food webs."
     ]
   },
 
   "apply": {
-    "prompt": "A newly discovered fish is caught at 2,500 m in the Midnight Zone. Using what you observed about the conditions there, predict TWO adaptations it is likely to have, and explain why each one helps it survive at that depth.",
+    "prompt": "A newly discovered fish is caught at 2,500 m in the Midnight Zone. Using what you observed about the conditions there, predict TWO adaptations it is likely to have, and explain why each one helps it survive at that depth. Finish with one sentence of evaluation: how confident are you in your conclusion, and name one specific way you could make your dive investigation more reliable (for example, more repeat dives, or logging more points within a zone)?",
     "lede": "Base each adaptation on a specific condition you recorded — darkness, cold, or pressure.",
     "maxMarks": 3,
-    "minChars": 90,
+    "minChars": 110,
     "expectedPoints": [
       "Bioluminescence or very large/sensitive eyes — to make or detect light in total darkness (to find prey, mates or camouflage).",
       "A slow metabolism / ability to survive on little food — because food is scarce so far below the productive surface.",
       "A body adapted to extreme pressure (no gas-filled swim bladder, flexible tissues) — pressure near 2,500 m is roughly 250 times that at the surface.",
-      "Dark or red colouration — camouflage in a zone where red light never reaches."
+      "Dark or red colouration — camouflage in a zone where red light never reaches.",
+      "A genuine evaluation sentence stating a confidence level and one specific, plausible way to make the investigation more reliable (repeat dives, more logged points, comparing to a real oceanographic profile)."
     ]
   },
 
@@ -136,6 +138,12 @@
       ],
       "answer": "a",
       "explain": "Pelagic = the open water column; benthic = the seabed. A Cuvier's whale hunts in both."
+    },
+    {
+      "id": "kc5", "type": "slider", "marks": 0,
+      "prompt": "Reflection — not scored: how confident are you in your Explain conclusion about why photosynthesis is limited to the surface?",
+      "hint": "Slide honestly. This does not affect your mark — it helps you and your teacher see how sure you feel about your own reasoning.",
+      "min": 1, "max": 5, "step": 1, "default": 3, "unit": "/5 confident"
     }
   ],
 

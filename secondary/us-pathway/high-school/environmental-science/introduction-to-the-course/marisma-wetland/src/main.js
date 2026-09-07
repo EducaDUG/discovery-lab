@@ -218,6 +218,7 @@ function postRecord(result) {
     const row = {
       year: 'Year ' + s.year,
       action: actions,
+      reasoning: (game.prediction || '').trim() || '—',
       event: result.event ? result.event.name : '—',
       biodiversity: Math.round(s.biodiversity),
       water: Math.round(s.waterQuality),
@@ -235,6 +236,7 @@ function postFinalRow() {
     const row = {
       year: 'Final (after drought)',
       action: '20-year outcome',
+      reasoning: '—',
       event: st.survived ? 'Survived the drought' : 'Failed the drought',
       biodiversity: Math.round(s.biodiversity),
       water: Math.round(s.waterQuality),

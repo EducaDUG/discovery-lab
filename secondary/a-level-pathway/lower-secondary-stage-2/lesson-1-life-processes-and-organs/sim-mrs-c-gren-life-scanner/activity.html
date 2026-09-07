@@ -322,8 +322,15 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 let sim=null;
 
 const simulation = {
-  orient(host){
+  orient(host,api){
     host.innerHTML="";
+    sim=api;
+    const o=(api&&api.config&&api.config.orient)||{};
+    if(o.scientificObservation||o.scientificQuestion){
+      const obs=document.createElement("div");obs.className="debate-note";obs.style.marginTop="0";obs.style.marginBottom="var(--sp-4)";
+      obs.innerHTML=`${o.scientificObservation?`<b>Observation:</b> ${o.scientificObservation}<br>`:""}${o.scientificQuestion?`<b>Scientific question:</b> ${o.scientificQuestion}`:""}`;
+      host.append(obs);
+    }
     const intro=document.createElement("p");intro.className="q__hint";
     intro.textContent="Every living thing on Earth — no matter how strange — carries out these same eight processes. Click each one to read what it actually means before you meet your five specimens.";
     host.append(intro);
@@ -352,6 +359,19 @@ const simulation = {
     const game = sim.state.game || (sim.state.game = { xp:0, level:1, streak:0, best:0, quests:{}, totalScans:0,
       certified:{bacterium:false,protist:false,fungus:false,plant:false,animal:false},
       scanned:{bacterium:{},protist:{},fungus:{},plant:{},animal:{}} });
+
+    /* Evidence-export note: the engine's shared JSON export (engine.js) does not
+       have a dedicated "scientific_method" block (that would require an engine
+       change, out of scope for this activity). Instead we stash the same
+       information into simulation_results, which the export already includes
+       verbatim, so a marker still sees the scientific question and the fair-test
+       variables alongside the raw trial data. */
+    sim.setResult("scientific_question", (sim.config.orient||{}).scientificQuestion || null);
+    sim.setResult("variables", {
+      independent: "Which specimen is loaded into the chamber (bacterium / protist / fungus / plant / animal).",
+      dependent: "Which MRS C GREN process the student identifies from the unlabelled scan reaction.",
+      controlled: "The same eight-process checklist and the same blind-scan procedure is applied to every specimen, so the comparison between specimens is fair."
+    });
 
     const wrap=document.createElement("div");wrap.className="lab3d";
 
@@ -405,6 +425,9 @@ const simulation = {
     const legend=document.createElement("div");legend.className="legend";
     legend.innerHTML=`Every scan is unlabelled. Watch what happens, then work out which MRS C GREN process you just saw — you won't be told in advance.`;
     left.append(legend);
+    const varNote=document.createElement("div");varNote.className="legend";varNote.style.marginTop="var(--sp-2)";
+    varNote.innerHTML=`<b>Fair test:</b> the specimen you load is what changes each time; the checklist and the procedure stay exactly the same for every specimen — that's what makes the comparison fair.`;
+    left.append(varNote);
     wrap.append(left);
 
     /* ---- right: specimen picker + answer grid + missions ---- */

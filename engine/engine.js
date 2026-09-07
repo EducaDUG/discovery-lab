@@ -325,7 +325,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     schema: SCHEMA, activityId: config.activityId, version: config.version,
     startedAt: todayISO(), stage: 0,
     predict: null, predictInitial: null,
-    trials: [], simResults: {}, custom: {},
+    trials: [], simResults: {}, custom: {}, scienceMethod: {},
     evidence: { prediction_recorded_before_testing: false, prediction_revised: false },
     explain: "", apply: "",
     kc: {}, kcMarked: false,
@@ -397,6 +397,11 @@ export async function mountActivity({ simulation = {} } = {}) {
       return state.trials.length;
     },
     setResult(k, v) { state.simResults[k] = v; save(); },
+    setScienceMethod(k, v) {
+      if (typeof k === "object" && k !== null) { Object.assign(state.scienceMethod, k); }
+      else { state.scienceMethod[k] = v; }
+      save();
+    },
     mark(k, v = true) { state.evidence[k] = v; save(); },
     saveState() { save(); },
     award(id, label) {
@@ -797,6 +802,11 @@ export async function mountActivity({ simulation = {} } = {}) {
         badges_earned: state.badges,
       },
       prediction,
+      scientific_method: {
+        observation: null, question: null, hypothesis: null, variables: null,
+        results: null, analysis: null, conclusion: null, reflection: null,
+        ...state.scienceMethod,
+      },
       auto_marked: autoMarked,
       auto_marked_score: `${autoScore}/${autoMax}`,
       auto_marked_percent: autoPct,
@@ -974,6 +984,28 @@ function buildPDF(jsPDF, p) {
   para(p.prediction.question, 10, "italic", mut, 3);
   para("Your prediction: " + fmt(p.prediction.student_prediction), 10);
   para(`Recorded before testing: ${p.prediction.recorded_before_testing ? "yes" : "no"}      Revised after evidence: ${p.prediction.revised_after_testing ? "yes" : "no"}`, 9, "normal", mut, 6);
+
+  // Scientific method — observation through reflection, wherever the activity supplied them.
+  const smLabels = {
+    observation: "Observation", question: "Scientific question", hypothesis: "Hypothesis",
+    variables: "Variables", results: "Results", analysis: "Analysis",
+    conclusion: "Conclusion", reflection: "Evaluation & reflection",
+  };
+  const sm = p.scientific_method || {};
+  const smEntries = Object.keys(smLabels).filter(k => {
+    const v = sm[k];
+    return v !== null && v !== undefined && v !== "" && !(typeof v === "object" && !Object.keys(v).length);
+  });
+  if (smEntries.length) {
+    h("Scientific Method");
+    smEntries.forEach(k => {
+      const v = sm[k];
+      const text = typeof v === "object" ? Object.entries(v).map(([kk, vv]) => `${kk}: ${vv}`).join("   |   ") : String(v);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
+      ensure(14); doc.text(smLabels[k], M, y); y += 12;
+      para(text, 9.5, "normal", mut, 6);
+    });
+  }
 
   // Investigation record
   h("Investigation Record");

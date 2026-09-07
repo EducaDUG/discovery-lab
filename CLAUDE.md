@@ -455,3 +455,83 @@ automatically and omits any that are absent — but absent is a policy miss, so 
 
 Pitch all four Orient answers at the activity's age band — a single sentence each for Primary,
 slightly fuller for A-Level.
+
+---
+
+## 14. Scientific-method standard for science simulations (agreed 2026-09-07 — mandatory for every science simulation going forward)
+
+The goal is not a simulation where students click buttons and watch outcomes. Students must
+think, predict, test, record evidence, explain, evaluate and reflect — the simulation should make
+the student's thinking visible. This extends the fixed sequence in Section 3 with two stages that
+were missing: a hypothesis before the experiment, and evaluation/reflection after the conclusion.
+
+**Use the scientific method as the recurring structure wherever the topic fits it:**
+
+1. **Observation or context** — give the student something meaningful to notice first; they
+   record an observation in their own words before anything is explained to them.
+2. **Scientific question** — present or help the student formulate the question the investigation
+   will answer.
+3. **Hypothesis** — written *before* running the experiment, in "If..., then..., because..."
+   form. Require a reason, not only a prediction.
+4. **Prediction** — where useful, a structured (never free-text — see Section 3's Predict rule)
+   forecast of what they expect to observe/measure, before interacting with the simulation.
+5. **Experiment** — the student manipulates the simulation, never watches it run passively. Where
+   appropriate, make explicit: independent variable, dependent variable, controlled variables,
+   fair testing, repeated trials.
+6. **Results** — the student collects evidence (tables, measurements, observations, graphs) —
+   never handed the result automatically.
+7. **Analysis** — interpret the evidence: what pattern do you see, why did this happen, what
+   evidence supports your answer, how does this compare with your hypothesis, what would happen
+   if a variable changed.
+8. **Conclusion** — answer the original scientific question using evidence; state whether the
+   evidence supported the hypothesis and why.
+9. **Evaluation and reflection** — student ownership of the learning: what did you learn, how
+   confident are you in your conclusion, what would make the investigation more reliable, what
+   would you investigate next, what do you still find difficult.
+
+**Updated fixed sequence for science simulations** (supersedes Section 3's sequence for science
+only — other subjects keep Section 3's sequence unchanged):
+
+**Orient (Objective · Why · Course link · Success criteria) → Observation → Question → Hypothesis
+→ Prediction → Experiment → Results → Analysis → Conclusion → Evaluation/Reflection → Knowledge
+Check → Generate Learning Evidence**
+
+Do not force every topic into an artificial lab experiment. Where modelling, classification, data
+interpretation, or systems thinking fits the topic better, adapt the structure but keep the same
+principle: question → prediction → active investigation → evidence → analysis → conclusion →
+reflection.
+
+**Cross-cutting requirements, checked on every science simulation:**
+
+- The student does most of the thinking and deciding — never passive clicking, scrolling, or
+  watching.
+- Include higher-order thinking questions, not only recall.
+- Several visible checks for understanding *during* the investigation, not only at the end
+  (consistent with [[discovery-lab-interactivity-density]]).
+- Feedback after important responses names what was strong, what needs improvement, and what to
+  think about next — not just right/wrong.
+- Where practical, later questions or scaffolding adapt to the student's earlier responses.
+- Age-appropriate scientific vocabulary, used consistently, so repeated use across simulations
+  makes the scientific method itself familiar.
+
+**Evidence export additions.** The PDF (Section 5) must show the student's own responses as
+evidence of thinking, not a completion certificate. In addition to the existing PDF/JSON content,
+include explicitly: scientific question, hypothesis, predictions, experimental choices
+(independent/dependent/controlled variables where used), results/data, graphs or tables where
+relevant, analysis, conclusion, and evaluation/reflection. JSON export gains a `scientific_method`
+block carrying these fields (`observation`, `question`, `hypothesis`, `predictions`, `variables`,
+`results`, `analysis`, `conclusion`, `reflection`) alongside the existing `success_criteria` and
+`rubric`.
+
+**Review checklist — apply this to every science simulation, existing or new:**
+
+- Is the student investigating or merely interacting?
+- Is the student producing evidence of thinking?
+- Is there a clear progression from question → evidence → conclusion?
+- Does the student explain *why*, not merely state *what* happened?
+- Is there formative assessment throughout, not only at the end?
+- Does the student finish by reflecting on their own understanding?
+
+This is the CGA Teaching Excellence rubric's "Excellent" bar in practice: student-driven inquiry,
+higher-order thinking, continuous formative feedback, and students owning their progress — it maps
+directly onto Section 13's eight qualities and does not replace them.
