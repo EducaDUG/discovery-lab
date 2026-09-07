@@ -40,13 +40,13 @@
    ========================================================================== */
 
 export const FIREBASE_CONFIG = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME",
-  databaseURL: "REPLACE_ME",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME"
+  apiKey: "AIzaSyDjwUma33cs_7EeGDR6Wqmh54iQwOkM89M",
+  authDomain: "learning-lab-8529e.firebaseapp.com",
+  databaseURL: "https://learning-lab-8529e-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "learning-lab-8529e",
+  storageBucket: "learning-lab-8529e.firebasestorage.app",
+  messagingSenderId: "141205826617",
+  appId: "1:141205826617:web:4ebe2961666d7155d871e8"
 };
 
 export const FIREBASE_READY = !Object.values(FIREBASE_CONFIG).some(v => v === "REPLACE_ME");
