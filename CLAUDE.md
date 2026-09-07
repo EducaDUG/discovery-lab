@@ -10,6 +10,8 @@ I have full access to my GitHub account and am giving you full access to build a
 
 Before doing anything else, check what you actually have access to (git configured, repo cloned or created, push permissions, GitHub Pages enabled). If anything is missing — repo doesn't exist yet, no push access, no GitHub CLI/git auth configured — **stop and tell me exactly what you need from me** (e.g. "create an empty repo called X and give me the URL," "run `gh auth login`," "add me as a collaborator"). Don't guess or work around missing access silently.
 
+**Standing authorization — always commit and push (confirmed 2026-09-07).** Once I give you an instruction — a new simulation, an amendment, a fix — design it, build it, verify it, commit it, and push it to `main` yourself. Do not stop to ask whether you should push; that permission is already given, for every session, not just this one. I'd rather have a live MVP than a polished thing sitting uncommitted. The only reason to stop before pushing is a genuine access problem (see above) or a destructive/irreversible action outside normal content work (e.g. force-push, rewriting history, deleting a branch) — those still need to be flagged.
+
 ---
 
 ## 1. What this is
