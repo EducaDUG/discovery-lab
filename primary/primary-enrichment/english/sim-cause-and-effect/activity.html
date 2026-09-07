@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Chain Reaction Machine — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../engine/style.css?v=3">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  .ce-live {
+    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: .75rem;
+    padding: .55rem .9rem; margin: 0 0 1.1rem; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+    flex-wrap: wrap;
+  }
+  .ce-live__dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--ink-3); flex: none; }
+  .ce-live__dot[data-on="true"] { background: var(--positive, var(--accent)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .ce-live__label { font-size: .82rem; color: var(--ink-2); white-space: nowrap; }
+  .ce-board { display: flex; gap: .35rem; margin-left: auto; flex-wrap: wrap; }
+  .ce-board__chip { display: flex; align-items: center; gap: .3rem; padding: .2rem .55rem; border-radius: 999px; background: var(--accent-wash); font-size: .78rem; white-space: nowrap; }
+  .ce-board__chip b { color: var(--accent); }
+  .ce-reactions { display: flex; gap: .35rem; }
+  .ce-reactions button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; font-size: 1.1rem; line-height: 1; padding: .3rem .5rem; cursor: pointer; transition: transform .15s ease; }
+  .ce-reactions button:hover { transform: scale(1.15); background: var(--accent-wash); }
+  .ce-burst { position: fixed; font-size: 1.6rem; pointer-events: none; z-index: 999; animation: ce-float 1.8s ease-out forwards; }
+  @keyframes ce-float { from { transform: translateY(0) scale(.7); opacity: 0; } 15% { opacity: 1; transform: translateY(-10px) scale(1); } to { transform: translateY(-140px) scale(1.1); opacity: 0; } }
+
+  .ce-join { max-width: 420px; margin: 2rem auto; text-align: center; }
+  .ce-join input { text-align: center; font-size: 1.1rem; }
+
+  .ce-stage { animation: ce-in .35s ease both; }
+  @keyframes ce-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  [data-reduced-motion="on"] .ce-stage, [data-reduced-motion="on"] .ce-burst { animation: none !important; }
+
+  .ce-scene { display: flex; align-items: center; gap: 1.1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.3rem; margin-bottom: 1rem; }
+  .ce-scene svg { width: 64px; height: 64px; flex: none; }
+  .ce-scene p { font-size: 1.15rem; font-weight: 600; margin: 0; }
+
+  .ce-options { display: grid; gap: .65rem; }
+  .ce-opt { text-align: left; padding: .8rem 1rem; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font: inherit; font-size: 1rem; transition: transform .12s ease, border-color .12s ease; }
+  .ce-opt:hover { border-color: var(--accent); }
+  .ce-opt:active { transform: scale(.98); }
+  .ce-opt[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
+  .ce-opt[data-state="wrong"] { animation: ce-shake .35s ease; opacity: .7; }
+  @keyframes ce-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  .ce-match { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem 1rem; }
+  .ce-match__col { display: grid; gap: .6rem; }
+  .ce-match button.ce-opt[data-sel="true"] { border-color: var(--signal); }
+  .ce-match button.ce-opt[data-matched="true"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); cursor: default; }
+
+  .ce-done { text-align: center; padding: 1.5rem 1rem; }
+  .ce-done__score { font-family: var(--font-data); font-size: 2.4rem; color: var(--accent); font-weight: 700; }
+  .ce-confetti { position: relative; height: 0; }
+  .ce-confetti span { position: absolute; top: -10px; font-size: 1.3rem; animation: ce-fall 2.2s ease-in forwards; }
+  @keyframes ce-fall { to { transform: translateY(60vh) rotate(200deg); opacity: 0; } }
+  [data-reduced-motion="on"] .ce-confetti { display: none; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span>Your name and score are only shared live during this session — never stored or sent anywhere afterward.</span>
+  </div>
+</footer>
+
+<script src="../../../../engine/vendor/firebase/firebase-app-compat.js"></script>
+<script src="../../../../engine/vendor/firebase/firebase-database-compat.js"></script>
+<script type="module">
+import { joinSession, addScore, sendReaction, onPlayers, onReactions, todaysSessionId, isLive, REACTIONS } from "../../_shared/live-wall.js";
+import "../../../../engine/accessibility.js";
+
+const root = document.getElementById("lab-root");
+const SESSION_ID = todaysSessionId("english");
+let CONFIG = null;
+let playerName = "";
+let score = 0;
+let matchSel = { cause: null };
+let matchedCount = 0;
+
+const ICONS = {
+  remote: `<rect x="20" y="8" width="24" height="48" rx="6" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle cx="32" cy="20" r="4" fill="var(--signal)"/><rect x="26" y="32" width="12" height="6" rx="2" fill="var(--accent)" opacity=".5"/>`,
+  seed: `<path d="M32 52 V30" stroke="var(--accent)" stroke-width="2.5"/><path d="M32 30 C18 30 16 14 16 14 C16 14 32 10 32 30Z" fill="var(--accent-wash)" stroke="var(--accent)" stroke-width="2"/><ellipse cx="32" cy="55" rx="14" ry="4" fill="var(--accent-wash)"/>`,
+  heart: `<path d="M32 50 C10 34 12 16 24 16 C29 16 32 20 32 20 C32 20 35 16 40 16 C52 16 54 34 32 50Z" fill="var(--signal-wash)" stroke="var(--signal)" stroke-width="2.5"/>`,
+  domino: `<g stroke="var(--accent)" stroke-width="2" fill="var(--surface)"><rect x="10" y="18" width="12" height="30" rx="2" transform="rotate(-18 16 33)"/><rect x="26" y="16" width="12" height="34" rx="2"/><rect x="42" y="18" width="12" height="30" rx="2" transform="rotate(14 48 33)"/></g>`,
+  rain: `<ellipse cx="32" cy="24" rx="18" ry="11" fill="var(--ink-3)" opacity=".25"/><g stroke="var(--signal)" stroke-width="2.5" stroke-linecap="round"><path d="M22 40 L18 50"/><path d="M32 40 L28 50"/><path d="M42 40 L38 50"/></g>`,
+  recycle: `<g fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M26 12 L34 12 L38 20 L30 20Z" fill="var(--accent-wash)"/><path d="M46 24 L50 32 L42 36"/><path d="M46 48 L38 48 L34 40"/><path d="M18 40 L14 32 L22 28"/></g>`
+};
+const icon = key => `<svg viewBox="0 0 64 64" aria-hidden="true">${ICONS[key] || ""}</svg>`;
+
+const STAGES = ["join","orient","predict","rounds","explain","apply","check","done"];
+let stageIdx = 0, roundIdx = 0;
+
+async function boot() {
+  CONFIG = await fetch("config.json").then(r => r.json());
+  render();
+}
+
+function railHTML() {
+  return `<nav class="rail" aria-label="Progress">${STAGES.map((s,i)=>{
+    const state = i < stageIdx ? "done" : i === stageIdx ? "current" : "upcoming";
+    return `<span class="rail__step" data-state="${state}"><span class="rail__dot"></span></span>`;
+  }).join("")}</nav>`;
+}
+
+function liveBarHTML() {
+  const on = isLive();
+  return `<div class="ce-live">
+    <span class="ce-live__dot" data-on="${on}"></span>
+    <span class="ce-live__label">${on ? "Live with your group" : "Practice mode — ask Mr Guevara to switch on Live"}</span>
+    <div class="ce-board" id="ce-board"></div>
+    <div class="ce-reactions" role="group" aria-label="Send a positive reaction">
+      ${REACTIONS.map(e=>`<button type="button" data-emoji="${e}" aria-label="Send ${e}">${e}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+function mountLiveBar() {
+  document.querySelectorAll(".ce-reactions button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const emoji = b.dataset.emoji;
+      if (isLive()) sendReaction(SESSION_ID, emoji, playerName);
+      else burst(emoji, b.getBoundingClientRect());
+    });
+  });
+  if (isLive()) {
+    onPlayers(SESSION_ID, list => {
+      const board = document.getElementById("ce-board");
+      if (!board) return;
+      board.innerHTML = list.slice(0,5).map(p=>`<span class="ce-board__chip">${escapeHTML(p.name)} <b>${p.score}</b></span>`).join("");
+    });
+    onReactions(SESSION_ID, r => burst(r.emoji));
+  }
+}
+
+function burst(emoji, rect) {
+  const el = document.createElement("span");
+  el.className = "ce-burst";
+  el.textContent = emoji;
+  const x = rect ? rect.left + rect.width/2 : Math.random()*window.innerWidth*0.8 + window.innerWidth*0.1;
+  const y = rect ? rect.top : window.innerHeight - 80;
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1900);
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function render() {
+  const stage = STAGES[stageIdx];
+  const showChrome = stage !== "join";
+  root.innerHTML = (showChrome ? liveBarHTML() + railHTML() : "") + `<div class="ce-stage" id="ce-stage"></div>`;
+  if (showChrome) mountLiveBar();
+  const host = document.getElementById("ce-stage");
+  ({ join, orient, predict, rounds, explain, apply, check, done })[stage](host);
+}
+
+function advance() { stageIdx++; render(); }
+
+/* ---- JOIN ---------------------------------------------------------- */
+function join(host) {
+  host.innerHTML = `
+    <div class="ce-join panel stack">
+      <p class="eyebrow">Primary Enrichment · English · Monday</p>
+      <h1>The Chain Reaction Machine</h1>
+      <p class="q__hint">Type your first name, then press Go to join today's live session.</p>
+      <label class="field__label" for="ce-name">Your first name</label>
+      <input id="ce-name" class="input" type="text" maxlength="16" autocomplete="off" placeholder="e.g. Sofia">
+      <button class="btn btn--signal" type="button" id="ce-go" style="margin-top:.75rem">Go! →</button>
+    </div>`;
+  const input = host.querySelector("#ce-name");
+  const go = () => {
+    const name = input.value.trim().replace(/[^\p{L}\p{N} '-]/gu, "").slice(0, 16);
+    if (!name) { input.focus(); return; }
+    playerName = name;
+    if (isLive()) joinSession(SESSION_ID, playerName);
+    advance();
+  };
+  host.querySelector("#ce-go").addEventListener("click", go);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  input.focus();
+}
+
+/* ---- ORIENT --------------------------------------------------------- */
+function orient(host) {
+  const o = CONFIG.orient;
+  host.innerHTML = `
+    <div class="panel stack">
+      <p class="eyebrow">Today's mission</p>
+      <h2>${playerName ? `Welcome, ${escapeHTML(playerName)}!` : "Welcome!"}</h2>
+      <p><strong>What:</strong> ${o.objective}</p>
+      <p><strong>Why it matters:</strong> ${o.realLife}</p>
+      <p><strong>How it connects:</strong> ${o.courseLink}</p>
+      <p><strong>By the end you will be able to:</strong></p>
+      <ul>${o.successCriteria.map(s=>`<li>${s}</li>`).join("")}</ul>
+      <button class="btn btn--signal" type="button" id="ce-next">Let's start →</button>
+    </div>`;
+  host.querySelector("#ce-next").addEventListener("click", advance);
+}
+
+/* ---- PREDICT ---------------------------------------------------------- */
+function predict(host) {
+  const p = CONFIG.predict;
+  host.innerHTML = `<div class="panel stack">
+    <p class="eyebrow">Quick guess</p>
+    <h2>${p.prompt}</h2>
+    <div class="ce-options">${p.options.map(o=>`<button class="ce-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
+  </div>`;
+  host.querySelectorAll(".ce-opt").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      host.querySelectorAll(".ce-opt").forEach(b=>b.disabled=true);
+      btn.dataset.state = btn.dataset.id === p.answer ? "correct" : "wrong";
+      setTimeout(advance, 700);
+    });
+  });
+}
+
+/* ---- ROUNDS ---------------------------------------------------------- */
+function rounds(host) {
+  if (roundIdx >= CONFIG.rounds.length) { advance(); return; }
+  const r = CONFIG.rounds[roundIdx];
+  host.innerHTML = `
+    <p class="eyebrow">Round ${roundIdx+1} of ${CONFIG.rounds.length} · Spot the effect</p>
+    <div class="ce-scene">${icon(r.icon)}<p>${r.cause}</p></div>
+    <div class="ce-options">${r.options.map(o=>`<button class="ce-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>`;
+  host.querySelectorAll(".ce-opt").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const opt = r.options.find(o=>o.id===btn.dataset.id);
+      if (opt.correct) {
+        btn.dataset.state = "correct";
+        host.querySelectorAll(".ce-opt").forEach(b=>b.disabled=true);
+        addPoints(10);
+        setTimeout(()=>{ roundIdx++; render(); }, 700);
+      } else {
+        btn.dataset.state = "wrong";
+        setTimeout(()=>{ btn.dataset.state=""; }, 400);
+      }
+    });
+  });
+}
+
+/* ---- EXPLAIN / APPLY (same structured shape) --------------------------- */
+function structuredQuestion(host, data, onDone) {
+  host.innerHTML = `<div class="panel stack">
+    <h2>${data.prompt}</h2>
+    <div class="ce-options">${data.options.map(o=>`<button class="ce-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
+  </div>`;
+  host.querySelectorAll(".ce-opt").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const opt = data.options.find(o=>o.id===btn.dataset.id);
+      if (opt.correct) {
+        host.querySelectorAll(".ce-opt").forEach(b=>b.disabled=true);
+        btn.dataset.state = "correct";
+        addPoints(10);
+        setTimeout(onDone, 700);
+      } else {
+        btn.dataset.state = "wrong";
+        setTimeout(()=>{ btn.dataset.state=""; }, 400);
+      }
+    });
+  });
+}
+function explain(host) { structuredQuestion(host, CONFIG.explain, advance); }
+function apply(host) { structuredQuestion(host, CONFIG.apply, advance); }
+
+/* ---- KNOWLEDGE CHECK: click-to-match ------------------------------------ */
+function check(host) {
+  const pairs = CONFIG.knowledgeCheck;
+  const effects = [...pairs].sort(()=>Math.random()-0.5);
+  host.innerHTML = `<div class="panel stack">
+    <p class="eyebrow">Knowledge Check · Match each cause to its effect</p>
+    <div class="ce-match">
+      <div class="ce-match__col">${pairs.map(p=>`<button class="ce-opt" type="button" data-side="cause" data-id="${p.id}">${p.cause}</button>`).join("")}</div>
+      <div class="ce-match__col">${effects.map(p=>`<button class="ce-opt" type="button" data-side="effect" data-id="${p.id}">${p.effect}</button>`).join("")}</div>
+    </div>
+  </div>`;
+  matchSel = { cause: null };
+  matchedCount = 0;
+  host.querySelectorAll(".ce-opt").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if (btn.dataset.matched === "true") return;
+      if (btn.dataset.side === "cause") {
+        host.querySelectorAll('[data-side="cause"]').forEach(b=>b.dataset.sel="false");
+        btn.dataset.sel = "true";
+        matchSel.cause = btn;
+      } else if (matchSel.cause) {
+        const correct = matchSel.cause.dataset.id === btn.dataset.id;
+        if (correct) {
+          matchSel.cause.dataset.matched = "true"; matchSel.cause.dataset.sel = "false";
+          btn.dataset.matched = "true";
+          addPoints(10);
+          matchedCount++;
+          matchSel.cause = null;
+          if (matchedCount === pairs.length) setTimeout(advance, 600);
+        } else {
+          btn.dataset.state = "wrong";
+          setTimeout(()=>{ btn.dataset.state=""; }, 400);
+        }
+      }
+    });
+  });
+}
+
+/* ---- DONE ---------------------------------------------------------- */
+function done(host) {
+  host.innerHTML = `<div class="ce-done">
+    <div class="ce-confetti" id="ce-confetti"></div>
+    <p class="eyebrow">Session complete</p>
+    <h2>Great thinking, ${escapeHTML(playerName)}!</h2>
+    <p class="ce-done__score">${score} points</p>
+    <p class="q__hint">Check the live board above to see how everyone did — every score there is a win worth celebrating.</p>
+    <button class="btn btn--signal" type="button" id="ce-cert">Download my certificate →</button>
+  </div>`;
+  const confetti = host.querySelector("#ce-confetti");
+  "🎉⭐🎊✨".split("").forEach((c,i)=>{
+    for (let n=0;n<3;n++){
+      const s=document.createElement("span");
+      s.textContent=c; s.style.left=(Math.random()*90)+"%"; s.style.animationDelay=(i*0.1+n*0.15)+"s";
+      confetti.appendChild(s);
+    }
+  });
+  host.querySelector("#ce-cert").addEventListener("click", downloadCertificate);
+}
+
+function addPoints(n) {
+  score += n;
+  if (isLive()) addScore(SESSION_ID, n);
+}
+
+async function loadJsPDF() {
+  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "../../../../engine/vendor/jspdf.umd.min.js";
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return window.jspdf.jsPDF;
+}
+
+async function downloadCertificate() {
+  const jsPDF = await loadJsPDF();
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight();
+  doc.setDrawColor(184, 66, 14); doc.setLineWidth(3);
+  doc.rect(24, 24, w-48, h-48);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(28); doc.setTextColor(184, 66, 14);
+  doc.text("Discovery Lab — Primary Enrichment", w/2, 110, { align: "center" });
+  doc.setFontSize(16); doc.setTextColor(60,60,60);
+  doc.text("Certificate of Bright Thinking", w/2, 145, { align: "center" });
+  doc.setFontSize(22); doc.setTextColor(20,20,20);
+  doc.text(playerName, w/2, 210, { align: "center" });
+  doc.setFontSize(13); doc.setTextColor(80,80,80);
+  doc.text("completed The Chain Reaction Machine — Cause & Effect", w/2, 235, { align: "center" });
+  doc.setFontSize(18); doc.setTextColor(184,66,14);
+  doc.text(`${score} points`, w/2, 275, { align: "center" });
+  doc.setFontSize(11); doc.setTextColor(120,120,120);
+  doc.text(new Date().toLocaleDateString(), w/2, 300, { align: "center" });
+  doc.setTextColor(31,90,158);
+  doc.textWithLink("Open the live activity", w/2, 330, { align: "center", url: window.location.href });
+  doc.save(`${playerName || "Student"}_PrimaryEnrichment_CauseAndEffect_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+boot();
+</script>
+</body>
+</html>
