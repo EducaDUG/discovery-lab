@@ -96,6 +96,12 @@ Instead:
 - **Adjust tone by age band**: primary-age activities should read as playful and colorful with simpler language and shorter text; secondary/A-Level/Diploma activities can be more visually "serious instrument" in style with denser content, while still avoiding a dull, form-like feel.
 - **Gamification**: points, streaks, a sense of progress/completion, small celebratory moments on finishing — appropriate to age group, never so heavy it distracts from the learning goal.
 
+**Amendment — interactivity density, not prose density (confirmed 2026-09-07).** Diego flagged that an activity had "more text than interactive activities" and that Investigate's clicks silently did nothing on real input. Two standing rules from this:
+
+- **Every stage should be doing, not reading.** Where a stage would otherwise be a block of text, turn it into an interactive moment instead — a tap-to-reveal hotspot diagram rather than a definitions list, a click-to-match labelling game rather than a paragraph of facts, a 2-option quick-check rather than a passive fact toast. Spread labelling, matching, and small quizzes *throughout* the simulation (Orient and Investigate both), not concentrated only in the Knowledge Check at the end. A wall of prose anywhere in the activity is a design miss, not a style choice.
+- **Real images, not just text, for anything meant to be learned visually.** Custom illustrations (SVG, matching Section 4's "no stock icons, no CDN" rule) used as actual teaching/labelling images — hotspots on a diagram, drag-or-tap-to-match against a picture — not a bullet list of names and definitions.
+- **Test click/tap interactions with real single clicks, not just synthetic events, before calling an Investigate stage done.** A pointer-vs-camera-drag heuristic that trips on the first sub-pixel of movement will pass a scripted zero-movement test and then fail for every real user, since a genuine tap or trackpad click always carries a little jitter. Any canvas that both orbits on drag *and* picks on click needs: touch-action:none on the canvas, a cumulative-travel threshold (not a boolean flagged by the first pointermove) to tell a tap from a drag, and the actual pick done off the native "click" event rather than hand-rolled off pointerup.
+
 ---
 
 ## 5. Evidence export — the assessment engine
