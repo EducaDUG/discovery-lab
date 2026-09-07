@@ -58,10 +58,24 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .ce-opt[data-state="wrong"] { animation: ce-shake .35s ease; opacity: .7; }
   @keyframes ce-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
 
-  .ce-match { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem 1rem; }
-  .ce-match__col { display: grid; gap: .6rem; }
-  .ce-match button.ce-opt[data-sel="true"] { border-color: var(--signal); }
-  .ce-match button.ce-opt[data-matched="true"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); cursor: default; }
+  .ce-drive-wrap { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: .9rem;
+    height: 300px; background: linear-gradient(180deg, #8fd3ff 0%, #cdeeff 55%, #e8f7e0 55%, #e8f7e0 100%);
+    box-shadow: var(--shadow-2), inset 0 0 0 1px rgba(255,255,255,.4); }
+  .ce-drive { width: 100%; height: 100%; }
+  .ce-drive canvas { display: block; width: 100% !important; height: 100% !important; }
+  .ce-drive-badge { position: absolute; top: 10px; left: 12px; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: #1b2a1b; opacity: .85; background: #fff; padding: .2rem .6rem; border-radius: 999px; }
+  .ce-drive-progress { position: absolute; top: 10px; right: 12px; font-size: .72rem; font-weight: 700;
+    color: #1b2a1b; background: #fff; opacity: .85; padding: .2rem .6rem; border-radius: 999px; }
+  .ce-drive-cause { font-size: 1.2rem; font-weight: 700; margin: 0 0 .9rem; text-align: center; }
+  .ce-lanes { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+  .ce-lane { text-align: center; padding: 1rem .9rem; border-radius: 14px; border: 2px solid var(--line); background: var(--surface);
+    cursor: pointer; font: inherit; font-size: 1rem; font-weight: 600; transition: transform .12s ease, border-color .12s ease; }
+  .ce-lane__arrow { display: block; font-size: 1.4rem; margin-bottom: .3rem; }
+  .ce-lane:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .ce-lane:active { transform: scale(.98); }
+  .ce-lane[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
+  .ce-lane[data-state="wrong"] { animation: ce-shake .35s ease; opacity: .75; }
 
   .ce-done { text-align: center; padding: 1.5rem 1rem; }
   .ce-done__score { font-family: var(--font-data); font-size: 2.4rem; color: var(--accent); font-weight: 700; }
@@ -113,8 +127,6 @@ const SESSION_ID = todaysSessionId("english");
 let CONFIG = null;
 let playerName = "";
 let score = 0;
-let matchSel = { cause: null };
-let matchedCount = 0;
 
 /* ---- 3D CHAIN REACTION STAGE (Three.js) --------------------------------
    One shared scene, reused across all six rounds — only the objects inside
@@ -564,40 +576,152 @@ function structuredQuestion(host, data, onDone) {
 function explain(host) { structuredQuestion(host, CONFIG.explain, advance); }
 function apply(host) { structuredQuestion(host, CONFIG.apply, advance); }
 
-/* ---- KNOWLEDGE CHECK: click-to-match ------------------------------------ */
-function check(host) {
+/* ---- KNOWLEDGE CHECK ARCADE: "The Delivery Run" -------------------------
+   A short driving mini-game reusing the same knowledgeCheck cause/effect
+   pairs as config.json, instead of a static match-the-pairs grid — the
+   "always mix mechanics within one activity" rule. Steer the scooter down
+   the street into whichever driveway shows the correct effect. */
+let arcade = null;
+let stopIdx = 0;
+let stopChoices = [];
+
+function buildStopChoices() {
   const pairs = CONFIG.knowledgeCheck;
-  const effects = [...pairs].sort(()=>Math.random()-0.5);
-  host.innerHTML = `<div class="panel stack">
-    <p class="eyebrow">Knowledge Check · Match each cause to its effect</p>
-    <div class="ce-match">
-      <div class="ce-match__col">${pairs.map(p=>`<button class="ce-opt" type="button" data-side="cause" data-id="${p.id}">${p.cause}</button>`).join("")}</div>
-      <div class="ce-match__col">${effects.map(p=>`<button class="ce-opt" type="button" data-side="effect" data-id="${p.id}">${p.effect}</button>`).join("")}</div>
+  stopChoices = pairs.map((p, i) => {
+    const wrong = pairs[(i + 1) % pairs.length].effect;
+    const correctOnLeft = Math.random() < 0.5;
+    return {
+      cause: p.cause,
+      left: correctOnLeft ? p.effect : wrong,
+      right: correctOnLeft ? wrong : p.effect,
+      correctSide: correctOnLeft ? "left" : "right"
+    };
+  });
+}
+
+function initArcade3D(container) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xbfe3ff, 10, 34);
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+  scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x3a2a1c, 1.05));
+  const sun = new THREE.DirectionalLight(0xfff6e0, 1.0);
+  sun.position.set(4, 8, 4);
+  scene.add(sun);
+
+  const road = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.1, 60), new THREE.MeshStandardMaterial({ color: 0x3a3f47 }));
+  road.position.set(0, -0.4, -18);
+  scene.add(road);
+  const stripeMat = new THREE.MeshStandardMaterial({ color: 0xf2e9d0 });
+  for (let i = 0; i < 12; i++) {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.11, 1.1), stripeMat);
+    stripe.position.set(0, -0.34, -2 - i * 3);
+    scene.add(stripe);
+  }
+
+  const sceneryGroup = new THREE.Group();
+  scene.add(sceneryGroup);
+  function scatterScenery() {
+    while (sceneryGroup.children.length) sceneryGroup.remove(sceneryGroup.children[0]);
+    const palette = [0xE8D9BE, 0xF0C9A0, 0xD9C6E8, 0xC9E8D0];
+    for (let i = 0; i < 8; i++) {
+      const h = 1.4 + Math.random() * 2.2;
+      const mat = new THREE.MeshStandardMaterial({ color: palette[i % palette.length] });
+      const bL = new THREE.Mesh(new THREE.BoxGeometry(1.6, h, 1.6), mat);
+      bL.position.set(-3.6, h / 2 - 0.4, -i * 7 - Math.random() * 2);
+      const bR = new THREE.Mesh(new THREE.BoxGeometry(1.6, h, 1.6), mat.clone());
+      bR.position.set(3.6, h / 2 - 0.4, -i * 7 - Math.random() * 2 - 3);
+      sceneryGroup.add(bL, bR);
+    }
+  }
+  scatterScenery();
+
+  const vehicle = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.42, 1.15), new THREE.MeshStandardMaterial({ color: 0xB8420E }));
+  body.position.y = 0.28;
+  const rider = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), new THREE.MeshStandardMaterial({ color: 0xE8C7A0 }));
+  rider.position.set(0, 0.7, 0.05);
+  const wheelGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.16, 16);
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+  const w1 = new THREE.Mesh(wheelGeo, wheelMat); w1.rotation.z = Math.PI / 2; w1.position.set(0, 0, 0.42);
+  const w2 = w1.clone(); w2.position.z = -0.42;
+  vehicle.add(body, rider, w1, w2);
+  vehicle.position.set(0, 0, 2.4);
+  scene.add(vehicle);
+
+  function resize() {
+    const w = container.clientWidth, h = container.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(container);
+  resize();
+
+  function loop() {
+    if (!reducedMotion()) sceneryGroup.children.forEach(c => { c.rotation.y += 0.0015; });
+    camera.position.set(vehicle.position.x * 0.4, 1.7, vehicle.position.z + 3.6);
+    camera.lookAt(vehicle.position.x * 0.7, 0.5, vehicle.position.z - 3);
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  arcade = { renderer, scene, camera, vehicle, container, scatterScenery, laneX: 0 };
+}
+
+function mountArcade3D(container) {
+  if (!arcade) { initArcade3D(container); return; }
+  container.appendChild(arcade.renderer.domElement);
+  arcade.container = container;
+  const w = container.clientWidth, h = container.clientHeight;
+  if (w && h) { arcade.renderer.setSize(w, h); arcade.camera.aspect = w / h; arcade.camera.updateProjectionMatrix(); }
+}
+
+function check(host) {
+  if (stopIdx === 0 && !stopChoices.length) buildStopChoices();
+  if (stopIdx >= stopChoices.length) { stopIdx = 0; stopChoices = []; advance(); return; }
+  const stop = stopChoices[stopIdx];
+  host.innerHTML = `
+    <p class="eyebrow">The Delivery Run · Steer into the driveway with the right effect</p>
+    <div class="ce-drive-wrap">
+      <div class="ce-drive" id="ce-arcade"></div>
+      <span class="ce-drive-badge">🛵 Arcade Drive</span>
+      <span class="ce-drive-progress">Stop ${stopIdx + 1} of ${stopChoices.length}</span>
     </div>
-  </div>`;
-  matchSel = { cause: null };
-  matchedCount = 0;
-  host.querySelectorAll(".ce-opt").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      if (btn.dataset.matched === "true") return;
-      if (btn.dataset.side === "cause") {
-        host.querySelectorAll('[data-side="cause"]').forEach(b=>b.dataset.sel="false");
-        btn.dataset.sel = "true";
-        matchSel.cause = btn;
-      } else if (matchSel.cause) {
-        const correct = matchSel.cause.dataset.id === btn.dataset.id;
-        if (correct) {
-          matchSel.cause.dataset.matched = "true"; matchSel.cause.dataset.sel = "false";
-          btn.dataset.matched = "true";
+    <p class="ce-drive-cause">${stop.cause}</p>
+    <div class="ce-lanes">
+      <button class="ce-lane" type="button" data-side="left"><span class="ce-lane__arrow">↰</span>${stop.left}</button>
+      <button class="ce-lane" type="button" data-side="right"><span class="ce-lane__arrow">↱</span>${stop.right}</button>
+    </div>`;
+
+  mountArcade3D(host.querySelector("#ce-arcade"));
+  arcade.vehicle.position.x = 0;
+
+  host.querySelectorAll(".ce-lane").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const side = btn.dataset.side;
+      const targetX = side === "left" ? -1.1 : 1.1;
+      tween(400, e => { arcade.vehicle.position.x = targetX * e; }, () => {
+        if (side === stop.correctSide) {
+          btn.dataset.state = "correct";
+          host.querySelectorAll(".ce-lane").forEach(b => b.disabled = true);
           addPoints(10);
-          matchedCount++;
-          matchSel.cause = null;
-          if (matchedCount === pairs.length) setTimeout(advance, 600);
+          tween(650, e => { arcade.vehicle.position.z = 2.4 - 14 * e; }, () => {
+            arcade.scatterScenery();
+            arcade.vehicle.position.z = 2.4;
+            stopIdx++;
+            render();
+          });
         } else {
           btn.dataset.state = "wrong";
-          setTimeout(()=>{ btn.dataset.state=""; }, 400);
+          tween(300, e => { arcade.vehicle.position.x = targetX * (1 - e); }, () => { btn.dataset.state = ""; });
         }
-      }
+      });
     });
   });
 }
