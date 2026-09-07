@@ -418,17 +418,26 @@ export function localizeConfig(config, lang) {
 }
 
 /* --- flag switcher + auto-wiring ----------------------------------------- */
+/* Windows renders the flag emoji (🇬🇧/🇪🇸) as bare "GB"/"ES" letters on most
+   browsers, since Segoe UI Emoji ships without the regional-indicator flag
+   glyphs — so draw real flags as inline SVG instead, which renders
+   identically everywhere. */
+const FLAG_SVG = {
+  en: `<svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="dl-flag-en-clip"><rect width="60" height="30" rx="3"/></clipPath><g clip-path="url(#dl-flag-en-clip)"><rect width="60" height="30" fill="#00247d"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#cf142b" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#cf142b" stroke-width="6"/></g></svg>`,
+  es: `<svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="dl-flag-es-clip"><rect width="60" height="30" rx="3"/></clipPath><g clip-path="url(#dl-flag-es-clip)"><rect width="60" height="30" fill="#aa151b"/><rect y="7.5" width="60" height="15" fill="#f1bf00"/></g></svg>`,
+};
+
 export function flagSwitcher() {
   const wrap = document.createElement("div");
   wrap.className = "lang-switch";
   wrap.setAttribute("role", "group");
   wrap.setAttribute("aria-label", "Language / Idioma");
   const lang = getLang();
-  [["en", "🇬🇧", "English"], ["es", "🇪🇸", "Español"]].forEach(([code, flag, label]) => {
+  [["en", "English"], ["es", "Español"]].forEach(([code, label]) => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "lang-switch__btn";
-    b.textContent = flag;
+    b.innerHTML = FLAG_SVG[code];
     b.title = label;
     b.setAttribute("aria-label", label);
     b.setAttribute("aria-pressed", String(code === lang));

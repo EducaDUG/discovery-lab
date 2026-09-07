@@ -29,7 +29,7 @@
    ========================================================================== */
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=3";
-import { t, getLang, localizeConfig } from "./i18n.js?v=1";
+import { t, getLang, localizeConfig } from "./i18n.js?v=2";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
