@@ -79,6 +79,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 
   .ce-done { text-align: center; padding: 1.5rem 1rem; }
   .ce-done__score { font-family: var(--font-data); font-size: 2.4rem; color: var(--accent); font-weight: 700; }
+  .ce-done__score .ce-done__outof { font-size: 1.1rem; color: var(--ink-2); font-weight: 600; }
+  .ce-done__pct { font-size: 1rem; color: var(--ink-2); font-weight: 600; margin-top: -.4rem; }
   .ce-confetti { position: relative; height: 0; }
   .ce-confetti span { position: absolute; top: -10px; font-size: 1.3rem; animation: ce-fall 2.2s ease-in forwards; }
   @keyframes ce-fall { to { transform: translateY(60vh) rotate(200deg); opacity: 0; } }
@@ -114,8 +116,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   <div class="shell site-foot__inner">
     <span data-lang="en">Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
     <span data-lang="es" hidden>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
-    <span data-lang="en">Your name and score are only shared live during this session — never stored or sent anywhere afterward.</span>
-    <span data-lang="es" hidden>Tu nombre y tu puntuación solo se comparten en directo durante esta sesión — nunca se guardan ni se envían a ningún sitio.</span>
+    <span data-lang="en">Your name and score are shared live during this session, and your final result is saved to Mr Guevara's private class records — never used for anything else.</span>
+    <span data-lang="es" hidden>Tu nombre y tu puntuación se comparten en directo durante esta sesión, y tu resultado final se guarda en los registros privados de clase del Sr. Guevara — nunca se usa para nada más.</span>
   </div>
 </footer>
 
@@ -123,7 +125,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script src="../../../../engine/vendor/firebase/firebase-database-compat.js"></script>
 <script src="../../../../engine/vendor/three.min.js"></script>
 <script type="module">
-import { joinSession, addScore, sendReaction, onPlayers, onReactions, todaysSessionId, isLive, REACTIONS } from "../../_shared/live-wall.js";
+import { joinSession, addScore, sendReaction, onPlayers, onReactions, todaysSessionId, isLive, REACTIONS, recordCompletion } from "../../_shared/live-wall.js";
 import "../../../../engine/accessibility.js";
 
 const root = document.getElementById("lab-root");
@@ -731,12 +733,32 @@ function check(host) {
 }
 
 /* ---- DONE ---------------------------------------------------------- */
+function maxScore() {
+  return (CONFIG.rounds.length + 2 + CONFIG.knowledgeCheck.length) * 10;
+}
+function scorePercent() {
+  const max = maxScore();
+  return max ? Math.round((score / max) * 100) : 0;
+}
+let completionRecorded = false;
 function done(host) {
+  if (!completionRecorded && isLive()) {
+    completionRecorded = true;
+    recordCompletion("english", {
+      name: playerName,
+      activityId: CONFIG.activityId,
+      activityTitle: CONFIG.title,
+      score,
+      maxScore: maxScore(),
+      percent: scorePercent()
+    });
+  }
   host.innerHTML = `<div class="ce-done">
     <div class="ce-confetti" id="ce-confetti"></div>
     <p class="eyebrow">Session complete</p>
     <h2>Great thinking, ${escapeHTML(playerName)}!</h2>
-    <p class="ce-done__score">${score} points</p>
+    <p class="ce-done__score">${score} <span class="ce-done__outof">out of ${maxScore()} points</span></p>
+    <p class="ce-done__pct">${scorePercent()}% success</p>
     <p class="q__hint">Check the live board above to see how everyone did — every score there is a win worth celebrating.</p>
     <button class="btn btn--signal" type="button" id="ce-cert">Download my certificate →</button>
   </div>`;
@@ -812,10 +834,13 @@ async function downloadCertificate() {
   doc.setFontSize(13); doc.setTextColor(...navy); doc.setFont("helvetica", "normal");
   doc.text("PRIMARY ENRICHMENT · CERTIFICATE OF BRIGHT THINKING", w / 2, 178, { align: "center" });
 
-  doc.setDrawColor(...gold); doc.setLineWidth(1);
-  doc.line(w / 2 - 90, 192, w / 2 - 20, 192); doc.line(w / 2 + 20, 192, w / 2 + 90, 192);
   doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...ink);
-  doc.text("this certifies that", w / 2, 197, { align: "center" });
+  const certifiesText = "this certifies that";
+  const certifiesWidth = doc.getTextWidth(certifiesText);
+  doc.text(certifiesText, w / 2, 197, { align: "center" });
+  doc.setDrawColor(...gold); doc.setLineWidth(1);
+  doc.line(w / 2 - certifiesWidth / 2 - 70, 192, w / 2 - certifiesWidth / 2 - 14, 192);
+  doc.line(w / 2 + certifiesWidth / 2 + 14, 192, w / 2 + certifiesWidth / 2 + 70, 192);
 
   doc.setFont("helvetica", "bold"); doc.setFontSize(40); doc.setTextColor(...ink);
   doc.text(playerName || "Student", w / 2, 240, { align: "center" });
@@ -823,16 +848,33 @@ async function downloadCertificate() {
   doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.setTextColor(70, 60, 50);
   doc.text("completed The Chain Reaction Machine — a live Cause & Effect adventure", w / 2, 264, { align: "center" });
 
-  // Score badge
-  doc.setFillColor(...orange); doc.roundedRect(w / 2 - 85, 284, 170, 40, 20, 20, "F");
-  doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(255, 255, 255);
-  doc.text(`★ ${score} points ★`, w / 2, 310, { align: "center" });
+  // Score badge — sized to the actual text so it never overflows its background
+  const max = maxScore(), pct = scorePercent();
+  const scoreLine = `${score} out of ${max} points`;
+  const pctLine = `${pct}% success`;
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+  const scoreLineWidth = doc.getTextWidth(scoreLine);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12);
+  const pctLineWidth = doc.getTextWidth(pctLine);
+  const pillWidth = Math.max(scoreLineWidth, pctLineWidth) + 56;
+  const pillHeight = 54;
+  const pillX = w / 2 - pillWidth / 2, pillY = 284;
+
+  doc.setFillColor(...orange); doc.roundedRect(pillX, pillY, pillWidth, pillHeight, pillHeight / 2, pillHeight / 2, "F");
+  drawStar(doc, pillX + 20, pillY + pillHeight / 2, 7, 3, gold);
+  drawStar(doc, pillX + pillWidth - 20, pillY + pillHeight / 2, 7, 3, gold);
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(255, 255, 255);
+  doc.text(scoreLine, w / 2, pillY + 24, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(255, 255, 255);
+  doc.text(pctLine, w / 2, pillY + 42, { align: "center" });
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(120, 105, 90);
-  doc.text(new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" }), w / 2, 345, { align: "center" });
+  doc.text(new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" }), w / 2, pillY + pillHeight + 24, { align: "center" });
 
   doc.setTextColor(...navy); doc.setFontSize(11);
-  doc.textWithLink("Open the live activity →", w / 2, 365, { align: "center", url: window.location.href });
+  doc.textWithLink("Open the live activity ->", w / 2, pillY + pillHeight + 44, { align: "center", url: window.location.href });
 
   doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(140, 125, 110);
   doc.text("Discovery Lab · Diego Urrutia Guevara", w / 2, h - 42, { align: "center" });

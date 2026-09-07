@@ -17,6 +17,10 @@
    A playerId is a random id kept in sessionStorage for this tab only —
    nothing that identifies a student beyond the first name they typed.
    onDisconnect removes the player automatically if they close the tab.
+
+   Data shape, under enrichment-history/{track}/{pushId} — the ONE exception
+   to "nothing survives the session" (see recordCompletion below):
+     { name, activityId, activityTitle, score, maxScore, percent, dateKey, ts }
    ========================================================================== */
 
 import { FIREBASE_CONFIG, FIREBASE_READY } from "./firebase-config.js";
@@ -107,6 +111,25 @@ export function onReactions(sessionId, callback) {
   };
   ref.on("child_added", handler);
   return () => ref.off("child_added", handler);
+}
+
+/** Persist one finished student's result to the class-record archive, so
+ *  Mr Guevara can review scores after the session ends. This is a
+ *  deliberate, disclosed exception to the rest of the site's "nothing
+ *  survives the session" rule — every activity's footer says so. Writing
+ *  stays open to any student's browser (no sign-in needed to record a
+ *  result); reading is restricted to Mr Guevara's own login by the
+ *  database's Security Rules, not by anything in this file. Call once,
+ *  when a student reaches the activity's final "done" screen. */
+export function recordCompletion(track, entry) {
+  ensureApp();
+  const d = new Date();
+  const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  db.ref(`enrichment-history/${track}`).push({
+    ...entry,
+    dateKey,
+    ts: firebase.database.ServerValue.TIMESTAMP
+  });
 }
 
 export { REACTIONS };

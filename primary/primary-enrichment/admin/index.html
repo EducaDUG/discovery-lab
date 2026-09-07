@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="computing" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class Records — Discovery Lab</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../../../engine/style.css?v=9">
+<style>
+  .adm-shell { max-width: 960px; margin: 0 auto; }
+  .adm-login { max-width: 360px; margin: 3rem auto; }
+  .adm-login .field { margin-bottom: .8rem; }
+  .adm-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .adm-filters { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .adm-filters select { padding: .4rem .6rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font: inherit; }
+  .adm-error { color: var(--negative); font-size: .9rem; margin-top: .5rem; }
+  .adm-empty { color: var(--ink-3); padding: 2rem; text-align: center; }
+  .adm-pct { font-weight: 700; }
+  .adm-pct[data-band="high"] { color: var(--positive); }
+  .adm-pct[data-band="mid"] { color: var(--caution); }
+  .adm-pct[data-band="low"] { color: var(--negative); }
+</style>
+</head>
+<body>
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+  </div>
+</header>
+
+<main id="main" class="shell adm-shell">
+  <div id="adm-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — Diego Urrutia Guevara</span>
+    <span>Not linked from site navigation. Search engines are asked not to index this page.</span>
+  </div>
+</footer>
+
+<script src="../../../engine/vendor/firebase/firebase-app-compat.js"></script>
+<script src="../../../engine/vendor/firebase/firebase-auth-compat.js"></script>
+<script src="../../../engine/vendor/firebase/firebase-database-compat.js"></script>
+<script type="module">
+import { onAuthChange, signIn, signOutAdmin, onHistory } from "../_shared/admin.js";
+
+const root = document.getElementById("adm-root");
+let rows = [];
+let unsubscribe = null;
+let filterTrack = "all";
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function renderLogin(errorMsg) {
+  root.innerHTML = `
+    <div class="adm-login panel stack">
+      <p class="eyebrow">Mr Guevara only</p>
+      <h1>Class Records</h1>
+      <p class="q__hint">Sign in with your Discovery Lab admin account.</p>
+      <div class="field">
+        <label class="field__label" for="adm-email">Email</label>
+        <input id="adm-email" class="input" type="email" autocomplete="username">
+      </div>
+      <div class="field">
+        <label class="field__label" for="adm-pass">Password</label>
+        <input id="adm-pass" class="input" type="password" autocomplete="current-password">
+      </div>
+      <button class="btn btn--signal" type="button" id="adm-signin">Sign in →</button>
+      ${errorMsg ? `<p class="adm-error">${escapeHTML(errorMsg)}</p>` : ""}
+    </div>`;
+  const go = async () => {
+    const email = document.getElementById("adm-email").value.trim();
+    const pass = document.getElementById("adm-pass").value;
+    if (!email || !pass) return;
+    try {
+      await signIn(email, pass);
+    } catch (e) {
+      renderLogin("Couldn't sign in — check the email and password.");
+    }
+  };
+  document.getElementById("adm-signin").addEventListener("click", go);
+  document.getElementById("adm-pass").addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+}
+
+function pctBand(pct) {
+  if (pct >= 80) return "high";
+  if (pct >= 50) return "mid";
+  return "low";
+}
+
+function trackLabel(t) {
+  return { english: "English", maths: "Maths", science: "Science" }[t] || t;
+}
+
+function downloadCSV(list) {
+  const header = ["Date", "Track", "Activity", "Name", "Score", "Max", "Percent"];
+  const lines = [header.join(",")];
+  list.forEach(r => {
+    const cells = [r.dateKey || "", trackLabel(r.track), r.activityTitle || r.activityId || "", r.name || "", r.score, r.maxScore, r.percent];
+    lines.push(cells.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","));
+  });
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `discovery-lab-class-records_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function renderDashboard(user) {
+  const tracks = [...new Set(rows.map(r => r.track))];
+  const filtered = filterTrack === "all" ? rows : rows.filter(r => r.track === filterTrack);
+
+  root.innerHTML = `
+    <div class="adm-bar">
+      <div>
+        <p class="eyebrow">Signed in as ${escapeHTML(user.email)}</p>
+        <h1>Class Records</h1>
+      </div>
+      <div style="display:flex; gap:.5rem;">
+        <button class="btn btn--ghost" type="button" id="adm-export">Download CSV</button>
+        <button class="btn btn--ghost" type="button" id="adm-signout">Sign out</button>
+      </div>
+    </div>
+    <div class="adm-filters">
+      <select id="adm-track-filter">
+        <option value="all">All tracks</option>
+        ${tracks.map(t => `<option value="${t}" ${t === filterTrack ? "selected" : ""}>${trackLabel(t)}</option>`).join("")}
+      </select>
+      <span class="q__hint">${filtered.length} record${filtered.length === 1 ? "" : "s"}</span>
+    </div>
+    ${filtered.length === 0
+      ? `<p class="adm-empty">No finished sessions recorded yet${filterTrack !== "all" ? " for this track" : ""}.</p>`
+      : `<div class="table-scroll"><table class="data-table">
+          <thead><tr><th>Date</th><th>Track</th><th>Activity</th><th>Name</th><th>Score</th><th>%</th></tr></thead>
+          <tbody>
+            ${filtered.map(r => `<tr>
+              <td>${escapeHTML(r.dateKey || "—")}</td>
+              <td>${escapeHTML(trackLabel(r.track))}</td>
+              <td>${escapeHTML(r.activityTitle || r.activityId || "—")}</td>
+              <td>${escapeHTML(r.name || "—")}</td>
+              <td>${r.score} / ${r.maxScore}</td>
+              <td class="adm-pct" data-band="${pctBand(r.percent)}">${r.percent}%</td>
+            </tr>`).join("")}
+          </tbody>
+        </table></div>`}
+  `;
+
+  document.getElementById("adm-signout").addEventListener("click", () => signOutAdmin());
+  document.getElementById("adm-export").addEventListener("click", () => downloadCSV(filtered));
+  document.getElementById("adm-track-filter").addEventListener("change", e => {
+    filterTrack = e.target.value;
+    renderDashboard(user);
+  });
+}
+
+onAuthChange(user => {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (!user) {
+    renderLogin();
+    return;
+  }
+  unsubscribe = onHistory(list => {
+    rows = list;
+    renderDashboard(user);
+  });
+});
+</script>
+</body>
+</html>
