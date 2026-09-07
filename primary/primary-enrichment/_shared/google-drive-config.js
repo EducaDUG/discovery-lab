@@ -37,6 +37,6 @@
    else in your Drive.
    ========================================================================== */
 
-export const GOOGLE_CLIENT_ID = "REPLACE_ME.apps.googleusercontent.com";
+export const GOOGLE_CLIENT_ID = "141205826617-rfqkpv334jv9v8rjvlcfijf78brntreu.apps.googleusercontent.com";
 
 export const GOOGLE_DRIVE_READY = GOOGLE_CLIENT_ID !== "REPLACE_ME.apps.googleusercontent.com";
