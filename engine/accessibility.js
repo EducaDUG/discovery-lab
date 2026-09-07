@@ -15,20 +15,23 @@
    panel. Import it as a module:  <script type="module" src=".../accessibility.js">
    ========================================================================== */
 
+import { t } from "./i18n.js?v=1";
+
 const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
 const DYSLEXIA_CSS = new URL("vendor/fonts/dyslexia-font.css", ENGINE_URL).href;
 
 const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false };
 
-const TEXT_SIZES = [
-  ["s", "Small", "A"], ["m", "Medium", "A"], ["l", "Large", "A"], ["xl", "Largest", "A"],
+const TEXT_SIZES = () => [
+  ["s", t("a11y.size.s"), "A"], ["m", t("a11y.size.m"), "A"], ["l", t("a11y.size.l"), "A"], ["xl", t("a11y.size.xl"), "A"],
 ];
-const TINTS = [
-  ["paper", "Paper"], ["warm", "Warm"], ["cool", "Cool"], ["dusk", "Dusk"], ["dark", "Dark"],
+const TINTS = () => [
+  ["paper", t("a11y.tint.paper")], ["warm", t("a11y.tint.warm")], ["cool", t("a11y.tint.cool")],
+  ["dusk", t("a11y.tint.dusk")], ["dark", t("a11y.tint.dark")],
 ];
-const MOTIONS = [
-  ["auto", "Match my device"], ["off", "Full motion"], ["on", "Reduce motion"],
+const MOTIONS = () => [
+  ["auto", t("a11y.motion.auto")], ["off", t("a11y.motion.off")], ["on", t("a11y.motion.on")],
 ];
 
 /* --- storage ------------------------------------------------------------- */
@@ -82,7 +85,7 @@ export function stopSpeaking() { if (speech) speech.cancel(); }
 /* A speaker button the engine can attach beside any block of text. It is inert
    (hidden) unless read-aloud is switched on, so it never clutters the page for
    students who do not use it. */
-export function speakerButton(getText, label = "Read aloud") {
+export function speakerButton(getText, label = t("a11y.speak")) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "a11y-speak";
@@ -146,38 +149,36 @@ function buildPanel(prefs, update) {
   const panel = el("section", "a11y-panel");
   panel.id = "a11y-panel";
   panel.setAttribute("role", "dialog");
-  panel.setAttribute("aria-label", "Reading and accessibility settings");
+  panel.setAttribute("aria-label", t("a11y.settings"));
   panel.hidden = true;
 
   const head = el("div", "a11y-panel__head");
-  head.append(el("h2", "a11y-panel__title", "Make it comfortable"));
+  head.append(el("h2", "a11y-panel__title", t("a11y.title")));
   const close = el("button", "a11y-panel__close");
-  close.type = "button"; close.setAttribute("aria-label", "Close settings"); close.innerHTML = "&times;";
+  close.type = "button"; close.setAttribute("aria-label", t("a11y.close")); close.innerHTML = "&times;";
   head.append(close);
   panel.append(head);
 
-  panel.append(el("p", "a11y-panel__lede",
-    "Set these once — this device remembers them for every activity."));
+  panel.append(el("p", "a11y-panel__lede", t("a11y.lede")));
 
-  panel.append(segmented("Text size", TEXT_SIZES, prefs.textSize, v => update({ textSize: v })));
-  panel.append(segmented("Background", TINTS, prefs.tint, v => update({ tint: v })));
-  panel.append(segmented("Motion", MOTIONS, prefs.motion, v => update({ motion: v })));
+  panel.append(segmented(t("a11y.text-size"), TEXT_SIZES(), prefs.textSize, v => update({ textSize: v })));
+  panel.append(segmented(t("a11y.background"), TINTS(), prefs.tint, v => update({ tint: v })));
+  panel.append(segmented(t("a11y.motion"), MOTIONS(), prefs.motion, v => update({ motion: v })));
 
   panel.append(toggleRow(
-    "Dyslexia-friendly font",
-    "Switches to Atkinson Hyperlegible with looser spacing.",
+    t("a11y.dyslexia"),
+    t("a11y.dyslexia-hint"),
     prefs.dyslexia, on => update({ dyslexia: on })));
 
   const ttsRow = toggleRow(
-    "Read aloud",
-    speech ? "Adds a speaker button to instructions and questions."
-           : "Your browser does not offer speech — try Chrome or Edge.",
+    t("a11y.read-aloud"),
+    speech ? t("a11y.tts-hint") : t("a11y.tts-unavailable"),
     prefs.tts, on => update({ tts: on }));
   if (!speech) ttsRow.querySelector(".a11y-toggle__box").disabled = true;
   panel.append(ttsRow);
 
   const foot = el("div", "a11y-panel__foot");
-  const reset = el("button", "a11y-panel__reset", "Reset to defaults");
+  const reset = el("button", "a11y-panel__reset", t("a11y.reset"));
   reset.type = "button";
   reset.addEventListener("click", () => update({ ...DEFAULTS }, true));
   foot.append(reset);
@@ -266,7 +267,7 @@ function mountPanel() {
   const fab = el("button", "a11y-fab");
   fab.type = "button";
   fab.id = "a11y-fab";
-  fab.setAttribute("aria-label", "Reading and accessibility settings");
+  fab.setAttribute("aria-label", t("a11y.settings"));
   fab.setAttribute("aria-expanded", "false");
   fab.setAttribute("aria-controls", "a11y-panel");
   fab.innerHTML = svgGear();

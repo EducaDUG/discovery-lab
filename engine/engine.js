@@ -28,7 +28,8 @@
    student can read the source, and the spec never pretends otherwise.
    ========================================================================== */
 
-import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=2";
+import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=3";
+import { t, getLang, localizeConfig } from "./i18n.js?v=1";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -85,7 +86,7 @@ function qShell(q, index) {
   const prompt = el("p", "q__prompt", q.prompt);
   promptWrap.append(prompt);
   head.append(promptWrap);
-  if (q.marks) head.append(el("span", "q__marks", q.marks === 1 ? "1 mark" : `${q.marks} marks`));
+  if (q.marks) head.append(el("span", "q__marks", q.marks === 1 ? t("mark") : t("marks", { n: q.marks })));
   wrap.append(head);
   if (ttsEnabled) promptWrap.prepend(speakerBtn(() => q.prompt));
   if (q.hint) wrap.append(el("p", "q__hint", q.hint));
@@ -185,7 +186,7 @@ function makeNumeric(q, index) {
     mark() {
       const ok = this.score() > 0;
       input.style.borderColor = ok ? "var(--positive)" : "var(--negative)";
-      feedback.textContent = (ok ? "Correct. " : `Answer: ${q.answer}${q.unit || ""}. `) + (q.explain || "");
+      feedback.textContent = (ok ? t("correct") : t("answer-was", { answer: q.answer, unit: q.unit || "" })) + (q.explain || "");
       feedback.hidden = false; input.disabled = true;
     },
     lock() { input.disabled = true; }, unlock() { input.disabled = false; },
@@ -210,8 +211,8 @@ function makeMatch(q, index) {
     rowEl.dataset.left = pair.left;
     const label = el("span", null, pair.left); label.style.fontWeight = "600";
     const sel = el("select", "select");
-    sel.setAttribute("aria-label", `Match: ${pair.left}`);
-    sel.append(new Option("Choose…", ""));
+    sel.setAttribute("aria-label", t("match-aria", { left: pair.left }));
+    sel.append(new Option(t("choose"), ""));
     order.forEach(r => sel.append(new Option(r, r)));
     rowEl.append(label, sel);
     table.append(rowEl);
@@ -239,7 +240,7 @@ function makeMatch(q, index) {
         s.sel.disabled = true;
         if (!ok) { const hint = el("span", "q__hint", `→ ${s.correct}`); hint.style.gridColumn = "2"; s.rowEl.after(hint); }
       });
-      feedback.textContent = `${right} of ${q.pairs.length} matched correctly. ` + (q.explain || "");
+      feedback.textContent = t("match-of", { right, total: q.pairs.length }) + (q.explain || "");
       feedback.hidden = false;
     },
     lock() { selects.forEach(s => { s.sel.disabled = true; }); },
@@ -293,11 +294,8 @@ function makeQuestion(q, index) {
    THE ENGINE
    ======================================================================== */
 
-const STAGES = [
-  ["orient", "Orient"], ["predict", "Predict"], ["investigate", "Investigate"],
-  ["record", "Record"], ["explain", "Explain"], ["apply", "Apply"],
-  ["check", "Check"], ["evidence", "Evidence"],
-];
+const STAGE_IDS = ["orient", "predict", "investigate", "record", "explain", "apply", "check", "evidence"];
+const STAGES = STAGE_IDS.map(id => [id, t(`stage.${id}`)]);
 
 export async function mountActivity({ simulation = {} } = {}) {
   const root = document.getElementById("lab-root");
@@ -307,9 +305,9 @@ export async function mountActivity({ simulation = {} } = {}) {
   try {
     const res = await fetch("./config.json", { cache: "no-cache" });
     if (!res.ok) throw new Error(res.status);
-    config = await res.json();
+    config = localizeConfig(await res.json(), getLang());
   } catch (e) {
-    root.append(el("p", "nav-empty", "Could not load this activity (config.json)."));
+    root.append(el("p", "nav-empty", t("activity-load-error")));
     return;
   }
 
@@ -356,12 +354,12 @@ export async function mountActivity({ simulation = {} } = {}) {
   header.append(meta);
   root.append(header);
 
-  const rail = el("nav", "rail"); rail.setAttribute("aria-label", "Activity progress");
+  const rail = el("nav", "rail"); rail.setAttribute("aria-label", t("activity-progress"));
   const railSteps = STAGES.map(([id, label], i) => {
     const step = el("button", "rail__step");
     step.type = "button";
     step.dataset.stage = id;
-    step.setAttribute("aria-label", `Go to ${label} (step ${i + 1} of ${STAGES.length})`);
+    step.setAttribute("aria-label", t("go-to-stage", { label, i: i + 1, n: STAGES.length }));
     const dot = el("span", "rail__dot", String(i + 1));
     const lab = el("span", "rail__label", label);
     step.append(dot, lab);
@@ -407,7 +405,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     award(id, label) {
       if (state.badges.find(b => b.id === id)) return false;
       state.badges.push({ id, label }); save(); renderBadges();
-      toast(`Badge unlocked: ${label}`, "correct");
+      toast(t("badge-unlocked", { label }), "correct");
       return true;
     },
     hasBadge(id) { return !!state.badges.find(b => b.id === id); },
@@ -426,8 +424,8 @@ export async function mountActivity({ simulation = {} } = {}) {
 
   /* --- nav bar ---------------------------------------------------------- */
   const navBar = el("div", "lab-nav no-print");
-  const back = el("button", "btn btn--ghost", "← Back");
-  const next = el("button", "btn", "Next →");
+  const back = el("button", "btn btn--ghost", t("back"));
+  const next = el("button", "btn", t("next"));
   const spacer = el("span"); spacer.style.flex = "1";
   navBar.append(back, spacer, next);
   root.append(navBar);
@@ -443,9 +441,9 @@ export async function mountActivity({ simulation = {} } = {}) {
   function gateFor(i) {
     const id = STAGES[i][0];
     if (id === "predict" && !controllers.predict?.answered())
-      return "Make a prediction first — you can always change it once you have run some trials.";
+      return t("gate.predict");
     if (id === "investigate" && state.trials.length === 0)
-      return "Run at least one trial in the chamber before moving on — the Investigation Record needs your data.";
+      return t("gate.investigate");
     return null;
   }
 
@@ -482,7 +480,7 @@ export async function mountActivity({ simulation = {} } = {}) {
 
   function buildOrient(host) {
     const o = config.orient || {};
-    stageHead(host, "Mission", config.title, o.mission);
+    stageHead(host, t("mission"), config.title, o.mission);
 
     /* CGA Da Vinci policy: every activity states a clear learning objective and
        visible success criteria up front, and names how it connects to the course.
@@ -491,16 +489,16 @@ export async function mountActivity({ simulation = {} } = {}) {
     if (o.objective || (o.successCriteria && o.successCriteria.length) || o.courseLink) {
       const brief = el("div", "card lesson-brief");
       if (o.objective) {
-        brief.append(el("p", "eyebrow", "What you are learning"));
+        brief.append(el("p", "eyebrow", t("what-learning")));
         brief.append(el("p", "lesson-brief__obj", o.objective));
       }
       if (o.courseLink) {
         const cl = el("p", "lesson-brief__course");
-        cl.append(el("span", "lesson-brief__tag", "Course link"), document.createTextNode(o.courseLink));
+        cl.append(el("span", "lesson-brief__tag", t("course-link")), document.createTextNode(o.courseLink));
         brief.append(cl);
       }
       if (o.successCriteria && o.successCriteria.length) {
-        brief.append(el("p", "eyebrow", "By the end you will be able to"));
+        brief.append(el("p", "eyebrow", t("by-the-end")));
         const ul = el("ul", "success-list");
         o.successCriteria.forEach(sc => {
           const li = el("li");
@@ -521,7 +519,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     const side = el("div", "stack");
     if (o.steps?.length) {
       const card = el("div", "card");
-      card.append(el("p", "eyebrow", "How this works"));
+      card.append(el("p", "eyebrow", t("how-this-works")));
       const ol = el("ol", "steps-list");
       o.steps.forEach((stp, i) => { const li = el("li"); li.append(el("span", "steps-list__n", String(i + 1)), el("span", null, stp)); ol.append(li); });
       card.append(ol);
@@ -529,7 +527,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     }
     if (o.realLife) {
       const rc = el("div", "card real-life");
-      rc.append(el("p", "eyebrow", "Where you meet this in real life"));
+      rc.append(el("p", "eyebrow", t("real-life")));
       const p = el("p", null, o.realLife);
       if (ttsEnabled) { const row = el("div", "cluster"); row.append(speakerBtn(() => o.realLife), p); rc.append(row); } else rc.append(p);
       side.append(rc);
@@ -540,7 +538,7 @@ export async function mountActivity({ simulation = {} } = {}) {
 
   function buildPredict(host) {
     const p = config.predict || {};
-    stageHead(host, "Predict", "Before you touch anything", p.lede || "Science starts with a good guess. Record what you think now — you will be able to change it after you have run some trials.");
+    stageHead(host, t("predict"), t("before-touch"), p.lede || t("predict.lede"));
     const ctl = makeQuestion({ ...p, id: "predict" }, 0);
     controllers.predict = ctl;
     if (state.predict != null) ctl.set(state.predict);
@@ -556,30 +554,30 @@ export async function mountActivity({ simulation = {} } = {}) {
     });
     host.append(ctl.node);
     const note = el("p", "q__hint"); note.style.marginTop = "var(--sp-4)";
-    note.textContent = "A prediction is never marked right or wrong — good scientists change their minds when the evidence tells them to.";
+    note.textContent = t("predict.note");
     host.append(note);
   }
 
   function buildInvestigate(host) {
-    stageHead(host, "Investigate", config.investigate?.title || "The Laboratory", config.investigate?.lede);
+    stageHead(host, t("investigate"), config.investigate?.title || t("laboratory"), config.investigate?.lede);
     const badgeShelf = el("div", "badge-shelf"); badgeShelf.id = "badge-shelf";
     host.append(badgeShelf);
     renderBadges();
     const simHost = el("div", "sim-host");
     host.append(simHost);
     if (simulation.investigate) simulation.investigate(simHost, sim);
-    else simHost.append(el("p", "nav-empty", "This activity has no simulation wired up yet."));
+    else simHost.append(el("p", "nav-empty", t("sim-not-wired")));
   }
 
   function buildRecord(host) {
     const r = config.record || {};
-    stageHead(host, "Record", "Investigation Record", r.intro || "Every trial you run in the chamber is logged here automatically — no copying by hand.");
+    stageHead(host, t("record"), t("investigation-record"), r.intro || t("record.intro"));
     const scroll = el("div", "table-scroll");
     const table = el("table", "data-table"); table.id = "record-table";
     scroll.append(table);
     host.append(scroll);
     const empty = el("p", "nav-empty"); empty.id = "record-empty";
-    empty.textContent = r.emptyText || "No trials yet. Go back to the chamber and run one.";
+    empty.textContent = r.emptyText || t("record.empty");
     host.append(empty);
   }
 
@@ -613,21 +611,21 @@ export async function mountActivity({ simulation = {} } = {}) {
     const ta = el("textarea", "textarea");
     ta.setAttribute("aria-label", cfg.prompt);
     ta.value = state[key] || "";
-    ta.placeholder = cfg.placeholder || "Write your answer in full sentences…";
+    ta.placeholder = cfg.placeholder || t("answer-placeholder");
     const counter = el("p", "counter");
     const min = cfg.minChars || 0;
-    const upd = () => { const n = ta.value.trim().length; counter.textContent = min ? `${n} characters (aim for ${min}+)` : `${n} characters`; counter.style.color = min && n < min ? "var(--caution)" : "var(--ink-3)"; };
+    const upd = () => { const n = ta.value.trim().length; counter.textContent = min ? t("chars.aim", { n, min }) : t("chars", { n }); counter.style.color = min && n < min ? "var(--caution)" : "var(--ink-3)"; };
     ta.addEventListener("input", () => { state[key] = ta.value; save(); upd(); });
     upd();
     field.append(ta, counter);
     ctl.wrap.append(field);
     if (cfg.frame) { const fr = el("p", "q__hint"); fr.textContent = cfg.frame; fr.style.marginTop = "var(--sp-2)"; ctl.wrap.append(fr); }
   }
-  function buildExplain(host) { buildWritten(host, config.explain || {}, "explain", "Explain", "Explain what you found"); }
-  function buildApply(host)   { buildWritten(host, config.apply   || {}, "apply",   "Apply", "Use it somewhere new"); }
+  function buildExplain(host) { buildWritten(host, config.explain || {}, "explain", t("explain"), t("explain.title")); }
+  function buildApply(host)   { buildWritten(host, config.apply   || {}, "apply",   t("apply"), t("apply.title")); }
 
   function buildCheck(host) {
-    stageHead(host, "Knowledge Check", "Show what you know", "A few quick questions. These are marked automatically.");
+    stageHead(host, t("knowledge-check"), t("show-what-know"), t("check.lede"));
     const list = el("div", "stack"); list.style.setProperty("--flow", "var(--sp-5)");
     controllers.kc = [];
     (config.knowledgeCheck || []).forEach((q, i) => {
@@ -640,7 +638,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     host.append(list);
 
     const bar = el("div", "cluster no-print"); bar.style.marginTop = "var(--sp-5)";
-    const checkBtn = el("button", "btn", "Check my answers");
+    const checkBtn = el("button", "btn", t("check-answers"));
     const result = el("div"); result.id = "kc-result";
     bar.append(checkBtn);
     host.append(bar, result);
@@ -650,14 +648,14 @@ export async function mountActivity({ simulation = {} } = {}) {
       controllers.kc.forEach(({ ctl }) => { ctl.mark(); got += ctl.score(); max += ctl.max; });
       state.kcMarked = true; state.kcScore = { got: round1(got), max }; save();
       renderKCResult(result, round1(got), max);
-      checkBtn.textContent = "Answers checked ✓"; checkBtn.disabled = true;
+      checkBtn.textContent = t("answers-checked"); checkBtn.disabled = true;
       celebrate(got / max);
     }
     checkBtn.addEventListener("click", doMark);
     if (state.kcMarked) {
       controllers.kc.forEach(({ ctl }) => ctl.mark());
       renderKCResult(result, state.kcScore.got, state.kcScore.max);
-      checkBtn.textContent = "Answers checked ✓"; checkBtn.disabled = true;
+      checkBtn.textContent = t("answers-checked"); checkBtn.disabled = true;
     }
   }
 
@@ -666,80 +664,80 @@ export async function mountActivity({ simulation = {} } = {}) {
     const pct = Math.round((got / max) * 100);
     const card = el("div", "toast toast--info anim-pop"); card.style.marginTop = "var(--sp-4)";
     const chip = el("span", "score-chip"); chip.append(document.createTextNode(`${got}`), el("span", "readout__unit", `/ ${max}`));
-    const msg = el("span", null, pct >= 80 ? "  Excellent — strong understanding." : pct >= 50 ? "  Good — read the notes on any you missed." : "  Review the diagram and try the trials again.");
+    const msg = el("span", null, pct >= 80 ? t("kc.excellent") : pct >= 50 ? t("kc.good") : t("kc.review"));
     card.append(chip, msg);
     host.append(card);
   }
 
   function buildEvidence(host) {
-    stageHead(host, "Generate Learning Evidence", "Finish and hand it in", "Type your name, then download your evidence. Two files are made — a PDF to upload, and a data file that helps your teacher mark it quickly.");
+    stageHead(host, t("generate-evidence"), t("finish-hand-in"), t("evidence.lede"));
 
     // Visible rubric — criteria and weights only. No answer keys, no expected points.
     const rb = config.rubric || {}; const crit = rb.criteria || [];
     const total = crit.reduce((n, c) => n + (c.max || 0), 0);
     const rubricCard = el("div", "card");
-    rubricCard.append(el("p", "eyebrow", "How this is marked"));
+    rubricCard.append(el("p", "eyebrow", t("how-marked")));
     if (rb.note) rubricCard.append(el("p", "q__hint", rb.note));
     const scroll = el("div", "table-scroll");
-    const t = el("table", "rubric");
+    const rtable = el("table", "rubric");
     const thead = el("thead"); const htr = el("tr");
-    ["Criterion", "What good work shows", "Marks"].forEach(h => htr.append(el("th", null, h)));
-    thead.append(htr); t.append(thead);
+    [t("criterion"), t("what-good-shows"), t("marks-col")].forEach(h => htr.append(el("th", null, h)));
+    thead.append(htr); rtable.append(thead);
     const tb = el("tbody");
     crit.forEach(c => {
       const tr = el("tr");
-      tr.append(el("td", null, c.label + (c.auto ? "  (auto)" : "")));
+      tr.append(el("td", null, c.label + (c.auto ? t("auto") : "")));
       tr.append(el("td", null, c.descriptor || ""));
       tr.append(el("td", null, `${c.max}  (${Math.round((c.max / total) * 100)}%)`));
       tb.append(tr);
     });
     const trTot = el("tr");
-    const tdTot = el("td", null, "Total"); tdTot.style.fontWeight = "700"; tdTot.colSpan = 2;
+    const tdTot = el("td", null, t("total")); tdTot.style.fontWeight = "700"; tdTot.colSpan = 2;
     const tdTotN = el("td", null, `${total}  (100%)`); tdTotN.style.fontWeight = "700";
     trTot.append(tdTot, tdTotN); tb.append(trTot);
-    t.append(tb); scroll.append(t); rubricCard.append(scroll);
-    rubricCard.append(el("p", "q__hint", "Your grade is the marks you earn out of " + total + ", shown as a percentage. The auto-marked part is filled in for you; your teacher marks the written answers."));
+    rtable.append(tb); scroll.append(rtable); rubricCard.append(scroll);
+    rubricCard.append(el("p", "q__hint", t("grade-note", { total })));
     host.append(rubricCard);
 
     // Name + generate
     const gen = el("div", "card"); gen.style.marginTop = "var(--sp-5)";
     const field = el("div", "field");
-    field.append(Object.assign(el("label", "field__label", "Your full name"), { htmlFor: "student-name" }));
+    field.append(Object.assign(el("label", "field__label", t("your-name")), { htmlFor: "student-name" }));
     const nameInput = el("input", "input"); nameInput.id = "student-name"; nameInput.autocomplete = "off";
-    nameInput.placeholder = "e.g. Alex Rivera"; nameInput.value = state.student || "";
+    nameInput.placeholder = t("name-placeholder"); nameInput.value = state.student || "";
     nameInput.addEventListener("input", () => { state.student = nameInput.value; save(); });
     field.append(nameInput);
     gen.append(field);
 
     const upload = el("p", "toast toast--info"); upload.style.marginTop = "var(--sp-4)";
-    upload.append(el("strong", null, "Important: "), document.createTextNode("upload the PDF to Learning Lab as evidence of your work. The data file goes to your teacher for fast marking."));
+    upload.append(el("strong", null, t("upload-important")), document.createTextNode(t("upload-note")));
     gen.append(upload);
 
     const btnRow = el("div", "cluster no-print"); btnRow.style.marginTop = "var(--sp-4)";
-    const genBtn = el("button", "btn btn--lg btn--signal", "Generate Learning Evidence");
+    const genBtn = el("button", "btn btn--lg btn--signal", t("generate-evidence"));
     btnRow.append(genBtn);
     gen.append(btnRow);
     const status = el("div"); status.id = "gen-status"; gen.append(status);
 
     genBtn.addEventListener("click", async () => {
-      if (!state.student.trim()) { toast("Type your name first so your teacher knows whose work this is.", "info"); nameInput.focus(); return; }
-      if (!state.kcMarked) { toast("Go to the Check step and press “Check my answers” first.", "info"); return; }
-      genBtn.disabled = true; genBtn.textContent = "Building your files…";
+      if (!state.student.trim()) { toast(t("type-name-first"), "info"); nameInput.focus(); return; }
+      if (!state.kcMarked) { toast(t("check-first"), "info"); return; }
+      genBtn.disabled = true; genBtn.textContent = t("building-files");
       try {
         await generateEvidence(status);
-        genBtn.textContent = "Generate again";
+        genBtn.textContent = t("generate-again");
         genBtn.disabled = false;
       } catch (e) {
         console.error(e);
-        toast("Something went wrong building the PDF. Your work is safe — try again.", "info");
-        genBtn.disabled = false; genBtn.textContent = "Generate Learning Evidence";
+        toast(t("pdf-error"), "info");
+        genBtn.disabled = false; genBtn.textContent = t("generate-evidence");
       }
     });
 
     const clearRow = el("div", "cluster no-print"); clearRow.style.marginTop = "var(--sp-6)";
-    const clearBtn = el("button", "btn btn--ghost", "Clear saved work on this device");
+    const clearBtn = el("button", "btn btn--ghost", t("clear-work"));
     clearBtn.addEventListener("click", () => {
-      if (confirm("This erases your answers and trials saved in this browser. Do this only after you have downloaded and uploaded your evidence. Continue?")) {
+      if (confirm(t("clear-confirm"))) {
         try { localStorage.removeItem(STORE_KEY); } catch {}
         state = fresh(); location.reload();
       }
@@ -815,7 +813,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       ai_marking_instructions: config.aiMarkingInstructions || "Mark the constructed responses against the rubric and expected points. Accept scientifically valid alternative wording. Do not penalise spelling unless meaning is unclear.",
     };
     const sum = checksum({ ...core, checksum: undefined });
-    return { ...core, integrity_checksum: sum, integrity_note: "Tamper-EVIDENT, not tamper-proof: the PDF and this file share this checksum. If either was edited after download, the two will no longer match. A determined student could still recompute it — treat as a low-stakes formative check." };
+    return { ...core, integrity_checksum: sum, integrity_note: t("pdf.integrity-note") };
   }
   function wrapConstructed(cfg, answer) {
     if (!cfg) return null;
@@ -837,7 +835,7 @@ export async function mountActivity({ simulation = {} } = {}) {
 
     statusHost.textContent = "";
     const done = el("div", "toast toast--correct anim-pop"); done.style.marginTop = "var(--sp-4)";
-    done.append(el("strong", null, "Done. "), document.createTextNode(`Two files downloaded: ${base}.pdf and ${base}.json. Upload the PDF to Learning Lab. Checksum ${payload.integrity_checksum}.`));
+    done.append(el("strong", null, t("done")), document.createTextNode(t("files-downloaded", { base, checksum: payload.integrity_checksum })));
     statusHost.append(done);
     celebrate(1);
   }
@@ -848,7 +846,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     shelf.textContent = "";
     if (!state.badges.length) { shelf.hidden = true; return; }
     shelf.hidden = false;
-    shelf.append(el("span", "eyebrow", "Discoveries"));
+    shelf.append(el("span", "eyebrow", t("discoveries")));
     state.badges.forEach(b => shelf.append(el("span", "badge badge--correct", b.label)));
   }
 
@@ -934,16 +932,16 @@ function buildPDF(jsPDF, p) {
 
   // Masthead
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); setColor(accent);
-  doc.text("DISCOVERY LAB - LEARNING EVIDENCE", M, y); y += 6;
+  doc.text(t("pdf.masthead"), M, y); y += 6;
   rule(accent);
   doc.setFont("helvetica", "bold"); doc.setFontSize(20); setColor(ink);
   doc.text(doc.splitTextToSize(pdfSafe(p.activity_name), CW), M, y + 8); y += 30;
   para(`${p.course}  -  ${p.module}`, 10, "normal", mut, 8);
 
-  kv("Student", p.student);
-  kv("Course", `${p.course}  (${p.pathway})`);
-  kv("Completed", new Date(p.completed).toLocaleString());
-  kv("Activity ID", `${p.activity_id}   v${p.activity_version}`);
+  kv(t("pdf.student"), p.student);
+  kv(t("pdf.course"), `${p.course}  (${p.pathway})`);
+  kv(t("pdf.completed"), new Date(p.completed).toLocaleString());
+  kv(t("pdf.activityId"), `${p.activity_id}   v${p.activity_version}`);
   y += 2;
 
   // Upload banner — with a real clickable link to the live activity
@@ -951,21 +949,21 @@ function buildPDF(jsPDF, p) {
   doc.setFillColor(235, 245, 239); doc.setDrawColor(accent[0], accent[1], accent[2]);
   doc.roundedRect(M, y, CW, 40, 4, 4, "FD");
   doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); setColor(accent);
-  doc.text("Upload this PDF to Learning Lab as evidence of your work.", M + 12, y + 15);
+  doc.text(t("pdf.upload-banner"), M + 12, y + 15);
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); setColor(mut);
-  doc.text("Open the live activity yourself:", M + 12, y + 30);
+  doc.text(t("pdf.open-live-yourself"), M + 12, y + 30);
   doc.setFont("helvetica", "bold"); setColor(accent);
-  doc.textWithLink("Open the live activity ->", M + 12 + doc.getTextWidth("Open the live activity yourself:  "), y + 30, { url: p.simulation_url });
+  doc.textWithLink(t("pdf.open-live"), M + 12 + doc.getTextWidth(t("pdf.open-live-yourself") + "  "), y + 30, { url: p.simulation_url });
   y += 52;
 
   // About this activity — the skills and curriculum content it develops.
   // One high-quality paragraph for parents, teachers and school leadership.
   const lf = p.learning_focus;
   if (lf && (lf.summary || (lf.skills && lf.skills.length))) {
-    h("About this activity");
+    h(t("pdf.about-activity"));
     if (lf.skills && lf.skills.length) {
       doc.setFont("helvetica", "bold"); doc.setFontSize(9); setColor(mut);
-      ensure(14); doc.text("Skills practised", M, y);
+      ensure(14); doc.text(t("pdf.skills-practised"), M, y);
       doc.setFont("helvetica", "normal"); setColor(accent);
       const skillLines = doc.splitTextToSize(pdfSafe(lf.skills.join("  -  ")), CW - 110);
       doc.text(skillLines, M + 110, y); y += Math.max(14, skillLines.length * 12) + 2;
@@ -975,21 +973,24 @@ function buildPDF(jsPDF, p) {
   }
 
   // Score summary
-  h("Result");
+  h(t("pdf.result"));
   const autoPct = p.auto_marked_percent;
-  para(`Auto-marked Knowledge Check: ${p.auto_marked_score}  (${autoPct}%).  Written answers below are marked by your teacher against the rubric.`, 10);
+  para(t("pdf.auto-summary", { score: p.auto_marked_score, pct: autoPct }), 10);
 
   // Mission / prediction
-  h("Prediction");
+  h(t("pdf.prediction"));
   para(p.prediction.question, 10, "italic", mut, 3);
-  para("Your prediction: " + fmt(p.prediction.student_prediction), 10);
-  para(`Recorded before testing: ${p.prediction.recorded_before_testing ? "yes" : "no"}      Revised after evidence: ${p.prediction.revised_after_testing ? "yes" : "no"}`, 9, "normal", mut, 6);
+  para(t("pdf.your-prediction") + fmt(p.prediction.student_prediction), 10);
+  para(t("pdf.recorded-before", {
+    a: p.prediction.recorded_before_testing ? t("pdf.yes") : t("pdf.no"),
+    b: p.prediction.revised_after_testing ? t("pdf.yes") : t("pdf.no"),
+  }), 9, "normal", mut, 6);
 
   // Scientific method — observation through reflection, wherever the activity supplied them.
   const smLabels = {
-    observation: "Observation", question: "Scientific question", hypothesis: "Hypothesis",
-    variables: "Variables", results: "Results", analysis: "Analysis",
-    conclusion: "Conclusion", reflection: "Evaluation & reflection",
+    observation: t("pdf.observation"), question: t("pdf.question"), hypothesis: t("pdf.hypothesis"),
+    variables: t("pdf.variables"), results: t("pdf.results"), analysis: t("pdf.analysis"),
+    conclusion: t("pdf.conclusion"), reflection: t("pdf.reflection"),
   };
   const sm = p.scientific_method || {};
   const smEntries = Object.keys(smLabels).filter(k => {
@@ -997,7 +998,7 @@ function buildPDF(jsPDF, p) {
     return v !== null && v !== undefined && v !== "" && !(typeof v === "object" && !Object.keys(v).length);
   });
   if (smEntries.length) {
-    h("Scientific Method");
+    h(t("pdf.scientific-method"));
     smEntries.forEach(k => {
       const v = sm[k];
       const text = typeof v === "object" ? Object.entries(v).map(([kk, vv]) => `${kk}: ${vv}`).join("   |   ") : String(v);
@@ -1008,41 +1009,41 @@ function buildPDF(jsPDF, p) {
   }
 
   // Investigation record
-  h("Investigation Record");
+  h(t("pdf.investigation-record"));
   drawTrials(doc, p, { M, RIGHT, CW, H, footer, get y(){return y;}, set y(v){y=v;} });
   y = tableCursor.y;
 
   // Auto-marked detail
-  h("Knowledge Check (auto-marked)");
+  h(t("pdf.kc-auto"));
   p.auto_marked.forEach((a, i) => {
     ensure(34);
     doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
     const q = doc.splitTextToSize(pdfSafe(`${i + 1}. ${a.question}`), CW - 40); doc.text(q, M, y); y += q.length * 12;
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); setColor(mut);
-    const ansLines = doc.splitTextToSize(pdfSafe(`Your answer: ${fmt(a.student_answer)}`), CW - 40);
+    const ansLines = doc.splitTextToSize(pdfSafe(t("pdf.your-answer") + fmt(a.student_answer)), CW - 40);
     doc.text(ansLines, M + 10, y); y += ansLines.length * 12;
     const ok = a.marks_awarded >= a.marks_available;
     setColor(ok ? accent : [163, 44, 30]);
     doc.setFont("helvetica", "bold");
-    doc.text(pdfSafe(`${ok ? "[correct]" : "[review]"}  ${a.marks_awarded} / ${a.marks_available}`), M + 10, y); y += 16; setColor(ink);
+    doc.text(pdfSafe(`${ok ? t("pdf.correct-tag") : t("pdf.review-tag")}  ${a.marks_awarded} / ${a.marks_available}`), M + 10, y); y += 16; setColor(ink);
   });
 
   // Constructed responses
-  h("Written Answers (teacher-marked)");
+  h(t("pdf.written-answers"));
   p.constructed_responses.forEach((c, i) => {
     ensure(48);
     doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
     const qLines = doc.splitTextToSize(pdfSafe(`${i + 1}. ${c.question}`), CW);
     doc.text(qLines, M, y); y += qLines.length * 12 + 4;
     doc.setFont("helvetica", "normal"); doc.setFontSize(10); setColor(ink);
-    const ansLines = doc.splitTextToSize(pdfSafe(c.response ? c.response : "(left blank)"), CW);
+    const ansLines = doc.splitTextToSize(pdfSafe(c.response ? c.response : t("pdf.blank")), CW);
     doc.text(ansLines, M + 10, y); y += ansLines.length * 13 + 4;
     doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); setColor(mut);
-    doc.text(pdfSafe(`Teacher: ____ / ${c.marking_context.max_marks} marks`), M + 10, y); y += 18; setColor(ink);
+    doc.text(pdfSafe(t("pdf.teacher-marks", { max: c.marking_context.max_marks })), M + 10, y); y += 18; setColor(ink);
   });
 
   // Rubric
-  h("Marking Rubric (grade as a percentage)");
+  h(t("pdf.rubric-title"));
   drawRubric(doc, p, { M, RIGHT, CW, H, footer, get y(){return y;}, set y(v){y=v;} });
   y = rubricCursor.y;
 
@@ -1051,14 +1052,14 @@ function buildPDF(jsPDF, p) {
   rule();
   // Clickable link to the live simulation, so staff or parents can open it directly.
   doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); setColor(mut);
-  ensure(12); doc.text("Simulation link:", M, y);
+  ensure(12); doc.text(t("pdf.sim-link"), M, y);
   doc.setFont("helvetica", "normal"); setColor(accent);
-  const urlX = M + doc.getTextWidth("Simulation link:  ");
+  const urlX = M + doc.getTextWidth(t("pdf.sim-link") + "  ");
   const urlLines = doc.splitTextToSize(pdfSafe(p.simulation_url), CW - (urlX - M));
   doc.textWithLink(urlLines[0], urlX, y, { url: p.simulation_url });
   for (let i = 1; i < urlLines.length; i++) { y += 11; doc.textWithLink(urlLines[i], M, y, { url: p.simulation_url }); }
   y += 15; setColor(ink);
-  para(`Integrity checksum: ${p.integrity_checksum}. ${p.integrity_note}`, 8, "normal", mut, 0);
+  para(t("pdf.checksum", { checksum: p.integrity_checksum, note: p.integrity_note }), 8, "normal", mut, 0);
 
   footer();
   return doc.output("blob");
@@ -1068,7 +1069,7 @@ const tableCursor = { y: 0 };
 function drawTrials(doc, p, ctx) {
   const trials = p.simulation_results.trials || [];
   let y = ctx.y;
-  if (!trials.length) { doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(110,118,112); doc.text("No trials recorded.", ctx.M, y); tableCursor.y = y + 16; return; }
+  if (!trials.length) { doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(110,118,112); doc.text(t("pdf.no-trials"), ctx.M, y); tableCursor.y = y + 16; return; }
   const columns = (p.record_columns && p.record_columns.length)
     ? p.record_columns
     : Object.keys(trials[0]).map(k => ({ key: k, label: k }));
@@ -1096,31 +1097,34 @@ function drawRubric(doc, p, ctx) {
   const keys = Object.keys(r).filter(k => typeof r[k] === "object" && r[k] && "max" in r[k]);
   const total = r.total_marks;
   doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.setTextColor(110,118,112);
-  doc.text("Criterion", ctx.M, y); doc.text("Marks", ctx.RIGHT - 120, y); doc.text("Awarded", ctx.RIGHT - 50, y);
+  doc.text(t("pdf.rubric-criterion"), ctx.M, y); doc.text(t("pdf.rubric-marks"), ctx.RIGHT - 120, y); doc.text(t("pdf.rubric-awarded"), ctx.RIGHT - 50, y);
   y += 4; doc.setDrawColor(200,205,198); doc.line(ctx.M, y, ctx.RIGHT, y); y += 12;
   doc.setFont("helvetica", "normal"); doc.setTextColor(29,33,28);
-  const labels = { knowledge_accuracy: "Knowledge & understanding", use_of_evidence: "Use of evidence", reasoning: "Scientific reasoning", communication: "Communication" };
+  const labels = {
+    knowledge_accuracy: t("pdf.knowledge-accuracy"), use_of_evidence: t("pdf.use-of-evidence"),
+    reasoning: t("pdf.reasoning"), communication: t("pdf.communication"),
+  };
   keys.forEach(k => {
     if (y > ctx.H - 90) { ctx.footer(); doc.addPage(); y = 54; }
     const c = r[k];
-    doc.text((labels[k] || k) + (c.auto ? "  (auto)" : ""), ctx.M, y);
+    doc.text((labels[k] || k) + (c.auto ? t("auto") : ""), ctx.M, y);
     doc.text(`${c.max}  (${Math.round((c.max / total) * 100)}%)`, ctx.RIGHT - 120, y);
     doc.text(c.awarded != null ? String(c.awarded) : "____", ctx.RIGHT - 50, y);
     y += 14;
   });
   doc.setDrawColor(200,205,198); doc.line(ctx.M, y, ctx.RIGHT, y); y += 12;
   doc.setFont("helvetica", "bold");
-  doc.text("Total", ctx.M, y); doc.text(`${total}  (100%)`, ctx.RIGHT - 120, y);
+  doc.text(t("pdf.rubric-total"), ctx.M, y); doc.text(`${total}  (100%)`, ctx.RIGHT - 120, y);
   doc.text("____ %", ctx.RIGHT - 50, y);
   y += 16;
   doc.setFont("helvetica", "italic"); doc.setFontSize(8); doc.setTextColor(110,118,112);
-  doc.text("Percentage = total marks earned / " + total + " x 100.", ctx.M, y);
+  doc.text(t("pdf.rubric-pct", { total }), ctx.M, y);
   y += 14;
   rubricCursor.y = y;
 }
 
 function fmt(v) {
-  if (v == null || v === "") return "(no answer)";
+  if (v == null || v === "") return t("pdf.no-answer");
   if (Array.isArray(v)) return v.map(x => typeof x === "object" ? `${x.left} -> ${x.value || "-"}` : x).join(", ");
   return String(v);
 }

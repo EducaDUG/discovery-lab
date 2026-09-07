@@ -41,7 +41,8 @@ SHELL = """<!DOCTYPE html>
 <link rel="stylesheet" href="{root}engine/style.css?v={v}">
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
 <header class="site-head">
   <div class="shell site-head__inner">
     <a class="wordmark" href="{root}">
@@ -55,7 +56,8 @@ SHELL = """<!DOCTYPE html>
       </svg>
       <span class="wordmark__text">Discovery&nbsp;Lab</span>
     </a>
-    <a class="eyebrow" href="{root}about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="{root}about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="{root}about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
   </div>
 </header>
 <main id="main" class="shell">
@@ -63,8 +65,10 @@ SHELL = """<!DOCTYPE html>
 </main>
 <footer class="site-foot">
   <div class="shell site-foot__inner">
-    <span>Discovery Lab &mdash; <a href="{root}about/">{owner}</a></span>
-    <span>Your work stays in your browser.</span>
+    <span data-lang="en">Discovery Lab &mdash; <a href="{root}about/">{owner}</a></span>
+    <span data-lang="es" hidden>Discovery Lab &mdash; <a href="{root}about/">{owner}</a></span>
+    <span data-lang="en">Your work stays in your browser.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador.</span>
   </div>
 </footer>
 <script type="module" src="{root}engine/nav.js?v={v}"></script>
@@ -72,7 +76,7 @@ SHELL = """<!DOCTYPE html>
 </html>
 """
 
-ASSET_VERSION = "7"
+ASSET_VERSION = "8"
 
 
 def walk(nodes, trail, out):

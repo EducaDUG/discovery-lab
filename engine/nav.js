@@ -14,6 +14,8 @@
    tools/build-nav.py. Navigation markup is never hand-written.
    ========================================================================== */
 
+import { t, pl, getLang } from "./i18n.js?v=1";
+
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
@@ -32,22 +34,23 @@ function totalCount(node) {
   return (node.children || []).reduce((n, c) => n + totalCount(c), 0);
 }
 
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const PLURAL_KEY = { activity: "activities", question: "questions" };
+const plural = (n, word) => t(n === 1 ? `count.${word}` : `count.${PLURAL_KEY[word]}`, { n });
 
 function metaFor(node) {
   if (node.type === "simulation") {
     const bits = [node.activityId];
     if (node.questionCount) bits.push(plural(node.questionCount, "question"));
-    if (node.minutes) bits.push(`~${node.minutes} min`);
+    if (node.minutes) bits.push(t("count.min", { n: node.minutes }));
     return bits.filter(Boolean).join(" · ");
   }
   const live = liveCount(node), total = totalCount(node);
   const hasGame = !!node.featuredGame;
-  if (live) return plural(live, "activity") + (total > live ? ` · ${total - live} coming` : "") + (hasGame ? " · learning game" : "");
-  if (hasGame) return total ? `Learning video game · ${plural(total, "activity")} coming` : "Learning video game";
-  if (total) return `${plural(total, "activity")} in preparation`;
-  if ((node.resources || []).length) return "Recommended practice";
-  return "In preparation";
+  if (live) return plural(live, "activity") + (total > live ? ` · ${t("count.coming", { n: total - live })}` : "") + (hasGame ? ` · ${t("learning-game")}` : "");
+  if (hasGame) return total ? `${t("learning-video-game")} · ${plural(total, "activity")} ${t("coming")}` : t("learning-video-game");
+  if (total) return total === 1 ? t("count.prep1") : t("count.prep", { n: total });
+  if ((node.resources || []).length) return t("recommended-practice");
+  return t("in-preparation");
 }
 
 /* Status drives the badge; href drives whether a tile is walkable. Kept
@@ -78,16 +81,19 @@ function tile(node, href) {
     n.append(media);
   }
 
-  n.append(el("span", `badge badge--${live ? "live" : "soon"}`, live ? "Live" : "Coming soon"));
-  n.append(el("span", "tile__title", node.name));
-  if (node.subtitle) n.append(el("span", "tile__sub", node.subtitle));
-  if (node.blurb) n.append(el("span", "tile__blurb", node.blurb));
+  n.append(el("span", `badge badge--${live ? "live" : "soon"}`, live ? t("badge.live") : t("badge.soon")));
+  n.append(el("span", "tile__title", pl(node, "name")));
+  const subtitle = pl(node, "subtitle");
+  if (subtitle) n.append(el("span", "tile__sub", subtitle));
+  const blurb = pl(node, "blurb");
+  if (blurb) n.append(el("span", "tile__blurb", blurb));
 
   // Keyword snapshot — a few chips of what this branch contains, so a student
   // (or Mr Guevara) sees the shape of a term or module before opening it.
-  if (Array.isArray(node.keywords) && node.keywords.length) {
+  const keywords = pl(node, "keywords");
+  if (Array.isArray(keywords) && keywords.length) {
     const tags = el("span", "tile__tags");
-    node.keywords.forEach(k => tags.append(el("span", "tag", k)));
+    keywords.forEach(k => tags.append(el("span", "tag", k)));
     n.append(tags);
   }
 
@@ -120,9 +126,11 @@ function choice(node, href) {
   n.append(mark);
 
   const body = el("span", "choice__body");
-  body.append(el("span", "choice__title", node.name));
-  if (node.subtitle) body.append(el("span", "choice__sub", node.subtitle));
-  if (node.blurb) body.append(el("span", "choice__blurb", node.blurb));
+  body.append(el("span", "choice__title", pl(node, "name")));
+  const subtitle = pl(node, "subtitle");
+  if (subtitle) body.append(el("span", "choice__sub", subtitle));
+  const blurb = pl(node, "blurb");
+  if (blurb) body.append(el("span", "choice__blurb", blurb));
   body.append(el("span", "choice__meta", metaFor(node)));
   n.append(body);
 
@@ -145,20 +153,20 @@ function walk(tree, ids) {
 
 function crumbs(chain, root, mount) {
   const nav = el("nav", "crumbs");
-  nav.setAttribute("aria-label", "Breadcrumb");
+  nav.setAttribute("aria-label", t("breadcrumb"));
   const ol = el("ol", "crumbs__list");
 
   const home = el("li");
-  const a = el("a", null, "Discovery Lab"); a.href = root; home.append(a); ol.append(home);
+  const a = el("a", null, t("home")); a.href = root; home.append(a); ol.append(home);
 
   chain.forEach((node, i) => {
     const li = el("li");
     if (i < chain.length - 1) {
-      const link = el("a", null, node.name);
+      const link = el("a", null, pl(node, "name"));
       link.href = "../".repeat(chain.length - 1 - i);
       li.append(link);
     } else {
-      li.append(el("span", null, node.name));
+      li.append(el("span", null, pl(node, "name")));
       li.setAttribute("aria-current", "page");
     }
     ol.append(li);
@@ -169,11 +177,12 @@ function crumbs(chain, root, mount) {
 
 function header(node, mount) {
   const head = el("header", "nav-title");
-  head.append(el("p", "eyebrow", node.subtitle || node.type));
-  head.append(el("h1", null, node.name));
-  if (node.blurb) head.append(el("p", "nav-title__blurb", node.blurb));
+  head.append(el("p", "eyebrow", pl(node, "subtitle") || node.type));
+  head.append(el("h1", null, pl(node, "name")));
+  const blurb = pl(node, "blurb");
+  if (blurb) head.append(el("p", "nav-title__blurb", blurb));
   mount.before(head);
-  document.title = `${node.name} — Discovery Lab`;
+  document.title = `${pl(node, "name")} — Discovery Lab`;
 }
 
 /* --- render -------------------------------------------------------------- */
@@ -190,7 +199,7 @@ export async function mountNav() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
   } catch {
-    mount.append(el("p", "nav-empty", "Could not load the site index (data/subjects.json)."));
+    mount.append(el("p", "nav-empty", t("site-index-error")));
     return;
   }
 
@@ -204,7 +213,7 @@ export async function mountNav() {
 
   const chain = walk(data.tree, ids);
   if (!chain) {
-    mount.append(el("p", "nav-empty", "That page is not in subjects.json."));
+    mount.append(el("p", "nav-empty", t("page-not-found")));
     return;
   }
 
@@ -226,7 +235,7 @@ export async function mountNav() {
     });
     mount.append(grid);
   } else {
-    mount.append(el("p", "nav-empty", "Activities for this course are still being built."));
+    mount.append(el("p", "nav-empty", t("activities-being-built")));
   }
 
   renderResources(node, mount);
@@ -267,25 +276,26 @@ function renderFeaturedGame(node, mount) {
   const body = el("div", "feature-game__body");
   if (g.kicker) {
     const k = el("p", "feature-game__kicker");
-    k.append(el("span", "feature-game__badge", "Game"));
-    k.append(document.createTextNode(g.kicker));
+    k.append(el("span", "feature-game__badge", t("game.badge")));
+    k.append(document.createTextNode(pl(g, "kicker")));
     body.append(k);
   }
-  body.append(el("h2", "feature-game__title", g.title));
-  if (g.tagline) body.append(el("p", "feature-game__tagline", g.tagline));
-  if (g.blurb) body.append(el("p", "feature-game__blurb", g.blurb));
+  body.append(el("h2", "feature-game__title", pl(g, "title")));
+  const tagline = pl(g, "tagline");
+  if (tagline) body.append(el("p", "feature-game__tagline", tagline));
+  const gblurb = pl(g, "blurb");
+  if (gblurb) body.append(el("p", "feature-game__blurb", gblurb));
 
   const cta = el("span", "feature-game__cta btn");
-  cta.append(el("span", null, g.cta || "Play the game"));
+  cta.append(el("span", null, pl(g, "cta") || t("game.cta")));
   const arrow = el("span", "feature-game__cta-arrow");
   arrow.textContent = "↗";
   arrow.setAttribute("aria-hidden", "true");
   cta.append(arrow);
   body.append(cta);
 
-  body.append(el("p", "feature-game__note",
-    "Opens in a new tab · your progress stays in your browser · not marked work."));
-  card.append(el("span", "sr-only", "(opens in a new tab on an external website)"));
+  body.append(el("p", "feature-game__note", t("game-note")));
+  card.append(el("span", "sr-only", t("opens-new-tab")));
 
   card.append(body);
   mount.append(card);
@@ -300,11 +310,9 @@ function renderResources(node, mount) {
 
   const sec = el("section", "extras");
   const head = el("div", "extras__head");
-  head.append(el("p", "eyebrow", "Also recommended"));
-  head.append(el("h2", "extras__title", "More practice, elsewhere"));
-  head.append(el("p", "extras__note",
-    "Simulations by other people that Mr Guevara rates. They open in a new tab, " +
-    "and they do not produce learning evidence — they are for practice and curiosity."));
+  head.append(el("p", "eyebrow", t("also-recommended")));
+  head.append(el("h2", "extras__title", t("more-practice")));
+  head.append(el("p", "extras__note", t("external-note")));
   sec.append(head);
 
   const grid = el("div", "extras__grid");
@@ -315,27 +323,29 @@ function renderResources(node, mount) {
     card.rel = "noopener noreferrer";
 
     const top = el("div", "extra__top");
-    top.append(el("span", "extra__source", r.source || "External"));
+    top.append(el("span", "extra__source", pl(r, "source") || t("external")));
     const out = el("span", "extra__out");
     out.textContent = "↗";
     out.setAttribute("aria-hidden", "true");
     top.append(out);
     card.append(top);
 
-    card.append(el("h3", "extra__title", r.title));
-    if (r.practises) {
+    card.append(el("h3", "extra__title", pl(r, "title")));
+    const practises = pl(r, "practises");
+    if (practises) {
       const p = el("p", "extra__line");
-      p.append(el("span", "extra__label", "You do"));
-      p.append(document.createTextNode(r.practises));
+      p.append(el("span", "extra__label", t("you-do")));
+      p.append(document.createTextNode(practises));
       card.append(p);
     }
-    if (r.teaches) {
+    const teaches = pl(r, "teaches");
+    if (teaches) {
       const p = el("p", "extra__line");
-      p.append(el("span", "extra__label", "You learn"));
-      p.append(document.createTextNode(r.teaches));
+      p.append(el("span", "extra__label", t("you-learn")));
+      p.append(document.createTextNode(teaches));
       card.append(p);
     }
-    card.append(el("span", "sr-only", "(opens in a new tab on an external website)"));
+    card.append(el("span", "sr-only", t("opens-new-tab")));
     grid.append(card);
   });
   sec.append(grid);
