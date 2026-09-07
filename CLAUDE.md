@@ -535,3 +535,55 @@ block carrying these fields (`observation`, `question`, `hypothesis`, `predictio
 This is the CGA Teaching Excellence rubric's "Excellent" bar in practice: student-driven inquiry,
 higher-order thinking, continuous formative feedback, and students owning their progress — it maps
 directly onto Section 13's eight qualities and does not replace them.
+
+---
+
+## 15. Bilingual site: English/Spanish (agreed 2026-09-07 — mandatory for every simulation going forward)
+
+The whole site — navigation, chrome, the accessibility panel, and every activity — is bilingual.
+A flag switcher (🇬🇧/🇪🇸) sits in the header next to "About Mr Guevara" on every page. Choosing a
+language stores it in `localStorage` (`dl-lang`, per device) and reloads. Français/中文/العربية are a
+later phase (Arabic in particular needs RTL layout work first) — do not attempt them without being
+asked; English/Spanish is the current standing scope.
+
+**The mechanism — `engine/i18n.js`:**
+
+- `t(key, vars)` — the shared UI-chrome dictionary (stage names, buttons, toasts, PDF labels,
+  accessibility panel). Add new engine-level strings here in both `en` and `es`, never inline.
+- `pl(node, field)` — reads `<field>_es` off a `subjects.json` node or a `resources`/`featuredGame`
+  entry when Spanish is selected, falling back to the English field if the `_es` sibling is
+  missing. Never required to be present — an untranslated node just renders in English.
+- `localizeConfig(config, lang)` — deep-overlays an activity's `config.es` block onto its English
+  `config.json` (arrays of objects with an `id` merge by id — e.g. `knowledgeCheck`, `options`;
+  everything else merges by index). Engine calls this once, right after fetching `config.json`.
+- Importing `i18n.js` also self-wires the flag switcher into `.site-head__inner` and shows/hides any
+  `data-lang="en"`/`data-lang="es"` element to match the current choice — this is how the hand-written
+  bilingual markup on `index.html` and `about/index.html` works, no extra script tag needed beyond
+  the import (nav.js and engine.js already import it, so activity and nav pages get it for free).
+
+**What this means for a NEW simulation (mandatory, not optional):**
+
+1. In `data/subjects.json`, give the new module/simulation entry `name_es`, `blurb_es`, and
+   `subtitle_es`/`keywords_es` if the node has those fields. Keep it natural, age-appropriate
+   Spanish — not machine-literal.
+2. In the activity's `config.json`, add a top-level `"es"` block mirroring the translatable content
+   (title, subtitle, course/pathway/module labels, `learningFocus`, `orient`, `predict`,
+   `investigate`, `record`, `explain`, `apply`, `knowledgeCheck`, `rubric`). Leave `expectedPoints`
+   and `aiMarkingInstructions` English-only — they are never shown to the student. `_template/config.json`
+   carries a stub `es` block as the pattern to copy.
+3. If the activity's own JS draws custom in-canvas text (hotspot labels, quiz copy, HUD strings —
+   anything the shared engine doesn't render from config), add a small local helper at the top of
+   that activity's `<script>`: `import { getLang } from ".../engine/i18n.js?v=1"; const L = (en, es)
+   => getLang() === "es" ? es : en;` and wrap every such string in `L("English", "Español")`. This is
+   scoped per-activity — never add activity-specific strings to the shared `engine/i18n.js` dictionary.
+4. If the activity's own `activity.html` hand-writes a breadcrumb (older activities do; newer ones
+   should just rely on the shared header), give it the same `data-lang="en"`/`data-lang="es"` pair
+   pattern used elsewhere in the file.
+5. Run `python tools/build-nav.py` as usual — the generated nav shells are already bilingual.
+
+**Reference implementation:** `primary/computer-skills/primary-2-computer-skills/sim-basic-computer-hardware/`
+is fully bilingual end-to-end (config, breadcrumb, and every in-canvas string) — use it as the
+worked example when translating another activity. As of 2026-09-07 it is the only *existing*
+activity translated this deeply; the other live activities have bilingual site chrome (header,
+footer, nav, accessibility panel) but still need their `config.json` `es` blocks and in-canvas
+strings done — treat that as backlog, not a blocker for new work.

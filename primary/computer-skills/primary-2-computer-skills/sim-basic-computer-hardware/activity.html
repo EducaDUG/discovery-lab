@@ -165,13 +165,22 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 </header>
 
 <main id="main" class="shell">
-  <nav class="crumbs" aria-label="Breadcrumb">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
     <ol class="crumbs__list">
       <li><a href="../../../../">Discovery Lab</a></li>
       <li><a href="../../../">Primary</a></li>
       <li><a href="../../">Computer Skills</a></li>
       <li><a href="../">Primary 2 Computer Skills</a></li>
       <li><span aria-current="page">Lesson 2: Basic Computer Hardware</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../">Discovery Lab</a></li>
+      <li><a href="../../../">Primaria</a></li>
+      <li><a href="../../">Informática</a></li>
+      <li><a href="../">Informática de Primaria 2</a></li>
+      <li><span aria-current="page">Lección 2: Hardware básico del ordenador</span></li>
     </ol>
   </nav>
   <div id="lab-root"></div>
@@ -188,45 +197,51 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 
 <script type="module">
 import { mountActivity } from "../../../../engine/engine.js?v=8";
+import { getLang } from "../../../../engine/i18n.js?v=1";
 
 const THREE_URL = "../../../../engine/vendor/three.min.js";
+
+/* Simulation-local strings — this activity's own hotspot labels, quiz copy
+   and in-canvas hints. Engine-level chrome is translated in engine/i18n.js;
+   this dictionary is scoped to this one activity's custom mechanic. */
+const L = (en, es) => getLang() === "es" ? es : en;
 
 /* ======================================================================
    THE FIVE PARTS
    ====================================================================== */
-const CASE_PART = { key:"case", name:"Case", color:0x5c6f80, chip:"1",
-  job:"Protects everything inside and keeps it cool with fans.",
-  fact:"Your build already came with its case. Every other part goes inside it." };
+const CASE_PART = { key:"case", name:L("Case","Torre"), color:0x5c6f80, chip:"1",
+  job:L("Protects everything inside and keeps it cool with fans.","Protege todo lo de dentro y lo mantiene fresco con ventiladores."),
+  fact:L("Your build already came with its case. Every other part goes inside it.","Tu ordenador ya venía con su torre. Todas las demás piezas van dentro de ella.") };
 
 const PARTS = [
-  { key:"motherboard", name:"Motherboard", color:0x1f8a5c, chip:"2",
-    job:"Connects every part together so they can talk to each other.",
-    fact:"Without the motherboard, your computer would be like a team without a way to pass messages to each other." },
-  { key:"cpu", name:"CPU", color:0xdb5461, chip:"3",
-    job:"Thinks and calculates — the brain of the computer.",
-    fact:"Your CPU can do billions of tiny sums every single second." },
-  { key:"ram", name:"RAM", color:0x3d8fd6, chip:"4",
-    job:"Fast memory that holds what you're working on right now.",
-    fact:"RAM forgets everything the moment the computer is switched off — that's why you need to save your work." },
-  { key:"gpu", name:"Graphics card", color:0x8a5cf5, chip:"5",
-    job:"Draws everything you see on the screen.",
-    fact:"Without a graphics card, games and video would just look like a blank screen." },
+  { key:"motherboard", name:L("Motherboard","Placa base"), color:0x1f8a5c, chip:"2",
+    job:L("Connects every part together so they can talk to each other.","Conecta todas las piezas para que puedan comunicarse entre sí."),
+    fact:L("Without the motherboard, your computer would be like a team without a way to pass messages to each other.","Sin la placa base, tu ordenador sería como un equipo sin forma de pasarse mensajes entre sí.") },
+  { key:"cpu", name:L("CPU","CPU"), color:0xdb5461, chip:"3",
+    job:L("Thinks and calculates — the brain of the computer.","Piensa y calcula — el cerebro del ordenador."),
+    fact:L("Your CPU can do billions of tiny sums every single second.","Tu CPU puede hacer miles de millones de pequeñas sumas cada segundo.") },
+  { key:"ram", name:L("RAM","RAM"), color:0x3d8fd6, chip:"4",
+    job:L("Fast memory that holds what you're working on right now.","Memoria rápida que guarda lo que estás usando en este momento."),
+    fact:L("RAM forgets everything the moment the computer is switched off — that's why you need to save your work.","La RAM olvida todo en cuanto se apaga el ordenador — por eso hay que guardar tu trabajo.") },
+  { key:"gpu", name:L("Graphics card","Tarjeta gráfica"), color:0x8a5cf5, chip:"5",
+    job:L("Draws everything you see on the screen.","Dibuja todo lo que ves en la pantalla."),
+    fact:L("Without a graphics card, games and video would just look like a blank screen.","Sin tarjeta gráfica, los juegos y los vídeos se verían como una pantalla en blanco.") },
 ];
 const ALL_PARTS = [CASE_PART, ...PARTS];
 const partByKey = Object.fromEntries(ALL_PARTS.map(p=>[p.key,p]));
 
 const DECOYS = [
-  { key:"fan",   label:"Fan mount" },
-  { key:"drive", label:"Drive bay" },
-  { key:"psu",   label:"Power supply bay" },
+  { key:"fan",   label:L("Fan mount","Soporte del ventilador") },
+  { key:"drive", label:L("Drive bay","Bahía de unidad") },
+  { key:"psu",   label:L("Power supply bay","Bahía de la fuente de alimentación") },
 ];
 
 /* a quick 2-option check before each part is fitted */
 const QUIZZES = {
-  motherboard: { correct:"Connects every part so they can talk to each other", wrong:"Draws the pictures on the screen" },
-  cpu:         { correct:"Thinks and calculates — it's the brain", wrong:"Stores your files forever, even when off" },
-  ram:         { correct:"Holds what you're working on right now", wrong:"Keeps dust and bumps away from the parts" },
-  gpu:         { correct:"Draws everything you see on the screen", wrong:"Connects every part so they can talk" },
+  motherboard: { correct:L("Connects every part so they can talk to each other","Conecta todas las piezas para que puedan comunicarse"), wrong:L("Draws the pictures on the screen","Dibuja las imágenes en la pantalla") },
+  cpu:         { correct:L("Thinks and calculates — it's the brain","Piensa y calcula — es el cerebro"), wrong:L("Stores your files forever, even when off","Guarda tus archivos para siempre, incluso apagado") },
+  ram:         { correct:L("Holds what you're working on right now","Guarda lo que estás usando ahora mismo"), wrong:L("Keeps dust and bumps away from the parts","Protege las piezas del polvo y los golpes") },
+  gpu:         { correct:L("Draws everything you see on the screen","Dibuja todo lo que ves en la pantalla"), wrong:L("Connects every part so they can talk","Conecta todas las piezas para que se comuniquen") },
 };
 
 function chipHTML(p){return `<span class="tray-card__chip" style="background:#${p.color.toString(16).padStart(6,"0")}">${p.chip}</span>`;}
@@ -262,13 +277,13 @@ const simulation = {
   orient(host){
     host.innerHTML="";
     const intro=document.createElement("p");intro.className="q__hint";
-    intro.textContent="Tap each glowing dot to meet a part.";
+    intro.textContent=L("Tap each glowing dot to meet a part.","Toca cada punto brillante para conocer una pieza.");
     host.append(intro);
 
     const wrap=document.createElement("div");wrap.className="diagram-wrap";
-    wrap.innerHTML=diagramImgHTML("A real open computer case, seen from the side, showing the case, motherboard, CPU cooler, RAM and graphics card");
+    wrap.innerHTML=diagramImgHTML(L("A real open computer case, seen from the side, showing the case, motherboard, CPU cooler, RAM and graphics card","Una torre de ordenador real y abierta, vista de lado, mostrando la torre, la placa base, el disipador del CPU, la RAM y la tarjeta gráfica"));
     const reveal=document.createElement("div");reveal.className="reveal-panel";
-    reveal.innerHTML=`<span class="reveal-panel__hint">Tap a glowing dot above ↑</span>`;
+    reveal.innerHTML=`<span class="reveal-panel__hint">${L("Tap a glowing dot above ↑","Toca un punto brillante de arriba ↑")}</span>`;
 
     let found=0;
     const btns={};
@@ -276,20 +291,20 @@ const simulation = {
       const p=partByKey[h.key];
       const btn=document.createElement("button");btn.type="button";btn.className="hotspot";
       btn.style.left=(h.fx*100)+"%";btn.style.top=(h.fy*100)+"%";
-      btn.setAttribute("aria-label","Learn about the "+p.name);
+      btn.setAttribute("aria-label",L("Learn about the ","Aprende sobre ")+p.name);
       btn.innerHTML=`<span class="hotspot__dot"></span>`;
       btn.addEventListener("click",()=>{
         Object.values(btns).forEach(b=>b.classList.remove("is-active"));
         btn.classList.add("is-active");
-        const extra = h.key==="cpu" ? " You can't see the actual chip here — it's hidden underneath this metal cooler, keeping it from overheating." : "";
+        const extra = h.key==="cpu" ? L(" You can't see the actual chip here — it's hidden underneath this metal cooler, keeping it from overheating."," No puedes ver el chip real aquí — está escondido bajo este disipador metálico, que evita que se sobrecaliente.") : "";
         reveal.innerHTML=`${chipHTML(p)}<span><b>${p.name}</b><br>${p.job}${extra}</span>`;
-        if(!btn.classList.contains("is-seen")){btn.classList.add("is-seen");found++;cap.textContent=found+" / 5 parts found";}
+        if(!btn.classList.contains("is-seen")){btn.classList.add("is-seen");found++;cap.textContent=L(found+" / 5 parts found",found+" / 5 piezas encontradas");}
         if(sim&&sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+". "+p.job+extra);
       });
       btns[h.key]=btn;wrap.append(btn);
     });
     host.append(wrap,reveal);
-    const cap=document.createElement("p");cap.className="diagram-caption";cap.textContent="0 / 5 parts found";
+    const cap=document.createElement("p");cap.className="diagram-caption";cap.textContent=L("0 / 5 parts found","0 / 5 piezas encontradas");
     host.append(cap);
     const credit=document.createElement("p");credit.className="diagram-credit";credit.innerHTML=DIAGRAM_CREDIT;
     host.append(credit);
@@ -312,10 +327,10 @@ const simulation = {
 
       const left=document.createElement("div");
       const dwrap=document.createElement("div");dwrap.className="diagram-wrap";
-      dwrap.innerHTML=diagramImgHTML("The same open computer case, with 5 numbered spots to match to a part");
+      dwrap.innerHTML=diagramImgHTML(L("The same open computer case, with 5 numbered spots to match to a part","La misma torre de ordenador abierta, con 5 puntos numerados para relacionar con una pieza"));
       left.append(dwrap);
       const hint=document.createElement("p");hint.className="diagram-caption";
-      hint.textContent="Tap a part below, then tap its spot on the picture.";
+      hint.textContent=L("Tap a part below, then tap its spot on the picture.","Toca una pieza abajo y luego toca su lugar en la imagen.");
       left.append(hint);
       const note=document.createElement("div");note.className="result-note";note.id="label-note";
       left.append(note);
@@ -330,8 +345,8 @@ const simulation = {
       }
 
       const side=document.createElement("div");
-      side.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Parts</p>`;
-      const tray=document.createElement("div");tray.className="chip-tray";tray.setAttribute("role","group");tray.setAttribute("aria-label","Parts to label");
+      side.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Parts","Piezas")}</p>`;
+      const tray=document.createElement("div");tray.className="chip-tray";tray.setAttribute("role","group");tray.setAttribute("aria-label",L("Parts to label","Piezas para etiquetar"));
       const shuffledParts=[...PARTS].sort(()=>Math.random()-0.5);
       const chipNodes={};
       let armed=null,labelAttempts=0;
@@ -342,7 +357,7 @@ const simulation = {
           if(b.classList.contains("is-done"))return;
           Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
           b.classList.add("is-armed");armed=p.key;
-          flashNote(`${p.name} selected — now tap its spot on the picture.`,"info");
+          flashNote(L(`${p.name} selected — now tap its spot on the picture.`,`${p.name} seleccionado — ahora toca su lugar en la imagen.`),"info");
         });
         chipNodes[p.key]=b;tray.append(b);
       });
@@ -353,12 +368,12 @@ const simulation = {
       HOTSPOTS.forEach((h,i)=>{
         const s=document.createElement("button");s.type="button";s.className="spot";
         s.style.left=(h.fx*100)+"%";s.style.top=(h.fy*100)+"%";
-        s.textContent=String(i+1);s.setAttribute("aria-label","Spot "+(i+1));
+        s.textContent=String(i+1);s.setAttribute("aria-label",L("Spot ","Punto ")+(i+1));
         s.addEventListener("click",()=>{
           if(s.classList.contains("is-correct"))return;
           if(!armed){
             s.classList.remove("is-wrong");void s.offsetWidth;s.classList.add("is-wrong");
-            flashNote("Tap a part in the list first, then tap its spot.","info");
+            flashNote(L("Tap a part in the list first, then tap its spot.","Toca primero una pieza de la lista y luego toca su lugar."),"info");
             return;
           }
           labelAttempts++;
@@ -367,12 +382,12 @@ const simulation = {
             s.classList.add("is-correct");s.style.background="#"+p.color.toString(16).padStart(6,"0");
             s.style.borderColor="transparent";s.textContent=p.chip;
             chipNodes[h.key].classList.add("is-done");
-            matched++;hint.textContent=matched+" / 5 matched";
-            flashNote(`Correct! ${p.name} matched.`,"correct");
-            if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+" matched.");
+            matched++;hint.textContent=L(matched+" / 5 matched",matched+" / 5 relacionadas");
+            flashNote(L(`Correct! ${p.name} matched.`,`¡Correcto! ${p.name} relacionado.`),"correct");
+            if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+(getLang()==="es"?" relacionado.":" matched."));
           } else {
             s.classList.remove("is-wrong");void s.offsetWidth;s.classList.add("is-wrong");
-            flashNote("Not quite — try another spot.","incorrect");
+            flashNote(L("Not quite — try another spot.","Casi — prueba con otro punto."),"incorrect");
           }
           armed=null;
           Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
@@ -386,11 +401,11 @@ const simulation = {
       });
 
       function showContinue(){
-        hint.textContent="All 5 matched!";
-        flashNote("All 5 parts matched — nice work!","correct");
+        hint.textContent=L("All 5 matched!","¡Las 5 relacionadas!");
+        flashNote(L("All 5 parts matched — nice work!","¡Las 5 piezas relacionadas — buen trabajo!"),"correct");
         const row=document.createElement("div");row.className="phase-continue";
         const btn=document.createElement("button");btn.type="button";btn.className="btn btn--lg btn--signal";
-        btn.textContent="Now build it for real →";
+        btn.textContent=L("Now build it for real →","Ahora constrúyelo de verdad →");
         btn.addEventListener("click",()=>{
           game.labelled=true;sim.state.game=game;sim.saveState();
           renderBuildPhase();
@@ -413,33 +428,33 @@ const simulation = {
       const left=document.createElement("div");
       const stage=document.createElement("div");stage.className="stage3d";
       const boot=document.createElement("div");boot.className="stage3d__boot";
-      boot.innerHTML=`<div><div class="boot-dot"></div><div style="margin-top:.8em">Opening the workshop…</div></div>`;
+      boot.innerHTML=`<div><div class="boot-dot"></div><div style="margin-top:.8em">${L("Opening the workshop…","Abriendo el taller…")}</div></div>`;
       stage.append(boot);
       const hudTL=document.createElement("div");hudTL.className="hud hud--tl";
       hudTL.innerHTML=`<div class="buildbar">
         <div class="buildbar__badge"><b id="partsdone">0/4</b></div>
         <div class="buildbar__body">
-          <div class="buildbar__row"><span>Build progress</span><span id="steptext">Ready to start</span></div>
+          <div class="buildbar__row"><span>${L("Build progress","Progreso de construcción")}</span><span id="steptext">${L("Ready to start","Listo para empezar")}</span></div>
           <div class="buildbar__track"><div class="buildbar__fill" id="buildfill"></div></div>
         </div></div>`;
-      const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent="drag to look around · tap a glowing spot to fit the part";
+      const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent=L("drag to look around · tap a glowing spot to fit the part","arrastra para mirar alrededor · toca un punto brillante para colocar la pieza");
       const levelup=document.createElement("div");levelup.className="levelup";levelup.id="levelup";
-      levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">SYSTEM ONLINE</div><div class="levelup__n" id="lu-n">Your computer is built!</div><div class="levelup__s" id="lu-s">Every part is doing its job.</div></div>`;
+      levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">${L("SYSTEM ONLINE","SISTEMA ENCENDIDO")}</div><div class="levelup__n" id="lu-n">${L("Your computer is built!","¡Tu ordenador está construido!")}</div><div class="levelup__s" id="lu-s">${L("Every part is doing its job.","Cada pieza está haciendo su función.")}</div></div>`;
       const burst=document.createElement("div");burst.className="burst";burst.id="burst";
       stage.append(hudTL,hudHint,burst,levelup);
       left.append(stage);
 
       const ro=document.createElement("div");ro.className="readouts";
-      ro.innerHTML=`<div class="ro"><span class="ro__k">Parts fitted</span><span class="ro__v" id="ro-parts">0 / 4</span></div>
-        <div class="ro"><span class="ro__k">Status</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">Waiting</span></div>`;
+      ro.innerHTML=`<div class="ro"><span class="ro__k">${L("Parts fitted","Piezas colocadas")}</span><span class="ro__v" id="ro-parts">0 / 4</span></div>
+        <div class="ro"><span class="ro__k">${L("Status","Estado")}</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">${L("Waiting","Esperando")}</span></div>`;
       left.append(ro);
       const note=document.createElement("div");note.className="result-note";note.id="sim-note";left.append(note);
       wrap.append(left);
 
       const side=document.createElement("div");side.className="side";
       const trayBox=document.createElement("div");
-      trayBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Build order</p>`;
-      const tray=document.createElement("div");tray.className="tray";tray.setAttribute("role","group");tray.setAttribute("aria-label","Parts to build");
+      trayBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Build order","Orden de construcción")}</p>`;
+      const tray=document.createElement("div");tray.className="tray";tray.setAttribute("role","group");tray.setAttribute("aria-label",L("Parts to build","Piezas para construir"));
       const trayNodes={};
       PARTS.forEach(p=>{
         const c=document.createElement("div");c.className="tray-card";c.dataset.key=p.key;
@@ -461,7 +476,7 @@ const simulation = {
         $("partsdone").textContent=done+"/4";
         $("ro-parts").textContent=done+" / 4";
         $("buildfill").style.width=(done/4*100)+"%";
-        $("ro-status").textContent = done>=4 ? "Powered on" : "Building";
+        $("ro-status").textContent = done>=4 ? L("Powered on","Encendido") : L("Building","Construyendo");
         Object.entries(trayNodes).forEach(([k,el])=>{
           const idx=PARTS.findIndex(p=>p.key===k);
           el.classList.toggle("is-done", idx<stepIndex);
@@ -482,7 +497,7 @@ const simulation = {
       function celebrateDone(){
         const lu=$("levelup");lu.classList.add("show");
         fireBurst(["#4fb0e6","#7bffe0","#ffd45c","#eaf6ff"]);
-        if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak("System online! Your computer is built.");
+        if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(L("System online! Your computer is built.","¡Sistema encendido! Tu ordenador está construido."));
         setTimeout(()=>lu.classList.remove("show"),2200);
       }
 
@@ -494,10 +509,10 @@ const simulation = {
       }
       function showQuiz(part, onPass){
         note.innerHTML="";
-        $("steptext").textContent="Quick check";
+        $("steptext").textContent=L("Quick check","Comprobación rápida");
         const card=document.createElement("div");card.className="quiz-card";
         const q=QUIZZES[part.key];
-        card.innerHTML=`<p class="quiz-card__q">What does the ${part.name} do?</p>`;
+        card.innerHTML=`<p class="quiz-card__q">${L(`What does the ${part.name} do?`,`¿Qué función cumple ${part.name==="CPU"?"el":"la"} ${part.name}?`)}</p>`;
         const optWrap=document.createElement("div");optWrap.className="quiz-card__opts";
         const opts=[{text:q.correct,ok:true},{text:q.wrong,ok:false}].sort(()=>Math.random()-0.5);
         opts.forEach(o=>{
@@ -514,7 +529,7 @@ const simulation = {
         attempts=0;
         const decoys=pickDecoys(3);
         scene && scene.showTargets(part.key, decoys);
-        $("steptext").textContent="Fitting: "+part.name;
+        $("steptext").textContent=L("Fitting: ","Colocando: ")+part.name;
         paintBuild();
       }
       function startStep(){
@@ -530,7 +545,7 @@ const simulation = {
           scene.installPart(part.key);
           note.innerHTML="";
           const box=document.createElement("div");box.className="toast toast--correct anim-pop";
-          box.textContent=`Fitted the ${part.name}!`;
+          box.textContent=L(`Fitted the ${part.name}!`,`¡${part.name} colocad${part.name==="CPU"?"o":"a"}!`);
           note.append(box);
           if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(part.name+" fitted.");
           sim.recordTrial({part:part.name,job:part.job,attempts});
@@ -555,7 +570,7 @@ const simulation = {
           stats.wrongTries++;
           note.innerHTML="";
           const box=document.createElement("div");box.className="toast toast--info anim-pop";
-          box.textContent=`Hmm, that's not where the ${part.name} goes — look for the glowing spot and try again.`;
+          box.textContent=L(`Hmm, that's not where the ${part.name} goes — look for the glowing spot and try again.`,`Mmm, ahí no va ${part.name==="CPU"?"el":"la"} ${part.name} — busca el punto brillante e inténtalo de nuevo.`);
           note.append(box);
           scene.shake && scene.shake(key);
         }

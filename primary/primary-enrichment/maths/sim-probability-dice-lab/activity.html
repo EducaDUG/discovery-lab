@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Probability Lab: Dice Game Designers — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../engine/style.css?v=8">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  .pl-live {
+    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: .75rem;
+    padding: .55rem .9rem; margin: 0 0 1.1rem; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+    flex-wrap: wrap;
+  }
+  .pl-live__dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--ink-3); flex: none; }
+  .pl-live__dot[data-on="true"] { background: var(--positive, var(--accent)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .pl-live__label { font-size: .82rem; color: var(--ink-2); white-space: nowrap; }
+  .pl-board { display: flex; gap: .35rem; margin-left: auto; flex-wrap: wrap; }
+  .pl-board__chip { display: flex; align-items: center; gap: .3rem; padding: .2rem .55rem; border-radius: 999px; background: var(--accent-wash); font-size: .78rem; white-space: nowrap; }
+  .pl-board__chip b { color: var(--accent); }
+  .pl-reactions { display: flex; gap: .35rem; }
+  .pl-reactions button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; font-size: 1.1rem; line-height: 1; padding: .3rem .5rem; cursor: pointer; transition: transform .15s ease; }
+  .pl-reactions button:hover { transform: scale(1.15); background: var(--accent-wash); }
+  .pl-burst { position: fixed; font-size: 1.6rem; pointer-events: none; z-index: 999; animation: pl-float 1.8s ease-out forwards; }
+  @keyframes pl-float { from { transform: translateY(0) scale(.7); opacity: 0; } 15% { opacity: 1; transform: translateY(-10px) scale(1); } to { transform: translateY(-140px) scale(1.1); opacity: 0; } }
+
+  .pl-join { max-width: 420px; margin: 2rem auto; text-align: center; }
+  .pl-join input { text-align: center; font-size: 1.1rem; }
+
+  .pl-stage { animation: pl-in .35s ease both; }
+  @keyframes pl-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  [data-reduced-motion="on"] .pl-stage, [data-reduced-motion="on"] .pl-burst { animation: none !important; }
+
+  .pl-stage3d-wrap { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: .9rem;
+    height: 280px; background: radial-gradient(circle at 50% 20%, #1E3A6E 0%, #0A1626 78%); box-shadow: var(--shadow-2), inset 0 0 0 1px rgba(255,255,255,.06); }
+  .pl-stage3d { width: 100%; height: 100%; }
+  .pl-stage3d canvas { display: block; width: 100% !important; height: 100% !important; }
+  .pl-3d-badge { position: absolute; top: 10px; left: 12px; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: #fff; opacity: .85; background: var(--signal); padding: .2rem .6rem; border-radius: 999px; }
+  .pl-3d-result { position: absolute; top: 10px; right: 12px; font-size: .78rem; font-weight: 700;
+    color: #1b2a1b; background: #fff; opacity: 0; transition: opacity .25s ease; padding: .2rem .7rem; border-radius: 999px; }
+  .pl-3d-result[data-shown="true"] { opacity: .92; }
+
+  .pl-event { font-size: 1.2rem; font-weight: 700; margin: 0 0 .9rem; text-align: center; }
+  .pl-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .55rem; }
+  .pl-opt { text-align: center; padding: .75rem .6rem; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font: inherit; font-weight: 600; font-size: .95rem; transition: transform .12s ease, border-color .12s ease; }
+  .pl-opt:hover:not(:disabled) { border-color: var(--accent); }
+  .pl-opt:active { transform: scale(.98); }
+  .pl-opt[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
+  .pl-opt[data-state="wrong"] { animation: pl-shake .35s ease; }
+  @keyframes pl-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  .pl-full { display: grid; gap: .65rem; }
+  .pl-full .pl-opt { text-align: left; }
+
+  .pl-roll-area { margin-top: 1rem; text-align: center; min-height: 3rem; }
+  .pl-insight { background: var(--accent-wash); border-radius: 12px; padding: .9rem 1rem; margin-top: .8rem; text-align: left; animation: pl-in .3s ease both; }
+  .pl-insight strong { color: var(--accent); }
+
+  .pl-match-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.4rem 1rem; align-items: start; }
+  @media (max-width: 640px) { .pl-match-grid { grid-template-columns: 1fr; } }
+  .pl-match-col { display: grid; gap: .55rem; }
+  .pl-match-item { text-align: left; padding: .7rem .9rem; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font: inherit; font-size: .92rem; transition: transform .12s ease, border-color .12s ease; }
+  .pl-match-item[data-selected="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px var(--signal-wash); }
+  .pl-match-item[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); cursor: default; opacity: .85; }
+  .pl-match-item[data-state="wrong"] { animation: pl-shake .35s ease; }
+  .pl-match-item[disabled] { cursor: default; }
+  .pl-match-col--words .pl-match-item { text-align: center; font-weight: 700; text-transform: capitalize; }
+
+  .pl-done { text-align: center; padding: 1.5rem 1rem; }
+  .pl-done__score { font-family: var(--font-data); font-size: 2.4rem; color: var(--accent); font-weight: 700; }
+  .pl-confetti { position: relative; height: 0; }
+  .pl-confetti span { position: absolute; top: -10px; font-size: 1.3rem; animation: pl-fall 2.2s ease-in forwards; }
+  @keyframes pl-fall { to { transform: translateY(60vh) rotate(200deg); opacity: 0; } }
+  [data-reduced-motion="on"] .pl-confetti { display: none; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your name and score are only shared live during this session — never stored or sent anywhere afterward.</span>
+    <span data-lang="es" hidden>Tu nombre y tu puntuación solo se comparten en directo durante esta sesión — nunca se guardan ni se envían a ningún sitio.</span>
+  </div>
+</footer>
+
+<script src="../../../../engine/vendor/firebase/firebase-app-compat.js"></script>
+<script src="../../../../engine/vendor/firebase/firebase-database-compat.js"></script>
+<script src="../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { joinSession, addScore, sendReaction, onPlayers, onReactions, todaysSessionId, isLive, REACTIONS } from "../../_shared/live-wall.js";
+import "../../../../engine/accessibility.js";
+
+const root = document.getElementById("lab-root");
+const SESSION_ID = todaysSessionId("maths");
+let CONFIG = null;
+let playerName = "";
+let score = 0;
+
+/* ---- 3D PROBABILITY DIE (Three.js) --------------------------------------
+   One die mesh, textured with real canvas-drawn pips per face, reused for
+   every round. rollDieTo(value) spins it and settles on whichever number
+   the student actually rolls — never a scripted result, so the reveal is
+   an honest test of the probability word they just picked. */
+function reducedMotion() {
+  return document.documentElement.getAttribute("data-reduced-motion") === "on";
+}
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(1 - Math.pow(1 - t, 3), t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+
+const PIP_LAYOUT = {
+  1: [[.5, .5]],
+  2: [[.26, .26], [.74, .74]],
+  3: [[.26, .26], [.5, .5], [.74, .74]],
+  4: [[.26, .26], [.74, .26], [.26, .74], [.74, .74]],
+  5: [[.26, .26], [.74, .26], [.5, .5], [.26, .74], [.74, .74]],
+  6: [[.26, .2], [.74, .2], [.26, .5], [.74, .5], [.26, .8], [.74, .8]]
+};
+function pipTexture(n) {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#F9FBFD";
+  ctx.fillRect(0, 0, size, size);
+  ctx.strokeStyle = "#1E3A6E";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, size - 10, size - 10);
+  ctx.fillStyle = "#101722";
+  PIP_LAYOUT[n].forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(x * size, y * size, size * 0.09, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+/* Face-up rotation (Euler) for each value, given BoxGeometry's material
+   order [+x,-x,+y,-y,+z,-z] mapped to values [1,6,2,5,3,4]. */
+const FACE_UP = {
+  1: { x: 0, y: 0, z: Math.PI / 2 },
+  2: { x: 0, y: 0, z: 0 },
+  3: { x: -Math.PI / 2, y: 0, z: 0 },
+  4: { x: Math.PI / 2, y: 0, z: 0 },
+  5: { x: Math.PI, y: 0, z: 0 },
+  6: { x: 0, y: 0, z: -Math.PI / 2 }
+};
+
+let dieScene = null;
+function initDieScene(container) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  camera.position.set(2.1, 2.3, 3.1);
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x0a1626, 1.05));
+  const key = new THREE.DirectionalLight(0xffffff, 1.1);
+  key.position.set(3, 5, 3);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x4fc3f7, 0.5);
+  rim.position.set(-4, 2, -3);
+  scene.add(rim);
+
+  const table = new THREE.Mesh(
+    new THREE.CylinderGeometry(2.6, 2.8, 0.3, 40),
+    new THREE.MeshStandardMaterial({ color: 0x152A4D, roughness: 0.75 })
+  );
+  table.position.y = -1.1;
+  scene.add(table);
+
+  const materials = [1, 6, 2, 5, 3, 4].map(v => new THREE.MeshStandardMaterial({ map: pipTexture(v), roughness: 0.35 }));
+  const die = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.3, 1.3), materials);
+  scene.add(die);
+
+  function resize() {
+    const w = container.clientWidth, h = container.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(container);
+  resize();
+
+  dieScene = { renderer, scene, camera, die, container, rolling: false };
+
+  function loop() {
+    if (!dieScene.rolling && !reducedMotion()) die.rotation.y += 0.0035;
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function mountDieScene(container) {
+  if (!dieScene) { initDieScene(container); return; }
+  container.appendChild(dieScene.renderer.domElement);
+  dieScene.container = container;
+  const w = container.clientWidth, h = container.clientHeight;
+  if (w && h) { dieScene.renderer.setSize(w, h); dieScene.camera.aspect = w / h; dieScene.camera.updateProjectionMatrix(); }
+}
+
+function rollDieTo(value, done) {
+  const die = dieScene.die;
+  dieScene.rolling = true;
+  const t = FACE_UP[value];
+  const spins = () => 2 + Math.floor(Math.random() * 2);
+  const fromX = die.rotation.x, fromY = die.rotation.y, fromZ = die.rotation.z;
+  const toX = t.x + Math.PI * 2 * spins();
+  const toY = fromY + Math.PI * 2 * (spins() + 1);
+  const toZ = t.z + Math.PI * 2 * spins();
+  tween(1100, e => {
+    die.rotation.x = fromX + (toX - fromX) * e;
+    die.rotation.y = fromY + (toY - fromY) * e;
+    die.rotation.z = fromZ + (toZ - fromZ) * e;
+    die.position.y = Math.sin(e * Math.PI) * 0.6;
+  }, () => {
+    die.rotation.set(t.x, toY, t.z);
+    die.position.y = 0;
+    dieScene.rolling = false;
+    done();
+  });
+}
+
+const STAGES = ["join", "orient", "predict", "rounds", "explain", "apply", "check", "done"];
+let stageIdx = 0, roundIdx = 0;
+
+async function boot() {
+  CONFIG = await fetch("config.json").then(r => r.json());
+  render();
+}
+
+function railHTML() {
+  return `<nav class="rail" aria-label="Progress">${STAGES.map((s, i) => {
+    const state = i < stageIdx ? "done" : i === stageIdx ? "current" : "upcoming";
+    return `<span class="rail__step" data-state="${state}"><span class="rail__dot"></span></span>`;
+  }).join("")}</nav>`;
+}
+
+function liveBarHTML() {
+  const on = isLive();
+  return `<div class="pl-live">
+    <span class="pl-live__dot" data-on="${on}"></span>
+    <span class="pl-live__label">${on ? "Live with your group" : "Practice mode — ask Mr Guevara to switch on Live"}</span>
+    <div class="pl-board" id="pl-board"></div>
+    <div class="pl-reactions" role="group" aria-label="Send a positive reaction">
+      ${REACTIONS.map(e => `<button type="button" data-emoji="${e}" aria-label="Send ${e}">${e}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+function mountLiveBar() {
+  document.querySelectorAll(".pl-reactions button").forEach(b => {
+    b.addEventListener("click", () => {
+      const emoji = b.dataset.emoji;
+      if (isLive()) sendReaction(SESSION_ID, emoji, playerName);
+      else burst(emoji, b.getBoundingClientRect());
+    });
+  });
+  if (isLive()) {
+    onPlayers(SESSION_ID, list => {
+      const board = document.getElementById("pl-board");
+      if (!board) return;
+      board.innerHTML = list.slice(0, 5).map(p => `<span class="pl-board__chip">${escapeHTML(p.name)} <b>${p.score}</b></span>`).join("");
+    });
+    onReactions(SESSION_ID, r => burst(r.emoji));
+  }
+}
+
+function burst(emoji, rect) {
+  const el = document.createElement("span");
+  el.className = "pl-burst";
+  el.textContent = emoji;
+  const x = rect ? rect.left + rect.width / 2 : Math.random() * window.innerWidth * 0.8 + window.innerWidth * 0.1;
+  const y = rect ? rect.top : window.innerHeight - 80;
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1900);
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function render() {
+  const stage = STAGES[stageIdx];
+  const showChrome = stage !== "join";
+  root.innerHTML = (showChrome ? liveBarHTML() + railHTML() : "") + `<div class="pl-stage" id="pl-stage"></div>`;
+  if (showChrome) mountLiveBar();
+  const host = document.getElementById("pl-stage");
+  ({ join, orient, predict, rounds, explain, apply, check, done })[stage](host);
+}
+
+function advance() { stageIdx++; render(); }
+
+/* ---- JOIN ---------------------------------------------------------- */
+function join(host) {
+  host.innerHTML = `
+    <div class="pl-join panel stack">
+      <p class="eyebrow">Primary Enrichment · Maths · Tuesday</p>
+      <h1>The Probability Lab: Dice Game Designers</h1>
+      <p class="q__hint">Type your first name, then press Go to join today's live session.</p>
+      <label class="field__label" for="pl-name">Your first name</label>
+      <input id="pl-name" class="input" type="text" maxlength="16" autocomplete="off" placeholder="e.g. Sofia">
+      <button class="btn btn--signal" type="button" id="pl-go" style="margin-top:.75rem">Go! →</button>
+    </div>`;
+  const input = host.querySelector("#pl-name");
+  const go = () => {
+    const name = input.value.trim().replace(/[^\p{L}\p{N} '-]/gu, "").slice(0, 16);
+    if (!name) { input.focus(); return; }
+    playerName = name;
+    if (isLive()) joinSession(SESSION_ID, playerName);
+    advance();
+  };
+  host.querySelector("#pl-go").addEventListener("click", go);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  input.focus();
+}
+
+/* ---- ORIENT --------------------------------------------------------- */
+function orient(host) {
+  const o = CONFIG.orient;
+  host.innerHTML = `
+    <div class="panel stack">
+      <p class="eyebrow">Today's mission</p>
+      <h2>${playerName ? `Welcome, ${escapeHTML(playerName)}!` : "Welcome!"}</h2>
+      <p><strong>What:</strong> ${o.objective}</p>
+      <p><strong>Why it matters:</strong> ${o.realLife}</p>
+      <p><strong>How it connects:</strong> ${o.courseLink}</p>
+      <p><strong>By the end you will be able to:</strong></p>
+      <ul>${o.successCriteria.map(s => `<li>${s}</li>`).join("")}</ul>
+      <button class="btn btn--signal" type="button" id="pl-next">Let's start →</button>
+    </div>`;
+  host.querySelector("#pl-next").addEventListener("click", advance);
+}
+
+/* ---- PREDICT ---------------------------------------------------------- */
+function predict(host) {
+  const p = CONFIG.predict;
+  host.innerHTML = `<div class="panel stack">
+    <p class="eyebrow">Quick guess</p>
+    <h2>${p.prompt}</h2>
+    <div class="pl-full">${p.options.map(o => `<button class="pl-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
+  </div>`;
+  host.querySelectorAll(".pl-opt").forEach(btn => {
+    btn.addEventListener("click", () => {
+      host.querySelectorAll(".pl-opt").forEach(b => b.disabled = true);
+      btn.dataset.state = btn.dataset.id === p.answer ? "correct" : "wrong";
+      setTimeout(advance, 700);
+    });
+  });
+}
+
+/* ---- ROUNDS: pick the probability, then roll to test it ----------------- */
+function rounds(host) {
+  if (roundIdx >= CONFIG.rounds.length) { advance(); return; }
+  const r = CONFIG.rounds[roundIdx];
+  const words = CONFIG.probabilityWords;
+  host.innerHTML = `
+    <p class="eyebrow">Round ${roundIdx + 1} of ${CONFIG.rounds.length} · Pick the probability, then roll to test it</p>
+    <div class="pl-stage3d-wrap">
+      <div class="pl-stage3d" id="pl-3d"></div>
+      <span class="pl-3d-badge">3D · Probability Die</span>
+      <span class="pl-3d-result" id="pl-3d-result"></span>
+    </div>
+    <p class="pl-event">${r.event}</p>
+    <div class="pl-options" id="pl-word-options">
+      ${words.map(w => `<button class="pl-opt" type="button" data-word="${w}">${capitalize(w)}</button>`).join("")}
+    </div>
+    <div class="pl-roll-area" id="pl-roll-area"></div>`;
+
+  mountDieScene(host.querySelector("#pl-3d"));
+
+  const wordButtons = host.querySelectorAll("#pl-word-options .pl-opt");
+  wordButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const word = btn.dataset.word;
+      if (word !== r.answer) {
+        btn.dataset.state = "wrong";
+        setTimeout(() => { btn.dataset.state = ""; }, 400);
+        return;
+      }
+      wordButtons.forEach(b => b.disabled = true);
+      btn.dataset.state = "correct";
+      const rollArea = host.querySelector("#pl-roll-area");
+      rollArea.innerHTML = `<button class="btn btn--signal" type="button" id="pl-roll-btn">🎲 Roll the die to test it!</button>`;
+      rollArea.querySelector("#pl-roll-btn").addEventListener("click", function onRoll() {
+        this.disabled = true;
+        this.textContent = "Rolling…";
+        const rolled = 1 + Math.floor(Math.random() * 6);
+        rollDieTo(rolled, () => {
+          const badge = host.querySelector("#pl-3d-result");
+          badge.textContent = `You rolled a ${rolled}`;
+          badge.dataset.shown = "true";
+          addPoints(10);
+          rollArea.innerHTML = `
+            <div class="pl-insight">
+              <strong>${capitalize(r.answer)}.</strong> ${r.insight}
+            </div>
+            <button class="btn btn--signal" type="button" id="pl-round-next" style="margin-top:.9rem">Next round →</button>`;
+          rollArea.querySelector("#pl-round-next").addEventListener("click", () => { roundIdx++; render(); });
+        });
+      });
+    });
+  });
+}
+
+/* ---- EXPLAIN / APPLY (same structured shape) --------------------------- */
+function structuredQuestion(host, data, onDone) {
+  host.innerHTML = `<div class="panel stack">
+    <h2>${data.prompt}</h2>
+    <div class="pl-full">${data.options.map(o => `<button class="pl-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
+  </div>`;
+  host.querySelectorAll(".pl-opt").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const opt = data.options.find(o => o.id === btn.dataset.id);
+      if (opt.correct) {
+        host.querySelectorAll(".pl-opt").forEach(b => b.disabled = true);
+        btn.dataset.state = "correct";
+        addPoints(10);
+        setTimeout(onDone, 700);
+      } else {
+        btn.dataset.state = "wrong";
+        setTimeout(() => { btn.dataset.state = ""; }, 400);
+      }
+    });
+  });
+}
+function explain(host) { structuredQuestion(host, CONFIG.explain, advance); }
+function apply(host) { structuredQuestion(host, CONFIG.apply, advance); }
+
+/* ---- KNOWLEDGE CHECK: match each statement to its probability word ------ */
+let matchState = null;
+
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function check(host) {
+  if (!matchState) {
+    matchState = {
+      items: CONFIG.knowledgeCheck,
+      wordOrder: shuffled(CONFIG.knowledgeCheck.map(k => k.answer)),
+      matched: new Set(),
+      selectedStatement: null,
+      selectedWord: null
+    };
+  }
+  const m = matchState;
+  host.innerHTML = `
+    <p class="eyebrow">Knowledge Check · Match each statement to its probability</p>
+    <h2>Tap a statement, then tap the probability word that matches it.</h2>
+    <div class="pl-match-grid">
+      <div class="pl-match-col" id="pl-statements">
+        ${m.items.map(it => `<button class="pl-match-item" type="button" data-id="${it.id}" ${m.matched.has(it.id) ? 'disabled data-state="correct"' : ""}>${it.statement}</button>`).join("")}
+      </div>
+      <div class="pl-match-col pl-match-col--words" id="pl-words">
+        ${m.wordOrder.map((w, i) => `<button class="pl-match-item" type="button" data-word="${w}" data-slot="${i}" ${m.matched.has(w + "-" + i) ? 'disabled data-state="correct"' : ""}>${w}</button>`).join("")}
+      </div>
+    </div>`;
+
+  function tryMatch() {
+    if (m.selectedStatement == null || m.selectedWord == null) return;
+    const item = m.items.find(it => it.id === m.selectedStatement.id);
+    const statementEl = m.selectedStatement.el, wordEl = m.selectedWord.el;
+    if (item.answer === m.selectedWord.word) {
+      statementEl.disabled = true; statementEl.dataset.state = "correct"; statementEl.removeAttribute("data-selected");
+      wordEl.disabled = true; wordEl.dataset.state = "correct"; wordEl.removeAttribute("data-selected");
+      m.matched.add(item.id);
+      m.matched.add(m.selectedWord.word + "-" + m.selectedWord.slot);
+      addPoints(10);
+      m.selectedStatement = null; m.selectedWord = null;
+      if (m.matched.size === m.items.length * 2) {
+        setTimeout(() => {
+          host.insertAdjacentHTML("beforeend", `<div style="text-align:center;margin-top:1.1rem"><button class="btn btn--signal" type="button" id="pl-check-done">Finish Knowledge Check →</button></div>`);
+          host.querySelector("#pl-check-done").addEventListener("click", () => { matchState = null; advance(); });
+        }, 300);
+      }
+    } else {
+      statementEl.dataset.state = "wrong"; wordEl.dataset.state = "wrong";
+      setTimeout(() => {
+        statementEl.removeAttribute("data-state"); statementEl.removeAttribute("data-selected");
+        wordEl.removeAttribute("data-state"); wordEl.removeAttribute("data-selected");
+      }, 450);
+      m.selectedStatement = null; m.selectedWord = null;
+    }
+  }
+
+  host.querySelectorAll("#pl-statements .pl-match-item").forEach(btn => {
+    if (btn.disabled) return;
+    btn.addEventListener("click", () => {
+      if (m.selectedStatement) m.selectedStatement.el.removeAttribute("data-selected");
+      m.selectedStatement = { id: btn.dataset.id, el: btn };
+      btn.dataset.selected = "true";
+      tryMatch();
+    });
+  });
+  host.querySelectorAll("#pl-words .pl-match-item").forEach(btn => {
+    if (btn.disabled) return;
+    btn.addEventListener("click", () => {
+      if (m.selectedWord) m.selectedWord.el.removeAttribute("data-selected");
+      m.selectedWord = { word: btn.dataset.word, slot: btn.dataset.slot, el: btn };
+      btn.dataset.selected = "true";
+      tryMatch();
+    });
+  });
+}
+
+/* ---- DONE ---------------------------------------------------------- */
+function done(host) {
+  host.innerHTML = `<div class="pl-done">
+    <div class="pl-confetti" id="pl-confetti"></div>
+    <p class="eyebrow">Session complete</p>
+    <h2>Great thinking, ${escapeHTML(playerName)}!</h2>
+    <p class="pl-done__score">${score} points</p>
+    <p class="q__hint">Check the live board above to see how everyone did — every score there is a win worth celebrating.</p>
+    <button class="btn btn--signal" type="button" id="pl-cert">Download my certificate →</button>
+  </div>`;
+  const confetti = host.querySelector("#pl-confetti");
+  "🎉⭐🎲✨".split("").forEach((c, i) => {
+    for (let n = 0; n < 3; n++) {
+      const s = document.createElement("span");
+      s.textContent = c; s.style.left = (Math.random() * 90) + "%"; s.style.animationDelay = (i * 0.1 + n * 0.15) + "s";
+      confetti.appendChild(s);
+    }
+  });
+  host.querySelector("#pl-cert").addEventListener("click", downloadCertificate);
+}
+
+function addPoints(n) {
+  score += n;
+  if (isLive()) addScore(SESSION_ID, n);
+}
+
+async function loadJsPDF() {
+  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "../../../../engine/vendor/jspdf.umd.min.js";
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return window.jspdf.jsPDF;
+}
+
+/* Five-pointed star, used for the medal and the scattered confetti. */
+function drawStar(doc, cx, cy, rOuter, rInner, fillColor) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? rOuter : rInner;
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+  }
+  doc.setFillColor(...fillColor);
+  doc.lines(
+    pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]]),
+    pts[0][0], pts[0][1], [1, 1], "F", true
+  );
+}
+
+async function downloadCertificate() {
+  const jsPDF = await loadJsPDF();
+  const doc = new jsPDF({ unit: "pt", format: "letter", orientation: "landscape" });
+  const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight();
+  const navy = [30, 58, 110], teal = [0, 109, 128], paper = [236, 239, 244], ink = [16, 23, 34], gold = [214, 158, 46];
+
+  doc.setFillColor(...paper); doc.rect(0, 0, w, h, "F");
+  doc.setFillColor(222, 228, 236); doc.setDrawColor(222, 228, 236);
+  doc.circle(-40, -40, 160, "F"); doc.circle(w + 40, h + 40, 160, "F");
+
+  doc.setDrawColor(...navy); doc.setLineWidth(4); doc.roundedRect(26, 26, w - 52, h - 52, 14, 14);
+  doc.setDrawColor(...teal); doc.setLineWidth(1.2); doc.roundedRect(38, 38, w - 76, h - 76, 10, 10);
+
+  [[70, 70, 7, gold], [w - 80, 65, 5, teal], [95, h - 70, 5, navy], [w - 65, h - 90, 7, gold],
+   [140, 95, 4, navy], [w - 130, h - 60, 4, teal]].forEach(([x, y, r, c]) => drawStar(doc, x, y, r, r * 0.42, c));
+
+  const mx = w / 2, my = 96;
+  doc.setFillColor(...gold); doc.circle(mx, my, 34, "F");
+  doc.setFillColor(255, 250, 235); doc.circle(mx, my, 26, "F");
+  drawStar(doc, mx, my, 17, 7, navy);
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(30); doc.setTextColor(...navy);
+  doc.text("Discovery Lab", w / 2, 158, { align: "center" });
+  doc.setFontSize(13); doc.setTextColor(...teal); doc.setFont("helvetica", "normal");
+  doc.text("PRIMARY ENRICHMENT · CERTIFICATE OF BRIGHT THINKING", w / 2, 178, { align: "center" });
+
+  doc.setDrawColor(...gold); doc.setLineWidth(1);
+  doc.line(w / 2 - 90, 192, w / 2 - 20, 192); doc.line(w / 2 + 20, 192, w / 2 + 90, 192);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...ink);
+  doc.text("this certifies that", w / 2, 197, { align: "center" });
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(40); doc.setTextColor(...ink);
+  doc.text(playerName || "Student", w / 2, 240, { align: "center" });
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.setTextColor(70, 78, 92);
+  doc.text("completed The Probability Lab — a live Laws of Probability adventure", w / 2, 264, { align: "center" });
+
+  doc.setFillColor(...navy); doc.roundedRect(w / 2 - 85, 284, 170, 40, 20, 20, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(255, 255, 255);
+  doc.text(`★ ${score} points ★`, w / 2, 310, { align: "center" });
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(110, 118, 130);
+  doc.text(new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" }), w / 2, 345, { align: "center" });
+
+  doc.setTextColor(...teal); doc.setFontSize(11);
+  doc.textWithLink("Open the live activity →", w / 2, 365, { align: "center", url: window.location.href });
+
+  doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(120, 128, 140);
+  doc.text("Discovery Lab · Diego Urrutia Guevara", w / 2, h - 42, { align: "center" });
+
+  doc.save(`${playerName || "Student"}_PrimaryEnrichment_ProbabilityLab_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+boot();
+</script>
+</body>
+</html>
