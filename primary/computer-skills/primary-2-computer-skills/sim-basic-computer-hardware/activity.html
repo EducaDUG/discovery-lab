@@ -125,7 +125,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .chip-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
 .chip-tray__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
   border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);
-  cursor:pointer;transition:all var(--dur-fast) var(--ease);}
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
 .chip-tray__btn:hover{border-color:var(--accent);}
 .chip-tray__btn.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
 .chip-tray__btn.is-done{opacity:.45;pointer-events:none;}
@@ -238,7 +238,7 @@ function chipHTML(p){return `<span class="tray-card__chip" style="background:#${
 const DIAGRAM_IMG = "photos/computer-case.jpg";
 const DIAGRAM_CREDIT = 'Photo: Bretwa — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a> (resized)';
 const HOTSPOTS = [
-  { key:"case",        fx:0.781, fy:0.417 },
+  { key:"case",        fx:0.480, fy:0.087 },
   { key:"motherboard", fx:0.469, fy:0.542 },
   { key:"cpu",         fx:0.328, fy:0.313 },
   { key:"ram",         fx:0.480, fy:0.333 },
@@ -313,24 +313,32 @@ const simulation = {
       const hint=document.createElement("p");hint.className="diagram-caption";
       hint.textContent="Tap a part below, then tap its spot on the picture.";
       left.append(hint);
+      const note=document.createElement("div");note.className="result-note";note.id="label-note";
+      left.append(note);
       const credit=document.createElement("p");credit.className="diagram-credit";credit.innerHTML=DIAGRAM_CREDIT;
       left.append(credit);
       wrap.append(left);
+
+      function flashNote(text,kind){
+        note.innerHTML="";
+        const box=document.createElement("div");box.className="toast toast--"+kind+" anim-pop";
+        box.textContent=text;note.append(box);
+      }
 
       const side=document.createElement("div");
       side.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Parts</p>`;
       const tray=document.createElement("div");tray.className="chip-tray";tray.setAttribute("role","group");tray.setAttribute("aria-label","Parts to label");
       const shuffledParts=[...PARTS].sort(()=>Math.random()-0.5);
       const chipNodes={};
-      let armed=null;
+      let armed=null,labelAttempts=0;
       shuffledParts.forEach(p=>{
         const b=document.createElement("button");b.type="button";b.className="chip-tray__btn";
         b.innerHTML=`${chipHTML(p)}<span>${p.name}</span><span class="tray-card__mark">✓</span>`;
         b.addEventListener("click",()=>{
           if(b.classList.contains("is-done"))return;
           Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
-          Object.values(spotNodes).forEach(x=>x.classList.remove("is-armed-target"));
           b.classList.add("is-armed");armed=p.key;
+          flashNote(`${p.name} selected — now tap its spot on the picture.`,"info");
         });
         chipNodes[p.key]=b;tray.append(b);
       });
@@ -344,27 +352,38 @@ const simulation = {
         s.textContent=String(i+1);s.setAttribute("aria-label","Spot "+(i+1));
         s.addEventListener("click",()=>{
           if(s.classList.contains("is-correct"))return;
-          if(!armed){hint.textContent="Tap a part in the list first.";return;}
+          if(!armed){
+            s.classList.remove("is-wrong");void s.offsetWidth;s.classList.add("is-wrong");
+            flashNote("Tap a part in the list first, then tap its spot.","info");
+            return;
+          }
+          labelAttempts++;
           if(armed===h.key){
             const p=partByKey[h.key];
             s.classList.add("is-correct");s.style.background="#"+p.color.toString(16).padStart(6,"0");
             s.style.borderColor="transparent";s.textContent=p.chip;
             chipNodes[h.key].classList.add("is-done");
             matched++;hint.textContent=matched+" / 5 matched";
+            flashNote(`Correct! ${p.name} matched.`,"correct");
             if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+" matched.");
           } else {
             s.classList.remove("is-wrong");void s.offsetWidth;s.classList.add("is-wrong");
-            hint.textContent="Not quite — try another spot.";
+            flashNote("Not quite — try another spot.","incorrect");
           }
           armed=null;
           Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
-          if(matched>=PARTS.length)setTimeout(showContinue,450);
+          if(matched>=PARTS.length){
+            sim.mark("label_match_completed",true);
+            sim.mark("label_match_attempts",labelAttempts);
+            setTimeout(showContinue,650);
+          }
         });
         spotNodes[h.key]=s;dwrap.append(s);
       });
 
       function showContinue(){
         hint.textContent="All 5 matched!";
+        flashNote("All 5 parts matched — nice work!","correct");
         const row=document.createElement("div");row.className="phase-continue";
         const btn=document.createElement("button");btn.type="button";btn.className="btn btn--lg btn--signal";
         btn.textContent="Now build it for real →";
