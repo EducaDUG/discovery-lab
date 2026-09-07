@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Build Workshop thumbnail capture</title>
+<style>
+  html,body{margin:0;background:#070c12;color:#bfe0ff;font:14px/1.5 system-ui,sans-serif;}
+  #wrap{display:grid;place-items:center;min-height:100vh;gap:1rem;}
+  #stage{border:1px solid #0c1520;border-radius:12px;overflow:hidden;}
+  #log{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="stage"></canvas>
+  <div id="log">booting…</div>
+</div>
+<!-- served from repo root by tools/make-thumbnail.py -->
+<script src="/engine/vendor/three.min.js"></script>
+<script>
+/* ------------------------------------------------------------------ params */
+const Q = new URLSearchParams(location.search);
+const FRAMES   = +(Q.get("frames")   || 30);
+const W        = +(Q.get("w")        || 380);
+const H        = +(Q.get("h")        || 285);
+const AZ0      = +(Q.get("az0")       || 0.35);
+const DURATION = +(Q.get("duration") || 90);
+const COLORS   = +(Q.get("colors")   || 96);
+const OUT      = Q.get("out") || "";
+
+const log = m => { document.getElementById("log").textContent = m; };
+
+/* --------------------------------------------------------------- the scene */
+/* Reproduces the finished, powered-on build from the activity (build3D), but
+   static and driven frame-by-frame instead of by a render loop, so a
+   360-degree azimuth sweep produces a seamless loop. */
+function buildScene(THREE, canvas){
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(2);
+  renderer.setSize(W, H, false);
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0x0a1520,9,22);
+  const camera=new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
+
+  const hemi=new THREE.HemisphereLight(0xbfe0ff,0x141c28,0.55); scene.add(hemi);
+  const ambient=new THREE.AmbientLight(0xffffff,0.4); scene.add(ambient);
+  const key=new THREE.DirectionalLight(0xdff0ff,1.0); key.position.set(3,5,4);
+  key.castShadow=true; key.shadow.mapSize.set(1024,1024); scene.add(key);
+
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(6,48),new THREE.ShadowMaterial({opacity:0.32}));
+  ground.rotation.x=-Math.PI/2; ground.position.y=-1.9; ground.receiveShadow=true; scene.add(ground);
+
+  const shellMat=new THREE.MeshStandardMaterial({color:0x1c2733,roughness:0.55,metalness:0.35});
+  const rimMat=new THREE.MeshStandardMaterial({color:0x4fb0e6,emissive:0x1a5878,emissiveIntensity:0.6,roughness:0.4,metalness:0.2});
+  const shell=new THREE.Group(); scene.add(shell);
+  function panel(w,h,px,py,pz,rx,ry){
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),shellMat);
+    m.position.set(px,py,pz); m.rotation.set(rx,ry,0); m.castShadow=true; m.receiveShadow=true; shell.add(m); return m;
+  }
+  const CW=2.6, CH=3.0, CD=2.0;
+  panel(CW,CH, 0,0,-CD/2, 0,0);
+  panel(CD,CH, -CW/2,0,0, 0,Math.PI/2);
+  panel(CD,CH,  CW/2,0,0, 0,-Math.PI/2);
+  panel(CW,CD, 0,-CH/2,0, -Math.PI/2,0);
+  panel(CW,CD, 0, CH/2,0, Math.PI/2,0);
+  const edgeGeo=new THREE.EdgesGeometry(new THREE.BoxGeometry(CW,CH,CD));
+  const edges=new THREE.LineSegments(edgeGeo,new THREE.LineBasicMaterial({color:0x7bffe0,transparent:true,opacity:0.95}));
+  scene.add(edges);
+
+  const fanGroup=new THREE.Group(); fanGroup.position.set(0.85,0.9,-CD/2+0.02); shell.add(fanGroup);
+  const fanRing=new THREE.Mesh(new THREE.TorusGeometry(0.26,0.03,10,24),rimMat); fanGroup.add(fanRing);
+  for(let i=0;i<7;i++){const blade=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.22,0.02),new THREE.MeshStandardMaterial({color:0x33475c}));
+    blade.position.set(Math.cos(i/7*Math.PI*2)*0.11,Math.sin(i/7*Math.PI*2)*0.11,0); blade.rotation.z=i/7*Math.PI*2; fanGroup.add(blade);}
+  fanGroup.rotation.z = 0.6; // frozen mid-spin blur look
+
+  /* installed parts, matching the activity's SLOT_POS + colors */
+  const SLOT_POS = {
+    motherboard: {p:[0,0,-CD/2+0.07]},
+    cpu:         {p:[-0.1,0.35,-CD/2+0.14]},
+    ram:         {p:[0.75,0.35,-CD/2+0.14]},
+    gpu:         {p:[0,-0.85,-CD/2+0.5]},
+  };
+  const PART_COLORS = { motherboard:0x1f8a5c, cpu:0xdb5461, ram:0x3d8fd6, gpu:0x8a5cf5 };
+  function partMesh(key,color){
+    const c=new THREE.Color(color);
+    const mat=new THREE.MeshStandardMaterial({color:c,roughness:0.4,metalness:0.25,emissive:c,emissiveIntensity:0.18});
+    if(key==="motherboard")return new THREE.Mesh(new THREE.BoxGeometry(2.0,2.2,0.06),mat);
+    if(key==="cpu")return new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.14),mat);
+    if(key==="ram")return new THREE.Mesh(new THREE.BoxGeometry(0.2,0.8,0.5),mat);
+    return new THREE.Mesh(new THREE.BoxGeometry(1.4,0.22,0.6),mat);
+  }
+  Object.entries(SLOT_POS).forEach(([key,def])=>{
+    const mesh=partMesh(key,PART_COLORS[key]);
+    mesh.position.set(...def.p); mesh.castShadow=true; mesh.receiveShadow=true;
+    scene.add(mesh);
+  });
+
+  const pol=1.15, rad=6.2;
+  function renderAt(az){
+    const x=rad*Math.sin(pol)*Math.cos(az), z=rad*Math.sin(pol)*Math.sin(az), y=rad*Math.cos(pol);
+    camera.position.set(x,y-0.1,z); camera.lookAt(0,-0.1,0);
+    renderer.render(scene,camera);
+  }
+  return {renderAt, gl:renderer.domElement};
+}
+
+/* ---------------------------------------------------------- compositing */
+function makeCompositor(){
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const ctx=c.getContext("2d");
+  const bg=ctx.createRadialGradient(W*0.5,H*0.14,10, W*0.5,H*0.5, Math.max(W,H)*0.95);
+  bg.addColorStop(0,"#1a2c40"); bg.addColorStop(0.45,"#0f1b28"); bg.addColorStop(1,"#070c12");
+  const vig=ctx.createRadialGradient(W*0.5,H*0.5,Math.min(W,H)*0.2, W*0.5,H*0.5,Math.max(W,H)*0.72);
+  vig.addColorStop(0,"rgba(0,0,0,0)"); vig.addColorStop(1,"rgba(0,0,0,0.55)");
+  return function(glCanvas){
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+    ctx.drawImage(glCanvas,0,0,W,H);
+    ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+    return c;
+  };
+}
+const toBlob = canvas => new Promise(res=>canvas.toBlob(res,"image/png"));
+
+/* ---------------------------------------------------------------- driver */
+(async function(){
+  if(!window.THREE){ log("ERROR: three.js failed to load"); return; }
+  const stage=document.getElementById("stage");
+  stage.width=W; stage.height=H; stage.style.width=W+"px"; stage.style.height=H+"px";
+  const {renderAt, gl}=buildScene(window.THREE, stage);
+  const composite=makeCompositor();
+
+  const tick = () => new Promise(r=>setTimeout(r,0));
+  renderAt(AZ0); await tick(); renderAt(AZ0);
+
+  await fetch("/reset");
+  for(let i=0;i<FRAMES;i++){
+    const az = AZ0 + (i/FRAMES)*Math.PI*2;
+    renderAt(az);
+    const blob = await toBlob(composite(gl));
+    await fetch("/frame/"+i, {method:"POST", body:blob});
+    log(`frame ${i+1}/${FRAMES}`);
+    await tick();
+  }
+  log("assembling GIF…");
+  const res = await fetch(`/assemble?out=${encodeURIComponent(OUT)}&duration=${DURATION}&colors=${COLORS}`);
+  const txt = await res.text();
+  log(txt);
+  window.__DONE = txt;
+  document.title = "DONE " + txt;
+})();
+</script>
+</body>
+</html>

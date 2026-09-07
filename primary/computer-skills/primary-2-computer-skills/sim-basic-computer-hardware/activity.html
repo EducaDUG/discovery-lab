@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="computing" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 2: Basic Computer Hardware — Discovery Lab</title>
+<meta name="description" content="Build a real computer from scratch in 3D — snap the case, motherboard, CPU, RAM and graphics card into place and watch it power up.">
+<link rel="stylesheet" href="../../../../engine/style.css?v=3">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='8' y='14' width='48' height='34' rx='4' fill='none' stroke='%232F5871' stroke-width='4'/><circle cx='45' cy='22' r='6' fill='%2300807A'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+#badge-shelf{display:none !important;}
+.build3d{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:60rem){.build3d{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}}
+
+.stage3d{position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  border:1px solid #0c1520;aspect-ratio:4/3;min-height:22rem;
+  background:radial-gradient(120% 100% at 50% 14%, #1a2c40 0%, #0f1b28 45%, #070c12 100%);
+  box-shadow:inset 0 0 120px rgba(0,0,0,.55), var(--shadow-2);}
+.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:pointer;}
+.stage3d::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px rgba(0,0,0,.6);border-radius:inherit;}
+.stage3d__boot{position:absolute;inset:0;display:grid;place-items:center;color:#bfe0ff;
+  font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.1em;text-transform:uppercase;gap:var(--sp-3);}
+.boot-dot{width:44px;height:44px;border-radius:50%;border:3px solid #2f4f6b;border-top-color:#7bd0ff;
+  animation:spin 1s linear infinite;margin-inline:auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+[data-reduced-motion=on] .boot-dot{animation-duration:2s;}
+
+.hud{position:absolute;pointer-events:none;color:#eaf6ff;font-family:var(--font-data);z-index:2;}
+.hud--tl{top:var(--sp-3);left:var(--sp-3);right:var(--sp-3);}
+.hud--hint{bottom:var(--sp-3);left:0;right:0;text-align:center;font-size:.72rem;letter-spacing:.14em;
+  text-transform:uppercase;color:#8fb8d9;opacity:.85;}
+.buildbar{display:flex;align-items:center;gap:var(--sp-3);}
+.buildbar__badge{flex:none;width:2.6rem;height:2.6rem;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#2f6fa0,#0d3856);border:1px solid #4fb0e6;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.buildbar__badge b{font-size:1.15rem;font-weight:800;color:#eaf6ff;}
+.buildbar__body{flex:1;min-width:0;}
+.buildbar__row{display:flex;justify-content:space-between;font-size:.66rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#a9d4e9;margin-bottom:3px;}
+.buildbar__track{height:9px;border-radius:999px;background:#04121d;border:1px solid #2f4f6b;overflow:hidden;}
+.buildbar__fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#4fb0e6,#7bffe0);
+  box-shadow:0 0 12px #4fb0e6aa;transition:width var(--dur-slow) var(--ease);}
+
+.result-note{margin-top:var(--sp-3);}
+.readouts{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin-top:var(--sp-3);}
+.ro{display:flex;flex-direction:column;gap:1px;}
+.ro__k{font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.ro__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-2);color:var(--ink);}
+
+.side{display:flex;flex-direction:column;gap:var(--sp-5);}
+.tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.tray-card{position:relative;display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);overflow:hidden;
+  transition:transform var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease);}
+.tray-card__chip{flex:none;width:2.2rem;height:2.2rem;border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.85rem;}
+.tray-card__name{font-weight:800;font-size:var(--step-0);}
+.tray-card__job{font-size:.72rem;color:var(--ink-3);}
+.tray-card.is-current{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);animation:traypulse 1.4s ease-in-out infinite;}
+[data-reduced-motion=on] .tray-card.is-current{animation:none;}
+@keyframes traypulse{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
+.tray-card.is-done{opacity:.55;}
+.tray-card__mark{margin-left:auto;flex:none;width:1.6rem;height:1.6rem;border-radius:50%;display:grid;place-items:center;
+  background:var(--positive);color:#fff;font-size:.85rem;opacity:0;transform:scale(.5);
+  transition:opacity var(--dur-mid) var(--ease),transform var(--dur-mid) var(--ease-out-back);}
+.tray-card.is-done .tray-card__mark{opacity:1;transform:scale(1);}
+
+/* Level-up + burst overlays */
+.levelup{position:absolute;inset:0;z-index:5;display:grid;place-items:center;pointer-events:none;
+  background:radial-gradient(circle at 50% 45%, rgba(6,16,25,.55), rgba(6,16,25,.88));
+  opacity:0;transition:opacity var(--dur-mid) var(--ease);}
+.levelup.show{opacity:1;}
+.levelup__card{text-align:center;color:#eaf6ff;transform:scale(.7);transition:transform var(--dur-slow) var(--ease-out-back);}
+.levelup.show .levelup__card{transform:scale(1);}
+.levelup__k{font-family:var(--font-data);letter-spacing:.3em;font-size:.8rem;color:#7bffe0;}
+.levelup__n{font-family:var(--font-display);font-size:2.4rem;line-height:1.2;font-weight:800;margin:.1em 0;
+  text-shadow:0 0 24px #4fb0e688;max-width:22rem;}
+.levelup__s{font-family:var(--font-data);font-size:.8rem;color:#bfe0ff;}
+.burst{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;}
+.burst i{position:absolute;width:8px;height:8px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+
+.legend{display:flex;flex-wrap:wrap;gap:var(--sp-3);margin-top:var(--sp-3);font-size:var(--step--1);color:var(--ink-2);}
+.legend b{color:var(--ink);}
+
+/* Orient anatomy */
+.parts-grid{display:grid;gap:var(--sp-3);grid-template-columns:1fr;margin-top:var(--sp-3);}
+@media(min-width:40rem){.parts-grid{grid-template-columns:repeat(2,1fr);}}
+.part-def{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);padding:var(--sp-3);
+  background:var(--surface);display:flex;gap:var(--sp-3);align-items:flex-start;}
+.part-def__chip{flex:none;width:2.2rem;height:2.2rem;border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.85rem;}
+.part-def__term{font-weight:700;}
+.part-def__body{font-size:var(--step--1);color:var(--ink-2);margin-top:2px;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <g stroke="currentColor" stroke-width="1.5" opacity=".45"><path d="M32 2v7M32 55v7M2 32h7M55 32h7"/></g>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none">About Mr&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <ol class="crumbs__list">
+      <li><a href="../../../../">Discovery Lab</a></li>
+      <li><a href="../../../">Primary</a></li>
+      <li><a href="../../">Computer Skills</a></li>
+      <li><a href="../">Primary 2 Computer Skills</a></li>
+      <li><span aria-current="page">Lesson 2: Basic Computer Hardware</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span>Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../engine/engine.js?v=5";
+
+const THREE_URL = "../../../../engine/vendor/three.min.js";
+
+/* ======================================================================
+   THE FIVE PARTS
+   ====================================================================== */
+const CASE_PART = { key:"case", name:"Case", color:0x5c6f80, chip:"1",
+  job:"Protects everything inside and keeps it cool with fans.",
+  fact:"Your build already came with its case. Every other part goes inside it." };
+
+const PARTS = [
+  { key:"motherboard", name:"Motherboard", color:0x1f8a5c, chip:"2",
+    job:"Connects every part together so they can talk to each other.",
+    fact:"Without the motherboard, your computer would be like a team without a way to pass messages to each other." },
+  { key:"cpu", name:"CPU", color:0xdb5461, chip:"3",
+    job:"Thinks and calculates — the brain of the computer.",
+    fact:"Your CPU can do billions of tiny sums every single second." },
+  { key:"ram", name:"RAM", color:0x3d8fd6, chip:"4",
+    job:"Fast memory that holds what you're working on right now.",
+    fact:"RAM forgets everything the moment the computer is switched off — that's why you need to save your work." },
+  { key:"gpu", name:"Graphics card", color:0x8a5cf5, chip:"5",
+    job:"Draws everything you see on the screen.",
+    fact:"Without a graphics card, games and video would just look like a blank screen." },
+];
+const ALL_PARTS = [CASE_PART, ...PARTS];
+const partByKey = Object.fromEntries(ALL_PARTS.map(p=>[p.key,p]));
+
+const DECOYS = [
+  { key:"fan",   label:"Fan mount" },
+  { key:"drive", label:"Drive bay" },
+  { key:"psu",   label:"Power supply bay" },
+];
+
+function chipHTML(p){return `<span class="tray-card__chip" style="background:#${p.color.toString(16).padStart(6,"0")}">${p.chip}</span>`;}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+let sim=null;
+const stats={partsPlaced:0,wrongTries:0,totalAttempts:{}};
+
+const simulation = {
+  orient(host){
+    host.innerHTML="";
+    const intro=document.createElement("p");intro.className="q__hint";
+    intro.textContent="A computer looks like magic from the outside — but open the case and it's just five simple parts, each with one clear job. Learn them here, then build one yourself.";
+    host.append(intro);
+    const grid=document.createElement("div");grid.className="parts-grid";
+    ALL_PARTS.forEach(p=>{
+      const d=document.createElement("div");d.className="part-def";
+      d.innerHTML=`${chipHTML(p)}<span><span class="part-def__term">${p.name}</span>
+        <span class="part-def__body">${p.job}</span></span>`;
+      grid.append(d);
+    });
+    host.append(grid);
+    if(sim&&sim.ttsEnabled&&sim.ttsEnabled()){
+      const btn=sim.speaker(()=>ALL_PARTS.map(p=>`${p.name}. ${p.job}`).join(" "));
+      btn.style.marginTop="12px";host.append(btn);
+    }
+  },
+
+  investigate(host, api){
+    sim=api; host.innerHTML="";
+    const game = sim.state.game || (sim.state.game={xp:0,level:1,poweredOn:false});
+
+    const wrap=document.createElement("div");wrap.className="build3d";
+
+    // left: 3D stage + readouts
+    const left=document.createElement("div");
+    const stage=document.createElement("div");stage.className="stage3d";
+    const boot=document.createElement("div");boot.className="stage3d__boot";
+    boot.innerHTML=`<div><div class="boot-dot"></div><div style="margin-top:.8em">Opening the workshop…</div></div>`;
+    stage.append(boot);
+    const hudTL=document.createElement("div");hudTL.className="hud hud--tl";
+    hudTL.innerHTML=`<div class="buildbar">
+      <div class="buildbar__badge"><b id="partsdone">0/4</b></div>
+      <div class="buildbar__body">
+        <div class="buildbar__row"><span>Build progress</span><span id="steptext">Ready to start</span></div>
+        <div class="buildbar__track"><div class="buildbar__fill" id="buildfill"></div></div>
+      </div></div>`;
+    const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent="drag to look around · click a glowing spot to fit the part";
+    const levelup=document.createElement("div");levelup.className="levelup";levelup.id="levelup";
+    levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">SYSTEM ONLINE</div><div class="levelup__n" id="lu-n">Your computer is built!</div><div class="levelup__s" id="lu-s">Every part is doing its job.</div></div>`;
+    const burst=document.createElement("div");burst.className="burst";burst.id="burst";
+    stage.append(hudTL,hudHint,burst,levelup);
+    left.append(stage);
+
+    const ro=document.createElement("div");ro.className="readouts";
+    ro.innerHTML=`<div class="ro"><span class="ro__k">Parts fitted</span><span class="ro__v" id="ro-parts">0 / 4</span></div>
+      <div class="ro"><span class="ro__k">Status</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">Waiting</span></div>`;
+    left.append(ro);
+    const note=document.createElement("div");note.className="result-note";note.id="sim-note";left.append(note);
+    const legend=document.createElement("div");legend.className="legend";
+    legend.innerHTML=`Click the part in the tray, then click its <b>glowing spot</b> inside the case. Picked the wrong spot? Just try again.`;
+    left.append(legend);
+    wrap.append(left);
+
+    // right: build tray
+    const side=document.createElement("div");side.className="side";
+    const trayBox=document.createElement("div");
+    trayBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Build order</p>`;
+    const tray=document.createElement("div");tray.className="tray";tray.setAttribute("role","group");tray.setAttribute("aria-label","Parts to build");
+    const trayNodes={};
+    PARTS.forEach((p,i)=>{
+      const c=document.createElement("div");c.className="tray-card";c.dataset.key=p.key;
+      c.innerHTML=`${chipHTML(p)}<span><span class="tray-card__name">${p.name}</span><br><span class="tray-card__job">${p.job}</span></span>
+        <span class="tray-card__mark">✓</span>`;
+      trayNodes[p.key]=c;tray.append(c);
+    });
+    trayBox.append(tray);side.append(trayBox);
+    wrap.append(side);
+    host.append(wrap);
+
+    /* ---- state machine ---- */
+    let stepIndex=0; // index into PARTS
+    let attempts=0;
+    const $=id=>document.getElementById(id);
+
+    if(sim.trials.length===0){
+      sim.recordTrial({part:CASE_PART.name,job:CASE_PART.job,attempts:"provided"});
+    }
+
+    function paintBuild(){
+      const done=stepIndex;
+      $("partsdone").textContent=done+"/4";
+      $("ro-parts").textContent=done+" / 4";
+      $("buildfill").style.width=(done/4*100)+"%";
+      $("steptext").textContent = done>=4 ? "Complete!" : "Fitting: "+PARTS[stepIndex].name;
+      $("ro-status").textContent = done>=4 ? "Powered on" : "Building";
+      Object.entries(trayNodes).forEach(([k,el])=>{
+        const idx=PARTS.findIndex(p=>p.key===k);
+        el.classList.toggle("is-done", idx<stepIndex);
+        el.classList.toggle("is-current", idx===stepIndex);
+      });
+    }
+    paintBuild();
+
+    function fireBurst(colors){
+      if(document.documentElement.getAttribute("data-reduced-motion")==="on")return;
+      const bhost=$("burst");
+      for(let i=0;i<26;i++){const p=document.createElement("i");const ang=Math.random()*Math.PI*2,dist=60+Math.random()*140;
+        p.style.background=colors[i%colors.length];bhost.append(p);
+        const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist-40;
+        p.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${x}px,${y}px) rotate(${Math.random()*540}deg) scale(.3)`,opacity:0}],
+          {duration:900+Math.random()*500,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>p.remove();}
+    }
+    function celebrateDone(){
+      const lu=$("levelup");lu.classList.add("show");
+      fireBurst(["#4fb0e6","#7bffe0","#ffd45c","#eaf6ff"]);
+      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak("System online! Your computer is built.");
+      setTimeout(()=>lu.classList.remove("show"),2200);
+    }
+
+    /* ---- the 3D (or fallback 2D) scene ---- */
+    let scene=null;
+    function pickDecoys(n){
+      const shuffled=[...DECOYS].sort(()=>Math.random()-0.5);
+      return shuffled.slice(0,n);
+    }
+    function armStep(){
+      if(stepIndex>=PARTS.length){ scene&&scene.setPoweredOn(true); return; }
+      attempts=0;
+      const part=PARTS[stepIndex];
+      const decoys=pickDecoys(3);
+      scene && scene.showTargets(part.key, decoys);
+      paintBuild();
+    }
+    function onPick(key){
+      if(stepIndex>=PARTS.length)return;
+      const part=PARTS[stepIndex];
+      attempts++;
+      if(key===part.key){
+        scene.installPart(part.key);
+        note.innerHTML="";
+        const box=document.createElement("div");box.className="toast toast--correct anim-pop";
+        box.textContent=`Fitted the ${part.name}! ${part.fact}`;
+        note.append(box);
+        if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(part.name+" fitted. "+part.fact);
+        sim.recordTrial({part:part.name,job:part.job,attempts});
+        stats.partsPlaced++; stats.totalAttempts[part.key]=attempts;
+        sim.setResult("parts_built",stats.partsPlaced);
+        sim.mark("part_"+part.key+"_fitted",true);
+        sim.mark("part_"+part.key+"_attempts",attempts);
+        fireBurst(["#"+part.color.toString(16).padStart(6,"0"),"#eaf6ff"]);
+        stepIndex++;
+        if(stepIndex>=PARTS.length){
+          sim.mark("computer_powered_on",true);
+          sim.setResult("total_attempts", Object.values(stats.totalAttempts).reduce((a,b)=>a+b,0));
+          sim.mark("built_first_try", Object.values(stats.totalAttempts).every(a=>a===1));
+          sim.mark("wrong_attempts", stats.wrongTries);
+          game.poweredOn=true; sim.state.game=game; sim.saveState();
+          setTimeout(()=>{ scene.setPoweredOn(true); celebrateDone(); paintBuild(); },500);
+        } else {
+          setTimeout(armStep,650);
+        }
+      } else {
+        stats.wrongTries++;
+        note.innerHTML="";
+        const box=document.createElement("div");box.className="toast toast--info anim-pop";
+        box.textContent=`Hmm, that's not where the ${part.name} goes — look for the glowing spot and try again.`;
+        note.append(box);
+        scene.shake && scene.shake(key);
+      }
+    }
+
+    (async()=>{
+      try{
+        const THREE=await loadThree();
+        scene=build3D(THREE,stage,onPick);
+      }catch(e){
+        console.warn("3D unavailable, using 2D fallback:",e);
+        scene=buildFallback(stage,onPick);
+      }
+      boot.remove();
+      if(game.poweredOn && sim.trials.length>=5){
+        // returning after already finishing: show the finished build
+        PARTS.forEach(p=>scene.installPart(p.key,true));
+        scene.setPoweredOn(true);
+        stepIndex=PARTS.length;
+        paintBuild();
+      } else {
+        armStep();
+      }
+    })();
+  }
+};
+
+/* ======================================================================
+   THREE.JS LOADER
+   ====================================================================== */
+let threePromise=null;
+function loadThree(){
+  if(window.THREE)return Promise.resolve(window.THREE);
+  if(threePromise)return threePromise;
+  threePromise=new Promise((res,rej)=>{
+    const s=document.createElement("script");s.src=THREE_URL;
+    s.onload=()=>window.THREE?res(window.THREE):rej(new Error("THREE missing"));
+    s.onerror=()=>rej(new Error("three.min.js failed to load"));
+    document.head.appendChild(s);
+  });
+  return threePromise;
+}
+
+/* ======================================================================
+   THE 3D SCENE — an open PC case the student builds into
+   ====================================================================== */
+function build3D(THREE, stageEl, onPick){
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  stageEl.appendChild(renderer.domElement);
+
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0x0a1520,9,22);
+  const camera=new THREE.PerspectiveCamera(42,1,0.1,100);
+
+  const hemi=new THREE.HemisphereLight(0xbfe0ff,0x141c28,0.55);scene.add(hemi);
+  const ambient=new THREE.AmbientLight(0xffffff,0.4);scene.add(ambient);
+  const key=new THREE.DirectionalLight(0xdff0ff,1.0);key.position.set(3,5,4);
+  key.castShadow=true;key.shadow.mapSize.set(1024,1024);
+  scene.add(key);
+
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(6,48),new THREE.ShadowMaterial({opacity:0.32}));
+  ground.rotation.x=-Math.PI/2;ground.position.y=-1.9;ground.receiveShadow=true;scene.add(ground);
+
+  /* ---- the open case shell ---- */
+  const shellMat=new THREE.MeshStandardMaterial({color:0x1c2733,roughness:0.55,metalness:0.35});
+  const rimMat=new THREE.MeshStandardMaterial({color:0x4fb0e6,emissive:0x1a5878,emissiveIntensity:0.6,roughness:0.4,metalness:0.2});
+  const shell=new THREE.Group();scene.add(shell);
+  function panel(w,h,px,py,pz,rx,ry){
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),shellMat);
+    m.position.set(px,py,pz);m.rotation.set(rx,ry,0);m.castShadow=true;m.receiveShadow=true;shell.add(m);return m;
+  }
+  const CW=2.6, CH=3.0, CD=2.0; // case width/height/depth
+  panel(CW,CH, 0,0,-CD/2, 0,0);                     // back
+  panel(CD,CH, -CW/2,0,0, 0,Math.PI/2);              // left
+  panel(CD,CH,  CW/2,0,0, 0,-Math.PI/2);             // right
+  panel(CW,CD, 0,-CH/2,0, -Math.PI/2,0);             // bottom
+  panel(CW,CD, 0, CH/2,0, Math.PI/2,0);              // top
+  // glowing edge frame (front opening)
+  const edgeGeo=new THREE.EdgesGeometry(new THREE.BoxGeometry(CW,CH,CD));
+  const edges=new THREE.LineSegments(edgeGeo,new THREE.LineBasicMaterial({color:0x4fb0e6,transparent:true,opacity:0.55}));
+  scene.add(edges);
+
+  // fan on the back, spins once powered on
+  const fanGroup=new THREE.Group();fanGroup.position.set(0.85,0.9,-CD/2+0.02);shell.add(fanGroup);
+  const fanRing=new THREE.Mesh(new THREE.TorusGeometry(0.26,0.03,10,24),rimMat);fanGroup.add(fanRing);
+  for(let i=0;i<7;i++){const blade=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.22,0.02),new THREE.MeshStandardMaterial({color:0x33475c}));
+    blade.position.set(Math.cos(i/7*Math.PI*2)*0.11,Math.sin(i/7*Math.PI*2)*0.11,0);blade.rotation.z=i/7*Math.PI*2;fanGroup.add(blade);}
+
+  /* ---- markers (clickable hotspots) ---- */
+  const SLOT_POS = {
+    motherboard: {p:[0,0,-CD/2+0.07], s:[2.0,2.2,0.04], rot:0},
+    cpu:         {p:[-0.1,0.35,-CD/2+0.14], s:[0.5,0.5,0.06], rot:0},
+    ram:         {p:[0.75,0.35,-CD/2+0.14], s:[0.28,0.9,0.06], rot:0},
+    gpu:         {p:[0,-0.85,-CD/2+0.5], s:[1.5,0.28,0.06], rot:0},
+    fan:   {p:[0.85,0.9,-CD/2+0.16], s:[0.4,0.4,0.05]},
+    drive: {p:[-0.9,0.95,-CD/2+0.16], s:[0.5,0.35,0.05]},
+    psu:   {p:[-0.9,-0.95,-CD/2+0.16], s:[0.6,0.5,0.05]},
+  };
+  const markerMat=(installed)=>new THREE.MeshStandardMaterial({color:0x4fb0e6,emissive:0x2a86b8,emissiveIntensity:0.9,transparent:true,opacity:0.85,side:THREE.DoubleSide});
+  const markers={}; // key -> mesh (hotspot)
+  const installed={}; // key -> mesh (real part)
+  let clock=0;
+
+  function addMarker(key){
+    if(markers[key])return;
+    const def=SLOT_POS[key];
+    const geo=new THREE.BoxGeometry(...def.s);
+    const mesh=new THREE.Mesh(geo,markerMat());
+    mesh.position.set(...def.p);
+    mesh.userData.key=key;
+    scene.add(mesh);
+    markers[key]=mesh;
+  }
+  function removeMarker(key){
+    if(!markers[key])return;
+    scene.remove(markers[key]);
+    markers[key].geometry.dispose();markers[key].material.dispose();
+    delete markers[key];
+  }
+  function clearAllMarkers(){Object.keys(markers).forEach(removeMarker);}
+
+  function showTargets(correctKey, decoys){
+    clearAllMarkers();
+    addMarker(correctKey);
+    markers[correctKey].userData.correct=true;
+    decoys.forEach(d=>{ if(!SLOT_POS[d.key])return; addMarker(d.key); markers[d.key].userData.correct=false; });
+  }
+
+  function partMesh(key,color){
+    const c=new THREE.Color(color);
+    const mat=new THREE.MeshStandardMaterial({color:c,roughness:0.4,metalness:0.25,emissive:c,emissiveIntensity:0.12});
+    if(key==="motherboard")return new THREE.Mesh(new THREE.BoxGeometry(2.0,2.2,0.06),mat);
+    if(key==="cpu")return new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.14),mat);
+    if(key==="ram")return new THREE.Mesh(new THREE.BoxGeometry(0.2,0.8,0.5),mat);
+    if(key==="gpu")return new THREE.Mesh(new THREE.BoxGeometry(1.4,0.22,0.6),mat);
+    return new THREE.Mesh(new THREE.BoxGeometry(0.3,0.3,0.3),mat);
+  }
+
+  function installPart(key, instant){
+    removeMarker(key);
+    if(installed[key])return;
+    const def=SLOT_POS[key];
+    const p=partByKey[key];
+    const mesh=partMesh(key,p?p.color:0x999999);
+    mesh.position.set(def.p[0],def.p[1],def.p[2]+ (instant?0:0.9));
+    mesh.castShadow=true;mesh.receiveShadow=true;
+    scene.add(mesh);
+    installed[key]=mesh;
+    if(!instant){
+      const start=performance.now(), from=mesh.position.z, to=def.p[2], dur=520;
+      const reduced=document.documentElement.getAttribute("data-reduced-motion")==="on";
+      if(reduced){mesh.position.z=to;}
+      else (function step(t){const k=Math.min((t-start)/dur,1);const ease=1-Math.pow(1-k,3);
+        mesh.position.z=from+(to-from)*ease;
+        if(k<1)requestAnimationFrame(step);})(start);
+    }
+  }
+
+  function shake(key){
+    const m=markers[key]; if(!m)return;
+    const reduced=document.documentElement.getAttribute("data-reduced-motion")==="on";
+    if(reduced)return;
+    const ox=m.position.x, t0=performance.now();
+    (function step(t){const k=(t-t0)/280;if(k>1){m.position.x=ox;return;}
+      m.position.x=ox+Math.sin(k*Math.PI*6)*0.05*(1-k);requestAnimationFrame(step);})(t0);
+  }
+
+  let poweredOn=false;
+  function setPoweredOn(on){
+    poweredOn=on;
+    edges.material.opacity=on?0.95:0.55;
+    edges.material.color.set(on?0x7bffe0:0x4fb0e6);
+  }
+
+  /* ---- pointer interaction ---- */
+  const raycaster=new THREE.Raycaster();
+  const dom=renderer.domElement;
+  let dragging=false,lastX=0,lastY=0,moved=false;
+  dom.addEventListener("pointerdown",e=>{dragging=true;moved=false;lastX=e.clientX;lastY=e.clientY;autoT=0;dom.setPointerCapture(e.pointerId);});
+  dom.addEventListener("pointermove",e=>{if(!dragging)return;
+    if(Math.abs(e.clientX-lastX)>3||Math.abs(e.clientY-lastY)>3)moved=true;
+    az-=(e.clientX-lastX)*0.008;pol=clamp(pol-(e.clientY-lastY)*0.006,0.5,1.5);lastX=e.clientX;lastY=e.clientY;});
+  dom.addEventListener("pointerup",e=>{
+    dragging=false;
+    if(!moved){
+      const rect=dom.getBoundingClientRect();
+      const nx=((e.clientX-rect.left)/rect.width)*2-1, ny=-((e.clientY-rect.top)/rect.height)*2+1;
+      raycaster.setFromCamera({x:nx,y:ny},camera);
+      const hits=raycaster.intersectObjects(Object.values(markers));
+      if(hits.length){onPick(hits[0].object.userData.key);}
+    }
+  });
+  dom.addEventListener("wheel",e=>{e.preventDefault();rad=clamp(rad+e.deltaY*0.003,4.5,9);},{passive:false});
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+  let az=0.55, pol=1.15, rad=6.2, autoT=0;
+  function applyCam(){const x=rad*Math.sin(pol)*Math.cos(az),z=rad*Math.sin(pol)*Math.sin(az),y=rad*Math.cos(pol);
+    camera.position.set(x,y-0.1,z);camera.lookAt(0,-0.1,0);}
+
+  function resize(){const w=stageEl.clientWidth,h=stageEl.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  const roObs=new ResizeObserver(resize);roObs.observe(stageEl);resize();
+
+  let last=performance.now();
+  function loop(now){const dt=Math.min((now-last)/1000,0.05);last=now;
+    const reduced=document.documentElement.getAttribute("data-reduced-motion")==="on";
+    if(!dragging&&!reduced){autoT+=dt;if(autoT>2)az+=dt*0.1;}
+    applyCam();
+    clock+=dt;
+    Object.values(markers).forEach(m=>{ m.material.emissiveIntensity=0.6+Math.sin(clock*4)*0.35; m.scale.setScalar(1+Math.sin(clock*4)*0.04); });
+    if(poweredOn&&!reduced)fanGroup.rotation.z+=dt*10;
+    else if(poweredOn)fanGroup.rotation.z+=dt*3;
+    renderer.render(scene,camera);
+    raf=requestAnimationFrame(loop);
+  }
+  let raf=requestAnimationFrame(loop);
+
+  return {showTargets,installPart,setPoweredOn,shake,dispose(){cancelAnimationFrame(raf);roObs.disconnect();renderer.dispose();}};
+}
+
+/* ======================================================================
+   2D FALLBACK SCENE (no WebGL) — same game, flat view
+   ====================================================================== */
+function buildFallback(stageEl,onPick){
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");svg.setAttribute("viewBox","0 0 340 300");svg.style.width="100%";svg.style.height="100%";
+  const mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  svg.append(mk("rect",{x:0,y:0,width:340,height:300,fill:"#0f1b28"}));
+  svg.append(mk("rect",{x:24,y:24,width:292,height:252,rx:14,fill:"#16202c",stroke:"#4fb0e6","stroke-width":2}));
+
+  const SLOT_POS = {
+    motherboard:{x:70,y:60,w:150,h:170},
+    cpu:{x:110,y:90,w:50,h:50},
+    ram:{x:180,y:90,w:26,h:90},
+    gpu:{x:80,y:200,w:130,h:26},
+    fan:{x:230,y:50,w:40,h:40},
+    drive:{x:40,y:50,w:40,h:34},
+    psu:{x:40,y:210,w:44,h:40},
+  };
+  const markers={}, installed={};
+  function addMarker(key){
+    if(markers[key])return;
+    const d=SLOT_POS[key];
+    const r=mk("rect",{x:d.x,y:d.y,width:d.w,height:d.h,rx:6,fill:"#4fb0e6",opacity:0.5,stroke:"#7bffe0","stroke-width":2});
+    r.style.cursor="pointer";
+    r.addEventListener("click",()=>onPick(key));
+    svg.append(r);markers[key]=r;
+  }
+  function removeMarker(key){ if(markers[key]){markers[key].remove();delete markers[key];} }
+  function clearAllMarkers(){Object.keys(markers).forEach(removeMarker);}
+  function showTargets(correctKey,decoys){
+    clearAllMarkers();
+    addMarker(correctKey);
+    decoys.forEach(d=>{ if(SLOT_POS[d.key]) addMarker(d.key); });
+  }
+  function installPart(key){
+    removeMarker(key);
+    if(installed[key])return;
+    const d=SLOT_POS[key]; const p=partByKey[key];
+    const rect=mk("rect",{x:d.x,y:d.y,width:d.w,height:d.h,rx:6,fill:"#"+(p?p.color.toString(16).padStart(6,"0"):"999999")});
+    svg.append(rect);installed[key]=rect;
+  }
+  function shake(key){ const m=markers[key]; if(!m)return; m.setAttribute("opacity","0.15"); setTimeout(()=>m.setAttribute("opacity","0.5"),200); }
+  function setPoweredOn(on){ svg.style.filter = on ? "drop-shadow(0 0 12px #7bffe0)" : "none"; }
+  stageEl.appendChild(svg);
+  let raf=null;
+  (function pulse(){ Object.values(markers).forEach(m=>{const cur=parseFloat(m.getAttribute("opacity")||0.5); m.setAttribute("opacity", 0.4+0.3*Math.abs(Math.sin(Date.now()/300)));}); raf=requestAnimationFrame(pulse); })();
+  return {showTargets,installPart,setPoweredOn,shake,dispose(){if(raf)cancelAnimationFrame(raf);}};
+}
+
+/* ---- go ---- */
+mountActivity({ simulation }).catch(e=>{
+  console.error("Discovery Lab activity failed to start:",e);
+  const r=document.getElementById("lab-root");
+  if(r)r.innerHTML='<p class="nav-empty">Something went wrong starting this lab. Please refresh the page.</p>';
+});
+</script>
+</body>
+</html>
