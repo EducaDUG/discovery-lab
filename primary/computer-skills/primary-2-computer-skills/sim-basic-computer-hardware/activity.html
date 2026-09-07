@@ -92,7 +92,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 /* ---- image-based hotspot diagram (Orient + Label phase) ---- */
 .diagram-wrap{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
   background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-1);}
-.diagram-wrap svg{width:100%;height:auto;display:block;}
+.diagram-wrap svg,.diagram-wrap img{width:100%;height:auto;display:block;}
 .hotspot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border:none;background:transparent;
   cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
 .hotspot__dot{width:1.15rem;height:1.15rem;border-radius:50%;background:var(--signal);
@@ -107,6 +107,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   background:var(--surface);display:flex;gap:var(--sp-3);align-items:center;min-height:3.4rem;}
 .reveal-panel__hint{color:var(--ink-3);font-size:var(--step--1);}
 .diagram-caption{font-size:var(--step--1);color:var(--ink-3);margin-top:var(--sp-2);text-align:center;}
+.diagram-credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right;}
+.diagram-credit a{color:inherit;}
 
 /* ---- Label & Match phase ---- */
 .label-phase{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
@@ -226,53 +228,24 @@ const QUIZZES = {
 function chipHTML(p){return `<span class="tray-card__chip" style="background:#${p.color.toString(16).padStart(6,"0")}">${p.chip}</span>`;}
 
 /* ======================================================================
-   THE DIAGRAM — one illustration, reused as an image to tap-and-learn in
-   Orient and as a labelling image in the Investigate "Label & Match" phase.
-   Coordinates are in the 400x300 viewBox below.
+   THE DIAGRAM — a real photo of an open computer, reused as a tap-to-learn
+   image in Orient and as a labelling image in the Investigate "Label &
+   Match" phase. Hotspot positions are fractions (0-1) of the photo's own
+   width/height, so they land in the same place regardless of display size.
+   Photo: Bretwa, "ATX computer case - left - 2018-05-18", Wikimedia
+   Commons, CC BY-SA 4.0 — resized, hotspots added.
    ====================================================================== */
-const DIAGRAM_VB = {w:400,h:300};
+const DIAGRAM_IMG = "photos/computer-case.jpg";
+const DIAGRAM_CREDIT = 'Photo: Bretwa — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a> (resized)';
 const HOTSPOTS = [
-  { key:"case",        x:352, y:36  },
-  { key:"motherboard", x:104, y:66  },
-  { key:"cpu",         x:176, y:118 },
-  { key:"ram",         x:246, y:112 },
-  { key:"gpu",         x:180, y:236 },
+  { key:"case",        fx:0.781, fy:0.417 },
+  { key:"motherboard", fx:0.469, fy:0.542 },
+  { key:"cpu",         fx:0.328, fy:0.313 },
+  { key:"ram",         fx:0.480, fy:0.333 },
+  { key:"gpu",         fx:0.273, fy:0.510 },
 ];
-function diagramSVG(){
-  return `<svg viewBox="0 0 ${DIAGRAM_VB.w} ${DIAGRAM_VB.h}" role="img" aria-label="An open computer case showing the case, motherboard, CPU, RAM and graphics card">
-    <defs>
-      <linearGradient id="boardGrad" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#2fa374"/><stop offset="1" stop-color="#1f7a56"/>
-      </linearGradient>
-      <linearGradient id="gpuGrad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#7a4fe0"/><stop offset="1" stop-color="#9b6cf5"/>
-      </linearGradient>
-    </defs>
-    <rect width="400" height="300" fill="var(--surface)"/>
-    <rect x="40" y="18" width="320" height="264" rx="16" fill="none" stroke="var(--line-strong)" stroke-width="2.5"/>
-    <rect x="40" y="18" width="320" height="264" rx="16" fill="var(--accent)" opacity="0.04"/>
-    <!-- motherboard -->
-    <rect x="64" y="46" width="188" height="196" rx="8" fill="url(#boardGrad)"/>
-    <g stroke="#bfe9d3" stroke-width="1.4" opacity="0.55" fill="none">
-      <path d="M74 60 h60 M74 74 h40 M74 200 h50 M74 214 h70 M74 228 h30"/>
-      <path d="M220 60 v40 M220 190 v40"/>
-    </g>
-    <!-- CPU -->
-    <rect x="146" y="92" width="60" height="60" rx="6" fill="#db5461" stroke="#8f2c37" stroke-width="2"/>
-    <g stroke="#8f2c37" stroke-width="2">
-      <path d="M146 104 h-10 M146 118 h-10 M146 132 h-10 M206 104 h10 M206 118 h10 M206 132 h10 M160 92 v-10 M176 92 v-10 M192 92 v-10 M160 152 v10 M176 152 v10 M192 152 v10"/>
-    </g>
-    <!-- RAM -->
-    <rect x="232" y="66" width="26" height="120" rx="4" fill="#3d8fd6" stroke="#1e5a8a" stroke-width="2"/>
-    <g stroke="#1e5a8a" stroke-width="1.4"><path d="M236 76 v100 M244 76 v100 M252 76 v100"/></g>
-    <!-- GPU -->
-    <rect x="70" y="214" width="150" height="34" rx="6" fill="url(#gpuGrad)" stroke="#5a34a8" stroke-width="2"/>
-    <circle cx="96" cy="231" r="11" fill="none" stroke="#eaf6ff" stroke-width="2" opacity="0.8"/>
-    <circle cx="140" cy="231" r="11" fill="none" stroke="#eaf6ff" stroke-width="2" opacity="0.8"/>
-    <!-- case fan badge -->
-    <circle cx="352" cy="36" r="17" fill="none" stroke="var(--ink-3)" stroke-width="2.5"/>
-    <path d="M352 24 a12 12 0 0 1 12 12 M352 24 a12 12 0 0 0 -12 12" stroke="var(--ink-3)" stroke-width="2" fill="none"/>
-  </svg>`;
+function diagramImgHTML(alt){
+  return `<img src="${DIAGRAM_IMG}" width="1000" height="750" loading="lazy" alt="${alt}">`;
 }
 
 /* ======================================================================
@@ -289,7 +262,7 @@ const simulation = {
     host.append(intro);
 
     const wrap=document.createElement("div");wrap.className="diagram-wrap";
-    wrap.innerHTML=diagramSVG();
+    wrap.innerHTML=diagramImgHTML("A real open computer case, seen from the side, showing the case, motherboard, CPU cooler, RAM and graphics card");
     const reveal=document.createElement("div");reveal.className="reveal-panel";
     reveal.innerHTML=`<span class="reveal-panel__hint">Tap a glowing dot above ↑</span>`;
 
@@ -298,21 +271,24 @@ const simulation = {
     HOTSPOTS.forEach(h=>{
       const p=partByKey[h.key];
       const btn=document.createElement("button");btn.type="button";btn.className="hotspot";
-      btn.style.left=(h.x/DIAGRAM_VB.w*100)+"%";btn.style.top=(h.y/DIAGRAM_VB.h*100)+"%";
+      btn.style.left=(h.fx*100)+"%";btn.style.top=(h.fy*100)+"%";
       btn.setAttribute("aria-label","Learn about the "+p.name);
       btn.innerHTML=`<span class="hotspot__dot"></span>`;
       btn.addEventListener("click",()=>{
         Object.values(btns).forEach(b=>b.classList.remove("is-active"));
         btn.classList.add("is-active");
-        reveal.innerHTML=`${chipHTML(p)}<span><b>${p.name}</b><br>${p.job}</span>`;
+        const extra = h.key==="cpu" ? " You can't see the actual chip here — it's hidden underneath this metal cooler, keeping it from overheating." : "";
+        reveal.innerHTML=`${chipHTML(p)}<span><b>${p.name}</b><br>${p.job}${extra}</span>`;
         if(!btn.classList.contains("is-seen")){btn.classList.add("is-seen");found++;cap.textContent=found+" / 5 parts found";}
-        if(sim&&sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+". "+p.job);
+        if(sim&&sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+". "+p.job+extra);
       });
       btns[h.key]=btn;wrap.append(btn);
     });
     host.append(wrap,reveal);
     const cap=document.createElement("p");cap.className="diagram-caption";cap.textContent="0 / 5 parts found";
     host.append(cap);
+    const credit=document.createElement("p");credit.className="diagram-credit";credit.innerHTML=DIAGRAM_CREDIT;
+    host.append(credit);
   },
 
   investigate(host, api){
@@ -332,11 +308,13 @@ const simulation = {
 
       const left=document.createElement("div");
       const dwrap=document.createElement("div");dwrap.className="diagram-wrap";
-      dwrap.innerHTML=diagramSVG();
+      dwrap.innerHTML=diagramImgHTML("The same open computer case, with 5 numbered spots to match to a part");
       left.append(dwrap);
       const hint=document.createElement("p");hint.className="diagram-caption";
       hint.textContent="Tap a part below, then tap its spot on the picture.";
       left.append(hint);
+      const credit=document.createElement("p");credit.className="diagram-credit";credit.innerHTML=DIAGRAM_CREDIT;
+      left.append(credit);
       wrap.append(left);
 
       const side=document.createElement("div");
@@ -362,7 +340,7 @@ const simulation = {
       const spotNodes={};let matched=0;
       HOTSPOTS.forEach((h,i)=>{
         const s=document.createElement("button");s.type="button";s.className="spot";
-        s.style.left=(h.x/DIAGRAM_VB.w*100)+"%";s.style.top=(h.y/DIAGRAM_VB.h*100)+"%";
+        s.style.left=(h.fx*100)+"%";s.style.top=(h.fy*100)+"%";
         s.textContent=String(i+1);s.setAttribute("aria-label","Spot "+(i+1));
         s.addEventListener("click",()=>{
           if(s.classList.contains("is-correct"))return;
