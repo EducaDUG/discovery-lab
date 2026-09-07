@@ -24,7 +24,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   border:1px solid #0c1520;aspect-ratio:4/3;min-height:22rem;
   background:radial-gradient(120% 100% at 50% 14%, #1a2c40 0%, #0f1b28 45%, #070c12 100%);
   box-shadow:inset 0 0 120px rgba(0,0,0,.55), var(--shadow-2);}
-.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:pointer;}
+.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:pointer;touch-action:none;}
 .stage3d::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px rgba(0,0,0,.6);border-radius:inherit;}
 .stage3d__boot{position:absolute;inset:0;display:grid;place-items:center;color:#bfe0ff;
   font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.1em;text-transform:uppercase;gap:var(--sp-3);}
@@ -89,13 +89,55 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .legend b{color:var(--ink);}
 
 /* Orient anatomy */
-.parts-grid{display:grid;gap:var(--sp-3);grid-template-columns:1fr;margin-top:var(--sp-3);}
-@media(min-width:40rem){.parts-grid{grid-template-columns:repeat(2,1fr);}}
-.part-def{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);padding:var(--sp-3);
-  background:var(--surface);display:flex;gap:var(--sp-3);align-items:flex-start;}
-.part-def__chip{flex:none;width:2.2rem;height:2.2rem;border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.85rem;}
-.part-def__term{font-weight:700;}
-.part-def__body{font-size:var(--step--1);color:var(--ink-2);margin-top:2px;}
+/* ---- image-based hotspot diagram (Orient + Label phase) ---- */
+.diagram-wrap{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-1);}
+.diagram-wrap svg{width:100%;height:auto;display:block;}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border:none;background:transparent;
+  cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.15rem;height:1.15rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 5px color-mix(in srgb, var(--signal) 22%, transparent),0 0 14px var(--signal);
+  transition:background var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+.hotspot.is-seen .hotspot__dot{background:var(--positive);box-shadow:0 0 0 5px color-mix(in srgb, var(--positive) 20%, transparent);animation:none;}
+.hotspot.is-active .hotspot__dot{background:var(--accent);box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 28%, transparent);}
+.reveal-panel{margin-top:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);
+  background:var(--surface);display:flex;gap:var(--sp-3);align-items:center;min-height:3.4rem;}
+.reveal-panel__hint{color:var(--ink-3);font-size:var(--step--1);}
+.diagram-caption{font-size:var(--step--1);color:var(--ink-3);margin-top:var(--sp-2);text-align:center;}
+
+/* ---- Label & Match phase ---- */
+.label-phase{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:60rem){.label-phase{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}}
+.spot{position:absolute;transform:translate(-50%,-50%);width:2.8rem;height:2.8rem;border-radius:50%;
+  border:2px dashed var(--line-strong);background:var(--paper);color:var(--ink-2);font-weight:800;font-family:var(--font-data);
+  display:grid;place-items:center;cursor:pointer;touch-action:manipulation;transition:all var(--dur-fast) var(--ease);}
+.spot:hover{border-color:var(--accent);}
+.spot.is-armed-target{border-color:var(--signal);box-shadow:0 0 0 5px color-mix(in srgb, var(--signal) 20%, transparent);animation:hotspotpulse 1.2s ease-in-out infinite;}
+[data-reduced-motion=on] .spot.is-armed-target{animation:none;}
+.spot.is-correct{border-style:solid;border-color:transparent;color:#fff;font-size:.65rem;padding:2px;text-align:center;line-height:1.05;}
+.spot.is-wrong{animation:spotshake .32s ease;}
+@keyframes spotshake{0%,100%{transform:translate(-50%,-50%);}30%{transform:translate(calc(-50% - 5px),-50%);}60%{transform:translate(calc(-50% + 5px),-50%);}}
+.chip-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.chip-tray__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);}
+.chip-tray__btn:hover{border-color:var(--accent);}
+.chip-tray__btn.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.chip-tray__btn.is-done{opacity:.45;pointer-events:none;}
+.chip-tray__btn .tray-card__mark{margin-left:auto;}
+.phase-continue{display:flex;justify-content:center;margin-top:var(--sp-4);}
+
+/* ---- quiz gate (before each part is fitted) ---- */
+.quiz-card{padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);}
+.quiz-card__q{font-weight:700;margin-bottom:var(--sp-3);}
+.quiz-card__opts{display:flex;flex-direction:column;gap:var(--sp-2);}
+.quiz-card__opt{text-align:left;padding:var(--sp-2) var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);
+  background:var(--paper);font:inherit;color:var(--ink);cursor:pointer;}
+.quiz-card__opt:hover{border-color:var(--accent);}
+.quiz-card__opt.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
 </style>
 </head>
 <body>
@@ -173,7 +215,65 @@ const DECOYS = [
   { key:"psu",   label:"Power supply bay" },
 ];
 
+/* a quick 2-option check before each part is fitted */
+const QUIZZES = {
+  motherboard: { correct:"Connects every part so they can talk to each other", wrong:"Draws the pictures on the screen" },
+  cpu:         { correct:"Thinks and calculates — it's the brain", wrong:"Stores your files forever, even when off" },
+  ram:         { correct:"Holds what you're working on right now", wrong:"Keeps dust and bumps away from the parts" },
+  gpu:         { correct:"Draws everything you see on the screen", wrong:"Connects every part so they can talk" },
+};
+
 function chipHTML(p){return `<span class="tray-card__chip" style="background:#${p.color.toString(16).padStart(6,"0")}">${p.chip}</span>`;}
+
+/* ======================================================================
+   THE DIAGRAM — one illustration, reused as an image to tap-and-learn in
+   Orient and as a labelling image in the Investigate "Label & Match" phase.
+   Coordinates are in the 400x300 viewBox below.
+   ====================================================================== */
+const DIAGRAM_VB = {w:400,h:300};
+const HOTSPOTS = [
+  { key:"case",        x:352, y:36  },
+  { key:"motherboard", x:104, y:66  },
+  { key:"cpu",         x:176, y:118 },
+  { key:"ram",         x:246, y:112 },
+  { key:"gpu",         x:180, y:236 },
+];
+function diagramSVG(){
+  return `<svg viewBox="0 0 ${DIAGRAM_VB.w} ${DIAGRAM_VB.h}" role="img" aria-label="An open computer case showing the case, motherboard, CPU, RAM and graphics card">
+    <defs>
+      <linearGradient id="boardGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#2fa374"/><stop offset="1" stop-color="#1f7a56"/>
+      </linearGradient>
+      <linearGradient id="gpuGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7a4fe0"/><stop offset="1" stop-color="#9b6cf5"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="300" fill="var(--surface)"/>
+    <rect x="40" y="18" width="320" height="264" rx="16" fill="none" stroke="var(--line-strong)" stroke-width="2.5"/>
+    <rect x="40" y="18" width="320" height="264" rx="16" fill="var(--accent)" opacity="0.04"/>
+    <!-- motherboard -->
+    <rect x="64" y="46" width="188" height="196" rx="8" fill="url(#boardGrad)"/>
+    <g stroke="#bfe9d3" stroke-width="1.4" opacity="0.55" fill="none">
+      <path d="M74 60 h60 M74 74 h40 M74 200 h50 M74 214 h70 M74 228 h30"/>
+      <path d="M220 60 v40 M220 190 v40"/>
+    </g>
+    <!-- CPU -->
+    <rect x="146" y="92" width="60" height="60" rx="6" fill="#db5461" stroke="#8f2c37" stroke-width="2"/>
+    <g stroke="#8f2c37" stroke-width="2">
+      <path d="M146 104 h-10 M146 118 h-10 M146 132 h-10 M206 104 h10 M206 118 h10 M206 132 h10 M160 92 v-10 M176 92 v-10 M192 92 v-10 M160 152 v10 M176 152 v10 M192 152 v10"/>
+    </g>
+    <!-- RAM -->
+    <rect x="232" y="66" width="26" height="120" rx="4" fill="#3d8fd6" stroke="#1e5a8a" stroke-width="2"/>
+    <g stroke="#1e5a8a" stroke-width="1.4"><path d="M236 76 v100 M244 76 v100 M252 76 v100"/></g>
+    <!-- GPU -->
+    <rect x="70" y="214" width="150" height="34" rx="6" fill="url(#gpuGrad)" stroke="#5a34a8" stroke-width="2"/>
+    <circle cx="96" cy="231" r="11" fill="none" stroke="#eaf6ff" stroke-width="2" opacity="0.8"/>
+    <circle cx="140" cy="231" r="11" fill="none" stroke="#eaf6ff" stroke-width="2" opacity="0.8"/>
+    <!-- case fan badge -->
+    <circle cx="352" cy="36" r="17" fill="none" stroke="var(--ink-3)" stroke-width="2.5"/>
+    <path d="M352 24 a12 12 0 0 1 12 12 M352 24 a12 12 0 0 0 -12 12" stroke="var(--ink-3)" stroke-width="2" fill="none"/>
+  </svg>`;
+}
 
 /* ======================================================================
    THE ACTIVITY
@@ -185,185 +285,300 @@ const simulation = {
   orient(host){
     host.innerHTML="";
     const intro=document.createElement("p");intro.className="q__hint";
-    intro.textContent="A computer looks like magic from the outside — but open the case and it's just five simple parts, each with one clear job. Learn them here, then build one yourself.";
+    intro.textContent="Tap each glowing dot to meet a part.";
     host.append(intro);
-    const grid=document.createElement("div");grid.className="parts-grid";
-    ALL_PARTS.forEach(p=>{
-      const d=document.createElement("div");d.className="part-def";
-      d.innerHTML=`${chipHTML(p)}<span><span class="part-def__term">${p.name}</span>
-        <span class="part-def__body">${p.job}</span></span>`;
-      grid.append(d);
+
+    const wrap=document.createElement("div");wrap.className="diagram-wrap";
+    wrap.innerHTML=diagramSVG();
+    const reveal=document.createElement("div");reveal.className="reveal-panel";
+    reveal.innerHTML=`<span class="reveal-panel__hint">Tap a glowing dot above ↑</span>`;
+
+    let found=0;
+    const btns={};
+    HOTSPOTS.forEach(h=>{
+      const p=partByKey[h.key];
+      const btn=document.createElement("button");btn.type="button";btn.className="hotspot";
+      btn.style.left=(h.x/DIAGRAM_VB.w*100)+"%";btn.style.top=(h.y/DIAGRAM_VB.h*100)+"%";
+      btn.setAttribute("aria-label","Learn about the "+p.name);
+      btn.innerHTML=`<span class="hotspot__dot"></span>`;
+      btn.addEventListener("click",()=>{
+        Object.values(btns).forEach(b=>b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        reveal.innerHTML=`${chipHTML(p)}<span><b>${p.name}</b><br>${p.job}</span>`;
+        if(!btn.classList.contains("is-seen")){btn.classList.add("is-seen");found++;cap.textContent=found+" / 5 parts found";}
+        if(sim&&sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+". "+p.job);
+      });
+      btns[h.key]=btn;wrap.append(btn);
     });
-    host.append(grid);
-    if(sim&&sim.ttsEnabled&&sim.ttsEnabled()){
-      const btn=sim.speaker(()=>ALL_PARTS.map(p=>`${p.name}. ${p.job}`).join(" "));
-      btn.style.marginTop="12px";host.append(btn);
-    }
+    host.append(wrap,reveal);
+    const cap=document.createElement("p");cap.className="diagram-caption";cap.textContent="0 / 5 parts found";
+    host.append(cap);
   },
 
   investigate(host, api){
     sim=api; host.innerHTML="";
-    const game = sim.state.game || (sim.state.game={xp:0,level:1,poweredOn:false});
+    const game = sim.state.game || (sim.state.game={xp:0,level:1,poweredOn:false,labelled:false});
+    const phaseHost=document.createElement("div");host.append(phaseHost);
 
-    const wrap=document.createElement("div");wrap.className="build3d";
+    const alreadyBuilt = game.poweredOn && sim.trials.length>=5;
+    if(game.labelled || alreadyBuilt) renderBuildPhase(); else renderLabelPhase();
 
-    // left: 3D stage + readouts
-    const left=document.createElement("div");
-    const stage=document.createElement("div");stage.className="stage3d";
-    const boot=document.createElement("div");boot.className="stage3d__boot";
-    boot.innerHTML=`<div><div class="boot-dot"></div><div style="margin-top:.8em">Opening the workshop…</div></div>`;
-    stage.append(boot);
-    const hudTL=document.createElement("div");hudTL.className="hud hud--tl";
-    hudTL.innerHTML=`<div class="buildbar">
-      <div class="buildbar__badge"><b id="partsdone">0/4</b></div>
-      <div class="buildbar__body">
-        <div class="buildbar__row"><span>Build progress</span><span id="steptext">Ready to start</span></div>
-        <div class="buildbar__track"><div class="buildbar__fill" id="buildfill"></div></div>
-      </div></div>`;
-    const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent="drag to look around · click a glowing spot to fit the part";
-    const levelup=document.createElement("div");levelup.className="levelup";levelup.id="levelup";
-    levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">SYSTEM ONLINE</div><div class="levelup__n" id="lu-n">Your computer is built!</div><div class="levelup__s" id="lu-s">Every part is doing its job.</div></div>`;
-    const burst=document.createElement("div");burst.className="burst";burst.id="burst";
-    stage.append(hudTL,hudHint,burst,levelup);
-    left.append(stage);
+    /* ====================================================================
+       PHASE 1 — LABEL & MATCH: tap a part, then tap its spot on the image.
+       ==================================================================== */
+    function renderLabelPhase(){
+      phaseHost.innerHTML="";
+      const wrap=document.createElement("div");wrap.className="label-phase";
 
-    const ro=document.createElement("div");ro.className="readouts";
-    ro.innerHTML=`<div class="ro"><span class="ro__k">Parts fitted</span><span class="ro__v" id="ro-parts">0 / 4</span></div>
-      <div class="ro"><span class="ro__k">Status</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">Waiting</span></div>`;
-    left.append(ro);
-    const note=document.createElement("div");note.className="result-note";note.id="sim-note";left.append(note);
-    const legend=document.createElement("div");legend.className="legend";
-    legend.innerHTML=`Click the part in the tray, then click its <b>glowing spot</b> inside the case. Picked the wrong spot? Just try again.`;
-    left.append(legend);
-    wrap.append(left);
+      const left=document.createElement("div");
+      const dwrap=document.createElement("div");dwrap.className="diagram-wrap";
+      dwrap.innerHTML=diagramSVG();
+      left.append(dwrap);
+      const hint=document.createElement("p");hint.className="diagram-caption";
+      hint.textContent="Tap a part below, then tap its spot on the picture.";
+      left.append(hint);
+      wrap.append(left);
 
-    // right: build tray
-    const side=document.createElement("div");side.className="side";
-    const trayBox=document.createElement("div");
-    trayBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Build order</p>`;
-    const tray=document.createElement("div");tray.className="tray";tray.setAttribute("role","group");tray.setAttribute("aria-label","Parts to build");
-    const trayNodes={};
-    PARTS.forEach((p,i)=>{
-      const c=document.createElement("div");c.className="tray-card";c.dataset.key=p.key;
-      c.innerHTML=`${chipHTML(p)}<span><span class="tray-card__name">${p.name}</span><br><span class="tray-card__job">${p.job}</span></span>
-        <span class="tray-card__mark">✓</span>`;
-      trayNodes[p.key]=c;tray.append(c);
-    });
-    trayBox.append(tray);side.append(trayBox);
-    wrap.append(side);
-    host.append(wrap);
-
-    /* ---- state machine ---- */
-    let stepIndex=0; // index into PARTS
-    let attempts=0;
-    const $=id=>document.getElementById(id);
-
-    if(sim.trials.length===0){
-      sim.recordTrial({part:CASE_PART.name,job:CASE_PART.job,attempts:"provided"});
-    }
-
-    function paintBuild(){
-      const done=stepIndex;
-      $("partsdone").textContent=done+"/4";
-      $("ro-parts").textContent=done+" / 4";
-      $("buildfill").style.width=(done/4*100)+"%";
-      $("steptext").textContent = done>=4 ? "Complete!" : "Fitting: "+PARTS[stepIndex].name;
-      $("ro-status").textContent = done>=4 ? "Powered on" : "Building";
-      Object.entries(trayNodes).forEach(([k,el])=>{
-        const idx=PARTS.findIndex(p=>p.key===k);
-        el.classList.toggle("is-done", idx<stepIndex);
-        el.classList.toggle("is-current", idx===stepIndex);
+      const side=document.createElement("div");
+      side.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Parts</p>`;
+      const tray=document.createElement("div");tray.className="chip-tray";tray.setAttribute("role","group");tray.setAttribute("aria-label","Parts to label");
+      const shuffledParts=[...PARTS].sort(()=>Math.random()-0.5);
+      const chipNodes={};
+      let armed=null;
+      shuffledParts.forEach(p=>{
+        const b=document.createElement("button");b.type="button";b.className="chip-tray__btn";
+        b.innerHTML=`${chipHTML(p)}<span>${p.name}</span><span class="tray-card__mark">✓</span>`;
+        b.addEventListener("click",()=>{
+          if(b.classList.contains("is-done"))return;
+          Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
+          Object.values(spotNodes).forEach(x=>x.classList.remove("is-armed-target"));
+          b.classList.add("is-armed");armed=p.key;
+        });
+        chipNodes[p.key]=b;tray.append(b);
       });
-    }
-    paintBuild();
+      side.append(tray);wrap.append(side);
+      phaseHost.append(wrap);
 
-    function fireBurst(colors){
-      if(document.documentElement.getAttribute("data-reduced-motion")==="on")return;
-      const bhost=$("burst");
-      for(let i=0;i<26;i++){const p=document.createElement("i");const ang=Math.random()*Math.PI*2,dist=60+Math.random()*140;
-        p.style.background=colors[i%colors.length];bhost.append(p);
-        const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist-40;
-        p.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${x}px,${y}px) rotate(${Math.random()*540}deg) scale(.3)`,opacity:0}],
-          {duration:900+Math.random()*500,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>p.remove();}
-    }
-    function celebrateDone(){
-      const lu=$("levelup");lu.classList.add("show");
-      fireBurst(["#4fb0e6","#7bffe0","#ffd45c","#eaf6ff"]);
-      if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak("System online! Your computer is built.");
-      setTimeout(()=>lu.classList.remove("show"),2200);
+      const spotNodes={};let matched=0;
+      HOTSPOTS.forEach((h,i)=>{
+        const s=document.createElement("button");s.type="button";s.className="spot";
+        s.style.left=(h.x/DIAGRAM_VB.w*100)+"%";s.style.top=(h.y/DIAGRAM_VB.h*100)+"%";
+        s.textContent=String(i+1);s.setAttribute("aria-label","Spot "+(i+1));
+        s.addEventListener("click",()=>{
+          if(s.classList.contains("is-correct"))return;
+          if(!armed){hint.textContent="Tap a part in the list first.";return;}
+          if(armed===h.key){
+            const p=partByKey[h.key];
+            s.classList.add("is-correct");s.style.background="#"+p.color.toString(16).padStart(6,"0");
+            s.style.borderColor="transparent";s.textContent=p.chip;
+            chipNodes[h.key].classList.add("is-done");
+            matched++;hint.textContent=matched+" / 5 matched";
+            if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+" matched.");
+          } else {
+            s.classList.remove("is-wrong");void s.offsetWidth;s.classList.add("is-wrong");
+            hint.textContent="Not quite — try another spot.";
+          }
+          armed=null;
+          Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
+          if(matched>=PARTS.length)setTimeout(showContinue,450);
+        });
+        spotNodes[h.key]=s;dwrap.append(s);
+      });
+
+      function showContinue(){
+        hint.textContent="All 5 matched!";
+        const row=document.createElement("div");row.className="phase-continue";
+        const btn=document.createElement("button");btn.type="button";btn.className="btn btn--lg btn--signal";
+        btn.textContent="Now build it for real →";
+        btn.addEventListener("click",()=>{
+          game.labelled=true;sim.state.game=game;sim.saveState();
+          renderBuildPhase();
+        });
+        row.append(btn);phaseHost.append(row);
+      }
     }
 
-    /* ---- the 3D (or fallback 2D) scene ---- */
-    let scene=null;
-    function pickDecoys(n){
-      const shuffled=[...DECOYS].sort(()=>Math.random()-0.5);
-      return shuffled.slice(0,n);
-    }
-    function armStep(){
-      if(stepIndex>=PARTS.length){ scene&&scene.setPoweredOn(true); return; }
-      attempts=0;
-      const part=PARTS[stepIndex];
-      const decoys=pickDecoys(3);
-      scene && scene.showTargets(part.key, decoys);
+    /* ====================================================================
+       PHASE 2 — BUILD: quick check, then fit the part in the 3D case.
+       ==================================================================== */
+    function renderBuildPhase(){
+      phaseHost.innerHTML="";
+      if(sim.trials.length===0){
+        sim.recordTrial({part:CASE_PART.name,job:CASE_PART.job,attempts:"provided"});
+      }
+
+      const wrap=document.createElement("div");wrap.className="build3d";
+
+      const left=document.createElement("div");
+      const stage=document.createElement("div");stage.className="stage3d";
+      const boot=document.createElement("div");boot.className="stage3d__boot";
+      boot.innerHTML=`<div><div class="boot-dot"></div><div style="margin-top:.8em">Opening the workshop…</div></div>`;
+      stage.append(boot);
+      const hudTL=document.createElement("div");hudTL.className="hud hud--tl";
+      hudTL.innerHTML=`<div class="buildbar">
+        <div class="buildbar__badge"><b id="partsdone">0/4</b></div>
+        <div class="buildbar__body">
+          <div class="buildbar__row"><span>Build progress</span><span id="steptext">Ready to start</span></div>
+          <div class="buildbar__track"><div class="buildbar__fill" id="buildfill"></div></div>
+        </div></div>`;
+      const hudHint=document.createElement("div");hudHint.className="hud hud--hint";hudHint.textContent="drag to look around · tap a glowing spot to fit the part";
+      const levelup=document.createElement("div");levelup.className="levelup";levelup.id="levelup";
+      levelup.innerHTML=`<div class="levelup__card"><div class="levelup__k">SYSTEM ONLINE</div><div class="levelup__n" id="lu-n">Your computer is built!</div><div class="levelup__s" id="lu-s">Every part is doing its job.</div></div>`;
+      const burst=document.createElement("div");burst.className="burst";burst.id="burst";
+      stage.append(hudTL,hudHint,burst,levelup);
+      left.append(stage);
+
+      const ro=document.createElement("div");ro.className="readouts";
+      ro.innerHTML=`<div class="ro"><span class="ro__k">Parts fitted</span><span class="ro__v" id="ro-parts">0 / 4</span></div>
+        <div class="ro"><span class="ro__k">Status</span><span class="ro__v" id="ro-status" style="font-size:var(--step-1)">Waiting</span></div>`;
+      left.append(ro);
+      const note=document.createElement("div");note.className="result-note";note.id="sim-note";left.append(note);
+      wrap.append(left);
+
+      const side=document.createElement("div");side.className="side";
+      const trayBox=document.createElement("div");
+      trayBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">Build order</p>`;
+      const tray=document.createElement("div");tray.className="tray";tray.setAttribute("role","group");tray.setAttribute("aria-label","Parts to build");
+      const trayNodes={};
+      PARTS.forEach(p=>{
+        const c=document.createElement("div");c.className="tray-card";c.dataset.key=p.key;
+        c.innerHTML=`${chipHTML(p)}<span><span class="tray-card__name">${p.name}</span></span>
+          <span class="tray-card__mark">✓</span>`;
+        trayNodes[p.key]=c;tray.append(c);
+      });
+      trayBox.append(tray);side.append(trayBox);
+      wrap.append(side);
+      phaseHost.append(wrap);
+
+      /* ---- state machine ---- */
+      let stepIndex=0;
+      let attempts=0;
+      const $=id=>document.getElementById(id);
+
+      function paintBuild(){
+        const done=stepIndex;
+        $("partsdone").textContent=done+"/4";
+        $("ro-parts").textContent=done+" / 4";
+        $("buildfill").style.width=(done/4*100)+"%";
+        $("ro-status").textContent = done>=4 ? "Powered on" : "Building";
+        Object.entries(trayNodes).forEach(([k,el])=>{
+          const idx=PARTS.findIndex(p=>p.key===k);
+          el.classList.toggle("is-done", idx<stepIndex);
+          el.classList.toggle("is-current", idx===stepIndex);
+        });
+      }
       paintBuild();
-    }
-    function onPick(key){
-      if(stepIndex>=PARTS.length)return;
-      const part=PARTS[stepIndex];
-      attempts++;
-      if(key===part.key){
-        scene.installPart(part.key);
-        note.innerHTML="";
-        const box=document.createElement("div");box.className="toast toast--correct anim-pop";
-        box.textContent=`Fitted the ${part.name}! ${part.fact}`;
-        note.append(box);
-        if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(part.name+" fitted. "+part.fact);
-        sim.recordTrial({part:part.name,job:part.job,attempts});
-        stats.partsPlaced++; stats.totalAttempts[part.key]=attempts;
-        sim.setResult("parts_built",stats.partsPlaced);
-        sim.mark("part_"+part.key+"_fitted",true);
-        sim.mark("part_"+part.key+"_attempts",attempts);
-        fireBurst(["#"+part.color.toString(16).padStart(6,"0"),"#eaf6ff"]);
-        stepIndex++;
-        if(stepIndex>=PARTS.length){
-          sim.mark("computer_powered_on",true);
-          sim.setResult("total_attempts", Object.values(stats.totalAttempts).reduce((a,b)=>a+b,0));
-          sim.mark("built_first_try", Object.values(stats.totalAttempts).every(a=>a===1));
-          sim.mark("wrong_attempts", stats.wrongTries);
-          game.poweredOn=true; sim.state.game=game; sim.saveState();
-          setTimeout(()=>{ scene.setPoweredOn(true); celebrateDone(); paintBuild(); },500);
-        } else {
-          setTimeout(armStep,650);
-        }
-      } else {
-        stats.wrongTries++;
-        note.innerHTML="";
-        const box=document.createElement("div");box.className="toast toast--info anim-pop";
-        box.textContent=`Hmm, that's not where the ${part.name} goes — look for the glowing spot and try again.`;
-        note.append(box);
-        scene.shake && scene.shake(key);
-      }
-    }
 
-    (async()=>{
-      try{
-        const THREE=await loadThree();
-        scene=build3D(THREE,stage,onPick);
-      }catch(e){
-        console.warn("3D unavailable, using 2D fallback:",e);
-        scene=buildFallback(stage,onPick);
+      function fireBurst(colors){
+        if(document.documentElement.getAttribute("data-reduced-motion")==="on")return;
+        const bhost=$("burst");
+        for(let i=0;i<26;i++){const p=document.createElement("i");const ang=Math.random()*Math.PI*2,dist=60+Math.random()*140;
+          p.style.background=colors[i%colors.length];bhost.append(p);
+          const x=Math.cos(ang)*dist,y=Math.sin(ang)*dist-40;
+          p.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${x}px,${y}px) rotate(${Math.random()*540}deg) scale(.3)`,opacity:0}],
+            {duration:900+Math.random()*500,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>p.remove();}
       }
-      boot.remove();
-      if(game.poweredOn && sim.trials.length>=5){
-        // returning after already finishing: show the finished build
-        PARTS.forEach(p=>scene.installPart(p.key,true));
-        scene.setPoweredOn(true);
-        stepIndex=PARTS.length;
+      function celebrateDone(){
+        const lu=$("levelup");lu.classList.add("show");
+        fireBurst(["#4fb0e6","#7bffe0","#ffd45c","#eaf6ff"]);
+        if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak("System online! Your computer is built.");
+        setTimeout(()=>lu.classList.remove("show"),2200);
+      }
+
+      /* ---- the 3D (or fallback 2D) scene ---- */
+      let scene=null;
+      function pickDecoys(n){
+        const shuffled=[...DECOYS].sort(()=>Math.random()-0.5);
+        return shuffled.slice(0,n);
+      }
+      function showQuiz(part, onPass){
+        note.innerHTML="";
+        $("steptext").textContent="Quick check";
+        const card=document.createElement("div");card.className="quiz-card";
+        const q=QUIZZES[part.key];
+        card.innerHTML=`<p class="quiz-card__q">What does the ${part.name} do?</p>`;
+        const optWrap=document.createElement("div");optWrap.className="quiz-card__opts";
+        const opts=[{text:q.correct,ok:true},{text:q.wrong,ok:false}].sort(()=>Math.random()-0.5);
+        opts.forEach(o=>{
+          const b=document.createElement("button");b.type="button";b.className="quiz-card__opt";b.textContent=o.text;
+          b.addEventListener("click",()=>{
+            if(o.ok){ note.innerHTML=""; onPass(); }
+            else { b.classList.remove("is-wrong"); void b.offsetWidth; b.classList.add("is-wrong"); }
+          });
+          optWrap.append(b);
+        });
+        card.append(optWrap);note.append(card);
+      }
+      function armTargets(part){
+        attempts=0;
+        const decoys=pickDecoys(3);
+        scene && scene.showTargets(part.key, decoys);
+        $("steptext").textContent="Fitting: "+part.name;
         paintBuild();
-      } else {
-        armStep();
       }
-    })();
+      function startStep(){
+        if(stepIndex>=PARTS.length){ scene&&scene.setPoweredOn(true); return; }
+        const part=PARTS[stepIndex];
+        showQuiz(part, ()=>armTargets(part));
+      }
+      function onPick(key){
+        if(stepIndex>=PARTS.length)return;
+        const part=PARTS[stepIndex];
+        attempts++;
+        if(key===part.key){
+          scene.installPart(part.key);
+          note.innerHTML="";
+          const box=document.createElement("div");box.className="toast toast--correct anim-pop";
+          box.textContent=`Fitted the ${part.name}!`;
+          note.append(box);
+          if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(part.name+" fitted.");
+          sim.recordTrial({part:part.name,job:part.job,attempts});
+          stats.partsPlaced++; stats.totalAttempts[part.key]=attempts;
+          sim.setResult("parts_built",stats.partsPlaced);
+          sim.mark("part_"+part.key+"_fitted",true);
+          sim.mark("part_"+part.key+"_attempts",attempts);
+          fireBurst(["#"+part.color.toString(16).padStart(6,"0"),"#eaf6ff"]);
+          stepIndex++;
+          paintBuild();
+          if(stepIndex>=PARTS.length){
+            sim.mark("computer_powered_on",true);
+            sim.setResult("total_attempts", Object.values(stats.totalAttempts).reduce((a,b)=>a+b,0));
+            sim.mark("built_first_try", Object.values(stats.totalAttempts).every(a=>a===1));
+            sim.mark("wrong_attempts", stats.wrongTries);
+            game.poweredOn=true; sim.state.game=game; sim.saveState();
+            setTimeout(()=>{ scene.setPoweredOn(true); celebrateDone(); paintBuild(); },500);
+          } else {
+            setTimeout(startStep,650);
+          }
+        } else {
+          stats.wrongTries++;
+          note.innerHTML="";
+          const box=document.createElement("div");box.className="toast toast--info anim-pop";
+          box.textContent=`Hmm, that's not where the ${part.name} goes — look for the glowing spot and try again.`;
+          note.append(box);
+          scene.shake && scene.shake(key);
+        }
+      }
+
+      (async()=>{
+        try{
+          const THREE=await loadThree();
+          scene=build3D(THREE,stage,onPick);
+        }catch(e){
+          console.warn("3D unavailable, using 2D fallback:",e);
+          scene=buildFallback(stage,onPick);
+        }
+        boot.remove();
+        if(alreadyBuilt){
+          PARTS.forEach(p=>scene.installPart(p.key,true));
+          scene.setPoweredOn(true);
+          stepIndex=PARTS.length;
+          paintBuild();
+        } else {
+          startStep();
+        }
+      })();
+    }
   }
 };
 
@@ -517,23 +732,34 @@ function build3D(THREE, stageEl, onPick){
     edges.material.color.set(on?0x7bffe0:0x4fb0e6);
   }
 
-  /* ---- pointer interaction ---- */
+  /* ---- pointer interaction ----
+     A tap on touch or a real mouse click always carries a little jitter
+     between down and up, so gate the orbit-vs-click decision on TOTAL travel
+     distance (tracked across the whole gesture) rather than a boolean that
+     trips on the first sub-pixel move — and do the actual pick on the
+     browser's native "click" event, which fires reliably after a tap on
+     every input type, instead of hand-rolling it off pointerup. */
   const raycaster=new THREE.Raycaster();
   const dom=renderer.domElement;
-  let dragging=false,lastX=0,lastY=0,moved=false;
-  dom.addEventListener("pointerdown",e=>{dragging=true;moved=false;lastX=e.clientX;lastY=e.clientY;autoT=0;dom.setPointerCapture(e.pointerId);});
+  dom.style.touchAction="none";
+  let dragging=false,lastX=0,lastY=0,travel=0;
+  const CLICK_TOLERANCE=10;
+  dom.addEventListener("pointerdown",e=>{dragging=true;travel=0;lastX=e.clientX;lastY=e.clientY;autoT=0;dom.setPointerCapture(e.pointerId);});
   dom.addEventListener("pointermove",e=>{if(!dragging)return;
-    if(Math.abs(e.clientX-lastX)>3||Math.abs(e.clientY-lastY)>3)moved=true;
-    az-=(e.clientX-lastX)*0.008;pol=clamp(pol-(e.clientY-lastY)*0.006,0.5,1.5);lastX=e.clientX;lastY=e.clientY;});
-  dom.addEventListener("pointerup",e=>{
-    dragging=false;
-    if(!moved){
-      const rect=dom.getBoundingClientRect();
-      const nx=((e.clientX-rect.left)/rect.width)*2-1, ny=-((e.clientY-rect.top)/rect.height)*2+1;
-      raycaster.setFromCamera({x:nx,y:ny},camera);
-      const hits=raycaster.intersectObjects(Object.values(markers));
-      if(hits.length){onPick(hits[0].object.userData.key);}
-    }
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    travel+=Math.abs(dx)+Math.abs(dy);
+    az-=dx*0.008;pol=clamp(pol-dy*0.006,0.5,1.5);lastX=e.clientX;lastY=e.clientY;});
+  function endDrag(){dragging=false;}
+  dom.addEventListener("pointerup",endDrag);
+  dom.addEventListener("pointercancel",endDrag);
+  dom.addEventListener("pointerleave",()=>{if(dragging)endDrag();});
+  dom.addEventListener("click",e=>{
+    if(travel>CLICK_TOLERANCE)return; // was an orbit drag, not a tap
+    const rect=dom.getBoundingClientRect();
+    const nx=((e.clientX-rect.left)/rect.width)*2-1, ny=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera({x:nx,y:ny},camera);
+    const hits=raycaster.intersectObjects(Object.values(markers));
+    if(hits.length){onPick(hits[0].object.userData.key);}
   });
   dom.addEventListener("wheel",e=>{e.preventDefault();rad=clamp(rad+e.deltaY*0.003,4.5,9);},{passive:false});
   const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
