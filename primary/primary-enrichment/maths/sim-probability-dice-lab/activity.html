@@ -54,8 +54,9 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .pl-opt { text-align: center; padding: .75rem .6rem; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font: inherit; font-weight: 600; font-size: .95rem; transition: transform .12s ease, border-color .12s ease; }
   .pl-opt:hover:not(:disabled) { border-color: var(--accent); }
   .pl-opt:active { transform: scale(.98); }
+  .pl-opt[data-state="selected"] { border-color: var(--signal); background: var(--signal-wash); }
   .pl-opt[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
-  .pl-opt[data-state="wrong"] { animation: pl-shake .35s ease; }
+  .pl-opt[data-state="wrong"] { border-color: var(--negative); background: color-mix(in srgb, var(--negative) 12%, transparent); animation: pl-shake .35s ease; }
   @keyframes pl-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
 
   .pl-full { display: grid; gap: .65rem; }
@@ -422,31 +423,39 @@ function rounds(host) {
 
   mountDieScene(host.querySelector("#pl-3d"));
 
+  const rollArea = host.querySelector("#pl-roll-area");
   const wordButtons = host.querySelectorAll("#pl-word-options .pl-opt");
+  let selectedWord = null;
+
   wordButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-      const word = btn.dataset.word;
-      if (word !== r.answer) {
-        btn.dataset.state = "wrong";
-        setTimeout(() => { btn.dataset.state = ""; }, 400);
-        return;
-      }
-      wordButtons.forEach(b => b.disabled = true);
-      btn.dataset.state = "correct";
-      const rollArea = host.querySelector("#pl-roll-area");
+      if (btn.disabled) return;
+      wordButtons.forEach(b => b.removeAttribute("data-state"));
+      btn.dataset.state = "selected";
+      selectedWord = btn.dataset.word;
       rollArea.innerHTML = `<button class="btn btn--signal" type="button" id="pl-roll-btn">${L("🎲 Roll the die to test it!", "🎲 ¡Lanza el dado para comprobarlo!")}</button>`;
       rollArea.querySelector("#pl-roll-btn").addEventListener("click", function onRoll() {
         this.disabled = true;
         this.textContent = L("Rolling…", "Lanzando…");
+        wordButtons.forEach(b => b.disabled = true);
         const rolled = 1 + Math.floor(Math.random() * 6);
         rollDieTo(rolled, () => {
           const badge = host.querySelector("#pl-3d-result");
           badge.textContent = L(`You rolled a ${rolled}`, `Sacaste un ${rolled}`);
           badge.dataset.shown = "true";
-          addPoints(10);
+          const correct = selectedWord === r.answer;
+          wordButtons.forEach(b => {
+            if (b.dataset.word === r.answer) b.dataset.state = "correct";
+            else if (b.dataset.word === selectedWord) b.dataset.state = "wrong";
+            else b.removeAttribute("data-state");
+          });
+          if (correct) addPoints(10);
+          const headline = correct
+            ? L(`Correct — ${capitalize(r.answer)}.`, `Correcto — ${capitalize(r.answer)}.`)
+            : L(`Not quite — you picked "${capitalize(selectedWord)}", but it's actually ${capitalize(r.answer)}.`, `Casi — elegiste "${capitalize(selectedWord)}", pero en realidad es ${capitalize(r.answer)}.`);
           rollArea.innerHTML = `
             <div class="pl-insight">
-              <strong>${capitalize(r.answer)}.</strong> ${r.insight}
+              <strong>${headline}</strong> ${r.insight}
             </div>
             <button class="btn btn--signal" type="button" id="pl-round-next" style="margin-top:.9rem">${L("Next round →", "Siguiente ronda →")}</button>`;
           rollArea.querySelector("#pl-round-next").addEventListener("click", () => { roundIdx++; render(); });
