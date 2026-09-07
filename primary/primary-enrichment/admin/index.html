@@ -19,6 +19,11 @@
   .adm-pct[data-band="high"] { color: var(--positive); }
   .adm-pct[data-band="mid"] { color: var(--caution); }
   .adm-pct[data-band="low"] { color: var(--negative); }
+  .adm-drive { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--ink-2); margin-bottom: .8rem; flex-wrap: wrap; }
+  .adm-drive__dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--ink-3); flex: none; }
+  .adm-drive__dot[data-state="connected"] { background: var(--positive); }
+  .adm-drive__dot[data-state="error"] { background: var(--negative); }
+  .adm-drive__dot[data-state="connecting"] { background: var(--caution); }
 </style>
 </head>
 <body>
@@ -51,13 +56,48 @@
 <script src="../../../engine/vendor/firebase/firebase-app-compat.js"></script>
 <script src="../../../engine/vendor/firebase/firebase-auth-compat.js"></script>
 <script src="../../../engine/vendor/firebase/firebase-database-compat.js"></script>
+<!-- The one disclosed exception to this project's "everything vendored, no
+     CDN" rule (see CLAUDE.md): Google's own OAuth consent flow only works
+     when this script runs from Google's origin, so it cannot be vendored.
+     Used only on this hidden, unlinked admin page. -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script type="module">
 import { onAuthChange, signIn, signOutAdmin, onHistory } from "../_shared/admin.js";
+import { onDriveStatus, isDriveConnected, trySilentConnect, connectDrive, syncRows } from "../_shared/drive-sync.js";
+import { GOOGLE_DRIVE_READY } from "../_shared/google-drive-config.js";
 
 const root = document.getElementById("adm-root");
 let rows = [];
 let unsubscribe = null;
 let filterTrack = "all";
+let driveState = "disconnected";
+let driveMessage = "";
+let lastSyncedAt = null;
+let syncedRowsSignature = null;
+
+onDriveStatus((status, detail) => {
+  driveState = status;
+  driveMessage = detail || "";
+  if (status === "connected" && currentUser) trySync();
+  if (root.querySelector(".adm-bar")) renderDashboard(currentUser);
+});
+
+let currentUser = null;
+
+async function trySync() {
+  if (!isDriveConnected() || !rows.length) return;
+  const signature = rows.length + ":" + (rows[0] && rows[0].id);
+  if (signature === syncedRowsSignature) return;
+  try {
+    await syncRows(rows);
+    syncedRowsSignature = signature;
+    lastSyncedAt = new Date();
+  } catch (e) {
+    driveState = "error";
+    driveMessage = e.message;
+  }
+  if (root.querySelector(".adm-bar")) renderDashboard(currentUser);
+}
 
 function escapeHTML(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -137,6 +177,16 @@ function renderDashboard(user) {
         <button class="btn btn--ghost" type="button" id="adm-signout">Sign out</button>
       </div>
     </div>
+    ${GOOGLE_DRIVE_READY ? `<div class="adm-drive">
+      <span class="adm-drive__dot" data-state="${driveState}"></span>
+      ${driveState === "connected"
+        ? `<span>Google Drive: connected — syncing to your "Discovery Lab" folder${lastSyncedAt ? ` (last synced ${lastSyncedAt.toLocaleTimeString()})` : ""}</span>`
+        : driveState === "connecting"
+        ? `<span>Connecting to Google Drive…</span>`
+        : driveState === "error"
+        ? `<span>Google Drive error: ${escapeHTML(driveMessage)} — <button class="btn btn--ghost" type="button" id="adm-drive-connect" style="padding:.15rem .6rem">Retry</button></span>`
+        : `<span>Google Drive not connected — <button class="btn btn--ghost" type="button" id="adm-drive-connect" style="padding:.15rem .6rem">Connect Google Drive</button></span>`}
+    </div>` : ""}
     <div class="adm-filters">
       <select id="adm-track-filter">
         <option value="all">All tracks</option>
@@ -167,9 +217,12 @@ function renderDashboard(user) {
     filterTrack = e.target.value;
     renderDashboard(user);
   });
+  const driveBtn = document.getElementById("adm-drive-connect");
+  if (driveBtn) driveBtn.addEventListener("click", () => connectDrive().catch(() => {}));
 }
 
-onAuthChange(user => {
+onAuthChange(async user => {
+  currentUser = user;
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   if (!user) {
     renderLogin();
@@ -178,7 +231,9 @@ onAuthChange(user => {
   unsubscribe = onHistory(list => {
     rows = list;
     renderDashboard(user);
+    trySync();
   });
+  if (GOOGLE_DRIVE_READY) await trySilentConnect();
 });
 </script>
 </body>
