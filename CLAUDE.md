@@ -120,7 +120,7 @@ Every activity produces two files when the student clicks **Generate Learning Ev
 
 **PDF (the official submission)**: human-readable, includes the mission, results, all answers, auto-marked score, rubric, and the **direct URL to the simulation** — so a parent or the head of department can open the live activity itself, not just read a static record. This is the file the student uploads to the school's LMS.
 
-**JSON (the AI-marking companion file)** — this is the file I'll upload to ChatGPT/Claude to mark in seconds. It must be self-sufficient: I should never need to explain the activity or provide a rubric separately. Structure:
+**JSON (the marking companion file)** — a structured data file for fast marking, by hand or with any tool. It must be self-sufficient: whoever marks it — me, another teacher, or an AI assistant — should never need to be told the activity or given a rubric separately. Structure:
 
 ```json
 {
@@ -157,11 +157,11 @@ Every activity produces two files when the student clicks **Generate Learning Ev
     }
   ],
   "rubric": { "knowledge_accuracy": 4, "use_of_evidence": 3, "reasoning": 2, "communication": 1, "total": 10 },
-  "ai_marking_instructions": "Mark the constructed responses using the rubric and expected points above. Accept scientifically valid alternative wording. Do not penalise spelling unless meaning is unclear. Return: total score, score by criterion, one strength, one correction, one next step. Keep feedback under 80 words."
+  "marking_instructions": "Mark the constructed responses using the rubric and expected points above. Accept scientifically valid alternative wording. Do not penalise spelling unless meaning is unclear. Return: total score, score by criterion, one strength, one correction, one next step. Keep feedback under 80 words."
 }
 ```
 
-**Visible rubric**: display the rubric criteria (not the hidden `expected_points`) at the bottom of the activity page itself, so the student can see how they're assessed before submitting. Keep `expected_points` and any auto-marked answer keys out of the visible interface — they exist only in the JSON/underlying code for AI marking.
+**Visible rubric**: display the rubric criteria (not the hidden `expected_points`) at the bottom of the activity page itself, so the student can see how they're assessed before submitting. Keep `expected_points` and any auto-marked answer keys out of the visible interface — they exist only in the JSON/underlying code for marking.
 
 **Amendment — level descriptors, not just a ceiling score (agreed 2026-09-08).** A rubric row that only states what full marks looks like doesn't tell the student what a 1, 2, or 3 out of 4 looks like, and doesn't tell the marker (human or AI) what to look for at each band — so every non-`auto` rubric criterion must carry a `levels` array: one entry per mark value from 0 up to `max` (`{ "marks": n, "descriptor": "..." }`), spelling out exactly what earns that score. `auto` criteria (Knowledge Check) don't need `levels` since the engine grades them directly. The engine renders these as a bulleted breakdown under each criterion, both in the on-page "How this is marked" card and in the evidence PDF's rubric section (`engine/engine.js`'s `buildEvidence` and `drawRubric`) — a criterion without `levels` still falls back to its old single `descriptor` line, so this is additive, not a breaking schema change. `_template/config.json`'s rubric is the worked example (3-4 mark bands with real descriptors); mirror the `es` block's `levels` by position, same as `rubric.criteria` itself. New activities must supply `levels` on every non-auto criterion — a single ceiling `descriptor` with no bands is now a policy miss, same status as a missing `learningFocus`.
 
@@ -575,7 +575,7 @@ asked; English/Spanish is the current standing scope.
 2. In the activity's `config.json`, add a top-level `"es"` block mirroring the translatable content
    (title, subtitle, course/pathway/module labels, `learningFocus`, `orient`, `predict`,
    `investigate`, `record`, `explain`, `apply`, `knowledgeCheck`, `rubric`). Leave `expectedPoints`
-   and `aiMarkingInstructions` English-only — they are never shown to the student. `_template/config.json`
+   and `markingInstructions` English-only — they are never shown to the student. `_template/config.json`
    carries a stub `es` block as the pattern to copy.
 3. If the activity's own JS draws custom in-canvas text (hotspot labels, quiz copy, HUD strings —
    anything the shared engine doesn't render from config), add a small local helper at the top of

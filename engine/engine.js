@@ -821,7 +821,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       auto_marked_percent: autoPct,
       constructed_responses: constructed,
       rubric: { ...rubricOut, total_marks: rubricTotal, grade_is: "marks ÷ total × 100 = percentage" },
-      ai_marking_instructions: config.aiMarkingInstructions || "Mark the constructed responses against the rubric and expected points. Accept scientifically valid alternative wording. Do not penalise spelling unless meaning is unclear.",
+      marking_instructions: config.markingInstructions || "Mark the constructed responses against the rubric and expected points. Accept scientifically valid alternative wording. Do not penalise spelling unless meaning is unclear.",
     };
     const sum = checksum({ ...core, checksum: undefined });
     return { ...core, integrity_checksum: sum, integrity_note: t("pdf.integrity-note") };
