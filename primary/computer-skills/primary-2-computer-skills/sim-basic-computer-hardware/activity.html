@@ -327,10 +327,10 @@ const simulation = {
 
       const left=document.createElement("div");
       const dwrap=document.createElement("div");dwrap.className="diagram-wrap";
-      dwrap.innerHTML=diagramImgHTML(L("The same open computer case, with 5 numbered spots to match to a part","La misma torre de ordenador abierta, con 5 puntos numerados para relacionar con una pieza"));
+      dwrap.innerHTML=diagramImgHTML(L("The same open computer case, with 4 numbered spots to match to a part — the case itself is already fitted","La misma torre de ordenador abierta, con 4 puntos numerados para relacionar con una pieza — la torre ya viene puesta"));
       left.append(dwrap);
       const hint=document.createElement("p");hint.className="diagram-caption";
-      hint.textContent=L("Tap a part below, then tap its spot on the picture.","Toca una pieza abajo y luego toca su lugar en la imagen.");
+      hint.textContent=L("The case is already fitted. Tap a part below, then tap its spot on the picture.","La torre ya está puesta. Toca una pieza abajo y luego toca su lugar en la imagen.");
       left.append(hint);
       const note=document.createElement("div");note.className="result-note";note.id="label-note";
       left.append(note);
@@ -365,10 +365,11 @@ const simulation = {
       phaseHost.append(wrap);
 
       const spotNodes={};let matched=0;
-      HOTSPOTS.forEach((h,i)=>{
+      HOTSPOTS.filter(h=>h.key!=="case").forEach(h=>{
+        const p0=partByKey[h.key];
         const s=document.createElement("button");s.type="button";s.className="spot";
         s.style.left=(h.fx*100)+"%";s.style.top=(h.fy*100)+"%";
-        s.textContent=String(i+1);s.setAttribute("aria-label",L("Spot ","Punto ")+(i+1));
+        s.textContent=p0.chip;s.setAttribute("aria-label",L("Spot ","Punto ")+p0.chip);
         s.addEventListener("click",()=>{
           if(s.classList.contains("is-correct"))return;
           if(!armed){
@@ -382,7 +383,7 @@ const simulation = {
             s.classList.add("is-correct");s.style.background="#"+p.color.toString(16).padStart(6,"0");
             s.style.borderColor="transparent";s.textContent=p.chip;
             chipNodes[h.key].classList.add("is-done");
-            matched++;hint.textContent=L(matched+" / 5 matched",matched+" / 5 relacionadas");
+            matched++;hint.textContent=L(matched+" / "+PARTS.length+" matched",matched+" / "+PARTS.length+" relacionadas");
             flashNote(L(`Correct! ${p.name} matched.`,`¡Correcto! ${p.name} relacionado.`),"correct");
             if(sim.ttsEnabled&&sim.ttsEnabled())sim.speak(p.name+(getLang()==="es"?" relacionado.":" matched."));
           } else {
@@ -401,8 +402,8 @@ const simulation = {
       });
 
       function showContinue(){
-        hint.textContent=L("All 5 matched!","¡Las 5 relacionadas!");
-        flashNote(L("All 5 parts matched — nice work!","¡Las 5 piezas relacionadas — buen trabajo!"),"correct");
+        hint.textContent=L("All matched!","¡Todas relacionadas!");
+        flashNote(L("All parts matched — nice work! (The case was already provided.)","¡Todas las piezas relacionadas — buen trabajo! (La torre ya venía puesta.)"),"correct");
         const row=document.createElement("div");row.className="phase-continue";
         const btn=document.createElement("button");btn.type="button";btn.className="btn btn--lg btn--signal";
         btn.textContent=L("Now build it for real →","Ahora constrúyelo de verdad →");
