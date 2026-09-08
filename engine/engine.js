@@ -29,7 +29,7 @@
    ========================================================================== */
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=3";
-import { t, getLang, localizeConfig } from "./i18n.js?v=2";
+import { t, getLang, localizeConfig } from "./i18n.js?v=3";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -687,7 +687,18 @@ export async function mountActivity({ simulation = {} } = {}) {
     crit.forEach(c => {
       const tr = el("tr");
       tr.append(el("td", null, c.label + (c.auto ? t("auto") : "")));
-      tr.append(el("td", null, c.descriptor || ""));
+      const descCell = el("td");
+      if (c.levels && c.levels.length) {
+        const list = el("ul", "rubric__levels");
+        [...c.levels].sort((a, b) => b.marks - a.marks).forEach(lv => {
+          const li = el("li", null, `${lv.marks} ${lv.marks === 1 ? t("mark-singular") : t("marks-col")} — ${lv.descriptor}`);
+          list.append(li);
+        });
+        descCell.append(list);
+      } else {
+        descCell.append(document.createTextNode(c.descriptor || ""));
+      }
+      tr.append(descCell);
       tr.append(el("td", null, `${c.max}  (${Math.round((c.max / total) * 100)}%)`));
       tb.append(tr);
     });
@@ -1107,10 +1118,21 @@ function drawRubric(doc, p, ctx) {
   keys.forEach(k => {
     if (y > ctx.H - 90) { ctx.footer(); doc.addPage(); y = 54; }
     const c = r[k];
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(29,33,28);
     doc.text((labels[k] || k) + (c.auto ? t("auto") : ""), ctx.M, y);
     doc.text(`${c.max}  (${Math.round((c.max / total) * 100)}%)`, ctx.RIGHT - 120, y);
     doc.text(c.awarded != null ? String(c.awarded) : "____", ctx.RIGHT - 50, y);
-    y += 14;
+    y += 12;
+    const levels = c.levels && c.levels.length ? [...c.levels].sort((a, b) => b.marks - a.marks) : (c.descriptor ? [{ marks: c.max, descriptor: c.descriptor }] : []);
+    doc.setFont("helvetica", "italic"); doc.setFontSize(7.8); doc.setTextColor(110,118,112);
+    levels.forEach(lv => {
+      const label = `${lv.marks} ${lv.marks === 1 ? t("mark-singular") : t("marks-col").toLowerCase()} — ${lv.descriptor}`;
+      const lines = doc.splitTextToSize(pdfSafe(label), ctx.CW - 14);
+      if (y + lines.length * 10 > ctx.H - 70) { ctx.footer(); doc.addPage(); y = 54; doc.setFont("helvetica", "italic"); doc.setFontSize(7.8); doc.setTextColor(110,118,112); }
+      doc.text(lines, ctx.M + 10, y);
+      y += lines.length * 10;
+    });
+    y += 6;
   });
   doc.setDrawColor(200,205,198); doc.line(ctx.M, y, ctx.RIGHT, y); y += 12;
   doc.setFont("helvetica", "bold");

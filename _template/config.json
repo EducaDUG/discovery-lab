@@ -102,17 +102,41 @@
     }
   ],
 
+  "_rubric_note": "Each non-auto criterion should carry a 'levels' array — one entry per mark value from 0 up to max — spelling out exactly what earns that many marks. This is what tells the student how they're being judged and tells the marker (human or AI) what to look for at each score, not just the ceiling. 'auto' criteria (Knowledge Check) don't need levels since they're graded by the engine.",
   "rubric": {
     "note": "You are graded out of the total marks, shown as a percentage.",
     "criteria": [
       { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 5, "auto": true },
-      { "key": "use_of_evidence", "label": "Use of evidence", "descriptor": "Explain answer uses own data.", "max": 3 },
-      { "key": "reasoning", "label": "Scientific reasoning", "descriptor": "Apply answer reasons about a new context.", "max": 3 },
-      { "key": "communication", "label": "Communication", "descriptor": "Clear sentences, correct terms.", "max": 2 }
+      {
+        "key": "use_of_evidence", "label": "Use of evidence", "max": 3,
+        "levels": [
+          { "marks": 0, "descriptor": "No data or evidence referenced." },
+          { "marks": 1, "descriptor": "Mentions data but does not connect it to the claim being made." },
+          { "marks": 2, "descriptor": "Refers to own results and links them to the claim, with a minor gap." },
+          { "marks": 3, "descriptor": "Clearly cites specific figures from own Investigation Record and uses them to justify the claim." }
+        ]
+      },
+      {
+        "key": "reasoning", "label": "Scientific reasoning", "max": 3,
+        "levels": [
+          { "marks": 0, "descriptor": "No attempt to apply the concept to the new context." },
+          { "marks": 1, "descriptor": "States what would happen but not why." },
+          { "marks": 2, "descriptor": "Explains why, with one gap in the scientific logic." },
+          { "marks": 3, "descriptor": "Explains why using correct scientific reasoning, fully applied to the new context." }
+        ]
+      },
+      {
+        "key": "communication", "label": "Communication", "max": 2,
+        "levels": [
+          { "marks": 0, "descriptor": "Unclear or missing sentences; no scientific terms." },
+          { "marks": 1, "descriptor": "Understandable but with unclear phrasing or missing key terms." },
+          { "marks": 2, "descriptor": "Clear, well-formed sentences using correct scientific vocabulary." }
+        ]
+      }
     ]
   },
 
-  "aiMarkingInstructions": "Mark ONLY the two constructed responses using the rubric and each question's expected_points. Copy auto_marked_score into knowledge_accuracy. Accept valid alternative wording; do not penalise spelling unless meaning is unclear. Report total, percentage, one strength, one correction, one next step, under 80 words.",
+  "aiMarkingInstructions": "Mark ONLY the two constructed responses using the rubric's level descriptors (award the marks for the highest level the response fully meets) and each question's expected_points. Copy auto_marked_score into knowledge_accuracy. Accept valid alternative wording; do not penalise spelling unless meaning is unclear. Report total, percentage, one strength, one correction, one next step, under 80 words.",
 
   "_es_note": "REQUIRED (see CLAUDE.md Section 15). Mirror every translatable field here in natural, age-appropriate Spanish. Arrays of objects with an 'id' (predict.options, knowledgeCheck) merge by id — keep the same ids, translate only 'label'/'prompt'/'explain'. Other arrays (orient.steps, record.columns, rubric.criteria, match 'pairs') merge by position. Never translate expectedPoints or aiMarkingInstructions — they are not shown to the student.",
   "es": {
@@ -141,9 +165,32 @@
       "note": "Tu nota son los puntos que obtienes del total, como porcentaje.",
       "criteria": [
         { "label": "Conocimiento y comprensión", "descriptor": "Comprobación de conocimientos correcta." },
-        { "label": "Uso de la evidencia", "descriptor": "La respuesta de Explicación usa datos propios." },
-        { "label": "Razonamiento científico", "descriptor": "La respuesta de Aplicación razona sobre un contexto nuevo." },
-        { "label": "Comunicación", "descriptor": "Frases claras, términos correctos." }
+        {
+          "label": "Uso de la evidencia",
+          "levels": [
+            { "descriptor": "No se menciona ningún dato ni evidencia." },
+            { "descriptor": "Menciona datos pero no los relaciona con la afirmación." },
+            { "descriptor": "Se refiere a sus propios resultados y los relaciona con la afirmación, con un pequeño vacío." },
+            { "descriptor": "Cita cifras concretas de su propio Registro de investigación y las usa para justificar la afirmación." }
+          ]
+        },
+        {
+          "label": "Razonamiento científico",
+          "levels": [
+            { "descriptor": "No intenta aplicar el concepto al nuevo contexto." },
+            { "descriptor": "Indica qué pasaría pero no explica por qué." },
+            { "descriptor": "Explica por qué, con un vacío en la lógica científica." },
+            { "descriptor": "Explica por qué usando un razonamiento científico correcto, aplicado por completo al nuevo contexto." }
+          ]
+        },
+        {
+          "label": "Comunicación",
+          "levels": [
+            { "descriptor": "Frases confusas o ausentes; sin términos científicos." },
+            { "descriptor": "Comprensible pero con frases poco claras o sin términos clave." },
+            { "descriptor": "Frases claras y bien construidas usando vocabulario científico correcto." }
+          ]
+        }
       ]
     }
   }

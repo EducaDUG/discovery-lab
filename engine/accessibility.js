@@ -15,7 +15,7 @@
    panel. Import it as a module:  <script type="module" src=".../accessibility.js">
    ========================================================================== */
 
-import { t } from "./i18n.js?v=2";
+import { t } from "./i18n.js?v=3";
 
 const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
