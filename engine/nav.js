@@ -14,7 +14,7 @@
    tools/build-nav.py. Navigation markup is never hand-written.
    ========================================================================== */
 
-import { t, pl, getLang } from "./i18n.js?v=3";
+import { t, pl, getLang } from "./i18n.js?v=4";
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);

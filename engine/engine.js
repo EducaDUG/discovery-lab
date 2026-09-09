@@ -8,9 +8,10 @@
 
    The engine owns the scaffolding — the progress rail, the stages, the standard
    question types and their auto-marking, autosave, the tamper-evident checksum,
-   and the PDF + JSON "Learning Evidence" export. The ACTIVITY owns only its own
-   content: the config, and two custom visuals it draws itself (the Orient
-   diagram and the Investigate simulation). No activity edits this file.
+   and the PDF "Learning Evidence" export (the only file a student downloads —
+   see CLAUDE.md Section 5). The ACTIVITY owns only its own content: the config,
+   and two custom visuals it draws itself (the Orient diagram and the
+   Investigate simulation). No activity edits this file.
 
    Contract — activity.html does only this:
 
@@ -23,13 +24,14 @@
      });
 
    config.json (fetched from ./config.json) supplies mission, questions, rubric
-   and marking. Answer keys and expected points live ONLY there / in the JSON
-   export — never in the visible page. These are formative activities; a curious
-   student can read the source, and the spec never pretends otherwise.
+   and marking. Answer keys and expected points live ONLY there / in the
+   internal payload used to build the PDF — never in the visible page. These
+   are formative activities; a curious student can read the source, and the
+   spec never pretends otherwise.
    ========================================================================== */
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=3";
-import { t, getLang, localizeConfig } from "./i18n.js?v=3";
+import { t, getLang, localizeConfig } from "./i18n.js?v=4";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -841,12 +843,10 @@ export async function mountActivity({ simulation = {} } = {}) {
     const jsPDF = await loadJsPDF();
     const pdfBlob = buildPDF(jsPDF, payload);
     downloadBlob(pdfBlob, `${base}.pdf`);
-    const jsonBlob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    setTimeout(() => downloadBlob(jsonBlob, `${base}.json`), 400);   // stagger so both save
 
     statusHost.textContent = "";
     const done = el("div", "toast toast--correct anim-pop"); done.style.marginTop = "var(--sp-4)";
-    done.append(el("strong", null, t("done")), document.createTextNode(t("files-downloaded", { base, checksum: payload.integrity_checksum })));
+    done.append(el("strong", null, t("done")), document.createTextNode(t("file-downloaded", { base, checksum: payload.integrity_checksum })));
     statusHost.append(done);
     celebrate(1);
   }

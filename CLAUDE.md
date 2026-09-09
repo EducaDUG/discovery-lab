@@ -114,13 +114,13 @@ Instead:
 
 ## 5. Evidence export — the assessment engine
 
-Every activity produces two files when the student clicks **Generate Learning Evidence**, via a real client-side PDF generation function (not `window.print()` — that opens a manual print dialog and breaks the filename/layout consistency we need):
+Every activity produces **one file** when the student clicks **Generate Learning Evidence**, via a real client-side PDF generation function (not `window.print()` — that opens a manual print dialog and breaks the filename/layout consistency we need):
 
-**Filename convention**: `Student_Course_Module_Activity_Date.pdf` and `.json`
+**Filename convention**: `Student_Course_Module_Activity_Date.pdf`
 
-**PDF (the official submission)**: human-readable, includes the mission, results, all answers, auto-marked score, rubric, and the **direct URL to the simulation** — so a parent or the head of department can open the live activity itself, not just read a static record. This is the file the student uploads to the school's LMS.
+**PDF (the only download, and the official submission)**: human-readable, includes the mission, results, all answers, auto-marked score, the full rubric with level descriptors, and the **direct URL to the simulation** — so a parent or the head of department can open the live activity itself, not just read a static record. This is the only file the student ever has, and the only one they upload to the school's LMS.
 
-**JSON (the marking companion file)** — a structured data file for fast marking, by hand or with any tool. It must be self-sufficient: whoever marks it — me, another teacher, or an AI assistant — should never need to be told the activity or given a rubric separately. Structure:
+**Amendment — no JSON download (agreed 2026-09-09).** The engine builds a structured JSON payload internally (see `buildPayload()` in `engine/engine.js`) purely as the data model it renders the PDF from — it is never written to a file or offered as a second download. The reasoning: the PDF and JSON download to the student's own device (per Section 7, nothing leaves the browser), and the only file Diego actually receives back is the PDF a student chooses to upload to Learning Lab — the JSON companion file was an extra download that only ever reached the student, never the teacher, so a proper rubric with level descriptors belongs printed in the PDF itself (see the level-descriptors amendment below), not off in a file only the student can see. `generateEvidence()` calls `downloadBlob()` once, for the PDF only. The internal payload shape below is retained as documentation of what the PDF is built from — it is not a file format a student or teacher ever sees:
 
 ```json
 {

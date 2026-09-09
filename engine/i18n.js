@@ -128,7 +128,7 @@ const STRINGS = {
 
     "generate-evidence": "Generate Learning Evidence",
     "finish-hand-in": "Finish and hand it in",
-    "evidence.lede": "Type your name, then download your evidence. Two files are made — a PDF to upload, and a data file that helps your teacher mark it quickly.",
+    "evidence.lede": "Type your name, then download your evidence — a PDF with your mission, results, answers and marking rubric, ready to upload.",
     "how-marked": "How this is marked",
     "criterion": "Criterion", "what-good-shows": "What good work shows", "marks-col": "Marks",
     "mark-singular": "mark",
@@ -137,7 +137,7 @@ const STRINGS = {
     "your-name": "Your full name",
     "name-placeholder": "e.g. Alex Rivera",
     "upload-important": "Important: ",
-    "upload-note": "upload the PDF to Learning Lab as evidence of your work. The data file goes to your teacher for fast marking.",
+    "upload-note": "upload the PDF to Learning Lab as evidence of your work.",
     "building-files": "Building your files…",
     "generate-again": "Generate again",
     "type-name-first": "Type your name first so your teacher knows whose work this is.",
@@ -146,7 +146,7 @@ const STRINGS = {
     "clear-work": "Clear saved work on this device",
     "clear-confirm": "This erases your answers and trials saved in this browser. Do this only after you have downloaded and uploaded your evidence. Continue?",
     "done": "Done. ",
-    "files-downloaded": "Two files downloaded: {base}.pdf and {base}.json. Upload the PDF to Learning Lab. Checksum {checksum}.",
+    "file-downloaded": "Downloaded: {base}.pdf. Upload it to Learning Lab. Checksum {checksum}.",
     "discoveries": "Discoveries",
     "badge-unlocked": "Badge unlocked: {label}",
 
@@ -291,7 +291,7 @@ const STRINGS = {
 
     "generate-evidence": "Generar evidencia de aprendizaje",
     "finish-hand-in": "Termina y entrégalo",
-    "evidence.lede": "Escribe tu nombre y descarga tu evidencia. Se generan dos archivos: un PDF para subir, y un archivo de datos para que tu profesor lo corrija rápidamente.",
+    "evidence.lede": "Escribe tu nombre y descarga tu evidencia — un PDF con tu misión, resultados, respuestas y rúbrica de corrección, listo para subir.",
     "how-marked": "Cómo se califica",
     "criterion": "Criterio", "what-good-shows": "Qué muestra un buen trabajo", "marks-col": "Puntos",
     "mark-singular": "punto",
@@ -300,7 +300,7 @@ const STRINGS = {
     "your-name": "Tu nombre completo",
     "name-placeholder": "p. ej. Alex Rivera",
     "upload-important": "Importante: ",
-    "upload-note": "sube el PDF a Learning Lab como evidencia de tu trabajo. El archivo de datos va a tu profesor para una corrección rápida.",
+    "upload-note": "sube el PDF a Learning Lab como evidencia de tu trabajo.",
     "building-files": "Preparando tus archivos…",
     "generate-again": "Generar de nuevo",
     "type-name-first": "Escribe tu nombre primero para que tu profesor sepa de quién es este trabajo.",
@@ -309,7 +309,7 @@ const STRINGS = {
     "clear-work": "Borrar el trabajo guardado en este dispositivo",
     "clear-confirm": "Esto borra las respuestas y pruebas guardadas en este navegador. Hazlo solo después de haber descargado y subido tu evidencia. ¿Continuar?",
     "done": "Listo. ",
-    "files-downloaded": "Se descargaron dos archivos: {base}.pdf y {base}.json. Sube el PDF a Learning Lab. Código de verificación {checksum}.",
+    "file-downloaded": "Descargado: {base}.pdf. Súbelo a Learning Lab. Código de verificación {checksum}.",
     "discoveries": "Descubrimientos",
     "badge-unlocked": "Insignia desbloqueada: {label}",
 
