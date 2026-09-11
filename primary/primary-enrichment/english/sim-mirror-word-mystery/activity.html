@@ -74,6 +74,10 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
     color: #2b1f3d; opacity: .88; background: #fff; padding: .2rem .6rem; border-radius: 999px; }
   .mw-museum-progress { position: absolute; top: 10px; right: 12px; font-size: .72rem; font-weight: 700;
     color: #2b1f3d; background: #fff; opacity: .88; padding: .2rem .6rem; border-radius: 999px; }
+  .mw-approach-wrap { position: absolute; left: 12px; right: 12px; bottom: 10px; height: 8px; border-radius: 999px;
+    background: rgba(255,255,255,.35); overflow: hidden; }
+  .mw-approach-fill { height: 100%; width: 0%; border-radius: 999px; background: var(--signal);
+    transition: background-color .2s ease; }
   .mw-museum-word { font-size: 1.3rem; font-weight: 700; margin: 0 0 .9rem; text-align: center; letter-spacing: .06em; }
   .mw-wings { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
   .mw-wing { text-align: center; padding: 1rem .9rem; border-radius: 14px; border: 2px solid var(--line); background: var(--surface);
@@ -81,8 +85,10 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .mw-wing__arrow { display: block; font-size: 1.4rem; margin-bottom: .3rem; }
   .mw-wing:hover { border-color: var(--accent); transform: translateY(-2px); }
   .mw-wing:active { transform: scale(.98); }
+  .mw-wing.is-active { border-color: var(--signal); background: var(--accent-wash); }
   .mw-wing[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
   .mw-wing[data-state="wrong"] { animation: mw-shake .35s ease; opacity: .75; }
+  .mw-wing:disabled { cursor: default; }
 
   .mw-done { text-align: center; padding: 1.5rem 1rem; }
   .mw-done__score { font-family: var(--font-data); font-size: 2.4rem; color: var(--accent); font-weight: 700; }
@@ -555,11 +561,21 @@ function explain(host) { structuredQuestion(host, CONFIG.explain, advance); }
 function apply(host) { structuredQuestion(host, CONFIG.apply, advance); }
 
 /* ---- KNOWLEDGE CHECK ARCADE: "The Mirror-Word Museum" --------------------
-   A trolley ride through the museum, steering into whichever wing correctly
-   names each word — reusing the knowledgeCheck word list from config.json. */
+   An endless-runner dodge. The trolley drives forward on its own; an
+   obstacle blocks the centre lane, so staying put means crashing into it.
+   To avoid it the student must steer into a side lane before the gate
+   arrives — and the lane they choose is also their answer, reusing the
+   knowledgeCheck word list from config.json. Reduced-motion mode removes
+   the time pressure entirely: the trolley waits, and a click resolves the
+   gate immediately, same as a plain multiple-choice question. */
 let arcade = null;
 let stopIdx = 0;
 let stopChoices = [];
+let runner = null;
+
+const LANE_X = { left: -1.1, center: 0, right: 1.1 };
+const RUNNER_SPEED = 3.3;   // world units per second the trolley drives forward
+const GATE_DISTANCE = 18;   // world units from the start line to the gate
 
 function buildStopChoices() {
   const words = CONFIG.knowledgeCheck;
@@ -572,6 +588,34 @@ function buildStopChoices() {
       correctSide: (w.isPalindrome && mirrorOnLeft) || (!w.isPalindrome && !mirrorOnLeft) ? "left" : "right"
     };
   });
+}
+
+function wrapWords(text, maxCharsPerLine) {
+  const words = text.split(" ");
+  const lines = [];
+  let cur = "";
+  words.forEach(w => {
+    const next = cur ? cur + " " + w : w;
+    if (next.length > maxCharsPerLine && cur) { lines.push(cur); cur = w; }
+    else cur = next;
+  });
+  if (cur) lines.push(cur);
+  return lines;
+}
+function signTexture(text, bg, fg) {
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 224;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 512, 224);
+  ctx.strokeStyle = fg; ctx.lineWidth = 8; ctx.strokeRect(8, 8, 496, 208);
+  ctx.fillStyle = fg;
+  ctx.font = "bold 52px Georgia, serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const rows = wrapWords(text, 11);
+  const lineHeight = 58;
+  const startY = 112 - ((rows.length - 1) * lineHeight) / 2;
+  rows.forEach((row, i) => ctx.fillText(row, 256, startY + i * lineHeight));
+  return new THREE.CanvasTexture(c);
 }
 
 function initArcade3D(container) {
@@ -614,6 +658,9 @@ function initArcade3D(container) {
   }
   scatterScenery();
 
+  const gateGroup = new THREE.Group();
+  scene.add(gateGroup);
+
   const vehicle = new THREE.Group();
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.42, 1.15), new THREE.MeshStandardMaterial({ color: 0xD6A24C }));
   body.position.y = 0.28;
@@ -637,16 +684,26 @@ function initArcade3D(container) {
   new ResizeObserver(resize).observe(container);
   resize();
 
-  function loop() {
+  let lastT = null;
+  function loop(t) {
+    const dt = lastT != null ? Math.min(0.05, (t - lastT) / 1000) : 0;
+    lastT = t;
     if (!reducedMotion()) sceneryGroup.children.forEach(c => { c.rotation.y += 0.0015; });
+    if (runner && !runner.resolved && !reducedMotion()) {
+      vehicle.position.z -= RUNNER_SPEED * dt;
+      const pct = Math.max(0, Math.min(1, (runner.startZ - vehicle.position.z) / (runner.startZ - runner.gateZ)));
+      const fill = document.getElementById("mw-approach-fill");
+      if (fill) fill.style.width = (pct * 100) + "%";
+      if (vehicle.position.z <= runner.gateZ) resolveGate();
+    }
     camera.position.set(vehicle.position.x * 0.4, 1.7, vehicle.position.z + 3.6);
     camera.lookAt(vehicle.position.x * 0.7, 0.5, vehicle.position.z - 3);
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
-  loop();
+  requestAnimationFrame(loop);
 
-  arcade = { renderer, scene, camera, vehicle, container, scatterScenery, laneX: 0 };
+  arcade = { renderer, scene, camera, vehicle, container, scatterScenery, gateGroup };
 }
 
 function mountArcade3D(container) {
@@ -657,48 +714,153 @@ function mountArcade3D(container) {
   if (w && h) { arcade.renderer.setSize(w, h); arcade.camera.aspect = w / h; arcade.camera.updateProjectionMatrix(); }
 }
 
+/* Builds one gate: an obstacle blocking the centre lane (labelled with the
+   word itself) and an archway with a sign in each side lane. Both side
+   arches look identical up front — correctness is only revealed at the
+   moment the trolley passes through, never telegraphed by the geometry,
+   so the student has to read and reason rather than dodge on sight. */
+function buildGate(stop, gateZ) {
+  while (arcade.gateGroup.children.length) arcade.gateGroup.remove(arcade.gateGroup.children[0]);
+
+  const postMat = new THREE.MeshStandardMaterial({ color: 0xD6A24C, roughness: .4, metalness: .4 });
+  function archAt(x) {
+    const grp = new THREE.Group();
+    const postGeo = new THREE.CylinderGeometry(0.09, 0.09, 1.8, 10);
+    const p1 = new THREE.Mesh(postGeo, postMat); p1.position.set(x - 0.62, 0.5, 0);
+    const p2 = new THREE.Mesh(postGeo, postMat); p2.position.set(x + 0.62, 0.5, 0);
+    const top = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.14, 0.14), postMat); top.position.set(x, 1.42, 0);
+    grp.add(p1, p2, top);
+    grp.position.z = gateZ;
+    return grp;
+  }
+  const leftArch = archAt(LANE_X.left);
+  const rightArch = archAt(LANE_X.right);
+
+  const leftMat = new THREE.MeshStandardMaterial({ map: signTexture(stop.left, "#F5EFE0", "#2b2f33"), roughness: .6 });
+  const leftSign = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.55), leftMat);
+  leftSign.position.set(LANE_X.left, 1.85, gateZ);
+  const rightMat = new THREE.MeshStandardMaterial({ map: signTexture(stop.right, "#F5EFE0", "#2b2f33"), roughness: .6 });
+  const rightSign = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.55), rightMat);
+  rightSign.position.set(LANE_X.right, 1.85, gateZ);
+
+  const obstacleMat = new THREE.MeshStandardMaterial({ color: 0xB8420E, roughness: .55 });
+  const obstacle = new THREE.Group();
+  const block = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.05, 0.2), obstacleMat);
+  const stripeMatB = new THREE.MeshStandardMaterial({ color: 0xF5EFE0 });
+  for (let i = -1; i <= 1; i++) {
+    const s = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.05, 0.22), stripeMatB);
+    s.position.set(i * 0.32, 0, 0); s.rotation.z = 0.5;
+    obstacle.add(s);
+  }
+  obstacle.add(block);
+  const wordMat = new THREE.MeshStandardMaterial({ map: signTexture(stop.word, "#3a2456", "#F5EFE0"), roughness: .6 });
+  const wordSign = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.5), wordMat);
+  wordSign.position.set(0, 0.86, 0.12);
+  obstacle.add(wordSign);
+  obstacle.position.set(LANE_X.center, 0.32, gateZ);
+
+  arcade.gateGroup.add(leftArch, rightArch, leftSign, rightSign, obstacle);
+  return { leftMat, rightMat, obstacleMat, obstacle };
+}
+
+/* Evaluates the trolley's lane once it reaches the gate — called either by
+   the driving loop (dynamic mode) or immediately on click (reduced motion,
+   where the trolley never actually moves and there is no time pressure). */
+function resolveGate() {
+  if (!runner || runner.resolved) return;
+  runner.resolved = true;
+  const host = document.getElementById("mw-stage");
+  const stop = stopChoices[stopIdx];
+  const gate = runner.gate;
+  const chosen = runner.chosenSide;
+  const rect = arcade.container.getBoundingClientRect();
+
+  if (chosen == null) {
+    tween(260, e => { arcade.vehicle.position.x = Math.sin(e * Math.PI * 8) * 0.1 * (1 - e); }, () => {});
+    gate.obstacleMat.emissive = new THREE.Color(0xB8420E);
+    gate.obstacleMat.emissiveIntensity = 0.7;
+    burst("💥", rect);
+  } else {
+    const correct = chosen === stop.correctSide;
+    const signMat = chosen === "left" ? gate.leftMat : gate.rightMat;
+    if (correct) {
+      signMat.emissive = new THREE.Color(0xD6A24C);
+      signMat.emissiveIntensity = 0.8;
+      addPoints(10);
+      burst("✨", rect);
+    } else {
+      signMat.emissive = new THREE.Color(0xB8420E);
+      signMat.emissiveIntensity = 0.7;
+      tween(260, e => { arcade.vehicle.position.x = LANE_X[chosen] + Math.sin(e * Math.PI * 8) * 0.08 * (1 - e); }, () => {});
+      burst("💫", rect);
+    }
+  }
+
+  if (host) {
+    host.querySelectorAll(".mw-wing").forEach(b => { b.disabled = true; b.classList.remove("is-active"); });
+    const correctBtn = host.querySelector(`.mw-wing[data-side="${stop.correctSide}"]`);
+    if (correctBtn) correctBtn.dataset.state = "correct";
+    if (chosen && chosen !== stop.correctSide) {
+      const wrongBtn = host.querySelector(`.mw-wing[data-side="${chosen}"]`);
+      if (wrongBtn) wrongBtn.dataset.state = "wrong";
+    }
+  }
+
+  setTimeout(() => {
+    arcade.scatterScenery();
+    stopIdx++;
+    render();
+  }, 1000);
+}
+
+function steerRunner(side) {
+  if (!runner || runner.resolved) return;
+  runner.chosenSide = side;
+  const host = document.getElementById("mw-stage");
+  if (host) host.querySelectorAll(".mw-wing").forEach(b => b.classList.toggle("is-active", b.dataset.side === side));
+  const fromX = arcade.vehicle.position.x;
+  const targetX = LANE_X[side];
+  tween(260, e => { arcade.vehicle.position.x = fromX + (targetX - fromX) * e; }, () => {});
+  if (reducedMotion()) resolveGate();
+}
+
+document.addEventListener("keydown", e => {
+  if (!runner || runner.resolved) return;
+  const k = e.key.toLowerCase();
+  if (e.key === "ArrowLeft" || k === "a") steerRunner("left");
+  else if (e.key === "ArrowRight" || k === "d") steerRunner("right");
+});
+
 function check(host) {
   if (stopIdx === 0 && !stopChoices.length) buildStopChoices();
   if (stopIdx >= stopChoices.length) { stopIdx = 0; stopChoices = []; advance(); return; }
   const stop = stopChoices[stopIdx];
+  const rm = reducedMotion();
   host.innerHTML = `
-    <p class="eyebrow">The Mirror-Word Museum · Steer into the wing with the right answer</p>
+    <p class="eyebrow">The Mirror-Word Museum · ${rm ? "Choose the wing with the right answer" : "Dodge the obstacle — steer into the wing with the right answer before you crash!"}</p>
     <div class="mw-museum-wrap">
       <div class="mw-museum" id="mw-arcade"></div>
       <span class="mw-museum-badge">🛒 Museum Trolley</span>
       <span class="mw-museum-progress">Stop ${stopIdx + 1} of ${stopChoices.length}</span>
+      ${rm ? "" : `<div class="mw-approach-wrap"><div class="mw-approach-fill" id="mw-approach-fill"></div></div>`}
     </div>
     <p class="mw-museum-word">${stop.word}${speakerHTML(stop.word)}</p>
     <div class="mw-wings">
       <button class="mw-wing" type="button" data-side="left"><span class="mw-wing__arrow">↰</span>${stop.left}</button>
       <button class="mw-wing" type="button" data-side="right"><span class="mw-wing__arrow">↱</span>${stop.right}</button>
-    </div>`;
+    </div>
+    ${rm ? "" : `<p class="q__hint">Tip: you can also steer with the ← and → arrow keys.</p>`}`;
 
   mountSpeakers(host);
   mountArcade3D(host.querySelector("#mw-arcade"));
-  arcade.vehicle.position.x = 0;
+  arcade.vehicle.position.set(0, 0, 2.4);
+
+  const gateZ = 2.4 - GATE_DISTANCE;
+  const gate = buildGate(stop, gateZ);
+  runner = { gate, gateZ, startZ: 2.4, resolved: false, chosenSide: null };
 
   host.querySelectorAll(".mw-wing").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const side = btn.dataset.side;
-      const targetX = side === "left" ? -1.1 : 1.1;
-      tween(400, e => { arcade.vehicle.position.x = targetX * e; }, () => {
-        if (side === stop.correctSide) {
-          btn.dataset.state = "correct";
-          host.querySelectorAll(".mw-wing").forEach(b => b.disabled = true);
-          addPoints(10);
-          tween(650, e => { arcade.vehicle.position.z = 2.4 - 14 * e; }, () => {
-            arcade.scatterScenery();
-            arcade.vehicle.position.z = 2.4;
-            stopIdx++;
-            render();
-          });
-        } else {
-          btn.dataset.state = "wrong";
-          tween(300, e => { arcade.vehicle.position.x = targetX * (1 - e); }, () => { btn.dataset.state = ""; });
-        }
-      });
-    });
+    btn.addEventListener("click", () => steerRunner(btn.dataset.side));
   });
 }
 
