@@ -751,27 +751,28 @@ function build3D(THREE, stageEl, onPick){
 
   /* ---- pointer interaction ----
      A tap on touch or a real mouse click always carries a little jitter
-     between down and up, so gate the orbit-vs-click decision on TOTAL travel
-     distance (tracked across the whole gesture) rather than a boolean that
-     trips on the first sub-pixel move — and do the actual pick on the
+     between down and up, so gate the orbit-vs-click decision on NET
+     displacement from where the gesture started (not a cumulative path
+     length, which inflates with harmless back-and-forth wobble and can
+     misclassify a genuine tap as a drag) — and do the actual pick on the
      browser's native "click" event, which fires reliably after a tap on
      every input type, instead of hand-rolling it off pointerup. */
   const raycaster=new THREE.Raycaster();
   const dom=renderer.domElement;
   dom.style.touchAction="none";
-  let dragging=false,lastX=0,lastY=0,travel=0;
-  const CLICK_TOLERANCE=10;
-  dom.addEventListener("pointerdown",e=>{dragging=true;travel=0;lastX=e.clientX;lastY=e.clientY;autoT=0;dom.setPointerCapture(e.pointerId);});
+  let dragging=false,lastX=0,lastY=0,startX=0,startY=0;
+  const CLICK_TOLERANCE=18;
+  dom.addEventListener("pointerdown",e=>{dragging=true;startX=lastX=e.clientX;startY=lastY=e.clientY;autoT=0;dom.setPointerCapture(e.pointerId);});
   dom.addEventListener("pointermove",e=>{if(!dragging)return;
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
-    travel+=Math.abs(dx)+Math.abs(dy);
     az-=dx*0.008;pol=clamp(pol-dy*0.006,0.5,1.5);lastX=e.clientX;lastY=e.clientY;});
   function endDrag(){dragging=false;}
   dom.addEventListener("pointerup",endDrag);
   dom.addEventListener("pointercancel",endDrag);
   dom.addEventListener("pointerleave",()=>{if(dragging)endDrag();});
   dom.addEventListener("click",e=>{
-    if(travel>CLICK_TOLERANCE)return; // was an orbit drag, not a tap
+    const net=Math.hypot(e.clientX-startX,e.clientY-startY);
+    if(net>CLICK_TOLERANCE)return; // was an orbit drag, not a tap
     const rect=dom.getBoundingClientRect();
     const nx=((e.clientX-rect.left)/rect.width)*2-1, ny=-((e.clientY-rect.top)/rect.height)*2+1;
     raycaster.setFromCamera({x:nx,y:ny},camera);
