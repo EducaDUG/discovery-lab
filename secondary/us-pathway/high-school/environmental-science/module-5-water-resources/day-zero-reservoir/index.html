@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Day Zero — Reservoir Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#1c140c;
+    font-family:"Segoe UI",system-ui,Arial,sans-serif; color:#fbf3e6; touch-action:none; }
+  #game { position:fixed; inset:0; }
+  canvas { display:block; touch-action:none; }
+
+  #hud { position:fixed; inset:0; pointer-events:none; z-index:10; }
+  .panel { position:absolute; background:rgba(34,22,12,.6); border:1px solid rgba(255,197,110,.28);
+    border-radius:12px; padding:10px 14px; backdrop-filter:blur(3px); }
+  #topleft { top:12px; left:12px; min-width:200px; }
+  #topright { top:12px; right:12px; text-align:right; min-width:190px; }
+  .stat { font-size:12.5px; margin:3px 0; display:flex; justify-content:space-between; gap:14px; }
+  .stat b { color:#ffd27a; font-weight:700; }
+  .yeartxt { font-size:20px; font-weight:800; color:#ffe6b8; }
+  .lvllabel { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#e7cfa8; opacity:.85; margin-top:6px; }
+  #levelMeter { height:16px; border-radius:8px; background:rgba(255,255,255,.14); overflow:hidden; margin-top:4px;
+    border:1px solid rgba(255,255,255,.18); }
+  #levelFill { height:100%; width:82%; background:linear-gradient(90deg,#2fb8c9,#6fe0c8); transition:width .25s ease, background .4s ease; }
+  #levelPct { font-size:13px; font-weight:800; margin-top:3px; }
+  .eventline { font-size:13px; font-weight:700; margin-top:6px; color:#ffe6b8; }
+
+  #controls { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); width:min(920px,95%);
+    pointer-events:auto; background:rgba(24,16,9,.72); border:1px solid rgba(255,197,110,.3); border-radius:16px;
+    padding:12px 16px; backdrop-filter:blur(4px); }
+  .ctrl-row { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-end; justify-content:center; }
+  .slider-block { display:flex; flex-direction:column; min-width:130px; }
+  .slider-block label { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#e7cfa8; display:flex; justify-content:space-between; }
+  .slider-block b { color:#fff; }
+  .slider-block input[type=range] { width:100%; accent-color:#ffb14a; margin-top:3px; }
+  .toggles { display:flex; gap:8px; flex-wrap:wrap; }
+  .toggle-btn { pointer-events:auto; cursor:pointer; border:1px solid rgba(255,197,110,.4); border-radius:20px;
+    padding:7px 13px; background:rgba(255,255,255,.06); color:#fbf3e6; font-size:12px; font-weight:700;
+    display:flex; align-items:center; gap:6px; transition:background .15s, border-color .15s; text-align:left; }
+  .toggle-btn .dot { width:9px; height:9px; border-radius:50%; background:#7a6248; flex:none; }
+  .toggle-btn.on { background:rgba(90,220,170,.18); border-color:#5adca0; }
+  .toggle-btn.on .dot { background:#5adca0; box-shadow:0 0 6px #5adca0; }
+  .toggle-btn small { display:block; font-weight:500; opacity:.75; font-size:10px; }
+  #advanceBtn { pointer-events:auto; cursor:pointer; border:none; border-radius:26px; padding:13px 30px;
+    font-size:16px; font-weight:800; color:#221407; background:linear-gradient(90deg,#ffb14a,#ffd27a);
+    box-shadow:0 6px 18px rgba(255,177,74,.35); white-space:nowrap; }
+  #advanceBtn:disabled { opacity:.5; cursor:default; }
+  #advanceBtn:hover:not(:disabled) { filter:brightness(1.06); }
+  .row-gap { margin-top:10px; display:flex; justify-content:center; align-items:center; gap:16px; flex-wrap:wrap; }
+
+  #centerMsg { position:absolute; top:16%; left:50%; transform:translateX(-50%); text-align:center;
+    font-size:30px; font-weight:900; text-shadow:0 3px 14px #000,0 0 24px rgba(255,140,60,.55);
+    opacity:0; transition:opacity .4s; max-width:82%; pointer-events:none; }
+  #subMsg { position:absolute; top:calc(16% + 46px); left:50%; transform:translateX(-50%); text-align:center;
+    font-size:15px; font-weight:600; opacity:0; transition:opacity .4s; text-shadow:0 2px 8px #000; max-width:70%; pointer-events:none; }
+
+  #infoCard { position:absolute; max-width:230px; background:rgba(20,13,7,.92); border:1px solid rgba(255,197,110,.4);
+    border-radius:10px; padding:10px 12px; font-size:12.5px; line-height:1.45; opacity:0; transition:opacity .2s;
+    pointer-events:none; }
+  #infoCard b { color:#ffd27a; }
+
+  #checkPop { position:absolute; left:50%; bottom:190px; transform:translateX(-50%); width:min(420px,90%);
+    background:rgba(20,13,7,.94); border:1px solid rgba(120,200,255,.4); border-radius:14px; padding:14px 16px;
+    opacity:0; transition:opacity .25s; pointer-events:none; text-align:center; }
+  #checkPop.show { opacity:1; pointer-events:auto; }
+  #checkPop .q { font-size:13.5px; font-weight:700; margin-bottom:10px; }
+  #checkPop .opts { display:flex; gap:8px; justify-content:center; }
+  #checkPop button.opt { pointer-events:auto; cursor:pointer; border:1px solid rgba(255,255,255,.3); border-radius:10px;
+    background:rgba(255,255,255,.08); color:#fff; padding:7px 16px; font-size:12.5px; font-weight:700; }
+  #checkPop .fb { margin-top:9px; font-size:12px; font-weight:600; min-height:1.2em; }
+
+  #filmvignette { position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(10,5,0,0.5) 100%); }
+
+  .screen { position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse at 50% 30%,#3a2814,#140d06 72%); pointer-events:auto; }
+  .card { width:min(720px,92%); background:rgba(28,18,10,.88); border:1px solid rgba(255,197,110,.3);
+    border-radius:18px; padding:28px 32px; box-shadow:0 20px 60px rgba(0,0,0,.6); max-height:88vh; overflow:auto; }
+  .card h1 { font-size:27px; color:#ffdba0; margin-bottom:6px; }
+  .card h2 { font-size:15px; color:#ffb14a; font-weight:600; margin-bottom:14px; }
+  .card p { font-size:13.5px; line-height:1.6; margin:8px 0; color:#f3e6d2; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:16px 0; text-align:center; }
+  .grid3 .big { font-size:22px; font-weight:800; color:#ffd27a; display:block; }
+  button.play { margin-top:14px; pointer-events:auto; cursor:pointer; font-size:17px; font-weight:800;
+    color:#221407; background:linear-gradient(90deg,#ffb14a,#ffd27a); border:none; border-radius:30px;
+    padding:12px 32px; box-shadow:0 6px 20px rgba(255,177,74,.35); }
+  button.play:hover { filter:brightness(1.08); }
+  .hidden { display:none !important; }
+  #loadErr { color:#ff9a9a; font-size:13px; margin-top:12px; }
+  .credit { font-size:11px; opacity:.6; margin-top:14px; }
+  #zoomCtl { position:absolute; right:14px; bottom:190px; display:flex; flex-direction:column; gap:6px; pointer-events:auto; }
+  #zoomCtl button { width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,197,110,.35);
+    background:rgba(24,16,9,.7); color:#fbf3e6; font-size:18px; font-weight:800; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<div id="hud">
+  <div class="panel" id="topleft">
+    <div class="yeartxt"><span id="yearTxt">Year 0</span> / 12</div>
+    <div class="lvllabel">Reservoir level</div>
+    <div id="levelMeter"><div id="levelFill"></div></div>
+    <div id="levelPct">82%</div>
+    <div class="stat" style="margin-top:8px"><span>Climate trend</span><b id="climTxt">baseline</b></div>
+  </div>
+  <div class="panel" id="topright">
+    <div class="stat"><span>Rainfall this year</span><b id="rainTxt">—</b></div>
+    <div class="stat"><span>Extraction</span><b id="extTxt">—</b></div>
+    <div class="stat"><span>Recharge</span><b id="rechTxt">—</b></div>
+    <div class="eventline" id="eventTxt"></div>
+  </div>
+
+  <div id="infoCard"></div>
+  <div id="checkPop"><div class="q" id="checkQ"></div><div class="opts" id="checkOpts"></div><div class="fb" id="checkFb"></div></div>
+
+  <div id="zoomCtl">
+    <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
+    <button id="zoomOut" type="button" aria-label="Zoom out">–</button>
+  </div>
+
+  <div id="controls">
+    <div class="ctrl-row">
+      <div class="slider-block">
+        <label>Agriculture <b id="agVal">100%</b></label>
+        <input type="range" id="agSlider" min="0" max="150" value="100">
+      </div>
+      <div class="slider-block">
+        <label>Industry <b id="indVal">100%</b></label>
+        <input type="range" id="indSlider" min="0" max="150" value="100">
+      </div>
+      <div class="slider-block">
+        <label>Domestic <b id="domVal">100%</b></label>
+        <input type="range" id="domSlider" min="0" max="150" value="100">
+      </div>
+      <div class="toggles">
+        <button type="button" class="toggle-btn" id="tglDrip"><span class="dot"></span><span>Drip irrigation<small>cuts farm use ~35%</small></span></button>
+        <button type="button" class="toggle-btn" id="tglRain"><span class="dot"></span><span>Rainwater harvesting<small>+recharge, less mains use</small></span></button>
+        <button type="button" class="toggle-btn" id="tglWetland"><span class="dot"></span><span>Wetland restoration<small>+recharge, less evaporation</small></span></button>
+      </div>
+    </div>
+    <div class="row-gap">
+      <button id="advanceBtn" type="button">Advance Year →</button>
+    </div>
+  </div>
+
+  <div id="centerMsg"></div>
+  <div id="subMsg"></div>
+  <div id="filmvignette"></div>
+</div>
+
+<div class="screen" id="startScreen">
+  <div class="card">
+    <h1>💧 Day Zero: Reservoir Manager</h1>
+    <h2>Keep Rivelago's reservoir alive for 12 years — or watch it run dry</h2>
+    <p>You manage the reservoir that supplies <b>Rivelago</b>: a farming valley, a growing town and a factory
+       all draw from the same water. Rainfall is falling as the climate changes. Every year, set how much
+       each sector may draw, decide which conservation measures to fund, then advance the year and watch the
+       reservoir respond — in real time, in 3D.</p>
+    <p style="font-size:12.5px;opacity:.9">🖱️ <b>Drag</b> to orbit the valley, <b>scroll</b> (or the +/− buttons) to zoom.
+       🖱️ <b>Click</b> the dam, farms, town, factory or wetland to inspect them. Some are hiding a quick check of your understanding.
+       🎯 Reach Year 12 with water still in the reservoir to win — let it hit zero, and the city faces <b>Day Zero</b>.</p>
+    <div id="loadErr" class="hidden"></div>
+    <button class="play" id="playBtn">Take charge of the reservoir</button>
+    <div class="credit">Educational simulation · Discovery Lab.</div>
+  </div>
+</div>
+
+<div class="screen hidden" id="endScreen">
+  <div class="card" style="text-align:center">
+    <h1 id="endTitle">Outcome</h1>
+    <h2 id="endSub"></h2>
+    <div class="grid3">
+      <div>Final level<br><span class="big" id="endLevel">0%</span></div>
+      <div>Drought years<br><span class="big" id="endDrought">0</span></div>
+      <div>Years managed<br><span class="big" id="endYears">0</span></div>
+    </div>
+    <p id="endMsg"></p>
+    <button class="play" id="continueBtn">Continue to Record →</button>
+  </div>
+</div>
+
+<script>
+  function loadScript(src){
+    return new Promise(function(res,rej){
+      var s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+  function showLoadErr(){
+    var e=document.getElementById('loadErr');
+    if(e){ e.classList.remove('hidden'); e.innerHTML="⚠️ Couldn't load the 3D engine (Three.js). Please reload the page."; }
+  }
+  async function loadEngine(){
+    try{ await loadScript("./vendor/three.min.js"); }catch(e){}
+    if(!window.THREE){ showLoadErr(); return; }
+    boot();
+  }
+  loadEngine();
+</script>
+
+<script>
+"use strict";
+function boot(){ if(typeof THREE==="undefined"){ return setTimeout(boot,120);} startGame(); }
+
+/* ===================== tuning ===================== */
+const TOTAL_YEARS = 12;
+const HIGH_Y = -40;     // elevation at 100% capacity (the historical high-water mark)
+const LOW_Y  = -130;    // elevation at 0% capacity (Day Zero / dead pool)
+const BASIN_R = 260;
+const FIELD = 760;
+
+const BASE = { ag:70, ind:20, dom:10, rain:100, evap:15 };
+
+function levelToY(pct){ return LOW_Y + (HIGH_Y-LOW_Y)*(Math.max(0,Math.min(100,pct))/100); }
+
+function heightAt(x,z){
+  const r = Math.sqrt(x*x+z*z);
+  let h;
+  if (r <= BASIN_R){
+    h = -140 + 150*Math.pow(r/BASIN_R, 1.5);
+  } else {
+    const t = (r-BASIN_R)/(FIELD*0.6);
+    h = 10 + t*300;
+  }
+  h += 16*Math.sin(x*0.021+1.3)*Math.cos(z*0.018-0.4);
+  h += 8*Math.sin(x*0.05-2.1)+8*Math.cos(z*0.047+0.7);
+  h += 4*Math.sin((x+z)*0.09);
+  return h;
+}
+
+/* ===================== state ===================== */
+const state = {
+  year:0, units:820, // units 0-1000 == 0-100%
+  agS:100, indS:100, domS:100,
+  drip:false, rainH:false, wet:false,
+  droughtYears:0, stormYears:0, finished:false, dayZero:false,
+  history:[], checksSeen:{dam:false, wetland:false},
+};
+function levelPct(){ return state.units/10; }
+
+/* ===================== three.js scene handles ===================== */
+let scene, camera, renderer, clock, W, H;
+let terrain, terrainGeo, water, waterGeo, sky, skyMat;
+let dam, towers=[], boat, dock, clouds=[], birds=[], weatherPts=null, weatherMode="off", weatherTimer=0;
+let farmRings=[], reedGroup, factorySmoke=[];
+let currentWaterY = levelToY(state.units/10);
+let orbit = { theta: 0.9, phi: 1.05, radius: 520, target:new (window.THREE?THREE.Vector3:Object)(0,-60,0) };
+let dragging=false, lastX=0, lastY=0, dragMoved=0, idleTimer=0;
+let cineActive=false;
+
+function dotTexture(){
+  const c=document.createElement("canvas"); c.width=c.height=64;
+  const x=c.getContext("2d");
+  const g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(0.4,"rgba(255,255,255,.5)"); g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g; x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+}
+function cloudTexture(){
+  const c=document.createElement("canvas"); c.width=c.height=128;
+  const x=c.getContext("2d");
+  for(let i=0;i<6;i++){
+    const g=x.createRadialGradient(64,64,0,64,64,60-i*4);
+    const a=0.5-i*0.06;
+    g.addColorStop(0,"rgba(255,255,255,"+a+")"); g.addColorStop(1,"rgba(255,255,255,0)");
+    x.fillStyle=g;
+    x.beginPath(); x.arc(64+(Math.random()-0.5)*30,64+(Math.random()-0.5)*20,60-i*4,0,6.28); x.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+function crackTexture(){
+  const c=document.createElement("canvas"); c.width=c.height=256;
+  const x=c.getContext("2d");
+  x.fillStyle="#cabb98"; x.fillRect(0,0,256,256);
+  x.strokeStyle="rgba(90,72,45,.55)"; x.lineWidth=2;
+  for(let i=0;i<40;i++){
+    x.beginPath();
+    let px=Math.random()*256, py=Math.random()*256; x.moveTo(px,py);
+    const segs=3+Math.floor(Math.random()*3);
+    for(let s=0;s<segs;s++){ px+=(Math.random()-0.5)*46; py+=(Math.random()-0.5)*46; x.lineTo(px,py); }
+    x.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+/* ===================== setup ===================== */
+function startGame(){
+  W=window.innerWidth; H=window.innerHeight;
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x9c7f57, 0.0016);
+
+  camera = new THREE.PerspectiveCamera(52, W/H, 1, 4000);
+  renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
+  renderer.setSize(W,H);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+  document.getElementById("game").appendChild(renderer.domElement);
+  clock = new THREE.Clock();
+
+  orbit.target = new THREE.Vector3(0,-60,0);
+
+  buildSky();
+  buildLights();
+  buildTerrain();
+  buildWater();
+  buildDam();
+  buildTown();
+  buildFarm();
+  buildFactory();
+  buildWetland();
+  buildDock();
+  buildClouds();
+  buildBirds();
+  buildWeatherParticles();
+
+  updateCameraFromOrbit();
+
+  wireInput();
+  wireUI();
+
+  window.addEventListener("resize", onResize);
+  document.getElementById("playBtn").onclick = beginRun;
+  document.getElementById("continueBtn").onclick = ()=>{ document.getElementById("endScreen").classList.add("hidden"); };
+
+  animate();
+}
+
+function buildSky(){
+  skyMat = new THREE.MeshBasicMaterial({color:0x4f8fc9, side:THREE.BackSide, fog:false});
+  sky = new THREE.Mesh(new THREE.SphereGeometry(2600,16,12), skyMat);
+  scene.add(sky);
+  const sunDisc = new THREE.Mesh(new THREE.CircleGeometry(90,24), new THREE.MeshBasicMaterial({color:0xfff3d0, fog:false}));
+  sunDisc.position.set(420,520,-260); sunDisc.lookAt(0,0,0); scene.add(sunDisc);
+}
+function buildLights(){
+  scene.add(new THREE.AmbientLight(0xe8d9bd, 0.75));
+  const sun = new THREE.DirectionalLight(0xfff2d8, 1.05); sun.position.set(180,320,120); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xbcd7ff, 0.25); fill.position.set(-200,140,-160); scene.add(fill);
+}
+
+function buildTerrain(){
+  const seg=90;
+  terrainGeo = new THREE.PlaneGeometry(FIELD, FIELD, seg, seg);
+  terrainGeo.rotateX(-Math.PI/2);
+  const pos = terrainGeo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    pos.setY(i, heightAt(pos.getX(i), pos.getZ(i)));
+  }
+  const colors = new Float32Array(pos.count*3);
+  terrainGeo.setAttribute("color", new THREE.BufferAttribute(colors,3));
+  terrainGeo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.96, metalness:0.02});
+  terrain = new THREE.Mesh(terrainGeo, mat); terrain.name="terrain";
+  scene.add(terrain);
+  recolorTerrain(currentWaterY);
+}
+
+function hash2(x,z){ const s=Math.sin(x*12.9898+z*78.233)*43758.5453; return s-Math.floor(s); }
+function recolorTerrain(waterY){
+  const pos = terrainGeo.attributes.position, col = terrainGeo.attributes.color;
+  const rockA = new THREE.Color(0x7a5636), rockB = new THREE.Color(0x94684a);
+  const pale = new THREE.Color(0xd8c9a2), crackDark = new THREE.Color(0x9c8560);
+  const wet = new THREE.Color(0x3c4a3a);
+  const tmp = new THREE.Color();
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i), y=pos.getY(i), z=pos.getZ(i);
+    const n = hash2(Math.floor(x*0.3), Math.floor(z*0.3));
+    if (y > HIGH_Y+6){
+      tmp.copy(rockA).lerp(rockB, n);
+    } else if (y > waterY){
+      const t = Math.max(0, Math.min(1, (y-waterY)/Math.max(1,(HIGH_Y-waterY))));
+      tmp.copy(pale).lerp(rockA, t*0.85);
+      if (n>0.72) tmp.lerp(crackDark, 0.5);
+    } else {
+      tmp.copy(wet).lerp(rockA, n*0.3);
+    }
+    col.setXYZ(i, tmp.r, tmp.g, tmp.b);
+  }
+  col.needsUpdate = true;
+}
+
+function buildWater(){
+  waterGeo = new THREE.PlaneGeometry(FIELD, FIELD, 46, 46);
+  waterGeo.rotateX(-Math.PI/2);
+  waterGeo.userData.base = waterGeo.attributes.position.array.slice();
+  const mat = new THREE.MeshStandardMaterial({color:0x1c6f86, roughness:0.18, metalness:0.35, transparent:true, opacity:0.92});
+  water = new THREE.Mesh(waterGeo, mat); water.name="water";
+  water.position.y = currentWaterY;
+  scene.add(water);
+}
+
+function buildDam(){
+  const g = new THREE.Group();
+  const damMat = new THREE.MeshStandardMaterial({color:0xcfcabd, roughness:0.85});
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(230,190,16), damMat);
+  wall.position.set(0, (HIGH_Y+40-40)/1, -BASIN_R*0.92);
+  wall.position.y = -20;
+  g.add(wall);
+  // intake towers, exposed portion grows as level falls
+  for(const side of [-1,1]){
+    const tw = new THREE.Mesh(new THREE.CylinderGeometry(9,10,150,14), new THREE.MeshStandardMaterial({color:0xe4dfce, roughness:0.8}));
+    tw.position.set(side*46, -55, -BASIN_R*0.80);
+    g.add(tw); towers.push(tw);
+  }
+  g.name="dam";
+  g.traverse(o=>o.name="dam");
+  dam = g; scene.add(g);
+}
+
+function ring(radius, count, size, color, angleSpread, angleCenter, distJitter){
+  const items=[];
+  for(let i=0;i<count;i++){
+    const a = angleCenter + (Math.random()-0.5)*angleSpread;
+    const r = radius + (Math.random()-0.5)*distJitter;
+    const x = Math.cos(a)*r, z = Math.sin(a)*r;
+    items.push({x,z,y:heightAt(x,z)});
+  }
+  return items;
+}
+
+let townGroup;
+function buildTown(){
+  townGroup = new THREE.Group(); townGroup.name="town";
+  const spots = ring(BASIN_R*1.12, 9, 0, 0, 0.9, 0.7, 40);
+  spots.forEach((s,i)=>{
+    const h = 12+Math.random()*22;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(10+Math.random()*6,h,10+Math.random()*6),
+      new THREE.MeshStandardMaterial({color:0xdccdb2, roughness:0.8}));
+    m.position.set(s.x, s.y+h/2, s.z); m.name="town";
+    townGroup.add(m);
+    for(let w=0; w<3; w++){
+      const win = new THREE.Mesh(new THREE.PlaneGeometry(1.6,1.6), new THREE.MeshStandardMaterial({color:0xffdf8a, emissive:0xffdf8a, emissiveIntensity:0.9}));
+      win.position.set(s.x + (Math.random()-0.5)*7, s.y+3+Math.random()*(h-6), s.z+5.05);
+      win.name="town"; townGroup.add(win);
+    }
+  });
+  scene.add(townGroup);
+}
+
+function buildFarm(){
+  const angle = 3.4;
+  for(let i=0;i<5;i++){
+    const a = angle + i*0.22;
+    const r = BASIN_R*1.18 + i*4;
+    const x = Math.cos(a)*r, z = Math.sin(a)*r, y = heightAt(x,z);
+    const grp = new THREE.Group(); grp.position.set(x,y+0.3,z); grp.name="farmland";
+    const ringMesh = new THREE.Mesh(new THREE.TorusGeometry(13,3.6,8,24), new THREE.MeshStandardMaterial({color:0x6a9a45, roughness:0.9}));
+    ringMesh.rotation.x=Math.PI/2; ringMesh.name="farmland"; grp.add(ringMesh);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(13,24), new THREE.MeshStandardMaterial({color:0x7fae52, roughness:0.95}));
+    disc.rotation.x=-Math.PI/2; disc.position.y=0.1; disc.name="farmland"; grp.add(disc);
+    scene.add(grp); farmRings.push({group:grp, ring:ringMesh, disc});
+  }
+}
+
+function buildFactory(){
+  const a=5.1, r=BASIN_R*1.15, x=Math.cos(a)*r, z=Math.sin(a)*r, y=heightAt(x,z);
+  const g = new THREE.Group(); g.position.set(x,y,z); g.name="factory";
+  const body = new THREE.Mesh(new THREE.BoxGeometry(34,20,22), new THREE.MeshStandardMaterial({color:0x8a8f96, roughness:0.7}));
+  body.position.y=10; body.name="factory"; g.add(body);
+  const chim = new THREE.Mesh(new THREE.CylinderGeometry(3,3.6,30,10), new THREE.MeshStandardMaterial({color:0x6d7278}));
+  chim.position.set(10,35,0); chim.name="factory"; g.add(chim);
+  scene.add(g);
+  const N=60, geo=new THREE.BufferGeometry(); const p=new Float32Array(N*3);
+  for(let i=0;i<N;i++){ p[i*3]=x+10; p[i*3+1]=y+50+Math.random()*30; p[i*3+2]=z; }
+  geo.setAttribute("position", new THREE.BufferAttribute(p,3));
+  const smoke = new THREE.Points(geo, new THREE.PointsMaterial({size:9,map:dotTexture(),color:0xbfbfbf,transparent:true,opacity:0.35,depthWrite:false}));
+  scene.add(smoke); factorySmoke.push({pts:smoke, base:p.slice(), origin:new THREE.Vector3(x+10,y+50,z)});
+}
+
+function buildWetland(){
+  reedGroup = new THREE.Group(); reedGroup.name="wetland";
+  const a=1.9, r=BASIN_R*1.05;
+  for(let i=0;i<10;i++){
+    const aa=a+(Math.random()-0.5)*0.6, rr=r+(Math.random()-0.5)*30;
+    const x=Math.cos(aa)*rr, z=Math.sin(aa)*rr, y=heightAt(x,z);
+    const reed = new THREE.Mesh(new THREE.ConeGeometry(0.9,7+Math.random()*4,6), new THREE.MeshStandardMaterial({color:0x4c7a3f, roughness:0.9}));
+    reed.position.set(x,y+3,z); reed.name="wetland";
+    reedGroup.add(reed);
+  }
+  scene.add(reedGroup);
+}
+
+function buildDock(){
+  const a=0.55, r=BASIN_R*0.88, x=Math.cos(a)*r, z=Math.sin(a)*r, bankY=heightAt(x,z);
+  dock = new THREE.Group(); dock.userData.baseY = HIGH_Y;
+  const plank = new THREE.Mesh(new THREE.BoxGeometry(8,1.4,42), new THREE.MeshStandardMaterial({color:0x7a5a3a, roughness:0.9}));
+  plank.position.set(x,HIGH_Y+1,z); dock.add(plank);
+  for(let i=0;i<4;i++){
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,26,6), new THREE.MeshStandardMaterial({color:0x5c4128}));
+    post.position.set(x+ (i%2?3:-3), HIGH_Y-12, z-16+i*11);
+    dock.add(post);
+  }
+  scene.add(dock);
+  boat = new THREE.Group();
+  const hull = new THREE.Mesh(new THREE.SphereGeometry(6,10,6), new THREE.MeshStandardMaterial({color:0xd8483f, roughness:0.6}));
+  hull.scale.set(1,0.4,2.1); boat.add(hull);
+  boat.position.set(x+16,currentWaterY+1.5,z+8); boat.userData.groundY = heightAt(x+16,z+8);
+  scene.add(boat);
+}
+
+function buildClouds(){
+  const tex = cloudTexture();
+  for(let i=0;i<7;i++){
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(180+Math.random()*120,90+Math.random()*60),
+      new THREE.MeshBasicMaterial({map:tex, transparent:true, opacity:0.75, depthWrite:false, fog:false}));
+    m.position.set((Math.random()-0.5)*1400, 260+Math.random()*90, (Math.random()-0.5)*1400);
+    m.rotation.x=-Math.PI/2.3;
+    m.userData.vel = new THREE.Vector3(6+Math.random()*8,0,2+Math.random()*4);
+    scene.add(m); clouds.push(m);
+  }
+}
+
+function buildBird(){
+  const g = new THREE.Group();
+  const wingMat = new THREE.MeshBasicMaterial({color:0x2a2420, side:THREE.DoubleSide});
+  const wL = new THREE.Mesh(new THREE.PlaneGeometry(6,1.6), wingMat); wL.position.x=-3; wL.rotation.z=0.25; g.add(wL);
+  const wR = new THREE.Mesh(new THREE.PlaneGeometry(6,1.6), wingMat); wR.position.x=3; wR.rotation.z=-0.25; g.add(wR);
+  g.userData.wL=wL; g.userData.wR=wR; g.userData.ph=Math.random()*6.28;
+  return g;
+}
+function buildBirds(){
+  for(let i=0;i<4;i++){
+    const b = buildBird();
+    b.userData.radius = 140+Math.random()*90;
+    b.userData.speed = 0.25+Math.random()*0.15;
+    b.userData.ang = Math.random()*6.28;
+    b.userData.height = 60+Math.random()*40;
+    scene.add(b); birds.push(b);
+  }
+}
+
+function buildWeatherParticles(){
+  const N=500, geo=new THREE.BufferGeometry(); const p=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    p[i*3]=(Math.random()-0.5)*500; p[i*3+1]=100+Math.random()*260; p[i*3+2]=(Math.random()-0.5)*500;
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(p,3));
+  const mat = new THREE.PointsMaterial({size:2.6, color:0xbfe0ff, transparent:true, opacity:0, depthWrite:false, map:dotTexture()});
+  weatherPts = new THREE.Points(geo,mat); scene.add(weatherPts);
+}
+
+/* ===================== input: manual orbit + click ===================== */
+function wireInput(){
+  const dom = renderer.domElement;
+  dom.style.touchAction="none";
+  dom.addEventListener("pointerdown", e=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; dragMoved=0; idleTimer=0; dom.setPointerCapture(e.pointerId); });
+  dom.addEventListener("pointermove", e=>{
+    if(!dragging) return;
+    const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
+    dragMoved += Math.abs(dx)+Math.abs(dy);
+    orbit.theta -= dx*0.006; orbit.phi = Math.max(0.35,Math.min(1.45, orbit.phi - dy*0.005));
+  });
+  dom.addEventListener("pointerup", e=>{
+    dragging=false;
+    if (dragMoved < 6) handlePick(e.clientX, e.clientY);
+  });
+  dom.addEventListener("wheel", e=>{ e.preventDefault(); orbit.radius = Math.max(160,Math.min(1000, orbit.radius + e.deltaY*0.4)); idleTimer=0; }, {passive:false});
+  document.getElementById("zoomIn").onclick = ()=>{ orbit.radius=Math.max(160,orbit.radius-60); idleTimer=0; };
+  document.getElementById("zoomOut").onclick = ()=>{ orbit.radius=Math.min(1000,orbit.radius+60); idleTimer=0; };
+}
+
+let raycaster;
+function handlePick(cx,cy){
+  if (!raycaster) raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2((cx/W)*2-1, -(cy/H)*2+1);
+  raycaster.setFromCamera(ndc, camera);
+  const targets = [terrain, water, dam, townGroup, ...farmRings.map(f=>f.group), reedGroup]
+    .concat(scene.children.filter(o=>o.name==="factory"));
+  const hits = raycaster.intersectObjects(targets, true);
+  if(!hits.length) return;
+  const obj = hits[0].object;
+  showInfo(obj.name, hits[0].point, cx, cy);
+}
+
+function showInfo(name, point, sx, sy){
+  const card = document.getElementById("infoCard");
+  let html="";
+  if (name==="dam" || name==="water"){
+    html = `<b>Reservoir & dam</b><br>Level: ${levelPct().toFixed(0)}%<br>Rainfall trend is falling as the climate warms — the dam only holds what flows in.`;
+    if (!state.checksSeen.dam){ state.checksSeen.dam=true; setTimeout(()=>askCheck("dam"), 350); }
+  } else if (name==="town"){
+    html = `<b>Domestic use</b><br>Homes use the smallest share of water (about 10% of the baseline) — but every home matters when the level is critical.`;
+  } else if (name==="farmland"){
+    html = `<b>Agriculture</b><br>Farming uses roughly 70% of the region's freshwater — the single biggest lever you control.<br>Drip irrigation: ${state.drip?"ON":"OFF"}`;
+  } else if (name==="factory"){
+    html = `<b>Industry</b><br>Industry uses about 20% of the baseline, mostly for processing and cooling.`;
+  } else if (name==="wetland"){
+    html = `<b>Wetland</b><br>A healthy wetland recharges groundwater and buffers evaporation.<br>Restoration: ${state.wet?"ON":"OFF"}`;
+    if (!state.checksSeen.wetland){ state.checksSeen.wetland=true; setTimeout(()=>askCheck("wetland"), 350); }
+  } else return;
+  card.innerHTML = html;
+  let px=sx+16, py=sy-10;
+  if (px+240>W) px=sx-250;
+  card.style.left=px+"px"; card.style.top=Math.max(10,py)+"px";
+  card.style.opacity="1";
+  clearTimeout(showInfo._t);
+  showInfo._t = setTimeout(()=>{ card.style.opacity="0"; }, 4200);
+}
+
+function askCheck(kind){
+  const pop = document.getElementById("checkPop");
+  const q = document.getElementById("checkQ"), opts = document.getElementById("checkOpts"), fb = document.getElementById("checkFb");
+  let question, choices, correct, right, wrong;
+  if (kind==="dam"){
+    question = "Quick check: does a reservoir refill automatically each year, no matter how much is taken out?";
+    choices = ["True","False"]; correct=1;
+    right = "Correct — a reservoir only refills from rainfall and inflow. Take out more than that, and the level falls.";
+    wrong = "Not quite — a reservoir has no automatic refill. It only rises when rainfall and inflow exceed what is taken out.";
+  } else {
+    question = "Quick check: can restoring a wetland near a reservoir help prevent water scarcity?";
+    choices = ["True","False"]; correct=0;
+    right = "Correct — wetlands help recharge groundwater and reduce evaporation, both of which protect the reservoir.";
+    wrong = "Not quite — wetlands actually help: they recharge groundwater and reduce evaporation, protecting the reservoir.";
+  }
+  q.textContent = question; opts.innerHTML=""; fb.textContent="";
+  choices.forEach((c,i)=>{
+    const b=document.createElement("button"); b.className="opt"; b.type="button"; b.textContent=c;
+    b.onclick=()=>{
+      fb.textContent = i===correct? right : wrong;
+      fb.style.color = i===correct? "#7fe0a8" : "#ff9a9a";
+      [...opts.children].forEach(x=>x.disabled=true);
+      setTimeout(()=>{ pop.classList.remove("show"); }, 2600);
+    };
+    opts.appendChild(b);
+  });
+  pop.classList.add("show");
+}
+
+/* ===================== UI wiring ===================== */
+function wireUI(){
+  const ag=document.getElementById("agSlider"), ind=document.getElementById("indSlider"), dom=document.getElementById("domSlider");
+  ag.oninput = ()=>{ state.agS=+ag.value; document.getElementById("agVal").textContent=state.agS+"%"; };
+  ind.oninput = ()=>{ state.indS=+ind.value; document.getElementById("indVal").textContent=state.indS+"%"; };
+  dom.oninput = ()=>{ state.domS=+dom.value; document.getElementById("domVal").textContent=state.domS+"%"; };
+  document.getElementById("tglDrip").onclick = (e)=>{ state.drip=!state.drip; e.currentTarget.classList.toggle("on",state.drip); };
+  document.getElementById("tglRain").onclick = (e)=>{ state.rainH=!state.rainH; e.currentTarget.classList.toggle("on",state.rainH); };
+  document.getElementById("tglWetland").onclick = (e)=>{ state.wet=!state.wet; e.currentTarget.classList.toggle("on",state.wet); updateWetlandVisual(); };
+  document.getElementById("advanceBtn").onclick = advanceYear;
+}
+function updateWetlandVisual(){
+  reedGroup.children.forEach((r,i)=>{ r.visible = state.wet ? true : (i%2===0); });
+  reedGroup.scale.setScalar(state.wet?1.35:1);
+}
+
+/* ===================== simulation ===================== */
+function beginRun(){
+  document.getElementById("startScreen").classList.add("hidden");
+  updateHUD();
+}
+
+function classifyRain(year){
+  const roll = Math.random();
+  let mult, label;
+  if (roll < 0.22){ mult=0.5; label="Drought year"; state.droughtYears++; }
+  else if (roll < 0.37){ mult=1.6; label="Storm year"; state.stormYears++; }
+  else { mult = 0.85+Math.random()*0.3; label="Normal year"; }
+  const trend = 1 - 0.025*year;
+  return { mm: Math.round(BASE.rain*trend*mult), label, mult };
+}
+
+function advanceYear(){
+  if (state.finished) return;
+  document.getElementById("advanceBtn").disabled = true;
+  state.year++;
+  const rain = classifyRain(state.year);
+
+  const agEff = state.agS/100 * BASE.ag * (state.drip?0.65:1);
+  const indEff = state.indS/100 * BASE.ind;
+  const domEff = state.domS/100 * BASE.dom * (state.rainH?0.9:1);
+  const extraction = Math.round(agEff+indEff+domEff);
+
+  const recharge = Math.round(rain.mm*0.9 + (state.rainH?8:0) + (state.wet?5:0));
+  const evap = Math.round(BASE.evap*(1+0.02*state.year)*(state.wet?0.85:1));
+
+  const net = recharge - extraction - evap;
+  state.units = Math.max(0, Math.min(1000, state.units + net));
+
+  const row = {
+    year:"Year "+state.year, rainfall: rain.label+" ("+rain.mm+" mm)",
+    extraction: extraction+" units", recharge: recharge+" units",
+    level: levelPct().toFixed(0)+"%",
+    event: rain.label,
+    interventions: [state.drip&&"Drip irrigation", state.rainH&&"Rainwater harvesting", state.wet&&"Wetland restoration"].filter(Boolean).join(", ") || "None"
+  };
+  state.history.push(row);
+  postRecord(row);
+
+  document.getElementById("rainTxt").textContent = rain.label+" ("+rain.mm+" mm)";
+  document.getElementById("extTxt").textContent = extraction+" units";
+  document.getElementById("rechTxt").textContent = recharge+" units";
+  document.getElementById("eventTxt").textContent = rain.label==="Normal year" ? "" : (rain.label==="Drought year"?"🌵 Drought reduces rainfall sharply.":"⛈️ Heavy storm boosts inflow.");
+  document.getElementById("climTxt").textContent = "+"+(state.year*0.15).toFixed(1)+"°C avg";
+
+  cinematicYear(rain, ()=>{
+    updateHUD();
+    if (rain.label==="Drought year") flashBanner("DROUGHT YEAR", "Rainfall drops sharply across the valley.");
+    else if (rain.label==="Storm year") flashBanner("HEAVY RAINS", "A storm year gives the reservoir a boost.");
+
+    if (state.units<=0){
+      state.finished=true; state.dayZero=true;
+      setTimeout(()=>endRun(), 1400);
+    } else if (state.year>=TOTAL_YEARS){
+      state.finished=true;
+      setTimeout(()=>endRun(), 1000);
+    } else {
+      document.getElementById("advanceBtn").disabled = false;
+    }
+  });
+}
+
+function flashBanner(main,sub){
+  const c=document.getElementById("centerMsg"), s=document.getElementById("subMsg");
+  c.textContent=main; s.textContent=sub; c.style.opacity="1"; s.style.opacity="1";
+  setTimeout(()=>{ c.style.opacity="0"; s.style.opacity="0"; }, 2200);
+}
+
+function updateHUD(){
+  document.getElementById("yearTxt").textContent = "Year "+state.year;
+  const pct = levelPct();
+  document.getElementById("levelPct").textContent = pct.toFixed(0)+"%";
+  const fill = document.getElementById("levelFill");
+  fill.style.width = Math.max(2,pct)+"%";
+  fill.style.background = pct>50 ? "linear-gradient(90deg,#2fb8c9,#6fe0c8)" : pct>20 ? "linear-gradient(90deg,#e0a83c,#f2c96a)" : "linear-gradient(90deg,#c94a3c,#e07a4a)";
+}
+
+function endRun(){
+  const scr = document.getElementById("endScreen");
+  const pct = levelPct();
+  let title, sub, msg;
+  if (state.dayZero){
+    title="💀 Day Zero Reached"; sub="The reservoir ran dry in Year "+state.year+".";
+    msg="Extraction outpaced rainfall for too long. In real cities facing this, taps are shut off and residents queue for rationed water.";
+    flashBanner("DAY ZERO REACHED", "The reservoir has run dry.");
+  } else if (pct>=50){
+    title="🏆 Reservoir Secured"; sub="Rivelago made it through 12 years with water to spare.";
+    msg="Your balance of extraction limits and conservation measures kept the reservoir resilient, even as rainfall declined.";
+    flashBanner("RESERVOIR SECURED", "12 years managed — water still flowing.");
+  } else if (pct>=20){
+    title="⚠️ At Risk"; sub="Rivelago survived, but the reservoir is dangerously low.";
+    msg="The city avoided Day Zero, but another drought year could tip it over. Small margins like this are what push real cities into crisis.";
+    flashBanner("YEAR 12 COMPLETE", "The reservoir survived — but only just.");
+  } else {
+    title="🚨 Critical"; sub="Rivelago is right on the edge of Day Zero.";
+    msg="A near miss. This is exactly the position Cape Town was in before its 2018 water crisis.";
+    flashBanner("YEAR 12 COMPLETE", "Critically low — a near miss.");
+  }
+  document.getElementById("endTitle").textContent=title;
+  document.getElementById("endSub").textContent=sub;
+  document.getElementById("endMsg").textContent=msg;
+  document.getElementById("endLevel").textContent=pct.toFixed(0)+"%";
+  document.getElementById("endDrought").textContent=state.droughtYears;
+  document.getElementById("endYears").textContent=state.year;
+  setTimeout(()=>scr.classList.remove("hidden"), 900);
+  postSummary();
+}
+
+function postRecord(row){
+  try{
+    if (!(window.parent && window.parent!==window)) return;
+    window.parent.postMessage({source:"day-zero-reservoir", kind:"record", row}, "*");
+  }catch(e){}
+}
+function postSummary(){
+  try{
+    if (!(window.parent && window.parent!==window)) return;
+    window.parent.postMessage({source:"day-zero-reservoir", kind:"summary", summary:{
+      finalLevel: levelPct().toFixed(0), dayZero: state.dayZero, year: state.year,
+      droughtYears: state.droughtYears, stormYears: state.stormYears
+    }}, "*");
+  }catch(e){}
+}
+
+/* ===================== cinematic transition ===================== */
+function cinematicYear(rain, done){
+  cineActive = true;
+  const fromY = currentWaterY, toY = levelToY(levelPct());
+  const startTheta = orbit.theta;
+  const t0 = performance.now();
+  const dur = 1500;
+  weatherMode = rain.label==="Storm year" ? "rain" : rain.label==="Drought year" ? "dust" : "off";
+  weatherTimer = weatherMode==="off" ? 0 : 2.6;
+  let settled = false;
+  function finish(){
+    if (settled) return; settled = true;
+    cineActive = false;
+    currentWaterY = toY; water.position.y = currentWaterY;
+    recolorTerrain(currentWaterY);
+    done();
+  }
+  function step(){
+    if (settled) return;
+    const t = Math.min(1,(performance.now()-t0)/dur);
+    const ease = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+    currentWaterY = fromY + (toY-fromY)*ease;
+    water.position.y = currentWaterY;
+    if (Math.floor(t*20)%2===0) recolorTerrain(currentWaterY);
+    orbit.theta = startTheta + ease*0.6;
+    orbit.radius = 520 - Math.sin(ease*Math.PI)*90;
+    if (t<1){ requestAnimationFrame(step); } else { finish(); }
+  }
+  step();
+  // Safety net: rAF can stall if the tab is backgrounded/throttled mid-transition
+  // (e.g. a student switches tabs). Never leave the game stuck on a disabled button.
+  setTimeout(finish, dur+400);
+}
+
+/* ===================== camera / render loop ===================== */
+function updateCameraFromOrbit(){
+  const x = orbit.target.x + orbit.radius*Math.sin(orbit.phi)*Math.sin(orbit.theta);
+  const y = orbit.target.y + orbit.radius*Math.cos(orbit.phi);
+  const z = orbit.target.z + orbit.radius*Math.sin(orbit.phi)*Math.cos(orbit.theta);
+  camera.position.set(x,y,z);
+  camera.lookAt(orbit.target);
+}
+
+function onResize(){ W=window.innerWidth; H=window.innerHeight; camera.aspect=W/H; camera.updateProjectionMatrix(); renderer.setSize(W,H); }
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, clock.getDelta());
+  const t = clock.elapsedTime;
+
+  if (!dragging && !cineActive){
+    idleTimer += dt;
+    if (idleTimer>3.5) orbit.theta += dt*0.045;
+  }
+  updateCameraFromOrbit();
+
+  // water ripple
+  const wp = waterGeo.attributes.position, base = waterGeo.userData.base;
+  for(let i=0;i<wp.count;i++){
+    const bx=base[i*3], bz=base[i*3+2];
+    wp.setY(i, Math.sin(bx*0.05+t*1.1)*1.1 + Math.cos(bz*0.045+t*0.9)*1.1);
+  }
+  wp.needsUpdate=true;
+  waterGeo.computeVertexNormals();
+
+  // clouds drift
+  clouds.forEach(c=>{
+    c.position.x += c.userData.vel.x*dt; c.position.z += c.userData.vel.z*dt;
+    if (c.position.x>900) c.position.x=-900; if (c.position.z>900) c.position.z=-900;
+  });
+
+  // birds circle
+  birds.forEach(b=>{
+    b.userData.ang += b.userData.speed*dt;
+    b.position.set(Math.cos(b.userData.ang)*b.userData.radius, b.userData.height+Math.sin(t*0.5+b.userData.ang)*4, Math.sin(b.userData.ang)*b.userData.radius);
+    b.lookAt(b.position.x+Math.cos(b.userData.ang+0.1), b.position.y, b.position.z+Math.sin(b.userData.ang+0.1));
+    const flap = Math.sin(t*10+b.userData.ph)*0.6;
+    b.userData.wL.rotation.z = 0.25+flap; b.userData.wR.rotation.z = -0.25-flap;
+  });
+
+  // factory smoke
+  factorySmoke.forEach(s=>{
+    const p = s.pts.geometry.attributes.position;
+    for(let i=0;i<p.count;i++){
+      let y = p.getY(i)+dt*6;
+      if (y> s.origin.y+70){ y = s.origin.y; p.setX(i, s.origin.x+(Math.random()-0.5)*2); p.setZ(i, s.origin.z+(Math.random()-0.5)*2); }
+      p.setX(i, p.getX(i)+dt*2*(Math.sin(t+i)*0.3));
+      p.setY(i,y);
+    }
+    p.needsUpdate=true;
+  });
+
+  // boat / dock stranding
+  if (boat){
+    const grounded = currentWaterY < boat.userData.groundY;
+    const targetY = grounded ? boat.userData.groundY+1.4 : currentWaterY+1.5;
+    boat.position.y += (targetY-boat.position.y)*Math.min(1,dt*3);
+    boat.rotation.z += ((grounded?0.18:0)-boat.rotation.z)*Math.min(1,dt*2);
+    boat.position.y += Math.sin(t*1.6)*(grounded?0:0.25);
+  }
+
+  // weather particles
+  if (weatherMode!=="off"){
+    weatherTimer -= dt;
+    weatherPts.material.opacity = Math.min(0.6, weatherPts.material.opacity + dt*1.2);
+    weatherPts.material.color.set(weatherMode==="rain" ? 0xbfe0ff : 0xcbb37a);
+    const p = weatherPts.geometry.attributes.position;
+    for(let i=0;i<p.count;i++){
+      let y = p.getY(i) - dt*(weatherMode==="rain"?220:40);
+      if (y<currentWaterY-20){ y = 260+Math.random()*80; }
+      p.setY(i,y);
+    }
+    p.needsUpdate=true;
+    if (weatherTimer<=0){ weatherMode="off"; }
+  } else if (weatherPts.material.opacity>0){
+    weatherPts.material.opacity = Math.max(0, weatherPts.material.opacity - dt*0.6);
+  }
+
+  // sky warms slightly with accumulated drought years
+  const warm = Math.min(1, state.droughtYears*0.16);
+  skyMat.color.setRGB(0.31+warm*0.28, 0.56-warm*0.16, 0.79-warm*0.35);
+
+  renderer.render(scene,camera);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="earth" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day Zero: Reservoir Manager — Discovery Lab</title>
+<meta name="description" content="Manage a city's reservoir for 12 years in a live 3D simulation, balancing farms, industry and homes against a declining rainfall supply — and find out whether smart management can prevent a real 'Day Zero'.">
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=10">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%23A85B2C' stroke-width='4'/><path d='M32 16c8 11 12 17 12 23a12 12 0 0 1-24 0c0-6 4-12 12-23z' fill='%233F8FA8'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.diagram-wrap{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:#050505;border:1px solid var(--line);box-shadow:var(--shadow-1);}
+.diagram-wrap img{width:100%;height:auto;display:block;}
+.diagram-credit{font-size:.66rem;color:var(--ink-3);margin-top:.3em;}
+.diagram-credit a{color:inherit;}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.4rem;height:2.4rem;border:none;background:transparent;
+  cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.05rem;height:1.05rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 5px color-mix(in srgb, var(--signal) 26%, transparent),0 0 14px var(--signal);
+  transition:background var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+.hotspot.is-seen .hotspot__dot{background:var(--positive);box-shadow:0 0 0 5px color-mix(in srgb, var(--positive) 22%, transparent);animation:none;}
+.hotspot.is-active .hotspot__dot{background:var(--accent);box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent);}
+.reveal-panel{padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);
+  background:var(--surface);min-height:3.6rem;font-size:var(--step--1);}
+.reveal-panel__hint{color:var(--ink-3);}
+.sim-frame{width:100%;aspect-ratio:16/10;min-height:520px;border:1px solid var(--line);border-radius:12px;background:#1c140c;display:block;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<script>
+(function(){try{
+  var lang=(localStorage.getItem('dl-lang')||'en');
+  if(lang==='es'){
+    var m=document.querySelector('meta[name="description"]');
+    if(m)m.setAttribute('content','Gestiona el embalse de una ciudad durante 12 años en una simulación 3D en vivo, equilibrando granjas, industria y hogares frente a un suministro de lluvia en descenso — y descubre si una buena gestión puede evitar un verdadero "Día Cero".');
+  }
+}catch(e){}})();
+</script>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Environmental Science</a></li>
+      <li><a href="../">Module 5: Water Resources and Scarcity</a></li>
+      <li><span aria-current="page">Day Zero: Reservoir Manager</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secundaria</a></li>
+      <li><a href="../../../../">Itinerario estadounidense</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Ciencias Ambientales</a></li>
+      <li><a href="../">Módulo 5: Recursos hídricos y escasez de agua</a></li>
+      <li><span aria-current="page">Día Cero: Gestor del Embalse</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=11";
+import { getLang } from "../../../../../../engine/i18n.js?v=4";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   REAL DROUGHT PHOTOGRAPH — Lake Mead upstream of Hoover Dam.
+   Hotspot positions are fractions (0-1) of the photo's own width/height,
+   verified against a debug overlay before use, so each dot lands on a
+   feature a student can actually recognise.
+   Photo: Christian David, "Lake Mead and its bathtub ring upstream of
+   Hoover Dam, Black Canyon, Arizona–Nevada", Wikimedia Commons, CC BY-SA 4.0
+   (resized).
+   ====================================================================== */
+const PHOTO_SRC = "photos/lake-mead-bathtub-ring.jpg";
+const PHOTO_CREDIT = 'Photo: Christian David — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a> (resized)';
+const SPOTS = [
+  { id: "waterline", fx: 0.315, fy: 0.50,
+    name: L("Current water level", "Nivel actual del agua"),
+    text: L("This is where the water surface sits today — the boundary between blue water and pale rock.",
+      "Aquí es donde está hoy la superficie del agua — el límite entre el agua azul y la roca pálida.") },
+  { id: "bathtub", fx: 0.755, fy: 0.63,
+    name: L("The “bathtub ring”", "El “anillo de bañera”"),
+    text: L("A pale mineral stain left on the canyon wall by decades of higher water — direct visual evidence of how far this reservoir has fallen.",
+      "Una mancha mineral pálida dejada en la pared del cañón por décadas de agua más alta — evidencia visual directa de cuánto ha bajado este embalse.") },
+  { id: "boom", fx: 0.47, fy: 0.705,
+    name: L("Floating log boom", "Barrera flotante"),
+    text: L("A floating barrier that catches debris before it reaches the dam — proof this is a managed water-supply system, not a wild lake.",
+      "Una barrera flotante que atrapa restos antes de que lleguen a la presa — prueba de que es un sistema gestionado de suministro de agua, no un lago salvaje.") },
+  { id: "reservoir", fx: 0.14, fy: 0.70,
+    name: L("Lake Mead reservoir", "El embalse Lake Mead"),
+    text: L("One of the largest reservoirs in the United States, supplying water to millions of people and farms — and a real example of a reservoir under long-term drought stress.",
+      "Uno de los embalses más grandes de Estados Unidos, que abastece de agua a millones de personas y granjas — y un ejemplo real de un embalse bajo estrés por sequía prolongada.") },
+];
+
+let sim = null;
+
+const simulation = {
+  orient(host, api){
+    host.innerHTML = "";
+    sim = api;
+    sim.setScienceMethod({
+      observation: L(
+        "A real photograph of Lake Mead (USA) shows a wide, pale “bathtub ring” on the canyon walls, high above the current blue water line — clear evidence that the reservoir's water level has fallen a long way from where it used to be.",
+        "Una fotografía real de Lake Mead (EE. UU.) muestra un amplio “anillo de bañera” pálido en las paredes del cañón, muy por encima del actual nivel azul del agua — evidencia clara de que el nivel del embalse ha bajado mucho respecto a antes."),
+      question: L(
+        "Can careful management of extraction and conservation prevent a reservoir like this from falling all the way to ‘Day Zero’?",
+        "¿Puede una gestión cuidadosa de la extracción y la conservación evitar que un embalse como este llegue hasta el ‘Día Cero’?")
+    });
+
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Tap each glowing dot on this real photograph to see what water scarcity actually looks like, before you start managing your own reservoir.",
+      "Toca cada punto brillante de esta fotografía real para ver cómo es realmente la escasez de agua, antes de empezar a gestionar tu propio embalse.");
+    host.append(intro);
+
+    const wrap = document.createElement("div"); wrap.className = "diagram-wrap";
+    wrap.innerHTML = `<img src="${PHOTO_SRC}" width="1100" height="733" loading="lazy" alt="${L(
+      "A real photograph of Lake Mead reservoir upstream of Hoover Dam, showing a wide pale mineral band on the canyon walls far above the current blue water level, with a floating log boom crossing the water.",
+      "Una fotografía real del embalse Lake Mead aguas arriba de la presa Hoover, con una amplia banda mineral pálida en las paredes del cañón muy por encima del nivel actual del agua azul, y una barrera flotante cruzando el agua."
+    )}">`;
+    const reveal = document.createElement("div"); reveal.className = "reveal-panel";
+    reveal.innerHTML = `<span class="reveal-panel__hint">${L("Tap a glowing dot above ↑","Toca un punto brillante de arriba ↑")}</span>`;
+    const credit = document.createElement("p"); credit.className = "diagram-credit"; credit.innerHTML = PHOTO_CREDIT;
+
+    const btns = {};
+    SPOTS.forEach(s=>{
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "hotspot";
+      btn.style.left = (s.fx*100)+"%"; btn.style.top = (s.fy*100)+"%";
+      btn.setAttribute("aria-label", L("Learn about ","Aprende sobre ")+s.name);
+      btn.innerHTML = `<span class="hotspot__dot"></span>`;
+      btn.addEventListener("click", ()=>{
+        Object.values(btns).forEach(b=>b.classList.remove("is-active"));
+        btn.classList.add("is-active"); btn.classList.add("is-seen");
+        reveal.innerHTML = `<b>${s.name}</b><br>${s.text}`;
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(`${s.name}. ${s.text}`);
+      });
+      btns[s.id] = btn; wrap.append(btn);
+    });
+    host.append(wrap, reveal, credit);
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = "";
+    const wrap = document.createElement("div"); wrap.className = "stack";
+
+    const chosen = (api.state.predict != null) ? SIM_PREDICT_TEXT[api.state.predict] : null;
+    sim.setScienceMethod({
+      hypothesis: chosen || L("No hypothesis recorded before testing.", "No se registró ninguna hipótesis antes de la prueba."),
+      variables: {
+        independent: L("The extraction limits you set for agriculture, industry and domestic use, and which conservation measures you activate each year.",
+          "Los límites de extracción que fijas para agricultura, industria y uso doméstico, y las medidas de conservación que activas cada año."),
+        dependent: L("The reservoir's water level each year, and whether it reaches Day Zero.",
+          "El nivel de agua del embalse cada año, y si llega al Día Cero."),
+        controlled: L("Every run starts from the same reservoir level and faces the same declining 12-year rainfall trend, so different strategies can be fairly compared.",
+          "Cada partida empieza desde el mismo nivel de embalse y afronta la misma tendencia decreciente de lluvia de 12 años, así las distintas estrategias se pueden comparar de forma justa.")
+      }
+    });
+
+    const note = document.createElement("p"); note.className = "q__hint";
+    note.innerHTML = L(
+      "<strong>Drag</strong> to orbit the valley, <strong>scroll</strong> to zoom, and <strong>click</strong> the dam, farmland, town, factory or wetland to inspect them — two hide a quick check of your understanding. Each year, set the three extraction sliders and choose your conservation measures, then press <strong>Advance Year</strong>. Every year you complete logs its rainfall, extraction, recharge and reservoir level to your Record below. Play all 12 years, or until Day Zero.",
+      "<strong>Arrastra</strong> para orbitar el valle, usa el <strong>scroll</strong> para hacer zoom, y <strong>toca</strong> la presa, las tierras de cultivo, la ciudad, la fábrica o el humedal para inspeccionarlos — dos esconden una comprobación rápida. Cada año, ajusta los tres controles de extracción y elige tus medidas de conservación, luego pulsa <strong>Avanzar año</strong>. Cada año que completes registra su lluvia, extracción, recarga y nivel del embalse en tu Registro de abajo. Juega los 12 años, o hasta el Día Cero.");
+    wrap.append(note);
+
+    const frame = document.createElement("iframe");
+    frame.src = "../day-zero-reservoir/";
+    frame.title = "Day Zero reservoir-management simulation";
+    frame.className = "sim-frame";
+    frame.setAttribute("allow", "autoplay; fullscreen");
+    wrap.append(frame);
+    host.append(wrap);
+
+    if (!window.__dayZeroListener) {
+      window.__dayZeroListener = true;
+      window.addEventListener("message", (ev) => {
+        const d = ev.data;
+        if (!d || d.source !== "day-zero-reservoir" || !sim) return;
+        if (d.kind === "record" && d.row) {
+          sim.recordTrial(d.row);
+          sim.toast(L("Logged ","Registrado ") + (d.row.year || L("a year","un año")) + L(" to your Record.", " en tu Registro."), "info");
+        } else if (d.kind === "summary" && d.summary) {
+          const s = d.summary;
+          sim.setScienceMethod({
+            results: L(
+              `Across ${s.year} simulated years, the reservoir saw ${s.droughtYears} drought year(s) and ${s.stormYears} storm year(s), ending at ${s.finalLevel}% of capacity${s.dayZero ? " after reaching Day Zero before the full 12 years were complete" : ""}.`,
+              `A lo largo de ${s.year} años simulados, el embalse tuvo ${s.droughtYears} año(s) de sequía y ${s.stormYears} año(s) de tormenta, terminando al ${s.finalLevel}% de su capacidad${s.dayZero ? " tras llegar al Día Cero antes de completar los 12 años" : ""}.`),
+            analysis: L(
+              "Years combining high extraction with a drought event produced the sharpest falls in reservoir level, while years with conservation measures switched on held the level more effectively than years without them.",
+              "Los años que combinaron alta extracción con un evento de sequía produjeron las caídas más bruscas en el nivel del embalse, mientras que los años con medidas de conservación activadas mantuvieron el nivel de forma más eficaz que los años sin ellas."),
+            conclusion: s.dayZero
+              ? L("In this run, extraction outpaced rainfall and recharge for too long, and the reservoir reached Day Zero.",
+                  "En esta partida, la extracción superó a la lluvia y la recarga durante demasiado tiempo, y el embalse llegó al Día Cero.")
+              : (Number(s.finalLevel) >= 50
+                ? L("In this run, the balance of extraction limits and conservation measures kept the reservoir resilient even as rainfall declined.",
+                    "En esta partida, el equilibrio entre los límites de extracción y las medidas de conservación mantuvo el embalse resiliente incluso con la disminución de la lluvia.")
+                : L("In this run, the reservoir survived all 12 years but ended at a critically low level, showing how close real cities can come to Day Zero.",
+                    "En esta partida, el embalse sobrevivió los 12 años pero terminó en un nivel críticamente bajo, mostrando lo cerca que pueden llegar las ciudades reales al Día Cero.")),
+            reflection: L(
+              "Managing a reservoir means constantly trading off farms, industry and homes against a water supply that changes with the climate — a real water manager makes exactly these judgement calls every year.",
+              "Gestionar un embalse significa sopesar constantemente granjas, industria y hogares frente a un suministro de agua que cambia con el clima — un gestor de agua real toma exactamente estas decisiones cada año.")
+          });
+        }
+      });
+    }
+  }
+};
+
+const SIM_PREDICT_TEXT = {
+  a: L("If extraction stays high while rainfall keeps falling, then the reservoir will keep shrinking, because water is leaving the reservoir faster than rainfall and inflow can replace it.",
+    "Si la extracción se mantiene alta mientras la lluvia sigue disminuyendo, entonces el embalse seguirá reduciéndose, porque el agua sale del embalse más rápido de lo que la lluvia y el flujo entrante pueden reponerla."),
+  b: L("If extraction stays high while rainfall keeps falling, then the reservoir will refill on its own, because reservoirs naturally balance themselves over time.",
+    "Si la extracción se mantiene alta mientras la lluvia sigue disminuyendo, entonces el embalse se rellenará solo, porque los embalses se equilibran de forma natural con el tiempo."),
+  c: L("If extraction stays high while rainfall keeps falling, then nothing will change, because a reservoir this large cannot run out.",
+    "Si la extracción se mantiene alta mientras la lluvia sigue disminuyendo, entonces no cambiará nada, porque un embalse tan grande no puede agotarse."),
+  d: L("If extraction stays high while rainfall keeps falling, then only the farms will be affected, because industry and homes draw from a separate water supply.",
+    "Si la extracción se mantiene alta mientras la lluvia sigue disminuyendo, entonces solo se verán afectadas las granjas, porque la industria y las viviendas usan un suministro de agua distinto."),
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
