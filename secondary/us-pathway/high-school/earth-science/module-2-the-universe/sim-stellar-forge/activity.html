@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<!-- Earth Science · Module 2: The Universe · The Stellar Forge. Content lives here + config.json only. -->
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Stellar Forge — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=10">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Stellar Forge — scoped visual treatment. The shared engine gives us
+     cards/buttons/rails; everything below is this activity's own bespoke
+     "deep space instrument" skin, kept local per CLAUDE.md's content-vs-engine rule. */
+  .sf-space { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(120% 140% at 25% 15%, #1b1f3a 0%, #0a0c1e 55%, #050611 100%); border: 1px solid #2a2f55; }
+  .sf-space canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .sf-space:active canvas { cursor: grabbing; }
+  .sf-hud { position: absolute; inset: 0; pointer-events: none; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--font-data); color: #eaf0ff; }
+  .sf-hud__phase { align-self: flex-start; background: #05061199; border: 1px solid #4a5490; border-radius: 999px; padding: .3rem .8rem; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+  .sf-hud__stats { align-self: flex-start; background: #05061199; border: 1px solid #4a5490; border-radius: 10px; padding: .5rem .7rem; font-size: .82rem; line-height: 1.5; display: grid; gap: .1rem; }
+  .sf-hud__stats b { color: #ffd9a1; }
+  .sf-hud__fate { align-self: center; text-align: center; background: #05061199; border: 1px solid #4a5490; border-radius: 12px; padding: .6rem 1rem; font-size: .95rem; max-width: 90%; }
+  .sf-hud[hidden] { display: none; }
+  .sf-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-top: 10px; }
+  .sf-preset { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: .3rem .75rem; font-size: .8rem; font-family: var(--font-data); cursor: pointer; color: var(--ink-2); }
+  .sf-preset:hover { border-color: var(--accent); color: var(--accent); }
+  .sf-preset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sf-mass-row { display: flex; align-items: center; gap: .8rem; flex: 1 1 260px; min-width: 220px; }
+  .sf-mass-row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .sf-mass-read { font-family: var(--font-data); font-weight: 700; min-width: 6.2ch; text-align: right; }
+  .sf-hr-card { margin-top: var(--sp-4); }
+  .sf-hr-svg { width: 100%; height: auto; background: #0a0c1e; border-radius: 10px; border: 1px solid #2a2f55; }
+  .sf-photo-wrap { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  .sf-photo-wrap img { display: block; width: 100%; height: auto; }
+  .sf-spot { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 2px solid #fff; background: #ffffff33; color: #fff; font-family: var(--font-data); font-weight: 700; font-size: .85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #00000055; }
+  .sf-spot:hover, .sf-spot:focus-visible { background: var(--signal); border-color: var(--signal); outline: none; }
+  .sf-spot[data-open="true"] { background: var(--accent); border-color: var(--accent); }
+  .sf-spot__pulse { animation: sf-pulse .4s ease; }
+  [data-reduced-motion="on"] .sf-spot__pulse { animation: none; }
+  @keyframes sf-pulse { 0% { transform: scale(1); } 45% { transform: scale(1.35); } 100% { transform: scale(1); } }
+  .sf-credit { font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .sf-reveal { margin-top: .6rem; padding: .6rem .8rem; border-radius: 8px; background: var(--accent-wash); color: var(--ink-1); font-size: .88rem; display: none; }
+  .sf-reveal[data-show="true"] { display: block; }
+  .sf-redshift { display: grid; gap: .5rem; margin-top: .6rem; }
+  .sf-galaxy-row { display: flex; align-items: center; gap: .8rem; }
+  .sf-galaxy { width: 16px; height: 16px; border-radius: 50%; flex: none; transition: transform .8s ease, background .8s ease; }
+  .sf-galaxy-track { position: relative; flex: 1; height: 4px; background: var(--surface-2); border-radius: 999px; }
+  .sf-galaxy-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; border-radius: 50%; transition: left 1s ease, background 1s ease; }
+  .sf-flip { border: 1px dashed var(--line); background: var(--surface); border-radius: 10px; padding: .7rem .9rem; cursor: pointer; text-align: left; font: inherit; color: var(--ink-1); width: 100%; }
+  .sf-flip:hover { border-color: var(--accent); }
+  .sf-flip__a { display: none; margin-top: .5rem; color: var(--ink-2); font-size: .9rem; }
+  .sf-flip[data-open="true"] .sf-flip__a { display: block; }
+  .sf-flip[data-open="true"] { border-style: solid; border-color: var(--accent); }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=11";
+import { getLang } from "../../../../../../engine/i18n.js?v=4";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+
+function reducedMotion() {
+  return document.documentElement.getAttribute("data-reduced-motion") === "on";
+}
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(1 - Math.pow(1 - t, 3), t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   STELLAR PHYSICS MODEL — deliberately simplified power laws,
+   calibrated so a 1 M☉ star reproduces the Sun. Good enough to
+   teach the real *pattern* (mass drives temperature, luminosity,
+   lifespan and fate) without pretending to be a research model.
+   ============================================================ */
+function tempOf(mass)       { return 5778 * Math.pow(mass, 0.5); }               // K
+function luminosityOf(mass) { return Math.pow(mass, 3.5); }                      // L☉
+function radiusOf(mass)     { return Math.pow(mass, 0.8); }                      // R☉ (visual only)
+function lifespanYearsOf(mass) { return 1e10 * Math.pow(mass, -2.5); }           // years
+
+function spectralClassOf(t) {
+  if (t >= 30000) return "O"; if (t >= 10000) return "B"; if (t >= 7500) return "A";
+  if (t >= 6000) return "F"; if (t >= 5200) return "G"; if (t >= 3700) return "K";
+  return "M";
+}
+const CLASS_COLOR = { O: 0x9bb0ff, B: 0xaabfff, A: 0xcad8ff, F: 0xf8f7ff, G: 0xfff4ea, K: 0xffd2a1, M: 0xff8c5a };
+
+function fateOf(mass) {
+  if (mass < 0.5) return { id: "reddwarf", en: "Red dwarf — will still be shining long after the universe's current age", es: "Enana roja — seguirá brillando mucho después de la edad actual del universo" };
+  if (mass < 8)   return { id: "whitedwarf", en: "Red giant, then a white dwarf", es: "Gigante roja y luego enana blanca" };
+  if (mass < 20)  return { id: "neutronstar", en: "Supernova, then a neutron star", es: "Supernova y luego estrella de neutrones" };
+  return { id: "blackhole", en: "Supernova, then a black hole", es: "Supernova y luego agujero negro" };
+}
+function formatLifespan(years) {
+  if (years >= 1e9) return (years / 1e9).toFixed(1) + L(" billion years", " mil millones de años");
+  if (years >= 1e6) return (years / 1e6).toFixed(1) + L(" million years", " millones de años");
+  return Math.round(years).toLocaleString() + L(" years", " años");
+}
+
+/* ============================================================
+   ORIENT — real Hubble/JWST photo hotspots (Big Bang's aftermath:
+   stars are still being born today) + a redshift micro-interactive.
+   ============================================================ */
+function orient(host, sim) {
+  sim.setScienceMethod({
+    observation: L(
+      "A real James Webb Space Telescope photo shows thousands of new stars still forming today, and galaxies far away have their light stretched toward red.",
+      "Una fotografía real del telescopio James Webb muestra miles de estrellas nuevas formándose hoy, y las galaxias lejanas tienen su luz estirada hacia el rojo."
+    ),
+    question: L(
+      "What evidence tells us the universe itself had a beginning, and how do stars like these keep forming inside it?",
+      "¿Qué evidencia nos dice que el propio universo tuvo un comienzo, y cómo siguen formándose estrellas como estas dentro de él?"
+    )
+  });
+
+  const wrap = document.createElement("div");
+
+  const obsCard = document.createElement("div");
+  obsCard.className = "card";
+  obsCard.style.marginBottom = "10px";
+  obsCard.innerHTML =
+    `<p class="eyebrow">${L("Observation", "Observación")}</p>
+     <p class="q__hint" style="margin:0 0 8px">${L(
+        "Tap each glowing spot on this real James Webb Space Telescope photo of the Pillars of Creation — a nebula where new stars are being born right now.",
+        "Toca cada punto luminoso de esta fotografía real del telescopio James Webb de los Pilares de la Creación — una nebulosa donde nacen nuevas estrellas ahora mismo."
+     )}</p>`;
+  wrap.append(obsCard);
+
+  const photoWrap = document.createElement("div");
+  photoWrap.className = "sf-photo-wrap";
+  const IMG_W = 900, IMG_H = 1558;
+  photoWrap.innerHTML = `<img src="photos/pillars-of-creation.jpg" alt="${L(
+      "The Pillars of Creation, a star-forming nebula in the Eagle Nebula, photographed by the James Webb Space Telescope",
+      "Los Pilares de la Creación, una nebulosa donde nacen estrellas dentro de la Nebulosa del Águila, fotografiada por el telescopio espacial James Webb")}">`;
+
+  const SPOTS = [
+    { x: 0.30, y: 0.28, en: "Dense dust pillar", es: "Pilar de polvo denso",
+      revealEn: "These pillars are cold, dense clouds of hydrogen gas and dust — the raw material stars are made from.",
+      revealEs: "Estos pilares son nubes frías y densas de gas de hidrógeno y polvo — la materia prima de la que se forman las estrellas." },
+    { x: 0.60, y: 0.46, en: "Newborn stars", es: "Estrellas recién nacidas",
+      revealEn: "The bright red dots piercing the pillars are young stars — protostars still wrapped in the gas cloud that is collapsing to form them.",
+      revealEs: "Los puntos rojos brillantes que atraviesan los pilares son estrellas jóvenes — protoestrellas todavía envueltas en la nube de gas que colapsa para formarlas." },
+    { x: 0.44, y: 0.66, en: "Evaporating gas edge", es: "Borde de gas evaporándose",
+      revealEn: "The wavy edges are being eroded by radiation from nearby massive stars — gravity is losing a slow race against that radiation here.",
+      revealEs: "Los bordes ondulados están siendo erosionados por la radiación de estrellas masivas cercanas — aquí la gravedad va perdiendo una carrera lenta contra esa radiación." }
+  ];
+  SPOTS.forEach((s, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sf-spot";
+    btn.style.left = (s.x * 100) + "%";
+    btn.style.top = (s.y * 100) + "%";
+    btn.textContent = String(i + 1);
+    btn.setAttribute("aria-label", L(s.en, s.es));
+    btn.addEventListener("click", () => {
+      btn.classList.remove("sf-spot__pulse"); void btn.offsetWidth; btn.classList.add("sf-spot__pulse");
+      const isOpen = btn.dataset.open === "true";
+      photoWrap.querySelectorAll(".sf-spot").forEach(b => b.dataset.open = "false");
+      photoWrap.querySelectorAll(".sf-reveal").forEach(r => r.dataset.show = "false");
+      if (!isOpen) {
+        btn.dataset.open = "true";
+        reveal.dataset.show = "true";
+        reveal.textContent = `${L(s.en, s.es)} — ${L(s.revealEn, s.revealEs)}`;
+      }
+    });
+    photoWrap.append(btn);
+  });
+  wrap.append(photoWrap);
+
+  const reveal = document.createElement("p");
+  reveal.className = "sf-reveal";
+  photoWrap.after(reveal);
+  wrap.append(reveal);
+
+  const credit = document.createElement("p");
+  credit.className = "sf-credit";
+  credit.innerHTML = L(
+    'Photo: NASA, ESA, CSA, STScI (public domain). Image processing: J. DePasquale, A. Koekemoer, A. Pagan (STScI).',
+    'Foto: NASA, ESA, CSA, STScI (dominio público). Procesamiento de imagen: J. DePasquale, A. Koekemoer, A. Pagan (STScI).'
+  );
+  wrap.append(credit);
+
+  // ---- Redshift micro-interactive: does the universe's expansion carry
+  // its own evidence? Click-only (no drag), so no tap-vs-drag ambiguity.
+  const rsCard = document.createElement("div");
+  rsCard.className = "card";
+  rsCard.style.marginTop = "12px";
+  rsCard.innerHTML =
+    `<p class="eyebrow">${L("More evidence — redshift", "Más evidencia — el corrimiento al rojo")}</p>
+     <p class="q__hint" style="margin:0 0 8px">${L(
+       "Almost every distant galaxy's light is stretched toward red — a sign it is moving away from us. Press Run to see two galaxies drift apart over time.",
+       "La luz de casi toda galaxia lejana está estirada hacia el rojo — una señal de que se aleja de nosotros. Pulsa Ejecutar para ver dos galaxias separarse con el tiempo."
+     )}</p>`;
+  const track1 = document.createElement("div"); track1.className = "sf-galaxy-track";
+  const dot1 = document.createElement("div"); dot1.className = "sf-galaxy-dot"; dot1.style.left = "8%"; dot1.style.background = "#8fb4ff"; track1.append(dot1);
+  const row1 = document.createElement("div"); row1.className = "sf-galaxy-row";
+  row1.innerHTML = `<span style="width:5.5rem;font-size:.82rem;color:var(--ink-2)">${L("Galaxy A", "Galaxia A")}</span>`;
+  row1.append(track1);
+  const track2 = document.createElement("div"); track2.className = "sf-galaxy-track";
+  const dot2 = document.createElement("div"); dot2.className = "sf-galaxy-dot"; dot2.style.left = "8%"; dot2.style.background = "#ff9a6c"; track2.append(dot2);
+  const row2 = document.createElement("div"); row2.className = "sf-galaxy-row";
+  row2.innerHTML = `<span style="width:5.5rem;font-size:.82rem;color:var(--ink-2)">${L("Galaxy B (further)", "Galaxia B (más lejos)")}</span>`;
+  row2.append(track2);
+  const rsGrid = document.createElement("div"); rsGrid.className = "sf-redshift";
+  rsGrid.append(row1, row2);
+  const rsBtn = document.createElement("button"); rsBtn.type = "button"; rsBtn.className = "btn btn--ghost"; rsBtn.style.marginTop = ".6rem";
+  rsBtn.textContent = L("▶ Run the expansion", "▶ Ejecutar la expansión");
+  const rsNote = document.createElement("p"); rsNote.className = "q__hint"; rsNote.style.marginTop = ".5rem";
+  rsBtn.addEventListener("click", () => {
+    dot1.style.left = "45%"; dot2.style.left = "88%";
+    rsNote.textContent = L(
+      "Galaxy B started twice as far away and ended up twice as far apart — it is receding twice as fast. The farther a galaxy is, the faster it moves away: exactly what you'd expect if space itself is expanding from a single hot, dense origin.",
+      "La Galaxia B empezó al doble de distancia y terminó separándose el doble — se aleja al doble de velocidad. Cuanto más lejos está una galaxia, más rápido se aleja: justo lo que esperarías si el propio espacio se expande desde un único origen caliente y denso."
+    );
+  });
+  rsCard.append(rsGrid, rsBtn, rsNote);
+  wrap.append(rsCard);
+
+  // ---- Tap-to-reveal: how was the CMB actually found?
+  const flip = document.createElement("button");
+  flip.type = "button";
+  flip.className = "sf-flip";
+  flip.style.marginTop = "12px";
+  flip.innerHTML = `<strong>${L("Tap to reveal: how was this evidence actually discovered?", "Toca para revelar: ¿cómo se descubrió realmente esta evidencia?")}</strong>
+    <span class="sf-flip__a">${L(
+      "In 1965, two radio engineers, Arno Penzias and Robert Wilson, kept picking up a faint hiss of radio noise no matter which direction they pointed their antenna. They even suspected pigeon droppings on the equipment. It turned out to be the Cosmic Microwave Background — the leftover glow of the Big Bang itself, filling the entire sky.",
+      "En 1965, dos ingenieros de radio, Arno Penzias y Robert Wilson, seguían captando un tenue siseo de ruido de radio sin importar hacia dónde apuntaran su antena. Incluso sospecharon de excrementos de paloma en el equipo. Resultó ser el Fondo Cósmico de Microondas — el resplandor remanente del propio Big Bang, que llena todo el cielo."
+    )}</span>`;
+  flip.addEventListener("click", () => { flip.dataset.open = flip.dataset.open === "true" ? "false" : "true"; });
+  wrap.append(flip);
+
+  host.append(wrap);
+}
+
+/* ============================================================
+   INVESTIGATE — The Forge: collapse a nebula, ignite a star,
+   evolve it to its fate. Independent variable: starting mass.
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({
+    variables: L(
+      "Independent: the star's starting mass (solar masses). Dependent: surface temperature, luminosity, position on the H-R diagram, and eventual fate. Controlled: the same physical model and the same starting cloud composition for every trial.",
+      "Independiente: la masa inicial de la estrella (masas solares). Dependiente: temperatura superficial, luminosidad, posición en el diagrama H-R y destino final. Controladas: el mismo modelo físico y la misma composición inicial de la nube en cada prueba."
+    )
+  });
+
+  host.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "stack";
+
+  const varsCard = document.createElement("div"); varsCard.className = "card";
+  varsCard.innerHTML =
+    `<p class="eyebrow">${L("Your experiment — the variables", "Tu experimento — las variables")}</p>
+     <p class="q__hint" style="margin:0"><strong>${L("You control (independent):", "Tú controlas (independiente):")}</strong> ${L("the star's starting mass.", "la masa inicial de la estrella.")}
+     <strong>${L("The Forge measures (dependent):", "La Forja mide (dependiente):")}</strong> ${L("temperature, luminosity, H-R position and fate.", "temperatura, luminosidad, posición H-R y destino.")}
+     <strong>${L("Kept the same (controlled):", "Se mantiene igual (controlado):")}</strong> ${L("the same starting cloud and physical model every time, so comparing masses is fair.", "la misma nube inicial y el mismo modelo físico cada vez, para que comparar masas sea justo.")}</p>`;
+  wrap.append(varsCard);
+
+  const forgeCard = document.createElement("div"); forgeCard.className = "card";
+  const controlsTop = document.createElement("div");
+  controlsTop.innerHTML = `<p class="eyebrow">${L("The Forge", "La Forja")}</p>`;
+  forgeCard.append(controlsTop);
+
+  const space = document.createElement("div");
+  space.className = "sf-space";
+  space.style.cssText = "aspect-ratio:16/10;min-height:340px;margin-top:8px";
+  const canvas = document.createElement("canvas");
+  space.append(canvas);
+  const hud = document.createElement("div"); hud.className = "sf-hud";
+  const hudPhase = document.createElement("div"); hudPhase.className = "sf-hud__phase"; hudPhase.textContent = L("Nebula", "Nebulosa");
+  const hudStats = document.createElement("div"); hudStats.className = "sf-hud__stats"; hudStats.hidden = true;
+  const hudFate = document.createElement("div"); hudFate.className = "sf-hud__fate"; hudFate.hidden = true;
+  hud.append(hudPhase, hudStats, hudFate);
+  space.append(hud);
+  forgeCard.append(space);
+
+  const controls = document.createElement("div"); controls.className = "sf-controls";
+  const massRow = document.createElement("div"); massRow.className = "sf-mass-row";
+  const massLabel = document.createElement("label"); massLabel.className = "field__label"; massLabel.htmlFor = "sf-mass"; massLabel.textContent = L("Starting mass", "Masa inicial");
+  const massSlider = document.createElement("input");
+  massSlider.type = "range"; massSlider.id = "sf-mass"; massSlider.min = "2"; massSlider.max = "250"; massSlider.step = "1"; massSlider.value = "10";
+  const massRead = document.createElement("span"); massRead.className = "sf-mass-read";
+  const updateMassRead = () => { massRead.textContent = (Number(massSlider.value) / 10).toFixed(1) + " M☉"; };
+  massSlider.addEventListener("input", updateMassRead);
+  massRow.append(massLabel, massSlider, massRead);
+  controls.append(massRow);
+
+  const presets = [
+    { label: L("Red dwarf", "Enana roja"), v: 3 },
+    { label: L("Sun-like", "Como el Sol"), v: 10 },
+    { label: L("Massive", "Masiva"), v: 150 },
+    { label: L("Supergiant", "Supergigante"), v: 250 }
+  ];
+  presets.forEach(p => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "sf-preset";
+    b.textContent = p.label + " (" + (p.v / 10).toFixed(1) + " M☉)";
+    b.addEventListener("click", () => { massSlider.value = String(p.v); updateMassRead(); });
+    controls.append(b);
+  });
+  updateMassRead();
+
+  const collapseBtn = document.createElement("button"); collapseBtn.type = "button"; collapseBtn.className = "btn btn--signal";
+  collapseBtn.textContent = L("Collapse ⭐", "Colapsar ⭐");
+  controls.append(collapseBtn);
+  forgeCard.append(controls);
+
+  const lede = document.createElement("p"); lede.className = "q__hint"; lede.style.marginTop = ".6rem";
+  lede.textContent = L(
+    "Drag inside the Forge to look around while it works — the camera view doesn't change the science, only the mass slider does.",
+    "Arrastra dentro de la Forja para mirar alrededor mientras trabaja — la vista de cámara no cambia la ciencia, solo lo hace el control de masa."
+  );
+  forgeCard.append(lede);
+  wrap.append(forgeCard);
+
+  const hrCard = document.createElement("div"); hrCard.className = "card sf-hr-card";
+  hrCard.innerHTML = `<p class="eyebrow">${L("Live Hertzsprung-Russell diagram", "Diagrama de Hertzsprung-Russell en directo")}</p>
+    <p class="q__hint" style="margin:0 0 8px">${L("Every star you forge is plotted here — hot & bright stars sit upper-left, cool & dim stars sit lower-right.", "Cada estrella que forjas se representa aquí — las estrellas calientes y brillantes quedan arriba a la izquierda, las frías y tenues abajo a la derecha.")}</p>`;
+  const hrSvgWrap = document.createElement("div");
+  hrCard.append(hrSvgWrap);
+  wrap.append(hrCard);
+
+  host.append(wrap);
+
+  /* ---- HR diagram rendering (SVG, log-log, redrawn from sim.trials) ---- */
+  const HR_W = 420, HR_H = 300, HR_PAD = 34;
+  function tempToX(t) {
+    const lo = Math.log10(2500), hi = Math.log10(40000);
+    const f = (Math.log10(t) - lo) / (hi - lo);
+    return HR_W - HR_PAD - f * (HR_W - HR_PAD * 2); // hot = left
+  }
+  function lumToY(l) {
+    const lo = Math.log10(0.0005), hi = Math.log10(200000);
+    const f = (Math.log10(Math.max(l, 0.0005)) - lo) / (hi - lo);
+    return HR_H - HR_PAD - f * (HR_H - HR_PAD * 2);
+  }
+  function renderHR() {
+    const pts = sim.trials.map(tr => {
+      const t = tr.tempK, l = tr.luminosityRaw;
+      return { x: tempToX(t), y: lumToY(l), color: "#" + CLASS_COLOR[tr.spectralClass].toString(16).padStart(6, "0"), cls: tr.spectralClass, mass: tr.mass };
+    });
+    const dots = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6" fill="${p.color}" stroke="#05061199" stroke-width="1.5"/>
+      <text x="${p.x.toFixed(1)}" y="${(p.y - 10).toFixed(1)}" text-anchor="middle" font-family="var(--font-data)" font-size="9" fill="#cfd8ff">${p.mass} M☉</text>`).join("");
+    hrSvgWrap.innerHTML = `<svg class="sf-hr-svg" viewBox="0 0 ${HR_W} ${HR_H}" role="img" aria-label="${L("Hertzsprung-Russell diagram plotting each forged star's temperature against luminosity", "Diagrama de Hertzsprung-Russell que representa la temperatura frente a la luminosidad de cada estrella forjada")}">
+      <line x1="${HR_PAD}" y1="${HR_PAD}" x2="${HR_PAD - HR_PAD * 0.35}" y2="${HR_H - HR_PAD}" stroke="#3a4172" stroke-width="60" opacity="0.18" transform="skewX(-18)"/>
+      <text x="${HR_W / 2}" y="${HR_H - 8}" text-anchor="middle" font-family="var(--font-data)" font-size="10" fill="#8892c9">${L("Temperature (hot ← → cool)", "Temperatura (caliente ← → fría)")}</text>
+      <text x="12" y="${HR_H / 2}" text-anchor="middle" font-family="var(--font-data)" font-size="10" fill="#8892c9" transform="rotate(-90 12 ${HR_H / 2})">${L("Luminosity (dim ↓ ↑ bright)", "Luminosidad (tenue ↓ ↑ brillante)")}</text>
+      <text x="${HR_PAD + 6}" y="${HR_PAD + 12}" font-family="var(--font-data)" font-size="9" fill="#6f78ad">${L("giants", "gigantes")}</text>
+      <text x="${HR_W - HR_PAD - 46}" y="${HR_H - HR_PAD - 8}" font-family="var(--font-data)" font-size="9" fill="#6f78ad">${L("white dwarfs", "enanas blancas")}</text>
+      ${dots}
+    </svg>`;
+  }
+  renderHR();
+
+  /* ---- Three.js scene ---------------------------------------------- */
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.set(0, 1.6, 9);
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.AmbientLight(0x404060, 0.6));
+  const key = new THREE.PointLight(0xffffff, 1.2, 40);
+  key.position.set(0, 0, 0);
+  scene.add(key);
+
+  // distant static starfield for atmosphere
+  { const n = 500; const pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const r = 30 + Math.random() * 20; const th = Math.random() * Math.PI * 2; const ph = Math.acos(2 * Math.random() - 1);
+      pos[i*3] = r * Math.sin(ph) * Math.cos(th); pos[i*3+1] = r * Math.sin(ph) * Math.sin(th); pos[i*3+2] = r * Math.cos(ph); }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const m = new THREE.PointsMaterial({ color: 0xaab4ff, size: 0.06, transparent: true, opacity: 0.6 });
+    scene.add(new THREE.Points(g, m));
+  }
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  function sprite() {
+    const c = document.createElement("canvas"); c.width = c.height = 64;
+    const ctx = c.getContext("2d");
+    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.4, "rgba(255,255,255,0.6)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+  const SPRITE = sprite();
+
+  // nebula particle cloud
+  const N = 420;
+  const nebulaInit = []; // {r, theta, phi}
+  const nebulaPos = new Float32Array(N * 3);
+  const nebulaCol = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const r = 2.2 + Math.random() * 3.2, theta = Math.random() * Math.PI * 2, phi = Math.acos(2 * Math.random() - 1);
+    nebulaInit.push({ r, theta, phi });
+    const mixv = Math.random();
+    nebulaCol[i*3] = 0.55 + mixv * 0.3; nebulaCol[i*3+1] = 0.45 + mixv * 0.25; nebulaCol[i*3+2] = 0.85;
+  }
+  const nebulaGeo = new THREE.BufferGeometry();
+  nebulaGeo.setAttribute("position", new THREE.BufferAttribute(nebulaPos, 3));
+  nebulaGeo.setAttribute("color", new THREE.BufferAttribute(nebulaCol, 3));
+  const nebulaMat = new THREE.PointsMaterial({ size: 0.22, map: SPRITE, vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+  const nebula = new THREE.Points(nebulaGeo, nebulaMat);
+  group.add(nebula);
+
+  function setNebula(swirl, shrink) {
+    for (let i = 0; i < N; i++) {
+      const p = nebulaInit[i];
+      const r = p.r * (1 - shrink * 0.94) + 0.05;
+      const theta = p.theta + swirl;
+      nebulaPos[i*3]   = r * Math.sin(p.phi) * Math.cos(theta);
+      nebulaPos[i*3+1] = r * Math.sin(p.phi) * Math.sin(theta) * 0.6;
+      nebulaPos[i*3+2] = r * Math.cos(p.phi);
+    }
+    nebulaGeo.attributes.position.needsUpdate = true;
+  }
+  setNebula(0, 0);
+
+  // the star itself
+  const starMat = new THREE.MeshStandardMaterial({ color: 0x333355, emissive: 0x222244, emissiveIntensity: 1, roughness: 1 });
+  const star = new THREE.Mesh(new THREE.SphereGeometry(0.01, 32, 32), starMat);
+  group.add(star);
+
+  // expanding shell used for envelope loss / supernovae
+  const shellMat = new THREE.PointsMaterial({ size: 0.16, map: SPRITE, color: 0xffcf9e, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+  const SHELL_N = 260;
+  const shellDir = [];
+  const shellPos = new Float32Array(SHELL_N * 3);
+  for (let i = 0; i < SHELL_N; i++) {
+    const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+    shellDir.push([Math.sin(ph) * Math.cos(th), Math.sin(ph) * Math.sin(th) * 0.6, Math.cos(ph)]);
+  }
+  const shellGeo = new THREE.BufferGeometry(); shellGeo.setAttribute("position", new THREE.BufferAttribute(shellPos, 3));
+  const shell = new THREE.Points(shellGeo, shellMat);
+  group.add(shell);
+
+  // accretion ring for a black-hole remnant
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.05, 12, 48), new THREE.MeshBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0 }));
+  ring.rotation.x = Math.PI / 2.4;
+  group.add(ring);
+
+  function resize() {
+    const w = space.clientWidth, h = space.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(space);
+  resize();
+
+  let dragging = false, lastX = 0, lastY = 0, rotY = 0.4, rotX = -0.1;
+  canvas.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    rotY += (e.clientX - lastX) * 0.006; rotX += (e.clientY - lastY) * 0.004;
+    rotX = Math.max(-0.6, Math.min(0.6, rotX));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  window.addEventListener("pointerup", () => dragging = false);
+
+  let t0 = null, pulsePhase = 0;
+  function loop(now) {
+    if (t0 == null) t0 = now;
+    group.rotation.y = rotY; group.rotation.x = rotX;
+    if (star.scale.x > 0.02 && !reducedMotion()) {
+      pulsePhase += 0.03;
+      starMat.emissiveIntensity = 1.1 + Math.sin(pulsePhase) * 0.15;
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  /* ---- Forge sequencing ---------------------------------------------- */
+  let running = false;
+  collapseBtn.addEventListener("click", () => {
+    if (running) return;
+    running = true; collapseBtn.disabled = true; massSlider.disabled = true;
+    hudStats.hidden = true; hudFate.hidden = true;
+    star.scale.setScalar(0.001);
+    shellMat.opacity = 0; ring.material.opacity = 0;
+    setNebula(0, 0); nebulaMat.opacity = 0.9;
+
+    const massSolar = Number(massSlider.value) / 10;
+    const tempK = tempOf(massSolar);
+    const lumRaw = luminosityOf(massSolar);
+    const radius = radiusOf(massSolar);
+    const lifespan = lifespanYearsOf(massSolar);
+    const cls = spectralClassOf(tempK);
+    const color = CLASS_COLOR[cls];
+    const fate = fateOf(massSolar);
+
+    hudPhase.textContent = L("Collapsing under gravity…", "Colapsando bajo la gravedad…");
+
+    tween(2200, (e, t) => { setNebula(t * 2.4, e); }, () => {
+      // ignition flash
+      hudPhase.textContent = L("Ignition — fusion begins", "Ignición — comienza la fusión");
+      starMat.color.setHex(0xffffff); starMat.emissive.setHex(0xffffff); starMat.emissiveIntensity = 3;
+      tween(260, e => {
+        nebulaMat.opacity = 0.9 * (1 - e);
+        star.scale.setScalar(0.001 + e * (0.35 + radius * 0.18));
+      }, () => {
+        starMat.color.setHex(color); starMat.emissive.setHex(color); starMat.emissiveIntensity = 1.2;
+        hudPhase.textContent = L("Main sequence", "Secuencia principal");
+        hudStats.hidden = false;
+        hudStats.innerHTML =
+          `<span>${L("Mass", "Masa")}: <b>${massSolar.toFixed(1)} M☉</b></span>
+           <span>${L("Temperature", "Temperatura")}: <b>${Math.round(tempK).toLocaleString()} K</b></span>
+           <span>${L("Luminosity", "Luminosidad")}: <b>${lumRaw < 0.01 ? lumRaw.toFixed(4) : lumRaw.toFixed(1)} L☉</b></span>
+           <span>${L("Spectral class", "Clase espectral")}: <b>${cls}</b></span>`;
+
+        tween(1400, () => {}, () => {
+          evolve(fate, radius, () => {
+            hudPhase.textContent = L("Result", "Resultado");
+            hudFate.hidden = false;
+            hudFate.innerHTML = `<strong>${L(fate.en, fate.es)}</strong><br>${L("Main-sequence lifespan", "Vida en la secuencia principal")}: ${formatLifespan(lifespan)}`;
+
+            sim.recordTrial({
+              mass: massSolar.toFixed(1),
+              spectralClass: cls,
+              tempK: Math.round(tempK),
+              luminosity: lumRaw < 0.01 ? lumRaw.toFixed(4) : lumRaw.toFixed(1),
+              luminosityRaw: lumRaw,
+              lifespan: formatLifespan(lifespan),
+              fate: L(fate.en, fate.es)
+            });
+            sim.toast(L(`Forged a ${massSolar.toFixed(1)} M☉ star — logged to your Record.`, `Forjaste una estrella de ${massSolar.toFixed(1)} M☉ — registrada en tu Registro.`), "correct");
+            renderHR();
+
+            running = false; collapseBtn.disabled = false; massSlider.disabled = false;
+            collapseBtn.textContent = L("Forge Another Star ⭐", "Forjar Otra Estrella ⭐");
+          });
+        });
+      });
+    });
+  });
+
+  function evolve(fate, radius, done) {
+    if (fate.id === "reddwarf") { done(); return; }
+
+    const giantScale = fate.id === "whitedwarf" ? 2.2 : 3.4;
+    hudPhase.textContent = fate.id === "whitedwarf" ? L("Red giant", "Gigante roja") : L("Red supergiant", "Supergigante roja");
+    tween(1100, e => {
+      const s = 0.35 + radius * 0.18 + e * giantScale;
+      star.scale.setScalar(s);
+      starMat.color.setHex(0xff6a3d); starMat.emissive.setHex(0xff6a3d);
+    }, () => {
+      if (fate.id === "whitedwarf") {
+        hudPhase.textContent = L("Shedding its outer layers", "Desprendiendo sus capas exteriores");
+        shellMat.color.setHex(0xbfd6ff); shellMat.opacity = 0.85;
+        tween(1500, e => {
+          for (let i = 0; i < SHELL_N; i++) { const d = shellDir[i]; const r = 0.4 + e * 5.5;
+            shellPos[i*3]=d[0]*r; shellPos[i*3+1]=d[1]*r; shellPos[i*3+2]=d[2]*r; }
+          shellGeo.attributes.position.needsUpdate = true;
+          shellMat.opacity = 0.85 * (1 - e);
+          star.scale.setScalar((0.35 + radius * 0.18 + giantScale) * (1 - e * 0.88));
+        }, () => {
+          starMat.color.setHex(0xeaf4ff); starMat.emissive.setHex(0xeaf4ff); starMat.emissiveIntensity = 2;
+          done();
+        });
+      } else {
+        hudPhase.textContent = L("Supernova!", "¡Supernova!");
+        shellMat.color.setHex(0xfff2c9); shellMat.opacity = 1;
+        star.scale.setScalar(0.001);
+        tween(1300, e => {
+          for (let i = 0; i < SHELL_N; i++) { const d = shellDir[i]; const r = 0.2 + e * 8.5;
+            shellPos[i*3]=d[0]*r; shellPos[i*3+1]=d[1]*r; shellPos[i*3+2]=d[2]*r; }
+          shellGeo.attributes.position.needsUpdate = true;
+          shellMat.opacity = 1 * (1 - e * e);
+        }, () => {
+          if (fate.id === "neutronstar") {
+            starMat.color.setHex(0xdff0ff); starMat.emissive.setHex(0xdff0ff); starMat.emissiveIntensity = 3;
+            star.scale.setScalar(0.16);
+          } else {
+            starMat.color.setHex(0x050505); starMat.emissive.setHex(0x000000); starMat.emissiveIntensity = 0;
+            star.scale.setScalar(0.22);
+            ring.material.opacity = 0.9;
+          }
+          done();
+        });
+      }
+    });
+  }
+}
+
+mountActivity({ simulation: { orient, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
