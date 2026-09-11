@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Mirror-Word Mystery — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../engine/style.css?v=10">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  .mw-live {
+    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: .75rem;
+    padding: .55rem .9rem; margin: 0 0 1.1rem; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+    flex-wrap: wrap;
+  }
+  .mw-live__dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--ink-3); flex: none; }
+  .mw-live__dot[data-on="true"] { background: var(--positive, var(--accent)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .mw-live__label { font-size: .82rem; color: var(--ink-2); white-space: nowrap; }
+  .mw-board { display: flex; gap: .35rem; margin-left: auto; flex-wrap: wrap; }
+  .mw-board__chip { display: flex; align-items: center; gap: .3rem; padding: .2rem .55rem; border-radius: 999px; background: var(--accent-wash); font-size: .78rem; white-space: nowrap; }
+  .mw-board__chip b { color: var(--accent); }
+  .mw-reactions { display: flex; gap: .35rem; }
+  .mw-reactions button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; font-size: 1.1rem; line-height: 1; padding: .3rem .5rem; cursor: pointer; transition: transform .15s ease; }
+  .mw-reactions button:hover { transform: scale(1.15); background: var(--accent-wash); }
+  .mw-burst { position: fixed; font-size: 1.6rem; pointer-events: none; z-index: 999; animation: mw-float 1.8s ease-out forwards; }
+  @keyframes mw-float { from { transform: translateY(0) scale(.7); opacity: 0; } 15% { opacity: 1; transform: translateY(-10px) scale(1); } to { transform: translateY(-140px) scale(1.1); opacity: 0; } }
+
+  .mw-join { max-width: 420px; margin: 2rem auto; text-align: center; }
+  .mw-join input { text-align: center; font-size: 1.1rem; }
+
+  .mw-stage { animation: mw-in .35s ease both; }
+  @keyframes mw-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  [data-reduced-motion="on"] .mw-stage, [data-reduced-motion="on"] .mw-burst { animation: none !important; }
+
+  .mw-chamber-wrap { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: .9rem;
+    height: 300px; background: radial-gradient(circle at 50% 20%, #3a2456 0%, #180f27 78%); box-shadow: var(--shadow-2), inset 0 0 0 1px rgba(255,255,255,.06); }
+  .mw-chamber { width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .mw-chamber:active { cursor: grabbing; }
+  .mw-chamber canvas { display: block; width: 100% !important; height: 100% !important; }
+  .mw-3d-hint { position: absolute; bottom: 10px; right: 12px; font-size: .72rem; color: #fff; opacity: .7;
+    background: rgba(0,0,0,.4); padding: .2rem .6rem; border-radius: 999px; letter-spacing: .02em; }
+  .mw-3d-badge { position: absolute; top: 10px; left: 12px; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: #fff; opacity: .85; background: var(--signal); padding: .2rem .6rem; border-radius: 999px; }
+  .mw-word { font-size: 1.3rem; font-weight: 700; margin: 0 0 .9rem; text-align: center; letter-spacing: .06em; }
+
+  .mw-options { display: grid; gap: .65rem; grid-template-columns: 1fr 1fr; }
+  .mw-opt { text-align: center; padding: .9rem 1rem; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font: inherit; font-size: 1rem; font-weight: 600; transition: transform .12s ease, border-color .12s ease; }
+  .mw-opt:hover { border-color: var(--accent); }
+  .mw-opt:active { transform: scale(.98); }
+  .mw-opt[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
+  .mw-opt[data-state="wrong"] { animation: mw-shake .35s ease; opacity: .7; }
+  @keyframes mw-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  .mw-plain-options { display: grid; gap: .65rem; }
+  .mw-plain-opt { text-align: left; padding: .8rem 1rem; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font: inherit; font-size: 1rem; transition: transform .12s ease, border-color .12s ease; }
+  .mw-plain-opt:hover { border-color: var(--accent); }
+  .mw-plain-opt:active { transform: scale(.98); }
+  .mw-plain-opt[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
+  .mw-plain-opt[data-state="wrong"] { animation: mw-shake .35s ease; opacity: .7; }
+
+  .mw-museum-wrap { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: .9rem;
+    height: 300px; background: linear-gradient(180deg, #4a3a6b 0%, #7c6aa8 55%, #d8cbe8 55%, #d8cbe8 100%);
+    box-shadow: var(--shadow-2), inset 0 0 0 1px rgba(255,255,255,.3); }
+  .mw-museum { width: 100%; height: 100%; }
+  .mw-museum canvas { display: block; width: 100% !important; height: 100% !important; }
+  .mw-museum-badge { position: absolute; top: 10px; left: 12px; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: #2b1f3d; opacity: .88; background: #fff; padding: .2rem .6rem; border-radius: 999px; }
+  .mw-museum-progress { position: absolute; top: 10px; right: 12px; font-size: .72rem; font-weight: 700;
+    color: #2b1f3d; background: #fff; opacity: .88; padding: .2rem .6rem; border-radius: 999px; }
+  .mw-museum-word { font-size: 1.3rem; font-weight: 700; margin: 0 0 .9rem; text-align: center; letter-spacing: .06em; }
+  .mw-wings { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+  .mw-wing { text-align: center; padding: 1rem .9rem; border-radius: 14px; border: 2px solid var(--line); background: var(--surface);
+    cursor: pointer; font: inherit; font-size: .95rem; font-weight: 600; transition: transform .12s ease, border-color .12s ease; }
+  .mw-wing__arrow { display: block; font-size: 1.4rem; margin-bottom: .3rem; }
+  .mw-wing:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .mw-wing:active { transform: scale(.98); }
+  .mw-wing[data-state="correct"] { border-color: var(--positive, var(--accent)); background: var(--accent-wash); }
+  .mw-wing[data-state="wrong"] { animation: mw-shake .35s ease; opacity: .75; }
+
+  .mw-done { text-align: center; padding: 1.5rem 1rem; }
+  .mw-done__score { font-family: var(--font-data); font-size: 2.4rem; color: var(--accent); font-weight: 700; }
+  .mw-done__score .mw-done__outof { font-size: 1.1rem; color: var(--ink-2); font-weight: 600; }
+  .mw-done__pct { font-size: 1rem; color: var(--ink-2); font-weight: 600; margin-top: -.4rem; }
+  .mw-confetti { position: relative; height: 0; }
+  .mw-confetti span { position: absolute; top: -10px; font-size: 1.3rem; animation: mw-fall 2.2s ease-in forwards; }
+  @keyframes mw-fall { to { transform: translateY(60vh) rotate(200deg); opacity: 0; } }
+  [data-reduced-motion="on"] .mw-confetti { display: none; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your name and score are shared live during this session, and your final result is saved to Mr Guevara's private class records — never used for anything else.</span>
+    <span data-lang="es" hidden>Tu nombre y tu puntuación se comparten en directo durante esta sesión, y tu resultado final se guarda en los registros privados de clase del Sr. Guevara — nunca se usa para nada más.</span>
+  </div>
+</footer>
+
+<script src="../../../../engine/vendor/firebase/firebase-app-compat.js"></script>
+<script src="../../../../engine/vendor/firebase/firebase-database-compat.js"></script>
+<script src="../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { joinSession, addScore, sendReaction, onPlayers, onReactions, todaysSessionId, isLive, REACTIONS, recordCompletion } from "../../_shared/live-wall.js";
+import { speakerButton } from "../../../../engine/accessibility.js";
+
+let spkRegistry = {}, spkCounter = 0;
+function speakerHTML(text) {
+  const id = "spk" + (spkCounter++);
+  spkRegistry[id] = text;
+  return `<span class="mw-spk-slot" data-spk-id="${id}" style="display:inline-block;vertical-align:middle;margin-left:.4em"></span>`;
+}
+function mountSpeakers(host) {
+  host.querySelectorAll(".mw-spk-slot").forEach(slot => {
+    const text = spkRegistry[slot.dataset.spkId];
+    if (text == null) return;
+    slot.replaceWith(speakerButton(() => text));
+  });
+}
+
+const root = document.getElementById("lab-root");
+const SESSION_ID = todaysSessionId("english");
+let CONFIG = null;
+let playerName = "";
+let score = 0;
+
+function reducedMotion() {
+  return document.documentElement.getAttribute("data-reduced-motion") === "on";
+}
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(1 - Math.pow(1 - t, 3), t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---- LETTER TILES --------------------------------------------------------
+   Every word is spelled with small 3D tiles (a canvas-texture letter on the
+   front face) so the "mirror check" can move, glow and shake each letter
+   individually rather than swapping one flat text texture. */
+function tileTexture(letter, tint) {
+  const c = document.createElement("canvas");
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = tint || "#F5EFE0";
+  ctx.fillRect(0, 0, 128, 128);
+  ctx.strokeStyle = "#B8420E"; ctx.lineWidth = 7;
+  ctx.strokeRect(7, 7, 114, 114);
+  ctx.fillStyle = "#2b2f33";
+  ctx.font = "bold 78px Georgia, serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(letter, 64, 70);
+  return new THREE.CanvasTexture(c);
+}
+function makeLetterTile(letter, tint) {
+  const faceMat = new THREE.MeshStandardMaterial({ map: tileTexture(letter, tint), roughness: .55 });
+  const sideMat = new THREE.MeshStandardMaterial({ color: 0xD9C6A0, roughness: .6 });
+  const mats = [sideMat, sideMat, sideMat, sideMat, faceMat, sideMat.clone()];
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(.5, .5, .12), mats);
+  mesh.userData.faceMat = faceMat;
+  return mesh;
+}
+
+/* ---- 3D MIRROR CHAMBER (Three.js) ---------------------------------------
+   One shared scene, reused across all six rounds. The word's letter tiles
+   sit on a pedestal; on a correct guess they fly through an ornate mirror
+   frame and land in reverse order on the far side — matching pairs glow
+   gold and chime together, mismatched pairs flash red so the "why" of the
+   answer is visible, not just told. */
+let three = null;
+function initChamber(container) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  scene.add(new THREE.HemisphereLight(0xd8c8ff, 0x140a20, 1.0));
+  const key = new THREE.DirectionalLight(0xf0e6ff, 1.1);
+  key.position.set(3, 5, 4);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffcf80, 0.5);
+  rim.position.set(-4, 2, -3);
+  scene.add(rim);
+
+  const floor = new THREE.Mesh(
+    new THREE.CylinderGeometry(3.1, 3.3, 0.3, 40),
+    new THREE.MeshStandardMaterial({ color: 0x2a1c3c, roughness: 0.85 })
+  );
+  floor.position.y = -1.05;
+  scene.add(floor);
+
+  // ornate mirror frame, standing in the back of the chamber
+  const frame = new THREE.Mesh(
+    new THREE.TorusGeometry(1.55, 0.11, 16, 40),
+    new THREE.MeshStandardMaterial({ color: 0xD6A24C, roughness: 0.35, metalness: 0.55 })
+  );
+  frame.position.set(0, 0.2, -1.3);
+  scene.add(frame);
+  const glass = new THREE.Mesh(
+    new THREE.CircleGeometry(1.4, 40),
+    new THREE.MeshStandardMaterial({ color: 0x6a53a8, roughness: 0.15, metalness: 0.3, transparent: true, opacity: 0.35 })
+  );
+  glass.position.set(0, 0.2, -1.28);
+  scene.add(glass);
+
+  const pedestal = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.42, 0.5, 0.55, 20),
+    new THREE.MeshStandardMaterial({ color: 0x6a4a86, roughness: 0.75 })
+  );
+  pedestal.position.set(0, -0.75, 1.1);
+  scene.add(pedestal);
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  let az = 0.35, pol = 1.1, dragging = false, lastX = 0, lastY = 0;
+  const rad = 6.2;
+  function place() {
+    camera.position.set(rad * Math.sin(pol) * Math.sin(az), rad * Math.cos(pol), rad * Math.sin(pol) * Math.cos(az));
+    camera.lookAt(0, 0, -0.2);
+  }
+  container.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; container.setPointerCapture(e.pointerId); });
+  container.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    az -= (e.clientX - lastX) * 0.008;
+    pol = Math.min(1.45, Math.max(0.65, pol - (e.clientY - lastY) * 0.006));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  window.addEventListener("pointerup", () => dragging = false);
+
+  function resize() {
+    const w = container.clientWidth, h = container.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(container);
+  resize();
+
+  function loop() {
+    if (!dragging && !reducedMotion()) az += 0.0008;
+    place();
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  three = { renderer, scene, camera, group, container };
+}
+function mountChamber(container) {
+  if (!three) { initChamber(container); return; }
+  container.appendChild(three.renderer.domElement);
+  three.container = container;
+  const w = container.clientWidth, h = container.clientHeight;
+  if (w && h) { three.renderer.setSize(w, h); three.camera.aspect = w / h; three.camera.updateProjectionMatrix(); }
+}
+function clearChamber() {
+  while (three.group.children.length) three.group.remove(three.group.children[0]);
+}
+
+function buildRoundTiles(word) {
+  clearChamber();
+  const letters = word.split("");
+  const L = letters.length;
+  const spacing = 0.62;
+  const originals = letters.map((ch, i) => {
+    const tile = makeLetterTile(ch);
+    tile.position.set((i - (L - 1) / 2) * spacing, -0.35, 1.1);
+    three.group.add(tile);
+    return tile;
+  });
+  return { letters, originals };
+}
+
+function playMirrorCheck(refs, isPalindrome, done) {
+  const { letters, originals } = refs;
+  const L = letters.length;
+  const spacing = 0.58;
+  const reversedLetters = [...letters].reverse();
+  const mirrored = reversedLetters.map((ch, i) => {
+    const tile = makeLetterTile(ch);
+    tile.position.set((i - (L - 1) / 2) * spacing, 0.35, 1.1);
+    tile.scale.set(0.001, 0.001, 0.001);
+    three.group.add(tile);
+    return tile;
+  });
+
+  let remaining = L;
+  mirrored.forEach((tile, i) => {
+    const targetX = (i - (L - 1) / 2) * spacing;
+    const targetZ = -1.28;
+    setTimeout(() => {
+      tween(650, e => {
+        tile.position.x = 0 + (targetX - 0) * e;
+        tile.position.y = 0.35 + (0.2 - 0.35) * e;
+        tile.position.z = 1.1 + (targetZ - 1.1) * e;
+        const s = 0.001 + 0.999 * e;
+        tile.scale.set(s, s, s);
+        tile.rotation.y = Math.PI * 2 * e;
+      }, () => {
+        // does this reflected letter match the original letter in the mirrored position?
+        const matches = reversedLetters[i] === letters[i];
+        const mat = tile.userData.faceMat;
+        const origMat = originals[i] ? originals[i].userData.faceMat : null;
+        if (matches) {
+          mat.emissive = new THREE.Color(0xD6A24C);
+          mat.emissiveIntensity = 0.7;
+          if (origMat) { origMat.emissive = new THREE.Color(0xD6A24C); origMat.emissiveIntensity = 0.7; }
+        } else {
+          mat.emissive = new THREE.Color(0xB8420E);
+          mat.emissiveIntensity = 0.6;
+          if (origMat) { origMat.emissive = new THREE.Color(0xB8420E); origMat.emissiveIntensity = 0.6; }
+          tween(300, se => { tile.position.x = targetX + Math.sin(se * Math.PI * 4) * 0.06 * (1 - se); }, () => {});
+          if (originals[i]) tween(300, se => { originals[i].position.x = (i - (L - 1) / 2) * 0.62 + Math.sin(se * Math.PI * 4) * 0.06 * (1 - se); }, () => {});
+        }
+        remaining--;
+        if (remaining === 0) setTimeout(done, isPalindrome ? 500 : 650);
+      });
+    }, i * 90);
+  });
+}
+
+const STAGES = ["join","orient","predict","rounds","explain","apply","check","done"];
+let stageIdx = 0, roundIdx = 0;
+
+async function boot() {
+  CONFIG = await fetch("config.json").then(r => r.json());
+  render();
+}
+
+function railHTML() {
+  return `<nav class="rail" aria-label="Progress">${STAGES.map((s,i)=>{
+    const state = i < stageIdx ? "done" : i === stageIdx ? "current" : "upcoming";
+    return `<span class="rail__step" data-state="${state}"><span class="rail__dot"></span></span>`;
+  }).join("")}</nav>`;
+}
+
+function liveBarHTML() {
+  const on = isLive();
+  return `<div class="mw-live">
+    <span class="mw-live__dot" data-on="${on}"></span>
+    <span class="mw-live__label">${on ? "Live with your group" : "Practice mode — ask Mr Guevara to switch on Live"}</span>
+    <div class="mw-board" id="mw-board"></div>
+    <div class="mw-reactions" role="group" aria-label="Send a positive reaction">
+      ${REACTIONS.map(e=>`<button type="button" data-emoji="${e}" aria-label="Send ${e}">${e}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+function mountLiveBar() {
+  document.querySelectorAll(".mw-reactions button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const emoji = b.dataset.emoji;
+      if (isLive()) sendReaction(SESSION_ID, emoji, playerName);
+      else burst(emoji, b.getBoundingClientRect());
+    });
+  });
+  if (isLive()) {
+    onPlayers(SESSION_ID, list => {
+      const board = document.getElementById("mw-board");
+      if (!board) return;
+      board.innerHTML = list.slice(0,5).map(p=>`<span class="mw-board__chip">${escapeHTML(p.name)} <b>${p.score}</b></span>`).join("");
+    });
+    onReactions(SESSION_ID, r => burst(r.emoji));
+  }
+}
+
+function burst(emoji, rect) {
+  const el = document.createElement("span");
+  el.className = "mw-burst";
+  el.textContent = emoji;
+  const x = rect ? rect.left + rect.width/2 : Math.random()*window.innerWidth*0.8 + window.innerWidth*0.1;
+  const y = rect ? rect.top : window.innerHeight - 80;
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1900);
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function render() {
+  const stage = STAGES[stageIdx];
+  const showChrome = stage !== "join";
+  root.innerHTML = (showChrome ? liveBarHTML() + railHTML() : "") + `<div class="mw-stage" id="mw-stage"></div>`;
+  if (showChrome) mountLiveBar();
+  const host = document.getElementById("mw-stage");
+  ({ join, orient, predict, rounds, explain, apply, check, done })[stage](host);
+}
+
+function advance() { stageIdx++; render(); }
+
+/* ---- JOIN ---------------------------------------------------------- */
+function join(host) {
+  host.innerHTML = `
+    <div class="mw-join panel stack">
+      <p class="eyebrow">Primary Enrichment · English · Monday</p>
+      <h1>The Mirror-Word Mystery</h1>
+      <p class="q__hint">Type your first name, then press Go to join today's live session.</p>
+      <label class="field__label" for="mw-name">Your first name</label>
+      <input id="mw-name" class="input" type="text" maxlength="16" autocomplete="off" placeholder="e.g. Sofia">
+      <button class="btn btn--signal" type="button" id="mw-go" style="margin-top:.75rem">Go! →</button>
+    </div>`;
+  const input = host.querySelector("#mw-name");
+  const go = () => {
+    const name = input.value.trim().replace(/[^\p{L}\p{N} '-]/gu, "").slice(0, 16);
+    if (!name) { input.focus(); return; }
+    playerName = name;
+    if (isLive()) joinSession(SESSION_ID, playerName);
+    advance();
+  };
+  host.querySelector("#mw-go").addEventListener("click", go);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  input.focus();
+}
+
+/* ---- ORIENT --------------------------------------------------------- */
+function orient(host) {
+  const o = CONFIG.orient;
+  host.innerHTML = `
+    <div class="panel stack">
+      <p class="eyebrow">Today's mission</p>
+      <h2>${playerName ? `Welcome, ${escapeHTML(playerName)}!` : "Welcome!"}</h2>
+      <p><strong>What:</strong> ${o.objective}${speakerHTML(o.objective)}</p>
+      <p><strong>Why it matters:</strong> ${o.realLife}${speakerHTML(o.realLife)}</p>
+      <p><strong>How it connects:</strong> ${o.courseLink}</p>
+      <p><strong>By the end you will be able to:</strong></p>
+      <ul>${o.successCriteria.map(s=>`<li>${s}</li>`).join("")}</ul>
+      <button class="btn btn--signal" type="button" id="mw-next">Let's start →</button>
+    </div>`;
+  mountSpeakers(host);
+  host.querySelector("#mw-next").addEventListener("click", advance);
+}
+
+/* ---- PREDICT ---------------------------------------------------------- */
+function predict(host) {
+  const p = CONFIG.predict;
+  host.innerHTML = `<div class="panel stack">
+    <p class="eyebrow">Quick guess</p>
+    <h2>${p.prompt}${speakerHTML(p.prompt)}</h2>
+    <div class="mw-plain-options">${p.options.map(o=>`<button class="mw-plain-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
+  </div>`;
+  mountSpeakers(host);
+  host.querySelectorAll(".mw-plain-opt").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      host.querySelectorAll(".mw-plain-opt").forEach(b=>b.disabled=true);
+      btn.dataset.state = btn.dataset.id === p.answer ? "correct" : "wrong";
+      setTimeout(advance, 700);
+    });
+  });
+}
+
+/* ---- ROUNDS: 3D Mirror Chamber ----------------------------------------- */
+function rounds(host) {
+  if (roundIdx >= CONFIG.rounds.length) { advance(); return; }
+  const r = CONFIG.rounds[roundIdx];
+  host.innerHTML = `
+    <p class="eyebrow">Round ${roundIdx+1} of ${CONFIG.rounds.length} · Is it a Mirror Word? Guess, then watch the mirror check it</p>
+    <div class="mw-chamber-wrap">
+      <div class="mw-chamber" id="mw-3d"></div>
+      <span class="mw-3d-badge">3D · Mirror Chamber</span>
+      <span class="mw-3d-hint">drag to look around</span>
+    </div>
+    <p class="mw-word">${r.word}${speakerHTML(r.word)}</p>
+    <div class="mw-options">
+      <button class="mw-opt" type="button" data-guess="yes">✅ Mirror Word</button>
+      <button class="mw-opt" type="button" data-guess="no">❌ Not a Mirror Word</button>
+    </div>`;
+
+  mountSpeakers(host);
+  mountChamber(host.querySelector("#mw-3d"));
+  const refs = buildRoundTiles(r.word);
+
+  host.querySelectorAll(".mw-opt").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const guessYes = btn.dataset.guess === "yes";
+      const correct = guessYes === r.isPalindrome;
+      if (correct) {
+        btn.dataset.state = "correct";
+        host.querySelectorAll(".mw-opt").forEach(b=>b.disabled=true);
+        playMirrorCheck(refs, r.isPalindrome, () => {
+          addPoints(10);
+          setTimeout(()=>{ roundIdx++; render(); }, 500);
+        });
+      } else {
+        btn.dataset.state = "wrong";
+        setTimeout(()=>{ btn.dataset.state=""; }, 400);
+      }
+    });
+  });
+}
+
+/* ---- EXPLAIN / APPLY (same structured shape) --------------------------- */
+function structuredQuestion(host, data, onDone) {
+  host.innerHTML = `<div class="panel stack">
+    <h2>${data.prompt}${speakerHTML(data.prompt)}</h2>
+    <div class="mw-plain-options">${data.options.map(o=>`<button class="mw-plain-opt" type="button" data-id="${o.id}">${o.label}</button>`).join("")}</div>
+  </div>`;
+  mountSpeakers(host);
+  host.querySelectorAll(".mw-plain-opt").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const opt = data.options.find(o=>o.id===btn.dataset.id);
+      if (opt.correct) {
+        host.querySelectorAll(".mw-plain-opt").forEach(b=>b.disabled=true);
+        btn.dataset.state = "correct";
+        addPoints(10);
+        setTimeout(onDone, 700);
+      } else {
+        btn.dataset.state = "wrong";
+        setTimeout(()=>{ btn.dataset.state=""; }, 400);
+      }
+    });
+  });
+}
+function explain(host) { structuredQuestion(host, CONFIG.explain, advance); }
+function apply(host) { structuredQuestion(host, CONFIG.apply, advance); }
+
+/* ---- KNOWLEDGE CHECK ARCADE: "The Mirror-Word Museum" --------------------
+   A trolley ride through the museum, steering into whichever wing correctly
+   names each word — reusing the knowledgeCheck word list from config.json. */
+let arcade = null;
+let stopIdx = 0;
+let stopChoices = [];
+
+function buildStopChoices() {
+  const words = CONFIG.knowledgeCheck;
+  stopChoices = words.map(w => {
+    const mirrorOnLeft = Math.random() < 0.5;
+    return {
+      word: w.word,
+      left: mirrorOnLeft ? "Mirror Word" : "Not a Mirror Word",
+      right: mirrorOnLeft ? "Not a Mirror Word" : "Mirror Word",
+      correctSide: (w.isPalindrome && mirrorOnLeft) || (!w.isPalindrome && !mirrorOnLeft) ? "left" : "right"
+    };
+  });
+}
+
+function initArcade3D(container) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xc9bce3, 10, 34);
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+  scene.add(new THREE.HemisphereLight(0xc9bce3, 0x3a2a4c, 1.05));
+  const sun = new THREE.DirectionalLight(0xfff0e0, 1.0);
+  sun.position.set(4, 8, 4);
+  scene.add(sun);
+
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.1, 60), new THREE.MeshStandardMaterial({ color: 0xB8A4D9 }));
+  floor.position.set(0, -0.4, -18);
+  scene.add(floor);
+  const stripeMat = new THREE.MeshStandardMaterial({ color: 0xD6A24C });
+  for (let i = 0; i < 12; i++) {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.11, 1.1), stripeMat);
+    stripe.position.set(0, -0.34, -2 - i * 3);
+    scene.add(stripe);
+  }
+
+  const sceneryGroup = new THREE.Group();
+  scene.add(sceneryGroup);
+  function scatterScenery() {
+    while (sceneryGroup.children.length) sceneryGroup.remove(sceneryGroup.children[0]);
+    const palette = [0xF0E6D2, 0xE8C7A0, 0xC9B8E8, 0xA893C9];
+    for (let i = 0; i < 8; i++) {
+      const h = 1.6 + Math.random() * 1.8;
+      const mat = new THREE.MeshStandardMaterial({ color: palette[i % palette.length] });
+      const cL = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, h, 12), mat);
+      cL.position.set(-3.6, h / 2 - 0.4, -i * 7 - Math.random() * 2);
+      const cR = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, h, 12), mat.clone());
+      cR.position.set(3.6, h / 2 - 0.4, -i * 7 - Math.random() * 2 - 3);
+      sceneryGroup.add(cL, cR);
+    }
+  }
+  scatterScenery();
+
+  const vehicle = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.42, 1.15), new THREE.MeshStandardMaterial({ color: 0xD6A24C }));
+  body.position.y = 0.28;
+  const rider = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), new THREE.MeshStandardMaterial({ color: 0xE8C7A0 }));
+  rider.position.set(0, 0.7, 0.05);
+  const wheelGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.16, 16);
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+  const w1 = new THREE.Mesh(wheelGeo, wheelMat); w1.rotation.z = Math.PI / 2; w1.position.set(0, 0, 0.42);
+  const w2 = w1.clone(); w2.position.z = -0.42;
+  vehicle.add(body, rider, w1, w2);
+  vehicle.position.set(0, 0, 2.4);
+  scene.add(vehicle);
+
+  function resize() {
+    const w = container.clientWidth, h = container.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(container);
+  resize();
+
+  function loop() {
+    if (!reducedMotion()) sceneryGroup.children.forEach(c => { c.rotation.y += 0.0015; });
+    camera.position.set(vehicle.position.x * 0.4, 1.7, vehicle.position.z + 3.6);
+    camera.lookAt(vehicle.position.x * 0.7, 0.5, vehicle.position.z - 3);
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  arcade = { renderer, scene, camera, vehicle, container, scatterScenery, laneX: 0 };
+}
+
+function mountArcade3D(container) {
+  if (!arcade) { initArcade3D(container); return; }
+  container.appendChild(arcade.renderer.domElement);
+  arcade.container = container;
+  const w = container.clientWidth, h = container.clientHeight;
+  if (w && h) { arcade.renderer.setSize(w, h); arcade.camera.aspect = w / h; arcade.camera.updateProjectionMatrix(); }
+}
+
+function check(host) {
+  if (stopIdx === 0 && !stopChoices.length) buildStopChoices();
+  if (stopIdx >= stopChoices.length) { stopIdx = 0; stopChoices = []; advance(); return; }
+  const stop = stopChoices[stopIdx];
+  host.innerHTML = `
+    <p class="eyebrow">The Mirror-Word Museum · Steer into the wing with the right answer</p>
+    <div class="mw-museum-wrap">
+      <div class="mw-museum" id="mw-arcade"></div>
+      <span class="mw-museum-badge">🛒 Museum Trolley</span>
+      <span class="mw-museum-progress">Stop ${stopIdx + 1} of ${stopChoices.length}</span>
+    </div>
+    <p class="mw-museum-word">${stop.word}${speakerHTML(stop.word)}</p>
+    <div class="mw-wings">
+      <button class="mw-wing" type="button" data-side="left"><span class="mw-wing__arrow">↰</span>${stop.left}</button>
+      <button class="mw-wing" type="button" data-side="right"><span class="mw-wing__arrow">↱</span>${stop.right}</button>
+    </div>`;
+
+  mountSpeakers(host);
+  mountArcade3D(host.querySelector("#mw-arcade"));
+  arcade.vehicle.position.x = 0;
+
+  host.querySelectorAll(".mw-wing").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const side = btn.dataset.side;
+      const targetX = side === "left" ? -1.1 : 1.1;
+      tween(400, e => { arcade.vehicle.position.x = targetX * e; }, () => {
+        if (side === stop.correctSide) {
+          btn.dataset.state = "correct";
+          host.querySelectorAll(".mw-wing").forEach(b => b.disabled = true);
+          addPoints(10);
+          tween(650, e => { arcade.vehicle.position.z = 2.4 - 14 * e; }, () => {
+            arcade.scatterScenery();
+            arcade.vehicle.position.z = 2.4;
+            stopIdx++;
+            render();
+          });
+        } else {
+          btn.dataset.state = "wrong";
+          tween(300, e => { arcade.vehicle.position.x = targetX * (1 - e); }, () => { btn.dataset.state = ""; });
+        }
+      });
+    });
+  });
+}
+
+/* ---- DONE ---------------------------------------------------------- */
+function maxScore() {
+  return (CONFIG.rounds.length + 2 + CONFIG.knowledgeCheck.length) * 10;
+}
+function scorePercent() {
+  const max = maxScore();
+  return max ? Math.round((score / max) * 100) : 0;
+}
+let completionRecorded = false;
+function done(host) {
+  if (!completionRecorded && isLive()) {
+    completionRecorded = true;
+    recordCompletion("english", {
+      name: playerName,
+      activityId: CONFIG.activityId,
+      activityTitle: CONFIG.title,
+      score,
+      maxScore: maxScore(),
+      percent: scorePercent()
+    });
+  }
+  host.innerHTML = `<div class="mw-done">
+    <div class="mw-confetti" id="mw-confetti"></div>
+    <p class="eyebrow">Session complete</p>
+    <h2>Great word detective work, ${escapeHTML(playerName)}!</h2>
+    <p class="mw-done__score">${score} <span class="mw-done__outof">out of ${maxScore()} points</span></p>
+    <p class="mw-done__pct">${scorePercent()}% success</p>
+    <p class="q__hint">Check the live board above to see how everyone did — every score there is a win worth celebrating.</p>
+    <button class="btn btn--signal" type="button" id="mw-cert">Download my certificate →</button>
+  </div>`;
+  const confetti = host.querySelector("#mw-confetti");
+  "🎉⭐🪞✨".split("").forEach((c,i)=>{
+    for (let n=0;n<3;n++){
+      const s=document.createElement("span");
+      s.textContent=c; s.style.left=(Math.random()*90)+"%"; s.style.animationDelay=(i*0.1+n*0.15)+"s";
+      confetti.appendChild(s);
+    }
+  });
+  host.querySelector("#mw-cert").addEventListener("click", downloadCertificate);
+}
+
+function addPoints(n) {
+  score += n;
+  if (isLive()) addScore(SESSION_ID, n);
+}
+
+async function loadJsPDF() {
+  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "../../../../engine/vendor/jspdf.umd.min.js";
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return window.jspdf.jsPDF;
+}
+
+function drawStar(doc, cx, cy, rOuter, rInner, fillColor) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? rOuter : rInner;
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+  }
+  doc.setFillColor(...fillColor);
+  doc.lines(
+    pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]]),
+    pts[0][0], pts[0][1], [1, 1], "F", true
+  );
+}
+
+async function downloadCertificate() {
+  const jsPDF = await loadJsPDF();
+  const doc = new jsPDF({ unit: "pt", format: "letter", orientation: "landscape" });
+  const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight();
+  const orange = [184, 66, 14], navy = [30, 75, 143], cream = [250, 243, 231], ink = [40, 30, 20], gold = [214, 158, 46];
+
+  doc.setFillColor(...cream); doc.rect(0, 0, w, h, "F");
+  doc.setFillColor(232, 199, 160); doc.setDrawColor(232, 199, 160);
+  doc.circle(-40, -40, 160, "F"); doc.circle(w + 40, h + 40, 160, "F");
+
+  doc.setDrawColor(...orange); doc.setLineWidth(4); doc.roundedRect(26, 26, w - 52, h - 52, 14, 14);
+  doc.setDrawColor(...navy); doc.setLineWidth(1.2); doc.roundedRect(38, 38, w - 76, h - 76, 10, 10);
+
+  [[70, 70, 7, gold], [w - 80, 65, 5, navy], [95, h - 70, 5, orange], [w - 65, h - 90, 7, gold],
+   [140, 95, 4, orange], [w - 130, h - 60, 4, navy]].forEach(([x, y, r, c]) => drawStar(doc, x, y, r, r * 0.42, c));
+
+  const mx = w / 2, my = 96;
+  doc.setFillColor(...gold); doc.circle(mx, my, 34, "F");
+  doc.setFillColor(255, 250, 235); doc.circle(mx, my, 26, "F");
+  drawStar(doc, mx, my, 17, 7, orange);
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(30); doc.setTextColor(...orange);
+  doc.text("Discovery Lab", w / 2, 158, { align: "center" });
+  doc.setFontSize(13); doc.setTextColor(...navy); doc.setFont("helvetica", "normal");
+  doc.text("PRIMARY ENRICHMENT · CERTIFICATE OF BRIGHT THINKING", w / 2, 178, { align: "center" });
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...ink);
+  const certifiesText = "this certifies that";
+  const certifiesWidth = doc.getTextWidth(certifiesText);
+  doc.text(certifiesText, w / 2, 197, { align: "center" });
+  doc.setDrawColor(...gold); doc.setLineWidth(1);
+  doc.line(w / 2 - certifiesWidth / 2 - 70, 192, w / 2 - certifiesWidth / 2 - 14, 192);
+  doc.line(w / 2 + certifiesWidth / 2 + 14, 192, w / 2 + certifiesWidth / 2 + 70, 192);
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(40); doc.setTextColor(...ink);
+  doc.text(playerName || "Student", w / 2, 240, { align: "center" });
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.setTextColor(70, 60, 50);
+  doc.text("completed The Mirror-Word Mystery — a live Palindromes adventure", w / 2, 264, { align: "center" });
+
+  const max = maxScore(), pct = scorePercent();
+  const scoreLine = `${score} out of ${max} points`;
+  const pctLine = `${pct}% success`;
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+  const scoreLineWidth = doc.getTextWidth(scoreLine);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12);
+  const pctLineWidth = doc.getTextWidth(pctLine);
+  const pillWidth = Math.max(scoreLineWidth, pctLineWidth) + 56;
+  const pillHeight = 54;
+  const pillX = w / 2 - pillWidth / 2, pillY = 284;
+
+  doc.setFillColor(...orange); doc.roundedRect(pillX, pillY, pillWidth, pillHeight, pillHeight / 2, pillHeight / 2, "F");
+  drawStar(doc, pillX + 20, pillY + pillHeight / 2, 7, 3, gold);
+  drawStar(doc, pillX + pillWidth - 20, pillY + pillHeight / 2, 7, 3, gold);
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(255, 255, 255);
+  doc.text(scoreLine, w / 2, pillY + 24, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(255, 255, 255);
+  doc.text(pctLine, w / 2, pillY + 42, { align: "center" });
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(120, 105, 90);
+  doc.text(new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" }), w / 2, pillY + pillHeight + 24, { align: "center" });
+
+  doc.setTextColor(...navy); doc.setFontSize(11);
+  doc.textWithLink("Open the live activity ->", w / 2, pillY + pillHeight + 44, { align: "center", url: window.location.href });
+
+  doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(140, 125, 110);
+  doc.text("Discovery Lab · Diego Urrutia Guevara", w / 2, h - 42, { align: "center" });
+
+  doc.save(`${playerName || "Student"}_PrimaryEnrichment_MirrorWordMystery_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+boot();
+</script>
+</body>
+</html>
