@@ -23,6 +23,11 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .mw-live__dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--ink-3); flex: none; }
   .mw-live__dot[data-on="true"] { background: var(--positive, var(--accent)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
   .mw-live__label { font-size: .82rem; color: var(--ink-2); white-space: nowrap; }
+  .mw-streak { display: flex; align-items: center; gap: .25rem; padding: .2rem .6rem; border-radius: 999px;
+    background: var(--signal); color: #fff; font-size: .8rem; font-weight: 800; white-space: nowrap;
+    animation: mw-streak-pop .35s ease; }
+  @keyframes mw-streak-pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  [data-reduced-motion="on"] .mw-streak { animation: none; }
   .mw-board { display: flex; gap: .35rem; margin-left: auto; flex-wrap: wrap; }
   .mw-board__chip { display: flex; align-items: center; gap: .3rem; padding: .2rem .55rem; border-radius: 999px; background: var(--accent-wash); font-size: .78rem; white-space: nowrap; }
   .mw-board__chip b { color: var(--accent); }
@@ -74,6 +79,11 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
     color: #2b1f3d; opacity: .88; background: #fff; padding: .2rem .6rem; border-radius: 999px; }
   .mw-museum-progress { position: absolute; top: 10px; right: 12px; font-size: .72rem; font-weight: 700;
     color: #2b1f3d; background: #fff; opacity: .88; padding: .2rem .6rem; border-radius: 999px; }
+  .mw-boost-badge { position: absolute; top: 42px; right: 12px; font-size: .72rem; font-weight: 800;
+    color: #fff; background: var(--signal); padding: .2rem .6rem; border-radius: 999px;
+    animation: mw-streak-pop .3s ease, mw-boost-pulse 1s ease-in-out infinite; }
+  @keyframes mw-boost-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  [data-reduced-motion="on"] .mw-boost-badge { animation: none; }
   .mw-approach-wrap { position: absolute; left: 12px; right: 12px; bottom: 10px; height: 8px; border-radius: 999px;
     background: rgba(255,255,255,.35); overflow: hidden; }
   .mw-approach-fill { height: 100%; width: 0%; border-radius: 999px; background: var(--signal);
@@ -288,7 +298,23 @@ function initChamber(container) {
   }
   loop();
 
-  three = { renderer, scene, camera, group, container };
+  three = { renderer, scene, camera, group, container, key, baseFov: 40 };
+}
+
+/* Quick FOV dolly-punch + light flash for the reveal moment — cheap "juice"
+   that makes a correct answer feel like an impact, not just a state change. */
+function cameraPunch() {
+  if (!three || reducedMotion()) return;
+  tween(260, e => {
+    const s = Math.sin(e * Math.PI);
+    three.camera.fov = three.baseFov - 5 * s;
+    three.camera.updateProjectionMatrix();
+    three.key.intensity = 1.1 + 1.4 * s;
+  }, () => {
+    three.camera.fov = three.baseFov;
+    three.camera.updateProjectionMatrix();
+    three.key.intensity = 1.1;
+  });
 }
 function mountChamber(container) {
   if (!three) { initChamber(container); return; }
@@ -316,6 +342,7 @@ function buildRoundTiles(word) {
 }
 
 function playMirrorCheck(refs, isPalindrome, done) {
+  cameraPunch();
   const { letters, originals } = refs;
   const L = letters.length;
   const spacing = 0.58;
@@ -383,6 +410,7 @@ function liveBarHTML() {
   return `<div class="mw-live">
     <span class="mw-live__dot" data-on="${on}"></span>
     <span class="mw-live__label">${on ? "Live with your group" : "Practice mode — ask Mr Guevara to switch on Live"}</span>
+    <span class="mw-streak" id="mw-streak" hidden></span>
     <div class="mw-board" id="mw-board"></div>
     <div class="mw-reactions" role="group" aria-label="Send a positive reaction">
       ${REACTIONS.map(e=>`<button type="button" data-emoji="${e}" aria-label="Send ${e}">${e}</button>`).join("")}
@@ -405,6 +433,31 @@ function mountLiveBar() {
       board.innerHTML = list.slice(0,5).map(p=>`<span class="mw-board__chip">${escapeHTML(p.name)} <b>${p.score}</b></span>`).join("");
     });
     onReactions(SESSION_ID, r => burst(r.emoji));
+  }
+  updateStreakBadge();
+}
+
+/* ---- SESSION STREAK: a running "you're on fire" counter shared across
+   rounds, explain, apply and the arcade — never resets on a forgiving retry
+   (rounds/explain/apply let the student try again), only on a genuine miss
+   in the arcade, where a wrong lane or no lane is a final outcome. Feeds
+   the arcade's speed boost so a hot streak literally makes the trolley go
+   faster. */
+let sessionStreak = 0;
+function updateStreakBadge() {
+  const el = document.getElementById("mw-streak");
+  if (!el) return;
+  if (sessionStreak >= 2) { el.hidden = false; el.textContent = "🔥 " + sessionStreak + " in a row!"; }
+  else el.hidden = true;
+}
+function bumpStreak(correct, rect) {
+  if (correct) {
+    sessionStreak++;
+    updateStreakBadge();
+    if (sessionStreak >= 2) burst("🔥×" + sessionStreak, rect);
+  } else {
+    sessionStreak = 0;
+    updateStreakBadge();
   }
 }
 
@@ -525,6 +578,7 @@ function rounds(host) {
         host.querySelectorAll(".mw-opt").forEach(b=>b.disabled=true);
         playMirrorCheck(refs, r.isPalindrome, () => {
           addPoints(10);
+          bumpStreak(true, host.querySelector(".mw-chamber-wrap").getBoundingClientRect());
           setTimeout(()=>{ roundIdx++; render(); }, 500);
         });
       } else {
@@ -549,6 +603,7 @@ function structuredQuestion(host, data, onDone) {
         host.querySelectorAll(".mw-plain-opt").forEach(b=>b.disabled=true);
         btn.dataset.state = "correct";
         addPoints(10);
+        bumpStreak(true, btn.getBoundingClientRect());
         setTimeout(onDone, 700);
       } else {
         btn.dataset.state = "wrong";
@@ -660,6 +715,8 @@ function initArcade3D(container) {
 
   const gateGroup = new THREE.Group();
   scene.add(gateGroup);
+  const trailGroup = new THREE.Group();
+  scene.add(trailGroup);
 
   const vehicle = new THREE.Group();
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.42, 1.15), new THREE.MeshStandardMaterial({ color: 0xD6A24C }));
@@ -684,16 +741,32 @@ function initArcade3D(container) {
   new ResizeObserver(resize).observe(container);
   resize();
 
-  let lastT = null;
+  function spawnTrail() {
+    const dash = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.05, 0.32),
+      new THREE.MeshStandardMaterial({ color: 0xD6A24C, emissive: 0xD6A24C, emissiveIntensity: 0.9, transparent: true, opacity: 0.65 })
+    );
+    dash.position.set(vehicle.position.x, 0.06, vehicle.position.z + 0.55);
+    trailGroup.add(dash);
+    tween(420, e => { dash.material.opacity = 0.65 * (1 - e); const s = 1 - e * 0.6; dash.scale.set(s, s, s); }, () => { trailGroup.remove(dash); });
+  }
+
+  let lastT = null, trailAcc = 0;
   function loop(t) {
     const dt = lastT != null ? Math.min(0.05, (t - lastT) / 1000) : 0;
     lastT = t;
     if (!reducedMotion()) sceneryGroup.children.forEach(c => { c.rotation.y += 0.0015; });
     if (runner && !runner.resolved && !reducedMotion()) {
-      vehicle.position.z -= RUNNER_SPEED * dt;
+      const speedMult = runner.speedMult || 1;
+      vehicle.position.z -= RUNNER_SPEED * speedMult * dt;
       const pct = Math.max(0, Math.min(1, (runner.startZ - vehicle.position.z) / (runner.startZ - runner.gateZ)));
       const fill = document.getElementById("mw-approach-fill");
       if (fill) fill.style.width = (pct * 100) + "%";
+      if (speedMult > 1.08) {
+        trailAcc += dt;
+        const interval = Math.max(0.028, 0.075 / speedMult);
+        if (trailAcc > interval) { trailAcc = 0; spawnTrail(); }
+      }
       if (vehicle.position.z <= runner.gateZ) resolveGate();
     }
     camera.position.set(vehicle.position.x * 0.4, 1.7, vehicle.position.z + 3.6);
@@ -703,7 +776,7 @@ function initArcade3D(container) {
   }
   requestAnimationFrame(loop);
 
-  arcade = { renderer, scene, camera, vehicle, container, scatterScenery, gateGroup };
+  arcade = { renderer, scene, camera, vehicle, container, scatterScenery, gateGroup, trailGroup };
 }
 
 function mountArcade3D(container) {
@@ -780,6 +853,7 @@ function resolveGate() {
     gate.obstacleMat.emissive = new THREE.Color(0xB8420E);
     gate.obstacleMat.emissiveIntensity = 0.7;
     burst("💥", rect);
+    bumpStreak(false);
   } else {
     const correct = chosen === stop.correctSide;
     const signMat = chosen === "left" ? gate.leftMat : gate.rightMat;
@@ -788,11 +862,13 @@ function resolveGate() {
       signMat.emissiveIntensity = 0.8;
       addPoints(10);
       burst("✨", rect);
+      bumpStreak(true, rect);
     } else {
       signMat.emissive = new THREE.Color(0xB8420E);
       signMat.emissiveIntensity = 0.7;
       tween(260, e => { arcade.vehicle.position.x = LANE_X[chosen] + Math.sin(e * Math.PI * 8) * 0.08 * (1 - e); }, () => {});
       burst("💫", rect);
+      bumpStreak(false);
     }
   }
 
@@ -836,12 +912,15 @@ function check(host) {
   if (stopIdx >= stopChoices.length) { stopIdx = 0; stopChoices = []; advance(); return; }
   const stop = stopChoices[stopIdx];
   const rm = reducedMotion();
+  const speedMult = Math.min(1 + sessionStreak * 0.12, 2.2);
+  const boosted = !rm && speedMult > 1.08;
   host.innerHTML = `
     <p class="eyebrow">The Mirror-Word Museum · ${rm ? "Choose the wing with the right answer" : "Dodge the obstacle — steer into the wing with the right answer before you crash!"}</p>
     <div class="mw-museum-wrap">
       <div class="mw-museum" id="mw-arcade"></div>
       <span class="mw-museum-badge">🛒 Museum Trolley</span>
       <span class="mw-museum-progress">Stop ${stopIdx + 1} of ${stopChoices.length}</span>
+      ${boosted ? `<span class="mw-boost-badge">⚡ Speed boost!</span>` : ""}
       ${rm ? "" : `<div class="mw-approach-wrap"><div class="mw-approach-fill" id="mw-approach-fill"></div></div>`}
     </div>
     <p class="mw-museum-word">${stop.word}${speakerHTML(stop.word)}</p>
@@ -857,7 +936,7 @@ function check(host) {
 
   const gateZ = 2.4 - GATE_DISTANCE;
   const gate = buildGate(stop, gateZ);
-  runner = { gate, gateZ, startZ: 2.4, resolved: false, chosenSide: null };
+  runner = { gate, gateZ, startZ: 2.4, resolved: false, chosenSide: null, speedMult };
 
   host.querySelectorAll(".mw-wing").forEach(btn => {
     btn.addEventListener("click", () => steerRunner(btn.dataset.side));

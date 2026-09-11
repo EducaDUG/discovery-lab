@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Cell Structure Detective — Discovery Lab</title>
+<meta name="description" content="Orbit a 3D plant cell and animal cell, then scan two real microscope photos to identify organelles and work out which structures are unique to plant cells.">
+<link rel="stylesheet" href="../../../../../engine/style.css?v=10">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%2316744F' stroke-width='4'/><circle cx='24' cy='26' r='6' fill='%239A6E05'/><circle cx='40' cy='40' r='4' fill='%2316744F'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ===== Activity-specific styling (lives with the activity) ===== */
+
+/* ---- 3D cell viewer (Orient) ---- */
+.stage3d{position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  border:1px solid #0c1f18;aspect-ratio:16/9;min-height:20rem;
+  background:radial-gradient(120% 100% at 50% 18%, #14352a 0%, #0d241d 42%, #061310 100%);
+  box-shadow:inset 0 0 120px rgba(0,0,0,.55), var(--shadow-2);}
+.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:grab;touch-action:none;}
+.stage3d canvas:active{cursor:grabbing;}
+.stage3d::after{content:"";position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 90px rgba(0,0,0,.6);border-radius:inherit;}
+.stage3d__boot{position:absolute;inset:0;display:grid;place-items:center;color:#bfe6cf;
+  font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.1em;text-transform:uppercase;gap:var(--sp-3);}
+.boot-dot{width:44px;height:44px;border-radius:50%;border:3px solid #2f6b4d;border-top-color:#7bffb0;
+  animation:spin 1s linear infinite;margin-inline:auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+[data-reduced-motion=on] .boot-dot{animation-duration:2s;}
+.hud{position:absolute;pointer-events:none;color:#eafff2;font-family:var(--font-data);z-index:2;}
+.hud--tag{top:var(--sp-3);left:var(--sp-3);background:#04120dcc;border:1px solid #2f6b4d;border-radius:999px;
+  padding:.25em .8em;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;}
+.hud--tag.hud--right{left:auto;right:var(--sp-3);}
+.hud--hint{bottom:var(--sp-3);left:0;right:0;text-align:center;font-size:.7rem;letter-spacing:.12em;
+  text-transform:uppercase;color:#8fc9a8;opacity:.85;}
+.term-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-2);margin-top:var(--sp-4);}
+@media(min-width:36rem){.term-grid{grid-template-columns:repeat(4,1fr);}}
+.term-btn{padding:.6em .5em;border-radius:var(--radius);border:1px solid var(--line-strong);background:var(--paper);
+  font:inherit;font-size:var(--step--1);font-weight:700;color:var(--ink);cursor:pointer;text-align:center;
+  transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.term-btn:hover{border-color:var(--accent);}
+.term-btn.is-active{border-color:var(--signal);background:var(--signal-wash);box-shadow:inset 0 0 0 1.5px var(--signal);}
+.term-btn__tag{display:block;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:.2em;}
+.term-btn.is-plant .term-btn__tag{color:var(--accent);}
+.reveal-panel{margin-top:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);
+  background:var(--surface);display:flex;gap:var(--sp-3);align-items:center;min-height:3.4rem;}
+.reveal-panel__hint{color:var(--ink-3);font-size:var(--step--1);}
+
+/* ---- scanner HUD frame around the real microscope photos (Investigate) ---- */
+.rankbar{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);
+  border-radius:var(--radius-lg);background:linear-gradient(160deg,#0d241d,#122c22);color:#eafff2;margin-bottom:var(--sp-4);}
+.rankbar__badge{flex:none;width:2.8rem;height:2.8rem;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#1f8a5c,#0c4d33);border:1px solid #3fd08b;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.rankbar__badge b{font-size:1.2rem;font-weight:800;}
+.rankbar__body{flex:1;min-width:0;}
+.rankbar__row{display:flex;justify-content:space-between;font-size:.7rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#a9e9c7;margin-bottom:3px;flex-wrap:wrap;gap:.3em;}
+.rankbar__track{height:9px;border-radius:999px;background:#04120d;border:1px solid #2f6b4d;overflow:hidden;}
+.rankbar__fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#3fd08b,#a6ff5c);
+  box-shadow:0 0 12px #3fd08baa;transition:width var(--dur-slow) var(--ease);}
+.streak-chip{display:inline-flex;align-items:center;gap:.25em;font-size:.72rem;font-weight:700;color:#ffd27a;letter-spacing:.06em;}
+.streak-chip.hot{animation:flamepulse 1.1s ease-in-out infinite;}
+@keyframes flamepulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+[data-reduced-motion=on] .streak-chip.hot{animation:none;}
+
+.scan-frame{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:#050505;border:2px solid #163a2c;box-shadow:0 0 0 1px #0c1f18, var(--shadow-2);}
+.scan-frame img{width:100%;height:auto;display:block;}
+.scan-frame::before{content:"";position:absolute;left:0;right:0;height:38%;top:-40%;pointer-events:none;z-index:3;
+  background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent-hi) 55%, transparent) 45%, transparent);
+  animation:scansweep 3.4s linear infinite;mix-blend-mode:screen;}
+[data-reduced-motion=on] .scan-frame::before{display:none;}
+@keyframes scansweep{0%{top:-40%;}100%{top:100%;}}
+.scan-corner{position:absolute;width:1.4rem;height:1.4rem;border:2px solid #7bffb0;z-index:3;pointer-events:none;opacity:.9;}
+.scan-corner--tl{top:8px;left:8px;border-right:none;border-bottom:none;}
+.scan-corner--tr{top:8px;right:8px;border-left:none;border-bottom:none;}
+.scan-corner--bl{bottom:8px;left:8px;border-right:none;border-top:none;}
+.scan-corner--br{bottom:8px;right:8px;border-left:none;border-top:none;}
+.scan-label{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:3;background:#04120dd9;
+  border:1px solid #2f6b4d;color:#7bffb0;font-family:var(--font-data);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2em .7em;border-radius:999px;}
+
+.diagram-wrap{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-1);}
+.diagram-wrap img{width:100%;height:auto;display:block;}
+.slide-row{display:grid;gap:var(--sp-4);grid-template-columns:1fr;}
+@media(min-width:48rem){.slide-row{grid-template-columns:1fr 1fr;}}
+.slide-card{display:flex;flex-direction:column;gap:var(--sp-2);}
+.slide-card__label{font-family:var(--font-data);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+.diagram-credit{font-size:.66rem;color:var(--ink-3);margin-top:.3em;}
+.diagram-credit a{color:inherit;}
+
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.4rem;height:2.4rem;border:none;background:transparent;
+  cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.05rem;height:1.05rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 5px color-mix(in srgb, var(--signal) 26%, transparent),0 0 14px var(--signal);
+  transition:background var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+
+/* ---- Label & Match phase ---- */
+.label-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:60rem){.label-wrap{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start;}}
+.spot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border-radius:50%;z-index:4;
+  border:2px dashed #7bffb0;background:rgba(4,18,13,.45);color:#eafff2;font-weight:800;font-family:var(--font-data);
+  display:grid;place-items:center;cursor:pointer;touch-action:manipulation;transition:all var(--dur-fast) var(--ease);font-size:.85rem;}
+.spot:hover{border-color:var(--signal);}
+.spot.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+@keyframes spotshake{0%,100%{transform:translate(-50%,-50%);}30%{transform:translate(calc(-50% - 5px),-50%);}60%{transform:translate(calc(-50% + 5px),-50%);}}
+.spot.is-correct{border-style:solid;border-color:transparent;color:#fff;font-size:.62rem;padding:2px;text-align:center;line-height:1.05;
+  background:var(--positive);animation:spotpop .4s var(--ease-out-back);}
+@keyframes spotpop{0%{transform:translate(-50%,-50%) scale(.5);}60%{transform:translate(-50%,-50%) scale(1.25);}100%{transform:translate(-50%,-50%) scale(1);}}
+[data-reduced-motion=on] .spot.is-correct{animation:none;}
+.chip-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.chip-tray__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.chip-tray__btn:hover{border-color:var(--accent);}
+.chip-tray__btn.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.chip-tray__btn.is-done{opacity:.45;pointer-events:none;}
+.chip-tray__btn .tray-mark{margin-left:auto;}
+.result-note{margin-top:var(--sp-3);min-height:2.6rem;}
+
+/* ---- Sort / classify phase ---- */
+.sort-tray{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-4);}
+.sort-chip{padding:.55em 1em;border:1px solid var(--line-strong);border-radius:999px;background:var(--paper);
+  font:inherit;font-weight:700;color:var(--ink);cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.sort-chip:hover{border-color:var(--accent);}
+.sort-chip.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.sort-chip.is-placed{display:none;}
+.sort-buckets{display:grid;gap:var(--sp-3);grid-template-columns:1fr;}
+@media(min-width:36rem){.sort-buckets{grid-template-columns:1fr 1fr;}}
+.bucket{position:relative;border:2px dashed var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-3);min-height:8rem;
+  transition:border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);overflow:hidden;}
+.bucket.is-target{border-color:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 18%, transparent);}
+.bucket.is-shake{animation:bucketshake .32s ease;}
+.bucket.is-flash{animation:bucketflash .5s ease;}
+@keyframes bucketshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-6px);}60%{transform:translateX(6px);}}
+@keyframes bucketflash{0%{box-shadow:inset 0 0 0 3px var(--positive);}100%{box-shadow:inset 0 0 0 0 transparent;}}
+[data-reduced-motion=on] .bucket.is-shake,[data-reduced-motion=on] .bucket.is-flash{animation:none;}
+.bucket__title{font-weight:800;margin-bottom:var(--sp-2);}
+.bucket__items{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.bucket__item{padding:.4em .8em;border-radius:999px;color:#fff;font-weight:700;font-size:var(--step--1);background:var(--positive);
+  animation:chipland .4s var(--ease-out-back);}
+@keyframes chipland{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+[data-reduced-motion=on] .bucket__item{animation:none;}
+.sort-progress{font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);margin-top:var(--sp-2);}
+
+/* ---- particle bursts + level-up celebration ---- */
+.game-layer{position:relative;}
+.burst-anchor{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:6;}
+.burst-anchor i{position:absolute;width:8px;height:8px;border-radius:2px;opacity:.95;}
+.levelup{position:fixed;inset:0;z-index:50;display:grid;place-items:center;pointer-events:none;
+  background:radial-gradient(circle at 50% 45%, rgba(6,25,18,.55), rgba(6,25,18,.85));
+  opacity:0;transition:opacity var(--dur-mid) var(--ease);}
+.levelup.show{opacity:1;}
+.levelup__card{text-align:center;color:#eafff2;transform:scale(.7);transition:transform var(--dur-slow) var(--ease-out-back);}
+.levelup.show .levelup__card{transform:scale(1);}
+.levelup__k{font-family:var(--font-data);letter-spacing:.3em;font-size:.8rem;color:#a6ff5c;}
+.levelup__n{font-family:var(--font-display);font-size:2rem;line-height:1.15;font-weight:800;margin:.1em 0;
+  text-shadow:0 0 24px #3fd08b88;}
+.levelup__s{font-family:var(--font-data);font-size:.8rem;color:#bfe6cf;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<script>
+(function(){try{
+  var lang=(localStorage.getItem('dl-lang')||'en');
+  if(lang==='es'){
+    var m=document.querySelector('meta[name="description"]');
+    if(m)m.setAttribute('content','Orbita una célula vegetal y una célula animal en 3D, y luego escanea dos fotografías reales de microscopio para identificar orgánulos y descubrir qué estructuras son exclusivas de las células vegetales.');
+  }
+}catch(e){}})();
+</script>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../">Secondary</a></li>
+      <li><a href="../../../">A-Level Pathway</a></li>
+      <li><a href="../../">Lower Secondary Stage 2 Science</a></li>
+      <li><a href="../">Lesson 3: Cell Structure</a></li>
+      <li><span aria-current="page">The Cell Structure Detective</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../">Secundaria</a></li>
+      <li><a href="../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../">Ciencias de Lower Secondary, Etapa 2</a></li>
+      <li><a href="../">Lección 3: Estructura celular</a></li>
+      <li><span aria-current="page">El Detective de la Estructura Celular</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=11";
+import { getLang } from "../../../../../engine/i18n.js?v=4";
+
+const THREE_URL = "../../../../../engine/vendor/three.min.js";
+
+/* Simulation-local strings — this activity's own hotspot labels, reveal text,
+   and in-canvas hints. Engine-level chrome is translated in engine/i18n.js;
+   this dictionary is scoped to this one activity's custom mechanic. */
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   THE SEVEN ORGANELLE TERMS — used by the 3D viewer (Orient) and the
+   sort/classify phase (Investigate). Curriculum-accurate split: KS3/GCSE
+   treat wall, chloroplast and permanent vacuole as plant-only; nucleus,
+   membrane, cytoplasm and mitochondria as shared by every cell.
+   ====================================================================== */
+const TERMS = {
+  wall:      { name: L("Cell wall", "Pared celular"), group: "plant",
+    job: L("A rigid layer outside the membrane that supports and strengthens the cell.", "Una capa rígida fuera de la membrana que sostiene y refuerza la célula.") },
+  chloro:    { name: L("Chloroplast", "Cloroplasto"), group: "plant",
+    job: L("Captures light energy for photosynthesis — this is why it's green.", "Capta la energía luminosa para la fotosíntesis — por eso es verde.") },
+  vacuole:   { name: L("Large vacuole", "Vacuola grande"), group: "plant",
+    job: L("A huge sac of cell sap (water and nutrients) that keeps the cell firm and rigid.", "Un gran saco de savia celular (agua y nutrientes) que mantiene la célula firme y rígida.") },
+  nucleus:   { name: L("Nucleus", "Núcleo"), group: "both",
+    job: L("Controls the cell and holds its genetic information.", "Controla la célula y contiene su información genética.") },
+  membrane:  { name: L("Cell membrane", "Membrana celular"), group: "both",
+    job: L("A thin, flexible boundary that controls what enters and leaves the cell.", "Un límite delgado y flexible que controla qué entra y sale de la célula.") },
+  cytoplasm: { name: L("Cytoplasm", "Citoplasma"), group: "both",
+    job: L("A jelly-like substance where chemical reactions happen.", "Una sustancia gelatinosa donde ocurren las reacciones químicas.") },
+  mito:      { name: L("Mitochondria", "Mitocondria"), group: "both",
+    job: L("Releases energy from food by respiration — every living cell needs this constantly.", "Libera energía de los alimentos mediante la respiración — toda célula viva la necesita constantemente.") },
+};
+const TERM_ORDER = ["wall","chloro","vacuole","nucleus","membrane","cytoplasm","mito"];
+
+/* ======================================================================
+   THE TWO REAL MICROSCOPE PHOTOS (Investigate — the graded evidence).
+   Hotspot positions are fractions (0-1) of the photo's own width/height,
+   verified against a debug overlay before use, so each dot lands on a
+   feature a student can actually recognise.
+   Plant photo: Lilyviolet, "Anacharis Magnified", Wikimedia Commons,
+   CC BY 4.0 — resized and cropped to the microscope field of view.
+   Animal photo: Krishna satya 333, "Nucleus in human cheek cells",
+   Wikimedia Commons, CC BY-SA 4.0 — resized.
+   ====================================================================== */
+const PLANT_IMG = "photos/plant-cell-anacharis.jpg";
+const ANIMAL_IMG = "photos/animal-cell-cheek.jpg";
+const PLANT_CREDIT = 'Photo: Lilyviolet — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a> (resized/cropped)';
+const ANIMAL_CREDIT = 'Photo: Krishna satya 333 — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a> (resized)';
+
+const HOTSPOTS = {
+  wall:     { termKey: "wall",      slide: "plant",  fx: 0.50, fy: 0.395 },
+  chloro:   { termKey: "chloro",    slide: "plant",  fx: 0.24, fy: 0.84 },
+  cyto_p:   { termKey: "cytoplasm", slide: "plant",  fx: 0.73, fy: 0.60 },
+  nucleus:  { termKey: "nucleus",   slide: "animal", fx: 0.42, fy: 0.48 },
+  cyto_a:   { termKey: "cytoplasm", slide: "animal", fx: 0.62, fy: 0.31 },
+  membrane: { termKey: "membrane",  slide: "animal", fx: 0.16, fy: 0.72 },
+};
+const PLANT_KEYS = ["wall","chloro","cyto_p"];
+const ANIMAL_KEYS = ["nucleus","cyto_a","membrane"];
+const SORT_ITEMS = TERM_ORDER.map(id => ({ id, name: TERMS[id].name, group: TERMS[id].group }));
+
+function slideImgHTML(src, alt){
+  return `<img src="${src}" width="700" height="700" loading="lazy" alt="${alt}">`;
+}
+
+/* ======================================================================
+   GAME LAYER — rank/XP/streak + particle bursts + level-up celebration.
+   Shared across the label phases and the sort phase.
+   ====================================================================== */
+const XP_PER_ACTION = 20;
+const RANKS = [
+  { at: 0,   name: L("Trainee Microscopist","Microscopista aprendiz") },
+  { at: 60,  name: L("Lab Technician","Técnico de laboratorio") },
+  { at: 140, name: L("Cell Detective","Detective celular") },
+  { at: 220, name: L("Master Biologist","Biólogo maestro") },
+];
+function rankFor(xp){ let r = RANKS[0]; for (const x of RANKS) if (xp >= x.at) r = x; return r; }
+function nextRankAt(xp){ const next = RANKS.find(x => x.at > xp); return next ? next.at : null; }
+
+function reducedMotion(){ return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+
+function fireBurst(host, colors){
+  if (reducedMotion()) return;
+  let layer = host.querySelector(":scope > .burst-anchor");
+  if (!layer){ layer = document.createElement("div"); layer.className = "burst-anchor"; host.appendChild(layer); }
+  const rect = host.getBoundingClientRect();
+  const cx = rect.width / 2, cy = Math.min(80, rect.height / 2);
+  for (let i = 0; i < 18; i++){
+    const p = document.createElement("i");
+    const ang = Math.random() * Math.PI * 2, dist = 40 + Math.random() * 90;
+    p.style.background = colors[i % colors.length];
+    p.style.left = cx + "px"; p.style.top = cy + "px";
+    layer.append(p);
+    const x = Math.cos(ang) * dist, y = Math.sin(ang) * dist - 30;
+    p.animate(
+      [{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${x}px,${y}px) rotate(${Math.random()*480}deg) scale(.3)`, opacity: 0 }],
+      { duration: 700 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
+}
+
+function ensureLevelUpEl(){
+  let el = document.getElementById("cd-levelup");
+  if (!el){
+    el = document.createElement("div"); el.id = "cd-levelup"; el.className = "levelup";
+    el.innerHTML = `<div class="levelup__card"><div class="levelup__k">${L("RANK UP","SUBIDA DE RANGO")}</div><div class="levelup__n" id="cd-lu-n"></div><div class="levelup__s">${L("New rank reached!","¡Nuevo rango alcanzado!")}</div></div>`;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function celebrateLevelUp(rankName){
+  const el = ensureLevelUpEl();
+  el.querySelector("#cd-lu-n").textContent = rankName;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+let sim = null;
+
+const simulation = {
+  orient(host, api){
+    host.innerHTML = "";
+    sim = api;
+
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Drag to orbit a real 3D plant cell and animal cell side by side, then tap each term below to light up that structure and learn what it does.",
+      "Arrastra para orbitar una célula vegetal y una célula animal en 3D, y luego toca cada término de abajo para iluminar esa estructura y aprender qué hace.");
+    host.append(intro);
+
+    const stage = document.createElement("div"); stage.className = "stage3d";
+    const boot = document.createElement("div"); boot.className = "stage3d__boot";
+    boot.innerHTML = `<div><div class="boot-dot"></div><div style="margin-top:.8em">${L("Loading 3D cell viewer…","Cargando visor de células 3D…")}</div></div>`;
+    stage.append(boot);
+    const tagL = document.createElement("div"); tagL.className = "hud hud--tag"; tagL.textContent = L("PLANT CELL","CÉLULA VEGETAL");
+    const tagR = document.createElement("div"); tagR.className = "hud hud--tag hud--right"; tagR.textContent = L("ANIMAL CELL","CÉLULA ANIMAL");
+    const hint = document.createElement("div"); hint.className = "hud hud--hint"; hint.textContent = L("drag to orbit · scroll to zoom","arrastra para orbitar · desplázate para hacer zoom");
+    stage.append(tagL, tagR, hint);
+    host.append(stage);
+
+    const reveal = document.createElement("div"); reveal.className = "reveal-panel";
+    reveal.innerHTML = `<span class="reveal-panel__hint">${L("Tap a term below ↓","Toca un término de abajo ↓")}</span>`;
+    host.append(reveal);
+
+    const grid = document.createElement("div"); grid.className = "term-grid"; grid.setAttribute("role","group");
+    grid.setAttribute("aria-label", L("Organelle terms","Términos de orgánulos"));
+    const btns = {};
+    TERM_ORDER.forEach(key => {
+      const term = TERMS[key];
+      const b = document.createElement("button"); b.type = "button"; b.className = "term-btn" + (term.group === "plant" ? " is-plant" : "");
+      b.innerHTML = `${term.name}<span class="term-btn__tag">${term.group === "plant" ? L("plant only","solo vegetal") : L("found in both","en ambas")}</span>`;
+      b.addEventListener("click", () => {
+        Object.values(btns).forEach(x => x.classList.remove("is-active"));
+        b.classList.add("is-active");
+        reveal.innerHTML = `<b>${term.name}</b><br>${term.job}`;
+        if (scene) scene.flash(key);
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(`${term.name}. ${term.job}`);
+      });
+      btns[key] = b; grid.append(b);
+    });
+    host.append(grid);
+
+    let scene = null;
+    (async () => {
+      try {
+        const THREE = await loadThree();
+        scene = build3DCells(THREE, stage);
+      } catch (e) {
+        console.warn("3D unavailable, using fallback:", e);
+        scene = buildFallbackCells(stage);
+      }
+      boot.remove();
+    })();
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = "";
+    const game = sim.state.game || (sim.state.game = {});
+    game.phase = game.phase || "plant";
+    game.plantDone = game.plantDone || {};
+    game.animalDone = game.animalDone || {};
+    game.sortDone = game.sortDone || {};
+    game.xp = game.xp || 0;
+    game.streak = game.streak || 0;
+
+    sim.setScienceMethod({
+      observation: L(
+        "Two real, unlabelled microscope photographs are on the bench: a pondweed (Anacharis) leaf cell and a human cheek cell. Both are living cells, but under the microscope they look strikingly different.",
+        "Hay dos fotografías reales y sin etiquetar de microscopio en la mesa: una célula de hoja de elodea y una célula de mejilla humana. Ambas son células vivas, pero al microscopio se ven muy diferentes."),
+      question: L("Which structures are found in every living cell, and which are found only in plant cells?",
+        "¿Qué estructuras se encuentran en toda célula viva, y cuáles se encuentran solo en las células vegetales?"),
+      hypothesis: L(
+        "If a cell has a rigid cell wall and green chloroplasts, then it must be a plant cell, because only plant cells build their own food by photosynthesis and need the extra rigid layer for support.",
+        "Si una célula tiene una pared celular rígida y cloroplastos verdes, entonces debe ser una célula vegetal, porque solo las células vegetales fabrican su propio alimento mediante la fotosíntesis y necesitan la capa rígida extra como soporte."),
+      variables: {
+        independent: L("Which real microscope photo is being examined — the plant (pondweed) cell or the animal (cheek) cell.",
+          "Qué foto real de microscopio se está examinando — la célula vegetal (elodea) o la animal (mejilla)."),
+        dependent: L("Which organelles can be correctly identified on each photo, and how each organelle is classified (plant cells only / found in both).",
+          "Qué orgánulos se pueden identificar correctamente en cada foto, y cómo se clasifica cada orgánulo (solo vegetal / en ambas)."),
+        controlled: L("The same organelle checklist and the same tap-to-identify procedure is used on both photos, so the comparison between the plant and animal cell is fair.",
+          "Se usa la misma lista de orgánulos y el mismo procedimiento de identificación por toque en ambas fotos, así la comparación entre la célula vegetal y la animal es justa.")
+      }
+    });
+
+    const wrap = document.createElement("div"); wrap.className = "game-layer"; host.append(wrap);
+
+    /* ---- persistent rank/XP/streak bar ---- */
+    const rankbar = document.createElement("div"); rankbar.className = "rankbar";
+    rankbar.innerHTML = `<div class="rankbar__badge"><b id="cd-lvl">1</b></div>
+      <div class="rankbar__body">
+        <div class="rankbar__row"><span id="cd-rankname">${rankFor(game.xp).name}</span><span id="cd-xptext">${game.xp} XP</span></div>
+        <div class="rankbar__track"><div class="rankbar__fill" id="cd-xpfill"></div></div>
+        <div class="streak-chip" id="cd-streak" hidden></div>
+      </div>`;
+    wrap.append(rankbar);
+    function paintRank(){
+      const rank = rankFor(game.xp);
+      document.getElementById("cd-rankname").textContent = rank.name;
+      document.getElementById("cd-xptext").textContent = game.xp + " XP";
+      const idx = RANKS.indexOf(rank);
+      document.getElementById("cd-lvl").textContent = idx + 1;
+      const next = nextRankAt(game.xp);
+      const base = rank.at, span = next ? next - base : 80;
+      const pct = Math.max(0, Math.min(1, (game.xp - base) / span)) * 100;
+      document.getElementById("cd-xpfill").style.width = pct + "%";
+      const streakEl = document.getElementById("cd-streak");
+      if (game.streak >= 3){ streakEl.hidden = false; streakEl.classList.add("hot"); streakEl.innerHTML = L(`🔥 streak x${game.streak}`,`🔥 racha x${game.streak}`); }
+      else { streakEl.hidden = true; streakEl.classList.remove("hot"); }
+    }
+    paintRank();
+    function awardXP(host2){
+      const before = rankFor(game.xp);
+      game.xp += XP_PER_ACTION; game.streak += 1;
+      sim.save && sim.save();
+      paintRank();
+      fireBurst(host2, ["#a6ff5c","#3fd08b","#ffd45c","#eafff2"]);
+      const after = rankFor(game.xp);
+      if (after !== before) celebrateLevelUp(after.name);
+    }
+    function breakStreak(){ game.streak = 0; sim.save && sim.save(); paintRank(); }
+
+    const phaseHost = document.createElement("div"); wrap.append(phaseHost);
+    if (game.phase === "plant") renderLabelPhase("plant", PLANT_KEYS, PLANT_IMG, PLANT_CREDIT,
+      L("Slide A — pondweed (Anacharis) leaf","Portaobjetos A — hoja de elodea"));
+    else if (game.phase === "animal") renderLabelPhase("animal", ANIMAL_KEYS, ANIMAL_IMG, ANIMAL_CREDIT,
+      L("Slide B — human cheek cell","Portaobjetos B — célula de mejilla humana"));
+    else renderSortPhase();
+
+    /* ==================================================================
+       PHASE 1 & 2 — LABEL & MATCH on a real photo inside a scanner HUD,
+       tap-item then tap-spot, with an immediate in-place reaction on
+       every click (correct or not).
+       ================================================================== */
+    function renderLabelPhase(slideKey, keys, img, credit, label){
+      phaseHost.innerHTML = "";
+      const done = slideKey === "plant" ? game.plantDone : game.animalDone;
+      const labelWrap = document.createElement("div"); labelWrap.className = "label-wrap";
+
+      const left = document.createElement("div");
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = (slideKey === "plant" ? L("Step 1 of 3 — ","Paso 1 de 3 — ") : L("Step 2 of 3 — ","Paso 2 de 3 — ")) + label;
+      left.append(stepLabel);
+
+      const frame = document.createElement("div"); frame.className = "scan-frame";
+      frame.innerHTML = slideImgHTML(img, label) +
+        `<span class="scan-corner scan-corner--tl"></span><span class="scan-corner scan-corner--tr"></span>
+         <span class="scan-corner scan-corner--bl"></span><span class="scan-corner scan-corner--br"></span>
+         <span class="scan-label">${L("ANALYZING SLIDE","ANALIZANDO MUESTRA")}</span>`;
+      left.append(frame);
+
+      const hint = document.createElement("p"); hint.className = "diagram-caption";
+      hint.textContent = L("Tap an organelle below, then tap its spot on the photo.","Toca un orgánulo abajo y luego toca su lugar en la foto.");
+      left.append(hint);
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "label-note";
+      left.append(note);
+      const creditEl = document.createElement("p"); creditEl.className = "diagram-credit"; creditEl.innerHTML = credit;
+      left.append(creditEl);
+      labelWrap.append(left);
+
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+
+      const side = document.createElement("div");
+      side.innerHTML = `<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Organelles","Orgánulos")}</p>`;
+      const tray = document.createElement("div"); tray.className = "chip-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Organelles to identify","Orgánulos a identificar"));
+      const shuffled = [...keys].sort(()=>Math.random()-0.5);
+      const chipNodes = {}; let armed = null;
+
+      shuffled.forEach(key=>{
+        const term = TERMS[HOTSPOTS[key].termKey];
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn";
+        if (done[key]) b.classList.add("is-done");
+        b.innerHTML = `<span>${term.name}</span><span class="tray-mark">✓</span>`;
+        b.addEventListener("click", ()=>{
+          if (b.classList.contains("is-done")) return;
+          Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
+          b.classList.add("is-armed"); armed = key;
+          flashNote(L(`${term.name} selected — now tap its spot on the photo.`,`${term.name} seleccionado — ahora toca su lugar en la foto.`), "info");
+        });
+        chipNodes[key] = b; tray.append(b);
+      });
+      side.append(tray); labelWrap.append(side);
+      phaseHost.append(labelWrap);
+
+      let matched = Object.keys(done).length;
+      if (matched) hint.textContent = L(`${matched} / ${keys.length} matched. Tap an organelle below, then tap its spot.`, `${matched} / ${keys.length} relacionadas. Toca un orgánulo abajo y luego su lugar.`);
+      const spotNodes = {};
+      keys.forEach(key=>{
+        const h = HOTSPOTS[key], term = TERMS[h.termKey];
+        const s = document.createElement("button"); s.type = "button"; s.className = "spot";
+        s.style.left = (h.fx*100)+"%"; s.style.top = (h.fy*100)+"%";
+        s.setAttribute("aria-label", L("Unlabelled spot","Punto sin etiquetar"));
+        if (done[key]) { s.classList.add("is-correct"); s.textContent = "✓"; chipNodes[key].classList.add("is-done"); }
+        s.addEventListener("click", ()=>{
+          if (s.classList.contains("is-correct")) return;
+          if (!armed){
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            flashNote(L("Tap an organelle in the list first, then tap its spot.","Toca primero un orgánulo de la lista y luego toca su lugar."), "info");
+            return;
+          }
+          if (armed === key){
+            s.classList.add("is-correct"); s.textContent = "✓";
+            chipNodes[key].classList.add("is-done");
+            done[key] = true; matched++;
+            hint.textContent = L(`${matched} / ${keys.length} matched.`, `${matched} / ${keys.length} relacionadas.`);
+            flashNote(L(`Correct! ${term.name} identified.`,`¡Correcto! ${term.name} identificado.`), "correct");
+            sim.recordTrial({ stage: label, organelle: term.name, result: L("Identified","Identificado") });
+            awardXP(wrap);
+            if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(term.name+(getLang()==="es"?" identificado.":" identified."));
+            armed = null;
+            if (matched === keys.length){
+              setTimeout(()=>{
+                if (slideKey === "plant"){ game.phase = "animal"; sim.save && sim.save(); renderLabelPhase("animal", ANIMAL_KEYS, ANIMAL_IMG, ANIMAL_CREDIT, L("Slide B — human cheek cell","Portaobjetos B — célula de mejilla humana")); }
+                else { game.phase = "sort"; sim.save && sim.save(); renderSortPhase(); }
+              }, 700);
+            }
+          } else {
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            breakStreak();
+            const wrongName = TERMS[HOTSPOTS[armed].termKey].name;
+            flashNote(L(`Not quite — that's not where the ${wrongName} is. Try again.`,`No exactamente — ahí no está ${wrongName}. Inténtalo de nuevo.`), "info");
+          }
+        });
+        spotNodes[key] = s; frame.append(s);
+      });
+    }
+
+    /* ==================================================================
+       PHASE 3 — SORT & CLASSIFY: tap an organelle, then tap the bucket
+       it belongs in. Every tap reacts immediately, right where it happened.
+       ================================================================== */
+    function renderSortPhase(){
+      phaseHost.innerHTML = "";
+      const sortWrap = document.createElement("div"); sortWrap.className = "stack";
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = L("Step 3 of 3 — Sort every organelle","Paso 3 de 3 — Clasifica cada orgánulo");
+      sortWrap.append(stepLabel);
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Tap an organelle, then tap the group it belongs in.","Toca un orgánulo y luego el grupo al que pertenece.");
+      sortWrap.append(lede);
+
+      const tray = document.createElement("div"); tray.className = "sort-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Organelles to sort","Orgánulos a clasificar"));
+      const chips = {};
+      const shuffledItems = [...SORT_ITEMS].sort(()=>Math.random()-0.5);
+      let armed = null;
+      shuffledItems.forEach(item=>{
+        const c = document.createElement("button"); c.type = "button"; c.className = "sort-chip";
+        c.textContent = item.name;
+        if (game.sortDone[item.id]) c.classList.add("is-placed");
+        c.addEventListener("click", ()=>{
+          if (c.classList.contains("is-placed")) return;
+          Object.values(chips).forEach(x=>x.classList.remove("is-armed"));
+          c.classList.add("is-armed"); armed = item.id;
+          both.classList.add("is-target"); plantOnly.classList.add("is-target");
+        });
+        chips[item.id] = c; tray.append(c);
+      });
+      sortWrap.append(tray);
+
+      const buckets = document.createElement("div"); buckets.className = "sort-buckets";
+      const both = document.createElement("div"); both.className = "bucket";
+      both.innerHTML = `<div class="bucket__title">${L("Found in both plant and animal cells","Se encuentra en ambas células")}</div><div class="bucket__items" id="bucket-both"></div>`;
+      const plantOnly = document.createElement("div"); plantOnly.className = "bucket";
+      plantOnly.innerHTML = `<div class="bucket__title">${L("Plant cells only","Solo en células vegetales")}</div><div class="bucket__items" id="bucket-plant"></div>`;
+      buckets.append(both, plantOnly); sortWrap.append(buckets);
+
+      const progress = document.createElement("p"); progress.className = "sort-progress"; progress.id = "sort-progress";
+      sortWrap.append(progress);
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "sort-note";
+      sortWrap.append(note);
+      phaseHost.append(sortWrap);
+
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+      function updateProgress(){
+        const doneCount = Object.keys(game.sortDone).length;
+        progress.textContent = L(`${doneCount} / ${SORT_ITEMS.length} sorted`, `${doneCount} / ${SORT_ITEMS.length} clasificados`);
+      }
+      SORT_ITEMS.forEach(item=>{
+        if (game.sortDone[item.id]){
+          const target = item.group === "both" ? document.getElementById("bucket-both") : document.getElementById("bucket-plant");
+          const tag = document.createElement("span"); tag.className = "bucket__item"; tag.textContent = item.name;
+          target.append(tag);
+        }
+      });
+      updateProgress();
+
+      [ {el: both, group: "both"}, {el: plantOnly, group: "plant"} ].forEach(({el, group})=>{
+        el.addEventListener("click", ()=>{
+          if (!armed) return;
+          const item = SORT_ITEMS.find(i=>i.id===armed);
+          if (item.group === group){
+            const target = group === "both" ? document.getElementById("bucket-both") : document.getElementById("bucket-plant");
+            const tag = document.createElement("span"); tag.className = "bucket__item"; tag.textContent = item.name;
+            target.append(tag);
+            chips[armed].classList.add("is-placed");
+            game.sortDone[armed] = true;
+            sim.recordTrial({ stage: L("Classification","Clasificación"), organelle: item.name,
+              result: group === "both" ? L("Correct — found in both","Correcto — en ambas") : L("Correct — plant cells only","Correcto — solo vegetal") });
+            flashNote(L(`Correct! ${item.name} sorted.`,`¡Correcto! ${item.name} clasificado.`), "correct");
+            el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash");
+            awardXP(wrap);
+            armed = null; both.classList.remove("is-target"); plantOnly.classList.remove("is-target");
+            updateProgress();
+            if (Object.keys(game.sortDone).length === SORT_ITEMS.length){
+              const plantCorrect = PLANT_KEYS.length, animalCorrect = ANIMAL_KEYS.length, sortCorrect = SORT_ITEMS.length;
+              sim.setScienceMethod({
+                results: L(
+                  `All ${plantCorrect} structures were located on the plant cell photo and all ${animalCorrect} on the animal cell photo, then all ${sortCorrect} organelles were classified as "plant cells only" or "found in both".`,
+                  `Se localizaron las ${plantCorrect} estructuras en la foto de la célula vegetal y las ${animalCorrect} en la foto de la célula animal, y se clasificaron los ${sortCorrect} orgánulos como "solo vegetal" o "en ambas".`),
+                analysis: L(
+                  "Every organelle placed in 'plant cells only' — the cell wall, the chloroplast and the large vacuole — was one that never appeared on the human cheek cell photo, while structures seen on both photos (or known to be in both) were sorted into 'found in both'.",
+                  "Cada orgánulo colocado en 'solo células vegetales' —la pared celular, el cloroplasto y la vacuola grande— nunca apareció en la foto de la célula de mejilla humana, mientras que las estructuras vistas en ambas fotos (o sabidas presentes en ambas) se clasificaron como 'en ambas'."),
+                conclusion: L(
+                  "The pondweed photo showed a rigid cell wall and green chloroplasts that the cheek cell photo never showed, while both cells shared structures such as cytoplasm — supporting the hypothesis that a cell wall and chloroplasts are reliable evidence of a plant cell.",
+                  "La foto de elodea mostró una pared celular rígida y cloroplastos verdes que nunca aparecieron en la foto de la célula de mejilla, mientras que ambas células compartieron estructuras como el citoplasma — esto apoya la hipótesis de que una pared celular y los cloroplastos son evidencia fiable de una célula vegetal."),
+                reflection: L(
+                  "The most obvious plant-only clues were the cell wall and the chloroplasts — both very visible even at low magnification. Telling cytoplasm apart from the surrounding structures was the trickiest identification, which is exactly why real biologists stain slides with dyes before examining them.",
+                  "Las pistas exclusivas de las plantas más evidentes fueron la pared celular y los cloroplastos —muy visibles incluso a poco aumento. Distinguir el citoplasma de las estructuras cercanas fue la identificación más difícil, y por eso los biólogos tiñen los portaobjetos con colorantes antes de examinarlos.")
+              });
+              setTimeout(()=>{
+                flashNote(L("All organelles sorted! Move on to Record to see your results.","¡Todos los orgánulos clasificados! Continúa a Registro para ver tus resultados."), "correct");
+              }, 300);
+            }
+          } else {
+            el.classList.remove("is-shake"); void el.offsetWidth; el.classList.add("is-shake");
+            breakStreak();
+            flashNote(L("Not that group — think about whether an animal cell could ever have this structure.","Ese grupo no — piensa si una célula animal podría tener esta estructura alguna vez."), "info");
+          }
+        });
+      });
+    }
+  }
+};
+
+/* ======================================================================
+   THREE.JS LOADER
+   ====================================================================== */
+let threePromise = null;
+function loadThree(){
+  if (window.THREE) return Promise.resolve(window.THREE);
+  if (threePromise) return threePromise;
+  threePromise = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = THREE_URL;
+    s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("THREE missing"));
+    s.onerror = () => rej(new Error("three.min.js failed to load"));
+    document.head.appendChild(s);
+  });
+  return threePromise;
+}
+
+/* ======================================================================
+   GEOMETRY HELPER
+   ====================================================================== */
+function capsuleMesh(THREE, radius, length, mat){
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 16), mat);
+  body.rotation.z = Math.PI / 2; g.add(body);
+  const capA = new THREE.Mesh(new THREE.SphereGeometry(radius, 16, 12), mat); capA.position.x = length / 2; g.add(capA);
+  const capB = new THREE.Mesh(new THREE.SphereGeometry(radius, 16, 12), mat); capB.position.x = -length / 2; g.add(capB);
+  return g;
+}
+
+/* ======================================================================
+   THE 3D SCENE — a plant cell and an animal cell, side by side, orbitable.
+   Tapping a term flashes every mesh tagged with that key (no in-canvas
+   picking is needed, so the orbit-drag never conflicts with a click).
+   ====================================================================== */
+function build3DCells(THREE, stageEl){
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  stageEl.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x08201a, 10, 26);
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+
+  scene.add(new THREE.HemisphereLight(0xbfe6cf, 0x1a2b22, 0.7));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  const key = new THREE.DirectionalLight(0xfff2d0, 1.1); key.position.set(3, 6, 4); scene.add(key);
+  const rim = new THREE.PointLight(0x7bffb0, 1.2, 14); rim.position.set(-4, 1, -3); scene.add(rim);
+  const rim2 = new THREE.PointLight(0x9a6e05, 0.9, 14); rim2.position.set(4, -1, 3); scene.add(rim2);
+
+  const rig = new THREE.Group(); scene.add(rig);
+  const meshesByKey = {};
+  function tag(mesh, key){ (meshesByKey[key] = meshesByKey[key] || []).push(mesh); }
+
+  /* ---- plant cell (left) ---- */
+  const plant = new THREE.Group(); plant.position.x = -1.7; rig.add(plant);
+  const wallGeo = new THREE.BoxGeometry(2.15, 2.5, 1.9);
+  const wallLines = new THREE.LineSegments(new THREE.EdgesGeometry(wallGeo), new THREE.LineBasicMaterial({ color: 0x9a6e05 }));
+  plant.add(wallLines); tag(wallLines, "wall");
+  const membraneMat = new THREE.MeshPhysicalMaterial({ color: 0x3fd08b, transparent: true, opacity: 0.16, roughness: 0.15, side: THREE.DoubleSide });
+  const membraneMesh = new THREE.Mesh(new THREE.BoxGeometry(1.95, 2.3, 1.7), membraneMat);
+  plant.add(membraneMesh); tag(membraneMesh, "membrane"); tag(membraneMesh, "cytoplasm");
+  const vacuoleMesh = new THREE.Mesh(new THREE.SphereGeometry(0.82, 24, 18),
+    new THREE.MeshPhysicalMaterial({ color: 0xbfe9ff, transparent: true, opacity: 0.28, roughness: 0.05 }));
+  vacuoleMesh.position.set(0.1, -0.05, 0); plant.add(vacuoleMesh); tag(vacuoleMesh, "vacuole");
+  const nucleusPlantMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 20, 16),
+    new THREE.MeshStandardMaterial({ color: 0x5c3d8f, emissive: 0x2a1a4a, emissiveIntensity: 0.3 }));
+  nucleusPlantMesh.position.set(-0.7, 0.85, 0.5); plant.add(nucleusPlantMesh); tag(nucleusPlantMesh, "nucleus");
+  const chloroPositions = [[-0.85,0.6,0.7],[0.6,0.9,-0.6],[-0.7,-0.7,-0.6],[0.8,-0.5,0.6],[0,0.95,0.1],[-0.3,-0.95,0.5]];
+  chloroPositions.forEach(p => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 10),
+      new THREE.MeshStandardMaterial({ color: 0x2f9d4d, emissive: 0x1a5c2c, emissiveIntensity: 0.35 }));
+    m.position.set(...p); plant.add(m); tag(m, "chloro");
+  });
+  const mitoPlantA = capsuleMesh(THREE, 0.09, 0.32, new THREE.MeshStandardMaterial({ color: 0xd0553f, emissive: 0x5c2418, emissiveIntensity: 0.25 }));
+  mitoPlantA.position.set(0.5, 0.3, 0.75); plant.add(mitoPlantA); tag(mitoPlantA, "mito");
+
+  /* ---- animal cell (right) — organic irregular blob, no wall/chloroplast/vacuole ---- */
+  const animal = new THREE.Group(); animal.position.x = 1.7; rig.add(animal);
+  const blobGeo = new THREE.IcosahedronGeometry(1.05, 3);
+  const posAttr = blobGeo.attributes.position;
+  for (let i = 0; i < posAttr.count; i++){
+    const v = new THREE.Vector3().fromBufferAttribute(posAttr, i);
+    const n = v.clone().normalize();
+    const bump = 1 + 0.12 * Math.sin(n.x * 4 + n.y * 3) + 0.08 * Math.cos(n.z * 5 + n.x * 2);
+    v.multiplyScalar(bump); posAttr.setXYZ(i, v.x, v.y, v.z);
+  }
+  blobGeo.computeVertexNormals();
+  const blobMesh = new THREE.Mesh(blobGeo, new THREE.MeshPhysicalMaterial({ color: 0xd08a8a, transparent: true, opacity: 0.32, roughness: 0.2, side: THREE.DoubleSide }));
+  animal.add(blobMesh); tag(blobMesh, "membrane"); tag(blobMesh, "cytoplasm");
+  const nucleusAnimalMesh = new THREE.Mesh(new THREE.SphereGeometry(0.34, 22, 16),
+    new THREE.MeshStandardMaterial({ color: 0x5c3d8f, emissive: 0x2a1a4a, emissiveIntensity: 0.3 }));
+  animal.add(nucleusAnimalMesh); tag(nucleusAnimalMesh, "nucleus");
+  const mitoAnimalA = capsuleMesh(THREE, 0.1, 0.34, new THREE.MeshStandardMaterial({ color: 0xd0553f, emissive: 0x5c2418, emissiveIntensity: 0.25 }));
+  mitoAnimalA.position.set(0.55, 0.35, 0.4); animal.add(mitoAnimalA); tag(mitoAnimalA, "mito");
+  const mitoAnimalB = capsuleMesh(THREE, 0.1, 0.3, new THREE.MeshStandardMaterial({ color: 0xd0553f, emissive: 0x5c2418, emissiveIntensity: 0.25 }));
+  mitoAnimalB.position.set(-0.5, -0.4, -0.35); mitoAnimalB.rotation.z = 0.7; animal.add(mitoAnimalB); tag(mitoAnimalB, "mito");
+
+  /* ---- flash registry: emissive/scale pulse decaying over time ---- */
+  const flashState = new Map();
+  function flash(termKey){
+    const list = meshesByKey[termKey] || [];
+    const now = performance.now();
+    list.forEach(m => flashState.set(m, now));
+  }
+
+  /* ---- camera orbit ---- */
+  let az = 0.5, pol = 1.2, rad = 6.4, autoT = 0, dragging = false, lastX = 0, lastY = 0, travel = 0;
+  function applyCam(){
+    const x = rad * Math.sin(pol) * Math.cos(az), z = rad * Math.sin(pol) * Math.sin(az), y = rad * Math.cos(pol);
+    camera.position.set(x, y, z); camera.lookAt(0, 0, 0);
+  }
+  const dom = renderer.domElement;
+  dom.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; travel = 0; autoT = 0; dom.setPointerCapture(e.pointerId); });
+  dom.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    travel += Math.abs(dx) + Math.abs(dy);
+    az -= dx * 0.008; pol = Math.max(0.5, Math.min(1.55, pol - dy * 0.006));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  dom.addEventListener("pointerup", () => { dragging = false; });
+  dom.addEventListener("wheel", e => { e.preventDefault(); rad = Math.max(4, Math.min(10, rad + e.deltaY * 0.003)); }, { passive: false });
+
+  function resize(){
+    const w = stageEl.clientWidth, h = stageEl.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  const resizeObs = new ResizeObserver(resize); resizeObs.observe(stageEl); resize();
+
+  let last = performance.now(), raf = null;
+  function loop(now){
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
+    if (!dragging && !reduced) { autoT += dt; if (autoT > 1) rig.rotation.y += dt * 0.15; }
+    if (!reduced) rig.position.y = Math.sin(now / 900) * 0.04;
+    applyCam();
+    flashState.forEach((startT, mesh) => {
+      const t = (now - startT) / 700;
+      if (t >= 1) { flashState.delete(mesh); mesh.scale.setScalar(1); if (mesh.material.emissiveIntensity !== undefined) mesh.material.emissiveIntensity = mesh.userData.baseEmissive ?? mesh.material.emissiveIntensity; return; }
+      const glow = reduced ? 0 : Math.sin((1 - t) * Math.PI) ;
+      mesh.scale.setScalar(1 + glow * 0.22);
+      if (mesh.material.emissiveIntensity !== undefined){
+        if (mesh.userData.baseEmissive === undefined) mesh.userData.baseEmissive = mesh.material.emissiveIntensity;
+        mesh.material.emissiveIntensity = mesh.userData.baseEmissive + glow * 1.2;
+      }
+      if (mesh.material.opacity !== undefined && mesh.material.transparent){
+        if (mesh.userData.baseOpacity === undefined) mesh.userData.baseOpacity = mesh.material.opacity;
+        mesh.material.opacity = Math.min(1, mesh.userData.baseOpacity + glow * 0.5);
+      }
+    });
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(loop);
+  }
+  raf = requestAnimationFrame(loop);
+
+  return { flash, dispose(){ cancelAnimationFrame(raf); resizeObs.disconnect(); renderer.dispose(); } };
+}
+
+/* ======================================================================
+   2D FALLBACK (no WebGL) — still teaches the same content
+   ====================================================================== */
+function buildFallbackCells(stageEl){
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 400 220"); svg.style.width = "100%"; svg.style.height = "100%";
+  const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  svg.append(mk("rect", { x: 0, y: 0, width: 400, height: 220, fill: "#0d241d" }));
+  const plantRect = mk("rect", { x: 40, y: 40, width: 140, height: 140, fill: "#173a2c", stroke: "#9a6e05", "stroke-width": 3 });
+  const animalBlob = mk("ellipse", { cx: 300, cy: 110, rx: 78, ry: 68, fill: "#2a4f3c", stroke: "#5f8c7a", "stroke-width": 2 });
+  svg.append(plantRect, animalBlob);
+  const glowById = {};
+  TERM_ORDER.forEach((k, i) => {
+    const isPlant = TERMS[k].group === "plant";
+    const cx = isPlant ? 60 + (i % 3) * 40 : 260 + (i % 2) * 60;
+    const cy = isPlant ? 70 + Math.floor(i / 3) * 40 : 80 + Math.floor(i / 2) * 40;
+    const dot = mk("circle", { cx, cy, r: 10, fill: TERMS[k].group === "plant" ? "#2f9d4d" : "#5c3d8f", opacity: .85 });
+    svg.append(dot); glowById[k] = dot;
+  });
+  stageEl.appendChild(svg);
+  function flash(termKey){
+    const dot = glowById[termKey]; if (!dot) return;
+    dot.animate([{ r: 10 }, { r: 16 }, { r: 10 }], { duration: 500, easing: "ease-out" });
+  }
+  return { flash, dispose(){} };
+}
+
+mountActivity({ simulation }).catch(e=>{
+  console.error("Activity failed to start:", e);
+  const r=document.getElementById("lab-root");
+  if(r) r.innerHTML='<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
