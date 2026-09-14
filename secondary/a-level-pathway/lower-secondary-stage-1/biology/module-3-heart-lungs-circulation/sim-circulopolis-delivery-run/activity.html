@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circulopolis: The Delivery Run — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=10">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Circulopolis: The Delivery Run — activity-local styles only ---- */
+.co-map{position:relative;width:100%;aspect-ratio:4/3;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:10px;overflow:hidden;}
+.co-map svg{width:100%;height:100%;display:block;}
+.co-node{cursor:pointer;}
+.co-node:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.co-node__label{font-family:var(--font-data);font-size:9px;fill:var(--ink);text-anchor:middle;pointer-events:none;}
+.co-pulse{animation:co-pulse 1.8s ease-in-out infinite;}
+[data-reduced-motion="on"] .co-pulse{animation:none;}
+@keyframes co-pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+
+.co-cargo{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);max-width:32rem;}
+.co-cargo img{display:block;width:100%;height:auto;}
+.co-credit{font-size:var(--step--2,0.72rem);color:var(--ink-3);margin-top:var(--sp-2);}
+.co-credit a{color:var(--ink-3);}
+.co-pin{position:absolute;transform:translate(-50%,-50%);width:2.2rem;height:2.2rem;border:none;background:transparent;
+  padding:0;cursor:pointer;display:grid;place-items:center;}
+.co-pin__dot{width:1.05rem;height:1.05rem;border-radius:50%;background:var(--signal);border:2px solid #fff;
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 25%, transparent);animation:co-pulse2 1.4s ease-in-out infinite;}
+[data-reduced-motion="on"] .co-pin__dot{animation:none;}
+@keyframes co-pulse2{0%,100%{transform:scale(1);}50%{transform:scale(1.22);}}
+.co-pin.is-correct .co-pin__dot{background:var(--positive);box-shadow:0 0 0 4px color-mix(in srgb, var(--positive) 25%, transparent);animation:none;}
+.co-pin.is-revealed .co-pin__dot{background:var(--caution);box-shadow:0 0 0 4px color-mix(in srgb, var(--caution) 25%, transparent);animation:none;}
+.co-pin.is-shake .co-pin__dot{animation:co-shake .4s;}
+@keyframes co-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+
+.co-picker{margin-top:var(--sp-3);display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.co-chip{font-family:var(--font-data);font-size:var(--step--1);border:1px solid var(--line-strong);
+  background:var(--surface);color:var(--ink);border-radius:999px;padding:.4em .9em;cursor:pointer;}
+.co-chip:hover{border-color:var(--accent);color:var(--accent);}
+.co-chip:disabled{opacity:.4;cursor:default;}
+.co-caption{margin-top:var(--sp-3);padding:var(--sp-3);border-left:3px solid var(--accent);background:var(--accent-wash);
+  color:var(--ink);border-radius:0 6px 6px 0;font-size:var(--step--1);}
+.co-cargo-progress{font-family:var(--font-data);font-size:var(--step--1);color:var(--ink-3);margin-top:var(--sp-2);}
+
+.co-drive{margin-top:var(--sp-6);border-top:1px solid var(--line);padding-top:var(--sp-5);}
+.co-drive[hidden]{display:none;}
+.co-gatebar{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);flex-wrap:wrap;}
+.co-dots{display:flex;gap:5px;}
+.co-dot{width:.6rem;height:.6rem;border-radius:50%;background:var(--line-strong);}
+.co-dot.done-ok{background:var(--positive);}
+.co-dot.done-bad{background:var(--negative);}
+.co-dot.current{background:var(--signal);}
+.co-score{font-family:var(--font-data);font-size:var(--step--1);color:var(--ink-2);}
+.co-canvas-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0d1f16;}
+.co-canvas-wrap canvas{display:block;width:100%;height:auto;}
+.co-prompt{margin-top:var(--sp-3);font-size:var(--step-0);color:var(--ink);min-height:2.6em;}
+.co-lanes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-3);margin-top:var(--sp-3);}
+.co-lane-btn{display:flex;flex-direction:column;align-items:center;gap:.3em;padding:.7em .4em;border-radius:10px;
+  border:1px solid var(--line-strong);background:var(--surface);cursor:pointer;font-size:var(--step--1);color:var(--ink);}
+.co-lane-btn:hover:not(:disabled){border-color:var(--accent);background:var(--accent-wash);color:var(--accent);}
+.co-lane-btn:disabled{opacity:.5;cursor:default;}
+.co-lane-icon{font-family:var(--font-data);font-size:1.1rem;}
+.co-feedback{margin-top:var(--sp-3);padding:var(--sp-3);border-radius:8px;font-size:var(--step--1);}
+.co-feedback.ok{border-left:3px solid var(--positive);background:color-mix(in srgb, var(--positive) 8%, transparent);}
+.co-feedback.bad{border-left:3px solid var(--negative);background:color-mix(in srgb, var(--negative) 8%, transparent);}
+.co-summary{margin-top:var(--sp-4);padding:var(--sp-4);border-radius:10px;background:var(--accent-wash);border:1px solid var(--accent);}
+.co-summary strong{color:var(--accent);}
+.co-next{margin-top:var(--sp-3);}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="breadcrumb" aria-label="Breadcrumb" data-lang="en">
+    <ol>
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">A-Level Pathway</a></li>
+      <li><a href="../../../">Lower Secondary Stage 1 Science</a></li>
+      <li><a href="../../">Biology</a></li>
+      <li><a href="../">Module 3: Heart, Lungs, and Circulation</a></li>
+    </ol>
+  </nav>
+  <nav class="breadcrumb" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol>
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secundaria</a></li>
+      <li><a href="../../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../../">Ciencias de Lower Secondary, Etapa 1</a></li>
+      <li><a href="../../">Biología</a></li>
+      <li><a href="../">Módulo 3: Corazón, pulmones y circulación</a></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=11";
+import { getLang } from "../../../../../../engine/i18n.js?v=4";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+
+/* ======================================================================
+   CITY MAP (Orient) — a small clickable schematic. Every node is a real
+   decision point later in the drive, so clicking here previews the route.
+   ====================================================================== */
+function drawCityMap(host, sim) {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", "0 0 320 240");
+
+  const nodes = [
+    { id: "heart", x: 160, y: 130, r: 20, fill: "var(--signal)", label: L("Pump Station", "Estación de Bombeo"),
+      say: L("The Pump Station (heart) — every drop leaves and returns here, about once a minute.",
+             "La Estación de Bombeo (el corazón) — cada gota sale y vuelve aquí, aproximadamente una vez por minuto.") },
+    { id: "artery", x: 160, y: 60, r: 0, label: L("Artery highway", "Autopista arterial"), isPath: true,
+      d: "M160,110 L160,55", stroke: "var(--negative)", w: 10,
+      say: L("Arteries — thick, muscular highways built to survive the heart's pressure blast.",
+             "Arterias — autopistas gruesas y musculosas hechas para soportar la sacudida de presión del corazón.") },
+    { id: "capA", x: 90, y: 40, r: 12, fill: "var(--accent)", label: L("House A", "Casa A"),
+      say: L("A cell-house on a capillary side street — thin walls, so oxygen and food can slip straight through to the cell.",
+             "Una casa-célula en una calle capilar — paredes finas, para que el oxígeno y la comida pasen directo a la célula.") },
+    { id: "capB", x: 230, y: 40, r: 12, fill: "var(--accent)", label: L("House B", "Casa B"),
+      say: L("Another cell-house — every capillary street ends at exactly one of these.",
+             "Otra casa-célula — cada calle capilar termina exactamente en una de estas.") },
+    { id: "vein", x: 220, y: 130, r: 0, isPath: true, d: "M160,150 L220,150 L220,90", stroke: "var(--signal)", w: 6,
+      label: L("Vein return road", "Vía de retorno venosa"),
+      say: L("Veins — thinner, low-pressure return roads with one-way valves so blood can't slide backwards.",
+             "Venas — vías de retorno más finas y de baja presión, con válvulas de un solo sentido para que la sangre no retroceda.") },
+    { id: "lung", x: 60, y: 190, r: 16, fill: "var(--accent-hi)", label: L("Lung Depot", "Depósito Pulmonar"),
+      say: L("The Lung Depot — swaps the CO2 you collected for fresh O2 before you head out again.",
+             "El Depósito Pulmonar — cambia el CO2 recogido por O2 fresco antes de que vuelvas a salir.") },
+  ];
+
+  nodes.filter(n => n.isPath).forEach(n => {
+    const p = document.createElementNS(svgNS, "path");
+    p.setAttribute("d", n.d); p.setAttribute("stroke", n.stroke); p.setAttribute("stroke-width", n.w);
+    p.setAttribute("fill", "none"); p.setAttribute("stroke-linecap", "round");
+    p.setAttribute("class", "co-node");
+    p.setAttribute("tabindex", "0"); p.setAttribute("role", "button");
+    p.setAttribute("aria-label", n.label);
+    p.addEventListener("click", () => sim.toast(n.say, "info"));
+    p.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); sim.toast(n.say, "info"); } });
+    svg.append(p);
+  });
+  nodes.filter(n => !n.isPath).forEach(n => {
+    const g = document.createElementNS(svgNS, "g");
+    g.setAttribute("class", "co-node" + (n.id === "heart" ? " co-pulse" : ""));
+    g.setAttribute("tabindex", "0"); g.setAttribute("role", "button"); g.setAttribute("aria-label", n.label);
+    const c = document.createElementNS(svgNS, "circle");
+    c.setAttribute("cx", n.x); c.setAttribute("cy", n.y); c.setAttribute("r", n.r); c.setAttribute("fill", n.fill);
+    const t = document.createElementNS(svgNS, "text");
+    t.setAttribute("x", n.x); t.setAttribute("y", n.y + n.r + 12); t.setAttribute("class", "co-node__label");
+    t.textContent = n.label;
+    g.append(c, t);
+    g.addEventListener("click", () => sim.toast(n.say, "info"));
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); sim.toast(n.say, "info"); } });
+    svg.append(g);
+  });
+
+  host.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "co-map"; wrap.append(svg);
+  const hint = document.createElement("p"); hint.className = "q__hint"; hint.style.marginTop = "var(--sp-2)";
+  hint.textContent = L("Tap any part of the map to hear what it does.", "Toca cualquier parte del mapa para saber qué hace.");
+  host.append(wrap, hint);
+}
+
+/* ======================================================================
+   CARGO BAY (Investigate, part 1) — a real blood-smear photograph.
+   Four unlabelled pins; the student must choose the term BEFORE any
+   feedback is shown (never labelled-then-click). Up to 3 tries, then the
+   answer is revealed — never a dead end.
+   ====================================================================== */
+const BLOOD_PINS = [
+  { id: "rbc", x: 0.1667, y: 0.2963, term: L("Red blood cell", "Glóbulo rojo"),
+    caption: L("Red blood cells — the pink-purple discs everywhere in this photo. Packed with haemoglobin to carry oxygen; this is most of what you'll be delivering.",
+               "Glóbulos rojos — los discos rosado-morados que llenan la foto. Cargados de hemoglobina para transportar oxígeno; esto es la mayor parte de lo que repartirás.") },
+  { id: "wbc", x: 0.3667, y: 0.4889, term: L("White blood cell", "Glóbulo blanco"),
+    caption: L("White blood cell — the one big cell with a dark, lobed centre. Security for the whole delivery network: it hunts down infections.",
+               "Glóbulo blanco — la única célula grande con un centro oscuro y lobulado. La seguridad de toda la red de reparto: persigue infecciones.") },
+  { id: "plt", x: 0.9378, y: 0.5837, term: L("Platelet", "Plaqueta"),
+    caption: L("Platelet — a tiny dark speck, far smaller than a red blood cell. The repair crew: platelets clump together to patch a leaking vessel.",
+               "Plaqueta — una mota diminuta y oscura, mucho más pequeña que un glóbulo rojo. El equipo de reparación: las plaquetas se agrupan para tapar una fuga en un vaso.") },
+  { id: "plasma", x: 0.8444, y: 0.6963, term: L("Plasma", "Plasma"),
+    caption: L("Plasma — the pale, almost-empty gaps between cells. Honest truth: a flattened smear squeezes plasma paper-thin, but in real blood this liquid is over half of every drop, and it's what everything else floats and dissolves in — nutrients, hormones and waste included.",
+               "Plasma — los huecos pálidos, casi vacíos, entre las células. La verdad honesta: un frotis aplastado deja el plasma finísimo, pero en la sangre real este líquido es más de la mitad de cada gota, y es donde flota y se disuelve todo lo demás — incluyendo nutrientes, hormonas y residuos.") },
+];
+const BLOOD_TERMS = [L("Red blood cell","Glóbulo rojo"), L("White blood cell","Glóbulo blanco"), L("Platelet","Plaqueta"), L("Plasma","Plasma")];
+
+function buildCargoBay(host, sim, onAllDone) {
+  const card = document.createElement("div"); card.className = "card";
+  card.innerHTML = `<p class="eyebrow">${L("Step 1 · Cargo Manifest","Paso 1 · Manifiesto de carga")}</p>
+    <p class="q__hint">${L("This is a real microscope photo of a blood sample. Tap each pin and choose what it shows — nothing is labelled for you.",
+      "Esta es una foto real al microscopio de una muestra de sangre. Toca cada pin y elige qué muestra — nada está etiquetado para ti.")}</p>`;
+  const cargo = document.createElement("div"); cargo.className = "co-cargo";
+  const img = document.createElement("img");
+  img.src = "photos/blood-smear.jpg";
+  img.alt = L("Microscope photo of a human blood smear", "Foto al microscopio de un frotis de sangre humana");
+  cargo.append(img);
+  card.append(cargo);
+  const credit = document.createElement("p"); credit.className = "co-credit";
+  credit.innerHTML = L(
+    `Photo: Keith Chambers, <a href="https://commons.wikimedia.org/wiki/File:Normal_Adult_Blood_Smear.JPG" target="_blank" rel="noopener">Wikimedia Commons</a>, licensed <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>.`,
+    `Foto: Keith Chambers, <a href="https://commons.wikimedia.org/wiki/File:Normal_Adult_Blood_Smear.JPG" target="_blank" rel="noopener">Wikimedia Commons</a>, con licencia <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>.`);
+  card.append(credit);
+  const progress = document.createElement("p"); progress.className = "co-cargo-progress";
+  card.append(progress);
+  const pickerHost = document.createElement("div");
+  card.append(pickerHost);
+  const captionHost = document.createElement("div");
+  card.append(captionHost);
+  host.append(card);
+
+  const pinState = {};
+  BLOOD_PINS.forEach(p => { pinState[p.id] = { done: false, tries: 0, correct: false }; });
+
+  function updateProgress() {
+    const done = Object.values(pinState).filter(s => s.done).length;
+    progress.textContent = L(`Identified ${done} of 4.`, `Identificado ${done} de 4.`);
+    if (done === BLOOD_PINS.length) {
+      const allCorrect = Object.values(pinState).every(s => s.correct);
+      if (allCorrect) sim.award("circulopolis-blood-detective", L("Blood Detective","Detective de la Sangre"));
+      onAllDone();
+    }
+  }
+
+  BLOOD_PINS.forEach((p, i) => {
+    const pin = document.createElement("button");
+    pin.type = "button"; pin.className = "co-pin";
+    pin.style.left = (p.x * 100) + "%"; pin.style.top = (p.y * 100) + "%";
+    pin.setAttribute("aria-label", L(`Unidentified sample point ${i + 1}`, `Punto de muestra sin identificar ${i + 1}`));
+    pin.innerHTML = `<span class="co-pin__dot"></span>`;
+    cargo.append(pin);
+
+    let open = false;
+    let picker = null;
+    pin.addEventListener("click", () => {
+      if (pinState[p.id].done) return;
+      if (open) { picker.remove(); pin.classList.remove("is-open"); open = false; return; }
+      pickerHost.innerHTML = "";
+      document.querySelectorAll(".co-pin.is-open").forEach(el => el.classList.remove("is-open"));
+      picker = document.createElement("div"); picker.className = "co-picker";
+      const label = document.createElement("p"); label.className = "q__hint";
+      label.textContent = L(`What does sample point ${i + 1} show?`, `¿Qué muestra el punto de muestra ${i + 1}?`);
+      picker.append(label);
+      const chipRow = document.createElement("div"); chipRow.style.display = "flex"; chipRow.style.flexWrap = "wrap"; chipRow.style.gap = "var(--sp-2)";
+      picker.append(chipRow);
+      pin.classList.add("is-open");
+      BLOOD_TERMS.forEach(term => {
+        const chip = document.createElement("button");
+        chip.type = "button"; chip.className = "co-chip"; chip.textContent = term;
+        chip.addEventListener("click", () => {
+          pinState[p.id].tries++;
+          if (term === p.term) {
+            pinState[p.id].done = true; pinState[p.id].correct = true;
+            pin.classList.add("is-correct");
+            revealCaption(p.caption, "ok");
+            sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Correct","Correcto"), detail: p.caption });
+            picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
+          } else if (pinState[p.id].tries >= 3) {
+            pinState[p.id].done = true; pinState[p.id].correct = false;
+            pin.classList.add("is-revealed");
+            revealCaption(L(`Not quite — this one is a ${p.term}. `, `No exactamente — esto es un/a ${p.term}. `) + p.caption, "bad");
+            sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Revealed after 3 tries","Revelado tras 3 intentos"), detail: p.caption });
+            picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
+          } else {
+            pin.classList.remove("is-shake"); void pin.offsetWidth; pin.classList.add("is-shake");
+            sim.toast(L("Not that one — try again.","No es ese — inténtalo de nuevo."), "info");
+          }
+        });
+        chipRow.append(chip);
+      });
+      pickerHost.append(picker);
+      open = true;
+    });
+  });
+
+  function revealCaption(text, kind) {
+    const box = document.createElement("p");
+    box.className = "co-caption";
+    if (kind === "bad") box.style.borderColor = "var(--caution)";
+    box.textContent = text;
+    captionHost.append(box);
+    if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(text);
+  }
+
+  updateProgress();
+}
+
+/* ======================================================================
+   THE DELIVERY DRIVE (Investigate, part 2) — a lane-choice driving game.
+   The truck idles forward continuously (ambient motion); the student
+   locks in a lane for the CURRENT gate by clicking one of the three lane
+   buttons — the decision happens before any feedback, exactly once per
+   gate, and a wrong choice still drives the game forward (it never gets
+   stuck). Reduced motion removes the scroll/shake/particles, not the game.
+   ====================================================================== */
+const GATES = [
+  { id: "leave", prompt: L("Leaving the Pump Station — which lane survives the pressure blast?","Saliendo de la Estación de Bombeo — ¿qué vía sobrevive a la sacudida de presión?"),
+    lanes: [
+      { label: L("Veins","Venas"), icon: "vein", correct: false },
+      { label: L("Arteries","Arterias"), icon: "artery", correct: true },
+      { label: L("Capillaries","Capilares"), icon: "cap", correct: false },
+    ],
+    detail: L("Arteries — thick and muscular to survive the heart's blast, every beat.","Arterias — gruesas y musculosas para soportar la sacudida del corazón, cada latido.") },
+  { id: "o2", prompt: L("House #1 is gasping — deliver OXYGEN.","La Casa #1 se ahoga — reparte OXÍGENO."),
+    lanes: [
+      { label: L("Food crate","Caja de comida"), icon: "food", correct: false },
+      { label: L("Oxygen tank","Tanque de oxígeno"), icon: "o2", correct: true },
+      { label: L("Water drop","Gota de agua"), icon: "water", correct: false },
+    ],
+    detail: L("Oxygen rides on red blood cells to every cell that needs to breathe.","El oxígeno viaja sobre los glóbulos rojos hasta cada célula que necesita respirar.") },
+  { id: "nutrients", prompt: L("House #2 is running on empty — deliver NUTRIENTS.","La Casa #2 se ha quedado sin reservas — reparte NUTRIENTES."),
+    lanes: [
+      { label: L("Oxygen tank","Tanque de oxígeno"), icon: "o2", correct: false },
+      { label: L("Food crate","Caja de comida"), icon: "food", correct: true },
+      { label: L("Water drop","Gota de agua"), icon: "water", correct: false },
+    ],
+    detail: L("Nutrients like glucose dissolve straight into the plasma as fuel for cells.","Nutrientes como la glucosa se disuelven directamente en el plasma como combustible para las células.") },
+  { id: "water", prompt: L("House #3 is bone dry — deliver WATER.","La Casa #3 está seca — reparte AGUA."),
+    lanes: [
+      { label: L("Water drop","Gota de agua"), icon: "water", correct: true },
+      { label: L("Food crate","Caja de comida"), icon: "food", correct: false },
+      { label: L("Oxygen tank","Tanque de oxígeno"), icon: "o2", correct: false },
+    ],
+    detail: L("Water keeps blood flowing and every cell hydrated.","El agua mantiene la sangre fluida y cada célula hidratada.") },
+  { id: "waste", prompt: L("Collection time — grab this house's CO2 and urea for pickup.","Hora de la recogida — recoge el CO2 y la urea de esta casa."),
+    lanes: [
+      { label: L("Food crate","Caja de comida"), icon: "food", correct: false },
+      { label: L("Waste pickup","Recogida de residuos"), icon: "waste", correct: true },
+      { label: L("Water drop","Gota de agua"), icon: "water", correct: false },
+    ],
+    detail: L("CO2 and urea are cell waste — blood carries both away for disposal.","El CO2 y la urea son residuos celulares — la sangre se lleva ambos para su eliminación.") },
+  { id: "hormone", prompt: L("The Adrenal Gland just released a hormone parcel — which lane carries messages to the WHOLE body?","La glándula suprarrenal acaba de soltar un paquete de hormonas — ¿qué vía lleva mensajes a TODO el cuerpo?"),
+    lanes: [
+      { label: L("Nerve cable","Cable nervioso"), icon: "nerve", correct: false },
+      { label: L("Blood plasma","Plasma sanguíneo"), icon: "plasma", correct: true },
+      { label: L("Lymph drain","Drenaje linfático"), icon: "lymph", correct: false },
+    ],
+    detail: L("Hormones are chemical messages that travel dissolved in the blood plasma.","Las hormonas son mensajes químicos que viajan disueltos en el plasma sanguíneo.") },
+  { id: "return", prompt: L("Heading home — which lane returns blood to the heart at low pressure?","De vuelta a casa — ¿qué vía devuelve la sangre al corazón a baja presión?"),
+    lanes: [
+      { label: L("Arteries","Arterias"), icon: "artery", correct: false },
+      { label: L("Veins","Venas"), icon: "vein", correct: true },
+      { label: L("Capillaries","Capilares"), icon: "cap", correct: false },
+    ],
+    detail: L("Veins — thinner walls, low pressure, one-way valves stop backflow.","Venas — paredes más finas, baja presión, válvulas de un solo sentido que evitan el retroceso.") },
+];
+
+function iconPath(ctx, kind, cx, cy, s, color) {
+  ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = s * 0.12;
+  switch (kind) {
+    case "o2": ctx.beginPath(); ctx.roundRect(-s*0.35,-s*0.5,s*0.7,s*1.0,s*0.15); ctx.fill();
+      ctx.beginPath(); ctx.arc(0,-s*0.55,s*0.18,0,7); ctx.fill(); break;
+    case "food": ctx.beginPath(); ctx.moveTo(-s*0.5,s*0.5); ctx.lineTo(-s*0.5,-s*0.2); ctx.lineTo(0,-s*0.55); ctx.lineTo(s*0.5,-s*0.2); ctx.lineTo(s*0.5,s*0.5); ctx.closePath(); ctx.fill(); break;
+    case "water": ctx.beginPath(); ctx.moveTo(0,-s*0.55); ctx.quadraticCurveTo(s*0.5,s*0.15,0,s*0.55); ctx.quadraticCurveTo(-s*0.5,s*0.15,0,-s*0.55); ctx.fill(); break;
+    case "waste": ctx.beginPath(); ctx.roundRect(-s*0.4,-s*0.35,s*0.8,s*0.8,s*0.1); ctx.fill();
+      ctx.beginPath(); ctx.rect(-s*0.45,-s*0.5,s*0.9,s*0.18); ctx.fill(); break;
+    case "plasma": ctx.beginPath(); ctx.ellipse(0,0,s*0.55,s*0.4,0,0,7); ctx.fill(); break;
+    case "nerve": ctx.beginPath(); ctx.moveTo(-s*0.5,-s*0.5); for(let i=0;i<4;i++){ctx.lineTo(-s*0.5+ (i+1)*s*0.25, (i%2===0?s*0.3:-s*0.3));} ctx.stroke(); break;
+    case "lymph": ctx.beginPath(); ctx.arc(-s*0.2,0,s*0.28,0,7); ctx.arc(s*0.22,0,s*0.28,0,7); ctx.fill(); break;
+    case "artery": ctx.beginPath(); ctx.roundRect(-s*0.22,-s*0.55,s*0.44,s*1.1,s*0.2); ctx.fill(); break;
+    case "vein": ctx.beginPath(); ctx.roundRect(-s*0.14,-s*0.55,s*0.28,s*1.1,s*0.12); ctx.fill(); break;
+    case "cap": ctx.beginPath(); ctx.arc(0,0,s*0.14,0,7); ctx.fill(); break;
+    default: ctx.beginPath(); ctx.arc(0,0,s*0.3,0,7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function buildDrive(host, sim, cargoScore) {
+  const wrap = document.createElement("div"); wrap.className = "co-drive"; wrap.hidden = true;
+  wrap.innerHTML = `
+    <p class="eyebrow">${L("Step 2 · Drive the Delivery Route","Paso 2 · Conduce la ruta de reparto")}</p>
+    <div class="co-gatebar">
+      <div class="co-dots" id="co-dots"></div>
+      <div class="co-score" id="co-score">${L("Score","Puntuación")}: 0 · ${L("Streak","Racha")}: 0</div>
+    </div>
+    <div class="co-canvas-wrap"><canvas id="co-canvas" width="640" height="360"></canvas></div>
+    <p class="co-prompt" id="co-prompt"></p>
+    <div class="co-lanes" id="co-lanes"></div>
+    <div id="co-feedback"></div>
+    <div id="co-summary"></div>`;
+  host.append(wrap);
+
+  const dotsHost = wrap.querySelector("#co-dots");
+  GATES.forEach(() => { const d = document.createElement("span"); d.className = "co-dot"; dotsHost.append(d); });
+  const scoreHost = wrap.querySelector("#co-score");
+  const promptHost = wrap.querySelector("#co-prompt");
+  const lanesHost = wrap.querySelector("#co-lanes");
+  const feedbackHost = wrap.querySelector("#co-feedback");
+  const summaryHost = wrap.querySelector("#co-summary");
+  const canvas = wrap.querySelector("#co-canvas");
+  const ctx = canvas.getContext("2d");
+
+  const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+  let gateIndex = 0, score = 0, streak = 0, bestStreak = 0, correctCount = 0;
+  let truckLane = 1, resolving = false, shakeT = 0, phase = "idle"; // idle | approach | resolved
+  let approachY = -80, approachStart = 0, particles = [];
+  const APPROACH_MS = 900, APPROACH_SPEED = 0.42; // px/ms — game state never depends on requestAnimationFrame,
+  // which browsers may throttle to zero in a backgrounded/inactive tab; only setTimeout drives resolution.
+  const LANE_X = [canvas.width * 0.28, canvas.width * 0.5, canvas.width * 0.72];
+  let truckX = LANE_X[1];
+
+  function renderPrompt() {
+    if (gateIndex >= GATES.length) { finish(); return; }
+    const g = GATES[gateIndex];
+    promptHost.textContent = g.prompt;
+    lanesHost.innerHTML = "";
+    g.lanes.forEach((lane, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "co-lane-btn";
+      b.innerHTML = `<span class="co-lane-icon">▲</span><span>${lane.label}</span>`;
+      b.addEventListener("click", () => pick(i));
+      lanesHost.append(b);
+    });
+    feedbackHost.innerHTML = "";
+    [...dotsHost.children].forEach((d, i) => { d.classList.toggle("current", i === gateIndex); });
+  }
+
+  function pick(laneIdx) {
+    if (resolving) return;
+    resolving = true;
+    [...lanesHost.children].forEach(b => b.disabled = true);
+    const g = GATES[gateIndex];
+    const correct = g.lanes[laneIdx].correct;
+    if (reduced()) { truckLane = laneIdx; resolve(correct, laneIdx); return; }
+    phase = "approach"; approachStart = Date.now(); approachY = -80; truckLane = laneIdx;
+    truckX = LANE_X[laneIdx];
+    setTimeout(() => resolve(correct, laneIdx), APPROACH_MS);
+  }
+
+  function resolve(correct, laneIdx) {
+    const g = GATES[gateIndex];
+    if (correct) {
+      score += 10; streak++; bestStreak = Math.max(bestStreak, streak); correctCount++;
+      spawnParticles(LANE_X[laneIdx], canvas.height * 0.72, "var(--positive)");
+    } else {
+      streak = 0; shakeT = 10;
+      spawnParticles(LANE_X[laneIdx], canvas.height * 0.72, "var(--negative)");
+    }
+    scoreHost.textContent = `${L("Score","Puntuación")}: ${score} · ${L("Streak","Racha")}: ${streak}`;
+    dotsHost.children[gateIndex].classList.add(correct ? "done-ok" : "done-bad");
+    const chosenLabel = g.lanes[laneIdx].label;
+    const correctLabel = g.lanes.find(l => l.correct).label;
+    const fb = document.createElement("div");
+    fb.className = "co-feedback " + (correct ? "ok" : "bad");
+    fb.textContent = correct
+      ? `${L("Delivered!","¡Entregado!")} ${g.detail}`
+      : `${L(`Clot! You picked ${chosenLabel}, but it's ${correctLabel}.`, `¡Coágulo! Elegiste ${chosenLabel}, pero es ${correctLabel}.`)} ${g.detail}`;
+    feedbackHost.innerHTML = ""; feedbackHost.append(fb);
+    sim.recordTrial({ task: g.prompt, choice: chosenLabel, result: correct ? L("Delivered","Entregado") : L("Hit a clot","Chocó con un coágulo"), detail: g.detail });
+    if (gateIndex === 0) sim.award("circulopolis-engine-start", L("Engine Started!","¡Motor Encendido!"));
+    resolving = false; phase = "idle";
+    setTimeout(() => { gateIndex++; renderPrompt(); }, reduced() ? 200 : 1100);
+  }
+
+  function spawnParticles(x, y, color) {
+    if (reduced()) return;
+    for (let i = 0; i < 18; i++) {
+      particles.push({ x, y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 1) * 6, life: 30, color });
+    }
+  }
+
+  function finish() {
+    promptHost.textContent = "";
+    lanesHost.innerHTML = "";
+    const perfect = correctCount === GATES.length;
+    if (perfect) sim.award("circulopolis-perfect-run", L("Perfect Delivery Shift!","¡Turno de Reparto Perfecto!"));
+    const box = document.createElement("div"); box.className = "co-summary";
+    box.innerHTML = `<strong>${L("Delivery shift complete!","¡Turno de reparto completo!")}</strong><br>` +
+      L(`You delivered ${correctCount} of ${GATES.length} correctly, with a best streak of ${bestStreak}.`,
+        `Entregaste ${correctCount} de ${GATES.length} correctamente, con una mejor racha de ${bestStreak}.`);
+    summaryHost.innerHTML = ""; summaryHost.append(box);
+    sim.setScienceMethod({
+      observation: L("The heart pumps in a steady rhythm, and the vessels visibly narrow the further they get from it.",
+                      "El corazón bombea con un ritmo constante, y los vasos se estrechan visiblemente a medida que se alejan de él."),
+      question: L("Which blood vessels are built for speed and pressure, which are built for delivery, and how does the body collect everything for pickup?",
+                   "¿Qué vasos sanguíneos están hechos para la velocidad y la presión, cuáles para el reparto, y cómo recoge el cuerpo todo para su recogida?"),
+      hypothesis: L("If a vessel takes the heart's pressure blast first, then it needs thick muscular walls, because otherwise it would burst.",
+                     "Si un vaso recibe primero la sacudida de presión del corazón, entonces necesita paredes gruesas y musculosas, porque de lo contrario estallaría."),
+      variables: L("Independent: which lane (vessel/cargo) chosen at each gate. Dependent: delivery success or a clot. Controlled: same truck, same route, same gate order every run.",
+                    "Independiente: qué vía (vaso/carga) se elige en cada puerta. Dependiente: entrega exitosa o coágulo. Controlada: mismo camión, misma ruta, mismo orden de puertas en cada intento."),
+      results: L(`${correctCount} of ${GATES.length} gates delivered correctly this shift; best streak ${bestStreak}; cargo bay score ${cargoScore()} of 4 identified correctly.`,
+                 `${correctCount} de ${GATES.length} puertas entregadas correctamente en este turno; mejor racha ${bestStreak}; puntuación de la bodega de carga ${cargoScore()} de 4 identificados correctamente.`),
+    });
+  }
+
+  /* ---- ambient canvas render loop (road, truck, particles, screen shake) ---- */
+  function render() {
+    const w = canvas.width, h = canvas.height;
+    ctx.save();
+    if (shakeT > 0) { ctx.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6); shakeT--; }
+    ctx.fillStyle = "#0d1f16"; ctx.fillRect(0, 0, w, h);
+    // road
+    ctx.fillStyle = "#173226"; ctx.fillRect(w * 0.16, 0, w * 0.68, h);
+    ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.setLineDash([14, 16]); ctx.lineWidth = 2;
+    [0.38, 0.62].forEach(fx => { ctx.beginPath(); ctx.moveTo(w * fx, -((Date.now() / 12) % 30)); ctx.lineTo(w * fx, h); ctx.stroke(); });
+    ctx.setLineDash([]);
+    // approaching gate — position derived from elapsed time, not frame count,
+    // so it always lands correctly even if this render loop ticks sparsely.
+    if (phase === "approach") {
+      approachY = Math.min(h * 0.72, -80 + (Date.now() - approachStart) * APPROACH_SPEED);
+      const g = GATES[gateIndex];
+      ctx.globalAlpha = 0.95;
+      g.lanes.forEach((lane, i) => {
+        ctx.fillStyle = lane.correct ? "rgba(76,192,140,0.18)" : "rgba(232,118,106,0.14)";
+        ctx.fillRect(LANE_X[i] - w * 0.11, approachY - 26, w * 0.22, 52);
+        iconPath(ctx, lane.icon, LANE_X[i], approachY, 22, "#eef7f0");
+      });
+      ctx.globalAlpha = 1;
+    }
+    // particles
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => {
+      ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.life / 30);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill();
+      p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life--;
+    });
+    ctx.globalAlpha = 1;
+    // truck
+    const ty = h * 0.72;
+    ctx.fillStyle = "#e8c55c";
+    ctx.beginPath(); ctx.roundRect(truckX - 20, ty - 26, 40, 46, 8); ctx.fill();
+    ctx.fillStyle = "#173226";
+    ctx.fillRect(truckX - 14, ty - 18, 28, 14);
+    // heart-pulse indicator
+    const pulse = 1 + 0.15 * Math.sin(Date.now() / 260);
+    ctx.fillStyle = "#e8766a"; ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.arc(w - 26, 26, 10 * (reduced() ? 1 : pulse), 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  // setInterval, not requestAnimationFrame: rAF can be throttled to zero in a
+  // backgrounded/occluded tab, which would freeze this ambient animation
+  // (game state itself never depends on this loop — see APPROACH_MS above).
+  setInterval(render, 50);
+  render();
+  renderPrompt();
+
+  return wrap;
+}
+
+/* ======================================================================
+   mount
+   ====================================================================== */
+const simulation = {
+  orient(host, sim) { drawCityMap(host, sim); },
+  investigate(host, sim) {
+    host.innerHTML = "";
+    let cargoCorrect = 0;
+    const drive = buildDrive(host, sim, () => cargoCorrect);
+    buildCargoBay(host, sim, () => {
+      cargoCorrect = document.querySelectorAll(".co-pin.is-correct").length;
+      drive.hidden = false;
+      drive.scrollIntoView({ behavior: document.documentElement.getAttribute("data-reduced-motion") === "on" ? "auto" : "smooth", block: "start" });
+    });
+    host.append(drive);
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
