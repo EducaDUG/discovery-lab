@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<!-- Primary 2 Physics · Module 1: Our Solar System and Beyond · Orbit Architects. Content lives here + config.json only. -->
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit Architects — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=10">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Orbit Architects — scoped visual treatment (content-vs-engine rule, CLAUDE.md). */
+  .oa-photo-wrap { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  .oa-photo-wrap img { display: block; width: 100%; height: auto; }
+  .oa-spot { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 2px solid #fff; background: #ffffff33; color: #fff; font-family: var(--font-data); font-weight: 700; font-size: .85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #00000055; }
+  .oa-spot:hover, .oa-spot:focus-visible { background: var(--signal); border-color: var(--signal); outline: none; }
+  .oa-spot[data-open="true"] { background: var(--accent); border-color: var(--accent); }
+  .oa-spot__pulse { animation: oa-pulse .4s ease; }
+  [data-reduced-motion="on"] .oa-spot__pulse { animation: none; }
+  @keyframes oa-pulse { 0% { transform: scale(1); } 45% { transform: scale(1.35); } 100% { transform: scale(1); } }
+  .oa-credit { font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .oa-reveal { margin-top: .6rem; padding: .6rem .8rem; border-radius: 8px; background: var(--accent-wash); color: var(--ink-1); font-size: .88rem; display: none; }
+  .oa-reveal[data-show="true"] { display: block; }
+  .oa-flip { border: 1px dashed var(--line); background: var(--surface); border-radius: 10px; padding: .7rem .9rem; cursor: pointer; text-align: left; font: inherit; color: var(--ink-1); width: 100%; }
+  .oa-flip:hover { border-color: var(--accent); }
+  .oa-flip__a { display: none; margin-top: .5rem; color: var(--ink-2); font-size: .9rem; }
+  .oa-flip[data-open="true"] .oa-flip__a { display: block; }
+  .oa-flip[data-open="true"] { border-style: solid; border-color: var(--accent); }
+
+  .oa-hyp-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .95rem; line-height: 2.4; }
+  .oa-hyp-row select { font: inherit; font-weight: 700; color: var(--accent); background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 8px; padding: .25rem .5rem; }
+  .oa-hyp-locked { padding: .6rem .8rem; border-radius: 8px; background: var(--positive-wash, var(--accent-wash)); font-size: .9rem; display: none; margin-top: .5rem; }
+  .oa-hyp-locked[data-show="true"] { display: block; }
+
+  .oa-field-guide { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: .6rem; }
+  @media (max-width: 560px) { .oa-field-guide { grid-template-columns: 1fr; } }
+  .oa-field-card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+  .oa-field-card img { display: block; width: 100%; height: 140px; object-fit: cover; }
+  .oa-field-card__body { padding: .5rem .7rem; }
+  .oa-field-card__tag { font-family: var(--font-data); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); font-weight: 700; }
+  .oa-field-card__txt { font-size: .84rem; color: var(--ink-2); margin: .2rem 0 0; }
+
+  .oa-picker { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+  .oa-planet-btn { display: flex; align-items: center; gap: .45rem; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: .35rem .8rem .35rem .5rem; font: inherit; font-size: .85rem; cursor: pointer; color: var(--ink-1); }
+  .oa-planet-btn__dot { width: 14px; height: 14px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 1px #00000022; }
+  .oa-planet-btn:hover, .oa-planet-btn:focus-visible { border-color: var(--accent); outline: none; }
+  .oa-planet-btn[data-active="true"] { border-color: var(--accent); background: var(--accent-wash); font-weight: 700; }
+  .oa-planet-btn[data-done="true"] { opacity: .55; }
+  .oa-planet-btn__check { font-size: .75rem; }
+
+  .oa-classify { display: flex; gap: .6rem; margin-top: .7rem; }
+  .oa-classify button { flex: 1; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: .55rem; font: inherit; font-weight: 700; cursor: pointer; color: var(--ink-1); }
+  .oa-classify button:hover { border-color: var(--accent); }
+  .oa-classify button.oa-shake { animation: oa-shake .35s ease; border-color: var(--negative); }
+  .oa-classify button.oa-correct { animation: oa-pop .35s ease; border-color: var(--positive); background: var(--positive-wash, var(--accent-wash)); }
+  [data-reduced-motion="on"] .oa-classify button.oa-shake, [data-reduced-motion="on"] .oa-classify button.oa-correct { animation: none; }
+  @keyframes oa-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+  @keyframes oa-pop { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+  .oa-space { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(120% 140% at 25% 15%, #1b1f3a 0%, #0a0c1e 55%, #050611 100%); border: 1px solid #2a2f55; margin-top: 10px; }
+  .oa-space canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .oa-space:active canvas { cursor: grabbing; }
+  .oa-hud { position: absolute; inset: 0; pointer-events: none; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; font-family: var(--font-data); color: #eaf0ff; }
+  .oa-hud__tag { background: #05061199; border: 1px solid #4a5490; border-radius: 999px; padding: .3rem .8rem; font-size: .76rem; letter-spacing: .03em; text-transform: uppercase; }
+  .oa-hud__count { background: #05061199; border: 1px solid #4a5490; border-radius: 999px; padding: .3rem .8rem; font-size: .76rem; }
+
+  .oa-dist-row { display: flex; align-items: center; gap: .8rem; margin-top: .7rem; flex-wrap: wrap; }
+  .oa-dist-row input[type=range] { flex: 1 1 220px; accent-color: var(--accent); }
+  .oa-dist-read { font-family: var(--font-data); font-weight: 700; min-width: 7ch; text-align: right; }
+  .oa-real-chip { font-family: var(--font-data); font-size: .78rem; background: var(--signal-wash); color: var(--ink-2); border-radius: 999px; padding: .2rem .7rem; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=11";
+import { getLang } from "../../../../../../engine/i18n.js?v=4";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+
+function reducedMotion() {
+  return document.documentElement.getAttribute("data-reduced-motion") === "on";
+}
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(1 - Math.pow(1 - t, 3), t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   REAL PLANET DATA — distance from the Sun (AU) and true orbital
+   period (Earth days). T = 365.25 * AU^1.5 (a simplified Kepler's
+   Third Law, calibrated so Earth = 365 days) reproduces every
+   value below to within a couple of percent — that IS the pattern
+   students discover by testing it themselves in Mission Control.
+   ============================================================ */
+const PLANETS = [
+  { id: "mercury", en: "Mercury", es: "Mercurio", au: 0.39, days: 88,    type: "terrestrial", color: 0x9c9c9c },
+  { id: "venus",   en: "Venus",   es: "Venus",    au: 0.72, days: 225,   type: "terrestrial", color: 0xe0c27a },
+  { id: "earth",   en: "Earth",   es: "Tierra",   au: 1.00, days: 365,   type: "terrestrial", color: 0x4f8fd6 },
+  { id: "mars",    en: "Mars",    es: "Marte",    au: 1.52, days: 687,   type: "terrestrial", color: 0xc1553a },
+  { id: "jupiter", en: "Jupiter", es: "Júpiter",  au: 5.20, days: 4333,  type: "jovian",      color: 0xd8ae7e },
+  { id: "saturn",  en: "Saturn",  es: "Saturno",  au: 9.58, days: 10759, type: "jovian",      color: 0xe3c98a },
+  { id: "uranus",  en: "Uranus",  es: "Urano",    au: 19.18, days: 30687, type: "jovian",     color: 0x8fd6e0 },
+  { id: "neptune", en: "Neptune", es: "Neptuno",  au: 30.07, days: 60190, type: "jovian",     color: 0x4f6fd6 },
+];
+function keplerDays(au) { return Math.round(365.25 * Math.pow(au, 1.5)); }
+function visualRadius(au) { return 1.1 + 1.55 * Math.log10(au * 10 + 1); }
+function fmtDays(d) {
+  if (d >= 365) return (d / 365).toFixed(d >= 3650 ? 0 : 1) + L(" Earth years", " años terrestres") + ` (${d.toLocaleString()} ${L("days", "días")})`;
+  return d.toLocaleString() + L(" Earth days", " días terrestres");
+}
+
+/* ============================================================
+   ORIENT — a real photo of Mars, hotspot-labelled, plus a
+   tap-to-reveal about its two tiny moons.
+   ============================================================ */
+function orient(host, sim) {
+  sim.setScienceMethod({
+    observation: L(
+      "A real photograph of Mars, taken by the Hubble Space Telescope, shows a white polar ice cap, a rusty-red surface, darker rocky patches, and a thin blue haze at its edge.",
+      "Una fotografía real de Marte, tomada por el telescopio espacial Hubble, muestra un casquete polar blanco, una superficie rojiza, zonas rocosas más oscuras y una fina bruma azul en su borde."
+    ),
+    question: L(
+      "If Mars is a real planet, right next door to Earth in the solar system, what holds it — and every other planet — in place around the Sun instead of drifting away into space?",
+      "Si Marte es un planeta real, justo al lado de la Tierra en el sistema solar, ¿qué lo mantiene a él — y a todos los demás planetas — en su sitio alrededor del Sol en vez de alejarse flotando por el espacio?"
+    )
+  });
+
+  const wrap = document.createElement("div");
+
+  const obsCard = document.createElement("div");
+  obsCard.className = "card";
+  obsCard.style.marginBottom = "10px";
+  obsCard.innerHTML =
+    `<p class="eyebrow">${L("Observation", "Observación")}</p>
+     <p class="q__hint" style="margin:0 0 8px">${L(
+        "Tap each glowing spot on this real photo of Mars, taken by the Hubble Space Telescope.",
+        "Toca cada punto luminoso de esta foto real de Marte, tomada por el telescopio espacial Hubble."
+     )}</p>`;
+  wrap.append(obsCard);
+
+  const photoWrap = document.createElement("div");
+  photoWrap.className = "oa-photo-wrap";
+  photoWrap.innerHTML = `<img src="photos/mars.jpg" alt="${L(
+      "A real photograph of Mars taken by the Hubble Space Telescope, showing its polar ice cap and rusty red surface",
+      "Una fotografía real de Marte tomada por el telescopio espacial Hubble, con su casquete polar y su superficie rojiza")}">`;
+
+  const SPOTS = [
+    { x: 0.47, y: 0.155, en: "Polar ice cap", es: "Casquete polar",
+      revealEn: "This bright white patch is a polar ice cap, made of frozen water and frozen carbon dioxide. Mars has seasons too, so its ice caps grow and shrink through the Martian year — just like Earth's.",
+      revealEs: "Esta mancha blanca brillante es un casquete polar, hecho de agua congelada y dióxido de carbono congelado. Marte también tiene estaciones, así que sus casquetes crecen y encogen durante el año marciano — igual que en la Tierra." },
+    { x: 0.34, y: 0.46, en: "Rust-red surface", es: "Superficie rojiza",
+      revealEn: "Mars looks orange-red because its rocky surface is covered in iron oxide — the same chemical reaction that turns an old bike chain rusty.",
+      revealEs: "Marte se ve rojo-anaranjado porque su superficie rocosa está cubierta de óxido de hierro — la misma reacción química que oxida una cadena de bicicleta vieja." },
+    { x: 0.72, y: 0.42, en: "Darker rocky patch", es: "Zona rocosa más oscura",
+      revealEn: "These darker grey patches are places where wind has blown the reddish dust away, uncovering darker volcanic rock underneath.",
+      revealEs: "Estas manchas grises más oscuras son lugares donde el viento se ha llevado el polvo rojizo, dejando al descubierto roca volcánica más oscura." },
+    { x: 0.885, y: 0.5, en: "Thin atmosphere", es: "Atmósfera fina",
+      revealEn: "That faint blue haze at the edge is Mars's atmosphere — far thinner than Earth's. A thin atmosphere traps much less heat, which is one reason Mars is so cold.",
+      revealEs: "Esa fina bruma azul en el borde es la atmósfera de Marte — mucho más fina que la de la Tierra. Una atmósfera fina atrapa mucho menos calor, una de las razones por las que Marte es tan frío." }
+  ];
+  SPOTS.forEach((s, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "oa-spot";
+    btn.style.left = (s.x * 100) + "%";
+    btn.style.top = (s.y * 100) + "%";
+    btn.textContent = String(i + 1);
+    btn.setAttribute("aria-label", L(s.en, s.es));
+    btn.addEventListener("click", () => {
+      btn.classList.remove("oa-spot__pulse"); void btn.offsetWidth; btn.classList.add("oa-spot__pulse");
+      const isOpen = btn.dataset.open === "true";
+      photoWrap.querySelectorAll(".oa-spot").forEach(b => b.dataset.open = "false");
+      reveal.dataset.show = "false";
+      if (!isOpen) {
+        btn.dataset.open = "true";
+        reveal.dataset.show = "true";
+        reveal.textContent = `${L(s.en, s.es)} — ${L(s.revealEn, s.revealEs)}`;
+      }
+    });
+    photoWrap.append(btn);
+  });
+  wrap.append(photoWrap);
+
+  const reveal = document.createElement("p");
+  reveal.className = "oa-reveal";
+  wrap.append(reveal);
+
+  const credit = document.createElement("p");
+  credit.className = "oa-credit";
+  credit.innerHTML = L(
+    'Photo: NASA, ESA, and The Hubble Heritage Team (STScI/AURA) — <a href="https://images.nasa.gov/details/PIA01253" target="_blank" rel="noopener">public domain, via NASA Images</a>.',
+    'Foto: NASA, ESA y The Hubble Heritage Team (STScI/AURA) — <a href="https://images.nasa.gov/details/PIA01253" target="_blank" rel="noopener">dominio público, vía NASA Images</a>.'
+  );
+  wrap.append(credit);
+
+  const flip = document.createElement("button");
+  flip.type = "button";
+  flip.className = "oa-flip";
+  flip.style.marginTop = "12px";
+  flip.innerHTML = `<strong>${L("Tap to reveal: what keeps Mars from drifting off into space?", "Toca para revelar: ¿qué evita que Marte se aleje flotando al espacio?")}</strong>
+    <span class="oa-flip__a">${L(
+      "The same invisible pulling force that keeps your feet on the ground — gravity — reaches all the way from the Sun to Mars and beyond. The Sun's huge mass gives it a huge pull, strong enough to bend every planet's path into a curve, called an orbit, instead of letting it fly off in a straight line. You're about to test exactly how that pull changes with distance.",
+      "La misma fuerza invisible que mantiene tus pies en el suelo — la gravedad — llega desde el Sol hasta Marte y más allá. La enorme masa del Sol le da un tirón enorme, lo bastante fuerte como para curvar el camino de cada planeta en una órbita, en vez de dejarlo salir en línea recta. Estás a punto de comprobar exactamente cómo cambia ese tirón con la distancia."
+    )}</span>`;
+  flip.addEventListener("click", () => { flip.dataset.open = flip.dataset.open === "true" ? "false" : "true"; });
+  wrap.append(flip);
+
+  host.append(wrap);
+}
+
+/* ============================================================
+   INVESTIGATE — Part A: a structured hypothesis. Part B: Mission
+   Control, a 3D orbit sandbox where the independent variable is
+   distance-from-Sun and the dependent variable is orbit time.
+   ============================================================ */
+function investigate(host, sim) {
+  host.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "stack";
+
+  /* ---- Part A: hypothesis ------------------------------------------- */
+  const hypCard = document.createElement("div"); hypCard.className = "card";
+  hypCard.innerHTML = `<p class="eyebrow">${L("Your hypothesis", "Tu hipótesis")}</p>
+    <p class="q__hint" style="margin:0 0 6px">${L("Complete the sentence, then lock it in before you launch anything.", "Completa la frase y guárdala antes de lanzar nada.")}</p>`;
+  const hypRow = document.createElement("div"); hypRow.className = "oa-hyp-row";
+  const mkSelect = (opts) => {
+    const s = document.createElement("select");
+    opts.forEach(o => { const op = document.createElement("option"); op.value = o.v; op.textContent = o.t; s.append(op); });
+    s.value = "";
+    return s;
+  };
+  const selDist = mkSelect([{ v: "", t: "…" }, { v: "farther from", t: L("farther from", "más lejos de") }, { v: "closer to", t: L("closer to", "más cerca de") }]);
+  const selTime = mkSelect([{ v: "", t: "…" }, { v: "more time", t: L("more time", "más tiempo") }, { v: "less time", t: L("less time", "menos tiempo") }]);
+  const selWhy = mkSelect([{ v: "", t: "…" }, { v: "weaker", t: L("gravity is weaker far away", "la gravedad es más débil de lejos") }, { v: "stronger", t: L("gravity is stronger far away", "la gravedad es más fuerte de lejos") }]);
+  hypRow.append(
+    document.createTextNode(L("If a planet is ", "Si un planeta está ")), selDist,
+    document.createTextNode(L(" the Sun, then its orbit will take ", " del Sol, entonces su órbita tardará ")), selTime,
+    document.createTextNode(L(", because ", ", porque "))
+  );
+  hypRow.append(selWhy, document.createTextNode("."));
+  hypCard.append(hypRow);
+  const lockBtn = document.createElement("button"); lockBtn.type = "button"; lockBtn.className = "btn btn--signal"; lockBtn.style.marginTop = ".6rem";
+  lockBtn.textContent = L("Lock in my hypothesis", "Guardar mi hipótesis");
+  const hypLocked = document.createElement("p"); hypLocked.className = "oa-hyp-locked";
+  hypCard.append(lockBtn, hypLocked);
+  wrap.append(hypCard);
+
+  const missionCard = document.createElement("div"); missionCard.className = "card";
+  missionCard.style.marginTop = "12px";
+  missionCard.style.opacity = "0.45";
+  missionCard.style.pointerEvents = "none";
+
+  lockBtn.addEventListener("click", () => {
+    if (!selDist.value || !selTime.value || !selWhy.value) {
+      sim.toast(L("Choose all three parts of your sentence first.", "Elige las tres partes de tu frase primero."), "info");
+      return;
+    }
+    const sentence = `${L("If a planet is", "Si un planeta está")} ${selDist.selectedOptions[0].textContent} ${L("the Sun, then its orbit will take", "del Sol, entonces su órbita tardará")} ${selTime.selectedOptions[0].textContent}, ${L("because", "porque")} ${selWhy.selectedOptions[0].textContent}.`;
+    sim.setScienceMethod({ hypothesis: sentence });
+    hypLocked.dataset.show = "true";
+    hypLocked.textContent = L("Hypothesis locked in — head down to Mission Control.", "Hipótesis guardada — baja a Control de Misión.");
+    lockBtn.disabled = true; selDist.disabled = true; selTime.disabled = true; selWhy.disabled = true;
+    missionCard.style.opacity = "1"; missionCard.style.pointerEvents = "auto";
+    sim.toast(L("Hypothesis saved!", "¡Hipótesis guardada!"), "correct");
+  });
+
+  /* ---- Part B: Mission Control --------------------------------------- */
+  missionCard.innerHTML = `<p class="eyebrow">${L("Mission Control", "Control de Misión")}</p>
+    <p class="q__hint" style="margin:0 0 6px">${L(
+      "Use this field guide, then classify and launch at least four planets into their true orbit.",
+      "Usa esta guía de campo y luego clasifica y lanza al menos cuatro planetas a su órbita real."
+    )}</p>`;
+
+  const guide = document.createElement("div"); guide.className = "oa-field-guide";
+  guide.innerHTML = `
+    <div class="oa-field-card">
+      <img src="photos/mars.jpg" alt="${L("Real photo of Mars, a terrestrial planet", "Foto real de Marte, un planeta terrestre")}">
+      <div class="oa-field-card__body">
+        <p class="oa-field-card__tag">${L("Terrestrial — real photo: Mars", "Terrestre — foto real: Marte")}</p>
+        <p class="oa-field-card__txt">${L("Small, rocky, solid surface, thin atmosphere.", "Pequeño, rocoso, superficie sólida, atmósfera fina.")}</p>
+      </div>
+    </div>
+    <div class="oa-field-card">
+      <img src="photos/jupiter.jpg" alt="${L("Real photo of Jupiter, a Jovian gas giant", "Foto real de Júpiter, un gigante gaseoso joviano")}">
+      <div class="oa-field-card__body">
+        <p class="oa-field-card__tag">${L("Jovian — real photo: Jupiter", "Joviano — foto real: Júpiter")}</p>
+        <p class="oa-field-card__txt">${L("Huge, made of gas, banded clouds, no solid surface.", "Enorme, hecho de gas, nubes en bandas, sin superficie sólida.")}</p>
+      </div>
+    </div>`;
+  missionCard.append(guide);
+  const guideCredit = document.createElement("p"); guideCredit.className = "oa-credit";
+  guideCredit.innerHTML = L(
+    'Mars: NASA, ESA, Hubble Heritage Team (STScI/AURA), public domain. Jupiter: NASA/JPL-Caltech/SwRI/MSSS, image by citizen scientist Roman Tkachenko, public domain — <a href="https://images.nasa.gov/details/PIA21376" target="_blank" rel="noopener">via NASA Images</a>.',
+    'Marte: NASA, ESA, Hubble Heritage Team (STScI/AURA), dominio público. Júpiter: NASA/JPL-Caltech/SwRI/MSSS, imagen del científico ciudadano Roman Tkachenko, dominio público — <a href="https://images.nasa.gov/details/PIA21376" target="_blank" rel="noopener">vía NASA Images</a>.'
+  );
+  missionCard.append(guideCredit);
+
+  const picker = document.createElement("div"); picker.className = "oa-picker";
+  const buttons = {};
+  PLANETS.forEach(p => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "oa-planet-btn";
+    const dot = document.createElement("span"); dot.className = "oa-planet-btn__dot"; dot.style.background = "#" + p.color.toString(16).padStart(6, "0");
+    b.append(dot, document.createTextNode(L(p.en, p.es)));
+    b.addEventListener("click", () => selectPlanet(p.id));
+    picker.append(b);
+    buttons[p.id] = b;
+  });
+  missionCard.append(picker);
+
+  const classifyWrap = document.createElement("div"); classifyWrap.hidden = true;
+  const classifyIntro = document.createElement("p"); classifyIntro.className = "q__hint"; classifyIntro.style.marginTop = ".7rem";
+  const classify = document.createElement("div"); classify.className = "oa-classify";
+  const btnTerra = document.createElement("button"); btnTerra.type = "button"; btnTerra.textContent = L("Terrestrial (rocky)", "Terrestre (rocoso)");
+  const btnJovi = document.createElement("button"); btnJovi.type = "button"; btnJovi.textContent = L("Jovian (gas giant)", "Joviano (gigante gaseoso)");
+  classify.append(btnTerra, btnJovi);
+  classifyWrap.append(classifyIntro, classify);
+  missionCard.append(classifyWrap);
+
+  const distWrap = document.createElement("div"); distWrap.hidden = true;
+  const distRow = document.createElement("div"); distRow.className = "oa-dist-row";
+  const distLabel = document.createElement("label"); distLabel.className = "field__label"; distLabel.textContent = L("Distance from the Sun", "Distancia al Sol");
+  const distSlider = document.createElement("input"); distSlider.type = "range"; distSlider.min = "1"; distSlider.max = "310"; distSlider.step = "1";
+  const distRead = document.createElement("span"); distRead.className = "oa-dist-read";
+  const realChip = document.createElement("span"); realChip.className = "oa-real-chip";
+  distRow.append(distLabel, distSlider, distRead, realChip);
+  const launchBtn = document.createElement("button"); launchBtn.type = "button"; launchBtn.className = "btn btn--signal"; launchBtn.style.marginTop = ".6rem";
+  launchBtn.textContent = L("Launch into orbit 🚀", "Lanzar a la órbita 🚀");
+  distWrap.append(distRow, launchBtn);
+  missionCard.append(distWrap);
+
+  const space = document.createElement("div"); space.className = "oa-space";
+  space.style.cssText += "aspect-ratio:16/10;min-height:300px;margin-top:10px";
+  const canvas = document.createElement("canvas"); space.append(canvas);
+  const hud = document.createElement("div"); hud.className = "oa-hud";
+  const hudTag = document.createElement("div"); hudTag.className = "oa-hud__tag"; hudTag.textContent = L("Mission Control", "Control de Misión");
+  const hudCount = document.createElement("div"); hudCount.className = "oa-hud__count"; hudCount.textContent = L("0 of 8 planets launched", "0 de 8 planetas lanzados");
+  hud.append(hudTag, hudCount);
+  space.append(hud);
+  missionCard.append(space);
+
+  const missionNote = document.createElement("p"); missionNote.className = "q__hint"; missionNote.style.marginTop = ".6rem";
+  missionNote.textContent = L("Drag inside Mission Control to look around — the camera doesn't change the science, only the distance slider does.", "Arrastra dentro de Control de Misión para mirar alrededor — la cámara no cambia la ciencia, solo lo hace el control de distancia.");
+  missionCard.append(missionNote);
+
+  wrap.append(missionCard);
+  host.append(wrap);
+
+  sim.setScienceMethod({
+    variables: L(
+      "Independent: each planet's distance from the Sun (AU). Dependent: how long one orbit takes (Earth days). Controlled: the same Sun and the same physics model for every planet tested, so comparing distances is fair.",
+      "Independiente: la distancia de cada planeta al Sol (UA). Dependiente: cuánto tarda una órbita (días terrestres). Controladas: el mismo Sol y el mismo modelo físico para cada planeta probado, para que comparar distancias sea justo."
+    )
+  });
+
+  /* ---- Three.js scene -------------------------------------------------- */
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
+  camera.position.set(0, 6, 11);
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.AmbientLight(0x404060, 0.55));
+  const sunLight = new THREE.PointLight(0xffffff, 2.2, 60);
+  scene.add(sunLight);
+
+  { const n = 400; const pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const r = 20 + Math.random() * 15; const th = Math.random() * Math.PI * 2; const ph = Math.acos(2 * Math.random() - 1);
+      pos[i*3] = r * Math.sin(ph) * Math.cos(th); pos[i*3+1] = r * Math.sin(ph) * Math.sin(th) * 0.4; pos[i*3+2] = r * Math.cos(ph); }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const m = new THREE.PointsMaterial({ color: 0xaab4ff, size: 0.06, transparent: true, opacity: 0.6 });
+    scene.add(new THREE.Points(g, m));
+  }
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  const sunMat = new THREE.MeshStandardMaterial({ color: 0xffd27a, emissive: 0xffaa33, emissiveIntensity: 1.4, roughness: 1 });
+  const sun = new THREE.Mesh(new THREE.SphereGeometry(0.55, 32, 32), sunMat);
+  group.add(sun);
+
+  function resize() {
+    const w = space.clientWidth, h = space.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(space);
+  resize();
+
+  let dragging = false, lastX = 0, lastY = 0, rotY = 0.5, rotX = -0.35;
+  canvas.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    rotY += (e.clientX - lastX) * 0.006; rotX += (e.clientY - lastY) * 0.004;
+    rotX = Math.max(-1.1, Math.min(-0.05, rotX));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  window.addEventListener("pointerup", () => dragging = false);
+
+  const launched = {}; // id -> { mesh, radius, speed, angle }
+  function loop() {
+    group.rotation.y = rotY; group.rotation.x = rotX;
+    const spin = reducedMotion() ? 0 : 1;
+    Object.values(launched).forEach(pl => {
+      pl.angle += pl.speed * spin;
+      pl.mesh.position.set(Math.cos(pl.angle) * pl.radius, 0, Math.sin(pl.angle) * pl.radius);
+    });
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  function addOrbitRing(radius, color) {
+    const pts = [];
+    for (let i = 0; i <= 96; i++) { const a = (i / 96) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius)); }
+    const g = new THREE.BufferGeometry().setFromPoints(pts);
+    const m = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.35 });
+    group.add(new THREE.Line(g, m));
+  }
+
+  /* ---- Mission logic --------------------------------------------------- */
+  let current = null;
+  const done = {};
+  const REAL_TYPE = Object.fromEntries(PLANETS.map(p => [p.id, p.type]));
+  const REAL_AU = Object.fromEntries(PLANETS.map(p => [p.id, p.au]));
+
+  function selectPlanet(id) {
+    if (done[id]) { sim.toast(L("Already launched — pick another planet.", "Ya lanzado — elige otro planeta."), "info"); return; }
+    current = id;
+    const p = PLANETS.find(x => x.id === id);
+    Object.entries(buttons).forEach(([k, b]) => b.dataset.active = String(k === id));
+    classifyWrap.hidden = false;
+    distWrap.hidden = true;
+    classifyIntro.textContent = L(`Is ${p.en} a terrestrial (rocky) planet, or a Jovian (gas giant) planet?`, `¿${p.es} es un planeta terrestre (rocoso) o un planeta joviano (gigante gaseoso)?`);
+    btnTerra.className = ""; btnJovi.className = "";
+  }
+
+  function onClassify(guess, btnEl, otherEl) {
+    if (!current) return;
+    const p = PLANETS.find(x => x.id === current);
+    const correct = guess === p.type;
+    if (correct) {
+      btnEl.classList.remove("oa-shake"); void btnEl.offsetWidth; btnEl.classList.add("oa-correct");
+      sim.toast(L(`Correct — ${p.en} is ${p.type === "terrestrial" ? "terrestrial" : "Jovian"}!`, `Correcto — ${p.es} es ${p.type === "terrestrial" ? "terrestre" : "joviano"}.`), "correct");
+      revealDistance(p);
+    } else {
+      btnEl.classList.remove("oa-shake"); void btnEl.offsetWidth; btnEl.classList.add("oa-shake");
+      sim.toast(L(`Not quite — look at the field guide photos again.`, `No es correcto — mira otra vez las fotos de la guía de campo.`), "info");
+    }
+  }
+  btnTerra.addEventListener("click", () => onClassify("terrestrial", btnTerra, btnJovi));
+  btnJovi.addEventListener("click", () => onClassify("jovian", btnJovi, btnTerra));
+
+  function revealDistance(p) {
+    distWrap.hidden = false;
+    distSlider.value = String(Math.round(p.au * 10));
+    realChip.textContent = L(`Real distance: ${p.au} AU`, `Distancia real: ${p.au} UA`);
+    updateDistRead();
+  }
+  function updateDistRead() {
+    const au = Number(distSlider.value) / 10;
+    distRead.textContent = au.toFixed(1) + " AU";
+  }
+  distSlider.addEventListener("input", updateDistRead);
+
+  launchBtn.addEventListener("click", () => {
+    if (!current) return;
+    const p = PLANETS.find(x => x.id === current);
+    const au = Number(distSlider.value) / 10;
+    const orbitDays = keplerDays(au);
+    const radius = visualRadius(au);
+
+    addOrbitRing(radius, p.color);
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.16 + Math.min(au, 6) * 0.01, 20, 20), new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.85 }));
+    group.add(mesh);
+    const baseSpeed = 0.018; // radians/frame for an 88-day orbit
+    launched[p.id] = { mesh, radius, angle: Math.random() * Math.PI * 2, speed: baseSpeed * (88 / orbitDays) };
+
+    done[current] = true;
+    buttons[current].dataset.done = "true";
+    hudCount.textContent = L(`${Object.keys(done).length} of 8 planets launched`, `${Object.keys(done).length} de 8 planetas lanzados`);
+
+    sim.recordTrial({ planet: L(p.en, p.es), type: p.type === "terrestrial" ? L("Terrestrial", "Terrestre") : L("Jovian", "Joviano"), distanceAU: au.toFixed(2), orbitDays });
+
+    const real = REAL_TYPE[p.id] && Math.abs(au - REAL_AU[p.id]) < 0.05;
+    sim.toast(
+      real
+        ? L(`${p.en} launched at its true distance — one orbit takes ${fmtDays(orbitDays)}!`, `${p.es} lanzado a su distancia real — una órbita tarda ${fmtDays(orbitDays)}.`)
+        : L(`${p.en} launched at ${au.toFixed(1)} AU — at that distance, one orbit takes ${fmtDays(orbitDays)}.`, `${p.es} lanzado a ${au.toFixed(1)} UA — a esa distancia, una órbita tarda ${fmtDays(orbitDays)}.`),
+      "correct"
+    );
+
+    if (Object.keys(done).length === 4) {
+      sim.setScienceMethod({ results: L(
+        "After launching several planets, the closest ones complete an orbit in far fewer Earth days than the farthest ones — the greater the distance from the Sun, the longer the orbit takes.",
+        "Tras lanzar varios planetas, los más cercanos completan una órbita en muchos menos días terrestres que los más lejanos — cuanto mayor es la distancia al Sol, más tarda la órbita."
+      )});
+      sim.award("orbit-architect", L("Orbit Architect", "Arquitecto de Órbitas"));
+    }
+
+    current = null;
+    classifyWrap.hidden = true;
+    distWrap.hidden = true;
+    Object.values(buttons).forEach(b => b.dataset.active = "false");
+  });
+}
+
+mountActivity({ simulation: { orient, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
