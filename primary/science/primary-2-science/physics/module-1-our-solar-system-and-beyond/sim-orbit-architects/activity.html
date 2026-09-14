@@ -352,6 +352,11 @@ function investigate(host, sim) {
   });
   missionCard.append(picker);
 
+  const resetBtn = document.createElement("button");
+  resetBtn.type = "button"; resetBtn.className = "btn btn--ghost"; resetBtn.style.marginTop = ".6rem";
+  resetBtn.textContent = L("↺ Reset all planets", "↺ Reiniciar todos los planetas");
+  missionCard.append(resetBtn);
+
   const classifyWrap = document.createElement("div"); classifyWrap.hidden = true;
   const classifyIntro = document.createElement("p"); classifyIntro.className = "q__hint"; classifyIntro.style.marginTop = ".7rem";
   const classify = document.createElement("div"); classify.className = "oa-classify";
@@ -456,12 +461,15 @@ function investigate(host, sim) {
   }
   requestAnimationFrame(loop);
 
+  const orbitRings = [];
   function addOrbitRing(radius, color) {
     const pts = [];
     for (let i = 0; i <= 96; i++) { const a = (i / 96) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius)); }
     const g = new THREE.BufferGeometry().setFromPoints(pts);
     const m = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.35 });
-    group.add(new THREE.Line(g, m));
+    const line = new THREE.Line(g, m);
+    group.add(line);
+    orbitRings.push(line);
   }
 
   /* ---- Mission logic --------------------------------------------------- */
@@ -549,6 +557,39 @@ function investigate(host, sim) {
     distWrap.hidden = true;
     Object.values(buttons).forEach(b => b.dataset.active = "false");
   });
+
+  function resetMission() {
+    if (!Object.keys(done).length) {
+      sim.toast(L("No planets launched yet.", "Todavía no has lanzado ningún planeta."), "info");
+      return;
+    }
+    const ok = confirm(L(
+      "Reset all 8 planets? This clears every planet you've launched from your Investigation Record so you can start again.",
+      "¿Reiniciar los 8 planetas? Esto borra cada planeta que has lanzado de tu Registro de investigación para que puedas empezar de nuevo."
+    ));
+    if (!ok) return;
+
+    // clear every logged trial — sim.trials is a live reference to the saved array
+    sim.trials.length = 0;
+    sim.saveState();
+
+    // clear the 3D scene back to just the Sun
+    Object.values(launched).forEach(pl => group.remove(pl.mesh));
+    orbitRings.forEach(r => group.remove(r));
+    orbitRings.length = 0;
+    Object.keys(launched).forEach(id => delete launched[id]);
+
+    // reset picker + in-progress classification/distance state
+    Object.keys(done).forEach(id => delete done[id]);
+    current = null;
+    Object.values(buttons).forEach(b => { b.dataset.done = "false"; b.dataset.active = "false"; });
+    classifyWrap.hidden = true;
+    distWrap.hidden = true;
+    hudCount.textContent = L("0 of 8 planets launched", "0 de 8 planetas lanzados");
+
+    sim.toast(L("All planets reset — pick one to launch again.", "Todos los planetas reiniciados — elige uno para lanzarlo de nuevo."), "info");
+  }
+  resetBtn.addEventListener("click", resetMission);
 }
 
 mountActivity({ simulation: { orient, investigate } }).catch(e => {
