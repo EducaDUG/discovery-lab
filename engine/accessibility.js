@@ -73,12 +73,34 @@ let ttsOn = false;
 
 export function ttsEnabled() { return ttsOn && !!speech; }
 
+/* Chrome has a long-standing bug where speak() called in the same tick as
+   cancel() — or while the engine is stuck "paused" after a tab was
+   backgrounded or idle for a while — silently drops the utterance: no sound,
+   no error event. This is why read-aloud can work fine in one activity and
+   do nothing in another with no visible cause. resume() clears the stuck
+   state and the setTimeout(0) lets Chrome's internal queue settle after
+   cancel() before the new utterance is queued. */
+function pickVoiceFor(lang) {
+  if (!speech) return null;
+  const voices = speech.getVoices();
+  if (!voices.length) return null;
+  const prefix = lang.split("-")[0].toLowerCase();
+  return voices.find(v => v.lang.toLowerCase() === lang.toLowerCase())
+    || voices.find(v => v.lang.toLowerCase().startsWith(prefix))
+    || null;
+}
 export function speak(text) {
   if (!speech || !text) return;
   speech.cancel();
-  const u = new SpeechSynthesisUtterance(String(text));
-  u.rate = 0.96; u.pitch = 1; u.lang = document.documentElement.lang || "en";
-  speech.speak(u);
+  speech.resume();
+  const lang = document.documentElement.lang || "en";
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(String(text));
+    u.rate = 0.96; u.pitch = 1; u.lang = lang;
+    const voice = pickVoiceFor(lang);
+    if (voice) u.voice = voice;
+    speech.speak(u);
+  }, 0);
 }
 export function stopSpeaking() { if (speech) speech.cancel(); }
 

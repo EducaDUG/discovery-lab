@@ -197,7 +197,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
       <li><a href="../../../">Itinerario británico (A-Level)</a></li>
       <li><a href="../../">Ciencias de Lower Secondary, Etapa 2</a></li>
       <li><a href="../">Lección 1: Procesos vitales y órganos</a></li>
-      <li><span aria-current="page">Escáner MR CRECEN</span></li>
+      <li><span aria-current="page">Escáner de los 8 Verbos Vitales</span></li>
     </ol>
   </nav>
   <div id="lab-root"></div>
@@ -213,7 +213,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 </footer>
 
 <script type="module">
-import { mountActivity } from "../../../../../engine/engine.js?v=13";
+import { mountActivity } from "../../../../../engine/engine.js?v=14";
 import { getLang } from "../../../../../engine/i18n.js?v=5";
 
 const THREE_URL = "../../../../../engine/vendor/three.min.js";
@@ -228,14 +228,15 @@ const L = (en, es) => getLang() === "es" ? es : en;
    CONTENT — the eight life processes
    English mnemonic: MRS C GREN (Movement, Respiration, Sensitivity, Control,
    Growth, Reproduction, Excretion, Nutrition).
-   Spanish mnemonic: MR CRECEN — a genuinely different Spanish device, not a
-   translation of "MRS C GREN" (Diego's explicit request): Movimiento,
-   Respiración, Crecimiento, Reproducción, Excreción, Control, Estimulación
-   (sensibilidad), Nutrición. "Crecen" is a real Spanish word ("they grow"),
-   fitting the biology theme and echoing the English "sounds like a name"
-   trick (Mrs Green -> Mr. Crecen). The underlying `id`s never change language
-   — only the displayed letter/name/order do — so game state/scoring is
-   unaffected by the language switch.
+   Spanish mnemonic: "los 8 Verbos Vitales" — a genuinely different Spanish
+   device (Diego's explicit request, 2026-09-16: not a name-pun translation
+   of "MRS C GREN", and not the earlier "MR CRECEN" either, which still read
+   as an anglicised "Mr." title). Instead of fusing initials into a fake
+   name, it is a plain memorable sentence of eight verbs, one per process, in
+   the same fixed order as PROCESS_ORDER_ES: se mueven, respiran, crecen, se
+   reproducen, excretan, se controlan, sienten y se nutren. The underlying
+   `id`s never change language — only the displayed letter/name/order do —
+   so game state/scoring is unaffected by the language switch.
    ====================================================================== */
 const PROCESS_ORDER_EN = ["movement","respiration","sensitivity","control","growth","reproduction","excretion","nutrition"];
 const PROCESS_ORDER_ES = ["movement","respiration","growth","reproduction","excretion","control","sensitivity","nutrition"];
@@ -253,7 +254,7 @@ const LANG = getLang() === "es" ? "es" : "en";
 const PROCESSES = (LANG === "es" ? PROCESS_ORDER_ES : PROCESS_ORDER_EN).map(id => ({
   id, letter: PROCESS_META[id].letter[LANG], name: PROCESS_META[id].name[LANG], color: PROCESS_META[id].color
 }));
-const MNEMONIC_WORD = L("MRS C GREN", "MR CRECEN");
+const MNEMONIC_WORD = L("MRS C GREN", "los 8 Verbos Vitales");
 const MRS_DEFS = {
   movement:     L("Animals move their whole bodies; plants move parts of themselves, such as leaves turning to light.",
                    "Los animales mueven todo el cuerpo; las plantas mueven partes de sí mismas, como las hojas girando hacia la luz."),
@@ -273,7 +274,7 @@ const MRS_DEFS = {
                    "Tomar alimento, o fabricarlo, para impulsar todos los demás procesos de esta lista."),
 };
 /* Generic "what to look for" cues shown WHILE a blind scan plays — they describe
-   the visual event, never the MRS C GREN / MR CRECEN term, so identifying it is a real decision. */
+   the visual event, never the MRS C GREN term / the 8-Verbs sentence, so identifying it is a real decision. */
 const SCAN_CAPTIONS = {
   movement:     L("That was either a change in position, or a part of it moving on its own.",
                    "Eso fue un cambio de posición, o una parte moviéndose por sí sola."),
@@ -461,7 +462,7 @@ const simulation = {
     const debate=document.createElement("p");debate.className="debate-note";
     debate.innerHTML=L(
       `<b>Remember MRS C GREN:</b> Movement · Respiration · Sensitivity · Control · Growth · Reproduction · Excretion · Nutrition. Scientists use this exact checklist to settle real arguments about what counts as alive — including the biggest one of all, which you'll meet later in this activity.`,
-      `<b>Recuerda MR CRECEN:</b> Movimiento · Respiración · Crecimiento · Reproducción · Excreción · Control · Estimulación (sensibilidad) · Nutrición. Los científicos usan exactamente esta lista para resolver debates reales sobre qué cuenta como ser vivo — incluido el más importante de todos, que conocerás más adelante en esta actividad.`
+      `<b>Recuerda los 8 Verbos Vitales:</b> se mueven, respiran, crecen, se reproducen, excretan, se controlan, sienten y se nutren. Los científicos usan exactamente esta lista para resolver debates reales sobre qué cuenta como ser vivo — incluido el más importante de todos, que conocerás más adelante en esta actividad.`
     );
     host.append(debate);
   },
@@ -539,7 +540,7 @@ const simulation = {
     const legend=document.createElement("div");legend.className="legend";
     legend.innerHTML=L(
       `Every scan is unlabelled. Watch what happens, then work out which MRS C GREN process you just saw — you won't be told in advance.`,
-      `Cada escaneo no está etiquetado. Observa lo que ocurre y luego descubre qué proceso MR CRECEN acabas de ver — no se te dirá de antemano.`
+      `Cada escaneo no está etiquetado. Observa lo que ocurre y luego descubre cuál de los 8 Verbos Vitales acabas de ver — no se te dirá de antemano.`
     );
     left.append(legend);
     const varNote=document.createElement("div");varNote.className="legend";varNote.style.marginTop="var(--sp-2)";
@@ -570,7 +571,7 @@ const simulation = {
 
     const sensorBox=document.createElement("div");
     sensorBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("2 · Identify the process","2 · Identifica el proceso")}</p>`;
-    const sensorGrid=document.createElement("div");sensorGrid.className="sensor-grid";sensorGrid.setAttribute("role","group");sensorGrid.setAttribute("aria-label",L("MRS C GREN answer choices","Opciones de respuesta MR CRECEN"));
+    const sensorGrid=document.createElement("div");sensorGrid.className="sensor-grid";sensorGrid.setAttribute("role","group");sensorGrid.setAttribute("aria-label",L("MRS C GREN answer choices","Opciones de respuesta de los 8 Verbos Vitales"));
     const sensorBtns={};
     PROCESSES.forEach(p=>{
       const b=document.createElement("button");b.type="button";b.className="sensor-btn";b.disabled=true;
