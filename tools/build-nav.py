@@ -76,7 +76,7 @@ SHELL = """<!DOCTYPE html>
 </html>
 """
 
-ASSET_VERSION = "10"
+ASSET_VERSION = "11"
 
 
 def walk(nodes, trail, out):

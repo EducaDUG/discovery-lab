@@ -102,6 +102,9 @@ const STRINGS = {
 
     "investigate": "Investigate",
     "laboratory": "The Laboratory",
+    "reset-investigation": "↺ Reset investigation",
+    "reset-investigation-confirm": "This clears every trial you've logged in your Investigation Record so far and restarts the simulation from the beginning. Your prediction and any written answers are kept. Continue?",
+    "reset-investigation-done": "Investigation reset. Run it again to log fresh trials.",
 
     "record": "Record",
     "investigation-record": "Investigation Record",
@@ -265,6 +268,9 @@ const STRINGS = {
 
     "investigate": "Investigación",
     "laboratory": "El laboratorio",
+    "reset-investigation": "↺ Reiniciar investigación",
+    "reset-investigation-confirm": "Esto borra todas las pruebas que has registrado hasta ahora en tu Registro de investigación y reinicia la simulación desde el principio. Tu predicción y tus respuestas escritas se conservan. ¿Continuar?",
+    "reset-investigation-done": "Investigación reiniciada. Vuelve a realizarla para registrar nuevas pruebas.",
 
     "record": "Registro",
     "investigation-record": "Registro de la investigación",

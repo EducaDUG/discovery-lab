@@ -30,8 +30,8 @@
    spec never pretends otherwise.
    ========================================================================== */
 
-import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=3";
-import { t, getLang, localizeConfig } from "./i18n.js?v=4";
+import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=4";
+import { t, getLang, localizeConfig } from "./i18n.js?v=5";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -396,6 +396,21 @@ export async function mountActivity({ simulation = {} } = {}) {
       save(); refreshRecord();
       return state.trials.length;
     },
+    clearTrials() {
+      state.trials = [];
+      save(); refreshRecord();
+    },
+    /* Full reset of the Investigate stage: trials AND whatever private
+       progress an activity has been keeping in sim.state (state.custom) —
+       e.g. a matched/labelled-so-far map, a game phase, a turn counter.
+       Without clearing state.custom too, a re-mounted activity would still
+       "remember" prior progress even though its Record was wiped, which
+       reads as broken rather than reset. */
+    resetInvestigation() {
+      state.trials = [];
+      state.custom = {};
+      save(); refreshRecord();
+    },
     setResult(k, v) { state.simResults[k] = v; save(); },
     setScienceMethod(k, v) {
       if (typeof k === "object" && k !== null) { Object.assign(state.scienceMethod, k); }
@@ -566,9 +581,31 @@ export async function mountActivity({ simulation = {} } = {}) {
     host.append(badgeShelf);
     renderBadges();
     const simHost = el("div", "sim-host");
-    host.append(simHost);
-    if (simulation.investigate) simulation.investigate(simHost, sim);
-    else simHost.append(el("p", "nav-empty", t("sim-not-wired")));
+    if (simulation.investigate) {
+      /* Every simulation gets a reset — a student should always be able to
+         start the investigation over, whatever the mechanic. Re-invoking
+         investigate() on a freshly emptied host is the same idempotent
+         mount every activity already performs (they all clear their own
+         host.innerHTML first), so this needs no per-activity opt-in. */
+      const resetRow = el("div", "cluster");
+      resetRow.style.justifyContent = "flex-end";
+      resetRow.style.marginBottom = "var(--sp-2)";
+      const resetBtn = el("button", "btn btn--ghost", t("reset-investigation"));
+      resetBtn.type = "button";
+      resetBtn.addEventListener("click", () => {
+        if (!window.confirm(t("reset-investigation-confirm"))) return;
+        sim.resetInvestigation();
+        simHost.innerHTML = "";
+        simulation.investigate(simHost, sim);
+        toast(t("reset-investigation-done"), "info");
+      });
+      resetRow.append(resetBtn);
+      host.append(resetRow, simHost);
+      simulation.investigate(simHost, sim);
+    } else {
+      host.append(simHost);
+      simHost.append(el("p", "nav-empty", t("sim-not-wired")));
+    }
   }
 
   function buildRecord(host) {
