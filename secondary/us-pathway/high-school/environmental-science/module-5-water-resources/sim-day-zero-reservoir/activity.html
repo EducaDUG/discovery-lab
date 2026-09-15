@@ -208,7 +208,7 @@ const simulation = {
     wrap.append(note);
 
     const frame = document.createElement("iframe");
-    frame.src = "../day-zero-reservoir/";
+    frame.src = "../day-zero-reservoir/?v=2";
     frame.title = "Day Zero reservoir-management simulation";
     frame.className = "sim-frame";
     frame.setAttribute("allow", "autoplay; fullscreen");
@@ -220,7 +220,10 @@ const simulation = {
       window.addEventListener("message", (ev) => {
         const d = ev.data;
         if (!d || d.source !== "day-zero-reservoir" || !sim) return;
-        if (d.kind === "record" && d.row) {
+        if (d.kind === "reset-request") {
+          sim.resetInvestigation();
+          sim.toast(L("Investigation reset — your Record is cleared.", "Investigación reiniciada — tu Registro se ha borrado."), "info");
+        } else if (d.kind === "record" && d.row) {
           sim.recordTrial(d.row);
           sim.toast(L("Logged ","Registrado ") + (d.row.year || L("a year","un año")) + L(" to your Record.", " en tu Registro."), "info");
         } else if (d.kind === "summary" && d.summary) {

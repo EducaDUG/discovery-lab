@@ -118,6 +118,7 @@
   <div id="zoomCtl">
     <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
     <button id="zoomOut" type="button" aria-label="Zoom out">–</button>
+    <button id="resetSimBtn" type="button" title="Restart this simulation" aria-label="Restart this simulation">↺</button>
   </div>
 
   <div id="controls">
@@ -561,6 +562,14 @@ function wireInput(){
   dom.addEventListener("wheel", e=>{ e.preventDefault(); orbit.radius = Math.max(160,Math.min(1000, orbit.radius + e.deltaY*0.4)); idleTimer=0; }, {passive:false});
   document.getElementById("zoomIn").onclick = ()=>{ orbit.radius=Math.max(160,orbit.radius-60); idleTimer=0; };
   document.getElementById("zoomOut").onclick = ()=>{ orbit.radius=Math.min(1000,orbit.radius+60); idleTimer=0; };
+  document.getElementById("resetSimBtn").onclick = ()=>{
+    if (!window.confirm("Restart this simulation from Year 0? This clears every year you've logged so far.")) return;
+    try{
+      if (window.parent && window.parent!==window)
+        window.parent.postMessage({source:"day-zero-reservoir", kind:"reset-request"}, "*");
+    }catch(e){}
+    location.reload();
+  };
 }
 
 let raycaster;
