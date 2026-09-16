@@ -159,6 +159,25 @@ rush every time.
   "the game in the Investigate tab never finishes… it should have a clear end at some point." Keep the
   scoring itself addictive (XP, streak, rank-ups) — this only adds the missing finish line. See the
   `.invdone` card in `sim-vertebrate-sorting-lab` for the pattern.
+- **Vary the specific mechanic *inside* a genre too, not just the arcade-vs-realistic-3D pick (agreed
+  2026-09-18).** Diego: "please ensure this style of videogame is not always the same, ok? Vary them,
+  never the same." `mountQuest3D`'s drive-a-rover-and-collect is a *reference implementation of one
+  mechanic*, not the only shape "realistic 3D" is allowed to take. A course that already has a
+  drive-and-collect quest round needs a genuinely different realistic-3D interaction next time it's
+  this genre's turn — e.g. aim-and-launch at a target, assemble/place parts onto a 3D model, sort items
+  off a moving conveyor, a first-person hidden-object hunt in a static scene. Same discipline as the
+  `mechanic` field (CLAUDE.md §10/§11): check what the other simulations in the course already used —
+  both the genre (arcade/quest) and, within quest, the specific interaction — before building a new
+  one.
+- **Chase-camera bug, fixed 2026-09-18 — worth re-deriving if you touch camera-follow code.**
+  `mountQuest3D`'s third-person camera originally sat in *front* of the avatar's direction of travel
+  instead of behind it, so pressing "forward" visually read as driving in reverse. The avatar's nose
+  (the visor mesh) is modelled at local +Z, and `rotation.y = atan2(vel.x, vel.z)` is set so local +Z
+  always points along the direction of travel — which means "behind the avatar" is local **-Z**, not
+  +Z. The chase-camera offset must use `new THREE.Vector3(0, 0, -1)`, not `(0, 0, 1)`. If a future
+  realistic-3D mechanic adds its own chase or follow camera, re-derive this from the model's actual
+  forward axis rather than assuming a sign — this is exactly the kind of thing that looks fine in code
+  review and only shows up as "backwards" when someone actually plays it.
 
 ---
 
@@ -260,6 +279,18 @@ Because this is built once at the engine level, do this properly now rather than
 - A non-simulation fallback or simplified path where a given interaction (e.g. fine drag-and-drop) would be hard for a student with limited motor precision
 
 Put these controls in a small, unobtrusive settings panel (`engine/accessibility.js`) that appears identically on every activity, so a student sets their preferences once per device rather than per activity.
+
+**Hard rule — anything that can make sound must be silenceable with a button reachable at the point
+of use, not just from the accessibility panel (agreed 2026-09-18).** Diego, after finding no way to
+stop a bonus game's audio mid-play: "ensure all things that make sounds can be silenced with a
+button." Read-aloud (browser speech synthesis) is the only thing on this site that ever makes sound —
+muting it IS muting everything. `engine/accessibility.js` exports `setTTS(on)` for exactly this: any
+module that could make sound imports it and shows its own always-visible mute toggle, right in its own
+UI, rather than requiring the student to find and open the separate accessibility panel. Both
+`engine/arcade.js` and `engine/quest3d.js` do this (`.arcade__mute` / `.quest__mute` in each game's
+foot row) — copy this pattern for any future sound-capable feature. The accessibility panel's own
+"read aloud" checkbox stays in sync automatically (it rebuilds from current prefs every time it
+opens), so muting from a game and muting from the panel are always the same one switch.
 
 ---
 
@@ -621,31 +652,68 @@ This is the CGA Teaching Excellence rubric's "Excellent" bar in practice: studen
 higher-order thinking, continuous formative feedback, and students owning their progress — it maps
 directly onto Section 13's eight qualities and does not replace them.
 
-**Amendment — the six method words must actually be visible, and repeat on every science
-simulation (agreed 2026-09-17).** Diego, after playtesting: the `observation`/`question`/etc. fields
-above were being captured for the evidence PDF (via `sim.setScienceMethod()`) but never actually
-shown to the student on screen — so the vocabulary never got the repetition it needs to stick in
-long-term memory. Fixed at the engine level, once, for every science simulation:
+**Amendment — the expanded 10-stage scientific-method sequence, real Observation and Question
+stages, hard rule going forward (agreed 2026-09-17, corrected and finalised 2026-09-18).** Diego,
+after playtesting twice: the `observation`/`question`/etc. fields above were being captured for the
+evidence PDF but never actually shown to the student, then a first fix only added a decorative chip
+strip alongside still-generic stage names — both rejected. **This is the final, standing structure.
+It is a hard rule for every new science simulation from now on**, in every future chat, not a
+one-off: "whenever I open a new chat... whenever you design new simulations, please, everything I am
+saying here, keep it as part of your rules."
 
-- **`config.orient.scientificObservation` and `scientificQuestion`** are now rendered visibly on the
-  Orient stage itself (`engine/engine.js`'s `buildOrient`), right under the mission. Every science
-  activity's config must supply these two fields (in addition to whatever internal `scientificMethod`/
-  `setScienceMethod()` data it already uses for the PDF) — the Orient-stage text and the PDF text can
-  be the same words, but the Orient fields are what makes them visible during the activity itself.
-- **A persistent "scientific method" chip strip** (`.method-rail` in `engine/style.css`) renders under
-  the main stage rail, on every stage, whenever `config.orient.scientificObservation` or
-  `scientificQuestion` is present. Six chips, always the same six words, in every science simulation
-  on the site: Observation, Question, Hypothesis, Experiment, Result, Conclusion. The current stage's
-  corresponding chip is highlighted (`orient`→Observation+Question, `predict`→Hypothesis,
-  `investigate`→Experiment, `record`→Result, `explain`/`apply`→Conclusion) — see `METHOD_BY_STAGE` in
-  `engine/engine.js`. This is deliberately the same six words on every activity, every time: the
-  repetition itself — not any one activity's content — is what is supposed to build long-term recall,
-  so never rename or rephrase these chips per-activity.
-- This is additive and automatic: an activity that already supplies the two config fields gets the
-  chip strip and the visible Orient text for free after an engine version bump, no other changes
-  needed (confirmed on `sim-five-kingdoms-sorter` and `sim-vertebrate-sorting-lab`). If an activity
-  has its own bespoke `orient()` that already draws an observation/question card (an old pattern —
-  see `sim-seed-germination-lab`'s history), remove that duplicate now that the engine owns it.
+The stage sequence for any activity that opts in (`config.question` is present — see below) is:
+
+**Orient → Observation → Question → Hypothesis → Experiment → Record → Explain → Apply → Check →
+Evidence**
+
+- **Orient** — unchanged, stays first.
+- **Observation (new)** — a genuine activity, never a wall of text: the student explores something
+  real (real photos, a diagram, a scene) and notices details for themselves, via
+  `simulation.observation(host, sim)` — the same optional-hook pattern as `simulation.orient`/
+  `simulation.investigate`. See `sim-vertebrate-sorting-lab` (tap-to-reveal notices on two real,
+  misleading animal photos) and `sim-seed-germination-lab` (tap-to-reveal notices comparing two seed
+  species) for the reference pattern: real assets the activity already has, a handful of tap-to-reveal
+  "notice something" chips, no grading.
+- **Question (new)** — the student actually identifies the scientific question this investigation
+  answers (a multiple-choice pick among plausible and implausible questions, via `config.question` —
+  engine-built generically with the same `makeQuestion` machinery as Predict, non-graded). Never a
+  question the student just reads; they have to recognise/select it themselves.
+- **Hypothesis** (renamed from Predict) — its own stage content is unchanged (the structured
+  mc/multi/numeric/slider forecast), but **always explicitly states, at the top, that a hypothesis is
+  an educated guess** (`hypothesis.lede`/`hypothesis.note` in `engine/i18n.js`, shown instead of the
+  generic predict copy).
+- **Experiment** (renamed from Investigate) — content unchanged; the mechanic already is the
+  experiment.
+- **Record, Explain, Apply, Check, Evidence — deliberately NOT renamed.** Diego was explicit: "Record
+  is fine... Explain is fine. Apply is fine. Check Evidence is fine." Only Predict→Hypothesis and
+  Investigate→Experiment are relabelled. (Record's own content should still surface the word
+  "Result(s)" somewhere in what it shows — the auto-logged trial table already effectively is the
+  results — but the stage label itself stays "Record".)
+
+**Mechanism (`engine/engine.js`):** `BASE_STAGE_IDS` (8 stages) is the sequence every activity built
+before 2026-09-18 already runs on — untouched, unchanged, forever, unless Diego asks otherwise.
+`EXPANDED_STAGE_IDS` (10 stages) is the sequence above. Which one a given activity gets is decided by
+`hasExpandedMethod = !!config.question` — **this is the opt-in switch**, deliberately a NEW field
+distinct from the old `scientificObservation`/`scientificQuestion` presence check, precisely so
+activities that already had those fields before this amendment (`sim-five-kingdoms-sorter`,
+`sim-mrs-c-gren-life-scanner`, `sim-cell-structure-detective`) do **not** silently pick up the
+expanded sequence — confirmed unaffected. `config.orient.scientificObservation`/`scientificQuestion`
+still render visibly on the Orient stage itself regardless of which sequence is active (unchanged from
+the first fix).
+
+**For every new science simulation going forward:** set `config.question` (mc, with the real question
+as one option and 2-3 plausible-but-wrong distractors) and implement `simulation.observation(host,
+sim)` — both are now required, the same standing as `learningFocus` or `orient.successCriteria`. A
+science simulation without them is missing a required stage, not "using the simpler version."
+
+**Why this matters pedagogically (Diego's own framing — worth preserving):** the goal is that as
+students move through many different Discovery Lab simulations over time, the same named sequence —
+Observation, Question, Hypothesis, Experiment, Result, Conclusion — repeats often enough that it
+"gets really integrated in their cognitive structure," so they absorb *how to think scientifically*
+as a byproduct of learning each activity's actual content. This sits alongside, not in place of, the
+broader skill set every simulation should build — critical thinking, creativity, digital literacy,
+research and communication skills among them — and alongside Section 4's gamification, which exists
+to make sure all of this happens while the student is genuinely having fun, not just being drilled.
 
 ---
 

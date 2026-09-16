@@ -47,6 +47,8 @@
      disabled (it is the mechanic), but nothing about it is timed per-item.
    ========================================================================== */
 
+import { ttsEnabled, setTTS } from "./accessibility.js?v=6";
+
 export const QUEST_DEFAULT_STRINGS = {
   title: "Field Quest",
   instructions: "Drive around and collect the right ones before time runs out.",
@@ -64,6 +66,7 @@ export const QUEST_DEFAULT_STRINGS = {
   playAgain: "Play again",
   continueLabel: "Continue",
   moveHint: "Arrow keys or WASD to move — or drag the pad.",
+  soundOn: "Sound on", soundOff: "Sound off",
 };
 
 function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
@@ -126,8 +129,13 @@ function ensureStyles() {
   background:#7bffb0cc;border:1px solid #bfe6cf;transform:translate(-50%,-50%);pointer-events:none;
   transition:background var(--dur-fast) var(--ease);}
 .quest__pad.is-active .quest__pad__nub{background:#a6ff5ccc;}
-.quest__foot{display:flex;justify-content:space-between;gap:var(--sp-3);padding:var(--sp-3);
+.quest__foot{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-3);padding:var(--sp-3);
   border-top:1px solid var(--line-strong);font-size:var(--step--1);color:var(--ink-3);flex-wrap:wrap;}
+.quest__mute{flex:none;display:inline-flex;align-items:center;gap:.4em;border:1px solid var(--line-strong);
+  background:var(--paper);color:var(--ink-2);border-radius:999px;padding:.4em .8em;font:inherit;font-size:.72rem;
+  cursor:pointer;touch-action:manipulation;}
+.quest__mute:hover{border-color:var(--accent);color:var(--accent);}
+.quest__mute svg{width:1rem;height:1rem;flex:none;}
 .quest__foot b{color:var(--ink);}
 .quest__launch{padding:var(--sp-5);border:1px solid var(--line-strong);border-radius:var(--radius-lg);
   background:linear-gradient(160deg,#0d1f2c,#122733);color:#eaf6ff;text-align:center;}
@@ -207,6 +215,19 @@ export function mountQuest3D(host, opts) {
 
   const foot = document.createElement("div"); foot.className = "quest__foot";
   foot.innerHTML = `<span>${S.best}: <b id="qs-best">0</b></span><span>${S.moveHint}</span>`;
+  /* A visible, reachable mute button right where the sound could happen —
+     see engine/arcade.js's identical control for why this exists. */
+  const SPEAKER_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  const SPEAKER_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+  const muteBtn = document.createElement("button"); muteBtn.type = "button"; muteBtn.className = "quest__mute";
+  function paintMute() {
+    const on = ttsEnabled();
+    muteBtn.innerHTML = (on ? SPEAKER_ON : SPEAKER_OFF) + `<span>${on ? S.soundOn : S.soundOff}</span>`;
+    muteBtn.setAttribute("aria-label", on ? S.soundOn : S.soundOff);
+  }
+  paintMute();
+  muteBtn.addEventListener("click", () => { setTTS(!ttsEnabled()); paintMute(); });
+  foot.prepend(muteBtn);
   wrap.append(foot);
   host.append(wrap);
 
@@ -578,8 +599,14 @@ function build3DBackend(THREE, stageEl, groups, placed, getInput, handleContact,
       p.mesh.material.opacity = 1 - age / 0.7; p.mesh.material.transparent = true;
     }
 
-    /* third-person chase camera: an over-the-shoulder follow with damping */
-    const behind = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), avatar.rotation.y).multiplyScalar(6.2);
+    /* third-person chase camera: an over-the-shoulder follow with damping.
+       The avatar's nose (the visor mesh) sits at local +Z, and rotation.y
+       is set (below) so that +Z always points the way the avatar is
+       actually travelling — so "behind" the avatar is local -Z, not +Z.
+       Using +Z here was the original bug: the camera sat in front of the
+       avatar's direction of travel, so moving "forward" visually read as
+       reversing towards the camera. */
+    const behind = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), avatar.rotation.y).multiplyScalar(6.2);
     const desiredCam = avatar.position.clone().add(behind).add(new THREE.Vector3(0, 4.4, 0));
     camera.position.lerp(desiredCam, Math.min(1, (reduced ? 5 : 3) * dt));
     camera.lookAt(avatar.position.clone().add(new THREE.Vector3(0, 0.9, 0)));

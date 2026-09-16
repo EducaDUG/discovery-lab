@@ -15,7 +15,7 @@
    panel. Import it as a module:  <script type="module" src=".../accessibility.js">
    ========================================================================== */
 
-import { t } from "./i18n.js?v=5";
+import { t } from "./i18n.js?v=8";
 
 const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
@@ -103,6 +103,22 @@ export function speak(text) {
   }, 0);
 }
 export function stopSpeaking() { if (speech) speech.cancel(); }
+
+/* A single, importable "silence everything" switch — so any sound-making
+   feature anywhere on the site (a bonus game's HUD, an activity's own
+   controls) can offer its own mute button without needing to open the
+   accessibility panel first. Read-aloud is the only thing on this site
+   that ever makes sound, so muting it IS muting everything (see CLAUDE.md
+   §6's amendment). Mirrors what the panel's own toggle does — persists the
+   preference, and stops anything currently speaking immediately when
+   turning off. */
+export function setTTS(on) {
+  prefs = { ...prefs, tts: !!on };
+  save(prefs);
+  ttsOn = !!prefs.tts;
+  refreshSpeakers();
+  if (!on) stopSpeaking();
+}
 
 /* A speaker button the engine can attach beside any block of text. It is inert
    (hidden) unless read-aloud is switched on, so it never clutters the page for
@@ -316,6 +332,10 @@ function mountPanel() {
   }
 
   function openPanel() {
+    /* Rebuild fresh from the current prefs every time — a game's own mute
+       button (setTTS) can change prefs.tts while this panel sits closed,
+       and the checkbox must reflect that next time the student opens it. */
+    current.panel.replaceWith(build().panel);
     current.panel.hidden = false;
     fab.setAttribute("aria-expanded", "true");
     current.panel.querySelector("button,input,select")?.focus();
@@ -345,4 +365,4 @@ if (document.readyState === "loading") {
   mountPanel();
 }
 
-export default { applyPrefs, speak, stopSpeaking, ttsEnabled, speakerButton };
+export default { applyPrefs, speak, stopSpeaking, ttsEnabled, speakerButton, setTTS };

@@ -30,8 +30,8 @@
    spec never pretends otherwise.
    ========================================================================== */
 
-import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=5";
-import { t, getLang, localizeConfig } from "./i18n.js?v=7";
+import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=6";
+import { t, getLang, localizeConfig } from "./i18n.js?v=8";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -296,8 +296,23 @@ function makeQuestion(q, index) {
    THE ENGINE
    ======================================================================== */
 
-const STAGE_IDS = ["orient", "predict", "investigate", "record", "explain", "apply", "check", "evidence"];
-const STAGES = STAGE_IDS.map(id => [id, t(`stage.${id}`)]);
+/* The base 8-stage sequence (every non-science activity, and every science
+   activity built before 2026-09-18 — see the "expanded" sequence below and
+   CLAUDE.md §14's amendment history). Never change this array; it is what
+   every existing activity that does NOT opt into the expanded sequence
+   still runs on, unchanged. */
+const BASE_STAGE_IDS = ["orient", "predict", "investigate", "record", "explain", "apply", "check", "evidence"];
+/* The expanded 10-stage sequence (agreed 2026-09-18) — real Observation and
+   Question stages inserted after Orient, Predict renamed to Hypothesis,
+   Investigate renamed to Experiment. Record/Explain/Apply/Check/Evidence
+   keep their names ("Record is fine... Explain is fine... Apply is fine" —
+   Diego was explicit these should NOT be renamed, only Record gets an
+   additional "Results" heading inside its own content). This is opt-in per
+   activity via config.question (see hasExpandedMethod below) precisely so
+   it can be the standing template for every NEW science simulation without
+   silently changing any activity built before this date. */
+const EXPANDED_STAGE_IDS = ["orient", "observation", "question", "predict", "investigate", "record", "explain", "apply", "check", "evidence"];
+const SCIENCE_STAGE_WORD = { predict: "hypothesis", investigate: "experiment" };
 
 export async function mountActivity({ simulation = {} } = {}) {
   const root = document.getElementById("lab-root");
@@ -317,6 +332,20 @@ export async function mountActivity({ simulation = {} } = {}) {
   if (config.ageBand) document.documentElement.setAttribute("data-age-band", config.ageBand);
   if (config.theme) document.documentElement.setAttribute("data-theme", config.theme);
 
+  /* config.question is the signal an activity opts into the expanded,
+     10-stage scientific-method sequence (real Observation + Question
+     stages, Predict→Hypothesis, Investigate→Experiment). Activities built
+     before 2026-09-18 never set this, so they run the unchanged base
+     sequence — this is deliberate: it is how "don't change the ones from
+     previous days" is enforced structurally, not just by convention. */
+  const hasExpandedMethod = !!config.question;
+  const STAGE_IDS = hasExpandedMethod ? EXPANDED_STAGE_IDS : BASE_STAGE_IDS;
+  function stageLabel(id) {
+    const word = hasExpandedMethod && SCIENCE_STAGE_WORD[id];
+    return word ? t(`method.${word}`) : t(`stage.${id}`);
+  }
+  const STAGES = STAGE_IDS.map(id => [id, stageLabel(id)]);
+
   const STORE_KEY = `dl-activity:${config.activityId}:${config.version}`;
   const simURL = window.location.href.split("#")[0].split("?")[0];
 
@@ -324,7 +353,7 @@ export async function mountActivity({ simulation = {} } = {}) {
   const fresh = () => ({
     schema: SCHEMA, activityId: config.activityId, version: config.version,
     startedAt: todayISO(), stage: 0,
-    predict: null, predictInitial: null,
+    predict: null, predictInitial: null, question: null,
     trials: [], simResults: {}, custom: {}, scienceMethod: {},
     evidence: { prediction_recorded_before_testing: false, prediction_revised: false },
     explain: "", apply: "",
@@ -370,35 +399,6 @@ export async function mountActivity({ simulation = {} } = {}) {
     return step;
   });
   root.append(rail);
-
-  /* --- the scientific-method chip strip (CLAUDE.md §14) ------------------
-     Science simulations already capture observation/question/hypothesis/
-     experiment/result/conclusion data via sim.setScienceMethod() for the
-     evidence PDF, but that data was never actually shown to the student —
-     so the same six words never got repeated, stage after stage, activity
-     after activity, the way spaced repetition needs. This persistent strip
-     fixes that: it renders once per activity (when the activity supplies
-     scientific-method content) and highlights the current stage's term
-     every time the student moves, on every science simulation, site-wide. */
-  const METHOD_ORDER = ["observation", "question", "hypothesis", "experiment", "result", "conclusion"];
-  const METHOD_BY_STAGE = {
-    orient: ["observation", "question"], predict: ["hypothesis"], investigate: ["experiment"],
-    record: ["result"], explain: ["conclusion"], apply: ["conclusion"], check: [], evidence: [],
-  };
-  const hasScienceMethod = !!(config.orient && (config.orient.scientificObservation || config.orient.scientificQuestion));
-  let methodChips = null;
-  if (hasScienceMethod) {
-    const methodRail = el("div", "method-rail");
-    methodRail.setAttribute("role", "group");
-    methodRail.setAttribute("aria-label", t("method.title"));
-    methodChips = {};
-    METHOD_ORDER.forEach(key => {
-      const chip = el("span", "method-rail__chip", t(`method.${key}`));
-      methodChips[key] = chip;
-      methodRail.append(chip);
-    });
-    root.append(methodRail);
-  }
 
   const stagesWrap = el("div", "stages");
   root.append(stagesWrap);
@@ -460,6 +460,7 @@ export async function mountActivity({ simulation = {} } = {}) {
   };
 
   buildOrient(stageEls.orient);
+  if (hasExpandedMethod) { buildObservation(stageEls.observation); buildQuestion(stageEls.question); }
   buildPredict(stageEls.predict);
   buildInvestigate(stageEls.investigate);
   buildRecord(stageEls.record);
@@ -503,10 +504,6 @@ export async function mountActivity({ simulation = {} } = {}) {
       railSteps[idx].dataset.state = idx < i ? "done" : idx === i ? "current" : "";
       railSteps[idx].querySelector(".rail__dot").textContent = idx < i ? "✓" : String(idx + 1);
     });
-    if (methodChips) {
-      const active = new Set(METHOD_BY_STAGE[STAGES[i][0]] || []);
-      METHOD_ORDER.forEach(key => methodChips[key].classList.toggle("is-current", active.has(key)));
-    }
     if (STAGES[i][0] === "record") refreshRecord();
     if (STAGES[i][0] === "investigate") state._investigateSeen = true;
     back.disabled = i === 0;
@@ -604,9 +601,45 @@ export async function mountActivity({ simulation = {} } = {}) {
     host.append(grid);
   }
 
+  /* --- Observation & Question — the two new stages of the expanded
+     scientific-method sequence (agreed 2026-09-18), only built when
+     hasExpandedMethod is true. Observation is a real activity — the
+     simulation supplies its own simulation.observation(host, sim), the
+     same optional-hook pattern already used for orient/investigate — never
+     a wall of text; Question asks the student to actually identify the
+     scientific question this investigation answers, not just read it. --- */
+  function buildObservation(host) {
+    const o = config.observation || {};
+    stageHead(host, stageLabel("observation"), o.title || t("observation.title"), o.lede || t("observation.lede"));
+    /* A dedicated sub-container, never the raw host — simulation.observation
+       (like simulation.investigate's simHost) owns and clears ITS OWN
+       element; handing it the same host stageHead just wrote into would let
+       its own `host.innerHTML = ""` wipe the kicker/title/lede too. */
+    const obsHost = el("div", "sim-host");
+    host.append(obsHost);
+    if (simulation.observation) {
+      simulation.observation(obsHost, sim);
+    } else {
+      obsHost.append(el("p", "nav-empty", t("observation.no-activity")));
+    }
+  }
+
+  function buildQuestion(host) {
+    const q = config.question || {};
+    stageHead(host, stageLabel("question"), q.title || t("question.title"), q.lede || t("question.lede"));
+    const ctl = makeQuestion({ ...q, id: "question" }, 0);
+    controllers.question = ctl;
+    if (state.question != null) ctl.set(state.question);
+    ctl.onChange(() => { state.question = ctl.get(); save(); });
+    host.append(ctl.node);
+    const note = el("p", "q__hint"); note.style.marginTop = "var(--sp-4)";
+    note.textContent = t("question.note");
+    host.append(note);
+  }
+
   function buildPredict(host) {
     const p = config.predict || {};
-    stageHead(host, t("predict"), t("before-touch"), p.lede || t("predict.lede"));
+    stageHead(host, stageLabel("predict"), t("before-touch"), p.lede || (hasExpandedMethod ? t("hypothesis.lede") : t("predict.lede")));
     const ctl = makeQuestion({ ...p, id: "predict" }, 0);
     controllers.predict = ctl;
     if (state.predict != null) ctl.set(state.predict);
@@ -622,12 +655,12 @@ export async function mountActivity({ simulation = {} } = {}) {
     });
     host.append(ctl.node);
     const note = el("p", "q__hint"); note.style.marginTop = "var(--sp-4)";
-    note.textContent = t("predict.note");
+    note.textContent = hasExpandedMethod ? t("hypothesis.note") : t("predict.note");
     host.append(note);
   }
 
   function buildInvestigate(host) {
-    stageHead(host, t("investigate"), config.investigate?.title || t("laboratory"), config.investigate?.lede);
+    stageHead(host, stageLabel("investigate"), config.investigate?.title || t("laboratory"), config.investigate?.lede);
     const badgeShelf = el("div", "badge-shelf"); badgeShelf.id = "badge-shelf";
     host.append(badgeShelf);
     renderBadges();
@@ -661,7 +694,7 @@ export async function mountActivity({ simulation = {} } = {}) {
 
   function buildRecord(host) {
     const r = config.record || {};
-    stageHead(host, t("record"), t("investigation-record"), r.intro || t("record.intro"));
+    stageHead(host, stageLabel("record"), t("investigation-record"), r.intro || t("record.intro"));
     const scroll = el("div", "table-scroll");
     const table = el("table", "data-table"); table.id = "record-table";
     scroll.append(table);
@@ -711,8 +744,8 @@ export async function mountActivity({ simulation = {} } = {}) {
     ctl.wrap.append(field);
     if (cfg.frame) { const fr = el("p", "q__hint"); fr.textContent = cfg.frame; fr.style.marginTop = "var(--sp-2)"; ctl.wrap.append(fr); }
   }
-  function buildExplain(host) { buildWritten(host, config.explain || {}, "explain", t("explain"), t("explain.title")); }
-  function buildApply(host)   { buildWritten(host, config.apply   || {}, "apply",   t("apply"), t("apply.title")); }
+  function buildExplain(host) { buildWritten(host, config.explain || {}, "explain", stageLabel("explain"), t("explain.title")); }
+  function buildApply(host)   { buildWritten(host, config.apply   || {}, "apply",   stageLabel("apply"),   t("apply.title")); }
 
   function buildCheck(host) {
     stageHead(host, t("knowledge-check"), t("show-what-know"), t("check.lede"));

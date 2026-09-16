@@ -33,6 +33,8 @@
    - Fully keyboard-operable: number keys 1-9 mirror the on-screen buttons.
    ========================================================================== */
 
+import { ttsEnabled, setTTS } from "./accessibility.js?v=6";
+
 export const DEFAULT_STRINGS = {
   title: "Bonus round",
   instructions: "Tap the correct answer before each specimen reaches the ring.",
@@ -49,6 +51,7 @@ export const DEFAULT_STRINGS = {
   continueLabel: "Continue",
   skip: "Skip bonus round",
   play: "Play bonus round",
+  soundOn: "Sound on", soundOff: "Sound off",
 };
 
 let stylesInjected = false;
@@ -95,6 +98,10 @@ function ensureStyles() {
 .arcade__lane.is-wrong{box-shadow:0 0 0 3px #fff;filter:brightness(.6);}
 .arcade__foot{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-3);padding:var(--sp-3);
   background:#04120d;color:#8fc9a8;font-family:var(--font-data);font-size:.68rem;flex-wrap:wrap;}
+.arcade__mute{flex:none;display:inline-flex;align-items:center;gap:.4em;border:1px solid #2f6b4d;background:#0d241d;
+  color:#bfe6cf;border-radius:999px;padding:.4em .8em;font:inherit;font-size:.68rem;cursor:pointer;touch-action:manipulation;}
+.arcade__mute:hover{border-color:#7bffb0;color:#7bffb0;}
+.arcade__mute svg{width:1rem;height:1rem;flex:none;}
 .arcade__finish{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:rgba(4,18,13,.92);
   color:#eafff2;text-align:center;padding:var(--sp-4);}
 .arcade__finish h3{font-family:var(--font-display);font-size:var(--step-2);margin-bottom:.3em;}
@@ -213,6 +220,21 @@ export function mountArcadeRush(host, opts) {
 
   const foot = document.createElement("div"); foot.className = "arcade__foot";
   foot.innerHTML = `<span>${S.best}: <b id="ar-best">0</b></span><span>${S.instructions}</span>`;
+  /* A visible, reachable mute button right where the sound could happen —
+     never rely on a student finding the separate accessibility panel mid-
+     game. Read-aloud is the only thing on this site that ever makes sound
+     (CLAUDE.md §6), so this one switch silences everything. */
+  const SPEAKER_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  const SPEAKER_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+  const muteBtn = document.createElement("button"); muteBtn.type = "button"; muteBtn.className = "arcade__mute";
+  function paintMute() {
+    const on = ttsEnabled();
+    muteBtn.innerHTML = (on ? SPEAKER_ON : SPEAKER_OFF) + `<span>${on ? S.soundOn : S.soundOff}</span>`;
+    muteBtn.setAttribute("aria-label", on ? S.soundOn : S.soundOff);
+  }
+  paintMute();
+  muteBtn.addEventListener("click", () => { setTTS(!ttsEnabled()); paintMute(); });
+  foot.prepend(muteBtn);
   wrap.append(foot);
   host.append(wrap);
 

@@ -19,6 +19,16 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 /* ===== Activity-specific styling (lives with the activity) ===== */
 
 /* ---- vertebrate classification chart (Orient) ---- */
+/* ---- Observation stage: two real-photo "notice something" cards ---- */
+.obs-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-4);margin-top:var(--sp-4);}
+@media(min-width:42rem){.obs-grid{grid-template-columns:repeat(2,1fr);}}
+.obs-card{border:1px solid var(--line-strong);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);}
+.obs-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.obs-card__name{font-weight:800;padding:.6em .8em 0;}
+.obs-card .chip-tray{padding:.6em .8em .8em;}
+.obs-card .chip-tray__btn.is-done{opacity:1;pointer-events:default;cursor:default;border-color:var(--positive);background:var(--paper);}
+.obs-card .chip-tray__btn.is-done .tray-mark{display:none;}
+
 .class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-top:var(--sp-4);}
 @media(min-width:36rem){.class-grid{grid-template-columns:repeat(3,1fr);}}
 .class-btn{position:relative;padding:1.1em .8em;border-radius:var(--radius-lg);border:none;cursor:pointer;
@@ -228,9 +238,9 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 </footer>
 
 <script type="module">
-import { mountActivity } from "../../../../../../../engine/engine.js?v=16";
-import { getLang } from "../../../../../../../engine/i18n.js?v=7";
-import { mountQuest3D, renderQuestLaunch } from "../../../../../../../engine/quest3d.js?v=1";
+import { mountActivity } from "../../../../../../../engine/engine.js?v=18";
+import { getLang } from "../../../../../../../engine/i18n.js?v=8";
+import { mountQuest3D, renderQuestLaunch } from "../../../../../../../engine/quest3d.js?v=2";
 
 const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
 
@@ -467,6 +477,54 @@ function celebrateLevelUp(rankName){
 let sim = null;
 
 const simulation = {
+  observation(host, api){
+    host.innerHTML = "";
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Two mystery animals just came in from the field. Tap each one to notice real details about it — before you know anything else about vertebrate classes.",
+      "Dos animales misteriosos acaban de llegar del campo. Toca cada uno para notar detalles reales — antes de saber nada más sobre las clases de vertebrados.");
+    host.append(intro);
+
+    const OBS_ANIMALS = [
+      { img: "photos/whale.jpg", name: L("Mystery Animal A","Animal Misterioso A"),
+        notices: [
+          L("It never comes onto land — it lives its whole life in the ocean.","Nunca sale a tierra — vive toda su vida en el océano."),
+          L("Its skin is smooth, with no scales at all.","Su piel es lisa, sin ninguna escama."),
+          L("It comes to the surface every few minutes to breathe air.","Sube a la superficie cada pocos minutos para respirar aire.")
+        ] },
+      { img: "photos/bat.jpg", name: L("Mystery Animal B","Animal Misterioso B"),
+        notices: [
+          L("It's covered in soft fur, from head to wingtip.","Está cubierto de pelaje suave, de la cabeza a la punta del ala."),
+          L("It flies through the air using its wings.","Vuela por el aire usando sus alas."),
+          L("It's most active at dusk, not in the middle of the day.","Está más activo al atardecer, no a mediodía.")
+        ] }
+    ];
+    const grid = document.createElement("div"); grid.className = "obs-grid";
+    OBS_ANIMALS.forEach(a => {
+      const card = document.createElement("div"); card.className = "obs-card";
+      card.innerHTML = `<img src="${a.img}" alt="${a.name}" loading="lazy">
+        <p class="obs-card__name">${a.name}</p>
+        <div class="chip-tray" role="group" aria-label="${L('Things to notice','Cosas que notar')}"></div>`;
+      const tray = card.querySelector(".chip-tray");
+      a.notices.forEach((note, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn";
+        b.innerHTML = `<span>${L("Notice something","Notar algo")} #${i + 1}</span><span class="tray-mark">👁</span>`;
+        b.addEventListener("click", () => {
+          if (b.classList.contains("is-done")) return;
+          b.classList.add("is-done");
+          b.querySelector("span").textContent = note;
+          if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(note);
+        });
+        tray.append(b);
+      });
+      grid.append(card);
+    });
+    host.append(grid);
+
+    const wrap = document.createElement("p"); wrap.className = "q__hint"; wrap.style.marginTop = "var(--sp-4)";
+    wrap.textContent = L("Keep what you noticed in mind — you'll sort these two properly, along with six other animals, once you reach Experiment.",
+      "Ten en cuenta lo que notaste — clasificarás estos dos animales correctamente, junto con otros seis, cuando llegues a Experimento.");
+    host.append(wrap);
+  },
   orient(host, api){
     host.innerHTML = "";
     sim = api;
