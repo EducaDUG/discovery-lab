@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backbone HQ: The Vertebrate Sorting Lab — Discovery Lab</title>
+<meta name="description" content="Label real fish and eagle photos, then scan eight real animals — including a whale, a bat and a penguin — and sort each into its true vertebrate class.">
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=11">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%232E6F95' stroke-width='4'/><circle cx='22' cy='24' r='6' fill='%23B23A48'/><circle cx='42' cy='24' r='6' fill='%236B4E82'/><circle cx='32' cy='42' r='6' fill='%23B5762A'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ===== Activity-specific styling (lives with the activity) ===== */
+
+/* ---- vertebrate classification chart (Orient) ---- */
+.class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-top:var(--sp-4);}
+@media(min-width:36rem){.class-grid{grid-template-columns:repeat(3,1fr);}}
+.class-btn{position:relative;padding:1.1em .8em;border-radius:var(--radius-lg);border:none;cursor:pointer;
+  font:inherit;font-weight:800;color:#fff;text-align:center;transition:transform var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:.4em;}
+.class-btn svg{width:2rem;height:2rem;}
+.class-btn:hover{transform:translateY(-2px);}
+.class-btn.is-active{box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--k-color, var(--accent));}
+.class-panel{margin-top:var(--sp-3);padding:var(--sp-4);border:1px solid var(--line-strong);border-radius:var(--radius-lg);
+  background:var(--surface);min-height:7rem;}
+.class-panel__title{font-family:var(--font-display);font-size:var(--step-1);font-weight:800;margin:0 0 .3em;}
+.class-panel ul{margin:.4em 0 0;padding-left:1.2em;}
+.class-panel li{margin-bottom:.25em;}
+.class-panel__hint{color:var(--ink-3);font-size:var(--step--1);}
+
+/* ---- persistent rank/XP/streak bar (Investigate) ---- */
+.rankbar{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);
+  border-radius:var(--radius-lg);background:linear-gradient(160deg,#0d1f2c,#122733);color:#eaf6ff;margin-bottom:var(--sp-4);}
+.rankbar__badge{flex:none;width:2.8rem;height:2.8rem;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#1f6a8a,#0c3d4d);border:1px solid #3fb0d0;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.rankbar__badge b{font-size:1.2rem;font-weight:800;}
+.rankbar__body{flex:1;min-width:0;}
+.rankbar__row{display:flex;justify-content:space-between;font-size:.7rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#a9d9e9;margin-bottom:3px;flex-wrap:wrap;gap:.3em;}
+.rankbar__track{height:9px;border-radius:999px;background:#041218;border:1px solid #2f5b6b;overflow:hidden;}
+.rankbar__fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#3fb0d0,#a6e6ff);
+  box-shadow:0 0 12px #3fb0d0aa;transition:width var(--dur-slow) var(--ease);}
+.streak-chip{display:inline-flex;align-items:center;gap:.25em;font-size:.72rem;font-weight:700;color:#ffd27a;letter-spacing:.06em;}
+.streak-chip.hot{animation:flamepulse 1.1s ease-in-out infinite;}
+@keyframes flamepulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+[data-reduced-motion=on] .streak-chip.hot{animation:none;}
+
+/* ---- scanner HUD frame around real photos ---- */
+.scan-frame{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:#050505;border:2px solid #163044;box-shadow:0 0 0 1px #0c1c28, var(--shadow-2);}
+.scan-frame img{width:100%;height:auto;display:block;}
+.scan-frame::before{content:"";position:absolute;left:0;right:0;height:38%;top:-40%;pointer-events:none;z-index:3;
+  background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent-hi) 55%, transparent) 45%, transparent);
+  animation:scansweep 3.4s linear infinite;mix-blend-mode:screen;}
+[data-reduced-motion=on] .scan-frame::before{display:none;}
+@keyframes scansweep{0%{top:-40%;}100%{top:100%;}}
+.scan-corner{position:absolute;width:1.4rem;height:1.4rem;border:2px solid #7bd6ff;z-index:3;pointer-events:none;opacity:.9;}
+.scan-corner--tl{top:8px;left:8px;border-right:none;border-bottom:none;}
+.scan-corner--tr{top:8px;right:8px;border-left:none;border-bottom:none;}
+.scan-corner--bl{bottom:8px;left:8px;border-right:none;border-top:none;}
+.scan-corner--br{bottom:8px;right:8px;border-left:none;border-top:none;}
+.scan-label{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:3;background:#04121899;
+  border:1px solid #2f5b6b;color:#7bd6ff;font-family:var(--font-data);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2em .7em;border-radius:999px;}
+
+.label-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:60rem){.label-wrap{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start;}}
+.slide-card__label{font-family:var(--font-data);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+.diagram-credit{font-size:.66rem;color:var(--ink-3);margin-top:.3em;}
+.diagram-credit a{color:inherit;}
+
+.spot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border-radius:50%;z-index:4;
+  border:2px dashed #7bd6ff;background:rgba(4,18,24,.45);color:#eaf6ff;font-weight:800;font-family:var(--font-data);
+  display:grid;place-items:center;cursor:pointer;touch-action:manipulation;transition:all var(--dur-fast) var(--ease);font-size:.85rem;}
+.spot:hover{border-color:var(--signal);}
+.spot.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+@keyframes spotshake{0%,100%{transform:translate(-50%,-50%);}30%{transform:translate(calc(-50% - 5px),-50%);}60%{transform:translate(calc(-50% + 5px),-50%);}}
+.spot.is-correct{border-style:solid;border-color:transparent;color:#fff;font-size:.62rem;padding:2px;text-align:center;line-height:1.05;
+  background:var(--positive);animation:spotpop .4s var(--ease-out-back);}
+@keyframes spotpop{0%{transform:translate(-50%,-50%) scale(.5);}60%{transform:translate(-50%,-50%) scale(1.25);}100%{transform:translate(-50%,-50%) scale(1);}}
+[data-reduced-motion=on] .spot.is-correct{animation:none;}
+.chip-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.chip-tray__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.chip-tray__btn:hover{border-color:var(--accent);}
+.chip-tray__btn.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.chip-tray__btn.is-done{opacity:.45;pointer-events:none;}
+.chip-tray__btn .tray-mark{margin-left:auto;}
+.result-note{margin-top:var(--sp-3);min-height:2.6rem;}
+
+/* ---- specimen sort phase ---- */
+.specimen-tray{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-bottom:var(--sp-4);}
+@media(min-width:36rem){.specimen-tray{grid-template-columns:repeat(4,1fr);}}
+.specimen-card{border:1px solid var(--line-strong);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);
+  cursor:pointer;font:inherit;text-align:left;padding:0;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;position:relative;}
+.specimen-card:hover{border-color:var(--accent);}
+.specimen-card.is-armed{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent);}
+.specimen-card.is-placed{opacity:.4;pointer-events:none;}
+.specimen-card.is-scanned:not(.is-placed) .specimen-card__scanflag{background:var(--positive);}
+.specimen-card__img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#111;}
+.specimen-card__body{padding:.55em .7em;}
+.specimen-card__name{font-weight:800;font-size:var(--step--1);}
+.specimen-card__scanflag{display:inline-block;margin-top:.3em;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:.15em .55em;border-radius:999px;background:var(--line-strong);color:#fff;}
+.clue-panel{border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-3);margin-bottom:var(--sp-3);
+  background:var(--surface);min-height:3rem;}
+.clue-panel__title{font-weight:800;margin:0 0 .4em;}
+.clue-panel ul{margin:0;padding-left:1.2em;}
+.clue-panel li{margin-bottom:.2em;}
+.class-buckets{display:grid;gap:var(--sp-2);grid-template-columns:repeat(2,1fr);}
+@media(min-width:42rem){.class-buckets{grid-template-columns:repeat(5,1fr);}}
+.bucket{position:relative;border:2px dashed var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-2) var(--sp-2);min-height:7rem;
+  transition:border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);overflow:hidden;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:.3em;font:inherit;background:var(--paper);}
+.bucket__icon{width:1.6rem;height:1.6rem;}
+.bucket.is-target{border-color:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 18%, transparent);}
+.bucket.is-shake{animation:bucketshake .32s ease;}
+.bucket.is-flash{animation:bucketflash .5s ease;}
+@keyframes bucketshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-6px);}60%{transform:translateX(6px);}}
+@keyframes bucketflash{0%{box-shadow:inset 0 0 0 3px var(--positive);}100%{box-shadow:inset 0 0 0 0 transparent;}}
+[data-reduced-motion=on] .bucket.is-shake,[data-reduced-motion=on] .bucket.is-flash{animation:none;}
+.bucket__title{font-weight:800;font-size:var(--step--1);}
+.bucket__items{display:flex;flex-wrap:wrap;gap:.25em;justify-content:center;}
+.bucket__item{padding:.2em .55em;border-radius:999px;color:#fff;font-weight:700;font-size:.62rem;background:var(--positive);
+  animation:chipland .4s var(--ease-out-back);}
+@keyframes chipland{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+[data-reduced-motion=on] .bucket__item{animation:none;}
+.sort-progress{font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);margin-top:var(--sp-2);}
+
+/* ---- particle bursts + level-up celebration ---- */
+.game-layer{position:relative;}
+.burst-anchor{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:6;}
+.burst-anchor i{position:absolute;width:8px;height:8px;border-radius:2px;opacity:.95;}
+.levelup{position:fixed;inset:0;z-index:50;display:grid;place-items:center;pointer-events:none;
+  background:radial-gradient(circle at 50% 45%, rgba(6,18,25,.55), rgba(6,18,25,.85));
+  opacity:0;transition:opacity var(--dur-mid) var(--ease);}
+.levelup.show{opacity:1;}
+.levelup__card{text-align:center;color:#eaf6ff;transform:scale(.7);transition:transform var(--dur-slow) var(--ease-out-back);}
+.levelup.show .levelup__card{transform:scale(1);}
+.levelup__k{font-family:var(--font-data);letter-spacing:.3em;font-size:.8rem;color:#7bd6ff;}
+.levelup__n{font-family:var(--font-display);font-size:2rem;line-height:1.15;font-weight:800;margin:.1em 0;
+  text-shadow:0 0 24px #3fb0d088;}
+.levelup__s{font-family:var(--font-data);font-size:.8rem;color:#bfe0ee;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<script>
+(function(){try{
+  var lang=(localStorage.getItem('dl-lang')||'en');
+  if(lang==='es'){
+    var m=document.querySelector('meta[name="description"]');
+    if(m)m.setAttribute('content','Etiqueta fotos reales de un pez y un águila, luego escanea ocho animales reales —incluidos una ballena, un murciélago y un pingüino— y clasifica cada uno en su verdadera clase de vertebrado.');
+  }
+}catch(e){}})();
+</script>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../">Secondary</a></li>
+      <li><a href="../../../../../">US Pathway</a></li>
+      <li><a href="../../../../">Junior High</a></li>
+      <li><a href="../../../">Life Science 6</a></li>
+      <li><a href="../../">Term 1</a></li>
+      <li><a href="../">Module 4: Vertebrates</a></li>
+      <li><span aria-current="page">Backbone HQ: The Vertebrate Sorting Lab</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../">Secundaria</a></li>
+      <li><a href="../../../../../">Itinerario estadounidense</a></li>
+      <li><a href="../../../../">Junior High</a></li>
+      <li><a href="../../../">Ciencias de la Vida 6</a></li>
+      <li><a href="../../">Trimestre 1</a></li>
+      <li><a href="../">Módulo 4: Vertebrados</a></li>
+      <li><span aria-current="page">Cuartel Vertebrado: El Laboratorio de Clasificación</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=14";
+import { getLang } from "../../../../../../../engine/i18n.js?v=5";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../../engine/arcade.js?v=1";
+
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
+
+/* Simulation-local strings — this activity's own hotspot labels, reveal text,
+   and in-canvas hints. Engine-level chrome is translated in engine/i18n.js;
+   this dictionary is scoped to this one activity's custom mechanic. */
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   THE FIVE VERTEBRATE CLASSES — used by the Orient classification chart.
+   ====================================================================== */
+const CLASSES = {
+  fish: {
+    name: L("Fish","Peces"), color: "#2E6F95",
+    icon: '<path d="M14 32c6-9 22-9 28 0-6 9-22 9-28 0Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M42 32l14-9v18Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="20" cy="30" r="1.8" fill="#fff"/>',
+    facts: [
+      L("Skin covering: smooth, overlapping scales","Cobertura de la piel: escamas lisas y superpuestas"),
+      L("Breathing: gills take oxygen straight from the water","Respiración: las branquias toman oxígeno directamente del agua"),
+      L("Body temperature: cold-blooded — changes with the water around it","Temperatura corporal: sangre fría — cambia con el agua a su alrededor"),
+      L("Babies: lays soft eggs directly in the water, with no shell","Crías: pone huevos blandos directamente en el agua, sin cáscara")
+    ]
+  },
+  amphibians: {
+    name: L("Amphibians","Anfibios"), color: "#3F8F5D",
+    icon: '<ellipse cx="32" cy="38" rx="14" ry="11" fill="none" stroke="#fff" stroke-width="3"/><circle cx="23" cy="23" r="5" fill="none" stroke="#fff" stroke-width="3"/><circle cx="41" cy="23" r="5" fill="none" stroke="#fff" stroke-width="3"/><circle cx="23" cy="23" r="1.6" fill="#fff"/><circle cx="41" cy="23" r="1.6" fill="#fff"/>',
+    facts: [
+      L("Skin covering: smooth, moist skin that can also absorb oxygen","Cobertura de la piel: piel suave y húmeda que también puede absorber oxígeno"),
+      L("Breathing: gills as a swimming young tadpole, lungs as an adult","Respiración: branquias de renacuajo nadador, pulmones de adulto"),
+      L("Body temperature: cold-blooded","Temperatura corporal: sangre fría"),
+      L("Babies: lays jelly-covered eggs in water; hatches and changes shape (metamorphosis)","Crías: pone huevos cubiertos de gelatina en el agua; nace y cambia de forma (metamorfosis)")
+    ]
+  },
+  reptiles: {
+    name: L("Reptiles","Reptiles"), color: "#B5762A",
+    icon: '<ellipse cx="30" cy="34" rx="12" ry="6" fill="none" stroke="#fff" stroke-width="3"/><circle cx="16" cy="30" r="5" fill="none" stroke="#fff" stroke-width="3"/><path d="M42 36l13 9M20 40l-4 8M27 40l-2 9M33 28l2-9M39 28l4-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>',
+    facts: [
+      L("Skin covering: dry, tough scales","Cobertura de la piel: escamas secas y resistentes"),
+      L("Breathing: lungs, even in reptiles that live in water","Respiración: pulmones, incluso en reptiles que viven en el agua"),
+      L("Body temperature: cold-blooded","Temperatura corporal: sangre fría"),
+      L("Babies: lays leathery-shelled eggs on dry land — the shell keeps moisture in","Crías: pone huevos de cáscara correosa en tierra seca — la cáscara retiene la humedad")
+    ]
+  },
+  birds: {
+    name: L("Birds","Aves"), color: "#C0392B",
+    icon: '<ellipse cx="32" cy="35" rx="12" ry="9" fill="none" stroke="#fff" stroke-width="3"/><circle cx="17" cy="26" r="6" fill="none" stroke="#fff" stroke-width="3"/><path d="M11 24l-6-2 4-5Z" fill="#fff"/><path d="M31 27c8-6 17-5 21 3-8 2-16 1-21-3Z" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>',
+    facts: [
+      L("Skin covering: feathers","Cobertura de la piel: plumas"),
+      L("Breathing: lungs","Respiración: pulmones"),
+      L("Body temperature: warm-blooded — makes its own body heat","Temperatura corporal: sangre caliente — genera su propio calor corporal"),
+      L("Babies: lays a hard-shelled egg and cares for its chicks","Crías: pone un huevo de cáscara dura y cuida a sus crías")
+    ]
+  },
+  mammals: {
+    name: L("Mammals","Mamíferos"), color: "#6B4E82",
+    icon: '<circle cx="32" cy="21" r="7" fill="none" stroke="#fff" stroke-width="3"/><path d="M26 15l-4-7M38 15l4-7" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M20 52c0-9 5-16 12-16s12 7 12 16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>',
+    facts: [
+      L("Skin covering: fur or hair","Cobertura de la piel: pelo o pelaje"),
+      L("Breathing: lungs","Respiración: pulmones"),
+      L("Body temperature: warm-blooded","Temperatura corporal: sangre caliente"),
+      L("Babies: (almost always) gives birth to live young and feeds them milk","Crías: (casi siempre) da a luz crías vivas y las alimenta con leche")
+    ]
+  }
+};
+const CLASS_ORDER = ["fish","amphibians","reptiles","birds","mammals"];
+
+/* ======================================================================
+   THE TWO REAL LABELLING PHOTOS (Investigate, phase 1) — the graded
+   evidence for how a fish and a bird are really built for their world.
+   Trout photo: Engbretson Eric, U.S. Fish and Wildlife Service, Wikimedia
+   Commons, public domain. Eagle photo: Randy Loftus/USFWS, Wikimedia
+   Commons, public domain. Hotspot positions are fractions (0-1) of the
+   photo's own width/height, checked against the real photo before use,
+   so each dot lands on a feature a student can actually recognise.
+   ====================================================================== */
+const FISH_IMG = "photos/trout.jpg";
+const EAGLE_IMG = "photos/eagle.jpg";
+const FISH_CREDIT = 'Photo: Engbretson Eric / U.S. Fish and Wildlife Service — Wikimedia Commons, public domain';
+const EAGLE_CREDIT = 'Photo: Randy Loftus / U.S. Fish and Wildlife Service — Wikimedia Commons, public domain';
+
+const MICRO_TERMS = {
+  fin: { name: L("Fin","Aleta"), slide: "fish", fx: 0.515, fy: 0.365,
+    job: L("A thin, flexible blade the fish flexes side to side to push itself through water — the fish equivalent of a paddle. Different fins steer, balance and drive the fish forward.",
+      "Una lámina fina y flexible que el pez mueve de lado a lado para impulsarse por el agua — el equivalente del pez a un remo. Distintas aletas dirigen, equilibran e impulsan al pez.") },
+  scale: { name: L("Scale","Escama"), slide: "fish", fx: 0.46, fy: 0.485,
+    job: L("A small, smooth, overlapping plate that covers a fish's whole body, like waterproof roof tiles. Every fish is covered in scales — one of the clearest features that separates fish from every other vertebrate class.",
+      "Una placa pequeña, lisa y superpuesta que cubre todo el cuerpo del pez, como tejas impermeables. Todo pez está cubierto de escamas — una de las características más claras que separa a los peces de las demás clases de vertebrados.") },
+  gill: { name: L("Gill cover","Opérculo (tapa branquial)"), slide: "fish", fx: 0.785, fy: 0.545,
+    job: L("The hard flap just behind the eye that protects the gills underneath. Water flows in through the mouth, over the gills, and back out from under this cover — this is how a fish breathes without ever surfacing for air.",
+      "La solapa dura justo detrás del ojo que protege las branquias debajo. El agua entra por la boca, pasa por las branquias y sale por debajo de esta tapa — así respira un pez sin salir nunca a la superficie por aire.") },
+  wing: { name: L("Wing","Ala"), slide: "eagle", fx: 0.27, fy: 0.265,
+    job: L("The feathered limb an eagle spreads flat to glide and flaps to climb. A bird's wing is a modified forelimb — the same limb a lizard or a mammal walks on, reshaped by evolution for flight.",
+      "La extremidad emplumada que un águila extiende para planear y bate para subir. El ala de un ave es una extremidad delantera modificada — la misma extremidad con la que camina un lagarto o un mamífero, remodelada por la evolución para volar.") },
+  beak: { name: L("Beak","Pico"), slide: "eagle", fx: 0.472, fy: 0.425,
+    job: L("A hard, toothless structure made of keratin — the same material as your fingernails. Every bird has one; no fish, amphibian, reptile or mammal does.",
+      "Una estructura dura y sin dientes hecha de queratina — el mismo material de tus uñas. Toda ave tiene uno; ningún pez, anfibio, reptil o mamífero lo tiene.") },
+  tailfeathers: { name: L("Tail feathers","Plumas de la cola"), slide: "eagle", fx: 0.40, fy: 0.575,
+    job: L("A fan of stiff feathers spread open here to steer and brake in flight — feathers are the one skin covering unique to birds among all five vertebrate classes.",
+      "Un abanico de plumas rígidas abierto aquí para dirigir y frenar en vuelo — las plumas son la única cobertura de piel exclusiva de las aves entre las cinco clases de vertebrados.") }
+};
+const FISH_KEYS = ["fin","scale","gill"];
+const EAGLE_KEYS = ["wing","beak","tailfeathers"];
+
+function slideImgHTML(src, alt, w, h){
+  return `<img src="${src}" width="${w}" height="${h}" loading="lazy" alt="${alt}">`;
+}
+
+/* ======================================================================
+   THE EIGHT FIELD ANIMALS (Investigate, phase 2) — diagnostic clues and
+   the correct vertebrate class for each. Three animals are deliberate
+   misconception traps: real animals whose looks or behaviour suggest a
+   different class than the one their real features place them in.
+   Licensing: trout — Engbretson Eric/USFWS, public domain. frog —
+   Rudolphous, CC BY-SA 4.0. lizard — Alexkom000, CC BY 4.0. eagle —
+   Randy Loftus/USFWS, public domain. rabbit — Wilfredor, CC0. whale —
+   Giles Laurent, CC BY-SA 4.0. bat — Charles J. Sharp, CC BY-SA 4.0.
+   penguin — Isiwal, CC BY-SA 4.0.
+   ====================================================================== */
+const CC_BY_SA = '<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>';
+const CC_BY = '<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>';
+
+const ANIMALS = [
+  { id: "trout", cls: "fish", img: "photos/trout.jpg",
+    name: L("Rainbow trout","Trucha arcoíris"), credit: FISH_CREDIT,
+    clues: [
+      L("Skin covering: smooth, overlapping scales","Cobertura de la piel: escamas lisas y superpuestas"),
+      L("Breathing: gills — never needs to surface for air","Respiración: branquias — nunca necesita salir a la superficie por aire"),
+      L("Babies: soft eggs laid directly in the water, no shell","Crías: huevos blandos puestos directamente en el agua, sin cáscara")
+    ] },
+  { id: "frog", cls: "amphibians", img: "photos/frog.jpg",
+    name: L("Common frog","Rana común"), credit: 'Rudolphous — Wikimedia Commons, ' + CC_BY_SA,
+    clues: [
+      L("Skin covering: smooth, moist skin","Cobertura de la piel: piel suave y húmeda"),
+      L("Breathing: started life with gills as a tadpole, now breathes with lungs","Respiración: comenzó su vida con branquias como renacuajo, ahora respira con pulmones"),
+      L("Babies: jelly-covered eggs laid in a pond, hatch into swimming tadpoles","Crías: huevos cubiertos de gelatina puestos en un estanque, nacen como renacuajos nadadores")
+    ] },
+  { id: "lizard", cls: "reptiles", img: "photos/lizard.jpg",
+    name: L("Common wall lizard","Lagartija de muro"), credit: 'Alexkom000 — Wikimedia Commons, ' + CC_BY,
+    clues: [
+      L("Skin covering: dry, tough scales","Cobertura de la piel: escamas secas y resistentes"),
+      L("Breathing: lungs","Respiración: pulmones"),
+      L("Babies: leathery-shelled eggs laid on dry land","Crías: huevos de cáscara correosa puestos en tierra seca")
+    ] },
+  { id: "eagle", cls: "birds", img: "photos/eagle.jpg",
+    name: L("Bald eagle","Águila calva"), credit: EAGLE_CREDIT,
+    clues: [
+      L("Skin covering: feathers","Cobertura de la piel: plumas"),
+      L("Breathing: lungs","Respiración: pulmones"),
+      L("Babies: hard-shelled egg, chicks cared for in a nest","Crías: huevo de cáscara dura, crías cuidadas en un nido")
+    ] },
+  { id: "rabbit", cls: "mammals", img: "photos/rabbit.jpg",
+    name: L("European rabbit","Conejo europeo"), credit: 'Wilfredor — Wikimedia Commons, public domain (CC0)',
+    clues: [
+      L("Skin covering: fur","Cobertura de la piel: pelaje"),
+      L("Breathing: lungs","Respiración: pulmones"),
+      L("Babies: born live, feeds on its mother's milk","Crías: nacen vivas, se alimentan de la leche de su madre")
+    ] },
+  { id: "whale", cls: "mammals", img: "photos/whale.jpg",
+    name: L("Humpback whale","Ballena jorobada"), credit: 'Giles Laurent — Wikimedia Commons, ' + CC_BY_SA,
+    clues: [
+      L("Skin covering: smooth skin, almost no fur, and no scales at all","Cobertura de la piel: piel lisa, casi sin pelo, y sin escamas"),
+      L("Breathing: lungs — must surface to breathe air, cannot breathe underwater","Respiración: pulmones — debe salir a la superficie para respirar aire, no puede respirar bajo el agua"),
+      L("Babies: born live in the water, feeds on its mother's milk","Crías: nacen vivas en el agua, se alimentan de la leche de su madre")
+    ] },
+  { id: "bat", cls: "mammals", img: "photos/bat.jpg",
+    name: L("Flying fox (fruit bat)","Zorro volador (murciélago frugívoro)"), credit: 'Charles J. Sharp — Wikimedia Commons, ' + CC_BY_SA,
+    clues: [
+      L("Skin covering: fur on its body, thin skin stretched over its wings","Cobertura de la piel: pelaje en el cuerpo, piel fina estirada sobre las alas"),
+      L("Breathing: lungs","Respiración: pulmones"),
+      L("Babies: born live, feeds on its mother's milk — it never lays an egg","Crías: nacen vivas, se alimentan de la leche de su madre — nunca pone huevos")
+    ] },
+  { id: "penguin", cls: "birds", img: "photos/penguin.jpg",
+    name: L("King penguin","Pingüino rey"), credit: 'Isiwal — Wikimedia Commons, ' + CC_BY_SA,
+    clues: [
+      L("Skin covering: tightly packed, waterproof feathers","Cobertura de la piel: plumas impermeables y muy juntas"),
+      L("Breathing: lungs — holds its breath underwater, just like you do","Respiración: pulmones — aguanta la respiración bajo el agua, igual que tú"),
+      L("Babies: hard-shelled egg, chick cared for by both parents — it never grows scales or gills","Crías: huevo de cáscara dura, cría cuidada por ambos padres — nunca desarrolla escamas ni branquias")
+    ] }
+];
+
+/* ======================================================================
+   GAME LAYER — rank/XP/streak + particle bursts + level-up celebration.
+   ====================================================================== */
+const XP_PER_ACTION = 18;
+const RANKS = [
+  { at: 0,   name: L("Field Recruit","Recluta de campo") },
+  { at: 70,  name: L("Wildlife Scout","Explorador/a de fauna") },
+  { at: 160, name: L("Class Classifier","Clasificador/a de clases") },
+  { at: 260, name: L("Master Zoologist","Zoólogo/a maestro/a") },
+];
+function rankFor(xp){ let r = RANKS[0]; for (const x of RANKS) if (xp >= x.at) r = x; return r; }
+function nextRankAt(xp){ const next = RANKS.find(x => x.at > xp); return next ? next.at : null; }
+
+function reducedMotion(){ return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+
+function fireBurst(host, colors){
+  if (reducedMotion()) return;
+  let layer = host.querySelector(":scope > .burst-anchor");
+  if (!layer){ layer = document.createElement("div"); layer.className = "burst-anchor"; host.appendChild(layer); }
+  const rect = host.getBoundingClientRect();
+  const cx = rect.width / 2, cy = Math.min(80, rect.height / 2);
+  for (let i = 0; i < 18; i++){
+    const p = document.createElement("i");
+    const ang = Math.random() * Math.PI * 2, dist = 40 + Math.random() * 90;
+    p.style.background = colors[i % colors.length];
+    p.style.left = cx + "px"; p.style.top = cy + "px";
+    layer.append(p);
+    const x = Math.cos(ang) * dist, y = Math.sin(ang) * dist - 30;
+    p.animate(
+      [{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${x}px,${y}px) rotate(${Math.random()*480}deg) scale(.3)`, opacity: 0 }],
+      { duration: 700 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
+}
+
+function ensureLevelUpEl(){
+  let el = document.getElementById("vh-levelup");
+  if (!el){
+    el = document.createElement("div"); el.id = "vh-levelup"; el.className = "levelup";
+    el.innerHTML = `<div class="levelup__card"><div class="levelup__k">${L("RANK UP","SUBIDA DE RANGO")}</div><div class="levelup__n" id="vh-lu-n"></div><div class="levelup__s">${L("New rank reached!","¡Nuevo rango alcanzado!")}</div></div>`;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function celebrateLevelUp(rankName){
+  const el = ensureLevelUpEl();
+  el.querySelector("#vh-lu-n").textContent = rankName;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+let sim = null;
+
+const simulation = {
+  orient(host, api){
+    host.innerHTML = "";
+    sim = api;
+
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Tap each vertebrate class below to meet it before you start classifying real animals.",
+      "Toca cada clase de vertebrado de abajo para conocerla antes de empezar a clasificar animales reales.");
+    host.append(intro);
+
+    const grid = document.createElement("div"); grid.className = "class-grid"; grid.setAttribute("role","group");
+    grid.setAttribute("aria-label", L("The five vertebrate classes","Las cinco clases de vertebrados"));
+    const panel = document.createElement("div"); panel.className = "class-panel";
+    panel.innerHTML = `<p class="class-panel__hint">${L("Tap a class above ↑","Toca una clase de arriba ↑")}</p>`;
+
+    const btns = {};
+    CLASS_ORDER.forEach(key => {
+      const k = CLASSES[key];
+      const b = document.createElement("button"); b.type = "button"; b.className = "class-btn";
+      b.style.background = k.color; b.style.setProperty("--k-color", k.color);
+      b.innerHTML = `<svg viewBox="0 0 64 64" aria-hidden="true">${k.icon}</svg><span>${k.name}</span>`;
+      b.addEventListener("click", () => {
+        Object.values(btns).forEach(x => x.classList.remove("is-active"));
+        b.classList.add("is-active");
+        panel.innerHTML = `<p class="class-panel__title" style="color:${k.color}">${k.name}</p>
+          <ul>${k.facts.map(f => `<li>${f}</li>`).join("")}</ul>`;
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(`${k.name}. ${k.facts.join(". ")}`);
+      });
+      btns[key] = b; grid.append(b);
+    });
+    host.append(grid, panel);
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = "";
+    const game = sim.state.game || (sim.state.game = {});
+    game.phase = game.phase || "fish";
+    game.microDone = game.microDone || {};
+    game.scanned = game.scanned || {};
+    game.sortDone = game.sortDone || {};
+    game.xp = game.xp || 0;
+    game.streak = game.streak || 0;
+
+    sim.setScienceMethod({
+      observation: L(
+        "Eight unlabelled animal photos are on the board. Most look like a clear match for one vertebrate class — but a sleek grey ocean animal that never leaves the water, a furry animal seen flying at dusk, and a black-and-white bird that swims instead of flying are all making the survey team argue.",
+        "Hay ocho fotos de animales sin etiquetar en el tablero. La mayoría parecen coincidir claramente con una clase de vertebrado —pero un animal marino gris y liso que nunca sale del agua, un animal peludo visto volando al atardecer, y un ave blanquinegra que nada en vez de volar están causando discusiones en el equipo de estudio."),
+      question: L("What real, testable body features actually decide which vertebrate class an animal belongs to — not just where it lives or how it moves?",
+        "¿Qué características reales y comprobables del cuerpo deciden realmente a qué clase de vertebrado pertenece un animal, y no solo dónde vive o cómo se mueve?"),
+      hypothesis: L(
+        "If an animal is covered in feathers and hatches from a hard-shelled egg, then it must belong to the Birds class, because skin covering and how the baby develops — not where the animal lives or whether it can fly — are what separate each vertebrate class from the other four.",
+        "Si un animal está cubierto de plumas y nace de un huevo de cáscara dura, entonces debe pertenecer a la clase Aves, porque la cobertura de la piel y cómo se desarrolla la cría —no dónde vive el animal ni si puede volar— son lo que separa a cada clase de vertebrado de las otras cuatro."),
+      variables: {
+        independent: L("Which real animal (photo) is being diagnosed and classified.",
+          "Qué animal real (foto) se está diagnosticando y clasificando."),
+        dependent: L("Which vertebrate class each animal is sorted into, based on its skin covering, breathing and baby clues.",
+          "En qué clase de vertebrado se clasifica cada animal, según sus pistas de cobertura de piel, respiración y crías."),
+        controlled: L("The same diagnostic clues (skin covering, breathing, body temperature, babies) are checked for every animal, using the same scan-then-sort procedure, so the comparison across all eight animals is fair.",
+          "Se comprueban las mismas pistas diagnósticas (cobertura de piel, respiración, temperatura corporal, crías) para cada animal, usando el mismo procedimiento de escanear y luego clasificar, así la comparación entre los ocho animales es justa.")
+      }
+    });
+
+    const wrap = document.createElement("div"); wrap.className = "game-layer"; host.append(wrap);
+
+    /* ---- persistent rank/XP/streak bar ---- */
+    const rankbar = document.createElement("div"); rankbar.className = "rankbar";
+    rankbar.innerHTML = `<div class="rankbar__badge"><b id="vh-lvl">1</b></div>
+      <div class="rankbar__body">
+        <div class="rankbar__row"><span id="vh-rankname">${rankFor(game.xp).name}</span><span id="vh-xptext">${game.xp} XP</span></div>
+        <div class="rankbar__track"><div class="rankbar__fill" id="vh-xpfill"></div></div>
+        <div class="streak-chip" id="vh-streak" hidden></div>
+      </div>`;
+    wrap.append(rankbar);
+    function paintRank(){
+      const rank = rankFor(game.xp);
+      document.getElementById("vh-rankname").textContent = rank.name;
+      document.getElementById("vh-xptext").textContent = game.xp + " XP";
+      const idx = RANKS.indexOf(rank);
+      document.getElementById("vh-lvl").textContent = idx + 1;
+      const next = nextRankAt(game.xp);
+      const base = rank.at, span = next ? next - base : 100;
+      const pct = Math.max(0, Math.min(1, (game.xp - base) / span)) * 100;
+      document.getElementById("vh-xpfill").style.width = pct + "%";
+      const streakEl = document.getElementById("vh-streak");
+      if (game.streak >= 3){ streakEl.hidden = false; streakEl.classList.add("hot"); streakEl.innerHTML = L(`🔥 streak x${game.streak}`,`🔥 racha x${game.streak}`); }
+      else { streakEl.hidden = true; streakEl.classList.remove("hot"); }
+    }
+    paintRank();
+    function awardXP(host2){
+      const before = rankFor(game.xp);
+      game.xp += XP_PER_ACTION; game.streak += 1;
+      sim.save && sim.save();
+      paintRank();
+      fireBurst(host2, ["#7bd6ff","#3fb0d0","#ffd45c","#eaf6ff"]);
+      const after = rankFor(game.xp);
+      if (after !== before) celebrateLevelUp(after.name);
+    }
+    function breakStreak(){ game.streak = 0; sim.save && sim.save(); paintRank(); }
+
+    const phaseHost = document.createElement("div"); wrap.append(phaseHost);
+    if (game.phase === "fish") renderMicroPhase("fish", FISH_KEYS, FISH_IMG, FISH_CREDIT,
+      L("Specimen A — rainbow trout","Espécimen A — trucha arcoíris"), 1400, 1000);
+    else if (game.phase === "eagle") renderMicroPhase("eagle", EAGLE_KEYS, EAGLE_IMG, EAGLE_CREDIT,
+      L("Specimen B — bald eagle in flight","Espécimen B — águila calva en vuelo"), 976, 768);
+    else renderSortPhase();
+
+    /* ==================================================================
+       PHASE 1 — FEATURE BENCH: label real diagnostic structures on a real
+       fish photo and a real eagle photo, tap-item then tap-spot, every
+       tap reacting immediately, right where it happened.
+       ================================================================== */
+    function renderMicroPhase(slideKey, keys, img, credit, label, w, h){
+      phaseHost.innerHTML = "";
+      const done = game.microDone[slideKey] || (game.microDone[slideKey] = {});
+      const labelWrap = document.createElement("div"); labelWrap.className = "label-wrap";
+
+      const left = document.createElement("div");
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = (slideKey === "fish" ? L("Step 1 of 3 — ","Paso 1 de 3 — ") : L("Step 2 of 3 — ","Paso 2 de 3 — ")) + label;
+      left.append(stepLabel);
+
+      const frame = document.createElement("div"); frame.className = "scan-frame";
+      frame.innerHTML = slideImgHTML(img, label, w, h) +
+        `<span class="scan-corner scan-corner--tl"></span><span class="scan-corner scan-corner--tr"></span>
+         <span class="scan-corner scan-corner--bl"></span><span class="scan-corner scan-corner--br"></span>
+         <span class="scan-label">${L("ANALYZING ANIMAL","ANALIZANDO ANIMAL")}</span>`;
+      left.append(frame);
+
+      const hint = document.createElement("p"); hint.className = "diagram-caption";
+      hint.textContent = L("Tap a feature below, then tap its spot on the photo.","Toca una característica abajo y luego toca su lugar en la foto.");
+      left.append(hint);
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "micro-note";
+      left.append(note);
+      const creditEl = document.createElement("p"); creditEl.className = "diagram-credit"; creditEl.innerHTML = credit;
+      left.append(creditEl);
+      labelWrap.append(left);
+
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+
+      const side = document.createElement("div");
+      side.innerHTML = `<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Features","Características")}</p>`;
+      const tray = document.createElement("div"); tray.className = "chip-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Features to identify","Características a identificar"));
+      const shuffled = [...keys].sort(()=>Math.random()-0.5);
+      const chipNodes = {}; let armed = null;
+
+      shuffled.forEach(key=>{
+        const term = MICRO_TERMS[key];
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn";
+        if (done[key]) b.classList.add("is-done");
+        b.innerHTML = `<span>${term.name}</span><span class="tray-mark">✓</span>`;
+        b.addEventListener("click", ()=>{
+          if (b.classList.contains("is-done")) return;
+          Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
+          b.classList.add("is-armed"); armed = key;
+          flashNote(L(`${term.name} selected — now tap its spot on the photo.`,`${term.name} seleccionado — ahora toca su lugar en la foto.`), "info");
+        });
+        chipNodes[key] = b; tray.append(b);
+      });
+      side.append(tray); labelWrap.append(side);
+      phaseHost.append(labelWrap);
+
+      let matched = Object.keys(done).length;
+      if (matched) hint.textContent = L(`${matched} / ${keys.length} identified. Tap a feature below, then tap its spot.`, `${matched} / ${keys.length} identificadas. Toca una característica abajo y luego su lugar.`);
+      keys.forEach(key=>{
+        const term = MICRO_TERMS[key];
+        const s = document.createElement("button"); s.type = "button"; s.className = "spot";
+        s.style.left = (term.fx*100)+"%"; s.style.top = (term.fy*100)+"%";
+        s.setAttribute("aria-label", L("Unlabelled spot","Punto sin etiquetar"));
+        if (done[key]) { s.classList.add("is-correct"); s.textContent = "✓"; chipNodes[key].classList.add("is-done"); }
+        s.addEventListener("click", ()=>{
+          if (s.classList.contains("is-correct")) return;
+          if (!armed){
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            flashNote(L("Tap a feature in the list first, then tap its spot.","Toca primero una característica de la lista y luego toca su lugar."), "info");
+            return;
+          }
+          if (armed === key){
+            s.classList.add("is-correct"); s.textContent = "✓";
+            chipNodes[key].classList.add("is-done");
+            done[key] = true; matched++;
+            hint.textContent = L(`${matched} / ${keys.length} identified.`, `${matched} / ${keys.length} identificadas.`);
+            flashNote(L(`Correct! ${term.name} identified.`,`¡Correcto! ${term.name} identificado.`), "correct");
+            sim.recordTrial({ stage: label, organism: slideKey === "fish" ? L("Trout specimen","Espécimen de trucha") : L("Eagle specimen","Espécimen de águila"), result: `${term.name} — ${L("identified","identificado")}` });
+            awardXP(wrap);
+            if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(term.name+(getLang()==="es"?" identificado.":" identified."));
+            armed = null;
+            if (matched === keys.length){
+              setTimeout(()=>{
+                if (slideKey === "fish"){ game.phase = "eagle"; sim.save && sim.save(); renderMicroPhase("eagle", EAGLE_KEYS, EAGLE_IMG, EAGLE_CREDIT, L("Specimen B — bald eagle in flight","Espécimen B — águila calva en vuelo"), 976, 768); }
+                else { game.phase = "sort"; sim.save && sim.save(); renderSortPhase(); }
+              }, 700);
+            }
+          } else {
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            breakStreak();
+            const wrongName = MICRO_TERMS[armed].name;
+            flashNote(L(`Not quite — that's not where the ${wrongName} is. Try again.`,`No exactamente — ahí no está ${wrongName}. Inténtalo de nuevo.`), "info");
+          }
+        });
+        frame.append(s);
+      });
+    }
+
+    /* ==================================================================
+       PHASE 2 — FIELD SORTING LAB: tap an animal to scan it and reveal
+       its real diagnostic clues, then tap the vertebrate class it
+       belongs in. Every tap reacts immediately, right where it happened.
+       ================================================================== */
+    function renderSortPhase(){
+      phaseHost.innerHTML = "";
+      const sortWrap = document.createElement("div"); sortWrap.className = "stack";
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = L("Step 3 of 3 — Scan and sort every animal","Paso 3 de 3 — Escanea y clasifica cada animal");
+      sortWrap.append(stepLabel);
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Tap an animal to run a diagnostic scan, then tap the vertebrate class it belongs in.","Toca un animal para escanearlo y luego toca la clase de vertebrado a la que pertenece.");
+      sortWrap.append(lede);
+
+      const clue = document.createElement("div"); clue.className = "clue-panel";
+      clue.innerHTML = `<p class="clue-panel__title">${L("Diagnostic readout","Lectura diagnóstica")}</p><p class="class-panel__hint">${L("Tap an animal below ↓","Toca un animal de abajo ↓")}</p>`;
+      sortWrap.append(clue);
+
+      const tray = document.createElement("div"); tray.className = "specimen-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Animals to classify","Animales a clasificar"));
+      const cards = {};
+      const shuffledAnimals = [...ANIMALS].sort(()=>Math.random()-0.5);
+      let armed = null;
+
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "sort-note";
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+
+      shuffledAnimals.forEach(sp=>{
+        const c = document.createElement("button"); c.type = "button"; c.className = "specimen-card";
+        if (game.sortDone[sp.id]) c.classList.add("is-placed");
+        if (game.scanned[sp.id]) c.classList.add("is-scanned");
+        c.innerHTML = `<img class="specimen-card__img" src="${sp.img}" alt="${sp.name}" loading="lazy">
+          <div class="specimen-card__body">
+            <div class="specimen-card__name">${sp.name}</div>
+            <span class="specimen-card__scanflag">${game.scanned[sp.id] ? L("Scanned","Escaneado") : L("Unscanned","Sin escanear")}</span>
+          </div>`;
+        c.addEventListener("click", ()=>{
+          if (c.classList.contains("is-placed")) return;
+          if (!game.scanned[sp.id]){
+            game.scanned[sp.id] = true; sim.save && sim.save();
+            c.classList.add("is-scanned");
+            c.querySelector(".specimen-card__scanflag").textContent = L("Scanned","Escaneado");
+            clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl=>`<li>${cl}</li>`).join("")}</ul>
+              <p class="diagram-credit">${sp.credit}</p>`;
+            sim.recordTrial({ stage: L("Diagnostic scan","Escaneo diagnóstico"), organism: sp.name, result: L("Scanned","Escaneado") });
+            if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(sp.clues.join(". "));
+            return;
+          }
+          Object.values(cards).forEach(x=>x.classList.remove("is-armed"));
+          c.classList.add("is-armed"); armed = sp.id;
+          clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl=>`<li>${cl}</li>`).join("")}</ul>
+            <p class="diagram-credit">${sp.credit}</p>`;
+          Object.values(bucketEls).forEach(b=>b.el.classList.add("is-target"));
+        });
+        cards[sp.id] = c; tray.append(c);
+      });
+      sortWrap.append(tray, note);
+
+      const buckets = document.createElement("div"); buckets.className = "class-buckets";
+      const bucketEls = {};
+      CLASS_ORDER.forEach(key=>{
+        const k = CLASSES[key];
+        const b = document.createElement("button"); b.type = "button"; b.className = "bucket";
+        b.style.borderColor = "color-mix(in srgb, "+k.color+" 45%, var(--line-strong))";
+        b.innerHTML = `<svg class="bucket__icon" viewBox="0 0 64 64" aria-hidden="true">${k.icon.replace(/#fff/g,k.color)}</svg>
+          <div class="bucket__title">${k.name}</div><div class="bucket__items" id="bucket-${key}"></div>`;
+        ANIMALS.filter(sp=>sp.cls===key && game.sortDone[sp.id]).forEach(sp=>{
+          const tag = document.createElement("span"); tag.className = "bucket__item"; tag.textContent = sp.name;
+          b.querySelector(".bucket__items").append(tag);
+        });
+        b.addEventListener("click", ()=>{
+          if (!armed) return;
+          const sp = ANIMALS.find(s=>s.id===armed);
+          Object.values(bucketEls).forEach(x=>x.el.classList.remove("is-target"));
+          if (sp.cls === key){
+            const tag = document.createElement("span"); tag.className = "bucket__item"; tag.textContent = sp.name;
+            b.querySelector(".bucket__items").append(tag);
+            cards[armed].classList.add("is-placed");
+            game.sortDone[armed] = true; sim.save && sim.save();
+            sim.recordTrial({ stage: L("Classification","Clasificación"), organism: sp.name,
+              result: L(`Correctly classified as ${k.name}`,`Clasificado correctamente como ${k.name}`) });
+            flashNote(L(`Correct! ${sp.name} belongs in ${k.name}.`,`¡Correcto! ${sp.name} pertenece a ${k.name}.`), "correct");
+            b.classList.remove("is-flash"); void b.offsetWidth; b.classList.add("is-flash");
+            awardXP(wrap);
+            armed = null;
+            updateProgress();
+            if (Object.keys(game.sortDone).length === ANIMALS.length){
+              sim.setScienceMethod({
+                results: L(
+                  `All ${FISH_KEYS.length + EAGLE_KEYS.length} features were identified across the fish and eagle photos, and all ${ANIMALS.length} field animals were scanned and classified into their correct vertebrate classes.`,
+                  `Se identificaron las ${FISH_KEYS.length + EAGLE_KEYS.length} características en las fotos del pez y el águila, y se escanearon y clasificaron los ${ANIMALS.length} animales de campo en sus clases de vertebrado correctas.`),
+                analysis: L(
+                  "The trout's scales and gill cover, and the eagle's feathers and beak, confirmed exactly the features that separate the five classes. Three animals that looked misleading at a glance — the whale (fish-like but a lung-breathing, milk-feeding mammal), the bat (flies like a bird but has fur and gives birth to live young) and the penguin (swims like a fish but is feathered and lays eggs) — were correctly classified once their real skin covering, breathing and baby clues were checked.",
+                  "Las escamas y el opérculo de la trucha, y las plumas y el pico del águila, confirmaron exactamente las características que separan las cinco clases. Tres animales engañosos a primera vista —la ballena (parecida a un pez pero un mamífero que respira con pulmones y amamanta), el murciélago (vuela como un ave pero tiene pelaje y da a luz crías vivas) y el pingüino (nada como un pez pero tiene plumas y pone huevos)— se clasificaron correctamente una vez comprobadas sus pistas reales de cobertura de piel, respiración y crías."),
+                conclusion: L(
+                  "Every animal's vertebrate class could be confirmed from real, testable features — skin covering, breathing, body temperature and how the baby develops — supporting the hypothesis that these features, not where an animal lives or how it moves, are what actually define the five vertebrate classes.",
+                  "La clase de vertebrado de cada animal pudo confirmarse a partir de características reales y comprobables —cobertura de piel, respiración, temperatura corporal y cómo se desarrolla la cría— apoyando la hipótesis de que estas características, y no dónde vive un animal ni cómo se mueve, son las que realmente definen las cinco clases de vertebrados."),
+                reflection: L(
+                  "The clearest evidence was skin covering — scales, moist skin, dry scales, feathers or fur are each unique to one class. The trickiest calls were the whale, the bat and the penguin, which is exactly why biologists always check real diagnostic features rather than relying on where an animal lives or how it moves.",
+                  "La evidencia más clara fue la cobertura de la piel —escamas, piel húmeda, escamas secas, plumas o pelaje son exclusivas de una sola clase. Los casos más difíciles fueron la ballena, el murciélago y el pingüino, y por eso los biólogos siempre comprueban características diagnósticas reales en lugar de fiarse de dónde vive un animal o cómo se mueve.")
+              });
+              setTimeout(()=>{
+                flashNote(L("All animals classified! Move on to Record to see your results.","¡Todos los animales clasificados! Continúa a Registro para ver tus resultados."), "correct");
+              }, 300);
+            }
+          } else {
+            b.classList.remove("is-shake"); void b.offsetWidth; b.classList.add("is-shake");
+            breakStreak();
+            flashNote(L("Not that class — check the diagnostic readout again before choosing.","Esa clase no — revisa de nuevo la lectura diagnóstica antes de elegir."), "info");
+          }
+        });
+        bucketEls[key] = { el: b };
+        buckets.append(b);
+      });
+      sortWrap.append(buckets);
+
+      const progress = document.createElement("p"); progress.className = "sort-progress"; progress.id = "sort-progress";
+      sortWrap.append(progress);
+      const arcadeSection = document.createElement("div"); arcadeSection.id = "arcade-section";
+      sortWrap.append(arcadeSection);
+      function updateProgress(){
+        const doneCount = Object.keys(game.sortDone).length;
+        progress.textContent = L(`${doneCount} / ${ANIMALS.length} classified`, `${doneCount} / ${ANIMALS.length} clasificados`);
+        paintArcadeSection();
+      }
+      updateProgress();
+      phaseHost.append(sortWrap);
+
+      /* ================================================================
+         BONUS ROUND — "Backbone Rush": a 3D arcade recall of the same
+         eight animals, once the careful diagnostic sort is complete.
+         Purely a bonus (no marks, no gating) — see engine/arcade.js.
+         ================================================================ */
+      function paintArcadeSection(){
+        if (Object.keys(game.sortDone).length < ANIMALS.length){ arcadeSection.innerHTML = ""; arcadeSection.dataset.rendered = ""; return; }
+        if (arcadeSection.dataset.rendered) return;
+        arcadeSection.dataset.rendered = "1";
+        const launchWrap = document.createElement("div");
+        launchWrap.style.marginTop = "var(--sp-5)";
+        arcadeSection.append(launchWrap);
+        const bestLine = game.arcadeBest
+          ? L(`Your best score so far: ${game.arcadeBest}.`, `Tu mejor puntuación hasta ahora: ${game.arcadeBest}.`)
+          : "";
+        renderArcadeLaunch(launchWrap, {
+          strings: {
+            title: L("Bonus round — Backbone Rush","Ronda bonus — Carrera Vertebrada"),
+            instructions: (L("Real animals fly at you — tap the correct vertebrate class before each one reaches the ring.","Animales reales vuelan hacia ti — toca la clase de vertebrado correcta antes de que cada uno llegue al aro.") + (bestLine ? " " + bestLine : "")),
+            play: L("Play Backbone Rush","Jugar Carrera Vertebrada"),
+            skip: L("Skip bonus round","Saltar ronda bonus"),
+          },
+          onPlay(){
+            launchWrap.remove();
+            const gameHost = document.createElement("div");
+            arcadeSection.append(gameHost);
+            mountArcadeRush(gameHost, {
+              threeUrl: THREE_URL,
+              rounds: 12,
+              lanes: CLASS_ORDER.map(key => ({ id: key, label: CLASSES[key].name, color: CLASSES[key].color, icon: CLASSES[key].icon })),
+              items: ANIMALS.map(sp => ({ id: sp.id, label: sp.name, laneId: sp.cls, img: sp.img })),
+              strings: {
+                title: L("Backbone Rush","Carrera Vertebrada"),
+                instructions: L("Tap the vertebrate class before the animal reaches the ring. A late or wrong answer just resets your streak — never a fail.","Toca la clase de vertebrado antes de que el animal llegue al aro. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
+                score: L("Score","Puntos"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"),
+                progress: L("Animal","Animal"), correct: L("Correct!","¡Correcto!"), wrong: L("Not quite.","No exactamente."),
+                missed: L("Missed it.","Se te escapó."), finishTitle: L("Round complete!","¡Ronda completa!"),
+                accuracy: L("Accuracy","Precisión"), playAgain: L("Play again","Jugar de nuevo"), continueLabel: L("Continue","Continuar"),
+              },
+              onExit(stats){
+                game.arcadeBest = Math.max(game.arcadeBest || 0, stats.score);
+                sim.save && sim.save();
+                gameHost.innerHTML = "";
+                gameHost.remove();
+                arcadeSection.dataset.rendered = "";
+                paintArcadeSection();
+                sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`,`Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+              }
+            });
+          },
+          onSkip(){
+            arcadeSection.innerHTML = "";
+            arcadeSection.dataset.rendered = "skipped";
+          }
+        });
+      }
+      paintArcadeSection();
+    }
+  }
+};
+
+mountActivity({ simulation }).catch(e=>{
+  console.error("Activity failed to start:", e);
+  const r=document.getElementById("lab-root");
+  if(r) r.innerHTML='<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
