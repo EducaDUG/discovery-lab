@@ -13,7 +13,7 @@
        threeUrl: "../../.../engine/vendor/three.min.js",
        lanes: [ { id, label, color, icon(svg string, optional) }, ... ],
        items: [ { id, label, laneId, img(optional) }, ... ],   // the pool
-       rounds: 12,                                              // items played (cycles/reshuffles the pool)
+       rounds: 24,                                              // items played (cycles/reshuffles the pool) — ~24 gives ~2 minutes of play
        strings: { ... },                                        // see DEFAULT_STRINGS below — pass a translated copy
        onExit(stats) { ... }                                    // stats: {score, hits, total, accuracy, bestStreak}
      });
@@ -173,11 +173,18 @@ export function mountArcadeRush(host, opts) {
   ensureStyles();
   const S = { ...DEFAULT_STRINGS, ...(opts.strings || {}) };
   const lanes = opts.lanes;
-  const rounds = opts.rounds || 12;
+  const rounds = opts.rounds || 24;
   const queue = buildQueue(opts.items, rounds);
 
-  const state = { index: 0, score: 0, streak: 0, bestStreak: 0, hits: 0, answered: false, disposed: false, flightMs: 3200 };
-  const MIN_FLIGHT = 1700, RAMP = 90;
+  /* Timing is tuned so a full round runs close to two minutes of real
+     play — "practising content for 2 minutes" — regardless of how fast a
+     student answers. START_FLIGHT/MIN_FLIGHT/RAMP set each item's
+     scheduled flight time; answer() (below) always waits out that
+     schedule rather than jumping to the next item the instant a student
+     taps, so a confident player still gets the full ~2 minutes of the
+     tunnel run instead of blitzing through it in a few seconds. */
+  const state = { index: 0, score: 0, streak: 0, bestStreak: 0, hits: 0, answered: false, disposed: false, flightMs: 5600, spawnedAt: 0 };
+  const START_FLIGHT = 5600, MIN_FLIGHT = 2600, RAMP = 90, SETTLE_PAD = 400;
 
   host.innerHTML = "";
   const wrap = document.createElement("div"); wrap.className = "arcade";
@@ -261,7 +268,12 @@ export function mountArcadeRush(host, opts) {
       if (renderer3d) renderer3d.settle(false);
     }
     paintHud();
-    setTimeout(nextItem, 650);
+    /* Wait out the rest of this item's scheduled flight time rather than
+       cutting straight to the next one — an instant, confident tap must
+       feel just as satisfying as a last-second one, but the round as a
+       whole still takes its full ~2 minutes either way. */
+    const elapsed = performance.now() - state.spawnedAt;
+    setTimeout(nextItem, Math.max(SETTLE_PAD, state.flightMs - elapsed + SETTLE_PAD));
   }
 
   function timeUp() {
@@ -272,7 +284,7 @@ export function mountArcadeRush(host, opts) {
     showToast(S.missed, "#ffd45c");
     if (renderer3d) renderer3d.settle(false);
     paintHud();
-    setTimeout(nextItem, 550);
+    setTimeout(nextItem, SETTLE_PAD);
   }
 
   function nextItem() {
@@ -281,7 +293,8 @@ export function mountArcadeRush(host, opts) {
     if (state.index >= rounds) return finish();
     state.current = queue[state.index];
     state.answered = false;
-    state.flightMs = Math.max(MIN_FLIGHT, 3200 - state.index * RAMP);
+    state.flightMs = Math.max(MIN_FLIGHT, START_FLIGHT - state.index * RAMP);
+    state.spawnedAt = performance.now();
     paintHud();
     if (renderer3d) renderer3d.spawnItem(state.current, state.flightMs, timeUp);
   }
@@ -332,6 +345,7 @@ export function mountArcadeRush(host, opts) {
     if (state.disposed) { if (backend) backend.dispose(); return; }
     renderer3d = backend;
     state.current = queue[0];
+    state.spawnedAt = performance.now();
     renderer3d.spawnItem(state.current, state.flightMs, timeUp);
   })();
 
