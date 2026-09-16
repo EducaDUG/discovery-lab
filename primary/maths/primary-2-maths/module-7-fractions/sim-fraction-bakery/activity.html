@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Fraction Bakery — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=11">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=14";
+import { getLang } from "../../../../../engine/i18n.js?v=5";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../engine/arcade.js?v=1";
+
+const THREE_URL = "../../../../../engine/vendor/three.min.js";
+const L = (en, es) => (getLang() === "es" ? es : en);
+
+/* ============================================================
+   ORIENT — a bar model + a ratio strip, both static teaching
+   diagrams the student can read on their own before touching
+   anything in the kitchen.
+   ============================================================ */
+function drawOrient(host) {
+  host.innerHTML =
+    `<p class="q__hint">${L(
+      "A fraction bar shows a whole split into equal parts. The ratio strip shows two amounts kept in proportion — for every block of red, there are always the same number of blocks of white.",
+      "Una barra de fracción muestra un entero dividido en partes iguales. La franja de razón muestra dos cantidades mantenidas en proporción — por cada bloque rojo, siempre hay el mismo número de bloques blancos."
+    )}</p>
+    <svg viewBox="0 0 320 190" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px" role="img"
+         aria-label="${L('A bar split into 5 equal parts with 3 shaded, and a ratio strip of 2 red blocks to 3 white blocks','Una barra dividida en 5 partes iguales con 3 sombreadas, y una franja de razón de 2 bloques rojos a 3 blancos')}">
+      <text x="10" y="18" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('3/5 of a bar = 3 ÷ 5','3/5 de una barra = 3 ÷ 5')}</text>
+      <g transform="translate(10,26)">
+        <rect x="0" y="0" width="60" height="34" fill="var(--accent)"/>
+        <rect x="60" y="0" width="60" height="34" fill="var(--accent)"/>
+        <rect x="120" y="0" width="60" height="34" fill="var(--accent)"/>
+        <rect x="180" y="0" width="60" height="34" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="240" y="0" width="60" height="34" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="0" y="0" width="300" height="34" fill="none" stroke="var(--ink)" stroke-width="2"/>
+        <line x1="60" y1="0" x2="60" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="120" y1="0" x2="120" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="180" y1="0" x2="180" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="240" y1="0" x2="240" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
+      </g>
+      <text x="10" y="96" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Ratio strip — 2 red : 3 white','Franja de razón — 2 rojo : 3 blanco')}</text>
+      <g transform="translate(10,104)">
+        <rect x="0"  y="0" width="30" height="28" fill="var(--signal)"/>
+        <rect x="32" y="0" width="30" height="28" fill="var(--signal)"/>
+        <rect x="66" y="0" width="30" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="98" y="0" width="30" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="130" y="0" width="30" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+      </g>
+      <text x="10" y="165" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('The bakery counter is on the next screen — you will build both of these for real.','El mostrador de la panadería está en la siguiente pantalla — construirás ambos de verdad.')}</text>
+    </svg>`;
+}
+
+/* ============================================================
+   INVESTIGATE — the bakery counter: an Icing Ratio Mixer and a
+   Fair-Share Kitchen, both feeding the Investigation Record.
+   ============================================================ */
+function drawInvestigate(host, sim) {
+  host.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "stack";
+  wrap.style.gap = "var(--sp-5)";
+
+  /* ---------- Panel 1: Icing Ratio Mixer ---------- */
+  const ratioPanel = document.createElement("div");
+  ratioPanel.className = "panel stack";
+  ratioPanel.innerHTML = `
+    <p class="eyebrow">${L("Job 1 — Icing Ratio Mixer","Trabajo 1 — Mezclador de glaseado por razón")}</p>
+    <p class="q__hint">${L("A customer wants icing with red and white mixed in a ratio. Set the parts, then pour — every block stays the same size, however many parts you use.","Un cliente quiere glaseado con rojo y blanco mezclados en una razón. Ajusta las partes y vierte — cada bloque mantiene el mismo tamaño, sin importar cuántas partes uses.")}</p>
+    <div class="cluster" style="gap:var(--sp-5);flex-wrap:wrap">
+      <div>
+        <label class="field__label" for="red-parts">${L("Red parts","Partes rojas")}</label>
+        <input id="red-parts" class="input" type="range" min="1" max="6" value="2" style="accent-color:var(--signal)">
+        <p class="readout"><span id="red-read">2</span></p>
+      </div>
+      <div>
+        <label class="field__label" for="white-parts">${L("White parts","Partes blancas")}</label>
+        <input id="white-parts" class="input" type="range" min="1" max="6" value="3" style="accent-color:var(--ink-3)">
+        <p class="readout"><span id="white-read">3</span></p>
+      </div>
+    </div>
+    <svg id="ratio-strip" viewBox="0 0 320 40" style="width:100%;max-width:420px;height:auto"></svg>
+    <p class="readout" id="ratio-readout" aria-live="polite"></p>
+    <button id="pour-btn" class="btn btn--signal" type="button">${L("Pour this mix →","Verter esta mezcla →")}</button>
+  `;
+  wrap.append(ratioPanel);
+
+  const redRange = ratioPanel.querySelector("#red-parts"), whiteRange = ratioPanel.querySelector("#white-parts");
+  const redRead = ratioPanel.querySelector("#red-read"), whiteRead = ratioPanel.querySelector("#white-read");
+  const strip = ratioPanel.querySelector("#ratio-strip"), ratioReadout = ratioPanel.querySelector("#ratio-readout");
+
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  function paintRatio() {
+    const r = Number(redRange.value), w = Number(whiteRange.value);
+    redRead.textContent = r; whiteRead.textContent = w;
+    const g = gcd(r, w);
+    const total = r + w, blockW = 300 / total;
+    let x = 10, svg = "";
+    for (let i = 0; i < r; i++) { svg += `<rect x="${x}" y="4" width="${blockW - 2}" height="28" fill="var(--signal)"/>`; x += blockW; }
+    for (let i = 0; i < w; i++) { svg += `<rect x="${x}" y="4" width="${blockW - 2}" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>`; x += blockW; }
+    strip.innerHTML = svg;
+    ratioReadout.innerHTML = g > 1
+      ? `${r} : ${w} <span class="readout__unit">${L("→ simplest form","→ forma más simple")} ${r / g} : ${w / g}</span>`
+      : `${r} : ${w} <span class="readout__unit">${L("(already simplest form)","(ya es la forma más simple)")}</span>`;
+  }
+  redRange.addEventListener("input", paintRatio);
+  whiteRange.addEventListener("input", paintRatio);
+  paintRatio();
+
+  ratioPanel.querySelector("#pour-btn").addEventListener("click", () => {
+    const r = Number(redRange.value), w = Number(whiteRange.value), g = gcd(r, w);
+    const simplest = g > 1 ? `${r / g} : ${w / g}` : `${r} : ${w}`;
+    sim.recordTrial({ task: L("Icing ratio", "Razón de glaseado"), input: `${r} : ${w}`, result: `${L("simplest form", "forma más simple")} ${simplest}` });
+    sim.toast(L(`Poured a ${r}:${w} mix — simplest form ${simplest}.`, `Mezcla ${r}:${w} vertida — forma más simple ${simplest}.`), "info");
+  });
+
+  /* ---------- Panel 2: Fair-Share Kitchen ---------- */
+  const sharePanel = document.createElement("div");
+  sharePanel.className = "panel stack";
+  sharePanel.innerHTML = `
+    <p class="eyebrow">${L("Job 2 — Fair-Share Kitchen","Trabajo 2 — Cocina de reparto justo")}</p>
+    <p class="q__hint">${L("Choose how many chocolate bars arrive, and how many friends are sharing. Split them fairly and watch the fraction turn into a division — and a decimal.","Elige cuántas barras de chocolate llegan y cuántos amigos las comparten. Repártelas de forma justa y observa cómo la fracción se convierte en una división — y en un decimal.")}</p>
+    <div class="cluster" style="gap:var(--sp-5);flex-wrap:wrap">
+      <div>
+        <label class="field__label" for="bars-count">${L("Chocolate bars","Barras de chocolate")}</label>
+        <input id="bars-count" class="input" type="range" min="1" max="9" value="3" style="accent-color:var(--accent)">
+        <p class="readout"><span id="bars-read">3</span></p>
+      </div>
+      <div>
+        <label class="field__label" for="friends-count">${L("Friends sharing","Amigos que comparten")}</label>
+        <input id="friends-count" class="input" type="range" min="2" max="8" value="4" style="accent-color:var(--accent)">
+        <p class="readout"><span id="friends-read">4</span></p>
+      </div>
+    </div>
+    <svg id="share-model" viewBox="0 0 320 60" style="width:100%;max-width:420px;height:auto"></svg>
+    <p class="readout" id="share-readout" aria-live="polite"></p>
+    <button id="share-btn" class="btn btn--signal" type="button">${L("Share fairly →","Repartir de forma justa →")}</button>
+  `;
+  wrap.append(sharePanel);
+
+  const barsRange = sharePanel.querySelector("#bars-count"), friendsRange = sharePanel.querySelector("#friends-count");
+  const barsRead = sharePanel.querySelector("#bars-read"), friendsRead = sharePanel.querySelector("#friends-read");
+  const shareModel = sharePanel.querySelector("#share-model"), shareReadout = sharePanel.querySelector("#share-readout");
+
+  function paintShare() {
+    const bars = Number(barsRange.value), friends = Number(friendsRange.value);
+    barsRead.textContent = bars; friendsRead.textContent = friends;
+    const each = bars / friends;
+    const barW = Math.min(56, 300 / bars) - 6;
+    let x = 10, svg = "";
+    for (let i = 0; i < bars; i++) {
+      svg += `<rect x="${x}" y="6" width="${barW}" height="34" fill="var(--accent)" opacity="${each >= 1 ? 1 : 0.85}"/>`;
+      svg += `<line x1="${x}" y1="6" x2="${x}" y2="40" stroke="var(--ink)" stroke-width="1"/>`;
+      x += barW + 6;
+    }
+    svg += `<rect x="10" y="6" width="${(barW + 6) * bars - 6}" height="34" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+    shareModel.innerHTML = svg;
+    shareReadout.innerHTML = `${bars} ÷ ${friends} = <strong>${each.toFixed(3).replace(/0+$/,"").replace(/\.$/,"")}</strong> <span class="readout__unit">${L("bars per friend", "barras por amigo")} (${bars}/${friends})</span>`;
+  }
+  barsRange.addEventListener("input", paintShare);
+  friendsRange.addEventListener("input", paintShare);
+  paintShare();
+
+  sharePanel.querySelector("#share-btn").addEventListener("click", () => {
+    const bars = Number(barsRange.value), friends = Number(friendsRange.value);
+    const decimal = (bars / friends).toFixed(3).replace(/0+$/,"").replace(/\.$/,"");
+    sim.recordTrial({ task: L("Fair share","Reparto justo"), input: `${bars} ${L("bars ÷", "barras ÷")} ${friends} ${L("friends","amigos")}`, result: `${bars}/${friends} = ${decimal}` });
+    sim.toast(L(`Shared: ${bars} bars ÷ ${friends} friends = ${decimal} each.`, `Repartido: ${bars} barras ÷ ${friends} amigos = ${decimal} cada uno.`), "info");
+  });
+
+  host.append(wrap);
+
+  /* ---------- Bonus round: Fraction Rush ---------- */
+  const arcadeSection = document.createElement("div");
+  arcadeSection.id = "arcade-section";
+  arcadeSection.style.marginTop = "var(--sp-5)";
+  host.append(arcadeSection);
+
+  const FRACTION_ITEMS = [
+    { id: "f1", label: "1/2", laneId: "d05" },
+    { id: "f2", label: "2/4", laneId: "d05" },
+    { id: "f3", label: "3/6", laneId: "d05" },
+    { id: "f4", label: "1/4", laneId: "d025" },
+    { id: "f5", label: "2/8", laneId: "d025" },
+    { id: "f6", label: "3/4", laneId: "d075" },
+    { id: "f7", label: "6/8", laneId: "d075" },
+    { id: "f8", label: "1/1", laneId: "d10" },
+    { id: "f9", label: "4/4", laneId: "d10" },
+  ];
+  const LANES = [
+    { id: "d025", label: "0.25", color: "#e0b64c" },
+    { id: "d05", label: "0.5", color: "#3f8f6b" },
+    { id: "d075", label: "0.75", color: "#3f7fbf" },
+    { id: "d10", label: "1.0", color: "#a24f7a" },
+  ];
+
+  function paintArcade() {
+    arcadeSection.innerHTML = "";
+    renderArcadeLaunch(arcadeSection, {
+      strings: {
+        title: L("Bonus round — Fraction Rush", "Ronda bonus — Carrera de fracciones"),
+        instructions: L("Fractions fly at you — tap the decimal it matches before it reaches the ring.", "Las fracciones vuelan hacia ti — toca el decimal que le corresponde antes de que llegue al aro."),
+        play: L("Play Fraction Rush", "Jugar Carrera de fracciones"),
+        skip: L("Skip bonus round", "Saltar ronda bonus"),
+      },
+      onPlay() {
+        arcadeSection.innerHTML = "";
+        const gameHost = document.createElement("div");
+        arcadeSection.append(gameHost);
+        mountArcadeRush(gameHost, {
+          threeUrl: THREE_URL,
+          rounds: 10,
+          lanes: LANES,
+          items: FRACTION_ITEMS,
+          strings: {
+            title: L("Fraction Rush", "Carrera de fracciones"),
+            instructions: L("Tap the decimal that matches the flying fraction. A late or wrong answer just resets your streak — never a fail.", "Toca el decimal que corresponde a la fracción que vuela. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
+            score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
+            progress: L("Fraction", "Fracción"), correct: L("Correct!", "¡Correcto!"), wrong: L("Not quite.", "No exactamente."),
+            missed: L("Missed it.", "Se te escapó."), finishTitle: L("Round complete!", "¡Ronda completa!"),
+            accuracy: L("Accuracy", "Precisión"), playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+          },
+          onExit(stats) {
+            gameHost.innerHTML = "";
+            arcadeSection.innerHTML = "";
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+            paintArcade();
+          }
+        });
+      },
+      onSkip() { arcadeSection.innerHTML = ""; }
+    });
+  }
+  paintArcade();
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
