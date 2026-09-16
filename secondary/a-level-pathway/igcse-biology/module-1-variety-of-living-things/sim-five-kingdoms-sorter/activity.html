@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Five Kingdoms Research Station — Discovery Lab</title>
+<meta name="description" content="Scan real microscope specimens and eight real field photographs to classify organisms into the five kingdoms using real evidence, not appearance.">
+<link rel="stylesheet" href="../../../../../engine/style.css?v=11">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%2316744F' stroke-width='4'/><circle cx='22' cy='24' r='6' fill='%239A6E05'/><circle cx='42' cy='24' r='6' fill='%236B4E82'/><circle cx='32' cy='42' r='6' fill='%232E8B8B'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ===== Activity-specific styling (lives with the activity) ===== */
+
+/* ---- kingdom classification chart (Orient) ---- */
+.kingdom-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-top:var(--sp-4);}
+@media(min-width:36rem){.kingdom-grid{grid-template-columns:repeat(3,1fr);}}
+.kingdom-btn{position:relative;padding:1.1em .8em;border-radius:var(--radius-lg);border:none;cursor:pointer;
+  font:inherit;font-weight:800;color:#fff;text-align:center;transition:transform var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:.4em;}
+.kingdom-btn svg{width:2rem;height:2rem;}
+.kingdom-btn:hover{transform:translateY(-2px);}
+.kingdom-btn.is-active{box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--k-color, var(--accent));}
+.kingdom-btn__tag{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85;font-weight:600;}
+.kingdom-panel{margin-top:var(--sp-3);padding:var(--sp-4);border:1px solid var(--line-strong);border-radius:var(--radius-lg);
+  background:var(--surface);min-height:7rem;}
+.kingdom-panel__title{font-family:var(--font-display);font-size:var(--step-1);font-weight:800;margin:0 0 .3em;}
+.kingdom-panel ul{margin:.4em 0 0;padding-left:1.2em;}
+.kingdom-panel li{margin-bottom:.25em;}
+.kingdom-panel__hint{color:var(--ink-3);font-size:var(--step--1);}
+
+/* ---- persistent rank/XP/streak bar (Investigate) ---- */
+.rankbar{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);
+  border-radius:var(--radius-lg);background:linear-gradient(160deg,#0d241d,#122c22);color:#eafff2;margin-bottom:var(--sp-4);}
+.rankbar__badge{flex:none;width:2.8rem;height:2.8rem;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#1f8a5c,#0c4d33);border:1px solid #3fd08b;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.rankbar__badge b{font-size:1.2rem;font-weight:800;}
+.rankbar__body{flex:1;min-width:0;}
+.rankbar__row{display:flex;justify-content:space-between;font-size:.7rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#a9e9c7;margin-bottom:3px;flex-wrap:wrap;gap:.3em;}
+.rankbar__track{height:9px;border-radius:999px;background:#04120d;border:1px solid #2f6b4d;overflow:hidden;}
+.rankbar__fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#3fd08b,#a6ff5c);
+  box-shadow:0 0 12px #3fd08baa;transition:width var(--dur-slow) var(--ease);}
+.streak-chip{display:inline-flex;align-items:center;gap:.25em;font-size:.72rem;font-weight:700;color:#ffd27a;letter-spacing:.06em;}
+.streak-chip.hot{animation:flamepulse 1.1s ease-in-out infinite;}
+@keyframes flamepulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+[data-reduced-motion=on] .streak-chip.hot{animation:none;}
+
+/* ---- scanner HUD frame around real photos ---- */
+.scan-frame{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:#050505;border:2px solid #163a2c;box-shadow:0 0 0 1px #0c1f18, var(--shadow-2);}
+.scan-frame img{width:100%;height:auto;display:block;}
+.scan-frame::before{content:"";position:absolute;left:0;right:0;height:38%;top:-40%;pointer-events:none;z-index:3;
+  background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent-hi) 55%, transparent) 45%, transparent);
+  animation:scansweep 3.4s linear infinite;mix-blend-mode:screen;}
+[data-reduced-motion=on] .scan-frame::before{display:none;}
+@keyframes scansweep{0%{top:-40%;}100%{top:100%;}}
+.scan-corner{position:absolute;width:1.4rem;height:1.4rem;border:2px solid #7bffb0;z-index:3;pointer-events:none;opacity:.9;}
+.scan-corner--tl{top:8px;left:8px;border-right:none;border-bottom:none;}
+.scan-corner--tr{top:8px;right:8px;border-left:none;border-bottom:none;}
+.scan-corner--bl{bottom:8px;left:8px;border-right:none;border-top:none;}
+.scan-corner--br{bottom:8px;right:8px;border-left:none;border-top:none;}
+.scan-label{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:3;background:#04120dd9;
+  border:1px solid #2f6b4d;color:#7bffb0;font-family:var(--font-data);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2em .7em;border-radius:999px;}
+
+.label-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:60rem){.label-wrap{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start;}}
+.slide-card__label{font-family:var(--font-data);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+.diagram-credit{font-size:.66rem;color:var(--ink-3);margin-top:.3em;}
+.diagram-credit a{color:inherit;}
+
+.spot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border-radius:50%;z-index:4;
+  border:2px dashed #7bffb0;background:rgba(4,18,13,.45);color:#eafff2;font-weight:800;font-family:var(--font-data);
+  display:grid;place-items:center;cursor:pointer;touch-action:manipulation;transition:all var(--dur-fast) var(--ease);font-size:.85rem;}
+.spot:hover{border-color:var(--signal);}
+.spot.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+@keyframes spotshake{0%,100%{transform:translate(-50%,-50%);}30%{transform:translate(calc(-50% - 5px),-50%);}60%{transform:translate(calc(-50% + 5px),-50%);}}
+.spot.is-correct{border-style:solid;border-color:transparent;color:#fff;font-size:.62rem;padding:2px;text-align:center;line-height:1.05;
+  background:var(--positive);animation:spotpop .4s var(--ease-out-back);}
+@keyframes spotpop{0%{transform:translate(-50%,-50%) scale(.5);}60%{transform:translate(-50%,-50%) scale(1.25);}100%{transform:translate(-50%,-50%) scale(1);}}
+[data-reduced-motion=on] .spot.is-correct{animation:none;}
+.chip-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.chip-tray__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.chip-tray__btn:hover{border-color:var(--accent);}
+.chip-tray__btn.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.chip-tray__btn.is-done{opacity:.45;pointer-events:none;}
+.chip-tray__btn .tray-mark{margin-left:auto;}
+.result-note{margin-top:var(--sp-3);min-height:2.6rem;}
+
+/* ---- specimen sort phase ---- */
+.specimen-tray{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-bottom:var(--sp-4);}
+@media(min-width:36rem){.specimen-tray{grid-template-columns:repeat(4,1fr);}}
+.specimen-card{border:1px solid var(--line-strong);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);
+  cursor:pointer;font:inherit;text-align:left;padding:0;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;position:relative;}
+.specimen-card:hover{border-color:var(--accent);}
+.specimen-card.is-armed{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent);}
+.specimen-card.is-placed{opacity:.4;pointer-events:none;}
+.specimen-card.is-scanned:not(.is-placed) .specimen-card__scanflag{background:var(--positive);}
+.specimen-card__img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#111;}
+.specimen-card__body{padding:.55em .7em;}
+.specimen-card__name{font-weight:800;font-size:var(--step--1);}
+.specimen-card__scanflag{display:inline-block;margin-top:.3em;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:.15em .55em;border-radius:999px;background:var(--line-strong);color:#fff;}
+.clue-panel{border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-3);margin-bottom:var(--sp-3);
+  background:var(--surface);min-height:3rem;}
+.clue-panel__title{font-weight:800;margin:0 0 .4em;}
+.clue-panel ul{margin:0;padding-left:1.2em;}
+.clue-panel li{margin-bottom:.2em;}
+.kingdom-buckets{display:grid;gap:var(--sp-2);grid-template-columns:repeat(2,1fr);}
+@media(min-width:42rem){.kingdom-buckets{grid-template-columns:repeat(5,1fr);}}
+.bucket{position:relative;border:2px dashed var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-2) var(--sp-2);min-height:7rem;
+  transition:border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);overflow:hidden;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:.3em;font:inherit;background:var(--paper);}
+.bucket__icon{width:1.6rem;height:1.6rem;}
+.bucket.is-target{border-color:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 18%, transparent);}
+.bucket.is-shake{animation:bucketshake .32s ease;}
+.bucket.is-flash{animation:bucketflash .5s ease;}
+@keyframes bucketshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-6px);}60%{transform:translateX(6px);}}
+@keyframes bucketflash{0%{box-shadow:inset 0 0 0 3px var(--positive);}100%{box-shadow:inset 0 0 0 0 transparent;}}
+[data-reduced-motion=on] .bucket.is-shake,[data-reduced-motion=on] .bucket.is-flash{animation:none;}
+.bucket__title{font-weight:800;font-size:var(--step--1);}
+.bucket__items{display:flex;flex-wrap:wrap;gap:.25em;justify-content:center;}
+.bucket__item{padding:.2em .55em;border-radius:999px;color:#fff;font-weight:700;font-size:.62rem;background:var(--positive);
+  animation:chipland .4s var(--ease-out-back);}
+@keyframes chipland{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+[data-reduced-motion=on] .bucket__item{animation:none;}
+.sort-progress{font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);margin-top:var(--sp-2);}
+
+/* ---- particle bursts + level-up celebration ---- */
+.game-layer{position:relative;}
+.burst-anchor{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:6;}
+.burst-anchor i{position:absolute;width:8px;height:8px;border-radius:2px;opacity:.95;}
+.levelup{position:fixed;inset:0;z-index:50;display:grid;place-items:center;pointer-events:none;
+  background:radial-gradient(circle at 50% 45%, rgba(6,25,18,.55), rgba(6,25,18,.85));
+  opacity:0;transition:opacity var(--dur-mid) var(--ease);}
+.levelup.show{opacity:1;}
+.levelup__card{text-align:center;color:#eafff2;transform:scale(.7);transition:transform var(--dur-slow) var(--ease-out-back);}
+.levelup.show .levelup__card{transform:scale(1);}
+.levelup__k{font-family:var(--font-data);letter-spacing:.3em;font-size:.8rem;color:#a6ff5c;}
+.levelup__n{font-family:var(--font-display);font-size:2rem;line-height:1.15;font-weight:800;margin:.1em 0;
+  text-shadow:0 0 24px #3fd08b88;}
+.levelup__s{font-family:var(--font-data);font-size:.8rem;color:#bfe6cf;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<script>
+(function(){try{
+  var lang=(localStorage.getItem('dl-lang')||'en');
+  if(lang==='es'){
+    var m=document.querySelector('meta[name="description"]');
+    if(m)m.setAttribute('content','Escanea especímenes reales de microscopio y ocho fotografías reales de campo para clasificar organismos en los cinco reinos usando evidencia real, no apariencia.');
+  }
+}catch(e){}})();
+</script>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../">Secondary</a></li>
+      <li><a href="../../../">A-Level Pathway</a></li>
+      <li><a href="../../">IGCSE Biology</a></li>
+      <li><a href="../">Topic 1b: Variety of Living Organisms</a></li>
+      <li><span aria-current="page">The Five Kingdoms Research Station</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../">Secundaria</a></li>
+      <li><a href="../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../">Biología IGCSE</a></li>
+      <li><a href="../">Tema 1b: Variedad de los seres vivos</a></li>
+      <li><span aria-current="page">La Estación de Investigación de los Cinco Reinos</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=14";
+import { getLang } from "../../../../../engine/i18n.js?v=5";
+
+/* Simulation-local strings — this activity's own hotspot labels, reveal text,
+   and in-canvas hints. Engine-level chrome is translated in engine/i18n.js;
+   this dictionary is scoped to this one activity's custom mechanic. */
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   THE FIVE KINGDOMS — used by the Orient classification chart.
+   Facts drawn directly from the IGCSE specification content on kingdoms.
+   ====================================================================== */
+const KINGDOMS = {
+  plants: {
+    name: L("Plants","Plantas"), color: "#3D6FB4",
+    icon: '<path d="M32 54V30M32 30c0-9 7-16 16-16-2 9-9 16-16 16Zm0 6c0-9-7-16-16-16 2 9 9 16 16 16Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>',
+    facts: [
+      L("Multicellular","Multicelulares"),
+      L("Cells contain chloroplasts and a cellulose cell wall","Las células tienen cloroplastos y pared celular de celulosa"),
+      L("Autotrophic — make their own food by photosynthesis","Autótrofas — fabrican su propio alimento mediante la fotosíntesis"),
+      L("Store sugar as starch or sucrose","Almacenan azúcar como almidón o sacarosa")
+    ]
+  },
+  animals: {
+    name: L("Animals","Animales"), color: "#7C9A3D",
+    icon: '<circle cx="32" cy="24" r="8" fill="none" stroke="#fff" stroke-width="3"/><path d="M20 54c0-10 5-18 12-18s12 8 12 18" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>',
+    facts: [
+      L("Multicellular","Multicelulares"),
+      L("Heterotrophic — get nutrition by feeding on other organisms","Heterótrofos — obtienen nutrición alimentándose de otros organismos"),
+      L("Capable of movement; have nervous coordination","Capaces de moverse; tienen coordinación nerviosa"),
+      L("No cell wall or chloroplasts; store carbohydrate as glycogen","Sin pared celular ni cloroplastos; almacenan carbohidrato como glucógeno")
+    ]
+  },
+  fungi: {
+    name: L("Fungi","Hongos"), color: "#6B4E82",
+    icon: '<path d="M16 30c0-9 7-14 16-14s16 5 16 14H16Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M32 30v24" stroke="#fff" stroke-width="3" stroke-linecap="round"/>',
+    facts: [
+      L("Can be multicellular or unicellular","Pueden ser multicelulares o unicelulares"),
+      L("Cell wall made of chitin","Pared celular hecha de quitina"),
+      L("Made of a network of hyphae called a mycelium","Formados por una red de hifas llamada micelio"),
+      L("Saprophytic nutrition using extracellular enzymes; store carbohydrate as glycogen","Nutrición saprófita mediante enzimas extracelulares; almacenan carbohidrato como glucógeno")
+    ]
+  },
+  protoctista: {
+    name: L("Protoctista","Protoctistas"), color: "#2E8B8B",
+    icon: '<path d="M20 32c0-8 6-14 12-10 4-6 12-4 12 4 6 0 8 8 2 12 4 6-2 12-8 10-2 6-10 6-12 0-8 2-12-6-6-16Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>',
+    facts: [
+      L("Often called the ‘dustbin’ kingdom — simple organisms that don’t fit the other four","A menudo llamado el reino ‘cajón de sastre’ — organismos simples que no encajan en los otros cuatro"),
+      L("Some are plant-like, some are animal-like, some fit neither","Algunos parecen plantas, otros parecen animales, otros no encajan en ninguno"),
+      L("Mostly single-celled, though a few (like giant kelp) are large and multicellular","Mayormente unicelulares, aunque algunos (como el alga gigante) son grandes y multicelulares")
+    ]
+  },
+  bacteria: {
+    name: L("Bacteria","Bacterias"), color: "#D98A2B",
+    icon: '<rect x="22" y="24" width="20" height="16" rx="8" fill="none" stroke="#fff" stroke-width="3"/><path d="M42 28c6-2 9 2 8 6M42 36c6 2 9-2 8-6" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>',
+    facts: [
+      L("Small, single-celled organisms with no nucleus (prokaryotic)","Organismos pequeños, unicelulares, sin núcleo (procariotas)"),
+      L("Cell wall made of peptidoglycan; some have a capsule or slime layer","Pared celular hecha de peptidoglicano; algunas tienen cápsula o capa mucosa"),
+      L("One circular chromosome; some contain small loops of DNA called plasmids","Un cromosoma circular; algunas contienen pequeños bucles de ADN llamados plásmidos"),
+      L("Some have flagella for movement; some can even photosynthesise","Algunas tienen flagelos para moverse; algunas incluso pueden fotosintetizar")
+    ]
+  }
+};
+const KINGDOM_ORDER = ["plants","animals","fungi","protoctista","bacteria"];
+
+/* ======================================================================
+   THE TWO REAL MICROSCOPE SPECIMENS (Investigate, phase 1) — the graded
+   evidence that a nucleus is a real, visible, testable feature.
+   Bacteria photo: Janice Haney Carr / CDC, Wikimedia Commons, public domain.
+   Amoeba photo: Cymothoa exigua, Wikimedia Commons, CC BY-SA 3.0.
+   Hotspot positions are fractions (0-1) of the photo's own width/height,
+   checked against the real photo before use, so each dot lands on a
+   feature a student can actually recognise.
+   ====================================================================== */
+const BACTERIA_IMG = "photos/bacteria-ecoli.jpg";
+const AMOEBA_IMG = "photos/amoeba.jpg";
+const BACTERIA_CREDIT = 'Photo: Janice Haney Carr / CDC — Wikimedia Commons, public domain';
+const AMOEBA_CREDIT = 'Photo: Cymothoa exigua — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a>';
+
+const MICRO_TERMS = {
+  wall: { name: L("Cell wall","Pared celular"), slide: "bacteria", fx: 0.34, fy: 0.68,
+    job: L("The rigid outer boundary of an isolated rod-shaped cell. In bacteria this wall is made of peptidoglycan — a different material from a plant's cellulose wall.",
+      "El límite rígido exterior de una célula aislada con forma de bastón. En las bacterias esta pared está hecha de peptidoglicano — un material distinto de la pared de celulosa de una planta.") },
+  filament: { name: L("Surface filament","Filamento superficial"), slide: "bacteria", fx: 0.84, fy: 0.32,
+    job: L("A thin, whisker-like appendage some bacteria use to move (a flagellum) or attach to surfaces (pili). At this magnification it isn't possible to be certain which — but it's genuinely there.",
+      "Un apéndice fino, parecido a un bigote, que algunas bacterias usan para moverse (un flagelo) o para adherirse a superficies (pili). A este aumento no es posible saber cuál de los dos es, pero está realmente ahí.") },
+  pseudopodium: { name: L("Pseudopodium","Pseudópodo"), slide: "amoeba", fx: 0.33, fy: 0.12,
+    job: L("A finger-like extension of cytoplasm the amoeba pushes outward to crawl and to engulf food. The name literally means ‘false foot’.",
+      "Una extensión del citoplasma en forma de dedo que la ameba proyecta para desplazarse y engullir alimento. Su nombre significa literalmente ‘pie falso’.") },
+  nucleus: { name: L("Nucleus","Núcleo"), slide: "amoeba", fx: 0.34, fy: 0.35,
+    job: L("The amoeba's genetic control centre, enclosed in its own membrane — the one feature the bacteria specimen never showed. Its presence is exactly what makes this a eukaryotic cell.",
+      "El centro de control genético de la ameba, envuelto en su propia membrana — la única característica que el espécimen de bacteria nunca mostró. Su presencia es precisamente lo que hace que esta sea una célula eucariota.") },
+  cytoplasm: { name: L("Cytoplasm","Citoplasma"), slide: "amoeba", fx: 0.49, fy: 0.58,
+    job: L("The jelly-like interior where the amoeba's chemical reactions happen — visibly granular and speckled, unlike the smooth outer edge of the cell.",
+      "El interior gelatinoso donde ocurren las reacciones químicas de la ameba — visiblemente granulado y moteado, a diferencia del borde exterior liso de la célula.") }
+};
+const BACTERIA_KEYS = ["wall","filament"];
+const AMOEBA_KEYS = ["pseudopodium","nucleus","cytoplasm"];
+
+function slideImgHTML(src, alt){
+  return `<img src="${src}" width="700" height="500" loading="lazy" alt="${alt}">`;
+}
+
+/* ======================================================================
+   THE EIGHT FIELD SPECIMENS (Investigate, phase 2) — diagnostic clues and
+   the correct kingdom for each. Two specimens (kelp and coral) are
+   deliberate misconception traps: real organisms that look like they
+   belong to a different kingdom than they actually do.
+   Licensing: sunflower — Darkone, CC BY-SA 2.5. fern — Sergio Boscaino,
+   CC BY 2.0. orangutan — Joe Avison, CC BY-SA 4.0. coral — NOAA
+   Fisheries/Raymond Boland, public domain. mushroom — Mike Pennington,
+   CC BY-SA 2.0. kelp — NOAA Photo Library, public domain. amoeba/bacteria
+   credits as above.
+   ====================================================================== */
+const SPECIMENS = [
+  { id: "sunflower", kingdom: "plants", img: "photos/sunflower.jpg",
+    name: L("Sunflower","Girasol"), credit: 'Darkone — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/2.5/" target="_blank" rel="noopener noreferrer">CC BY-SA 2.5</a>',
+    clues: [
+      L("Cell type: eukaryotic — every cell has a nucleus","Tipo de célula: eucariota — toda célula tiene núcleo"),
+      L("Cell wall: cellulose","Pared celular: celulosa"),
+      L("Nutrition: autotrophic — photosynthesises using chlorophyll","Nutrición: autótrofa — fotosintetiza usando clorofila")
+    ] },
+  { id: "fern", kingdom: "plants", img: "photos/fern.jpg",
+    name: L("Fern frond","Fronda de helecho"), credit: 'Sergio Boscaino — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener noreferrer">CC BY 2.0</a>',
+    clues: [
+      L("Cell type: eukaryotic — every cell has a nucleus","Tipo de célula: eucariota — toda célula tiene núcleo"),
+      L("Cell wall: cellulose","Pared celular: celulosa"),
+      L("Nutrition: autotrophic — photosynthesises using chlorophyll","Nutrición: autótrofa — fotosintetiza usando clorofila")
+    ] },
+  { id: "orangutan", kingdom: "animals", img: "photos/orangutan.jpg",
+    name: L("Orangutan","Orangután"), credit: 'Joe Avison — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>',
+    clues: [
+      L("Cell type: eukaryotic — every cell has a nucleus","Tipo de célula: eucariota — toda célula tiene núcleo"),
+      L("Cell wall: none","Pared celular: ninguna"),
+      L("Nutrition: heterotrophic — feeds on fruit, leaves and insects","Nutrición: heterótrofa — se alimenta de fruta, hojas e insectos")
+    ] },
+  { id: "coral", kingdom: "animals", img: "photos/coral.jpg",
+    name: L("Coral colony","Colonia de coral"), credit: 'NOAA Fisheries/Raymond Boland — Wikimedia Commons, public domain',
+    clues: [
+      L("Cell type: eukaryotic — every cell has a nucleus","Tipo de célula: eucariota — toda célula tiene núcleo"),
+      L("Cell wall: none (the hard structure is an external skeleton, not a cell wall)","Pared celular: ninguna (la estructura dura es un esqueleto externo, no una pared celular)"),
+      L("Nutrition: heterotrophic — each polyp catches and digests tiny organisms with stinging tentacles","Nutrición: heterótrofa — cada pólipo atrapa y digiere pequeños organismos con tentáculos urticantes")
+    ] },
+  { id: "mushroom", kingdom: "fungi", img: "photos/mushroom.jpg",
+    name: L("Field mushroom","Champiñón de campo"), credit: 'Mike Pennington — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 2.0</a>',
+    clues: [
+      L("Cell type: eukaryotic — every cell has a nucleus","Tipo de célula: eucariota — toda célula tiene núcleo"),
+      L("Cell wall: chitin","Pared celular: quitina"),
+      L("Nutrition: saprophytic — feeds on dead matter using extracellular enzymes","Nutrición: saprófita — se alimenta de materia muerta mediante enzimas extracelulares")
+    ] },
+  { id: "kelp", kingdom: "protoctista", img: "photos/kelp.jpg",
+    name: L("Giant kelp","Alga gigante (kelp)"), credit: 'NOAA Photo Library — Wikimedia Commons, public domain',
+    clues: [
+      L("Cell type: eukaryotic — every cell has a nucleus","Tipo de célula: eucariota — toda célula tiene núcleo"),
+      L("Cell wall: present, but with no true roots, stems, leaves or vascular tissue — it is not classified as a plant","Pared celular: presente, pero sin raíces, tallos, hojas ni tejido vascular verdaderos — no se clasifica como planta"),
+      L("Nutrition: autotrophic — photosynthesises just like a plant","Nutrición: autótrofa — fotosintetiza igual que una planta")
+    ] },
+  { id: "amoeba", kingdom: "protoctista", img: "photos/amoeba.jpg",
+    name: L("Amoeba","Ameba"), credit: AMOEBA_CREDIT,
+    clues: [
+      L("Cell type: eukaryotic — a real nucleus is visible under the microscope","Tipo de célula: eucariota — se ve un núcleo real al microscopio"),
+      L("Cell wall: none","Pared celular: ninguna"),
+      L("Nutrition: heterotrophic — engulfs food particles directly into its cytoplasm","Nutrición: heterótrofa — engulle partículas de alimento directamente en su citoplasma")
+    ] },
+  { id: "bacteria", kingdom: "bacteria", img: "photos/bacteria-ecoli.jpg",
+    name: L("Rod bacteria","Bacteria bacilar"), credit: BACTERIA_CREDIT,
+    clues: [
+      L("Cell type: prokaryotic — no nucleus is visible under the microscope","Tipo de célula: procariota — no se ve ningún núcleo al microscopio"),
+      L("Cell wall: peptidoglycan","Pared celular: peptidoglicano"),
+      L("Nutrition: this species absorbs nutrients from its surroundings — some other bacteria photosynthesise instead","Nutrición: esta especie absorbe nutrientes del entorno — otras bacterias, en cambio, fotosintetizan")
+    ] }
+];
+
+/* ======================================================================
+   GAME LAYER — rank/XP/streak + particle bursts + level-up celebration.
+   ====================================================================== */
+const XP_PER_ACTION = 18;
+const RANKS = [
+  { at: 0,   name: L("Trainee Taxonomist","Taxónomo/a aprendiz") },
+  { at: 70,  name: L("Field Biologist","Biólogo/a de campo") },
+  { at: 160, name: L("Kingdom Classifier","Clasificador/a de reinos") },
+  { at: 260, name: L("Master Naturalist","Naturalista maestro/a") },
+];
+function rankFor(xp){ let r = RANKS[0]; for (const x of RANKS) if (xp >= x.at) r = x; return r; }
+function nextRankAt(xp){ const next = RANKS.find(x => x.at > xp); return next ? next.at : null; }
+
+function reducedMotion(){ return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+
+function fireBurst(host, colors){
+  if (reducedMotion()) return;
+  let layer = host.querySelector(":scope > .burst-anchor");
+  if (!layer){ layer = document.createElement("div"); layer.className = "burst-anchor"; host.appendChild(layer); }
+  const rect = host.getBoundingClientRect();
+  const cx = rect.width / 2, cy = Math.min(80, rect.height / 2);
+  for (let i = 0; i < 18; i++){
+    const p = document.createElement("i");
+    const ang = Math.random() * Math.PI * 2, dist = 40 + Math.random() * 90;
+    p.style.background = colors[i % colors.length];
+    p.style.left = cx + "px"; p.style.top = cy + "px";
+    layer.append(p);
+    const x = Math.cos(ang) * dist, y = Math.sin(ang) * dist - 30;
+    p.animate(
+      [{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${x}px,${y}px) rotate(${Math.random()*480}deg) scale(.3)`, opacity: 0 }],
+      { duration: 700 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
+}
+
+function ensureLevelUpEl(){
+  let el = document.getElementById("fk-levelup");
+  if (!el){
+    el = document.createElement("div"); el.id = "fk-levelup"; el.className = "levelup";
+    el.innerHTML = `<div class="levelup__card"><div class="levelup__k">${L("RANK UP","SUBIDA DE RANGO")}</div><div class="levelup__n" id="fk-lu-n"></div><div class="levelup__s">${L("New rank reached!","¡Nuevo rango alcanzado!")}</div></div>`;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function celebrateLevelUp(rankName){
+  const el = ensureLevelUpEl();
+  el.querySelector("#fk-lu-n").textContent = rankName;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+let sim = null;
+
+const simulation = {
+  orient(host, api){
+    host.innerHTML = "";
+    sim = api;
+
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Tap each kingdom below to meet it before you start classifying real specimens.",
+      "Toca cada reino de abajo para conocerlo antes de empezar a clasificar especímenes reales.");
+    host.append(intro);
+
+    const grid = document.createElement("div"); grid.className = "kingdom-grid"; grid.setAttribute("role","group");
+    grid.setAttribute("aria-label", L("The five kingdoms","Los cinco reinos"));
+    const panel = document.createElement("div"); panel.className = "kingdom-panel";
+    panel.innerHTML = `<p class="kingdom-panel__hint">${L("Tap a kingdom above ↑","Toca un reino de arriba ↑")}</p>`;
+
+    const btns = {};
+    KINGDOM_ORDER.forEach(key => {
+      const k = KINGDOMS[key];
+      const b = document.createElement("button"); b.type = "button"; b.className = "kingdom-btn";
+      b.style.background = k.color; b.style.setProperty("--k-color", k.color);
+      b.innerHTML = `<svg viewBox="0 0 64 64" aria-hidden="true">${k.icon}</svg><span>${k.name}</span>`;
+      b.addEventListener("click", () => {
+        Object.values(btns).forEach(x => x.classList.remove("is-active"));
+        b.classList.add("is-active");
+        panel.innerHTML = `<p class="kingdom-panel__title" style="color:${k.color}">${k.name}</p>
+          <ul>${k.facts.map(f => `<li>${f}</li>`).join("")}</ul>`;
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(`${k.name}. ${k.facts.join(". ")}`);
+      });
+      btns[key] = b; grid.append(b);
+    });
+    host.append(grid, panel);
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = "";
+    const game = sim.state.game || (sim.state.game = {});
+    game.phase = game.phase || "micro";
+    game.microDone = game.microDone || {};
+    game.scanned = game.scanned || {};
+    game.sortDone = game.sortDone || {};
+    game.xp = game.xp || 0;
+    game.streak = game.streak || 0;
+
+    sim.setScienceMethod({
+      observation: L(
+        "Eight unlabelled specimens are on the bench: several clearly look like plants or animals, one looks like a plant but lives entirely underwater, one looks like a plant but is actually a colony of animals, and two can only be identified through a microscope.",
+        "Hay ocho especímenes sin etiquetar en la mesa: varios parecen claramente plantas o animales, uno parece una planta pero vive completamente bajo el agua, otro parece una planta pero en realidad es una colonia de animales, y dos solo pueden identificarse al microscopio."),
+      question: L("What real, testable features actually decide which kingdom an organism belongs to — not just what it looks like at first glance?",
+        "¿Qué características reales y comprobables deciden realmente a qué reino pertenece un organismo, y no solo su aspecto a primera vista?"),
+      hypothesis: L(
+        "If an organism's cells have no nucleus, then it must belong to the Bacteria kingdom, because the presence or absence of a nucleus — not appearance or nutrition mode — is what separates prokaryotic bacteria from every eukaryotic organism in the other four kingdoms.",
+        "Si las células de un organismo no tienen núcleo, entonces debe pertenecer al reino Bacterias, porque la presencia o ausencia de núcleo —no la apariencia ni el modo de nutrición— es lo que separa a las bacterias procariotas de todo organismo eucariota de los otros cuatro reinos."),
+      variables: {
+        independent: L("Which real specimen (microscope slide or field photograph) is being diagnosed and classified.",
+          "Qué espécimen real (portaobjetos de microscopio o fotografía de campo) se está diagnosticando y clasificando."),
+        dependent: L("Which kingdom each specimen is sorted into, based on its cell type, cell wall and nutrition clues.",
+          "En qué reino se clasifica cada espécimen, según sus pistas de tipo de célula, pared celular y nutrición."),
+        controlled: L("The same three diagnostic clues (cell type, cell wall, nutrition) are checked for every specimen, using the same scan-then-sort procedure, so the comparison across all eight specimens is fair.",
+          "Se comprueban las mismas tres pistas diagnósticas (tipo de célula, pared celular, nutrición) para cada espécimen, usando el mismo procedimiento de escanear y luego clasificar, así la comparación entre los ocho especímenes es justa.")
+      }
+    });
+
+    const wrap = document.createElement("div"); wrap.className = "game-layer"; host.append(wrap);
+
+    /* ---- persistent rank/XP/streak bar ---- */
+    const rankbar = document.createElement("div"); rankbar.className = "rankbar";
+    rankbar.innerHTML = `<div class="rankbar__badge"><b id="fk-lvl">1</b></div>
+      <div class="rankbar__body">
+        <div class="rankbar__row"><span id="fk-rankname">${rankFor(game.xp).name}</span><span id="fk-xptext">${game.xp} XP</span></div>
+        <div class="rankbar__track"><div class="rankbar__fill" id="fk-xpfill"></div></div>
+        <div class="streak-chip" id="fk-streak" hidden></div>
+      </div>`;
+    wrap.append(rankbar);
+    function paintRank(){
+      const rank = rankFor(game.xp);
+      document.getElementById("fk-rankname").textContent = rank.name;
+      document.getElementById("fk-xptext").textContent = game.xp + " XP";
+      const idx = RANKS.indexOf(rank);
+      document.getElementById("fk-lvl").textContent = idx + 1;
+      const next = nextRankAt(game.xp);
+      const base = rank.at, span = next ? next - base : 100;
+      const pct = Math.max(0, Math.min(1, (game.xp - base) / span)) * 100;
+      document.getElementById("fk-xpfill").style.width = pct + "%";
+      const streakEl = document.getElementById("fk-streak");
+      if (game.streak >= 3){ streakEl.hidden = false; streakEl.classList.add("hot"); streakEl.innerHTML = L(`🔥 streak x${game.streak}`,`🔥 racha x${game.streak}`); }
+      else { streakEl.hidden = true; streakEl.classList.remove("hot"); }
+    }
+    paintRank();
+    function awardXP(host2){
+      const before = rankFor(game.xp);
+      game.xp += XP_PER_ACTION; game.streak += 1;
+      sim.save && sim.save();
+      paintRank();
+      fireBurst(host2, ["#a6ff5c","#3fd08b","#ffd45c","#eafff2"]);
+      const after = rankFor(game.xp);
+      if (after !== before) celebrateLevelUp(after.name);
+    }
+    function breakStreak(){ game.streak = 0; sim.save && sim.save(); paintRank(); }
+
+    const phaseHost = document.createElement("div"); wrap.append(phaseHost);
+    if (game.phase === "micro") renderMicroPhase("bacteria", BACTERIA_KEYS, BACTERIA_IMG, BACTERIA_CREDIT,
+      L("Specimen A — rod-shaped bacteria (SEM, ×6,836)","Espécimen A — bacterias bacilares (MEB, ×6.836)"));
+    else renderSortPhase();
+
+    /* ==================================================================
+       PHASE 1 — MICROSCOPE BENCH: label real diagnostic structures on two
+       real microscope photos, tap-item then tap-spot, every tap reacting
+       immediately, right where it happened.
+       ================================================================== */
+    function renderMicroPhase(slideKey, keys, img, credit, label){
+      phaseHost.innerHTML = "";
+      const done = game.microDone[slideKey] || (game.microDone[slideKey] = {});
+      const labelWrap = document.createElement("div"); labelWrap.className = "label-wrap";
+
+      const left = document.createElement("div");
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = (slideKey === "bacteria" ? L("Step 1 of 3 — ","Paso 1 de 3 — ") : L("Step 2 of 3 — ","Paso 2 de 3 — ")) + label;
+      left.append(stepLabel);
+
+      const frame = document.createElement("div"); frame.className = "scan-frame";
+      frame.innerHTML = slideImgHTML(img, label) +
+        `<span class="scan-corner scan-corner--tl"></span><span class="scan-corner scan-corner--tr"></span>
+         <span class="scan-corner scan-corner--bl"></span><span class="scan-corner scan-corner--br"></span>
+         <span class="scan-label">${L("ANALYZING SPECIMEN","ANALIZANDO ESPÉCIMEN")}</span>`;
+      left.append(frame);
+
+      const hint = document.createElement("p"); hint.className = "diagram-caption";
+      hint.textContent = L("Tap a feature below, then tap its spot on the photo.","Toca una característica abajo y luego toca su lugar en la foto.");
+      left.append(hint);
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "micro-note";
+      left.append(note);
+      const creditEl = document.createElement("p"); creditEl.className = "diagram-credit"; creditEl.innerHTML = credit;
+      left.append(creditEl);
+      labelWrap.append(left);
+
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+
+      const side = document.createElement("div");
+      side.innerHTML = `<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Features","Características")}</p>`;
+      const tray = document.createElement("div"); tray.className = "chip-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Features to identify","Características a identificar"));
+      const shuffled = [...keys].sort(()=>Math.random()-0.5);
+      const chipNodes = {}; let armed = null;
+
+      shuffled.forEach(key=>{
+        const term = MICRO_TERMS[key];
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn";
+        if (done[key]) b.classList.add("is-done");
+        b.innerHTML = `<span>${term.name}</span><span class="tray-mark">✓</span>`;
+        b.addEventListener("click", ()=>{
+          if (b.classList.contains("is-done")) return;
+          Object.values(chipNodes).forEach(x=>x.classList.remove("is-armed"));
+          b.classList.add("is-armed"); armed = key;
+          flashNote(L(`${term.name} selected — now tap its spot on the photo.`,`${term.name} seleccionado — ahora toca su lugar en la foto.`), "info");
+        });
+        chipNodes[key] = b; tray.append(b);
+      });
+      side.append(tray); labelWrap.append(side);
+      phaseHost.append(labelWrap);
+
+      let matched = Object.keys(done).length;
+      if (matched) hint.textContent = L(`${matched} / ${keys.length} identified. Tap a feature below, then tap its spot.`, `${matched} / ${keys.length} identificadas. Toca una característica abajo y luego su lugar.`);
+      keys.forEach(key=>{
+        const term = MICRO_TERMS[key];
+        const s = document.createElement("button"); s.type = "button"; s.className = "spot";
+        s.style.left = (term.fx*100)+"%"; s.style.top = (term.fy*100)+"%";
+        s.setAttribute("aria-label", L("Unlabelled spot","Punto sin etiquetar"));
+        if (done[key]) { s.classList.add("is-correct"); s.textContent = "✓"; chipNodes[key].classList.add("is-done"); }
+        s.addEventListener("click", ()=>{
+          if (s.classList.contains("is-correct")) return;
+          if (!armed){
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            flashNote(L("Tap a feature in the list first, then tap its spot.","Toca primero una característica de la lista y luego toca su lugar."), "info");
+            return;
+          }
+          if (armed === key){
+            s.classList.add("is-correct"); s.textContent = "✓";
+            chipNodes[key].classList.add("is-done");
+            done[key] = true; matched++;
+            hint.textContent = L(`${matched} / ${keys.length} identified.`, `${matched} / ${keys.length} identificadas.`);
+            flashNote(L(`Correct! ${term.name} identified.`,`¡Correcto! ${term.name} identificado.`), "correct");
+            sim.recordTrial({ stage: label, organism: slideKey === "bacteria" ? L("Bacteria specimen","Espécimen de bacteria") : L("Amoeba specimen","Espécimen de ameba"), result: `${term.name} — ${L("identified","identificado")}` });
+            awardXP(wrap);
+            if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(term.name+(getLang()==="es"?" identificado.":" identified."));
+            armed = null;
+            if (matched === keys.length){
+              setTimeout(()=>{
+                if (slideKey === "bacteria"){ game.phase = "amoeba"; sim.save && sim.save(); renderMicroPhase("amoeba", AMOEBA_KEYS, AMOEBA_IMG, AMOEBA_CREDIT, L("Specimen B — amoeba (light micrograph)","Espécimen B — ameba (micrografía óptica)")); }
+                else { game.phase = "sort"; sim.save && sim.save(); renderSortPhase(); }
+              }, 700);
+            }
+          } else {
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            breakStreak();
+            const wrongName = MICRO_TERMS[armed].name;
+            flashNote(L(`Not quite — that's not where the ${wrongName} is. Try again.`,`No exactamente — ahí no está ${wrongName}. Inténtalo de nuevo.`), "info");
+          }
+        });
+        frame.append(s);
+      });
+    }
+
+    /* ==================================================================
+       PHASE 2 — FIELD SORTING LAB: tap a specimen to scan it and reveal
+       its real diagnostic clues, then tap the kingdom it belongs in.
+       Every tap reacts immediately, right where it happened.
+       ================================================================== */
+    function renderSortPhase(){
+      phaseHost.innerHTML = "";
+      const sortWrap = document.createElement("div"); sortWrap.className = "stack";
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = L("Step 3 of 3 — Scan and sort every specimen","Paso 3 de 3 — Escanea y clasifica cada espécimen");
+      sortWrap.append(stepLabel);
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Tap a specimen to run a diagnostic scan, then tap the kingdom it belongs in.","Toca un espécimen para escanearlo y luego toca el reino al que pertenece.");
+      sortWrap.append(lede);
+
+      const clue = document.createElement("div"); clue.className = "clue-panel";
+      clue.innerHTML = `<p class="clue-panel__title">${L("Diagnostic readout","Lectura diagnóstica")}</p><p class="kingdom-panel__hint">${L("Tap a specimen below ↓","Toca un espécimen de abajo ↓")}</p>`;
+      sortWrap.append(clue);
+
+      const tray = document.createElement("div"); tray.className = "specimen-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Specimens to classify","Especímenes a clasificar"));
+      const cards = {};
+      const shuffledSpecimens = [...SPECIMENS].sort(()=>Math.random()-0.5);
+      let armed = null;
+
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "sort-note";
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+
+      shuffledSpecimens.forEach(sp=>{
+        const c = document.createElement("button"); c.type = "button"; c.className = "specimen-card";
+        if (game.sortDone[sp.id]) c.classList.add("is-placed");
+        if (game.scanned[sp.id]) c.classList.add("is-scanned");
+        c.innerHTML = `<img class="specimen-card__img" src="${sp.img}" alt="${sp.name}" loading="lazy">
+          <div class="specimen-card__body">
+            <div class="specimen-card__name">${sp.name}</div>
+            <span class="specimen-card__scanflag">${game.scanned[sp.id] ? L("Scanned","Escaneado") : L("Unscanned","Sin escanear")}</span>
+          </div>`;
+        c.addEventListener("click", ()=>{
+          if (c.classList.contains("is-placed")) return;
+          if (!game.scanned[sp.id]){
+            game.scanned[sp.id] = true; sim.save && sim.save();
+            c.classList.add("is-scanned");
+            c.querySelector(".specimen-card__scanflag").textContent = L("Scanned","Escaneado");
+            clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl=>`<li>${cl}</li>`).join("")}</ul>
+              <p class="diagram-credit">${sp.credit}</p>`;
+            sim.recordTrial({ stage: L("Diagnostic scan","Escaneo diagnóstico"), organism: sp.name, result: L("Scanned","Escaneado") });
+            if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(sp.clues.join(". "));
+            return;
+          }
+          Object.values(cards).forEach(x=>x.classList.remove("is-armed"));
+          c.classList.add("is-armed"); armed = sp.id;
+          clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl=>`<li>${cl}</li>`).join("")}</ul>
+            <p class="diagram-credit">${sp.credit}</p>`;
+          Object.values(bucketEls).forEach(b=>b.el.classList.add("is-target"));
+        });
+        cards[sp.id] = c; tray.append(c);
+      });
+      sortWrap.append(tray, note);
+
+      const buckets = document.createElement("div"); buckets.className = "kingdom-buckets";
+      const bucketEls = {};
+      KINGDOM_ORDER.forEach(key=>{
+        const k = KINGDOMS[key];
+        const b = document.createElement("button"); b.type = "button"; b.className = "bucket";
+        b.style.borderColor = "color-mix(in srgb, "+k.color+" 45%, var(--line-strong))";
+        b.innerHTML = `<svg class="bucket__icon" viewBox="0 0 64 64" aria-hidden="true">${k.icon.replace(/#fff/g,k.color)}</svg>
+          <div class="bucket__title">${k.name}</div><div class="bucket__items" id="bucket-${key}"></div>`;
+        SPECIMENS.filter(sp=>sp.kingdom===key && game.sortDone[sp.id]).forEach(sp=>{
+          const tag = document.createElement("span"); tag.className = "bucket__item"; tag.textContent = sp.name;
+          b.querySelector(".bucket__items").append(tag);
+        });
+        b.addEventListener("click", ()=>{
+          if (!armed) return;
+          const sp = SPECIMENS.find(s=>s.id===armed);
+          Object.values(bucketEls).forEach(x=>x.el.classList.remove("is-target"));
+          if (sp.kingdom === key){
+            const tag = document.createElement("span"); tag.className = "bucket__item"; tag.textContent = sp.name;
+            b.querySelector(".bucket__items").append(tag);
+            cards[armed].classList.add("is-placed");
+            game.sortDone[armed] = true; sim.save && sim.save();
+            sim.recordTrial({ stage: L("Classification","Clasificación"), organism: sp.name,
+              result: L(`Correctly classified as ${k.name}`,`Clasificado correctamente como ${k.name}`) });
+            flashNote(L(`Correct! ${sp.name} belongs in ${k.name}.`,`¡Correcto! ${sp.name} pertenece a ${k.name}.`), "correct");
+            b.classList.remove("is-flash"); void b.offsetWidth; b.classList.add("is-flash");
+            awardXP(wrap);
+            armed = null;
+            updateProgress();
+            if (Object.keys(game.sortDone).length === SPECIMENS.length){
+              sim.setScienceMethod({
+                results: L(
+                  `All ${BACTERIA_KEYS.length + AMOEBA_KEYS.length} features were identified across the two real microscope specimens, and all ${SPECIMENS.length} field specimens were scanned and classified into their correct kingdoms.`,
+                  `Se identificaron las ${BACTERIA_KEYS.length + AMOEBA_KEYS.length} características en los dos especímenes reales de microscopio, y se escanearon y clasificaron los ${SPECIMENS.length} especímenes de campo en sus reinos correctos.`),
+                analysis: L(
+                  "The bacterium showed no nucleus and a peptidoglycan wall, while the amoeba clearly showed a nucleus — confirming that cell type divides the five kingdoms into one prokaryotic kingdom (Bacteria) and four eukaryotic kingdoms. Two specimens that looked misleading at a glance — the kelp (plant-like but Protoctista) and the coral (plant-like but Animal) — were correctly classified once their real cell wall and nutrition evidence was checked.",
+                  "La bacteria no mostró núcleo y tenía una pared de peptidoglicano, mientras que la ameba mostró claramente un núcleo — confirmando que el tipo de célula divide los cinco reinos en un reino procariota (Bacterias) y cuatro reinos eucariotas. Dos especímenes engañosos a primera vista —el alga (parecida a una planta pero Protoctista) y el coral (parecido a una planta pero Animal)— se clasificaron correctamente una vez comprobada su evidencia real de pared celular y nutrición."),
+                conclusion: L(
+                  "Every specimen's kingdom could be confirmed from three real, testable features — cell type, cell wall material and nutrition mode — supporting the hypothesis that these features, not appearance, are what actually define the five kingdoms.",
+                  "El reino de cada espécimen pudo confirmarse a partir de tres características reales y comprobables —tipo de célula, material de la pared celular y modo de nutrición— apoyando la hipótesis de que estas características, y no la apariencia, son las que realmente definen los cinco reinos."),
+                reflection: L(
+                  "The clearest evidence was the nucleus test under the microscope — either it was there or it wasn't. The trickiest calls were the kelp and the coral, which is exactly why biologists always check real diagnostic features rather than relying on a first glance.",
+                  "La evidencia más clara fue la prueba del núcleo al microscopio — o estaba o no estaba. Los casos más difíciles fueron el alga y el coral, y por eso los biólogos siempre comprueban características diagnósticas reales en lugar de fiarse de un primer vistazo.")
+              });
+              setTimeout(()=>{
+                flashNote(L("All specimens classified! Move on to Record to see your results.","¡Todos los especímenes clasificados! Continúa a Registro para ver tus resultados."), "correct");
+              }, 300);
+            }
+          } else {
+            b.classList.remove("is-shake"); void b.offsetWidth; b.classList.add("is-shake");
+            breakStreak();
+            flashNote(L("Not that kingdom — check the diagnostic readout again before choosing.","Ese reino no — revisa de nuevo la lectura diagnóstica antes de elegir."), "info");
+          }
+        });
+        bucketEls[key] = { el: b };
+        buckets.append(b);
+      });
+      sortWrap.append(buckets);
+
+      const progress = document.createElement("p"); progress.className = "sort-progress"; progress.id = "sort-progress";
+      sortWrap.append(progress);
+      function updateProgress(){
+        const doneCount = Object.keys(game.sortDone).length;
+        progress.textContent = L(`${doneCount} / ${SPECIMENS.length} classified`, `${doneCount} / ${SPECIMENS.length} clasificados`);
+      }
+      updateProgress();
+      phaseHost.append(sortWrap);
+    }
+  }
+};
+
+mountActivity({ simulation }).catch(e=>{
+  console.error("Activity failed to start:", e);
+  const r=document.getElementById("lab-root");
+  if(r) r.innerHTML='<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
