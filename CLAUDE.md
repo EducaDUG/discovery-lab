@@ -110,6 +110,15 @@ Instead:
 - **A click that does the "wrong" thing must still visibly react, immediately, inside the current viewport — not just via a caption or toast that may render below the fold.** What Diego reported as "the Investigate functionality is not activated, nothing happens" was tapping a numbered hotspot before selecting a part first: the click *was* registering, but the only feedback was a quiet caption below the picture — invisible without scrolling, so it read as completely broken. Every click path (not just the success path) needs an in-place reaction at the point of interaction — a shake/pulse on the thing tapped, not only a message elsewhere on the page.
 - **Verify hotspot coordinates by rendering a debug overlay and looking at it, not just by trusting the fraction math.** Diego flagged the "case" hotspot on the ATX photo landed on an arbitrary, unrecognisable patch of interior case wall. Pixel-accurate isn't the same as pedagogically clear: a hotspot must land on something a student would actually recognise as that labelled part (an edge, a screw, a distinctive feature) — for a whole-object label like "case" on a photo of its open interior, that means the visible outer frame/rim, not a random unobstructed patch.
 
+**Amendment — every simulation needs a genuine bonus arcade round with real 3D dynamic effects (agreed 2026-09-16).** Diego: the site was missing "a bit of a video game to play," calling for "3D dynamic effects, a bit of an arcade or modern videogame" as **a norm in all simulations**, not a one-off. This is additive — it never replaces or gates the Interactive Learning Package in Section 3; it sits alongside it.
+
+- **Shared implementation: `engine/arcade.js`.** Built once, like `accessibility.js`/`i18n.js`, so a new activity plugs in its own items/lanes instead of hand-rolling a 3D game each time. It exports `renderArcadeLaunch()` (an optional, always-skippable launch card) and `mountArcadeRush()` (the game: real items — reuse the activity's own real photos where it has them — fly down a 3D tunnel toward a strike ring; the student taps one of up to five colour-coded lane buttons, or presses number keys 1-9, before it arrives). See `sim-five-kingdoms-sorter` for the reference integration (a "Kingdom Rush" bonus round using the same eight specimen photos as the main sort).
+- **Bonus, never mandatory.** No lives, no fail state, no hard gate — CLAUDE.md §6 already requires no interaction that penalises a student for taking their time, and a twitch-reflex game would violate that outright. A late or wrong answer just resets the streak and moves to the next item; the round always ends in a score/accuracy/best-streak recap, never a "you failed." The launch card always offers "Play" and "Skip" side by side, and the round contributes no marks — it exists for delight and reinforcement, not assessment (the careful diagnostic Investigate stage is what's graded).
+- **Real 3D via vendored Three.js, with an automatic non-WebGL fallback.** `mountArcadeRush` loads `engine/vendor/three.min.js` itself; if that fails or WebGL is unavailable it falls back to a calm DOM/CSS version of the same scored, timed game — the bonus round is never a dead end on a locked-down school device.
+- **Answers are real `<button>` elements, never 3D hit-picking.** This sidesteps the whole class of pointer-vs-drag bug this project already hit once (the hotspot amendment above) — the canvas only *displays* the flying item; tapping/clicking or pressing 1-9 on the lane buttons is what the student actually operates, so it is fully keyboard-operable for free.
+- **Respects reduced motion and the rest of the accessibility panel already.** Camera sway, screen-shake and particle bursts are skipped under `data-reduced-motion=on`; the pacing (item flight time) ramps gently and is never so fast it becomes a reflex test.
+- Where a falling-item lane game genuinely doesn't fit an activity's content, build an equivalent activity-specific 3D bonus moment instead (matching the "serious lab instrument" vs "video game" tone call already in this section) — but every simulation must have *something* genuinely game-like and dynamically 3D, not just static UI.
+
 ---
 
 ## 5. Evidence export — the assessment engine
@@ -358,7 +367,10 @@ spec it. Ask only if the course or age band is genuinely ambiguous.
    Give the term/module a `keywords` snapshot (3–5 terms) if it does not have one yet.
 5. Build the activity in its own folder: `activity.html` + `config.json`. Start from
    `_template/`. Write its `learningFocus` (skills + one strong paragraph) — it is required.
-   **Never edit the shared engine for a content change.**
+   **Never edit the shared engine for a content change.** Include a bonus arcade round via
+   `engine/arcade.js` (`mountArcadeRush`) — see Section 4's amendment. Reuse the activity's own
+   real photos as the flying items where it has them; it is optional/skippable for the student but
+   not optional for you to build.
 6. Generate the looping `thumbnail.gif` with `tools/make-thumbnail.py` (see Section 10) — a
    seamless orbit of the activity's most striking moment.
 7. Flip that simulation's `status` to `"live"` only once `activity.html` actually works.
