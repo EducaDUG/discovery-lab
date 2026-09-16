@@ -31,7 +31,7 @@
    ========================================================================== */
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=5";
-import { t, getLang, localizeConfig } from "./i18n.js?v=6";
+import { t, getLang, localizeConfig } from "./i18n.js?v=7";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -1161,6 +1161,18 @@ function buildPDF(jsPDF, p) {
   para(t("pdf.checksum", { checksum: p.integrity_checksum, note: p.integrity_note }), 8, "normal", mut, 0);
 
   footer();
+
+  /* Page numbers — a plain formal-report cue (and useful once a report runs
+     to several pages) — stamped in one final pass now that every page
+     exists, centred on the footer rule so it never collides with the
+     activity name/checksum (left) or "Discovery Lab" (right). */
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); setColor(mut);
+    doc.text(pdfSafe(t("pdf.page", { n: i, total: totalPages })), W / 2, H - 28, { align: "center" });
+  }
+
   return doc.output("blob");
 }
 

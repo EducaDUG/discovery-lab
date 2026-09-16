@@ -170,6 +170,29 @@ Every activity produces **one file** when the student clicks **Generate Learning
 
 **PDF (the only download, and the official submission)**: human-readable, includes the mission, results, all answers, auto-marked score, the full rubric with level descriptors, and the **direct URL to the simulation** — so a parent or the head of department can open the live activity itself, not just read a static record. This is the only file the student ever has, and the only one they upload to the school's LMS.
 
+**Hard rule — the PDF must qualify as a "lab report," not just informal "evidence" (agreed 2026-09-18,
+non-negotiable).** Diego: this PDF has to satisfy an online school's requirement for a submittable lab
+report — the same standing a physical, in-person school's paper lab report has — not read as a casual
+activity summary. Two concrete, permanent requirements follow from this:
+
+- **The wording "Discovery Lab Report" must appear on the document.** The masthead (top of page 1,
+  `t("pdf.masthead")` in `engine/i18n.js`) reads `"DISCOVERY LAB REPORT - LEARNING EVIDENCE"` in
+  English and `"DISCOVERY LAB REPORT - EVIDENCIA DE APRENDIZAJE"` in Spanish — note "Discovery Lab
+  Report" stays in English in both, as the product's formal document-type name, exactly like a school
+  wouldn't translate "IB Diploma" mid-sentence. Never revert this back to a generic "Learning
+  Evidence"-only masthead, and never drop the phrase when touching the PDF layout.
+- **Every page is numbered** ("Page N of TOTAL", stamped once at the end of `buildPDF()` after every
+  page exists, via `doc.internal.getNumberOfPages()` — see `engine/engine.js`). A multi-page formal
+  report needs this regardless of subject matter.
+
+Judge every future PDF change against the question "would this hold up next to a lab report from a
+physical school, if an online-school principal or registrar looked at it?" — student name, course,
+completion date, activity ID, a stated objective, a real scientific-method structure (hypothesis,
+variables, results, analysis, conclusion), raw data (the Investigation Record table), objectively
+graded and teacher-graded sections with a visible rubric, and now explicit "lab report" labelling and
+page numbers are the bar. If a change would weaken any of those, don't make it without flagging it
+first.
+
 **Amendment — no JSON download (agreed 2026-09-09).** The engine builds a structured JSON payload internally (see `buildPayload()` in `engine/engine.js`) purely as the data model it renders the PDF from — it is never written to a file or offered as a second download. The reasoning: the PDF and JSON download to the student's own device (per Section 7, nothing leaves the browser), and the only file Diego actually receives back is the PDF a student chooses to upload to Learning Lab — the JSON companion file was an extra download that only ever reached the student, never the teacher, so a proper rubric with level descriptors belongs printed in the PDF itself (see the level-descriptors amendment below), not off in a file only the student can see. `generateEvidence()` calls `downloadBlob()` once, for the PDF only. The internal payload shape below is retained as documentation of what the PDF is built from — it is not a file format a student or teacher ever sees:
 
 ```json

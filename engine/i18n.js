@@ -169,7 +169,8 @@ const STRINGS = {
     "match-aria": "Match: {left}",
 
     /* PDF */
-    "pdf.masthead": "DISCOVERY LAB - LEARNING EVIDENCE",
+    "pdf.masthead": "DISCOVERY LAB REPORT - LEARNING EVIDENCE",
+    "pdf.page": "Page {n} of {total}",
     "pdf.student": "Student", "pdf.course": "Course", "pdf.completed": "Completed", "pdf.activityId": "Activity ID",
     "pdf.upload-banner": "Upload this PDF to Learning Lab as evidence of your work.",
     "pdf.open-live-yourself": "Open the live activity yourself:",
@@ -342,7 +343,8 @@ const STRINGS = {
     "match-aria": "Emparejar: {left}",
 
     /* PDF */
-    "pdf.masthead": "DISCOVERY LAB - EVIDENCIA DE APRENDIZAJE",
+    "pdf.masthead": "DISCOVERY LAB REPORT - EVIDENCIA DE APRENDIZAJE",
+    "pdf.page": "Página {n} de {total}",
     "pdf.student": "Estudiante", "pdf.course": "Curso", "pdf.completed": "Completado", "pdf.activityId": "ID de actividad",
     "pdf.upload-banner": "Sube este PDF a Learning Lab como evidencia de tu trabajo.",
     "pdf.open-live-yourself": "Abre tú mismo la actividad en línea:",
