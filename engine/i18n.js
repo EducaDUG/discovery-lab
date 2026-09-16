@@ -88,11 +88,21 @@ const STRINGS = {
     "sim-not-wired": "This activity has no simulation wired up yet.",
     "mark": "1 mark", "marks": "{n} marks",
 
+    /* The scientific-method chip strip (CLAUDE.md §14): the same six words,
+       shown on every stage of every science simulation, so students meet
+       them again and again across the whole site — repetition is the point. */
+    "method.title": "The scientific method",
+    "method.observation": "Observation", "method.question": "Question",
+    "method.hypothesis": "Hypothesis", "method.experiment": "Experiment",
+    "method.result": "Result", "method.conclusion": "Conclusion",
+
     "mission": "Mission",
     "what-learning": "What you are learning",
     "course-link": "Course link",
     "by-the-end": "By the end you will be able to",
     "how-this-works": "How this works",
+    "sci-observation": "Observation",
+    "sci-question": "Question",
     "real-life": "Where you meet this in real life",
 
     "predict": "Predict",
@@ -254,11 +264,18 @@ const STRINGS = {
     "sim-not-wired": "Esta actividad todavía no tiene una simulación configurada.",
     "mark": "1 punto", "marks": "{n} puntos",
 
+    "method.title": "El método científico",
+    "method.observation": "Observación", "method.question": "Pregunta",
+    "method.hypothesis": "Hipótesis", "method.experiment": "Experimento",
+    "method.result": "Resultado", "method.conclusion": "Conclusión",
+
     "mission": "Misión",
     "what-learning": "Qué vas a aprender",
     "course-link": "Relación con el curso",
     "by-the-end": "Al final serás capaz de",
     "how-this-works": "Cómo funciona",
+    "sci-observation": "Observación",
+    "sci-question": "Pregunta",
     "real-life": "Dónde encuentras esto en la vida real",
 
     "predict": "Predicción",

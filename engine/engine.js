@@ -31,7 +31,7 @@
    ========================================================================== */
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=5";
-import { t, getLang, localizeConfig } from "./i18n.js?v=5";
+import { t, getLang, localizeConfig } from "./i18n.js?v=6";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -371,6 +371,35 @@ export async function mountActivity({ simulation = {} } = {}) {
   });
   root.append(rail);
 
+  /* --- the scientific-method chip strip (CLAUDE.md §14) ------------------
+     Science simulations already capture observation/question/hypothesis/
+     experiment/result/conclusion data via sim.setScienceMethod() for the
+     evidence PDF, but that data was never actually shown to the student —
+     so the same six words never got repeated, stage after stage, activity
+     after activity, the way spaced repetition needs. This persistent strip
+     fixes that: it renders once per activity (when the activity supplies
+     scientific-method content) and highlights the current stage's term
+     every time the student moves, on every science simulation, site-wide. */
+  const METHOD_ORDER = ["observation", "question", "hypothesis", "experiment", "result", "conclusion"];
+  const METHOD_BY_STAGE = {
+    orient: ["observation", "question"], predict: ["hypothesis"], investigate: ["experiment"],
+    record: ["result"], explain: ["conclusion"], apply: ["conclusion"], check: [], evidence: [],
+  };
+  const hasScienceMethod = !!(config.orient && (config.orient.scientificObservation || config.orient.scientificQuestion));
+  let methodChips = null;
+  if (hasScienceMethod) {
+    const methodRail = el("div", "method-rail");
+    methodRail.setAttribute("role", "group");
+    methodRail.setAttribute("aria-label", t("method.title"));
+    methodChips = {};
+    METHOD_ORDER.forEach(key => {
+      const chip = el("span", "method-rail__chip", t(`method.${key}`));
+      methodChips[key] = chip;
+      methodRail.append(chip);
+    });
+    root.append(methodRail);
+  }
+
   const stagesWrap = el("div", "stages");
   root.append(stagesWrap);
 
@@ -474,6 +503,10 @@ export async function mountActivity({ simulation = {} } = {}) {
       railSteps[idx].dataset.state = idx < i ? "done" : idx === i ? "current" : "";
       railSteps[idx].querySelector(".rail__dot").textContent = idx < i ? "✓" : String(idx + 1);
     });
+    if (methodChips) {
+      const active = new Set(METHOD_BY_STAGE[STAGES[i][0]] || []);
+      METHOD_ORDER.forEach(key => methodChips[key].classList.toggle("is-current", active.has(key)));
+    }
     if (STAGES[i][0] === "record") refreshRecord();
     if (STAGES[i][0] === "investigate") state._investigateSeen = true;
     back.disabled = i === 0;
@@ -498,6 +531,24 @@ export async function mountActivity({ simulation = {} } = {}) {
   function buildOrient(host) {
     const o = config.orient || {};
     stageHead(host, t("mission"), config.title, o.mission);
+
+    /* Scientific-method vocabulary, made visible where it starts: the
+       observation that kicks off the enquiry and the question it raises.
+       Previously captured only for the evidence PDF (see setScienceMethod)
+       and never actually shown to the student — see the method-rail note
+       above for why that mattered. */
+    if (o.scientificObservation || o.scientificQuestion) {
+      const sci = el("div", "card sci-orient");
+      if (o.scientificObservation) {
+        sci.append(el("p", "eyebrow", t("sci-observation")));
+        sci.append(el("p", null, o.scientificObservation));
+      }
+      if (o.scientificQuestion) {
+        sci.append(el("p", "eyebrow", t("sci-question")));
+        sci.append(el("p", "sci-orient__question", o.scientificQuestion));
+      }
+      host.append(sci);
+    }
 
     /* CGA Da Vinci policy: every activity states a clear learning objective and
        visible success criteria up front, and names how it connects to the course.

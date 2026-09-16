@@ -1,0 +1,633 @@
+/* ==========================================================================
+   DISCOVERY LAB — SHARED "REALISTIC 3D" QUEST MODULE   (engine/quest3d.js)
+
+   "More videogames — at least one in each simulation, alternating between
+   arcade games and 3D realistic ones, like PlayStation games" (agreed with
+   Diego, 2026-09-17). engine/arcade.js already covers the fast, scored
+   "tunnel rush" arcade genre. This module is the second, deliberately
+   different genre: a calmer, third-person exploration/collection game in a
+   lit, shadowed, physically-inspired 3D arena — the "realistic console
+   game" register, built from what a no-build, vendored, addon-free
+   Three.js core actually supports (ACES tone mapping, soft shadow maps,
+   physical materials, fog, a chase camera) rather than literal console
+   fidelity. Activities alternate between mountArcadeRush and mountQuest3D
+   from one simulation to the next (see CLAUDE.md §4) rather than using the
+   same genre every time.
+
+   Usage from an activity:
+
+     import { mountQuest3D, renderQuestLaunch } from "../../.../engine/quest3d.js?v=1";
+     const quest = mountQuest3D(host, {
+       threeUrl: "../../.../engine/vendor/three.min.js",
+       groups: [ { id, label, color }, ... ],           // the categories to hunt for
+       items: [ { id, label, groupId, img(optional) }, ... ], // the pool, scattered in the arena
+       durationMs: 120000,                               // real-time session length (default 2 minutes)
+       strings: { ... },                                 // see DEFAULT_STRINGS below — pass a translated copy
+       onExit(stats) { ... }                              // stats: {score, correct, wrong, accuracy, bestStreak}
+     });
+     // quest.dispose() when the activity re-renders this host.
+
+   Design constraints that shaped this (do not "fix" away):
+   - The whole round is time-boxed to a fixed real-world duration, not a
+     fixed item count — so pacing can never be "solved" by answering fast,
+     the way engine/arcade.js's item-by-item pacing could be (see
+     [[discovery-lab-arcade-duration]]). A slow, careful student and a fast
+     one both get the same ~2 minutes of actual play.
+   - No fail state, no lives. Driving into the wrong item just resets the
+     streak with a shake/flash — CLAUDE.md §6 already requires no
+     interaction that penalises a student for taking their time.
+   - Movement is keyboard-first (arrow keys / WASD), so it is fully
+     keyboard-operable for free; a touch/mouse virtual joystick is layered
+     on top for touch and trackpad devices, never required.
+   - Falls back to a WebGL-free DOM version automatically (same "tap the
+     right card" idea as engine/arcade.js's fallback) so the round is never
+     a dead end on a locked-down school device.
+   - Respects reduced motion: camera sway, screen-shake and particle bursts
+     are skipped under data-reduced-motion=on; movement itself is not
+     disabled (it is the mechanic), but nothing about it is timed per-item.
+   ========================================================================== */
+
+export const QUEST_DEFAULT_STRINGS = {
+  title: "Field Quest",
+  instructions: "Drive around and collect the right ones before time runs out.",
+  play: "Play Field Quest",
+  skip: "Skip bonus round",
+  time: "Time",
+  score: "Score",
+  streak: "Streak",
+  best: "Best streak",
+  find: "Find",
+  correct: "Got it!",
+  wrong: "Not that one.",
+  finishTitle: "Time's up!",
+  accuracy: "Accuracy",
+  playAgain: "Play again",
+  continueLabel: "Continue",
+  moveHint: "Arrow keys or WASD to move — or drag the pad.",
+};
+
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function webglAvailable() {
+  try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl") || c.getContext("experimental-webgl")); }
+  catch (e) { return false; }
+}
+
+let threePromise = null;
+function loadThree(url) {
+  if (window.THREE) return Promise.resolve(window.THREE);
+  if (threePromise) return threePromise;
+  threePromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = url; s.async = true;
+    s.onload = () => window.THREE ? resolve(window.THREE) : reject(new Error("THREE failed to define window.THREE"));
+    s.onerror = () => reject(new Error("Failed to load " + url));
+    document.head.appendChild(s);
+  });
+  return threePromise;
+}
+
+function shuffle(arr, rnd = Math.random) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+let stylesInjected = false;
+function ensureStyles() {
+  if (stylesInjected) return;
+  stylesInjected = true;
+  const s = document.createElement("style");
+  s.id = "dl-quest-styles";
+  s.textContent = `
+.quest{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:#04120d;border:1px solid #0c1f18;box-shadow:var(--shadow-2);}
+.quest__stage{position:relative;width:100%;aspect-ratio:16/10;min-height:18rem;touch-action:none;}
+.quest__stage canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;}
+.quest__vignette{position:absolute;inset:0;pointer-events:none;z-index:3;
+  box-shadow:inset 0 0 8vw rgba(0,0,0,.55);}
+.quest__hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;gap:var(--sp-2);
+  padding:var(--sp-3);font-family:var(--font-data);color:#eafff2;font-size:.72rem;letter-spacing:.06em;
+  text-transform:uppercase;pointer-events:none;z-index:4;}
+.quest__hud b{display:block;font-size:1.1rem;letter-spacing:0;font-family:var(--font-ui);}
+.quest__banner{position:absolute;top:3.6rem;left:50%;transform:translateX(-50%);z-index:4;pointer-events:none;
+  background:#04120dcc;border:1px solid #2f6b4d;color:#7bffb0;padding:.5em 1.1em;border-radius:999px;
+  font-family:var(--font-display);font-weight:800;font-size:var(--step-0);text-align:center;white-space:nowrap;}
+.quest__banner small{display:block;font-family:var(--font-data);font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#bfe6cf;font-weight:600;}
+.quest__toast{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;
+  font-family:var(--font-display);font-weight:800;font-size:var(--step-2);color:#fff;opacity:0;text-shadow:0 2px 12px rgba(0,0,0,.5);}
+.quest__toast.show{animation:questToast .7s var(--ease-out-back);}
+@keyframes questToast{0%{opacity:0;transform:translate(-50%,-40%) scale(.6);}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}100%{opacity:0;transform:translate(-50%,-55%) scale(1);}}
+.quest.is-shake .quest__stage{animation:questshake .32s ease;}
+@keyframes questshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-6px);}60%{transform:translateX(6px);}}
+[data-reduced-motion=on] .quest.is-shake .quest__stage{animation:none;}
+.quest__pad{position:absolute;bottom:1rem;left:1rem;width:6.5rem;height:6.5rem;border-radius:50%;z-index:5;
+  background:radial-gradient(circle,#0d241d99,#04120d99);border:1px solid #2f6b4d;touch-action:none;}
+.quest__pad__nub{position:absolute;left:50%;top:50%;width:2.6rem;height:2.6rem;border-radius:50%;
+  background:#7bffb0cc;border:1px solid #bfe6cf;transform:translate(-50%,-50%);pointer-events:none;
+  transition:background var(--dur-fast) var(--ease);}
+.quest__pad.is-active .quest__pad__nub{background:#a6ff5ccc;}
+.quest__foot{display:flex;justify-content:space-between;gap:var(--sp-3);padding:var(--sp-3);
+  border-top:1px solid var(--line-strong);font-size:var(--step--1);color:var(--ink-3);flex-wrap:wrap;}
+.quest__foot b{color:var(--ink);}
+.quest__launch{padding:var(--sp-5);border:1px solid var(--line-strong);border-radius:var(--radius-lg);
+  background:linear-gradient(160deg,#0d1f2c,#122733);color:#eaf6ff;text-align:center;}
+.quest__launch h3{font-family:var(--font-display);font-size:var(--step-1);margin:0 0 .3em;}
+.quest__launch p{color:#bfe0ee;margin:0 0 var(--sp-4);}
+.quest__launch__row{display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;}
+.quest__finish{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:#04120dee;
+  color:#eaf6ff;text-align:center;padding:var(--sp-4);}
+.quest__finish h3{font-family:var(--font-display);font-size:var(--step-2);margin:0 0 var(--sp-3);}
+.quest__stats{display:flex;gap:var(--sp-4);justify-content:center;margin-bottom:var(--sp-4);flex-wrap:wrap;}
+.quest__stat{display:flex;flex-direction:column;align-items:center;}
+.quest__stat b{font-family:var(--font-display);font-size:var(--step-2);}
+.quest__stat span{font-family:var(--font-data);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#8fc9a8;}
+.quest__finish__actions{display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;}
+.quest__fallback{padding:var(--sp-4);}
+.quest__fallback__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-2);margin-top:var(--sp-3);}
+@media(min-width:36rem){.quest__fallback__grid{grid-template-columns:repeat(4,1fr);}}
+.quest__fallback__card{border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;
+  background:var(--paper);cursor:pointer;font:inherit;text-align:center;padding:.5em;transition:all var(--dur-fast) var(--ease);}
+.quest__fallback__card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius);display:block;margin-bottom:.3em;}
+.quest__fallback__card.is-correct{border-color:var(--positive);box-shadow:inset 0 0 0 2px var(--positive);}
+.quest__fallback__card.is-wrong{animation:questcardshake .32s ease;border-color:var(--negative);}
+@keyframes questcardshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-5px);}60%{transform:translateX(5px);}}
+`;
+  document.head.appendChild(s);
+}
+
+/* ==========================================================================
+   renderQuestLaunch — an optional, always-skippable launch card.
+   ========================================================================== */
+export function renderQuestLaunch(host, opts) {
+  ensureStyles();
+  const S = { ...QUEST_DEFAULT_STRINGS, ...(opts.strings || {}) };
+  host.innerHTML = "";
+  const card = document.createElement("div"); card.className = "quest__launch";
+  card.innerHTML = `<h3>🕹️ ${S.title}</h3><p>${S.instructions}</p>`;
+  const row = document.createElement("div"); row.className = "quest__launch__row";
+  const playBtn = document.createElement("button"); playBtn.type = "button"; playBtn.className = "btn btn--signal";
+  playBtn.textContent = S.play + " →";
+  playBtn.addEventListener("click", () => opts.onPlay && opts.onPlay());
+  const skipBtn = document.createElement("button"); skipBtn.type = "button"; skipBtn.className = "btn btn--ghost";
+  skipBtn.textContent = S.skip + " →";
+  skipBtn.addEventListener("click", () => opts.onSkip && opts.onSkip());
+  row.append(playBtn, skipBtn);
+  card.append(row);
+  host.append(card);
+}
+
+/* ==========================================================================
+   mountQuest3D — the game itself.
+   ========================================================================== */
+export function mountQuest3D(host, opts) {
+  ensureStyles();
+  const S = { ...QUEST_DEFAULT_STRINGS, ...(opts.strings || {}) };
+  const groups = opts.groups;
+  const durationMs = opts.durationMs || 120000;
+  const ARENA_R = 11, COLLECT_R2 = 1.15 * 1.15;
+
+  const state = {
+    disposed: false, score: 0, streak: 0, bestStreak: 0, correct: 0, wrong: 0,
+    endAt: performance.now() + durationMs, targetGroupId: null, finished: false,
+  };
+
+  host.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "quest";
+  const stage = document.createElement("div"); stage.className = "quest__stage";
+  const vignette = document.createElement("div"); vignette.className = "quest__vignette";
+  const hud = document.createElement("div"); hud.className = "quest__hud";
+  hud.innerHTML = `<div>${S.time}<b id="qs-time">0:00</b></div>
+    <div style="text-align:center">${S.streak}<b id="qs-streak">0</b></div>
+    <div style="text-align:right">${S.score}<b id="qs-score">0</b></div>`;
+  const banner = document.createElement("div"); banner.className = "quest__banner";
+  banner.innerHTML = `<small>${S.find}</small><span id="qs-target">—</span>`;
+  const toast = document.createElement("div"); toast.className = "quest__toast";
+  stage.append(vignette, hud, banner, toast);
+  wrap.append(stage);
+
+  const foot = document.createElement("div"); foot.className = "quest__foot";
+  foot.innerHTML = `<span>${S.best}: <b id="qs-best">0</b></span><span>${S.moveHint}</span>`;
+  wrap.append(foot);
+  host.append(wrap);
+
+  function paintHud() {
+    const remaining = Math.max(0, state.endAt - performance.now());
+    const mm = Math.floor(remaining / 60000), ss = Math.floor((remaining % 60000) / 1000);
+    stage.querySelector("#qs-time").textContent = `${mm}:${String(ss).padStart(2, "0")}`;
+    stage.querySelector("#qs-streak").textContent = state.streak;
+    stage.querySelector("#qs-score").textContent = state.score;
+    wrap.querySelector("#qs-best").textContent = state.bestStreak;
+  }
+  function pickTarget(excludeId) {
+    const pool = groups.filter(g => g.id !== excludeId);
+    const g = pool[Math.floor(Math.random() * pool.length)] || groups[0];
+    state.targetGroupId = g.id;
+    stage.querySelector("#qs-target").textContent = g.label;
+    banner.style.setProperty("--g", g.color || "#7bffb0");
+    banner.style.borderColor = g.color || "#2f6b4d";
+    banner.style.color = g.color || "#7bffb0";
+  }
+  function showToast(text, color) {
+    toast.textContent = text; toast.style.color = color;
+    toast.classList.remove("show"); void toast.offsetWidth; toast.classList.add("show");
+  }
+  function shakeStage() {
+    if (reducedMotion()) return;
+    wrap.classList.remove("is-shake"); void wrap.offsetWidth; wrap.classList.add("is-shake");
+  }
+
+  pickTarget(null);
+  paintHud();
+
+  /* ---- movement input: keyboard + a touch/mouse virtual joystick ---- */
+  const input = { x: 0, y: 0 };
+  const keys = new Set();
+  const KEYMAP = {
+    ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+    w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0], W: [0, -1], S: [0, 1], A: [-1, 0], D: [1, 0],
+  };
+  function recomputeKeyboardVector() {
+    let x = 0, y = 0;
+    keys.forEach(k => { const v = KEYMAP[k]; if (v) { x += v[0]; y += v[1]; } });
+    keyboardVec.x = x; keyboardVec.y = y;
+  }
+  const keyboardVec = { x: 0, y: 0 };
+  function onKeyDown(e) { if (KEYMAP[e.key]) { keys.add(e.key); recomputeKeyboardVector(); } }
+  function onKeyUp(e) { if (KEYMAP[e.key]) { keys.delete(e.key); recomputeKeyboardVector(); } }
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
+
+  const pad = document.createElement("div"); pad.className = "quest__pad";
+  const nub = document.createElement("div"); nub.className = "quest__pad__nub";
+  pad.append(nub); stage.append(pad);
+  const padVec = { x: 0, y: 0 };
+  let padActive = false, padId = null;
+  function padFromEvent(clientX, clientY) {
+    const r = pad.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let dx = clientX - cx, dy = clientY - cy;
+    const max = r.width / 2;
+    const len = Math.hypot(dx, dy);
+    if (len > max) { dx = (dx / len) * max; dy = (dy / len) * max; }
+    nub.style.left = (r.width / 2 + dx) + "px"; nub.style.top = (r.height / 2 + dy) + "px";
+    padVec.x = dx / max; padVec.y = dy / max;
+  }
+  function resetPad() {
+    nub.style.left = "50%"; nub.style.top = "50%"; padVec.x = 0; padVec.y = 0;
+    pad.classList.remove("is-active"); padActive = false; padId = null;
+  }
+  pad.addEventListener("pointerdown", e => { padActive = true; padId = e.pointerId; pad.classList.add("is-active"); pad.setPointerCapture(e.pointerId); padFromEvent(e.clientX, e.clientY); });
+  pad.addEventListener("pointermove", e => { if (padActive && e.pointerId === padId) padFromEvent(e.clientX, e.clientY); });
+  pad.addEventListener("pointerup", resetPad);
+  pad.addEventListener("pointercancel", resetPad);
+
+  function currentInputVector() {
+    const x = keyboardVec.x !== 0 || keyboardVec.y !== 0 ? keyboardVec.x : padVec.x;
+    const y = keyboardVec.x !== 0 || keyboardVec.y !== 0 ? keyboardVec.y : padVec.y;
+    const len = Math.hypot(x, y);
+    return len > 1 ? { x: x / len, y: y / len } : { x, y };
+  }
+
+  /* ---- placed items: fixed real-world positions, cycling target groups ---- */
+  function layoutItems(items) {
+    return items.map((it, i) => {
+      const ring = i % 2;
+      const ringR = ARENA_R * (ring === 0 ? 0.5 : 0.86);
+      const angle = (i / items.length) * Math.PI * 2 + (ring * 0.31);
+      return { ...it, x: Math.cos(angle) * ringR, z: Math.sin(angle) * ringR, cooldownUntil: 0 };
+    });
+  }
+  const placed = layoutItems(opts.items);
+
+  function handleContact(item, avatarPos, pushBack) {
+    const now = performance.now();
+    if (now < item.cooldownUntil) return;
+    const correct = item.groupId === state.targetGroupId;
+    if (correct) {
+      state.score += 10 + state.streak * 2;
+      state.streak += 1; state.bestStreak = Math.max(state.bestStreak, state.streak);
+      state.correct += 1;
+      showToast(S.correct, "#7bffb0");
+      item.cooldownUntil = now + 2600;
+      pickTarget(item.groupId);
+      if (renderer3d) renderer3d.burst(item, 0x7bffb0);
+    } else {
+      state.streak = 0; state.wrong += 1;
+      showToast(S.wrong, "#ff8a7a");
+      shakeStage();
+      item.cooldownUntil = now + 900;
+      if (renderer3d) renderer3d.burst(item, 0xff5a4a);
+    }
+    paintHud();
+    pushBack();
+  }
+
+  function finish() {
+    if (state.finished) return;
+    state.finished = true;
+    const attempts = state.correct + state.wrong;
+    const accuracy = attempts ? Math.round((state.correct / attempts) * 100) : 0;
+    const box = document.createElement("div"); box.className = "quest__finish";
+    box.innerHTML = `<div>
+      <h3>${S.finishTitle}</h3>
+      <div class="quest__stats">
+        <div class="quest__stat"><b>${state.score}</b><span>${S.score}</span></div>
+        <div class="quest__stat"><b>${accuracy}%</b><span>${S.accuracy}</span></div>
+        <div class="quest__stat"><b>${state.bestStreak}</b><span>${S.best}</span></div>
+      </div>
+      <div class="quest__finish__actions">
+        <button type="button" class="btn btn--ghost" id="qs-again">↺ ${S.playAgain}</button>
+        <button type="button" class="btn btn--signal" id="qs-continue">${S.continueLabel} →</button>
+      </div>
+    </div>`;
+    stage.append(box);
+    box.querySelector("#qs-again").addEventListener("click", () => { dispose(); const fresh = mountQuest3D(host, opts); Object.assign(quest, fresh); });
+    box.querySelector("#qs-continue").addEventListener("click", () => {
+      if (opts.onExit) opts.onExit({ score: state.score, correct: state.correct, wrong: state.wrong, accuracy, bestStreak: state.bestStreak });
+    });
+  }
+
+  let renderer3d = null;
+  /* The countdown and its end-of-round trigger are real game state, not
+     cosmetic animation — they run on a plain setInterval, never on
+     requestAnimationFrame alone. rAF is fine (and used below, in the 3D
+     backend's own loop) for moving meshes on screen, but a state decision
+     as important as "has the round finished?" must keep ticking correctly
+     on wall-clock time regardless of paint/render timing. See
+     [[discovery-lab-raf-throttling-pitfall]]. */
+  const hudTimer = setInterval(() => {
+    if (state.disposed) return;
+    paintHud();
+    if (!state.finished && performance.now() >= state.endAt) finish();
+  }, 250);
+
+  function dispose() {
+    state.disposed = true;
+    clearInterval(hudTimer);
+    document.removeEventListener("keydown", onKeyDown);
+    document.removeEventListener("keyup", onKeyUp);
+    if (renderer3d) renderer3d.dispose();
+  }
+  const quest = { dispose };
+
+  (async () => {
+    let backend = null;
+    if (opts.threeUrl && webglAvailable()) {
+      try {
+        const THREE = await loadThree(opts.threeUrl);
+        if (!state.disposed) backend = build3DBackend(THREE, stage, groups, placed, currentInputVector, handleContact, () => state.disposed || state.finished);
+      } catch (e) { console.warn("Quest3D: 3D unavailable, using fallback:", e); }
+    }
+    if (!backend && !state.disposed) backend = build2DFallback(stage, groups, placed, state, S, showToast, shakeStage, paintHud, pickTarget);
+    if (state.disposed) { if (backend) backend.dispose(); return; }
+    renderer3d = backend;
+  })();
+
+  return quest;
+}
+
+/* ==========================================================================
+   3D backend — a lit, shadowed arena the avatar drives around in real time.
+   ACES tone mapping + soft shadow maps + physical materials are the actual
+   realism levers a vendored, addon-free Three.js core provides.
+   ========================================================================== */
+function build3DBackend(THREE, stageEl, groups, placed, getInput, handleContact, isDone) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  stageEl.prepend(renderer.domElement);
+
+  const SKY_TOP = 0x1c3a52, SKY_HORIZON = 0xdba36b;
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x2a3d3a, 10, 30);
+
+  /* gradient sky dome — cheap stand-in for an HDRI environment */
+  const skyGeo = new THREE.SphereGeometry(45, 24, 16);
+  const skyPos = skyGeo.attributes.position, skyColors = [];
+  const topC = new THREE.Color(SKY_TOP), botC = new THREE.Color(SKY_HORIZON);
+  for (let i = 0; i < skyPos.count; i++) {
+    const y = skyPos.getY(i) / 45;
+    const c = topC.clone().lerp(botC, Math.pow(Math.max(0, 1 - (y + 0.15)), 1.6));
+    skyColors.push(c.r, c.g, c.b);
+  }
+  skyGeo.setAttribute("color", new THREE.Float32BufferAttribute(skyColors, 3));
+  const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false }));
+  scene.add(sky);
+
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 80);
+  camera.position.set(0, 6, 9);
+
+  scene.add(new THREE.HemisphereLight(0xbfd6e6, 0x3a2f22, 0.9));
+  const sun = new THREE.DirectionalLight(0xffe9c7, 1.15);
+  sun.position.set(8, 12, 6);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -14; sun.shadow.camera.right = 14;
+  sun.shadow.camera.top = 14; sun.shadow.camera.bottom = -14;
+  sun.shadow.camera.far = 30; sun.shadow.bias = -0.0025;
+  scene.add(sun);
+
+  /* ground — procedural canvas texture so it isn't a flat, "AI-generic" plane */
+  function groundTexture() {
+    const c = document.createElement("canvas"); c.width = c.height = 512;
+    const g = c.getContext("2d");
+    g.fillStyle = "#3f5a3f"; g.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 3200; i++) {
+      const x = Math.random() * 512, y = Math.random() * 512;
+      const shade = 40 + Math.random() * 40;
+      g.fillStyle = `rgba(${shade + 30},${shade + 60},${shade + 30},0.5)`;
+      g.fillRect(x, y, 1.6, 1.6);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(6, 6);
+    return tex;
+  }
+  const groundGeo = new THREE.CylinderGeometry(11.4, 11.4, 0.3, 64);
+  const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ map: groundTexture(), roughness: 1, metalness: 0 }));
+  ground.position.y = -0.15; ground.receiveShadow = true;
+  scene.add(ground);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(11.4, 0.08, 8, 64), new THREE.MeshStandardMaterial({ color: 0x7bffb0, emissive: 0x1a5c3f, roughness: 0.4 }));
+  rim.rotation.x = Math.PI / 2; rim.position.y = 0.02; scene.add(rim);
+
+  /* avatar — a friendly little rover, built from primitives */
+  const avatar = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.55, 20, 16), new THREE.MeshPhysicalMaterial({ color: 0x3fd08b, roughness: 0.35, metalness: 0.25, clearcoat: 0.4 }));
+  body.castShadow = true; avatar.add(body);
+  const visor = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 12), new THREE.MeshStandardMaterial({ color: 0x0d241d, roughness: 0.6 }));
+  visor.rotation.x = Math.PI / 2; visor.position.set(0, 0.05, 0.55); visor.castShadow = true; avatar.add(visor);
+  const headlight = new THREE.PointLight(0x7bffb0, 0.6, 4); headlight.position.set(0, 0.2, 0.6); avatar.add(headlight);
+  avatar.position.set(0, 0.55, 3);
+  scene.add(avatar);
+
+  /* items — upright photo-textured cards on a glowing pedestal */
+  const itemMeshes = [];
+  const loader = new THREE.TextureLoader();
+  placed.forEach(it => {
+    const group = groups.find(g => g.id === it.groupId) || groups[0];
+    const g = new THREE.Group();
+    const cardGeo = new THREE.BoxGeometry(1.3, 1.0, 0.08);
+    let mat;
+    if (it.img) {
+      const tex = loader.load(it.img);
+      if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+      mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55, metalness: 0.05 });
+    } else {
+      mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(group.color || "#7bffb0"), roughness: 0.5 });
+    }
+    const card = new THREE.Mesh(cardGeo, mat);
+    card.position.y = 1.05; card.castShadow = true; card.receiveShadow = true;
+    g.add(card);
+    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.5, 16), new THREE.MeshStandardMaterial({ color: 0x0d241d, roughness: 0.8 }));
+    pedestal.position.y = 0.25; pedestal.castShadow = true; pedestal.receiveShadow = true;
+    g.add(pedestal);
+    const glow = new THREE.Mesh(new THREE.RingGeometry(0.6, 0.78, 32), new THREE.MeshBasicMaterial({ color: new THREE.Color(group.color || "#7bffb0"), side: THREE.DoubleSide, transparent: true, opacity: 0.55 }));
+    glow.rotation.x = -Math.PI / 2; glow.position.y = 0.02;
+    g.add(glow);
+    g.position.set(it.x, 0, it.z);
+    g.userData.baseY = 1.05;
+    scene.add(g);
+    itemMeshes.push({ mesh: g, card, glow, data: it });
+  });
+
+  const particles = [];
+  function burst(item, color) {
+    if (reducedMotion()) return;
+    const rec = itemMeshes.find(m => m.data === item);
+    const origin = rec ? rec.mesh.position : new THREE.Vector3();
+    for (let i = 0; i < 16; i++) {
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), new THREE.MeshBasicMaterial({ color }));
+      p.position.set(origin.x, 1.1, origin.z);
+      const v = new THREE.Vector3((Math.random() - 0.5) * 4, Math.random() * 3.5, (Math.random() - 0.5) * 4);
+      scene.add(p);
+      particles.push({ mesh: p, v, born: performance.now() });
+    }
+  }
+
+  function resize() {
+    const w = stageEl.clientWidth, h = stageEl.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  const resizeObs = new ResizeObserver(resize); resizeObs.observe(stageEl); resize();
+
+  const vel = new THREE.Vector3();
+  const ACCEL = 30, MAX_SPEED = 6.2;
+  let raf = null, last = performance.now();
+  let lastContactCheck = 0;
+
+  function angDelta(a, b) { return ((b - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI; }
+
+  function loop(now) {
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    const reduced = reducedMotion();
+
+    if (!isDone()) {
+      const inp = getInput();
+      const desired = new THREE.Vector3(inp.x, 0, inp.y).multiplyScalar(MAX_SPEED);
+      vel.x += (desired.x - vel.x) * Math.min(1, ACCEL * dt);
+      vel.z += (desired.z - vel.z) * Math.min(1, ACCEL * dt);
+      avatar.position.x += vel.x * dt;
+      avatar.position.z += vel.z * dt;
+      const r = Math.hypot(avatar.position.x, avatar.position.z);
+      if (r > 10.6) { const k = 10.6 / r; avatar.position.x *= k; avatar.position.z *= k; vel.multiplyScalar(0.4); }
+      if (vel.lengthSq() > 0.05) {
+        const targetYaw = Math.atan2(vel.x, vel.z);
+        avatar.rotation.y += angDelta(avatar.rotation.y, targetYaw) * Math.min(1, 11 * dt);
+      }
+      avatar.position.y = 0.55 + (reduced ? 0 : Math.sin(now / 180) * 0.03);
+
+      if (now - lastContactCheck > 60) {
+        lastContactCheck = now;
+        for (const rec of itemMeshes) {
+          if (now < rec.data.cooldownUntil) continue;
+          const dx = avatar.position.x - rec.data.x, dz = avatar.position.z - rec.data.z;
+          if (dx * dx + dz * dz < 1.15 * 1.15) {
+            handleContact(rec.data, avatar.position, () => {
+              const push = new THREE.Vector3(dx, 0, dz);
+              if (push.lengthSq() < 0.0001) push.set(0, 0, 1);
+              push.normalize().multiplyScalar(1.8);
+              avatar.position.x += push.x; avatar.position.z += push.z;
+              vel.set(0, 0, 0);
+            });
+            break;
+          }
+        }
+      }
+    }
+
+    itemMeshes.forEach(rec => {
+      const onCooldown = now < rec.data.cooldownUntil;
+      rec.mesh.visible = true;
+      const bob = reduced ? 0 : Math.sin(now / 500 + rec.data.x) * 0.06;
+      rec.card.position.y = (onCooldown ? 0.35 : 1.05) + bob;
+      rec.card.material.opacity = onCooldown ? 0.25 : 1;
+      rec.card.material.transparent = onCooldown;
+      rec.glow.material.opacity = onCooldown ? 0.12 : 0.55;
+      if (!reduced) rec.mesh.rotation.y += dt * 0.15;
+    });
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      const age = (now - p.born) / 1000;
+      if (age > 0.7) { scene.remove(p.mesh); particles.splice(i, 1); continue; }
+      p.mesh.position.addScaledVector(p.v, dt);
+      p.v.y -= dt * 5;
+      p.mesh.material.opacity = 1 - age / 0.7; p.mesh.material.transparent = true;
+    }
+
+    /* third-person chase camera: an over-the-shoulder follow with damping */
+    const behind = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), avatar.rotation.y).multiplyScalar(6.2);
+    const desiredCam = avatar.position.clone().add(behind).add(new THREE.Vector3(0, 4.4, 0));
+    camera.position.lerp(desiredCam, Math.min(1, (reduced ? 5 : 3) * dt));
+    camera.lookAt(avatar.position.clone().add(new THREE.Vector3(0, 0.9, 0)));
+
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(loop);
+  }
+  raf = requestAnimationFrame(loop);
+
+  return {
+    burst,
+    dispose() { cancelAnimationFrame(raf); resizeObs.disconnect(); renderer.dispose(); renderer.domElement.remove(); }
+  };
+}
+
+/* ==========================================================================
+   2D/DOM fallback — no WebGL required. Same target-cycling and scoring,
+   as a tappable card grid instead of a driveable arena.
+   ========================================================================== */
+function build2DFallback(stageEl, groups, placed, state, S, showToast, shakeStage, paintHud, pickTarget) {
+  const box = document.createElement("div"); box.className = "quest__fallback";
+  const grid = document.createElement("div"); grid.className = "quest__fallback__grid";
+  box.append(grid); stageEl.append(box);
+  const cardEls = new Map();
+  placed.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "quest__fallback__card";
+    c.innerHTML = (it.img ? `<img src="${it.img}" alt="${it.label}">` : "") + `<span>${it.label}</span>`;
+    c.addEventListener("click", () => {
+      const now = performance.now();
+      if (now < it.cooldownUntil || state.disposed || state.finished) return;
+      const correct = it.groupId === state.targetGroupId;
+      if (correct) {
+        state.score += 10 + state.streak * 2; state.streak += 1;
+        state.bestStreak = Math.max(state.bestStreak, state.streak); state.correct += 1;
+        showToast(S.correct, "#7bffb0");
+        c.classList.add("is-correct"); it.cooldownUntil = now + 2600;
+        setTimeout(() => c.classList.remove("is-correct"), 2600);
+        pickTarget(it.groupId);
+      } else {
+        state.streak = 0; state.wrong += 1;
+        showToast(S.wrong, "#ff8a7a"); shakeStage();
+        c.classList.remove("is-wrong"); void c.offsetWidth; c.classList.add("is-wrong");
+        it.cooldownUntil = now + 500;
+      }
+      paintHud();
+    });
+    cardEls.set(it.id, c);
+    grid.append(c);
+  });
+  return { burst() {}, dispose() { box.remove(); } };
+}

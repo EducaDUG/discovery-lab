@@ -120,6 +120,46 @@ Instead:
 - **Respects reduced motion and the rest of the accessibility panel already.** Camera sway, screen-shake and particle bursts are skipped under `data-reduced-motion=on`; the pacing (item flight time) ramps gently and is never so fast it becomes a reflex test.
 - Where a falling-item lane game genuinely doesn't fit an activity's content, build an equivalent activity-specific 3D bonus moment instead (matching the "serious lab instrument" vs "video game" tone call already in this section) — but every simulation must have *something* genuinely game-like and dynamically 3D, not just static UI.
 
+**Amendment — two game genres, always alternated, never the same one twice in a row (agreed
+2026-09-17).** Diego: "I want more videogames. At least one in each simulation, to have
+gamification, alternate it between arcade games, but also 3D realistic ones, like PlayStation games."
+Two things follow: every simulation needs its bonus round (the rule above already said that), and the
+*genre* must vary from one simulation to the next rather than every activity getting the same tunnel-
+rush every time.
+
+- **Genre 1 — arcade** (`engine/arcade.js`, `mountArcadeRush`): the fast, scored tunnel-rush described
+  above. Reference: `sim-five-kingdoms-sorter`, `sim-fraction-bakery`, `sim-seed-germination-lab`
+  ("Seed Species Rush").
+- **Genre 2 — realistic 3D** (`engine/quest3d.js`, `mountQuest3D`): a calmer, third-person
+  exploration/collection game — the student drives a small rover around a lit, shadowed arena for a
+  fixed real-time session (`durationMs`, default 2 minutes), hunting for items matching a category
+  banner that cycles as they collect. "Realistic" here means the actual realism levers a vendored,
+  addon-free Three.js core provides — ACES filmic tone mapping, soft PCF shadow maps,
+  `MeshPhysicalMaterial`, fog, a damped third-person chase camera — not literal console fidelity,
+  which this stack cannot produce. Movement is keyboard-first (arrow keys/WASD, fully
+  keyboard-operable for free) with a touch/mouse virtual joystick layered on top. Reference:
+  `sim-vertebrate-sorting-lab` ("Backbone Quest").
+- **The round is time-boxed, not item-count-paced.** `mountQuest3D` runs for a fixed wall-clock
+  duration and ends automatically — this sidesteps the whole "a confident student blitzes through it"
+  problem the arcade genre had to be fixed for (see the ~2-minute amendment above), by construction,
+  rather than by tuning flight-time constants. Prefer this when adding a new genre or fixing pacing
+  issues in either module.
+- **Game-state deadlines (a round timer, an end-of-round trigger) must run on `setInterval`/elapsed
+  wall-clock time, never on `requestAnimationFrame` alone** — `requestAnimationFrame` is for the
+  cosmetic render/physics loop only. `mountQuest3D`'s countdown originally used a `requestAnimationFrame`
+  loop for both drawing and the finish trigger and could stall under paint throttling; see
+  [[discovery-lab-raf-throttling-pitfall]] and `engine/quest3d.js`'s `hudTimer`.
+- **When you build a new simulation:** check which genre the simulations in the *same course* used
+  last (same lookup discipline as the `mechanic` field — CLAUDE.md §10/§11) and use the other one. Two
+  arcade rounds or two quest rounds back to back in the same course is the failure mode this amendment
+  exists to prevent.
+- **When a simulation's own gamification (rank/XP/streak on the main Investigate stage, not the bonus
+  round) never actually ends, add a clear finish card once the investigation is fully done** — a short
+  "Investigation complete!" summary (final rank, total XP, best streak), not just a quiet toast. Diego:
+  "the game in the Investigate tab never finishes… it should have a clear end at some point." Keep the
+  scoring itself addictive (XP, streak, rank-ups) — this only adds the missing finish line. See the
+  `.invdone` card in `sim-vertebrate-sorting-lab` for the pattern.
+
 ---
 
 ## 5. Evidence export — the assessment engine
@@ -368,10 +408,13 @@ spec it. Ask only if the course or age band is genuinely ambiguous.
    Give the term/module a `keywords` snapshot (3–5 terms) if it does not have one yet.
 5. Build the activity in its own folder: `activity.html` + `config.json`. Start from
    `_template/`. Write its `learningFocus` (skills + one strong paragraph) — it is required.
-   **Never edit the shared engine for a content change.** Include a bonus arcade round via
-   `engine/arcade.js` (`mountArcadeRush`) — see Section 4's amendment. Reuse the activity's own
-   real photos as the flying items where it has them; it is optional/skippable for the student but
-   not optional for you to build.
+   **Never edit the shared engine for a content change.** Include a bonus round — check which genre
+   (arcade via `engine/arcade.js`, or realistic 3D via `engine/quest3d.js`) the other simulations in
+   this same course used last and build the other one (Section 4's alternation amendment — same
+   lookup discipline as `mechanic` below). Reuse the activity's own real photos as the flying/placed
+   items where it has them; it is optional/skippable for the student but not optional for you to
+   build. If the science-method fields apply (Section 14), set
+   `orient.scientificObservation`/`scientificQuestion` in config so the method chip strip renders.
 6. Generate the looping `thumbnail.gif` with `tools/make-thumbnail.py` (see Section 10) — a
    seamless orbit of the activity's most striking moment.
 7. Flip that simulation's `status` to `"live"` only once `activity.html` actually works.
@@ -554,6 +597,32 @@ block carrying these fields (`observation`, `question`, `hypothesis`, `predictio
 This is the CGA Teaching Excellence rubric's "Excellent" bar in practice: student-driven inquiry,
 higher-order thinking, continuous formative feedback, and students owning their progress — it maps
 directly onto Section 13's eight qualities and does not replace them.
+
+**Amendment — the six method words must actually be visible, and repeat on every science
+simulation (agreed 2026-09-17).** Diego, after playtesting: the `observation`/`question`/etc. fields
+above were being captured for the evidence PDF (via `sim.setScienceMethod()`) but never actually
+shown to the student on screen — so the vocabulary never got the repetition it needs to stick in
+long-term memory. Fixed at the engine level, once, for every science simulation:
+
+- **`config.orient.scientificObservation` and `scientificQuestion`** are now rendered visibly on the
+  Orient stage itself (`engine/engine.js`'s `buildOrient`), right under the mission. Every science
+  activity's config must supply these two fields (in addition to whatever internal `scientificMethod`/
+  `setScienceMethod()` data it already uses for the PDF) — the Orient-stage text and the PDF text can
+  be the same words, but the Orient fields are what makes them visible during the activity itself.
+- **A persistent "scientific method" chip strip** (`.method-rail` in `engine/style.css`) renders under
+  the main stage rail, on every stage, whenever `config.orient.scientificObservation` or
+  `scientificQuestion` is present. Six chips, always the same six words, in every science simulation
+  on the site: Observation, Question, Hypothesis, Experiment, Result, Conclusion. The current stage's
+  corresponding chip is highlighted (`orient`→Observation+Question, `predict`→Hypothesis,
+  `investigate`→Experiment, `record`→Result, `explain`/`apply`→Conclusion) — see `METHOD_BY_STAGE` in
+  `engine/engine.js`. This is deliberately the same six words on every activity, every time: the
+  repetition itself — not any one activity's content — is what is supposed to build long-term recall,
+  so never rename or rephrase these chips per-activity.
+- This is additive and automatic: an activity that already supplies the two config fields gets the
+  chip strip and the visible Orient text for free after an engine version bump, no other changes
+  needed (confirmed on `sim-five-kingdoms-sorter` and `sim-vertebrate-sorting-lab`). If an activity
+  has its own bespoke `orient()` that already draws an observation/question card (an old pattern —
+  see `sim-seed-germination-lab`'s history), remove that duplicate now that the engine owns it.
 
 ---
 

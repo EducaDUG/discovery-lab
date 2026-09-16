@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Seed Germination Lab — Discovery Lab</title>
 <meta name="description" content="A 3D germination lab: orbit the growth chamber, tune temperature, oxygen and light, and race up the Lab Ranks discovering what wakes a seed.">
-<link rel="stylesheet" href="../../../../../../../engine/style.css?v=10">
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%2316744F' stroke-width='4'/><circle cx='45' cy='22' r='7' fill='%239A6E05'/></svg>">
 <script>
 (function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
@@ -209,7 +209,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 </footer>
 
 <script type="module">
-import { mountActivity } from "../../../../../../../engine/engine.js?v=14";
+import { mountActivity } from "../../../../../../../engine/engine.js?v=15";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../../engine/arcade.js?v=2";
 
 const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
 
@@ -230,6 +231,21 @@ const SPECIES = {
              tMin:2,  tLo:10, tHi:22, tMax:30, o2Min:2, o2Sat:17, baseDays:5, vigor:0.90, color:"#5f8c7a",
              blurb:"Slow and cool, with a single seed-leaf. Germinates best in the dark." },
 };
+/* Bonus arcade round item pool — trait recall for the four species, using
+   the same SPECIES data the chamber itself is built from. See
+   engine/arcade.js and CLAUDE.md §4 (this course alternates the "realistic
+   3D" bonus round used in sim-vertebrate-sorting-lab with this faster
+   tunnel-rush arcade style, so the site doesn't repeat one game genre). */
+const ARCADE_CLUES=[
+  {id:"cress1",label:"Sprouts on damp cotton in just 2 warm days",laneId:"cress"},
+  {id:"cress2",label:"A fast, easy classroom favourite",laneId:"cress"},
+  {id:"lettuce1",label:"Needs a flash of light to wake up",laneId:"lettuce"},
+  {id:"lettuce2",label:"A cool-season salad seed",laneId:"lettuce"},
+  {id:"mung1",label:"Loves heat, up to about 42°C",laneId:"mung"},
+  {id:"mung2",label:"Big cotyledons that need plenty of air",laneId:"mung"},
+  {id:"onion1",label:"Only one seed-leaf, germinates best in the dark",laneId:"onion"},
+  {id:"onion2",label:"Slow grower — about 5 days to sprout",laneId:"onion"},
+];
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
@@ -311,15 +327,11 @@ const stats={temps:new Set(),o2s:new Set(),lights:new Set(),species:new Set(),lo
 const simulation={
   orient(host, api){
     host.innerHTML="";
-    const sm=(api&&api.config&&api.config.scientificMethod)||{};
-    if(sm.observation||sm.question){
-      const obs=document.createElement("div");obs.className="card";obs.style.marginBottom="var(--sp-4)";
-      if(sm.observation){obs.append(Object.assign(document.createElement("p"),{className:"eyebrow",textContent:"Notice this first"}));
-        obs.append(Object.assign(document.createElement("p"),{textContent:sm.observation}));}
-      if(sm.question){obs.append(Object.assign(document.createElement("p"),{className:"eyebrow",textContent:"The scientific question"}));
-        obs.append(Object.assign(document.createElement("p"),{style:"font-weight:700",textContent:sm.question}));}
-      host.append(obs);
-    }
+    /* Observation/question are now rendered once, engine-side, from
+       config.orient.scientificObservation/scientificQuestion — see the
+       method-rail note in engine/engine.js. Keeping a second copy here
+       (this used to read config.scientificMethod for the same text) would
+       just duplicate it on screen. */
     const intro=document.createElement("p");intro.className="q__hint";
     intro.textContent="Cut a seed in half and you find a whole baby plant with its lunch packed. Learn the four parts — you will watch every one of them grow in the 3D lab.";
     host.append(intro);
@@ -533,6 +545,57 @@ const simulation={
     wrap.append(side);
     host.append(wrap);
 
+    /* ---- BONUS ROUND — "Seed Species Rush": a fast arcade recall of the
+       four species' germination traits, once every mission above is
+       complete. Purely a bonus (no marks, no gating) — see engine/arcade.js.
+       This course alternates arcade rounds with the realistic 3D "Backbone
+       Quest" round in sim-vertebrate-sorting-lab (CLAUDE.md §4). ---- */
+    const arcadeSection=document.createElement("div");arcadeSection.style.marginTop="var(--sp-5)";
+    host.append(arcadeSection);
+    function paintArcadeSection(){
+      const allDone=QUESTS.every(q=>game.quests[q.id]);
+      if(!allDone){arcadeSection.innerHTML="";arcadeSection.dataset.rendered="";return;}
+      if(arcadeSection.dataset.rendered)return;
+      arcadeSection.dataset.rendered="1";
+      const launchWrap=document.createElement("div");
+      arcadeSection.append(launchWrap);
+      const bestLine=game.arcadeBest?`Your best score so far: ${game.arcadeBest}.`:"";
+      renderArcadeLaunch(launchWrap,{
+        strings:{
+          title:"Bonus round — Seed Species Rush",
+          instructions:"Seed facts fly at you — tap the species they describe before each one reaches the ring."+(bestLine?" "+bestLine:""),
+          play:"Play Seed Species Rush", skip:"Skip bonus round",
+        },
+        onPlay(){
+          launchWrap.remove();
+          const gameHost=document.createElement("div");
+          arcadeSection.append(gameHost);
+          mountArcadeRush(gameHost,{
+            threeUrl:THREE_URL, rounds:24,
+            lanes:Object.values(SPECIES).map(sp=>({id:sp.key,label:sp.name,color:sp.color})),
+            items:ARCADE_CLUES,
+            strings:{
+              title:"Seed Species Rush",
+              instructions:"Tap the species before the fact reaches the ring. A late or wrong answer just resets your streak — never a fail.",
+              score:"Score", streak:"Streak", best:"Best streak", progress:"Clue",
+              correct:"Correct!", wrong:"Not quite.", missed:"Missed it.",
+              finishTitle:"Round complete!", accuracy:"Accuracy", playAgain:"Play again", continueLabel:"Continue",
+            },
+            onExit(stats){
+              game.arcadeBest=Math.max(game.arcadeBest||0,stats.score);
+              sim.saveState();
+              gameHost.innerHTML="";gameHost.remove();
+              arcadeSection.dataset.rendered="";
+              paintArcadeSection();
+              sim.toast(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`,"info");
+            }
+          });
+        },
+        onSkip(){arcadeSection.innerHTML="";arcadeSection.dataset.rendered="skipped";}
+      });
+    }
+    paintArcadeSection();
+
     /* ---- HUD helpers ---- */
     const $=id=>document.getElementById(id);
     function paintGame(animate){
@@ -655,6 +718,7 @@ const simulation={
 
       // celebratory feedback
       paintGame(true);
+      paintArcadeSection();
       newlyDone.forEach((q,i)=>setTimeout(()=>{
         const el=qNodes[q.id];el.classList.add("just-done");setTimeout(()=>el.classList.remove("just-done"),700);
         fireBurst(["#3fd08b","#a6ff5c","#ffd45c"]);
