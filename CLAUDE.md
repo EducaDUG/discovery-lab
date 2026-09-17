@@ -314,6 +314,80 @@ response (Explain, Apply) on every activity, current and future.
   marker doing the same, using only the evidence and rules on the page? If the rule is "use your
   judgement" where a specific, assessable point could instead be named, that is a policy miss.
 
+**Amendment — analytic mark scheme vs. performance rubric are two different tools; never blur them,
+and this whole spec is subject-agnostic (extended 2026-09-18, whole-library audit, still
+non-negotiable).** Diego, after the Mission: Blue Planet fix: apply the same standard to every
+existing simulation, not just the one that prompted it, and make it permanent for every future one.
+This extends the amendment above — same schema, same engine — with the parts that were still implicit:
+
+- **Mark scheme vs. rubric are not interchangeable labels.** Use an **analytic mark scheme**
+  (`markingScheme`, point-by-point) for anything with specific knowledge/reasoning/evidence points that
+  can be individually identified and awarded — this is what Explain/Apply questions need. Use a
+  **performance rubric** (`levels`, one descriptor per mark value) only for genuinely holistic
+  qualities — communication, evaluation, quality of argument, practical technique — where the
+  performance can't be cleanly split into independent named points. Never call a bare list of ceiling
+  descriptions ("3 marks: good reasoning") a "rubric" — that is neither tool, just an unmarked total.
+- **A holistic criterion's `levels` array must be complete, every time — 0 through max, no gaps, no
+  exceptions.** A 0-2 criterion defines 0, 1 and 2; a 0-3 criterion defines 0, 1, 2 and 3. This was
+  already the rule from the 2026-09-08 level-descriptors amendment above; treat any existing criterion
+  missing a level as being in the same non-compliant state as one missing `levels` entirely.
+  Communication-type descriptors should read like: *0 — too unclear/incomplete for the reasoning to be
+  followed reliably; 1 — main meaning understandable, but organisation/precision/vocabulary has
+  problems; 2 — clear and logical, appropriate subject vocabulary, precise enough to follow easily.*
+  Spelling/grammar should only cost a communication mark when it actually harms clarity or meaning —
+  never penalise minor language slips on their own when the scientific/academic communication is still
+  clear. Adapt the same three-tier shape to whatever the criterion actually measures in each subject.
+- **Auto-marked and teacher-marked stay visibly separate everywhere** — this was already true
+  (`pdf.kc-auto` vs `pdf.written-answers` are already distinct PDF sections with the auto section
+  showing awarded/available marks inline and the written section showing the full marking scheme) —
+  treat any future PDF change that blurs this distinction as a regression, not a redesign.
+- **This whole structure is deliberately subject-agnostic, not a Marine Science special case.** Every
+  field (`markingScheme[].marks/criterion/accept/insufficient/dependsOn`, rubric `criteria[].source`,
+  `levels`) is generic data the shared engine renders the same way regardless of subject — a Spanish
+  vocabulary activity's "two distinct reasons" question and a Biology activity's causal-chain question
+  use the exact same schema, just different words in `criterion`/`accept`. Never special-case rendering
+  logic in `engine.js` for a specific subject or activity; if a new kind of assessed question doesn't
+  fit the schema, extend the schema (and this section), not the PDF code for one activity.
+- **Never truncate assessment evidence in the PDF.** `drawTrials()` in `engine/engine.js` used to
+  `.slice(0, 16)`/`.slice(0, 18)` header and cell text — a genuine bug against this standard, fixed
+  2026-09-18 to wrap every header and cell with `splitTextToSize` and grow row height to fit, with the
+  header re-drawn on a fresh page when a table breaks across pages. If a future change to `drawTrials`
+  or any other PDF table reintroduces a fixed-character cutoff on evidence text, that is a regression a
+  reviewer should catch on sight.
+- **Question wording and marking scheme must assess the literal same thing.** If a question asks for
+  "two reasons," the marking scheme must state what counts as two *genuinely distinct* reasons, not
+  silently split one causal chain (fact → mechanism → conclusion) into two "reasons" plus a bolted-on
+  third point. Prefer scoring a causal chain as points along the chain (e.g. 1 mark comparison, 1 mark
+  mechanism, 1 mark application of the mechanism to the specific question asked) over forcing an
+  artificial two-reasons frame onto content that is really one chain — see
+  `sim-mission-blue-planet`'s Apply question for the corrected pattern.
+- **Prefer marks that require the student's own investigation evidence over recall-only marks** where
+  the question is investigative — phrase the relevant `markingScheme` point so a generic, sim-free
+  answer can't earn it (e.g. "quotes at least two of the student's own logged trials," not just "states
+  the trend"). This is what makes the exported evidence prove the activity was actually done, not just
+  that the student already knew the fact.
+- **Authoring requirement, going forward — an activity is not complete without these fields defined at
+  design time, not bolted on after.** When building a new teacher-marked question (Explain, Apply, or
+  any future constructed-response stage), design the `markingScheme` alongside the question itself,
+  the same discipline already required for `learningFocus` and `orient.successCriteria`: what is being
+  assessed, how many marks, what earns each one, acceptable equivalents, an insufficient-response
+  example where it helps, any dependency between points, which rubric criterion the marks feed into
+  (`source`), and what raw simulation evidence (trial data, not just a summary) needs to be exported to
+  verify it. Do not build the activity first and patch in a rubric afterward.
+- **Pre-publish QC test, added to the existing "flip status to live only once activity.html actually
+  works" step in Section 11:** before flipping a simulation to `"live"`, generate its PDF (as done for
+  every other QA pass) and ask: *could a competent teacher who has never seen this simulation mark the
+  student's work accurately and consistently using only this PDF?* If the answer is no — a question's
+  intent is inferable but not stated, a total doesn't add up, evidence needed for marking was reduced to
+  a label, or a table cut off a value — the marking spec or evidence export is incomplete, not just
+  imperfect, and blocks going live the same way a missing `learningFocus` would.
+- **Whole-library audit status (2026-09-18):** every existing simulation was migrated to this schema in
+  one pass — `markingScheme` replacing `expectedPoints`, `source` added to every non-auto rubric
+  criterion, question/scheme alignment checked, and any reduced-to-a-label evidence field promoted to a
+  real Investigation Record column — see each activity's own `config.json`/`activity.html` and bumped
+  `activity_version` for the specifics. Any activity still showing `expectedPoints` in its `config.json`
+  after this date has regressed or was added incorrectly; treat it as a bug, not a style choice.
+
 **Amendment — no JSON download (agreed 2026-09-09).** The engine builds a structured JSON payload internally (see `buildPayload()` in `engine/engine.js`) purely as the data model it renders the PDF from — it is never written to a file or offered as a second download. The reasoning: the PDF and JSON download to the student's own device (per Section 7, nothing leaves the browser), and the only file Diego actually receives back is the PDF a student chooses to upload to Learning Lab — the JSON companion file was an extra download that only ever reached the student, never the teacher, so a proper rubric with level descriptors belongs printed in the PDF itself (see the level-descriptors amendment below), not off in a file only the student can see. `generateEvidence()` calls `downloadBlob()` once, for the PDF only. The internal payload shape below is retained as documentation of what the PDF is built from — it is not a file format a student or teacher ever sees:
 
 ```json

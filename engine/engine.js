@@ -1271,17 +1271,33 @@ function drawTrials(doc, p, ctx) {
     : Object.keys(trials[0]).map(k => ({ key: k, label: k }));
   const colW = ctx.CW / (columns.length + 0.6);
   const x0 = ctx.M + colW * 0.6;
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "bold"); doc.setTextColor(110, 118, 112);
-  doc.text("#", ctx.M, y);
-  columns.forEach((c, i) => doc.text(pdfSafe(c.unit ? `${c.label} (${c.unit})` : c.label).slice(0, 16), x0 + colW * i, y));
-  y += 4; doc.setDrawColor(200,205,198); doc.line(ctx.M, y, ctx.RIGHT, y); y += 11;
-  doc.setFont("helvetica", "normal"); doc.setTextColor(29, 33, 28);
-  trials.forEach((t, r) => {
-    if (y > ctx.H - 70) { ctx.footer(); doc.addPage(); y = 54; }
+  const cellW = colW - 4; // small gap so wrapped text never collides with the next column
+  const LH = 9;
+
+  // Every header and cell is wrapped, never truncated (CLAUDE.md §5 — assessment
+  // evidence must never disappear because a table column was too narrow).
+  function drawHeader() {
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(110, 118, 112);
+    doc.text("#", ctx.M, y);
+    const headerLines = columns.map(c => doc.splitTextToSize(pdfSafe(c.unit ? `${c.label} (${c.unit})` : c.label), cellW));
+    const maxLines = Math.max(1, ...headerLines.map(l => l.length));
+    headerLines.forEach((lines, i) => doc.text(lines, x0 + colW * i, y));
+    y += maxLines * LH + 4;
+    doc.setDrawColor(200,205,198); doc.line(ctx.M, y, ctx.RIGHT, y); y += 11;
+    doc.setFont("helvetica", "normal"); doc.setTextColor(29, 33, 28);
+    doc.setFontSize(8);
+  }
+  drawHeader();
+
+  trials.forEach((trial, r) => {
+    const cellLines = columns.map(c => doc.splitTextToSize(pdfSafe(trial[c.key] == null ? "-" : String(trial[c.key])), cellW));
+    const rowLines = Math.max(1, ...cellLines.map(l => l.length));
+    const rowH = rowLines * LH + 4;
+    if (y + rowH > ctx.H - 70) { ctx.footer(); doc.addPage(); y = 54; drawHeader(); }
     doc.text(String(r + 1), ctx.M, y);
-    columns.forEach((c, i) => doc.text(pdfSafe(t[c.key] == null ? "-" : String(t[c.key])).slice(0, 18), x0 + colW * i, y));
-    y += 13;
+    cellLines.forEach((lines, i) => doc.text(lines, x0 + colW * i, y));
+    y += rowH;
   });
   tableCursor.y = y + 8;
 }
