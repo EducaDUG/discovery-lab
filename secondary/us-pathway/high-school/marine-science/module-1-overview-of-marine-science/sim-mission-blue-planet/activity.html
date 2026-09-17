@@ -354,13 +354,25 @@ function build3D(THREE, stageEl){
   let rippleT = 2;
 
   let restY = waterBotY, targetRestY = waterBotY, dropped = false, dropAnimT = 2;
+  const EGG_H = 0.5; // egg's own visual height, used to keep a floating egg near the surface
   function setSalinity(pct){
     const t = Math.min(1, pct / 40);
     waterMat.color.setHSL(0.53 - t * 0.08, 0.55, 0.42 - t * 0.14);
     waterMat.opacity = 0.72 + t * 0.14;
     const d = densityFor(pct);
-    const ratio = Math.min(1.15, EGG_DENSITY / d);
-    targetRestY = waterTopY - ratio * (waterTopY - waterBotY) * 0.92;
+    if (EGG_DENSITY < d) {
+      // Floats: only the egg's OWN height ever matters for how deep it sits — never
+      // the tank's full depth. A ratio near 1 (barely denser water than the egg) means
+      // the egg floats almost fully submerged, just its tip breaking the surface; a
+      // small ratio (much denser water, e.g. the Dead Sea) lifts more of it clear.
+      // Scaling this across the whole tank (the previous bug) dragged even a floating
+      // egg down near the bottom, visually indistinguishable from sinking.
+      const ratio = EGG_DENSITY / d; // 0..1, fraction of the egg submerged
+      targetRestY = waterTopY + EGG_H / 2 - ratio * EGG_H;
+    } else {
+      // Sinks: settles on the tank floor, regardless of exactly how much denser the egg is.
+      targetRestY = waterBotY + EGG_H / 2;
+    }
   }
   function dropEgg(){
     dropped = true; dropAnimT = 0;
@@ -464,9 +476,12 @@ function build2DFallback(stageEl){
     if (dropped) place();
   }
   function place(){
-    const d = densityFor(pct); const ratio = Math.min(1.15, EGG_DENSITY / d);
-    const top = d > EGG_DENSITY ? 22 + ratio * 14 : 22 + (ratio - 1) * 170 + 10;
-    egg.style.top = Math.max(14, Math.min(90, top)) + "%";
+    const d = densityFor(pct);
+    // Same fix as the 3D scene: floating always keeps the egg near the surface (how
+    // much of it pokes out depends only on the egg's own buoyancy, never the tank's
+    // full depth); sinking always settles it on the tank floor.
+    const top = d > EGG_DENSITY ? 20 + (EGG_DENSITY / d) * 16 : 84;
+    egg.style.top = top + "%";
   }
   function dropEgg(){ dropped = true; place(); }
   function resetEggToDock(){ dropped = false; egg.style.top = "6%"; }
