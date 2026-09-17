@@ -821,6 +821,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       } else {
         descCell.append(document.createTextNode(c.descriptor || ""));
       }
+      if (c.source) descCell.append(el("p", "q__hint", t("marks-source", { source: c.source })));
       tr.append(descCell);
       tr.append(el("td", null, `${c.max}  (${Math.round((c.max / total) * 100)}%)`));
       tb.append(tr);
@@ -913,7 +914,7 @@ export async function mountActivity({ simulation = {} } = {}) {
 
     const rb = config.rubric || {}; const crit = (rb.criteria || []);
     const rubricOut = {};
-    crit.forEach(c => { rubricOut[c.key] = { max: c.max, auto: !!c.auto, awarded: c.auto ? autoScore : null }; });
+    crit.forEach(c => { rubricOut[c.key] = { max: c.max, auto: !!c.auto, awarded: c.auto ? autoScore : null, source: c.source || null }; });
     const rubricTotal = crit.reduce((n, c) => n + (c.max || 0), 0);
     const autoPct = autoMax ? Math.round((autoScore / autoMax) * 100) : 0;
 
@@ -951,9 +952,17 @@ export async function mountActivity({ simulation = {} } = {}) {
   }
   function wrapConstructed(cfg, answer) {
     if (!cfg) return null;
+    const scheme = cfg.markingScheme || null;
+    const maxMarks = cfg.maxMarks || (scheme ? scheme.reduce((n, pt) => n + (pt.marks || 0), 0) : 3);
     return {
       question: cfg.prompt, response: (answer || "").trim(),
-      marking_context: { max_marks: cfg.maxMarks || 3, expected_points: cfg.expectedPoints || [] },
+      marking_context: {
+        max_marks: maxMarks,
+        // marking_scheme: point-by-point, reproducible marking (preferred — see CLAUDE.md §5).
+        // expected_points: legacy flat list, kept only for activities not yet migrated.
+        marking_scheme: scheme,
+        expected_points: scheme ? null : (cfg.expectedPoints || []),
+      },
     };
   }
 
@@ -1160,18 +1169,61 @@ function buildPDF(jsPDF, p) {
     doc.text(pdfSafe(`${ok ? t("pdf.correct-tag") : t("pdf.review-tag")}  ${a.marks_awarded} / ${a.marks_available}`), M + 10, y); y += 16; setColor(ink);
   });
 
-  // Constructed responses
+  // Constructed responses — student evidence, then a reproducible, point-by-point
+  // marking scheme (max, assessable points, marks per point, accept/insufficient
+  // wording, dependency between points) so a marker never has to invent the
+  // mark scheme from the question's wording (CLAUDE.md §5).
   h(t("pdf.written-answers"));
   p.constructed_responses.forEach((c, i) => {
     ensure(48);
     doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
     const qLines = doc.splitTextToSize(pdfSafe(`${i + 1}. ${c.question}`), CW);
-    doc.text(qLines, M, y); y += qLines.length * 12 + 4;
+    doc.text(qLines, M, y); y += qLines.length * 12 + 3;
+
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8); setColor(mut);
+    ensure(11); doc.text(pdfSafe(t("pdf.student-evidence")), M, y); y += 11;
     doc.setFont("helvetica", "normal"); doc.setFontSize(10); setColor(ink);
-    const ansLines = doc.splitTextToSize(pdfSafe(c.response ? c.response : t("pdf.blank")), CW);
-    doc.text(ansLines, M + 10, y); y += ansLines.length * 13 + 4;
-    doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); setColor(mut);
-    doc.text(pdfSafe(t("pdf.teacher-marks", { max: c.marking_context.max_marks })), M + 10, y); y += 18; setColor(ink);
+    const ansLines = doc.splitTextToSize(pdfSafe(c.response ? c.response : t("pdf.blank")), CW - 10);
+    doc.text(ansLines, M + 10, y); y += ansLines.length * 13 + 5;
+
+    const mc = c.marking_context;
+    ensure(13);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); setColor(accent);
+    doc.text(pdfSafe(t("pdf.marking-scheme", { max: mc.max_marks })), M, y); y += 12; setColor(ink);
+
+    if (mc.marking_scheme && mc.marking_scheme.length) {
+      mc.marking_scheme.forEach((pt, idx) => {
+        ensure(24);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); setColor(ink);
+        const unit = pt.marks === 1 ? t("mark-singular") : t("marks-col").toLowerCase();
+        const critLines = doc.splitTextToSize(pdfSafe(`${t("pdf.award-point", { marks: pt.marks, unit })} ${pt.criterion}`), CW - 10);
+        doc.text(critLines, M + 10, y); y += critLines.length * 11 + 2;
+        doc.setFont("helvetica", "italic"); doc.setFontSize(7.8); setColor(mut);
+        if (pt.accept) {
+          const l = doc.splitTextToSize(pdfSafe(t("pdf.accept") + pt.accept), CW - 18);
+          ensure(l.length * 10); doc.text(l, M + 18, y); y += l.length * 10;
+        }
+        if (pt.insufficient) {
+          const l = doc.splitTextToSize(pdfSafe(t("pdf.insufficient") + pt.insufficient), CW - 18);
+          ensure(l.length * 10); doc.text(l, M + 18, y); y += l.length * 10;
+        }
+        if (pt.dependsOn != null) {
+          const l = doc.splitTextToSize(pdfSafe(t("pdf.depends-on", { n: pt.dependsOn + 1 })), CW - 18);
+          ensure(l.length * 10); doc.text(l, M + 18, y); y += l.length * 10;
+        }
+        y += 3; setColor(ink);
+      });
+    } else if (mc.expected_points && mc.expected_points.length) {
+      doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); setColor(mut);
+      mc.expected_points.forEach(pt => {
+        const l = doc.splitTextToSize(pdfSafe("- " + pt), CW - 10);
+        ensure(l.length * 10 + 1); doc.text(l, M + 10, y); y += l.length * 10 + 1;
+      });
+      setColor(ink);
+    }
+    ensure(16);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); setColor(mut);
+    doc.text(pdfSafe(t("pdf.marks-awarded-blank", { max: mc.max_marks })), M, y); y += 18; setColor(ink);
   });
 
   // Rubric
@@ -1256,6 +1308,13 @@ function drawRubric(doc, p, ctx) {
     doc.text(`${c.max}  (${Math.round((c.max / total) * 100)}%)`, ctx.RIGHT - 120, y);
     doc.text(c.awarded != null ? String(c.awarded) : "____", ctx.RIGHT - 50, y);
     y += 12;
+    if (c.source) {
+      doc.setFont("helvetica", "italic"); doc.setFontSize(7.8); doc.setTextColor(22, 116, 79);
+      const srcLines = doc.splitTextToSize(pdfSafe(t("pdf.marks-source", { source: c.source })), ctx.CW - 10);
+      if (y + srcLines.length * 10 > ctx.H - 70) { ctx.footer(); doc.addPage(); y = 54; }
+      doc.text(srcLines, ctx.M + 10, y); y += srcLines.length * 10 + 2;
+      doc.setTextColor(29, 33, 28);
+    }
     const levels = c.levels && c.levels.length ? [...c.levels].sort((a, b) => b.marks - a.marks) : (c.descriptor ? [{ marks: c.max, descriptor: c.descriptor }] : []);
     doc.setFont("helvetica", "italic"); doc.setFontSize(7.8); doc.setTextColor(110,118,112);
     levels.forEach(lv => {

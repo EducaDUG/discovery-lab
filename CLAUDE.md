@@ -264,6 +264,56 @@ graded and teacher-graded sections with a visible rubric, and now explicit "lab 
 page numbers are the bar. If a change would weaken any of those, don't make it without flagging it
 first.
 
+**Amendment — the PDF must be a reproducible marking specification, not just a scoring summary
+(agreed 2026-09-17, non-negotiable).** Diego: a rubric row that only states a mark ceiling ("Scientific
+reasoning: 3 marks") doesn't tell the marker what evidence earns each mark — the marker should never
+have to invent the mark scheme from the wording of the question. This applies to every constructed
+response (Explain, Apply) on every activity, current and future.
+
+- **Every constructed response's `config` needs a `markingScheme` array, not a flat `expectedPoints`
+  list.** One entry per available mark: `marks` (usually 1), `criterion` (the specific, assessable
+  thing that earns it — not a vague theme), `accept` (acceptable alternative/equivalent wording, so a
+  marker never requires exact keywords when the scientific meaning is clear), `insufficient` (a common
+  response that looks right but doesn't earn the mark, where useful), and `dependsOn` (the 0-based
+  index of another point in the same array that must also be met, or omit it if the point is
+  independent). `maxMarks` must equal the sum of `markingScheme[].marks`. `expectedPoints` still works
+  as a fallback for activities not yet migrated (`wrapConstructed()` in `engine/engine.js`) — this is
+  backlog, not a blocker, for anything built before this amendment, same status as the bilingual
+  `config.es` backlog above — but every new activity gets `markingScheme` from the start, no
+  exceptions. See `_template/config.json`'s `explain`/`apply` for the pattern, and
+  `sim-mission-blue-planet` for the reference activity (rebuilt against this amendment).
+- **Every non-auto rubric criterion needs an explicit `source` string**, stating in plain English
+  exactly which question's marks it equals (e.g. `"= the Explain question's 3-point marking scheme
+  above, one-to-one. Do not award these marks a second time here."`) or, if scored holistically across
+  more than one answer, saying so explicitly and stating that it never overlaps with other criteria's
+  marks. This is what stops the exact failure Diego flagged: a written question given, say, 6 available
+  marks while separate rubric criteria simultaneously total 8, with no stated relationship between the
+  two systems. Every mark in the final total must have one clear, named source — auto-marked, a named
+  question's marking scheme, or an explicitly-scoped holistic criterion — never an unexplained
+  duplicate or an orphaned total that doesn't add up. `engine.js` renders `source` both in the on-page
+  "How this is marked" card and in the PDF's rubric table (`buildEvidence`/`drawRubric`).
+  `markingInstructions` must also spell out this relationship in prose (see `_template/config.json`'s
+  and `sim-mission-blue-planet`'s for the wording pattern), not just rely on the reader inferring it
+  from the two structures matching.
+  **PDF layout**: the constructed-responses section (`buildPDF`'s written-answers block) prints, per
+  question: the student's actual response (labelled distinctly as evidence, never blended with marking
+  rules), then every marking-scheme point with its mark value, criterion, accept/insufficient wording
+  and any dependency, then a blank "Marks awarded: ____ / max" line — never just a bare "Teacher: ___ /
+  max marks" line with no guidance, which is the old behaviour this amendment replaces.
+- **Raw evidence, not a reduced label.** Where a simulation can observe something continuously or with
+  more granularity than a simple pass/fail (an egg floating progressively higher, not just "Floats" —
+  Diego's own example), log and export the graded reading (e.g. a percentage, a measurement) as its own
+  Investigation Record column, in addition to or instead of any binary summary, so a marker can verify
+  a specific claim in the student's writing against real per-trial data — not just trust the student's
+  prose description of what they saw. `sim-mission-blue-planet`'s `buoyancy` column (percentage of the
+  egg's own height above the surface, or "resting on the tank floor") is the reference pattern; find and
+  fix any other activity that reduces a genuinely continuous observation to a bare label like this when
+  next touching that activity.
+- **Judge every future written-question or rubric change against this question:** could a teacher or an
+  AI marker, reading only the PDF and never opening the simulation, award the same mark as another
+  marker doing the same, using only the evidence and rules on the page? If the rule is "use your
+  judgement" where a specific, assessable point could instead be named, that is a policy miss.
+
 **Amendment — no JSON download (agreed 2026-09-09).** The engine builds a structured JSON payload internally (see `buildPayload()` in `engine/engine.js`) purely as the data model it renders the PDF from — it is never written to a file or offered as a second download. The reasoning: the PDF and JSON download to the student's own device (per Section 7, nothing leaves the browser), and the only file Diego actually receives back is the PDF a student chooses to upload to Learning Lab — the JSON companion file was an extra download that only ever reached the student, never the teacher, so a proper rubric with level descriptors belongs printed in the PDF itself (see the level-descriptors amendment below), not off in a file only the student can see. `generateEvidence()` calls `downloadBlob()` once, for the PDF only. The internal payload shape below is retained as documentation of what the PDF is built from — it is not a file format a student or teacher ever sees:
 
 ```json

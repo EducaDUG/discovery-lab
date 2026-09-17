@@ -725,7 +725,11 @@ const simulation = {
 
     function currentReading(){
       const d = densityFor(salinityPct);
-      return { pct: salinityPct, d, floats: EGG_DENSITY < d };
+      const floats = EGG_DENSITY < d;
+      // Graded raw evidence, not just a floats/sinks reduction: how much of the egg's
+      // own height clears the surface (see setSalinity's ratio comment in the 3D scene).
+      const exposedPct = floats ? Math.round((1 - Math.min(1, EGG_DENSITY / d)) * 100) : 0;
+      return { pct: salinityPct, d, floats, exposedPct };
     }
     function paintReadouts(){
       const { pct, d, floats } = currentReading();
@@ -781,8 +785,14 @@ const simulation = {
       const hit = needleRect.left + needleRect.width / 2 >= zoneRect.left && needleRect.left + needleRect.width / 2 <= zoneRect.right;
       catchBtn.classList.remove("pop"); void catchBtn.offsetWidth; catchBtn.classList.add("pop");
       if (!hit) { api.toast(L("Almost — wait for the needle and try again!","¡Casi! Espera a la aguja e inténtalo de nuevo."), "info"); return; }
-      const { pct, d, floats } = currentReading();
-      api.recordTrial({ water: waterLabel(pct), salinity: pct.toFixed(1), density: d.toFixed(3), egg: floats ? L("Floats","Flota") : L("Sinks","Se hunde") });
+      const { pct, d, floats, exposedPct } = currentReading();
+      api.recordTrial({
+        water: waterLabel(pct), salinity: pct.toFixed(1), density: d.toFixed(3),
+        egg: floats ? L("Floats","Flota") : L("Sinks","Se hunde"),
+        buoyancy: floats
+          ? L(`${exposedPct}% of the egg above the surface`, `${exposedPct}% del huevo sobre la superficie`)
+          : L("Fully submerged, resting on the tank floor", "Totalmente sumergido, posado en el fondo del tanque"),
+      });
       burst(stage, { count: 22, colors: ["#ffd45c", "#5fe0ff", "#a6ff5c"] });
       if (scene3d) scene3d.celebrate();
       if (floats) sawFloat = true; else sawSink = true;
