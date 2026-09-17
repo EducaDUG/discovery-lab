@@ -370,13 +370,13 @@ function buildCargoBay(host, sim, onAllDone) {
             pinState[p.id].done = true; pinState[p.id].correct = true;
             pin.classList.add("is-correct");
             revealCaption(p.caption, "ok");
-            sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Correct","Correcto"), detail: p.caption });
+            sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Correct","Correcto"), detail: p.caption, tries: pinState[p.id].tries });
             picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
           } else if (pinState[p.id].tries >= 3) {
             pinState[p.id].done = true; pinState[p.id].correct = false;
             pin.classList.add("is-revealed");
             revealCaption(L(`Not quite — this one is a ${p.term}. `, `No exactamente — esto es un/a ${p.term}. `) + p.caption, "bad");
-            sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Revealed after 3 tries","Revelado tras 3 intentos"), detail: p.caption });
+            sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Revealed after 3 tries","Revelado tras 3 intentos"), detail: p.caption, tries: pinState[p.id].tries });
             picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
           } else {
             pin.classList.remove("is-shake"); void pin.offsetWidth; pin.classList.add("is-shake");

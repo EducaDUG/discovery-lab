@@ -1,6 +1,6 @@
 {
   "activityId": "ALEV-IGCSEBIO-M01-SIM01",
-  "version": "1.0",
+  "version": "1.1",
   "title": "The Five Kingdoms Research Station",
   "subtitle": "Eight real specimens just arrived. Only real evidence — never appearance — decides which kingdom each one belongs to.",
   "course": "IGCSE Biology",
@@ -66,15 +66,16 @@
     ]
   },
 
+  "_markingScheme_note": "REQUIRED reproducible marking (CLAUDE.md §5). markingScheme replaces the old flat expectedPoints array. One entry per available mark: 'marks' (usually 1), 'criterion' (the specific, assessable thing that earns it — not a vague theme), 'accept' (acceptable alternative/equivalent wording, so the marker doesn't require exact keywords), 'insufficient' (a common response that looks right but doesn't earn the mark, where useful), and 'dependsOn' (0-based index of another point in THIS array that must also be met, or omit/null if independent). maxMarks must equal the sum of markingScheme[].marks.",
   "explain": {
     "prompt": "Using your results, explain why bacteria are placed in a completely separate kingdom from the other four — even though some bacteria, like plants, can photosynthesise.",
     "lede": "Refer to specific specimens from your Investigation Record, not just 'they look different'.",
     "maxMarks": 3,
     "minChars": 80,
-    "expectedPoints": [
-      "The deciding feature is cell type, not nutrition: bacteria cells are prokaryotic (no nucleus, genetic material free in the cytoplasm), while cells in all four other kingdoms are eukaryotic (a nucleus enclosed in a membrane).",
-      "Nutrition mode cannot be the deciding feature, because it varies within kingdoms too — some bacteria photosynthesise like plants, some fungi and protoctista feed in different ways, yet they are still grouped by cell type first.",
-      "The bacteria specimen showed no visible nucleus at all under the microscope, while the amoeba (a eukaryote) clearly showed one — this is the same prokaryote/eukaryote split that separates every bacterium from every plant, animal, fungus and protoctist."
+    "markingScheme": [
+      { "marks": 1, "criterion": "States that the deciding feature is cell type: bacteria cells are prokaryotic (no nucleus; genetic material free in the cytoplasm), while all four other kingdoms are eukaryotic (a nucleus enclosed in a membrane).", "accept": "'No nucleus' for prokaryotic and 'has a nucleus' for eukaryotic are acceptable without the technical terms." },
+      { "marks": 1, "criterion": "Explains why nutrition mode cannot be the deciding feature, because it varies within kingdoms too (e.g. some bacteria photosynthesise like plants; fungi and protoctista also feed in different ways), yet organisms are still grouped by cell type first.", "insufficient": "Restating 'bacteria feed differently' without explaining why nutrition varies within kingdoms and so cannot be the deciding feature.", "dependsOn": 0 },
+      { "marks": 1, "criterion": "Refers to their own Investigation Record evidence: the bacteria specimen showed no visible nucleus under the microscope while the amoeba (a eukaryote) clearly showed one, and states this is the same prokaryote/eukaryote split separating Bacteria from every other kingdom.", "accept": "Any correct reference to their own two microscope specimen results, even if not word-for-word.", "insufficient": "Mentioning the microscope specimens without stating what was or wasn't seen (the nucleus)." }
     ]
   },
 
@@ -83,10 +84,10 @@
     "lede": "Think about which single feature outweighs everything else when it comes to sorting an organism into a kingdom.",
     "maxMarks": 3,
     "minChars": 80,
-    "expectedPoints": [
-      "Bacteria — because the organism has no nucleus (it is prokaryotic), and cell type is the feature that separates Bacteria from every other kingdom, regardless of how the organism feeds.",
-      "Being able to photosynthesise does not make it a plant or protoctist: several real bacteria (cyanobacteria) photosynthesise exactly like this and are still classified as Bacteria because they lack a nucleus.",
-      "Real-life link: this is exactly the reasoning microbiologists use when identifying newly discovered microorganisms — nutrition mode is a clue, but cell type is the deciding evidence."
+    "markingScheme": [
+      { "marks": 1, "criterion": "Correctly identifies the kingdom as Bacteria, because the organism has no nucleus (it is prokaryotic).", "insufficient": "Naming any other kingdom, or naming Bacteria with no reason given." },
+      { "marks": 1, "criterion": "Explains that being able to photosynthesise does not override this: real bacteria (cyanobacteria) photosynthesise in exactly this way and are still classified as Bacteria because they lack a nucleus.", "accept": "Any correct example (real or reasoned) showing that nutrition mode does not override cell type.", "dependsOn": 0 },
+      { "marks": 1, "criterion": "States explicitly that cell type (not nutrition mode) is the general deciding evidence for classification, ideally naming this as the same reasoning microbiologists use for newly discovered microorganisms.", "insufficient": "Repeating 'no nucleus = Bacteria' without stating the general rule that cell type outweighs nutrition mode.", "dependsOn": 1 }
     ]
   },
 
@@ -142,9 +143,10 @@
   "rubric": {
     "note": "You are graded out of the total marks, shown as a percentage.",
     "criteria": [
-      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 6, "auto": true },
+      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 6, "auto": true, "source": "Auto-marked from the Knowledge Check (auto_marked_score) — the teacher does not mark this row." },
       {
         "key": "use_of_evidence", "label": "Use of evidence", "max": 3,
+        "source": "= the Explain question's 3-point marking scheme above, one-to-one (cell type identified, nutrition mode ruled out, own microscope specimens cited). Do not award these 3 marks a second time here.",
         "levels": [
           { "marks": 0, "descriptor": "No specimens or evidence from the Investigation Record referenced." },
           { "marks": 1, "descriptor": "Mentions a specimen or feature but does not connect it to the claim being made." },
@@ -154,6 +156,7 @@
       },
       {
         "key": "reasoning", "label": "Scientific reasoning", "max": 3,
+        "source": "= the Apply question's 3-point marking scheme above, one-to-one (correct kingdom named, photosynthesis-overridden argument, general cell-type rule stated). Do not award these 3 marks a second time here.",
         "levels": [
           { "marks": 0, "descriptor": "No attempt to reason about why cell type outweighs nutrition mode." },
           { "marks": 1, "descriptor": "States a conclusion (e.g. 'it is Bacteria') but does not explain why." },
@@ -163,6 +166,7 @@
       },
       {
         "key": "communication", "label": "Communication", "max": 2,
+        "source": "Assessed holistically across BOTH the Explain and Apply answers together — independent of, and never overlapping with, the content marks in use_of_evidence and reasoning above.",
         "levels": [
           { "marks": 0, "descriptor": "Unclear or missing sentences; no scientific terms." },
           { "marks": 1, "descriptor": "Understandable but with unclear phrasing or missing key terms." },
@@ -172,7 +176,7 @@
     ]
   },
 
-  "markingInstructions": "Mark ONLY the two constructed responses (Explain, Apply) using the rubric's level descriptors (award the marks for the highest level the response fully meets) and each question's expected_points. Copy auto_marked_score into knowledge_accuracy. Accept valid alternative wording (e.g. 'has no nucleus' for 'prokaryotic', 'makes its own food' for 'autotrophic'). Do not penalise spelling unless meaning is unclear. Report total, percentage, one strength, one correction, one next step, under 80 words.",
+  "markingInstructions": "Mark ONLY the two constructed responses (Explain, Apply). Award marks point-by-point using each question's markingScheme in marking_context: each point is worth the marks stated, is independent unless it names a dependsOn point (in which case only award it if that earlier point was also awarded), and each point's 'accept'/'insufficient' tell you exactly what does and doesn't count. use_of_evidence's 3 marks ARE the Explain markingScheme's 3 points, and reasoning's 3 marks ARE the Apply markingScheme's 3 points — the rubric levels restate the same points as bands; award each set of 3 marks ONCE, not twice. communication is a separate, holistic 2 marks across both answers' clarity and vocabulary, never overlapping with the content marks. The Knowledge Check is already auto-marked in auto_marked_score — copy it into knowledge_accuracy (6 marks = full). Accept scientifically valid alternative wording (e.g. 'has no nucleus' for 'prokaryotic', 'makes its own food' for 'autotrophic'). Do not penalise spelling unless meaning is unclear. Total is out of 11 (6 auto + 3 + 3 + 2); report the percentage, one strength, one correction, and one next step, in under 80 words.",
 
   "es": {
     "title": "La Estación de Investigación de los Cinco Reinos",

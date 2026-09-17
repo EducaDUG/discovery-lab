@@ -1,6 +1,6 @@
 {
   "activityId": "PRI2-MTH-M07-SIM01",
-  "version": "1.0",
+  "version": "1.1",
   "title": "The Fraction Bakery",
   "subtitle": "Mix icing in the right ratio, then share chocolate bars fairly — and watch a fraction turn into a division.",
   "course": "Maths",
@@ -61,15 +61,16 @@
     ]
   },
 
+  "_markingScheme_note": "REQUIRED reproducible marking (CLAUDE.md §5). markingScheme replaces the old flat expectedPoints array. One entry per available mark: 'marks' (usually 1), 'criterion' (the specific, assessable thing that earns it — not a vague theme), 'accept' (acceptable alternative/equivalent wording, so the marker doesn't require exact keywords), 'insufficient' (a common response that looks right but doesn't earn the mark, where useful), and 'dependsOn' (0-based index of another point in THIS array that must also be met, or omit/null if independent). maxMarks must equal the sum of markingScheme[].marks.",
   "explain": {
     "prompt": "Look at your Investigation Record. Find one fair-share order where each friend got more than half a bar, and one where each friend got less than half a bar. Explain what it is about the number of bars and the number of friends that decides this.",
     "lede": "Use the actual numbers from your own fair-share trials.",
     "maxMarks": 3,
     "minChars": 80,
-    "expectedPoints": [
-      "Compares the number of bars to the number of friends using their own trial numbers.",
-      "States that each share is more than half a bar when the number of bars is more than half the number of friends.",
-      "Links this back to fraction-as-division: the size of each share is exactly what you get when you divide bars by friends."
+    "markingScheme": [
+      { "marks": 1, "criterion": "Quotes at least one of their own logged fair-share trials where the share came out to more than half a bar, and one where it came out to less than half a bar (actual bars and friends numbers from their own Investigation Record).", "accept": "Any two genuine trials from the student's own record, correctly sorted into 'more than half' and 'less than half'.", "insufficient": "A general claim about shares with no actual bars/friends numbers quoted from their own trials." },
+      { "marks": 1, "criterion": "States the general rule correctly: a share works out to more than half a bar exactly when the number of bars is more than half the number of friends.", "accept": "Equivalent wording, e.g. 'when there are more bars than half the number of friends'.", "dependsOn": 0 },
+      { "marks": 1, "criterion": "Links this back to fraction-as-division: explains that the size of each person's share is exactly what you get when you divide the number of bars by the number of friends.", "insufficient": "Stating the numeric rule correctly with no mention of dividing bars by friends." }
     ]
   },
 
@@ -78,10 +79,10 @@
     "lede": "Think about where ratio and fractions-as-division each do a different job here.",
     "maxMarks": 3,
     "minChars": 80,
-    "expectedPoints": [
-      "Scales the ratio 2:1 correctly for 6 people, e.g. multiplying both parts by the same scale factor (3x).",
-      "Recognises sharing 5 pancakes between 3 people as 5 ÷ 3 and expresses it as a fraction or mixed number.",
-      "Explains that ratio keeps ingredients in proportion for a bigger batch, while division shares a finished total out equally."
+    "markingScheme": [
+      { "marks": 1, "criterion": "Scales the ratio 2:1 correctly for 6 people, giving 6 cups of flour and 3 cups of milk (multiplying both parts by the same scale factor, ×3).", "accept": "Any correct working showing the same scale factor applied to both ingredients." , "insufficient": "Changing only one ingredient amount, or scaling the two ingredients by different factors." },
+      { "marks": 1, "criterion": "Recognises sharing 5 pancakes between 3 people as 5 ÷ 3, and expresses the answer as a fraction or mixed number (5/3 or 1 2/3).", "accept": "Any mathematically correct equivalent form (e.g. 1.67, accepted as an approximation of 1 2/3).", "insufficient": "Leaving the answer as '5 and 3' with no division performed, or giving only a whole-number answer." },
+      { "marks": 1, "criterion": "Explains the different job each tool does: ratio keeps ingredients in the same proportion for a bigger batch, while division/fraction shares a finished total out equally between people.", "insufficient": "Describing only ratio OR only division, without contrasting what each one is for.", "dependsOn": 1 }
     ]
   },
 
@@ -129,9 +130,10 @@
   "rubric": {
     "note": "You are graded out of the total marks, shown as a percentage.",
     "criteria": [
-      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 6, "auto": true },
+      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 6, "auto": true, "source": "Auto-marked from the Knowledge Check (auto_marked_score) — the teacher does not mark this row." },
       {
         "key": "use_of_evidence", "label": "Use of the Investigation Record", "max": 3,
+        "source": "= the Explain question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
         "levels": [
           { "marks": 0, "descriptor": "No numbers from own trials referenced." },
           { "marks": 1, "descriptor": "Mentions a trial but does not connect the actual numbers to the claim being made." },
@@ -141,6 +143,7 @@
       },
       {
         "key": "reasoning", "label": "Mathematical reasoning", "max": 3,
+        "source": "= the Apply question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
         "levels": [
           { "marks": 0, "descriptor": "No attempt to explain why the maths works this way." },
           { "marks": 1, "descriptor": "States what the answer is but not why." },
@@ -150,6 +153,7 @@
       },
       {
         "key": "communication", "label": "Communication", "max": 2,
+        "source": "Assessed holistically across both the Explain and Apply answers together — independent of, and never overlapping with, the content marks above.",
         "levels": [
           { "marks": 0, "descriptor": "Unclear or missing sentences; no maths vocabulary." },
           { "marks": 1, "descriptor": "Understandable but with unclear phrasing or missing key terms such as ratio, numerator or denominator." },
@@ -159,7 +163,7 @@
     ]
   },
 
-  "markingInstructions": "Mark ONLY the two constructed responses (Explain, Apply) using the rubric's level descriptors (award the marks for the highest level the response fully meets) and each question's expected_points. Copy auto_marked_score into knowledge_accuracy. Accept valid alternative wording or equivalent fractions/decimals; do not penalise spelling unless meaning is unclear. Report total, percentage, one strength, one correction, one next step, under 80 words.",
+  "markingInstructions": "This is a Primary 2 student. Mark ONLY the two constructed responses, using each question's point-by-point marking_scheme in marking_context (award each point independently unless it names a dependsOn point, in which case only award it if that earlier point was also awarded) and each point's accept/insufficient wording. use_of_evidence's 3 marks ARE the Explain marking_scheme's 3 points, and reasoning's 3 marks ARE the Apply marking_scheme's 3 points — the rubric levels restate the same points as bands; award each set of 3 marks ONCE, not twice. communication is a separate, holistic 2 marks across both answers' clarity, never overlapping with the content marks. Copy auto_marked_score into knowledge_accuracy. Accept valid alternative wording or equivalent fractions/decimals; do not penalise spelling unless meaning is unclear. Total is out of 14 (6 auto + 3 + 3 + 2). Report total, percentage, one strength, one correction, one next step, under 80 words.",
 
   "es": {
     "title": "La Panadería de las Fracciones",

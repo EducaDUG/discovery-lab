@@ -1,6 +1,6 @@
 {
   "activityId": "PRI2-SCI-PHY-M01-SIM01",
-  "version": "1.1",
+  "version": "1.2",
   "title": "Orbit Architects: Build Our Solar System",
   "subtitle": "Launch every planet into its true orbit around a glowing 3D Sun — and find out why far-away worlds take so much longer to go around.",
   "course": "Physics",
@@ -63,15 +63,16 @@
     ]
   },
 
+  "_markingScheme_note": "REQUIRED reproducible marking (CLAUDE.md §5). markingScheme replaces the old flat expectedPoints array. One entry per available mark: 'marks' (usually 1), 'criterion' (the specific, assessable thing that earns it — not a vague theme), 'accept' (acceptable alternative/equivalent wording, so the marker doesn't require exact keywords), 'insufficient' (a common response that looks right but doesn't earn the mark, where useful), and 'dependsOn' (0-based index of another point in THIS array that must also be met, or omit/null if independent). maxMarks must equal the sum of markingScheme[].marks.",
   "explain": {
     "prompt": "Look at your Investigation Record. Explain the pattern between a planet's distance from the Sun and how long its orbit takes. Why does this happen?",
     "lede": "Compare your closest planet's orbit time with your farthest planet's orbit time.",
     "maxMarks": 3,
     "minChars": 60,
-    "expectedPoints": [
-      "Planets farther from the Sun take longer to complete one orbit than planets close to the Sun.",
-      "This happens because the Sun's gravity is weaker at greater distances, so far planets travel more slowly and also have a much longer path to travel.",
-      "A strong answer uses the student's own recorded numbers (e.g. comparing Mercury's short orbit to a much longer one farther out) as evidence."
+    "markingScheme": [
+      { "marks": 1, "criterion": "Accurately describes the pattern, quoting at least one close-planet trial and one far-planet trial (distance and orbit time) from their own Investigation Record.", "accept": "Any two genuine logged planets showing a shorter orbit at a smaller distance and a longer orbit at a greater distance.", "insufficient": "A general claim ('far planets take longer') with no actual distances/orbit times quoted from their own trials." },
+      { "marks": 1, "criterion": "Explains that the Sun's gravity is weaker at greater distances, which causes farther planets to move more slowly.", "accept": "Equivalent wording, e.g. 'the pull is weaker further away'." },
+      { "marks": 1, "criterion": "Also explains that farther planets have a longer path (a bigger orbit) to travel, so both weaker gravity and a longer path combine to make the orbit take longer.", "insufficient": "Mentioning only weaker gravity without the longer path, or only the longer path without weaker gravity.", "dependsOn": 1 }
     ]
   },
 
@@ -80,10 +81,10 @@
     "lede": "Think about the pattern you just explained, then push it even farther out into space.",
     "maxMarks": 3,
     "minChars": 60,
-    "expectedPoints": [
-      "A planet twice as far from the Sun as Neptune would have a year much longer than 165 Earth years, not shorter.",
-      "This follows the same pattern tested in Mission Control: greater distance from the Sun means a longer orbit time.",
-      "A strong answer explicitly links the new dwarf planet's extra distance to weaker gravity and a longer, slower path around the Sun."
+    "markingScheme": [
+      { "marks": 1, "criterion": "States correctly that the new dwarf planet's year would be longer than Neptune's 165 Earth years, not shorter.", "insufficient": "Stating 'shorter', or giving no clear direction at all." },
+      { "marks": 1, "criterion": "Links this to the same pattern found in their own Investigation Record: greater distance from the Sun means a longer orbit time.", "accept": "Referring to their own logged trials as evidence of the pattern, even without exact numbers.", "dependsOn": 0 },
+      { "marks": 1, "criterion": "Explains the mechanism: the greater distance means weaker gravity from the Sun and a longer path to travel, both of which make the orbit take longer.", "insufficient": "Stating the pattern (longer distance, longer year) without saying why it happens.", "dependsOn": 1 }
     ]
   },
 
@@ -132,9 +133,10 @@
   "rubric": {
     "note": "You are graded out of the total marks, shown as a percentage.",
     "criteria": [
-      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 7, "auto": true },
+      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 7, "auto": true, "source": "Auto-marked from the Knowledge Check (auto_marked_score) — the teacher does not mark this row." },
       {
         "key": "use_of_evidence", "label": "Use of evidence", "max": 3,
+        "source": "= the Explain question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
         "levels": [
           { "marks": 0, "descriptor": "Does not describe any pattern between distance and orbit time." },
           { "marks": 1, "descriptor": "Says far planets take longer, but gives no reason or evidence from the Record." },
@@ -144,6 +146,7 @@
       },
       {
         "key": "reasoning", "label": "Reasoning", "max": 3,
+        "source": "= the Apply question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
         "levels": [
           { "marks": 0, "descriptor": "Does not say whether the new dwarf planet's year would be shorter or longer, or gets the direction wrong without any reasoning." },
           { "marks": 1, "descriptor": "Says the year would be longer, but does not explain why." },
@@ -153,6 +156,7 @@
       },
       {
         "key": "communication", "label": "Communication", "max": 2,
+        "source": "Assessed holistically across both the Explain and Apply answers together — independent of, and never overlapping with, the content marks above.",
         "levels": [
           { "marks": 0, "descriptor": "Hard to follow, or key science words are missing or wrong." },
           { "marks": 1, "descriptor": "Understandable, but sentences are unclear or a science word is used incorrectly." },
@@ -162,7 +166,7 @@
     ]
   },
 
-  "markingInstructions": "This is a Primary 2 student, aged 9-11. Mark ONLY the two constructed responses (Explain, Apply) using the rubric and each question's expected_points. Copy auto_marked_score into knowledge_accuracy. Accept scientifically valid alternative wording and simple, age-appropriate phrasing. Do not penalise spelling unless meaning is unclear. Report total, percentage, one strength, one correction, one next step, under 70 words, in warm and encouraging language suitable for a child this age.",
+  "markingInstructions": "This is a Primary 2 student, aged 9-11. Mark ONLY the two constructed responses, using each question's point-by-point marking_scheme in marking_context (award each point independently unless it names a dependsOn point, in which case only award it if that earlier point was also awarded) and each point's accept/insufficient wording. use_of_evidence's 3 marks ARE the Explain marking_scheme's 3 points, and reasoning's 3 marks ARE the Apply marking_scheme's 3 points — the rubric levels restate the same points as bands; award each set of 3 marks ONCE, not twice. communication is a separate, holistic 2 marks across both answers' clarity, never overlapping with the content marks. Copy auto_marked_score into knowledge_accuracy. Accept scientifically valid alternative wording and simple, age-appropriate phrasing. Do not penalise spelling unless meaning is unclear. Total is out of 15 (7 auto + 3 + 3 + 2). Report total, percentage, one strength, one correction, one next step, under 70 words, in warm and encouraging language suitable for a child this age.",
 
   "es": {
     "title": "Arquitectos de Órbitas: construye nuestro sistema solar",

@@ -759,7 +759,7 @@ const simulation = {
       if(processId===currentChallenge){
         const tries=wrongAttempts+1;
         const xpGain=tries===1?25:tries===2?18:12;
-        resolveChallenge(true,xpGain,tries===1?L("Correct — first try","Correcto — a la primera"):L(`Correct after ${tries} tries`,`Correcto tras ${tries} intentos`));
+        resolveChallenge(true,xpGain,tries===1?L("Correct — first try","Correcto — a la primera"):L(`Correct after ${tries} tries`,`Correcto tras ${tries} intentos`),tries);
       } else {
         wrongAttempts++;
         sensorBtns[processId].classList.add("shake");
@@ -769,15 +769,15 @@ const simulation = {
           hintBox.hidden=false;
           hintBox.innerHTML=`<b>${L("Hint:","Pista:")}</b> ${MRS_DEFS[currentChallenge]}`;
         } else if(wrongAttempts>=4){
-          resolveChallenge(false,5,L("Revealed after 4 tries","Revelado tras 4 intentos"));
+          resolveChallenge(false,5,L("Revealed after 4 tries","Revelado tras 4 intentos"),wrongAttempts);
         }
       }
     }
 
-    function resolveChallenge(firstAttempt,xpGain,resultLabel){
+    function resolveChallenge(firstAttempt,xpGain,resultLabel,tries){
       const sp=SPECIMENS[chosen];
       const pName=PROCESSES.find(p=>p.id===currentChallenge).name;
-      sim.recordTrial({ specimen:sp.name, process:pName, result:resultLabel, evidence:sp.evidence[currentChallenge] });
+      sim.recordTrial({ specimen:sp.name, process:pName, result:resultLabel, evidence:sp.evidence[currentChallenge], tries });
 
       sensorBtns[currentChallenge].disabled=false;
       sensorBtns[currentChallenge].classList.add("solved");
