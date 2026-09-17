@@ -526,6 +526,48 @@ needs to be re-explained in a future chat.
   was checked against its `markingScheme` and rubric `levels` for this exact mismatch and corrected where
   found, alongside `sim-mission-blue-planet`'s reference fix above.
 
+**Consolidated evidence-generation standard — release-blocking checklist (agreed 2026-09-18).** The
+rules above and elsewhere in this section add up to one standard, established piece by piece across
+several amendments. This checklist exists so a future session (or Diego) can verify compliance in one
+place instead of piecing it together from prose written on different days. Every point below is
+already normative elsewhere in this file — this section adds no new rule, it only indexes them. A
+simulation is not release-ready, existing or new, unless **all** of the following are true:
+
+1. **The teacher/marker PDF is self-contained enough to mark without opening the simulation.** Test:
+   *"could a competent teacher who has never seen this simulation mark the student's work accurately
+   and consistently using only this PDF?"* — the original pre-publish QC test, above.
+2. **In Assessed Mode, the student receipt and the teacher/marker PDF stay two separate documents.**
+   The receipt (`buildStudentPDF`) never carries `markingScheme`/rubric `levels`/`source`; only the
+   separate, `?teacher=1`-gated teacher PDF (`buildPDF`) does — see the config.json/marking.json split
+   amendment, above.
+3. **Student-facing guidance never reveals detailed, answer-bearing marking criteria before
+   submission.** Every non-auto rubric criterion shows only a generic `studentHint` in `config.json`;
+   the analytic `markingScheme` (with its `accept`/`insufficient`/`dependsOn`) and the rubric's
+   content-specific `levels`/`source` live only in `marking.json` — see the same split amendment.
+4. **Every holistic criterion defines every available mark level**, 0 through its max, with no gaps —
+   see the level-descriptors amendment (2026-09-08) and its 2026-09-18 reinforcement, above.
+5. **Every mark has one clear, named source and is never double-counted.** Every non-auto rubric
+   criterion's `source` states in plain English exactly which question's marks it equals one-to-one, or
+   that it is scored holistically and never overlaps other criteria's marks — see the `source` amendment
+   (2026-09-17/18), above.
+6. **All evidence needed for marking is exported in full and never truncated.** No PDF table (trial
+   data, evidence values, written answers) may cut text off with a fixed-character limit — wrap it
+   instead, as `drawTrials()` now does — see the "never truncate" amendment, above.
+7. **Minor spelling, punctuation or grammar errors only cost a Communication mark when they actually
+   interfere with meaning or clarity** — never penalise a language slip on its own when the
+   scientific/academic communication is still clear. Already stated in the level-descriptors
+   reinforcement (2026-09-18), above; restated here because it is easy to miss inside that paragraph.
+8. **The question, its `markingScheme`, and its rubric `levels` all describe the literal same
+   assessment** — no extra requirement introduced only in the rubric, no analytic point dropped from
+   the summary descriptor, no mark awarded for something the question didn't reasonably ask for. Test:
+   *"if a teacher reads the question and then the marking scheme, do the marks reward exactly what the
+   student was asked to do?"* — the alignment amendment, immediately above.
+9. **This standard applies to every existing simulation and every new simulation created from now
+   on** — not a one-off fix to whichever activity prompted it. Confirmed by the whole-library audits
+   recorded against each amendment above; a newly built activity must be checked against every point
+   in this list before its `status` flips to `"live"` (Section 11), the same standing as a missing
+   `learningFocus`.
+
 **Amendment — no JSON download (agreed 2026-09-09).** The engine builds a structured JSON payload internally (see `buildPayload()` in `engine/engine.js`) purely as the data model it renders the PDF from — it is never written to a file or offered as a second download. The reasoning: the PDF and JSON download to the student's own device (per Section 7, nothing leaves the browser), and the only file Diego actually receives back is the PDF a student chooses to upload to Learning Lab — the JSON companion file was an extra download that only ever reached the student, never the teacher, so a proper rubric with level descriptors belongs printed in the PDF itself (see the level-descriptors amendment below), not off in a file only the student can see. `generateEvidence()` calls `downloadBlob()` once, for the PDF only. The internal payload shape below is retained as documentation of what the PDF is built from — it is not a file format a student or teacher ever sees:
 
 ```json
