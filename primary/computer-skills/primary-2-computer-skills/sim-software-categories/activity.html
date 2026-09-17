@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="computing" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Categories — Discovery Lab</title>
+<meta name="description" content="Boot real operating systems, clean up a messy computer with modern security tools, write real Python, C++ and Java code, then sort a whole pile of programs into their true category.">
+<link rel="stylesheet" href="../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='6' y='10' width='52' height='36' rx='4' fill='none' stroke='%232F5871' stroke-width='4'/><rect x='22' y='50' width='20' height='6' rx='2' fill='%232F5871'/><path d='M18 26l8 8-8 8M34 42h10' stroke='%2300807A' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+#badge-shelf{display:none !important;}
+
+/* ---- tab strip ---- */
+.phase-tabs{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-4);}
+.phase-tab{display:flex;align-items:center;gap:.4em;padding:.5em .9em;border-radius:999px;border:1px solid var(--line-strong);
+  background:var(--paper);color:var(--ink-2);font:inherit;font-size:var(--step--1);font-weight:700;cursor:pointer;
+  transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.phase-tab:hover{border-color:var(--accent);}
+.phase-tab.is-active{border-color:var(--accent);background:var(--accent-wash);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.phase-tab__mark{width:1.1rem;height:1.1rem;border-radius:50%;display:grid;place-items:center;font-size:.62rem;flex:none;
+  background:var(--line-strong);color:var(--ink-3);}
+.phase-tab.is-done .phase-tab__mark{background:var(--positive);color:#fff;}
+
+/* ---- shared: chip, tray, card, hotspot, reveal, burst ---- */
+.chipbox{flex:none;width:2.4rem;height:2.4rem;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.85rem;text-align:center;line-height:1;}
+.grid-cards{display:grid;gap:var(--sp-3);grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));}
+.pop-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);text-align:center;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);cursor:pointer;font:inherit;color:var(--ink);
+  transition:transform var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);touch-action:manipulation;}
+.pop-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.pop-card.is-done{border-color:var(--positive);box-shadow:inset 0 0 0 1.5px var(--positive);}
+.pop-card.is-active{animation:popbounce .45s var(--ease-out-back);}
+@keyframes popbounce{0%{transform:scale(1);}45%{transform:scale(1.12);}100%{transform:scale(1);}}
+[data-reduced-motion=on] .pop-card.is-active{animation:none;}
+.pop-card__name{font-weight:800;font-size:var(--step--1);}
+.pop-card__mark{position:absolute;top:6px;right:6px;width:1.3rem;height:1.3rem;border-radius:50%;background:var(--positive);color:#fff;
+  display:grid;place-items:center;font-size:.7rem;opacity:0;transform:scale(.5);transition:all var(--dur-mid) var(--ease-out-back);}
+.pop-card.is-done .pop-card__mark{opacity:1;transform:scale(1);}
+.reveal-panel{margin-top:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);
+  background:var(--surface);display:flex;gap:var(--sp-3);align-items:center;min-height:3.4rem;}
+.reveal-panel__hint{color:var(--ink-3);font-size:var(--step--1);}
+.progress-note{font-size:var(--step--1);color:var(--ink-3);margin-top:var(--sp-3);font-weight:700;}
+
+.diagram-wrap{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-1);}
+.diagram-wrap img{width:100%;height:auto;display:block;}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border:none;background:transparent;
+  cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.15rem;height:1.15rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 5px color-mix(in srgb, var(--signal) 22%, transparent),0 0 14px var(--signal);
+  transition:background var(--dur-fast) var(--ease);animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+.hotspot.is-seen .hotspot__dot{background:var(--positive);box-shadow:0 0 0 5px color-mix(in srgb, var(--positive) 20%, transparent);animation:none;}
+.diagram-caption{font-size:var(--step--1);color:var(--ink-3);margin-top:var(--sp-2);text-align:center;}
+.diagram-credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right;}
+.diagram-credit a{color:inherit;}
+
+/* ---- Utility Squad ---- */
+.desk{position:relative;border-radius:var(--radius-lg);min-height:14rem;padding:var(--sp-4);
+  background:radial-gradient(120% 100% at 50% 0%, #16202c 0%, #0c141d 60%, #070b10 100%);
+  border:1px solid #0c1520;overflow:hidden;display:flex;flex-wrap:wrap;gap:var(--sp-3);align-content:flex-start;}
+.mess{display:flex;flex-direction:column;align-items:center;gap:.3em;color:#eaf6ff;font-family:var(--font-data);font-size:.68rem;
+  transition:opacity .4s var(--ease),transform .4s var(--ease);}
+.mess__glyph{width:2.6rem;height:2.6rem;border-radius:10px;display:grid;place-items:center;font-size:1.2rem;}
+.mess.is-gone{opacity:0;transform:scale(.3) translateY(-12px);pointer-events:none;}
+.toolbar{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-4);}
+.tool-btn{display:flex;align-items:center;gap:var(--sp-2);padding:.6em 1em;border-radius:var(--radius);border:1px solid var(--line-strong);
+  background:var(--paper);font:inherit;font-weight:700;color:var(--ink);cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.tool-btn:hover{border-color:var(--accent);}
+.tool-btn.is-done{opacity:.55;}
+.burst{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;}
+.burst i{position:absolute;width:8px;height:8px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+
+/* ---- Code Forge ---- */
+.lang-tabs{display:flex;gap:var(--sp-2);flex-wrap:wrap;}
+.lang-tab{padding:.5em 1em;border-radius:var(--radius);border:1px solid var(--line-strong);background:var(--paper);
+  font:inherit;font-weight:800;cursor:pointer;touch-action:manipulation;}
+.lang-tab.is-active{border-color:var(--accent);background:var(--accent-wash);color:var(--accent);}
+.lang-tab.is-done::after{content:" ✓";color:var(--positive);}
+.code-card{margin-top:var(--sp-3);border-radius:var(--radius-lg);overflow:hidden;border:1px solid #0c1520;background:#0c141d;}
+.code-card__head{padding:.5em .9em;background:#141d28;color:#8fb8d9;font-family:var(--font-data);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;}
+.code-card__body{padding:var(--sp-4);font-family:var(--font-data);font-size:.92rem;color:#cfe6f7;line-height:1.7;white-space:pre-wrap;}
+.blank-btn{display:inline-flex;align-items:center;justify-content:center;min-width:3.4em;padding:.05em .5em;border-radius:6px;
+  border:1.5px dashed #4fb0e6;background:rgba(79,176,230,.12);color:#7bd0ff;font:inherit;cursor:pointer;touch-action:manipulation;}
+.blank-btn.is-filled{border-style:solid;background:rgba(123,255,224,.18);color:#7bffe0;}
+.token-row{display:flex;gap:var(--sp-2);flex-wrap:wrap;padding:0 var(--sp-4) var(--sp-4);}
+.token-btn{padding:.4em .9em;border-radius:8px;border:1px solid #2f4f6b;background:#182432;color:#eaf6ff;
+  font-family:var(--font-data);cursor:pointer;touch-action:manipulation;}
+.token-btn:hover{border-color:#4fb0e6;}
+.token-btn.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+@keyframes spotshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-5px);}60%{transform:translateX(5px);}}
+.terminal{margin-top:var(--sp-3);border-radius:var(--radius);background:#040d15;border:1px solid #123048;padding:var(--sp-3);
+  font-family:var(--font-data);color:#7bffe0;font-size:.85rem;min-height:2.4em;}
+.run-row{display:flex;gap:var(--sp-3);align-items:center;padding:0 var(--sp-4) var(--sp-4);flex-wrap:wrap;}
+
+/* ---- Sort Rush ---- */
+.sort-stage{position:relative;border-radius:var(--radius-lg);min-height:13rem;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:var(--sp-4);padding:var(--sp-5);
+  background:radial-gradient(120% 100% at 50% 20%, #16202c 0%, #0c141d 60%, #070b10 100%);border:1px solid #0c1520;overflow:hidden;}
+.sort-item{padding:.8em 1.4em;border-radius:var(--radius-lg);background:var(--paper);color:var(--ink);font-weight:800;font-size:var(--step-1);
+  box-shadow:var(--shadow-2);transition:transform .5s var(--ease),opacity .5s var(--ease);}
+.sort-item.fly-system{transform:translate(-160px,90px) scale(.4);opacity:0;}
+.sort-item.fly-app{transform:translate(0,90px) scale(.4);opacity:0;}
+.sort-item.fly-utility{transform:translate(160px,90px) scale(.4);opacity:0;}
+.sort-item.is-wrong{animation:spotshake .32s ease;}
+.bin-row{display:flex;gap:var(--sp-3);flex-wrap:wrap;justify-content:center;}
+.bin-btn{display:flex;flex-direction:column;align-items:center;gap:.3em;padding:var(--sp-3) var(--sp-4);border-radius:var(--radius);
+  border:2px solid var(--line-strong);background:var(--paper);font:inherit;font-weight:800;cursor:pointer;touch-action:manipulation;
+  transition:all var(--dur-fast) var(--ease);min-width:8rem;}
+.bin-btn:hover{border-color:var(--accent);}
+.bin-btn.flash-correct{border-color:var(--positive);box-shadow:0 0 0 4px color-mix(in srgb, var(--positive) 25%, transparent);}
+.bin-btn.flash-wrong{border-color:var(--negative);box-shadow:0 0 0 4px color-mix(in srgb, var(--negative) 25%, transparent);}
+.sort-progress{font-family:var(--font-data);color:#8fb8d9;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;}
+.sort-done{text-align:center;padding:var(--sp-4);}
+.sort-done__n{font-family:var(--font-display);font-size:2rem;font-weight:800;margin:.2em 0;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <g stroke="currentColor" stroke-width="1.5" opacity=".45"><path d="M32 2v7M32 55v7M2 32h7M55 32h7"/></g>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../">Discovery Lab</a></li>
+      <li><a href="../../../">Primary</a></li>
+      <li><a href="../../">Computer Skills</a></li>
+      <li><a href="../">Primary 2 Computer Skills</a></li>
+      <li><span aria-current="page">Software Categories</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../">Discovery Lab</a></li>
+      <li><a href="../../../">Primaria</a></li>
+      <li><a href="../../">Informática</a></li>
+      <li><a href="../">Informática de Primaria 2</a></li>
+      <li><span aria-current="page">Categorías de software</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../engine/i18n.js?v=9";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../engine/arcade.js?v=3";
+
+const THREE_URL = "../../../../engine/vendor/three.min.js";
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   DATA — the three categories, and every item taught across the phases
+   ====================================================================== */
+const CATS = {
+  system:  { key:"system",  name:L("System Software","Software de Sistema"),            color:"#3d8fd6" },
+  app:     { key:"app",     name:L("Application","Aplicación"),                          color:"#e0b64c" },
+  utility: { key:"utility", name:L("Utility & Programming Tool","Utilidad y Herramienta de Programación"), color:"#1f8a5c" },
+};
+
+const OS_LIST = [
+  { key:"windows", name:"Windows", glyph:"🪟",
+    desc:L("Microsoft's operating system — it runs most PCs and laptops around the world, and is updated constantly to stay safe and modern.","El sistema operativo de Microsoft — funciona en la mayoría de los PCs y portátiles del mundo, y se actualiza constantemente para seguir siendo seguro y moderno.") },
+  { key:"macos", name:"macOS", glyph:"🍎",
+    desc:L("Apple's operating system for Mac desktop and laptop computers, known for its smooth design.","El sistema operativo de Apple para ordenadores Mac de sobremesa y portátiles, conocido por su diseño cuidado.") },
+  { key:"linux", name:"Linux", glyph:"🐧",
+    desc:L("A free, open-source operating system built by programmers everywhere — it quietly runs most of the internet's servers and even some phones.","Un sistema operativo gratuito y de código abierto construido por programadores de todo el mundo — hace funcionar la mayoría de los servidores de internet e incluso algunos teléfonos.") },
+  { key:"ios", name:"iOS", glyph:"📱",
+    desc:L("Apple's operating system, built specially to run on the iPhone.","El sistema operativo de Apple, creado especialmente para funcionar en el iPhone.") },
+  { key:"android", name:"Android", glyph:"🤖",
+    desc:L("Google's operating system — it runs on more phones and tablets worldwide than any other OS.","El sistema operativo de Google — funciona en más teléfonos y tablets del mundo que cualquier otro sistema operativo.") },
+];
+
+const APPS = [
+  { key:"browser",   name:L("Web Browser","Navegador web"),        glyph:"🌐", desc:L("Lets you visit websites and search the internet.","Te permite visitar páginas web y buscar en internet.") },
+  { key:"docs",      name:L("Word Processor","Procesador de texto"), glyph:"📝", desc:L("Lets you write, edit and format documents.","Te permite escribir, editar y dar formato a documentos.") },
+  { key:"video",     name:L("Video Editor","Editor de vídeo"),      glyph:"🎬", desc:L("Lets you cut, combine and add effects to video clips.","Te permite cortar, combinar y añadir efectos a vídeos.") },
+  { key:"game",      name:L("Video Game","Videojuego"),             glyph:"🎮", desc:L("Lets you play — from puzzles to whole 3D worlds.","Te permite jugar — desde puzles hasta mundos 3D completos.") },
+  { key:"photo",     name:L("Photo Editor","Editor de fotos"),      glyph:"🖼️", desc:L("Lets you crop, retouch and adjust colour in photos.","Te permite recortar, retocar y ajustar el color de las fotos.") },
+  { key:"chat",      name:L("Messaging App","App de mensajería"),   glyph:"💬", desc:L("Lets you send messages, photos and calls to people instantly.","Te permite enviar mensajes, fotos y llamadas a otras personas al instante.") },
+  { key:"music",     name:L("Music Player","Reproductor de música"), glyph:"🎵", desc:L("Lets you stream and listen to music and podcasts.","Te permite escuchar música y podcasts en streaming.") },
+  { key:"sheet",     name:L("Spreadsheet","Hoja de cálculo"),       glyph:"📊", desc:L("Lets you organise numbers into tables, sums and charts.","Te permite organizar números en tablas, sumas y gráficos.") },
+];
+
+const UTILITIES = [
+  { key:"antivirus", name:L("Antivirus","Antivirus"), glyph:"🛡️",
+    desc:L("Scans your files in real time and blocks new threats the moment they appear — modern antivirus updates itself automatically, every single day.","Analiza tus archivos en tiempo real y bloquea amenazas nuevas en cuanto aparecen — el antivirus moderno se actualiza automáticamente cada día.") },
+  { key:"cleaner", name:L("Disk Cleaner","Limpiador de disco"), glyph:"🧹",
+    desc:L("Clears out temporary files and junk that pile up over time, so your computer runs faster.","Elimina archivos temporales y basura que se acumulan con el tiempo, para que tu ordenador vaya más rápido.") },
+  { key:"backup", name:L("Backup","Copia de seguridad"), glyph:"☁️",
+    desc:L("Automatically copies your important files to the cloud — like Google Drive, iCloud or OneDrive — so you never lose them, even if your device breaks.","Copia automáticamente tus archivos importantes a la nube — como Google Drive, iCloud o OneDrive — para que nunca los pierdas, incluso si tu dispositivo se rompe.") },
+  { key:"firewall", name:L("Firewall","Cortafuegos"), glyph:"🧱",
+    desc:L("A digital wall that checks everything trying to get in or out of your computer over the internet, and blocks anything suspicious.","Un muro digital que revisa todo lo que intenta entrar o salir de tu ordenador por internet, y bloquea lo sospechoso.") },
+];
+const MESS = [
+  { key:"junk1", fixedBy:"cleaner", glyph:"🗑️", color:"#4b3a1a" },
+  { key:"junk2", fixedBy:"cleaner", glyph:"🗂️", color:"#4b3a1a" },
+  { key:"virus", fixedBy:"antivirus", glyph:"🐛", color:"#5a1a1a" },
+  { key:"files", fixedBy:"backup", glyph:"📁", color:"#1a3a4b" },
+  { key:"attack", fixedBy:"firewall", glyph:"⚠️", color:"#4b1a1a" },
+];
+
+const LANGS = [
+  { key:"python", name:"Python",
+    intro:L("Python is famous for being short and readable — one of the friendliest languages to start with.","Python es famoso por ser corto y fácil de leer — uno de los lenguajes más amigables para empezar."),
+    before:'', blank:'print', after:'("Hello, Discovery Lab!")',
+    options:["print","show","echo"], correct:"print",
+    output:"Hello, Discovery Lab!" },
+  { key:"cpp", name:"C++",
+    intro:L("C++ is a fast, powerful language used to build games, apps and even parts of operating systems.","C++ es un lenguaje rápido y potente usado para crear juegos, aplicaciones e incluso partes de sistemas operativos."),
+    before:'#include <iostream>\nint main() {\n  std::', blank:'cout', after:' << "Hello, Discovery Lab!";\n}',
+    options:["cout","cin","cerr"], correct:"cout",
+    output:"Hello, Discovery Lab!" },
+  { key:"java", name:"Java",
+    intro:L("Java runs on billions of devices — from Android phones to bank systems — without changing the code.","Java funciona en miles de millones de dispositivos — desde teléfonos Android hasta sistemas bancarios — sin cambiar el código."),
+    before:'public class Main {\n  public static void main(String[] args) {\n    System.out.', blank:'println', after:'("Hello, Discovery Lab!");\n  }\n}',
+    options:["println","printline","input"], correct:"println",
+    output:"Hello, Discovery Lab!" },
+];
+
+/* items sorted in the graded Sort Rush — a mix drawn from every phase above */
+const SORT_ITEMS = [
+  { key:"windows",   name:"Windows",                              cat:"system" },
+  { key:"macos",     name:"macOS",                                cat:"system" },
+  { key:"linux",     name:"Linux",                                cat:"system" },
+  { key:"android",   name:"Android",                              cat:"system" },
+  { key:"browser",   name:L("Web Browser","Navegador web"),       cat:"app" },
+  { key:"video",     name:L("Video Editor","Editor de vídeo"),    cat:"app" },
+  { key:"game",      name:L("Video Game","Videojuego"),           cat:"app" },
+  { key:"antivirus", name:L("Antivirus","Antivirus"),             cat:"utility" },
+  { key:"firewall",  name:L("Firewall","Cortafuegos"),            cat:"utility" },
+  { key:"python",    name:L("Python (coding editor)","Python (editor de código)"), cat:"utility" },
+];
+
+/* Photo: JESHOOTS.COM (jeshoots), Unsplash via Wikimedia Commons, CC0 1.0
+   Universal Public Domain Dedication (published on Unsplash before the
+   5 June 2017 licence change, verified on the file's own Commons page). */
+const DEVICE_PHOTO = "photos/devices.jpg";
+const DEVICE_CREDIT = 'Photo: JESHOOTS.COM — Wikimedia Commons / Unsplash, <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 1.0</a> (resized)';
+const DEVICE_HOTSPOTS = [
+  { key:"iphone",  fx:0.109, fy:0.651, os:"ios",   name:L("iPhone","iPhone") },
+  { key:"macbook", fx:0.895, fy:0.145, os:"macos", name:L("MacBook","MacBook") },
+];
+
+function chip(color, glyph){ return `<span class="chipbox" style="background:${color}">${glyph}</span>`; }
+function shuffled(arr){ return [...arr].sort(() => Math.random() - 0.5); }
+function burstAt(hostEl, colors){
+  if (document.documentElement.getAttribute("data-reduced-motion") === "on") return;
+  const b = document.createElement("div"); b.className = "burst";
+  hostEl.style.position = hostEl.style.position || "relative";
+  hostEl.appendChild(b);
+  for (let i=0;i<22;i++){
+    const p = document.createElement("i"); const ang = Math.random()*Math.PI*2, dist = 50+Math.random()*110;
+    p.style.background = colors[i % colors.length]; b.append(p);
+    const x = Math.cos(ang)*dist, y = Math.sin(ang)*dist - 30;
+    p.animate([{transform:"translate(0,0) scale(1)",opacity:1},{transform:`translate(${x}px,${y}px) rotate(${Math.random()*540}deg) scale(.3)`,opacity:0}],
+      {duration:800+Math.random()*400, easing:"cubic-bezier(.2,.7,.3,1)"}).onfinish = () => p.remove();
+  }
+  setTimeout(() => b.remove(), 1300);
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+let sim = null;
+
+const simulation = {
+  orient(host){
+    host.innerHTML = "";
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Real devices run real operating systems. Tap the glowing dots to meet two of them.","Los dispositivos reales usan sistemas operativos reales. Toca los puntos brillantes para conocer dos de ellos.");
+    host.append(intro);
+
+    const wrap = document.createElement("div"); wrap.className = "diagram-wrap";
+    wrap.innerHTML = `<img src="${DEVICE_PHOTO}" width="1280" height="853" loading="lazy" alt="${L("A real iPhone and a real MacBook laptop on a desk","Un iPhone real y un portátil MacBook real sobre una mesa")}">`;
+    const reveal = document.createElement("div"); reveal.className = "reveal-panel";
+    reveal.innerHTML = `<span class="reveal-panel__hint">${L("Tap a glowing dot above ↑","Toca un punto brillante de arriba ↑")}</span>`;
+
+    let found = 0;
+    const cap = document.createElement("p"); cap.className = "diagram-caption";
+    cap.textContent = L("0 / 2 devices found","0 / 2 dispositivos encontrados");
+
+    DEVICE_HOTSPOTS.forEach(h => {
+      const os = OS_LIST.find(o => o.key === h.os);
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "hotspot";
+      btn.style.left = (h.fx*100)+"%"; btn.style.top = (h.fy*100)+"%";
+      btn.setAttribute("aria-label", L("Learn about the ","Aprende sobre ") + h.name);
+      btn.innerHTML = `<span class="hotspot__dot"></span>`;
+      btn.addEventListener("click", () => {
+        reveal.innerHTML = `${chip(CATS.system.color, os.glyph)}<span><b>${L(`This ${h.name} runs `, `Este ${h.name} usa `)}${os.name}</b><br>${os.desc}</span>`;
+        if (!btn.classList.contains("is-seen")){ btn.classList.add("is-seen"); found++; cap.textContent = L(found+" / 2 devices found", found+" / 2 dispositivos encontrados"); }
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(os.name + ". " + os.desc);
+      });
+      wrap.append(btn);
+    });
+    host.append(wrap, reveal, cap);
+    const credit = document.createElement("p"); credit.className = "diagram-credit"; credit.innerHTML = DEVICE_CREDIT;
+    host.append(credit);
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = "";
+    const game = sim.state.game || (sim.state.game = { phase:"boot", booted:{}, appsSeen:{}, toolsUsed:{}, codeDone:{}, sortOrder:null, sortIndex:0, sortResults:[] });
+    if (!game.sortOrder) { game.sortOrder = shuffled(SORT_ITEMS).map(i => i.key); }
+
+    const tabs = document.createElement("div"); tabs.className = "phase-tabs"; tabs.setAttribute("role","tablist");
+    const phaseHost = document.createElement("div");
+    host.append(tabs, phaseHost);
+
+    const PHASES = [
+      { id:"boot",    label:L("Boot Bay","Bahía de Arranque"),          done: () => Object.keys(game.booted).length >= OS_LIST.length },
+      { id:"apps",    label:L("App Spotter","Detector de Apps"),        done: () => Object.keys(game.appsSeen).length >= APPS.length },
+      { id:"utility", label:L("Utility Squad","Escuadrón de Utilidades"), done: () => Object.keys(game.toolsUsed).length >= UTILITIES.length },
+      { id:"code",    label:L("Code Forge","Forja de Código"),          done: () => Object.keys(game.codeDone).length >= LANGS.length },
+      { id:"sort",    label:L("Sort Rush","Carrera de Clasificación"),  done: () => game.sortIndex >= game.sortOrder.length },
+    ];
+    const RENDER = { boot:renderBoot, apps:renderApps, utility:renderUtility, code:renderCode, sort:renderSort };
+
+    function paintTabs(){
+      tabs.innerHTML = "";
+      PHASES.forEach(p => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "phase-tab";
+        b.classList.toggle("is-active", game.phase === p.id);
+        b.classList.toggle("is-done", p.done());
+        b.innerHTML = `<span class="phase-tab__mark">${p.done() ? "✓" : ""}</span><span>${p.label}</span>`;
+        b.addEventListener("click", () => { game.phase = p.id; sim.saveState(); go(); });
+        tabs.append(b);
+      });
+    }
+    function go(){ paintTabs(); phaseHost.innerHTML = ""; RENDER[game.phase](phaseHost, game); }
+    go();
+
+    /* ==================================================================
+       BOOT BAY — System Software
+       ================================================================== */
+    function renderBoot(host, game){
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Every device needs an operating system before it can do anything else. Tap a device to boot it up.","Todo dispositivo necesita un sistema operativo antes de poder hacer cualquier otra cosa. Toca un dispositivo para encenderlo.");
+      host.append(lede);
+      const grid = document.createElement("div"); grid.className = "grid-cards"; host.append(grid);
+      const cap = document.createElement("p"); cap.className = "progress-note"; host.append(cap);
+      function paintCap(){ const n = Object.keys(game.booted).length; cap.textContent = L(`Booted ${n} / ${OS_LIST.length}`, `Encendidos ${n} / ${OS_LIST.length}`); }
+
+      OS_LIST.forEach(os => {
+        const c = document.createElement("button"); c.type = "button"; c.className = "pop-card";
+        if (game.booted[os.key]) c.classList.add("is-done");
+        c.innerHTML = `${chip(CATS.system.color, "💻")}<span class="pop-card__name">${os.name}</span>
+          <span style="font-size:.72rem;color:var(--ink-3)">${game.booted[os.key] ? L("Powered on","Encendido") : L("Tap to boot","Toca para encender")}</span>
+          <span class="pop-card__mark">✓</span>`;
+        c.addEventListener("click", () => {
+          if (game.booted[os.key]) { showInfo(os); return; }
+          c.disabled = true;
+          const label = c.querySelector("span:nth-child(3)");
+          label.textContent = L("Booting…","Encendiendo…");
+          setTimeout(() => {
+            game.booted[os.key] = true; sim.saveState();
+            c.disabled = false; c.classList.add("is-done", "is-active");
+            label.textContent = L("Powered on","Encendido");
+            burstAt(c, [CATS.system.color, "#eaf6ff"]);
+            showInfo(os);
+            sim.mark("os_"+os.key+"_booted", true);
+            if (Object.keys(game.booted).length >= OS_LIST.length) sim.mark("all_operating_systems_booted", true);
+            paintCap(); paintTabs();
+          }, 550);
+        });
+        grid.append(c);
+      });
+      paintCap();
+
+      const reveal = document.createElement("div"); reveal.className = "reveal-panel";
+      reveal.innerHTML = `<span class="reveal-panel__hint">${L("Boot a device above ↑","Enciende un dispositivo de arriba ↑")}</span>`;
+      host.append(reveal);
+      function showInfo(os){
+        reveal.innerHTML = `${chip(CATS.system.color, os.glyph)}<span><b>${os.name}</b><br>${os.desc}</span>`;
+        if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(os.name + ". " + os.desc);
+      }
+    }
+
+    /* ==================================================================
+       APP SPOTTER — Applications
+       ================================================================== */
+    function renderApps(host, game){
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Applications run on top of the operating system and let you do a task. Tap each one you recognise.","Las aplicaciones funcionan encima del sistema operativo y te permiten hacer una tarea. Toca las que reconozcas.");
+      host.append(lede);
+      const grid = document.createElement("div"); grid.className = "grid-cards"; host.append(grid);
+      const cap = document.createElement("p"); cap.className = "progress-note"; host.append(cap);
+      function paintCap(){ const n = Object.keys(game.appsSeen).length; cap.textContent = L(`Apps explored ${n} / ${APPS.length}`, `Apps exploradas ${n} / ${APPS.length}`); }
+
+      const reveal = document.createElement("div"); reveal.className = "reveal-panel";
+      reveal.innerHTML = `<span class="reveal-panel__hint">${L("Tap an app above ↑","Toca una app de arriba ↑")}</span>`;
+
+      APPS.forEach(app => {
+        const c = document.createElement("button"); c.type = "button"; c.className = "pop-card";
+        if (game.appsSeen[app.key]) c.classList.add("is-done");
+        c.innerHTML = `${chip(CATS.app.color, app.glyph)}<span class="pop-card__name">${app.name}</span><span class="pop-card__mark">✓</span>`;
+        c.addEventListener("click", () => {
+          c.classList.add("is-active"); setTimeout(() => c.classList.remove("is-active"), 450);
+          if (!game.appsSeen[app.key]) {
+            game.appsSeen[app.key] = true; sim.saveState(); c.classList.add("is-done");
+            if (Object.keys(game.appsSeen).length >= APPS.length) sim.mark("all_apps_explored", true);
+            paintCap(); paintTabs();
+          }
+          reveal.innerHTML = `${chip(CATS.app.color, app.glyph)}<span><b>${app.name}</b> — <span style="color:${CATS.app.color};font-weight:700">${CATS.app.name}</span><br>${app.desc}</span>`;
+          if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(app.name + ". " + app.desc);
+        });
+        grid.append(c);
+      });
+      paintCap();
+      host.append(reveal);
+    }
+
+    /* ==================================================================
+       UTILITY SQUAD — Utilities
+       ================================================================== */
+    function renderUtility(host, game){
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("This computer's desktop is a mess! Tap a tool below to fix the matching problem on the desk.","¡El escritorio de este ordenador es un desastre! Toca una herramienta para arreglar el problema correspondiente.");
+      host.append(lede);
+
+      const desk = document.createElement("div"); desk.className = "desk"; host.append(desk);
+      const messNodes = {};
+      MESS.forEach(m => {
+        const d = document.createElement("div"); d.className = "mess"; d.dataset.key = m.key;
+        if (game.toolsUsed[m.fixedBy]) d.classList.add("is-gone");
+        d.innerHTML = `<span class="mess__glyph" style="background:${m.color}">${m.glyph}</span>`;
+        desk.append(d); messNodes[m.key] = d;
+      });
+
+      const reveal = document.createElement("div"); reveal.className = "reveal-panel";
+      reveal.innerHTML = `<span class="reveal-panel__hint">${L("Tap a tool below ↓","Toca una herramienta de abajo ↓")}</span>`;
+      host.append(reveal);
+
+      const toolbar = document.createElement("div"); toolbar.className = "toolbar"; host.append(toolbar);
+      const cap = document.createElement("p"); cap.className = "progress-note"; host.append(cap);
+      function paintCap(){ const n = Object.keys(game.toolsUsed).length; cap.textContent = L(`Tools used ${n} / ${UTILITIES.length}`, `Herramientas usadas ${n} / ${UTILITIES.length}`); }
+
+      UTILITIES.forEach(tool => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "tool-btn";
+        if (game.toolsUsed[tool.key]) b.classList.add("is-done");
+        b.innerHTML = `${chip(CATS.utility.color, tool.glyph)}<span>${tool.name}</span>`;
+        b.addEventListener("click", () => {
+          burstAt(desk, [CATS.utility.color, "#eaf6ff"]);
+          MESS.filter(m => m.fixedBy === tool.key).forEach(m => messNodes[m.key].classList.add("is-gone"));
+          if (!game.toolsUsed[tool.key]) {
+            game.toolsUsed[tool.key] = true; sim.saveState(); b.classList.add("is-done");
+            if (Object.keys(game.toolsUsed).length >= UTILITIES.length) sim.mark("all_utilities_used", true);
+            paintCap(); paintTabs();
+          }
+          reveal.innerHTML = `${chip(CATS.utility.color, tool.glyph)}<span><b>${tool.name}</b> — <span style="color:${CATS.utility.color};font-weight:700">${CATS.utility.name}</span><br>${tool.desc}</span>`;
+          if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(tool.name + ". " + tool.desc);
+        });
+        toolbar.append(b);
+      });
+      paintCap();
+    }
+
+    /* ==================================================================
+       CODE FORGE — Programming Tools
+       ================================================================== */
+    function renderCode(host, game){
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Programmers write software using a coding editor. Pick a language, complete the missing word, then run your code.","Los programadores escriben software usando un editor de código. Elige un lenguaje, completa la palabra que falta y ejecuta tu código.");
+      host.append(lede);
+
+      const tabsRow = document.createElement("div"); tabsRow.className = "lang-tabs"; host.append(tabsRow);
+      const cardHost = document.createElement("div"); host.append(cardHost);
+      const cap = document.createElement("p"); cap.className = "progress-note"; host.append(cap);
+      function paintCap(){ const n = Object.keys(game.codeDone).length; cap.textContent = L(`Languages tried ${n} / ${LANGS.length}`, `Lenguajes probados ${n} / ${LANGS.length}`); }
+
+      let active = LANGS.find(l => !game.codeDone[l.key])?.key || LANGS[0].key;
+
+      function paintTabsRow(){
+        tabsRow.innerHTML = "";
+        LANGS.forEach(l => {
+          const b = document.createElement("button"); b.type = "button"; b.className = "lang-tab";
+          b.classList.toggle("is-active", l.key === active); b.classList.toggle("is-done", !!game.codeDone[l.key]);
+          b.textContent = l.name;
+          b.addEventListener("click", () => { active = l.key; paintTabsRow(); paintCard(); });
+          tabsRow.append(b);
+        });
+      }
+      function paintCard(){
+        cardHost.innerHTML = "";
+        const lang = LANGS.find(l => l.key === active);
+        const intro = document.createElement("p"); intro.className = "q__hint"; intro.textContent = lang.intro;
+        cardHost.append(intro);
+
+        const card = document.createElement("div"); card.className = "code-card";
+        const head = document.createElement("div"); head.className = "code-card__head"; head.textContent = lang.name;
+        const body = document.createElement("div"); body.className = "code-card__body";
+        const blankBtn = document.createElement("button"); blankBtn.type = "button"; blankBtn.className = "blank-btn";
+        blankBtn.textContent = "____";
+        body.append(document.createTextNode(lang.before));
+        body.append(blankBtn);
+        body.append(document.createTextNode(lang.after));
+        card.append(head, body);
+
+        const tokenRow = document.createElement("div"); tokenRow.className = "token-row";
+        let filled = !!game.codeDone[lang.key];
+        if (filled) { blankBtn.textContent = lang.blank; blankBtn.classList.add("is-filled"); }
+        shuffled(lang.options).forEach(opt => {
+          const t = document.createElement("button"); t.type = "button"; t.className = "token-btn"; t.textContent = opt;
+          t.disabled = filled;
+          t.addEventListener("click", () => {
+            if (opt === lang.correct) {
+              blankBtn.textContent = opt; blankBtn.classList.add("is-filled");
+              tokenRow.querySelectorAll("button").forEach(x => x.disabled = true);
+              runBtn.disabled = false;
+              if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L("Correct! Now press Run.","¡Correcto! Ahora pulsa Ejecutar."));
+            } else {
+              t.classList.remove("is-wrong"); void t.offsetWidth; t.classList.add("is-wrong");
+            }
+          });
+          tokenRow.append(t);
+        });
+        card.append(tokenRow);
+
+        const runRow = document.createElement("div"); runRow.className = "run-row";
+        const runBtn = document.createElement("button"); runBtn.type = "button"; runBtn.className = "btn btn--signal";
+        runBtn.textContent = L("▶ Run","▶ Ejecutar"); runBtn.disabled = !filled;
+        runRow.append(runBtn);
+        card.append(runRow);
+
+        const term = document.createElement("div"); term.className = "terminal"; term.hidden = true;
+        card.append(term);
+
+        runBtn.addEventListener("click", () => {
+          term.hidden = false; term.textContent = "";
+          let i = 0;
+          const timer = setInterval(() => {
+            term.textContent = lang.output.slice(0, i+1); i++;
+            if (i >= lang.output.length) {
+              clearInterval(timer);
+              burstAt(card, [CATS.utility.color, "#ffd45c", "#eaf6ff"]);
+              if (!game.codeDone[lang.key]) {
+                game.codeDone[lang.key] = true; sim.saveState();
+                sim.mark("code_"+lang.key+"_run", true);
+                if (Object.keys(game.codeDone).length >= LANGS.length) sim.mark("all_languages_coded", true);
+                paintCap(); paintTabs(); paintTabsRow();
+              }
+            }
+          }, 45);
+        });
+
+        cardHost.append(card);
+      }
+      paintTabsRow(); paintCard(); paintCap();
+    }
+
+    /* ==================================================================
+       SORT RUSH — the graded classification game
+       ================================================================== */
+    function renderSort(host, game){
+      if (game.sortIndex >= game.sortOrder.length) { renderSortDone(host, game); return; }
+
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Now prove it: sort every piece of software into its true category. Tap the correct bin before the next one arrives.","Ahora demuéstralo: clasifica cada software en su categoría real. Toca el contenedor correcto.");
+      host.append(lede);
+
+      const progress = document.createElement("p"); progress.className = "sort-progress";
+      progress.textContent = L(`Item ${game.sortIndex+1} / ${game.sortOrder.length}`, `Elemento ${game.sortIndex+1} / ${game.sortOrder.length}`);
+      host.append(progress);
+
+      const stage = document.createElement("div"); stage.className = "sort-stage";
+      const itemKey = game.sortOrder[game.sortIndex];
+      const item = SORT_ITEMS.find(i => i.key === itemKey);
+      const chipEl = document.createElement("div"); chipEl.className = "sort-item"; chipEl.textContent = item.name;
+      stage.append(chipEl);
+
+      const binRow = document.createElement("div"); binRow.className = "bin-row";
+      [CATS.system, CATS.app, CATS.utility].forEach(cat => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "bin-btn";
+        b.style.borderColor = "color-mix(in srgb, " + cat.color + " 45%, var(--line-strong))";
+        b.innerHTML = `${chip(cat.color, "📦")}<span>${cat.name}</span>`;
+        b.addEventListener("click", () => {
+          binRow.querySelectorAll("button").forEach(x => x.disabled = true);
+          const correct = cat.key === item.cat;
+          b.classList.add(correct ? "flash-correct" : "flash-wrong");
+          chipEl.classList.add("fly-" + cat.key);
+          if (!correct) { chipEl.classList.add("is-wrong"); }
+          sim.recordTrial({ item: item.name, yourAnswer: cat.name, correct: correct ? L("Yes","Sí") : L("No","No") });
+          sim.mark("sort_"+item.key, correct);
+          burstAt(stage, correct ? [cat.color, "#eaf6ff"] : ["#c04b4b", "#eaf6ff"]);
+          if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(correct ? L("Correct!","¡Correcto!") : L("Not quite.","No exactamente."));
+          setTimeout(() => {
+            game.sortIndex++; sim.saveState();
+            if (game.sortIndex >= game.sortOrder.length) sim.mark("sort_rush_completed", true);
+            paintTabs(); host.innerHTML = ""; RENDER.sort(host, game);
+          }, 700);
+        });
+        binRow.append(b);
+      });
+      stage.append(binRow);
+      host.append(stage);
+    }
+    function renderSortDone(host, game){
+      const correctCount = state_correctCount(game);
+      const card = document.createElement("div"); card.className = "card sort-done";
+      card.innerHTML = `<p class="eyebrow">${L("Sort Rush complete!","¡Carrera de Clasificación completa!")}</p>
+        <p class="sort-done__n">${correctCount} / ${game.sortOrder.length}</p>
+        <p>${L("Head to Record to see every item you sorted, then explain your thinking.","Ve al Registro para ver cada elemento que clasificaste, y luego explica tu razonamiento.")}</p>`;
+      host.append(card);
+    }
+    function state_correctCount(game){
+      return sim.trials.filter(t => t.correct === L("Yes","Sí")).length;
+    }
+
+    /* ==================================================================
+       BONUS ROUND — Software Sort Blitz (arcade genre; no bonus round yet
+       exists elsewhere in this course, so either genre is a valid first
+       pick — arcade fits a fast sorting theme best)
+       ================================================================== */
+    const arcadeSection = document.createElement("div"); arcadeSection.style.marginTop = "var(--sp-6)"; host.append(arcadeSection);
+    const ARCADE_LANES = [
+      { id:"system",  label:CATS.system.name,  color:CATS.system.color },
+      { id:"app",     label:CATS.app.name,     color:CATS.app.color },
+      { id:"utility", label:CATS.utility.name, color:CATS.utility.color },
+    ];
+    const ARCADE_ITEMS = [
+      { id:"a1", label:"Windows", laneId:"system" }, { id:"a2", label:"macOS", laneId:"system" },
+      { id:"a3", label:"Linux", laneId:"system" }, { id:"a4", label:"Android", laneId:"system" }, { id:"a5", label:"iOS", laneId:"system" },
+      { id:"a6", label:L("Browser","Navegador"), laneId:"app" }, { id:"a7", label:L("Game","Juego"), laneId:"app" },
+      { id:"a8", label:L("Word Processor","Procesador"), laneId:"app" }, { id:"a9", label:L("Music Player","Música"), laneId:"app" },
+      { id:"a10", label:L("Antivirus","Antivirus"), laneId:"utility" }, { id:"a11", label:L("Firewall","Cortafuegos"), laneId:"utility" },
+      { id:"a12", label:L("Disk Cleaner","Limpiador"), laneId:"utility" }, { id:"a13", label:"Python", laneId:"utility" },
+    ];
+    function paintArcade(){
+      arcadeSection.innerHTML = "";
+      renderArcadeLaunch(arcadeSection, {
+        strings: {
+          title: L("Bonus round — Software Sort Blitz","Ronda bonus — Ráfaga de clasificación"),
+          instructions: L("Software flies at you — tap its category before it reaches the ring.","El software vuela hacia ti — toca su categoría antes de que llegue al aro."),
+          play: L("Play Software Sort Blitz","Jugar Ráfaga de clasificación"),
+          skip: L("Skip bonus round","Saltar ronda bonus"),
+        },
+        onPlay(){
+          arcadeSection.innerHTML = "";
+          const gameHost = document.createElement("div"); arcadeSection.append(gameHost);
+          mountArcadeRush(gameHost, {
+            threeUrl: THREE_URL, rounds: 24, lanes: ARCADE_LANES, items: ARCADE_ITEMS,
+            strings: {
+              title: L("Software Sort Blitz","Ráfaga de clasificación"),
+              instructions: L("Tap the category that matches the flying software. A late or wrong answer just resets your streak — never a fail.","Toca la categoría que corresponde al software que vuela. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
+              score: L("Score","Puntos"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"),
+              progress: L("Software","Software"), correct: L("Correct!","¡Correcto!"), wrong: L("Not quite.","No exactamente."),
+              missed: L("Missed it.","Se te escapó."), finishTitle: L("Round complete!","¡Ronda completa!"),
+              accuracy: L("Accuracy","Precisión"), playAgain: L("Play again","Jugar de nuevo"), continueLabel: L("Continue","Continuar"),
+            },
+            onExit(stats){
+              gameHost.innerHTML = ""; arcadeSection.innerHTML = "";
+              sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+              paintArcade();
+            }
+          });
+        },
+        onSkip(){ arcadeSection.innerHTML = ""; }
+      });
+    }
+    paintArcade();
+  }
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Discovery Lab activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong starting this lab. Please refresh the page.</p>';
+});
+</script>
+</body>
+</html>
