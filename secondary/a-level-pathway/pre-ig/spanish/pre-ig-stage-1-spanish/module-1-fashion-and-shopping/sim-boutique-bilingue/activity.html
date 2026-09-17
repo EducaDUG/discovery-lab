@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Boutique Bilingüe — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.diagram-credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right}
+.diagram-credit a{color:inherit}
+
+.dist-scale{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin-top:var(--sp-3)}
+.dist-scale__card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:var(--sp-3);text-align:center}
+.dist-scale__word{font-family:var(--font-data);font-weight:700;color:var(--accent);font-size:1.05rem}
+.dist-scale__adj{font-size:.85rem;color:var(--ink-2);margin-top:.2em}
+
+.boutique-photo-wrap{position:relative;max-width:340px;margin:var(--sp-3) auto 0;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.boutique-photo-wrap img{width:100%;display:block}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;
+  background:rgba(255,255,255,.18);border:2px solid #fff;box-shadow:0 0 0 2px var(--accent),0 2px 8px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.hotspot__dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.hotspot.is-done{border-color:var(--positive,#2e8b57);box-shadow:0 0 0 2px var(--positive,#2e8b57)}
+.hotspot.is-done .hotspot__dot{background:var(--positive,#2e8b57)}
+.hotspot.is-wrong{animation:spotshake .32s ease}
+@keyframes spotshake{0%,100%{transform:translate(-50%,-50%)}30%{transform:translate(calc(-50% - 6px),-50%)}60%{transform:translate(calc(-50% + 6px),-50%)}}
+[data-reduced-motion="on"] .hotspot.is-wrong{animation:none;outline:3px solid var(--negative,#b3392c)}
+
+.label-status{margin-top:var(--sp-2);font-weight:600;min-height:1.4em}
+.label-status.is-bad{color:var(--negative,#b3392c)}
+.label-status.is-good{color:var(--positive,#2e8b57)}
+
+.customer-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:var(--sp-4);margin-top:var(--sp-3)}
+.customer-card__who{font-family:var(--font-data);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3)}
+.customer-card__bubble{font-size:1.08rem;margin:.4em 0 0;font-style:italic}
+.customer-card__flavor{margin-top:.5em;font-size:.85rem;color:var(--ink-2);background:var(--wash);border-radius:8px;padding:.5em .7em}
+
+.shelf{display:flex;justify-content:center;align-items:flex-end;gap:var(--sp-3);margin-top:var(--sp-4);flex-wrap:wrap}
+.shelf__zone{display:flex;flex-direction:column;align-items:center;gap:.4em}
+.shelf__label{font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+.shelf__item{border:2px solid var(--line);background:var(--paper);border-radius:10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:.3em;padding:.6em;transition:transform .15s ease}
+.shelf__item svg{display:block}
+.shelf__item span{font-family:var(--font-data);font-size:.78rem}
+.shelf__zone--near .shelf__item{width:108px;padding:.9em}
+.shelf__zone--near .shelf__item svg{width:52px;height:52px}
+.shelf__zone--mid .shelf__item{width:88px;opacity:.92}
+.shelf__zone--mid .shelf__item svg{width:42px;height:42px}
+.shelf__zone--far .shelf__item{width:70px;opacity:.8}
+.shelf__zone--far .shelf__item svg{width:32px;height:32px}
+.shelf__item:hover{transform:translateY(-3px)}
+.shelf__item.is-correct{border-color:var(--positive,#2e8b57);background:color-mix(in srgb, var(--positive,#2e8b57) 12%, var(--paper))}
+.shelf__item.is-wrong{animation:spotshake .32s ease;border-color:var(--negative,#b3392c)}
+[data-reduced-motion="on"] .shelf__item.is-wrong{animation:none;outline:3px solid var(--negative,#b3392c)}
+
+.verb-task{margin-top:var(--sp-3);background:var(--wash);border-radius:10px;padding:var(--sp-3)}
+.verb-task__opts{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.verb-btn{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:.4em .8em;cursor:pointer;font-family:var(--font-data)}
+.verb-btn.is-correct{border-color:var(--positive,#2e8b57);background:color-mix(in srgb, var(--positive,#2e8b57) 15%, var(--paper))}
+.verb-btn.is-wrong{animation:spotshake .32s ease;border-color:var(--negative,#b3392c)}
+[data-reduced-motion="on"] .verb-btn.is-wrong{animation:none;outline:2px solid var(--negative,#b3392c)}
+
+.culture-note{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-top:var(--sp-4)}
+.culture-note figure{margin:0;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.culture-note img{width:100%;height:140px;object-fit:cover;display:block}
+.culture-note figcaption{padding:.6em .7em;font-size:.85rem}
+.culture-note figcaption b{display:block;color:var(--accent)}
+@media (max-width:560px){.culture-note{grid-template-columns:1fr}}
+
+.till-summary{background:var(--wash);border-radius:10px;padding:var(--sp-4);margin-top:var(--sp-4);text-align:center}
+.till-summary__big{font-family:var(--font-data);font-size:2rem;font-weight:700;color:var(--accent)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=18";
+import { getLang } from "../../../../../../../engine/i18n.js?v=8";
+import { renderArcadeLaunch, mountArcadeRush } from "../../../../../../../engine/arcade.js?v=3";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
+
+/* ---------- shared vocabulary + icons ---------- */
+const ICONS = {
+  falda: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 6h16l6 34H10z"/><path d="M16 6l-2 8M32 6l2 8" stroke-linecap="round"/></svg>',
+  pantalones: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 6h24l1 12-3 24h-6l-4-20-4 20h-6l-3-24z"/></svg>',
+  vestido: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6h12l3 8-4 4 5 26H14l5-26-4-4z"/></svg>',
+  jersey: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6h12l4 6 6 4-4 6-4-2v22H14V20l-4 2-4-6 6-4z"/></svg>',
+  bufanda: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 14c8 6 8-6 16 0s8-6 16 0M10 22c8 6 8-6 16 0s8-6 12 0" stroke-linecap="round"/><path d="M30 22l6 20" stroke-linecap="round"/></svg>',
+  gafas: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="14" cy="24" r="8"/><circle cx="34" cy="24" r="8"/><path d="M22 22h4M6 20l6 2M42 20l-6 2" stroke-linecap="round"/></svg>',
+  botas: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 4v22l-10 6v10h28l-2-14-6-4V4z"/></svg>',
+  camisa: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6l6 4 6-4 6 6-4 6-2-2v26H16V16l-2 2-4-6z"/></svg>',
+  abrigo: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 6l7 5 7-5 6 8-3 5v24H14V19l-3-5z"/><path d="M24 11v30" stroke-dasharray="2 3"/></svg>'
+};
+
+const ITEM_META = {
+  falda:      { es: "la falda",      en: "skirt" },
+  pantalones: { es: "los pantalones",en: "trousers" },
+  vestido:    { es: "el vestido",    en: "dress" },
+  jersey:     { es: "el jersey",     en: "sweater" },
+  bufanda:    { es: "la bufanda",    en: "scarf" },
+  gafas:      { es: "las gafas",     en: "sunglasses" },
+  botas:      { es: "las botas",     en: "boots" },
+  camisa:     { es: "la camisa",     en: "shirt" },
+  abrigo:     { es: "el abrigo",     en: "coat" }
+};
+
+function itemLabel(id){ return L(`${ITEM_META[id].es} (${ITEM_META[id].en})`, ITEM_META[id].es); }
+
+/* ---------- hotspot labelling photo ---------- */
+const HOTSPOTS = [
+  { key: "gorro",    fx: 0.50, fy: 0.06, es: "el gorro / la boina", en: "the beret / cap" },
+  { key: "guantes",  fx: 0.19, fy: 0.43, es: "los guantes",         en: "the gloves" },
+  { key: "abrigo",   fx: 0.71, fy: 0.35, es: "el abrigo",           en: "the coat" },
+  { key: "vestido",  fx: 0.56, fy: 0.80, es: "el vestido",          en: "the dress" },
+  { key: "botas",    fx: 0.56, fy: 0.92, es: "las botas",           en: "the boots" }
+];
+const OUTFIT_CREDIT = 'Photo: Tobias ToMar Maier — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>';
+const WEAVING_CREDIT = 'Photo: ArtProf — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a>';
+const ZARA_CREDIT = 'Photo: MingtieanHai BG — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>';
+
+/* ---------- the 8 customers ---------- */
+const ROUNDS = [
+  { client:"Ana",      city:L("Madrid, Spain","Madrid, España"),
+    line:"Perdón, ¿cuánto cuesta esta falda de aquí?",
+    zone:"near", target:"falda", others:{ mid:"pantalones", far:"botas" }, price:30,
+    verb:{ prompt:"Ana ______ (llevar) la falda a casa.", opts:["lleva","llevas","llevamos","llevo"], answer:0 } },
+
+  { client:"Martín",   city:L("Buenos Aires, Argentina","Buenos Aires, Argentina"),
+    line:"Prefiero esos pantalones de ahí.",
+    zone:"mid", target:"pantalones", others:{ near:"jersey", far:"vestido" }, price:40,
+    verb:{ prompt:"Martín ______ (ponerse) los pantalones nuevos.", opts:["se pone","te pones","me pongo","nos ponemos"], answer:0 } },
+
+  { client:"Sofía",    city:L("Mexico City, Mexico","Ciudad de México, México"),
+    line:"¿Puedo ver aquel vestido de allí?",
+    zone:"far", target:"vestido", others:{ near:"camisa", mid:"botas" }, price:55,
+    verb:{ prompt:"Yo ______ (ponerse) ese vestido para la fiesta.", opts:["me pongo","se pone","te pones","nos ponemos"], answer:0 } },
+
+  { client:"Diego",    city:L("Seville, Spain","Sevilla, España"),
+    line:"Busco ese jersey de ahí, no el otro.",
+    zone:"mid", target:"jersey", others:{ near:"bufanda", far:"abrigo" }, price:35,
+    flavor:L("Aside: in Spain a sweater is “el jersey” — in most of Latin America it's “el suéter”.","Apunte: en España un jersey es “el jersey” — en casi toda Latinoamérica es “el suéter”."),
+    verb:{ prompt:"Nosotros ______ (llevar) jerséis en invierno.", opts:["llevamos","lleva","llevo","llevan"], answer:0 } },
+
+  { client:"Valentina",city:L("Santiago, Chile","Santiago, Chile"),
+    line:"¿Me pasas esas gafas de ahí? Las necesito para el sol.",
+    zone:"mid", target:"gafas", others:{ near:"bufanda", far:"botas" }, price:20,
+    flavor:L("Aside: Spain says “las gafas”; Latin America usually says “los lentes” or “los anteojos” (Argentina).","Apunte: España dice “las gafas”; Latinoamérica suele decir “los lentes” o “los anteojos” (Argentina)."),
+    verb:{ prompt:"Valentina ______ (ponerse) los lentes de sol.", opts:["se pone","me pongo","te pones","se ponen"], answer:0 } },
+
+  { client:"Laura",    city:L("Barcelona, Spain","Barcelona, España"),
+    line:"Quiero probarme esta bufanda de aquí.",
+    zone:"near", target:"bufanda", others:{ mid:"abrigo", far:"gafas" }, price:15,
+    verb:{ prompt:"Yo ______ (ponerse) la bufanda cuando hace frío.", opts:["me pongo","te pones","se pone","nos ponemos"], answer:0 } },
+
+  { client:"Tomás",    city:L("Valparaíso, Chile","Valparaíso, Chile"),
+    line:"¿Tienen aquellas botas de allí en una talla más grande?",
+    zone:"far", target:"botas", others:{ near:"camisa", mid:"pantalones" }, price:60,
+    flavor:L("Aside: “de cuero” = leather, “la talla” = clothing size.","Apunte: “de cuero” = de piel de animal curtida, “la talla” = la medida de la ropa."),
+    verb:{ prompt:"Tomás ______ (llevar) botas de cuero.", opts:["lleva","llevas","llevo","llevamos"], answer:0 } },
+
+  { client:"Carmen",   city:L("Valencia, Spain","Valencia, España"),
+    line:"Me gusta esa camisa de ahí, ¿de qué es?",
+    zone:"mid", target:"camisa", others:{ near:"vestido", far:"gafas" }, price:25,
+    flavor:L("Aside: “de algodón” = cotton.","Apunte: “de algodón” = de fibra de la planta del algodón."),
+    verb:{ prompt:"Ella ______ (llevar) una camisa de algodón.", opts:["lleva","llevas","llevo","llevamos"], answer:0 } }
+];
+
+const ZONE_ORDER = ["near","mid","far"];
+const ZONE_LABEL = { near:L("Aquí","Aquí"), mid:L("Ahí","Ahí"), far:L("Allí","Allí") };
+
+/* ---------- arcade bonus round vocabulary ---------- */
+const LANES = [
+  { id:"ropa",  label:L("La Ropa","La Ropa"),  color:"#c2554b" },
+  { id:"viaje", label:L("El Viaje","El Viaje"), color:"#2f6f5e" }
+];
+const ARCADE_ITEMS = [
+  { id:"i1",  label:"la maleta",     laneId:"viaje" },
+  { id:"i2",  label:"la bufanda",    laneId:"ropa"  },
+  { id:"i3",  label:"el aeropuerto", laneId:"viaje" },
+  { id:"i4",  label:"los calcetines",laneId:"ropa"  },
+  { id:"i5",  label:"el pasaporte",  laneId:"viaje" },
+  { id:"i6",  label:"el jersey",     laneId:"ropa"  },
+  { id:"i7",  label:"el billete",    laneId:"viaje" },
+  { id:"i8",  label:"los zapatos",   laneId:"ropa"  },
+  { id:"i9",  label:"la mochila",    laneId:"viaje" },
+  { id:"i10", label:"las gafas",     laneId:"ropa"  },
+  { id:"i11", label:"el avión",      laneId:"viaje" },
+  { id:"i12", label:"la camiseta",   laneId:"ropa"  },
+  { id:"i13", label:"el mapa",       laneId:"viaje" },
+  { id:"i14", label:"el abrigo",     laneId:"ropa"  }
+];
+
+/* ================= ORIENT ================= */
+function drawOrient(host){
+  host.innerHTML = `
+    <p class="q__hint">${L("Spanish uses three degrees of distance, not just “this/that” like English.","El español usa tres grados de distancia, no solo “este/ese” como en inglés.")}</p>
+    <div class="dist-scale">
+      <div class="dist-scale__card"><div class="dist-scale__word">Aquí</div><div class="dist-scale__adj">este / esta<br>${L("(in my hand)","(en mi mano)")}</div></div>
+      <div class="dist-scale__card"><div class="dist-scale__word">Ahí</div><div class="dist-scale__adj">ese / esa<br>${L("(near you)","(cerca de ti)")}</div></div>
+      <div class="dist-scale__card"><div class="dist-scale__word">Allí</div><div class="dist-scale__adj">aquel / aquella<br>${L("(far from both)","(lejos de los dos)")}</div></div>
+    </div>`;
+}
+
+/* ================= INVESTIGATE ================= */
+function drawInvestigate(host, sim){
+  host.innerHTML = "";
+  sim.state.custom = sim.state.custom || {};
+  const S = sim.state.custom;
+  if (!S.labelOrder) S.labelOrder = HOTSPOTS.map(h=>h.key);
+  if (typeof S.labelIndex !== "number") S.labelIndex = 0;
+  if (!S.roundIndex) S.roundIndex = 0;
+  if (!S.revenue) S.revenue = 0;
+  if (!S.correctCount) S.correctCount = 0;
+
+  const wrap = document.createElement("div");
+  wrap.className = "stack";
+  host.append(wrap);
+
+  const labelSection = document.createElement("section");
+  labelSection.className = "panel";
+  wrap.append(labelSection);
+
+  const shopSection = document.createElement("section");
+  shopSection.className = "panel";
+  shopSection.hidden = S.labelIndex < HOTSPOTS.length ? true : false;
+  wrap.append(shopSection);
+
+  const arcadeSection = document.createElement("div");
+  arcadeSection.id = "arcade-section";
+  arcadeSection.style.marginTop = "var(--sp-5)";
+  wrap.append(arcadeSection);
+
+  paintLabelling();
+  paintShop();
+  paintArcadeSection();
+
+  /* ---- Stage A: photo labelling quiz ---- */
+  function paintLabelling(){
+    if (S.labelIndex >= HOTSPOTS.length){
+      labelSection.innerHTML = `
+        <p class="eyebrow">${L("Warm-up: label the shop window","Calentamiento: etiqueta el escaparate")}</p>
+        <p style="color:var(--positive,#2e8b57);font-weight:600">${L("Done — the shop window is fully labelled.","Listo — el escaparate está totalmente etiquetado.")}</p>`;
+      return;
+    }
+    const targetKey = S.labelOrder[S.labelIndex];
+    const targetMeta = HOTSPOTS.find(h=>h.key===targetKey);
+    labelSection.innerHTML = `
+      <p class="eyebrow">${L("Warm-up: label the shop window","Calentamiento: etiqueta el escaparate")}</p>
+      <p>${L("Tap the photo where you see:","Toca la foto donde ves:")} <b>${L(targetMeta.en, targetMeta.es)}</b></p>
+      <div class="boutique-photo-wrap">
+        <img src="photos/outfit.jpg" alt="${L("Outfit for winter","Look de invierno")}">
+      </div>
+      <p class="diagram-credit">${OUTFIT_CREDIT}</p>
+      <p class="label-status" id="label-status"></p>`;
+    const wrapEl = labelSection.querySelector(".boutique-photo-wrap");
+    HOTSPOTS.forEach((h,i)=>{
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "hotspot";
+      btn.style.left = (h.fx*100)+"%"; btn.style.top = (h.fy*100)+"%";
+      btn.setAttribute("aria-label", L("Is this the "+targetMeta.en+"?","¿Es esto "+targetMeta.es+"?"));
+      btn.innerHTML = '<span class="hotspot__dot"></span>';
+      if (S.labelOrder.indexOf(h.key) < S.labelIndex) btn.classList.add("is-done");
+      btn.addEventListener("click", ()=>{
+        const status = labelSection.querySelector("#label-status");
+        if (h.key === targetKey){
+          btn.classList.add("is-done");
+          status.textContent = L(`Correct — that's ${targetMeta.en}.`, `Correcto — eso es ${targetMeta.es}.`);
+          status.className = "label-status is-good";
+          S.labelIndex++;
+          sim.save && sim.save();
+          setTimeout(()=>{ paintLabelling(); paintShop(); paintArcadeSection(); }, 650);
+        } else {
+          btn.classList.remove("is-wrong"); void btn.offsetWidth; btn.classList.add("is-wrong");
+          status.textContent = L("Not quite — try another spot.","Casi — prueba otro punto.");
+          status.className = "label-status is-bad";
+        }
+      });
+      wrapEl.append(btn);
+    });
+  }
+
+  /* ---- Stage B: negotiation game ---- */
+  function paintShop(){
+    shopSection.hidden = S.labelIndex < HOTSPOTS.length;
+    if (shopSection.hidden) return;
+
+    if (S.roundIndex >= ROUNDS.length){
+      shopSection.innerHTML = `
+        <p class="eyebrow">${L("La Boutique Bilingüe","La Boutique Bilingüe")}</p>
+        <div class="till-summary">
+          <div class="till-summary__big">€${S.revenue}</div>
+          <p>${L(`Till closed — ${S.correctCount}/${ROUNDS.length} customers served correctly.`, `Caja cerrada — ${S.correctCount}/${ROUNDS.length} clientes bien atendidos.`)}</p>
+        </div>`;
+      return;
+    }
+
+    const r = ROUNDS[S.roundIndex];
+    shopSection.innerHTML = `
+      <p class="eyebrow">${L("La Boutique Bilingüe","La Boutique Bilingüe")} — ${S.roundIndex+1}/${ROUNDS.length}</p>
+      <div class="customer-card">
+        <div class="customer-card__who">${r.client} · ${r.city}</div>
+        <p class="customer-card__bubble">“${r.line}”</p>
+        ${r.flavor ? `<p class="customer-card__flavor">${r.flavor}</p>` : ""}
+      </div>
+      <div class="shelf" id="shelf"></div>
+      <div id="verb-slot"></div>
+      <div id="next-slot" style="margin-top:var(--sp-3)"></div>`;
+
+    const shelf = shopSection.querySelector("#shelf");
+    const zoneItems = { near: r.target === undefined ? null : null };
+    const placement = { [r.zone]: r.target, ...r.others };
+    let answered = false;
+
+    ZONE_ORDER.forEach(zoneId=>{
+      const itemId = placement[zoneId];
+      const zoneEl = document.createElement("div");
+      zoneEl.className = "shelf__zone shelf__zone--" + (zoneId==="near"?"near":zoneId==="mid"?"mid":"far");
+      zoneEl.innerHTML = `<span class="shelf__label">${ZONE_LABEL[zoneId]}</span>`;
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "shelf__item";
+      btn.innerHTML = ICONS[itemId] + `<span>${itemLabel(itemId)}</span>`;
+      btn.addEventListener("click", ()=>{
+        if (answered) return;
+        answered = true;
+        const correct = zoneId === r.zone;
+        if (correct){
+          btn.classList.add("is-correct");
+          S.correctCount++;
+        } else {
+          btn.classList.remove("is-wrong"); void btn.offsetWidth; btn.classList.add("is-wrong");
+          const rightBtn = shelf.querySelector(`[data-zone="${r.zone}"]`);
+          if (rightBtn) rightBtn.classList.add("is-correct");
+          sim.toast(L(`Not quite — listen for aquí/ahí/allí. The right spot was "${ZONE_LABEL[r.zone]}".`, `Casi — fíjate en aquí/ahí/allí. El sitio correcto era "${ZONE_LABEL[r.zone]}".`), "info");
+        }
+        S.revenue += correct ? r.price : 0;
+        sim.recordTrial({
+          cliente: r.line,
+          zona: ZONE_LABEL[r.zone],
+          elegido: itemLabel(placement[zoneId]),
+          resultado: correct ? "✓" : "✗",
+          precio: correct ? r.price : 0
+        });
+        sim.save && sim.save();
+        paintVerb();
+      });
+      btn.dataset.zone = zoneId;
+      zoneEl.append(btn);
+      shelf.append(zoneEl);
+    });
+
+    function paintVerb(){
+      const slot = shopSection.querySelector("#verb-slot");
+      slot.innerHTML = `
+        <div class="verb-task">
+          <p>${r.verb.prompt}</p>
+          <div class="verb-task__opts" id="verb-opts"></div>
+        </div>`;
+      const opts = slot.querySelector("#verb-opts");
+      let verbAnswered = false;
+      r.verb.opts.forEach((opt,i)=>{
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "verb-btn"; b.textContent = opt;
+        b.addEventListener("click", ()=>{
+          if (verbAnswered) return;
+          verbAnswered = true;
+          if (i === r.verb.answer){
+            b.classList.add("is-correct");
+            sim.toast(L("Correct conjugation!","¡Conjugación correcta!"), "success");
+          } else {
+            b.classList.remove("is-wrong"); void b.offsetWidth; b.classList.add("is-wrong");
+            opts.children[r.verb.answer].classList.add("is-correct");
+          }
+          paintNext();
+        });
+        opts.append(b);
+      });
+    }
+
+    function paintNext(){
+      const slot = shopSection.querySelector("#next-slot");
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "btn btn--signal";
+      btn.textContent = S.roundIndex+1 < ROUNDS.length ? L("Next customer →","Siguiente cliente →") : L("Close the till →","Cerrar la caja →");
+      btn.addEventListener("click", ()=>{ S.roundIndex++; sim.save && sim.save(); paintShop(); paintArcadeSection(); });
+      slot.append(btn);
+    }
+
+    if (S.roundIndex === 3){
+      const note = document.createElement("div");
+      note.className = "culture-note";
+      note.innerHTML = `
+        <figure>
+          <img src="photos/zara-store.jpg" alt="Zara store">
+          <figcaption><b>${L("Fast fashion","Moda rápida")}</b>${L("Zara/Inditex (Spain): new designs reach stores almost twice a week.","Zara/Inditex (España): los diseños nuevos llegan a la tienda casi dos veces por semana.")}
+            <p class="diagram-credit">${ZARA_CREDIT}</p></figcaption>
+        </figure>
+        <figure>
+          <img src="photos/weaving.jpg" alt="Backstrap loom weaving in Guatemala">
+          <figcaption><b>${L("Slow fashion","Moda lenta")}</b>${L("Backstrap-loom weaving (Guatemala): one hand-woven piece can take months.","Tejido en telar de cintura (Guatemala): una pieza tejida a mano puede tardar meses.")}
+            <p class="diagram-credit">${WEAVING_CREDIT}</p></figcaption>
+        </figure>`;
+      shopSection.append(note);
+    }
+  }
+
+  function paintArcadeSection(){
+    const done = S.labelIndex >= HOTSPOTS.length && S.roundIndex >= ROUNDS.length;
+    if (!done){ arcadeSection.innerHTML = ""; arcadeSection.dataset.rendered = ""; return; }
+    if (arcadeSection.dataset.rendered) return;
+    arcadeSection.dataset.rendered = "1";
+    renderArcadeLaunch(arcadeSection, {
+      strings: {
+        title: L("Bonus round — Sale Rush","Ronda bonus — Rebajas Relámpago"),
+        instructions: L("Words fly at you — tap “La Ropa” or “El Viaje” before the word reaches the ring.", "Las palabras vuelan hacia ti — toca “La Ropa” o “El Viaje” antes de que la palabra llegue al aro."),
+        play: L("Play Sale Rush","Jugar Rebajas Relámpago"),
+        skip: L("Skip bonus round","Saltar ronda bonus")
+      },
+      onPlay(){
+        arcadeSection.innerHTML = "";
+        const gameHost = document.createElement("div");
+        arcadeSection.append(gameHost);
+        mountArcadeRush(gameHost, {
+          threeUrl: THREE_URL,
+          rounds: 24,
+          lanes: LANES,
+          items: ARCADE_ITEMS,
+          strings: {
+            title: L("Sale Rush","Rebajas Relámpago"),
+            instructions: L("Tap the correct category before each word reaches the ring.","Toca la categoría correcta antes de que la palabra llegue al aro."),
+            score: L("Score","Puntos"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"),
+            progress: L("Word","Palabra"),
+            correct: L("Correct!","¡Correcto!"), wrong: L("Not quite.","Casi."), missed: L("Missed it.","Se te escapó."),
+            finishTitle: L("Round complete!","¡Ronda terminada!"), accuracy: L("Accuracy","Precisión"),
+            playAgain: L("Play again","Jugar otra vez"), continueLabel: L("Continue","Continuar"),
+            soundOn: L("Sound on","Sonido activado"), soundOff: L("Sound off","Sonido desactivado")
+          },
+          onExit(stats){
+            gameHost.innerHTML = ""; arcadeSection.innerHTML = "";
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus terminada — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+            arcadeSection.dataset.rendered = "";
+            paintArcadeSection();
+          }
+        });
+      },
+      onSkip(){ arcadeSection.innerHTML = ""; }
+    });
+  }
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+
+mountActivity({ simulation }).catch(e=>{
+  console.error("Activity failed to start:", e);
+  const r=document.getElementById("lab-root");
+  if(r) r.innerHTML='<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
