@@ -38,7 +38,7 @@ SHELL = """<!DOCTYPE html>
 <meta property="og:title" content="{title} &mdash; Discovery Lab">
 <meta property="og:description" content="{description}">
 <meta property="og:url" content="{canonical}">
-<link rel="stylesheet" href="{root}engine/style.css?v={v}">
+<link rel="stylesheet" href="{root}engine/style.css?v={sv}">
 </head>
 <body>
 <a class="skip-link" href="#main" data-lang="en">Skip to content</a>
@@ -77,6 +77,7 @@ SHELL = """<!DOCTYPE html>
 """
 
 ASSET_VERSION = "11"
+STYLE_VERSION = "12"
 
 
 def walk(nodes, trail, out):
@@ -126,6 +127,7 @@ def main():
                 path=url_path,
                 owner=owner,
                 v=ASSET_VERSION,
+                sv=STYLE_VERSION,
             ),
             encoding="utf-8",
         )
