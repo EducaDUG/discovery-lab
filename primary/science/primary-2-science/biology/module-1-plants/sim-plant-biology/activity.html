@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<!-- Primary 2 Science · Biology · Module 1: Plants · Plant Biology: The Greenhouse Lab.
+     Content lives here + config.json only. Never edit the shared engine for a content change. -->
+<html lang="en" data-theme="biology" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plant Biology: The Greenhouse Lab — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Plant Biology — scoped visual treatment (content-vs-engine rule, CLAUDE.md). */
+  .gh-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .gh-station__head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; }
+  .gh-station__n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .gh-station__title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .gh-station__done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .gh-station__done[data-show="true"] { display: inline; }
+
+  /* Kitchen */
+  .gh-kitchen-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(120% 140% at 30% 10%, #eaf5e6 0%, #d7ead0 60%, #c3ddba 100%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; min-height: 220px; }
+  [data-theme="biology"][data-tint="dark"] .gh-kitchen-stage, .theme-dark .gh-kitchen-stage { background: radial-gradient(120% 140% at 30% 10%, #16241a 0%, #0e1a12 60%, #0a130d 100%); }
+  .gh-kitchen-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .gh-kitchen-stage:active canvas { cursor: grabbing; }
+  .gh-kitchen-fallback { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; }
+  .gh-chips { display: flex; gap: .6rem; margin-top: .7rem; flex-wrap: wrap; }
+  .gh-chip { flex: 1 1 8rem; display: flex; flex-direction: column; align-items: center; gap: .3rem; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: .6rem .4rem; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; color: var(--ink); }
+  .gh-chip svg { width: 28px; height: 28px; }
+  .gh-chip:hover, .gh-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .gh-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
+  .gh-kitchen-read { margin-top: .6rem; font-family: var(--font-data); font-size: .8rem; color: var(--ink-2); }
+
+  /* Photo labelling */
+  .gh-photo-wrap { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: #dfe3e0; margin-top: .6rem; }
+  .gh-photo-wrap img { display: block; width: 100%; height: auto; }
+  .gh-spot { position: absolute; width: 32px; height: 32px; margin: -16px 0 0 -16px; border-radius: 50%; border: 3px solid #fff; background: #00000055; color: #fff; font-family: var(--font-data); font-weight: 800; font-size: .9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #00000033; }
+  .gh-spot:hover, .gh-spot:focus-visible { background: var(--signal); outline: none; }
+  .gh-spot[data-open="true"] { background: var(--accent); }
+  .gh-spot[data-solved="true"] { background: var(--accent); border-color: #fff; }
+  .gh-spot.gh-pulse { animation: gh-pulse .4s ease; }
+  .gh-spot.gh-shake { animation: gh-shake .35s ease; }
+  [data-reduced-motion="on"] .gh-spot.gh-pulse, [data-reduced-motion="on"] .gh-spot.gh-shake { animation: none; }
+  @keyframes gh-pulse { 0% { transform: scale(1); } 45% { transform: scale(1.4); } 100% { transform: scale(1); } }
+  @keyframes gh-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .gh-label-panel { position: absolute; z-index: 6; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: var(--shadow-3); padding: .5rem; display: grid; gap: .3rem; min-width: 11rem; }
+  .gh-label-panel button { text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 7px; padding: .4rem .6rem; font: inherit; font-size: .82rem; cursor: pointer; color: var(--ink); }
+  .gh-label-panel button:hover, .gh-label-panel button:focus-visible { border-color: var(--accent); outline: none; }
+  .gh-label-panel button.gh-shake { animation: gh-shake .35s ease; border-color: var(--signal); }
+  [data-reduced-motion="on"] .gh-label-panel button.gh-shake { animation: none; }
+  .gh-credit { font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+
+  /* Launch pad */
+  .gh-launch-arena { position: relative; margin-top: .7rem; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(180deg, #cfe8ff 0%, #eaf5e6 55%, #c9dcb8 100%); overflow: hidden; min-height: 220px; }
+  .gh-zones { display: flex; justify-content: space-around; padding-top: .8rem; }
+  .gh-zone { width: 30%; text-align: center; border-radius: 10px; padding: .6rem .3rem; border: 2px dashed transparent; }
+  .gh-zone__icon { width: 44px; height: 44px; margin: 0 auto; }
+  .gh-zone__label { font-size: .78rem; font-weight: 700; margin-top: .2rem; }
+  .gh-zone.gh-target { border-color: var(--accent); background: #ffffff55; }
+  .gh-zone.gh-success { animation: gh-pop .5s ease; border-color: var(--accent); background: #ffffff88; }
+  .gh-zone.gh-fail { animation: gh-shake .35s ease; }
+  [data-reduced-motion="on"] .gh-zone.gh-success, [data-reduced-motion="on"] .gh-zone.gh-fail { animation: none; }
+  @keyframes gh-pop { 0% { transform: scale(1); } 45% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  .gh-pad { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%); text-align: center; }
+  .gh-seed-flight { position: absolute; width: 30px; height: 30px; z-index: 5; pointer-events: none; }
+  .gh-seedpicker { display: flex; gap: .5rem; justify-content: center; margin-top: .6rem; flex-wrap: wrap; }
+  .gh-seedbtn { display: flex; flex-direction: column; align-items: center; gap: .25rem; border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: .4rem .7rem; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; color: var(--ink); }
+  .gh-seedbtn svg { width: 26px; height: 26px; }
+  .gh-seedbtn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
+  .gh-launchbtn { display: block; margin: .7rem auto 0; }
+
+  .gh-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .gh-obs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .gh-obs-btn { text-align: left; border: 1px dashed var(--line); background: var(--surface); border-radius: 10px; padding: .6rem .7rem; font: inherit; font-size: .84rem; cursor: pointer; color: var(--ink); display: flex; gap: .5rem; align-items: flex-start; }
+  .gh-obs-btn:hover, .gh-obs-btn:focus-visible { border-color: var(--accent); outline: none; }
+  .gh-obs-btn.is-done { border-style: solid; border-color: var(--accent); background: var(--accent-wash); }
+  .gh-obs-btn__mark { flex: none; }
+
+  .gh-reflect { display: grid; gap: .4rem; margin-top: .5rem; }
+  .gh-chiprow { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .gh-chiprow button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: .35rem .9rem; font: inherit; font-size: .82rem; cursor: pointer; color: var(--ink); }
+  .gh-chiprow button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); font-weight: 700; }
+
+  .gh-diagram { width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=18";
+import { getLang } from "../../../../../../engine/i18n.js?v=8";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../engine/arcade.js?v=3";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(1 - Math.pow(1 - t, 3), t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+/* Small DOM/CSS particle burst, shared by every station — see CLAUDE.md's
+   "every interaction needs juice" amendment. `container` must be
+   position:relative/absolute so particles anchor to it correctly. */
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return;
+  count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span");
+    p.className = "gh-particle";
+    const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px";
+    p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.append(p);
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 50;
+    const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 20;
+    p.animate(
+      [{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
+       { transform: `translate(${dx - 0}px, ${dy}px) scale(.3)`, opacity: 0 }],
+      { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
+}
+function hasWebGL() {
+  try { const c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { return false; }
+}
+
+/* ============================================================
+   ICONS — small inline SVGs, never emoji (CLAUDE.md §4).
+   ============================================================ */
+const ICO = {
+  sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-linecap="round"/></svg>`,
+  drop: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2s7 8.2 7 13a7 7 0 1 1-14 0c0-4.8 7-13 7-13Z"/></svg>`,
+  bubble: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="14" r="5.5"/><circle cx="17" cy="7" r="2.6"/></svg>`,
+  wind: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 8h11a2.5 2.5 0 1 0-2.5-2.5"/><path d="M3 13h15a2.5 2.5 0 1 1-2.5 2.5"/><path d="M3 18h9a2.2 2.2 0 1 0-2.2-2.2"/></svg>`,
+  water: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 15c2-1 3 1 5 0s3 1 5 0 3 1 5 0 3 1 5 0" stroke-linecap="round"/><path d="M3 19c2-1 3 1 5 0s3 1 5 0 3 1 5 0 3 1 5 0" stroke-linecap="round"/><path d="M12 4v9" stroke-linecap="round"/></svg>`,
+  paw: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="6" cy="9" r="2"/><circle cx="12" cy="6.5" r="2"/><circle cx="18" cy="9" r="2"/><path d="M12 12c3.5 0 6.5 2.3 6.5 5.2 0 1.9-1.7 3-3.6 2.2-1.1-.5-2-1.3-2.9-1.3s-1.8.8-2.9 1.3C7.2 20.4 5.5 19.3 5.5 17.4 5.5 14.5 8.5 12 12 12Z"/></svg>`,
+  dandelion: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="7" r="2.6" fill="currentColor" stroke="none"/><path d="M12 4.5v-3M9.8 5.2 7.3 3M14.2 5.2l2.5-2.2M8.4 7.6 5.6 6.8M15.6 7.6l2.8-.8M9 9l-2 2M15 9l2 2" stroke-linecap="round"/><path d="M12 9.6V21" stroke-linecap="round"/></svg>`,
+  coconut: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="13" r="8"/><circle cx="9.5" cy="11" r="1.1" fill="var(--surface)"/><circle cx="13.5" cy="10" r="1.1" fill="var(--surface)"/><circle cx="12" cy="14" r="1.1" fill="var(--surface)"/></svg>`,
+  burr: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><g stroke-linecap="round"><path d="M12 7.8V3M12 20.2V16.2M7.8 12H3M20.2 12H16.2M8.9 8.9 5.8 5.8M18.2 18.2l-3.1-3.1M8.9 15.1l-3.1 3.1M18.2 5.8l-3.1 3.1"/></g></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>`,
+};
+
+/* ============================================================
+   OBSERVATION — tap-to-notice on the real seedling photo, before
+   any names are taught (CLAUDE.md §4 interactivity-density rule).
+   ============================================================ */
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L(
+    "This is a real photograph of navy bean seeds germinating, from a bare seed (left) to a young seedling (right). Tap each button to notice something real about it — before you learn any names.",
+    "Esta es una fotografía real de semillas de judía germinando, desde una semilla desnuda (izquierda) hasta una plántula joven (derecha). Toca cada botón para observar algo real — antes de aprender ningún nombre."
+  );
+  host.append(intro);
+
+  const photoWrap = document.createElement("div"); photoWrap.className = "gh-photo-wrap";
+  photoWrap.innerHTML = `<img src="photos/navy-bean-seedlings.jpg" alt="${L(
+    "A real photograph showing navy bean seeds at several stages of germination, from a bare seed to a seedling with roots, a stem and open leaves",
+    "Una fotografía real que muestra semillas de judía en varias etapas de germinación, desde una semilla desnuda hasta una plántula con raíces, tallo y hojas abiertas")}">`;
+  host.append(photoWrap);
+
+  const NOTICES = [
+    { en: "The bare seed on the far left has no roots, stem or leaves at all yet — everything is packed inside.", es: "La semilla desnuda de la izquierda todavía no tiene raíces, tallo ni hojas — todo está guardado dentro." },
+    { en: "The roots always grow downward first, even though the seeds were laid every which way.", es: "Las raíces siempre crecen primero hacia abajo, aunque las semillas se colocaron en cualquier dirección." },
+    { en: "The stem grows in a curved hook shape at first, which protects the delicate tip as it pushes upward.", es: "El tallo crece primero con forma de gancho curvado, lo que protege la punta delicada mientras empuja hacia arriba." },
+    { en: "The tallest seedling has TWO different kinds of leaf: a small yellow-green oval, and a bigger flat green one.", es: "La plántula más alta tiene DOS tipos de hoja diferentes: un óvalo pequeño amarillo-verdoso, y una más grande y plana verde." },
+  ];
+  const grid = document.createElement("div"); grid.className = "gh-obs-grid";
+  NOTICES.forEach((n, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "gh-obs-btn";
+    b.innerHTML = `<span class="gh-obs-btn__mark">👁</span><span>${L(`Notice something #${i + 1}`, `Observa algo #${i + 1}`)}</span>`;
+    b.addEventListener("click", () => {
+      if (b.classList.contains("is-done")) return;
+      b.classList.add("is-done");
+      b.querySelector("span:last-child").textContent = L(n.en, n.es);
+      if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L(n.en, n.es));
+    });
+    grid.append(b);
+  });
+  host.append(grid);
+
+  const credit = document.createElement("p"); credit.className = "gh-credit";
+  credit.innerHTML = L(
+    'Photo: <em>Navy Bean Seed to Seedling Germination</em> by B. Domangue — <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, via <a href="https://commons.wikimedia.org/wiki/File:Navy_Bean_Seed_to_Seedling_Germination.jpg" target="_blank" rel="noopener">Wikimedia Commons</a>.',
+    'Foto: <em>Navy Bean Seed to Seedling Germination</em> por B. Domangue — <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a>, vía <a href="https://commons.wikimedia.org/wiki/File:Navy_Bean_Seed_to_Seedling_Germination.jpg" target="_blank" rel="noopener">Wikimedia Commons</a>.'
+  );
+  host.append(credit);
+
+  const wrap = document.createElement("p"); wrap.className = "q__hint"; wrap.style.marginTop = "var(--sp-4)";
+  wrap.textContent = L(
+    "Keep what you noticed in mind — you'll label these exact parts properly once you reach the Greenhouse Lab.",
+    "Recuerda lo que observaste — etiquetarás estas mismas partes correctamente cuando llegues al Laboratorio del Invernadero."
+  );
+  host.append(wrap);
+}
+
+/* ============================================================
+   ORIENT — a simple photosynthesis diagram: what goes in, what
+   comes out, and where.
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L(
+    "A leaf is a tiny kitchen. Three ingredients go in, and two things come out.",
+    "Una hoja es una pequeña cocina. Entran tres ingredientes, y salen dos cosas."
+  );
+  host.append(p);
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <svg class="gh-diagram" viewBox="0 0 340 220" role="img" aria-label="${L("Diagram of photosynthesis: sunlight, water and carbon dioxide go into a leaf; glucose and oxygen come out.", "Diagrama de la fotosíntesis: la luz solar, el agua y el dióxido de carbono entran en una hoja; salen glucosa y oxígeno.")}">
+      <ellipse cx="170" cy="110" rx="72" ry="46" fill="var(--accent)" opacity=".85"/>
+      <path d="M170 64 Q205 110 170 156 Q135 110 170 64Z" fill="var(--accent-hi)" opacity=".5"/>
+      <text x="170" y="114" text-anchor="middle" font-family="var(--font-ui)" font-weight="700" font-size="13" fill="var(--accent-ink)">${L("LEAF", "HOJA")}</text>
+      <text x="170" y="130" text-anchor="middle" font-family="var(--font-ui)" font-size="9" fill="var(--accent-ink)">${L("(chlorophyll traps light)", "(la clorofila atrapa la luz)")}</text>
+
+      <line x1="30" y1="30" x2="118" y2="80" stroke="var(--signal)" stroke-width="2.5" marker-end="url(#ghA)"/>
+      <text x="10" y="24" font-family="var(--font-ui)" font-size="11" font-weight="700" fill="var(--ink)">${L("Sunlight", "Luz solar")}</text>
+
+      <line x1="30" y1="110" x2="102" y2="110" stroke="#1E6FD6" stroke-width="2.5" marker-end="url(#ghA)"/>
+      <text x="8" y="105" font-family="var(--font-ui)" font-size="11" font-weight="700" fill="var(--ink)">${L("Water", "Agua")}</text>
+
+      <line x1="30" y1="190" x2="118" y2="140" stroke="var(--ink-3)" stroke-width="2.5" marker-end="url(#ghA)"/>
+      <text x="4" y="205" font-family="var(--font-ui)" font-size="11" font-weight="700" fill="var(--ink)">${L("Carbon dioxide", "Dióxido de carbono")}</text>
+
+      <line x1="222" y1="80" x2="305" y2="35" stroke="#B5901F" stroke-width="2.5" marker-end="url(#ghA)"/>
+      <text x="252" y="26" font-family="var(--font-ui)" font-size="11" font-weight="700" fill="var(--ink)">${L("Glucose (food)", "Glucosa (alimento)")}</text>
+
+      <line x1="222" y1="140" x2="305" y2="190" stroke="#1E8C60" stroke-width="2.5" marker-end="url(#ghA)"/>
+      <text x="266" y="206" font-family="var(--font-ui)" font-size="11" font-weight="700" fill="var(--ink)">${L("Oxygen", "Oxígeno")}</text>
+
+      <defs><marker id="ghA" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="var(--ink)"/></marker></defs>
+    </svg>`;
+  host.append(wrap);
+}
+
+/* ============================================================
+   STATION 1 — PHOTOSYNTHESIS KITCHEN
+   ============================================================ */
+/* Re-invoked on Reset Investigation (engine.js clears simHost and re-calls
+   simulation.investigate) — without cancelling the previous animation frame
+   loop, its Three.js renderer would keep rendering a detached canvas forever. */
+let cleanupKitchen = null;
+function buildKitchen(mount, sim, onDone) {
+  if (cleanupKitchen) { cleanupKitchen(); cleanupKitchen = null; }
+  const card = document.createElement("div"); card.className = "gh-station";
+  card.innerHTML = `<div class="gh-station__head">
+      <span class="gh-station__n">1</span>
+      <h3 class="gh-station__title">${L("The Photosynthesis Kitchen", "La Cocina de la Fotosíntesis")}</h3>
+      <span class="gh-station__done" id="gh-k-done">${L("✓ Cooking!", "✓ ¡Cocinando!")}</span>
+    </div>
+    <p class="q__hint">${L("Tap all three ingredients to run one cycle. Drag the plant to look around — that's just the camera, not the science.", "Toca los tres ingredientes para completar un ciclo. Arrastra la planta para mirarla — eso solo mueve la cámara, no la ciencia.")}</p>
+    <div class="gh-kitchen-stage" id="gh-k-stage"></div>
+    <div class="gh-chips" id="gh-k-chips"></div>
+    <p class="gh-kitchen-read"><span id="gh-k-count">0</span> ${L("full cycles cooked", "ciclos completos")}</p>`;
+  mount.append(card);
+
+  const stage = card.querySelector("#gh-k-stage");
+  const doneTag = card.querySelector("#gh-k-done");
+  const countEl = card.querySelector("#gh-k-count");
+  let cycles = 0;
+  let plantGroup = null, camera = null, renderer = null, scene = null;
+
+  function cook() {
+    cycles++;
+    countEl.textContent = String(cycles);
+    if (cycles === 1) doneTag.dataset.show = "true";
+    burst(stage, 50, 30, ["#F4C542", "#FFE38A", "#E9A63B"], 12);
+    burst(stage, 50, 55, ["#8fd6ff", "#c8ecff"], 8);
+    if (plantGroup && !reducedMotion()) {
+      const base = plantGroup.userData.baseScale + Math.min(cycles, 6) * 0.05;
+      tween(320, e => { plantGroup.scale.setScalar(base * (1 + 0.08 * Math.sin(e * Math.PI))); }, () => plantGroup.scale.setScalar(base));
+    } else if (plantGroup) {
+      plantGroup.scale.setScalar(plantGroup.userData.baseScale + Math.min(cycles, 6) * 0.05);
+    }
+    sim.recordTrial({ station: L("Kitchen", "Cocina"), item: L(`Cycle ${cycles}`, `Ciclo ${cycles}`), outcome: L("Sunlight + water + CO2 → glucose + oxygen", "Luz + agua + CO2 → glucosa + oxígeno") });
+    sim.toast(L("Cycle complete — glucose made, oxygen released!", "¡Ciclo completo — glucosa fabricada, oxígeno liberado!"), "correct");
+    if (cycles === 1) sim.award("chef", L("Junior Plant Chef", "Chef Vegetal Junior"));
+    if (cycles === 4) sim.award("headchef", L("Head Chef of Photosynthesis", "Jefe de Cocina de la Fotosíntesis"));
+    onDone();
+  }
+
+  const chips = card.querySelector("#gh-k-chips");
+  const need = new Set(["sun", "water", "co2"]);
+  const have = new Set();
+  [["sun", ICO.sun, L("Sunlight", "Luz solar")], ["water", ICO.drop, L("Water", "Agua")], ["co2", ICO.bubble, L("Carbon dioxide", "Dióxido de carbono")]]
+    .forEach(([id, ico, label]) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "gh-chip"; b.setAttribute("aria-pressed", "false");
+      b.innerHTML = ico + `<span>${label}</span>`;
+      b.addEventListener("click", () => {
+        const on = b.getAttribute("aria-pressed") === "true";
+        b.setAttribute("aria-pressed", String(!on));
+        if (!on) have.add(id); else have.delete(id);
+        if ([...need].every(k => have.has(k))) {
+          have.clear();
+          chips.querySelectorAll(".gh-chip").forEach(c => c.setAttribute("aria-pressed", "false"));
+          cook();
+        }
+      });
+      chips.append(b);
+    });
+
+  /* ---- 3D scene, with a non-WebGL fallback (CLAUDE.md §6). ---- */
+  if (THREE_OK && hasWebGL()) {
+    const canvas = document.createElement("canvas"); stage.append(canvas);
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 50);
+    camera.position.set(0, 2.4, 7.2); camera.lookAt(0, 1.3, 0);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const sun = new THREE.DirectionalLight(0xfff3d0, 1.1); sun.position.set(3, 6, 4); scene.add(sun);
+
+    plantGroup = new THREE.Group(); plantGroup.userData.baseScale = 1; scene.add(plantGroup);
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 0.85, 1.1, 24), new THREE.MeshStandardMaterial({ color: 0xB5601F, roughness: 0.9 }));
+    pot.position.y = 0.55; plantGroup.add(pot);
+    const soil = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.12, 24), new THREE.MeshStandardMaterial({ color: 0x3b2a1c, roughness: 1 }));
+    soil.position.y = 1.12; plantGroup.add(soil);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 2.6, 10), new THREE.MeshStandardMaterial({ color: 0x3f7a34, roughness: 0.8 }));
+    stem.position.y = 2.35; plantGroup.add(stem);
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x4a9636, roughness: 0.7, side: THREE.DoubleSide });
+    const leafPositions = [
+      [0, 2.15, 0, 0.5], [0.55, 2.55, 0.15, 0.35], [-0.55, 2.75, -0.1, 0.4],
+      [0.35, 3.25, 0.35, 0.3], [-0.4, 3.55, -0.2, 0.32], [0, 3.9, 0, 0.42],
+    ];
+    leafPositions.forEach(([x, y, z, s], i) => {
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), leafMat);
+      leaf.scale.set(s * 1.8, s * 0.5, s);
+      leaf.position.set(x, y, z);
+      leaf.rotation.z = (i % 2 ? 1 : -1) * 0.5;
+      plantGroup.add(leaf);
+    });
+
+    function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    new ResizeObserver(resize).observe(stage); resize();
+
+    let dragging = false, lastX = 0, rotY = 0.4;
+    canvas.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointermove", e => { if (!dragging) return; rotY += (e.clientX - lastX) * 0.008; lastX = e.clientX; });
+    window.addEventListener("pointerup", () => dragging = false);
+
+    let raf = requestAnimationFrame(function loop() {
+      if (!dragging && !reducedMotion()) rotY += 0.0018;
+      plantGroup.rotation.y = rotY;
+      plantGroup.position.y = reducedMotion() ? 0 : Math.sin(performance.now() / 900) * 0.03;
+      renderer.render(scene, camera);
+      raf = requestAnimationFrame(loop);
+    });
+    cleanupKitchen = () => { cancelAnimationFrame(raf); renderer.dispose(); };
+  } else {
+    stage.classList.add("gh-kitchen-fallback");
+    stage.innerHTML = `<svg viewBox="0 0 200 160" style="width:70%;max-width:220px" id="gh-k-fallback-plant" aria-hidden="true">
+        <rect x="70" y="120" width="60" height="30" rx="6" fill="#B5601F"/>
+        <ellipse cx="100" cy="122" rx="30" ry="6" fill="#3b2a1c"/>
+        <rect x="96" y="55" width="8" height="70" rx="4" fill="#3f7a34"/>
+        <g id="gh-k-leaves" fill="#4a9636">
+          <ellipse cx="100" cy="55" rx="10" ry="22"/>
+          <ellipse cx="72" cy="75" rx="22" ry="10" transform="rotate(-20 72 75)"/>
+          <ellipse cx="128" cy="85" rx="22" ry="10" transform="rotate(20 128 85)"/>
+        </g>
+      </svg>`;
+    plantGroup = { scale: { setScalar(v) { const el = document.getElementById("gh-k-fallback-plant"); if (el) el.style.transform = `scale(${v})`; el.style.transformOrigin = "50% 100%"; } }, userData: { baseScale: 1 } };
+  }
+}
+
+/* ============================================================
+   STATION 2 — LABEL THE LIVING SEEDLING (real photo)
+   ============================================================ */
+function buildLabelling(mount, sim, onDone) {
+  const PARTS = [
+    { id: "roots", x: 0.83, y: 0.64, en: "Roots", es: "Raíces" },
+    { id: "stem", x: 0.795, y: 0.49, en: "Stem", es: "Tallo" },
+    { id: "cotyledon", x: 0.80, y: 0.37, en: "Seed leaf (cotyledon)", es: "Hoja semilla (cotiledón)" },
+    { id: "leaf", x: 0.825, y: 0.165, en: "First true leaf", es: "Primera hoja verdadera" },
+  ];
+  const card = document.createElement("div"); card.className = "gh-station";
+  card.innerHTML = `<div class="gh-station__head">
+      <span class="gh-station__n">2</span>
+      <h3 class="gh-station__title">${L("Label the Living Seedling", "Etiqueta la Plántula Viva")}</h3>
+      <span class="gh-station__done" id="gh-l-done">${L("✓ All labelled!", "✓ ¡Todo etiquetado!")}</span>
+    </div>
+    <p class="q__hint">${L("Tap a numbered dot on the real photo, then choose the correct label.", "Toca un punto numerado en la foto real y luego elige la etiqueta correcta.")}</p>
+    <div class="gh-photo-wrap" id="gh-l-photo">
+      <img src="photos/navy-bean-seedlings.jpg" alt="${L("A real photograph of navy bean seedlings with numbered dots over the roots, stem, cotyledon and first leaf", "Una fotografía real de plántulas de judía con puntos numerados sobre las raíces, el tallo, el cotiledón y la primera hoja")}">
+    </div>
+    <p class="gh-credit">${L(
+      'Photo: <em>Navy Bean Seed to Seedling Germination</em> by B. Domangue — <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.',
+      'Foto: <em>Navy Bean Seed to Seedling Germination</em> por B. Domangue — <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a>.'
+    )}</p>`;
+  mount.append(card);
+  const photo = card.querySelector("#gh-l-photo");
+  const doneTag = card.querySelector("#gh-l-done");
+  let openPanel = null;
+  let solvedCount = 0;
+
+  function closePanel() { if (openPanel) { openPanel.remove(); openPanel = null; } photo.querySelectorAll(".gh-spot").forEach(s => s.dataset.open = "false"); }
+
+  PARTS.forEach((part, i) => {
+    const dot = document.createElement("button"); dot.type = "button"; dot.className = "gh-spot";
+    dot.style.left = (part.x * 100) + "%"; dot.style.top = (part.y * 100) + "%";
+    dot.textContent = String(i + 1);
+    dot.setAttribute("aria-label", L(`Unlabelled part ${i + 1}`, `Parte sin etiquetar ${i + 1}`));
+    dot.addEventListener("click", () => {
+      if (dot.dataset.solved === "true") return;
+      const wasOpen = dot.dataset.open === "true";
+      closePanel();
+      if (wasOpen) return;
+      dot.dataset.open = "true";
+      const panel = document.createElement("div"); panel.className = "gh-label-panel";
+      panel.style.left = Math.min(70, part.x * 100) + "%"; panel.style.top = Math.min(78, part.y * 100 + 6) + "%";
+      const options = [...PARTS].sort(() => Math.random() - 0.5);
+      options.forEach(opt => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = L(opt.en, opt.es);
+        b.addEventListener("click", () => {
+          if (opt.id === part.id) {
+            dot.dataset.solved = "true"; dot.dataset.open = "false";
+            dot.classList.remove("gh-pulse"); void dot.offsetWidth; dot.classList.add("gh-pulse");
+            dot.innerHTML = ICO.check;
+            dot.setAttribute("aria-label", L(`Labelled: ${part.en}`, `Etiquetado: ${part.es}`));
+            burst(photo, part.x * 100, part.y * 100, ["#1E8C60", "#7BFFB0"], 10);
+            panel.remove(); openPanel = null;
+            solvedCount++;
+            sim.recordTrial({ station: L("Seedling", "Plántula"), item: L(opt.en, opt.es), outcome: L("Correctly labelled", "Etiquetado correctamente") });
+            sim.toast(L("Correct!", "¡Correcto!"), "correct");
+            if (solvedCount === PARTS.length) {
+              doneTag.dataset.show = "true";
+              sim.award("detective", L("Plant Detective", "Detective Vegetal"));
+            }
+            onDone();
+          } else {
+            b.classList.remove("gh-shake"); void b.offsetWidth; b.classList.add("gh-shake");
+            dot.classList.remove("gh-shake"); void dot.offsetWidth; dot.classList.add("gh-shake");
+            sim.toast(L("Not quite — look again and try another label.", "No es correcto — mira de nuevo y prueba otra etiqueta."), "info");
+          }
+        });
+        panel.append(b);
+      });
+      photo.append(panel); openPanel = panel;
+    });
+    photo.append(dot);
+  });
+}
+
+/* ============================================================
+   STATION 3 — SEED LAUNCH PAD (dispersal)
+   ============================================================ */
+function buildLaunchPad(mount, sim, onDone) {
+  const SEEDS = [
+    { id: "dandelion", ico: ICO.dandelion, en: "Dandelion", es: "Diente de león", zone: "wind" },
+    { id: "coconut", ico: ICO.coconut, en: "Coconut", es: "Coco", zone: "water" },
+    { id: "burr", ico: ICO.burr, en: "Burr", es: "Fruto con ganchos", zone: "animal" },
+  ];
+  const ZONES = [
+    { id: "wind", ico: ICO.wind, en: "Windy Meadow", es: "Pradera Ventosa" },
+    { id: "water", ico: ICO.water, en: "The River", es: "El Río" },
+    { id: "animal", ico: ICO.paw, en: "Passing Animal", es: "Animal de Paso" },
+  ];
+  const card = document.createElement("div"); card.className = "gh-station";
+  card.innerHTML = `<div class="gh-station__head">
+      <span class="gh-station__n">3</span>
+      <h3 class="gh-station__title">${L("The Seed Launch Pad", "La Plataforma de Lanzamiento")}</h3>
+      <span class="gh-station__done" id="gh-p-done">${L("✓ All matched!", "✓ ¡Todo emparejado!")}</span>
+    </div>
+    <p class="q__hint">${L("Choose a seed, choose the habitat you think matches how it travels, then launch it.", "Elige una semilla, elige el hábitat que crees que coincide con su forma de viajar, y lánzala.")}</p>
+    <div class="gh-launch-arena" id="gh-p-arena">
+      <div class="gh-zones" id="gh-p-zones"></div>
+      <div class="gh-pad"><div id="gh-p-seedbox" style="width:34px;height:34px;color:var(--accent-hi)"></div></div>
+    </div>
+    <div class="gh-seedpicker" id="gh-p-seeds"></div>
+    <button type="button" class="btn btn--signal gh-launchbtn" id="gh-p-launch">${L("Launch! →", "¡Lanzar! →")}</button>`;
+  mount.append(card);
+
+  const arena = card.querySelector("#gh-p-arena");
+  const zonesEl = card.querySelector("#gh-p-zones");
+  const seedsEl = card.querySelector("#gh-p-seeds");
+  const seedBox = card.querySelector("#gh-p-seedbox");
+  const launchBtn = card.querySelector("#gh-p-launch");
+  const doneTag = card.querySelector("#gh-p-done");
+  let chosenSeed = null, chosenZone = null;
+  const solved = new Set();
+
+  ZONES.forEach(z => {
+    const el = document.createElement("div"); el.className = "gh-zone"; el.dataset.zone = z.id;
+    el.innerHTML = `<div class="gh-zone__icon">${z.ico}</div><div class="gh-zone__label">${L(z.en, z.es)}</div>`;
+    el.addEventListener("click", () => {
+      zonesEl.querySelectorAll(".gh-zone").forEach(x => x.classList.remove("gh-target"));
+      chosenZone = z.id; el.classList.add("gh-target");
+    });
+    zonesEl.append(el);
+  });
+  SEEDS.forEach(s => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "gh-seedbtn"; b.setAttribute("aria-pressed", "false");
+    b.innerHTML = s.ico + `<span>${L(s.en, s.es)}</span>`;
+    b.addEventListener("click", () => {
+      seedsEl.querySelectorAll(".gh-seedbtn").forEach(x => x.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      chosenSeed = s; seedBox.innerHTML = s.ico;
+    });
+    seedsEl.append(b);
+  });
+
+  launchBtn.addEventListener("click", () => {
+    if (!chosenSeed || !chosenZone) { sim.toast(L("Pick a seed AND a habitat first.", "Elige primero una semilla Y un hábitat."), "info"); return; }
+    const targetEl = zonesEl.querySelector(`[data-zone="${chosenZone}"]`);
+    const arenaRect = arena.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+    const startX = arenaRect.width / 2, startY = arenaRect.height - 30;
+    const endX = targetRect.left - arenaRect.left + targetRect.width / 2, endY = targetRect.top - arenaRect.top + 20;
+    const success = chosenSeed.zone === chosenZone;
+    const flight = document.createElement("div"); flight.className = "gh-seed-flight"; flight.innerHTML = chosenSeed.ico; flight.style.color = "var(--accent-hi)";
+    arena.append(flight);
+    const midX = (startX + endX) / 2, apexY = Math.min(startY, endY) - 60;
+    const stopFrac = success ? 1 : 0.55 + Math.random() * 0.15;
+    let lastX = startX, lastY = startY;
+    tween(success ? 900 : 650, e => {
+      const t = e * stopFrac;
+      lastX = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * midX + t * t * endX;
+      lastY = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * apexY + t * t * endY;
+      flight.style.left = lastX + "px"; flight.style.top = lastY + "px";
+      flight.style.transform = `rotate(${t * 360}deg)`;
+    }, () => {
+      if (success) {
+        burst(arena, (endX / arenaRect.width) * 100, (endY / arenaRect.height) * 100, ["#1E8C60", "#8fd6ff", "#F4C542"], 12);
+        targetEl.classList.remove("gh-success"); void targetEl.offsetWidth; targetEl.classList.add("gh-success");
+        solved.add(chosenSeed.id);
+        sim.toast(L("Landed safely — that's exactly how it travels!", "¡Aterrizó bien — así es exactamente cómo viaja!"), "correct");
+        if (solved.size === 1) sim.award("pilot", L("Seed Pilot", "Piloto de Semillas"));
+        if (solved.size === SEEDS.length) { doneTag.dataset.show = "true"; sim.award("disperser", L("Dispersal Expert", "Experto en Dispersión")); }
+      } else {
+        burst(arena, (lastX / arenaRect.width) * 100, (lastY / arenaRect.height) * 100, ["#9c8a6e"], 6);
+        targetEl.classList.remove("gh-fail"); void targetEl.offsetWidth; targetEl.classList.add("gh-fail");
+        flight.classList.add("gh-shake");
+        sim.toast(L("Not quite the right habitat — try again.", "No es el hábitat correcto — inténtalo de nuevo."), "info");
+      }
+      sim.recordTrial({ station: L("Launch Pad", "Plataforma"), item: L(`${chosenSeed.en} → ${ZONES.find(z => z.id === chosenZone).en}`, `${chosenSeed.es} → ${ZONES.find(z => z.id === chosenZone).es}`), outcome: success ? L("Landed safely", "Aterrizó bien") : L("Missed — wrong habitat", "Falló — hábitat incorrecto") });
+      onDone();
+      setTimeout(() => flight.remove(), success ? 500 : 700);
+    });
+  });
+}
+
+/* ============================================================
+   INVESTIGATE — mounts all three stations, a reflection panel,
+   and the bonus arcade round.
+   ============================================================ */
+const ARCADE_CLUES = [
+  { id: "r1", label: L("Absorbs water and nutrients from the soil", "Absorbe agua y nutrientes del suelo"), laneId: "roots" },
+  { id: "r2", label: L("Anchors the plant firmly in the ground", "Ancla la planta firmemente al suelo"), laneId: "roots" },
+  { id: "s1", label: L("Holds the leaves up toward the light", "Sostiene las hojas hacia la luz"), laneId: "stem" },
+  { id: "s2", label: L("Built from xylem and phloem tubes that transport water and food", "Formado por tubos de xilema y floema que transportan agua y alimento"), laneId: "stem" },
+  { id: "l1", label: L("Uses sunlight, water and carbon dioxide to make food", "Usa luz solar, agua y dióxido de carbono para fabricar alimento"), laneId: "leaves" },
+  { id: "l2", label: L("Has tiny holes called stomata that let CO2 in and O2 out", "Tiene aberturas diminutas llamadas estomas que dejan entrar CO2 y salir O2"), laneId: "leaves" },
+  { id: "f1", label: L("Makes seeds, often with help from bees", "Fabrica semillas, a menudo con ayuda de las abejas"), laneId: "flower" },
+  { id: "f2", label: L("Contains the male and female parts of the plant", "Contiene las partes masculina y femenina de la planta"), laneId: "flower" },
+];
+
+function investigate(host, sim) {
+  host.innerHTML = "";
+  sim.setScienceMethod({
+    variables: L(
+      "Independent: which seed and target habitat you choose at the Launch Pad. Dependent: whether the seed lands safely in its matching habitat. Controlled: the same three habitats and launch physics for every seed you test.",
+      "Independiente: qué semilla y hábitat objetivo eliges en la Plataforma de Lanzamiento. Dependiente: si la semilla aterriza bien en su hábitat correspondiente. Controladas: los mismos tres hábitats y la misma física de lanzamiento para cada semilla."
+    )
+  });
+
+  const THREE_URL = "../../../../../../engine/vendor/three.min.js";
+  buildKitchen(host, sim, refresh);
+  buildLabelling(host, sim, refresh);
+  buildLaunchPad(host, sim, refresh);
+
+  /* ---- Reflection — a light close to the investigation, touching
+     germination and tropism content without a dedicated station. ---- */
+  const reflectCard = document.createElement("div"); reflectCard.className = "gh-station";
+  reflectCard.innerHTML = `<div class="gh-station__head"><h3 class="gh-station__title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div>
+    <div class="gh-reflect">
+      <p class="q__hint" style="margin:0">${L("How confident do you feel that you understand what a plant needs to grow?", "¿Qué tan seguro te sientes de entender lo que necesita una planta para crecer?")}</p>
+      <div class="gh-chiprow" id="gh-r-conf"></div>
+      <p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to investigate next?", "¿Qué te gustaría investigar a continuación?")}</p>
+      <div class="gh-chiprow" id="gh-r-next"></div>
+    </div>`;
+  host.append(reflectCard);
+  let confVal = null, nextVal = null;
+  function mkChipRow(container, opts) {
+    opts.forEach(o => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = o.label; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", () => {
+        container.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false"));
+        b.setAttribute("aria-pressed", "true");
+        container.dataset.value = o.id;
+        saveReflection();
+      });
+      container.append(b);
+    });
+  }
+  mkChipRow(reflectCard.querySelector("#gh-r-conf"), [
+    { id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") },
+  ]);
+  mkChipRow(reflectCard.querySelector("#gh-r-next"), [
+    { id: "germ", label: L("What a seed needs to wake up and germinate", "Qué necesita una semilla para despertar y germinar") },
+    { id: "soil", label: L("What's actually inside soil", "Qué hay realmente dentro del suelo") },
+    { id: "tropism", label: L("Why stems bend toward a window", "Por qué los tallos se doblan hacia una ventana") },
+  ]);
+  function saveReflection() {
+    const conf = reflectCard.querySelector("#gh-r-conf").dataset.value;
+    const next = reflectCard.querySelector("#gh-r-next").dataset.value;
+    sim.setResult("reflection", { confidence: conf, next_investigation: next });
+    sim.mark("reflection_recorded", !!(conf && next));
+  }
+
+  /* ---- Bonus round — "Plant Power Rush" (arcade genre; this course
+     has no prior sim yet, arcade is the lighter-weight of the two
+     genres to alternate against next time — CLAUDE.md §4). ---- */
+  const arcadeSection = document.createElement("div"); arcadeSection.style.marginTop = "var(--sp-5)";
+  host.append(arcadeSection);
+  let arcadeRendered = false;
+  function paintArcade() {
+    if (sim.trials.length < 3 || arcadeRendered) return;
+    arcadeRendered = true;
+    const launchWrap = document.createElement("div"); arcadeSection.append(launchWrap);
+    renderArcadeLaunch(launchWrap, {
+      strings: {
+        title: L("Bonus round — Plant Power Rush", "Ronda extra — Carrera del Poder Vegetal"),
+        instructions: L("Plant-part clues fly at you — tap the correct part before each one reaches the ring.", "Llegan pistas sobre partes de la planta — toca la parte correcta antes de que cada una llegue al anillo."),
+        play: L("Play Plant Power Rush", "Jugar Carrera del Poder Vegetal"), skip: L("Skip bonus round", "Saltar ronda extra"),
+      },
+      onPlay() {
+        launchWrap.remove();
+        const gameHost = document.createElement("div"); arcadeSection.append(gameHost);
+        mountArcadeRush(gameHost, {
+          threeUrl: THREE_URL, rounds: 24,
+          lanes: [
+            { id: "roots", label: L("Roots", "Raíces"), color: "#B5601F" },
+            { id: "stem", label: L("Stem", "Tallo"), color: "#3f7a34" },
+            { id: "leaves", label: L("Leaves", "Hojas"), color: "#4a9636" },
+            { id: "flower", label: L("Flower", "Flor"), color: "#B5551F" },
+          ],
+          items: ARCADE_CLUES,
+          strings: {
+            title: L("Plant Power Rush", "Carrera del Poder Vegetal"),
+            instructions: L("Tap the plant part before the clue reaches the ring. A late or wrong answer just resets your streak — never a fail.", "Toca la parte de la planta antes de que la pista llegue al anillo. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
+          },
+          onExit(stats) {
+            sim.saveState(); gameHost.innerHTML = ""; gameHost.remove();
+            arcadeSection.innerHTML = ""; arcadeRendered = false; paintArcade();
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda completa — puntaje ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+          },
+        });
+      },
+      onSkip() { arcadeSection.innerHTML = ""; },
+    });
+  }
+  function refresh() { paintArcade(); }
+  refresh();
+}
+
+/* ============================================================
+   MOUNT
+   ============================================================ */
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>

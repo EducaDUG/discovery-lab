@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plant Biology thumbnail capture</title>
+<style>
+  html,body{margin:0;background:#0d1f13;color:#bfe6cf;font:14px/1.5 system-ui,sans-serif;}
+  #wrap{display:grid;place-items:center;min-height:100vh;gap:1rem;}
+  #stage{border:1px solid #16311f;border-radius:12px;overflow:hidden;}
+  #log{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="stage"></canvas>
+  <div id="log">booting…</div>
+</div>
+<!-- served from repo root by tools/make-thumbnail.py -->
+<script src="/engine/vendor/three.min.js"></script>
+<script>
+/* Reproduces the Photosynthesis Kitchen's plant (see buildKitchen in the
+   activity's own activity.html) statically, so a 360° azimuth sweep loops
+   seamlessly. See tools/capture/germinator.html for the pattern this copies. */
+const Q = new URLSearchParams(location.search);
+const FRAMES   = +(Q.get("frames")   || 30);
+const W        = +(Q.get("w")        || 380);
+const H        = +(Q.get("h")        || 285);
+const AZ0      = +(Q.get("az0")       || 0.6);
+const DURATION = +(Q.get("duration") || 90);
+const COLORS   = +(Q.get("colors")   || 96);
+const OUT      = Q.get("out") || "";
+
+const log = m => { document.getElementById("log").textContent = m; };
+
+function buildScene(THREE, canvas){
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(2);
+  renderer.setSize(W, H, false);
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(42, W/H, 0.1, 50);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+  const sun = new THREE.DirectionalLight(0xfff3d0, 1.15); sun.position.set(3,6,4); scene.add(sun);
+
+  const plantGroup = new THREE.Group(); scene.add(plantGroup);
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(1.1,0.85,1.1,24), new THREE.MeshStandardMaterial({color:0xB5601F, roughness:0.9}));
+  pot.position.y=0.55; plantGroup.add(pot);
+  const soil = new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,0.12,24), new THREE.MeshStandardMaterial({color:0x3b2a1c, roughness:1}));
+  soil.position.y=1.12; plantGroup.add(soil);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,2.6,10), new THREE.MeshStandardMaterial({color:0x3f7a34, roughness:0.8}));
+  stem.position.y=2.35; plantGroup.add(stem);
+  const leafMat = new THREE.MeshStandardMaterial({color:0x4a9636, roughness:0.7, side:THREE.DoubleSide});
+  const leafPositions = [
+    [0,2.15,0,0.5],[0.55,2.55,0.15,0.35],[-0.55,2.75,-0.1,0.4],
+    [0.35,3.25,0.35,0.3],[-0.4,3.55,-0.2,0.32],[0,3.9,0,0.42],
+  ];
+  leafPositions.forEach(([x,y,z,s],i)=>{
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(1,12,8), leafMat);
+    leaf.scale.set(s*1.8, s*0.5, s); leaf.position.set(x,y,z); leaf.rotation.z=(i%2?1:-1)*0.5;
+    plantGroup.add(leaf);
+  });
+  plantGroup.scale.setScalar(1.15);
+
+  const pol=1.15, rad=8.5;
+  function renderAt(az){
+    const x=rad*Math.sin(pol)*Math.cos(az), z=rad*Math.sin(pol)*Math.sin(az), y=rad*Math.cos(pol);
+    camera.position.set(x,y+1.6,z); camera.lookAt(0,2.2,0);
+    renderer.render(scene,camera);
+  }
+  return {renderAt, gl:renderer.domElement};
+}
+
+function makeCompositor(){
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const ctx=c.getContext("2d");
+  const bg=ctx.createRadialGradient(W*0.35,H*0.15,10, W*0.5,H*0.5, Math.max(W,H)*0.95);
+  bg.addColorStop(0,"#eaf5e6"); bg.addColorStop(0.55,"#c3ddba"); bg.addColorStop(1,"#8fb884");
+  return function(glCanvas){
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+    ctx.drawImage(glCanvas,0,0,W,H);
+    return c;
+  };
+}
+const toBlob = canvas => new Promise(res=>canvas.toBlob(res,"image/png"));
+
+(async function(){
+  if(!window.THREE){ log("ERROR: three.js failed to load"); return; }
+  const stage=document.getElementById("stage");
+  stage.width=W; stage.height=H; stage.style.width=W+"px"; stage.style.height=H+"px";
+  const {renderAt, gl}=buildScene(window.THREE, stage);
+  const composite=makeCompositor();
+
+  const tick = () => new Promise(r=>setTimeout(r,0));
+  renderAt(AZ0); await tick(); renderAt(AZ0);
+
+  await fetch("/reset");
+  for(let i=0;i<FRAMES;i++){
+    const az = AZ0 + (i/FRAMES)*Math.PI*2;
+    renderAt(az);
+    const blob = await toBlob(composite(gl));
+    await fetch("/frame/"+i, {method:"POST", body:blob});
+    log(`frame ${i+1}/${FRAMES}`);
+    await tick();
+  }
+  log("assembling GIF…");
+  const res = await fetch(`/assemble?out=${encodeURIComponent(OUT)}&duration=${DURATION}&colors=${COLORS}`);
+  const txt = await res.text();
+  log(txt);
+  window.__DONE = txt;
+  document.title = "DONE " + txt;
+})();
+</script>
+</body>
+</html>
