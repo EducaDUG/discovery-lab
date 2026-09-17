@@ -387,6 +387,89 @@ This extends the amendment above — same schema, same engine — with the parts
   real Investigation Record column — see each activity's own `config.json`/`activity.html` and bumped
   `activity_version` for the specifics. Any activity still showing `expectedPoints` in its `config.json`
   after this date has regressed or was added incorrectly; treat it as a bug, not a style choice.
+  **Superseded by the split below (2026-09-18, same day):** `markingScheme` itself has since moved out
+  of `config.json` entirely into a new marker-only `marking.json` — see the amendment immediately below.
+  Anything here about `markingScheme` living in `config.json` is history, not current state.
+
+**Amendment — split config.json (public) from marking.json (marker-only); Formative vs. Assessed Mode;
+client-side best-effort, not real security (agreed 2026-09-18, whole-library migration, non-negotiable).**
+Diego: every simulation PDF must work as a complete marking document for the teacher, while a student
+must never be able to access the analytic marking scheme, acceptable alternatives, insufficient-response
+examples, mark dependencies or content-specific rubric descriptors before they submit — and this must
+not rely on merely not-rendering that data, since anything shipped to the browser (config.json, network
+traffic, JS, localStorage) must be assumed readable by a technically curious student. This was discussed
+in depth: **true** non-delivery before submission needs a real server that only releases marker-only data
+after recording an authentic submission — a server this project deliberately does not have (Section 7's
+"nothing ever leaves the browser" is a foundational, disclosed design choice, with Primary Enrichment as
+the one existing exception). Diego chose the client-side best-effort path for now, real backend-enforced
+security deferred as a separate future decision. **This is documented honestly here — never describe
+anything below as securely preventing a determined student from finding marker-only data.**
+
+- **Two files per activity, from now on: `config.json` (public, student-facing) and `marking.json`
+  (marker-only).** `config.json` may NEVER contain `markingScheme`, `expectedPoints`, `accept`,
+  `insufficient`, `dependsOn`, rubric `levels`, rubric `source`, or `markingInstructions` — full stop,
+  for every activity, formative or assessed. Those fields live ONLY in the sibling `marking.json`, which
+  `engine/engine.js`'s `fetchMarking()` fetches lazily — **never on page load, only at the moment a
+  teacher/marker PDF is actually built** (`generateTeacherPDF()`). `marking.json` is English-only, never
+  translated (same standing as the old `markingInstructions`/`expectedPoints` rule), and is matched back
+  to `config.json` by `activityId`/rubric criterion `key`. See `_template/config.json` +
+  `_template/marking.json` for the canonical pattern, and `sim-mission-blue-planet` for the reference
+  migration.
+- **Student-facing rubric is now generic by construction, not by data hygiene alone.** Every non-auto
+  rubric criterion in `config.json` needs a `studentHint` — a short, generic, non-content-revealing
+  statement of the assessed skill (e.g. *"Use evidence clearly from your own investigation to support
+  your answer,"* never *"identify higher salinity, explain increased density, link this to buoyant
+  force..."* — that sentence belongs only in `marking.json`'s `levels`). `engine.js`'s on-page "How this
+  is marked" card (`buildEvidence`) and the safe rendering path deliberately **never read `levels` or
+  `source` at all**, even if a config accidentally still carried them — this is a code-level refusal, not
+  just a documentation rule, precisely so a future mistake in a `config.json` can't leak content through
+  the UI. Constructed-response questions (Explain/Apply) get an analogous `skillFocus` field — a short,
+  safe line like *"Apply what you found to a new situation and give clear, well-explained reasons"* —
+  shown right under the question, never the per-point `markingScheme`.
+- **Formative Mode (default — omit `assessmentMode`, or set it to `"formative"`).** Practice work, this
+  project's normal 1:1-tutoring case. Behaviour is otherwise unchanged from before this amendment: the
+  student clicks one "Generate Learning Evidence" button and gets ONE combined PDF (their evidence +
+  the full marking specification), because this project has no separate teacher portal — the tutor marks
+  from the exact file the student uploads to Learning Lab. What changed is only *where the marking data
+  comes from* (a lazy fetch of `marking.json` at generate-time, not `config.json` at page-load) and that
+  the on-page rubric card was never leaking content anyway. No locking, no split PDFs, no `?teacher=1` —
+  none of that machinery applies here, by design, since a single tutoring student generating their own
+  complete evidence file the moment they finish is not the scenario this amendment is defending against.
+- **Assessed Mode (`"assessmentMode": "assessed"` in `config.json`) — for graded homework, tests, or any
+  activity where several students might complete the same assessment at different times.** The sequence:
+  student finishes → clicks **Final Submit** (a confirm dialog states answers will be locked) →
+  `state.locked = true` and `state.submittedAt` are recorded → `sim.recordTrial`/`clearTrials`/
+  `resetInvestigation`/`setResult`/`setScienceMethod`/`mark` all become no-ops (the one central
+  enforcement point every activity's own Investigate code gets for free, no per-activity change needed)
+  → Predict/Explain/Apply/Check inputs are disabled and a "submitted, locked" banner is shown on those
+  stages → the student automatically gets ONLY a **submission receipt** PDF (`buildStudentPDF` —
+  their own answers/evidence + a confirmation + timestamp, explicitly masthead'd "SUBMISSION RECEIPT",
+  never "REPORT", and never fetches `marking.json` at all). The complete **teacher marking PDF**
+  (`buildPDF`, unchanged full format) is a SEPARATE action, only shown when the page is opened with
+  `?teacher=1` in the URL — a convenience gate for Diego's own use during or after a 1:1 session (e.g. he
+  clicks it himself, screen-sharing or reviewing the device afterward), explicitly **not security**: the
+  file is still a plain fetchable static file, `?teacher=1` just keeps it out of the default flow so a
+  student doesn't casually stumble into generating and forwarding the full mark scheme to classmates who
+  haven't submitted yet. This directly addresses Diego's "one student shares the answer key with the
+  class" concern for the common case, without pretending to stop a determined student.
+- **What this does NOT achieve, stated plainly for anyone reading this later:** a technically curious
+  student can still fetch `marking.json` directly by URL at any time (before, during or after the
+  activity) since GitHub Pages has no server logic to gate it by submission status; `?teacher=1` is a
+  discoverable URL parameter, not an authentication check; and `state.locked` lives in the student's own
+  `localStorage`, so clearing site data resets it. None of this is exam-grade security. If Discovery Lab
+  is ever used for a genuine, must-be-secure examination, that requires the real-backend approach
+  (marker-only data held server-side, released only after an authenticated, server-recorded submission)
+  discussed and explicitly deferred in this amendment — do not build ad hoc client-side workarounds
+  toward that goal; escalate it as its own decision when it's actually needed.
+- **Existing-activity default:** no currently-live activity sets `assessmentMode: "assessed"` — every one
+  of the 15 migrated stays on Formative Mode (matching real current usage: 1:1 tutoring practice, not
+  graded tests). The toggle exists and is fully wired in the engine for whenever Diego actually wants to
+  run something as graded.
+- **Whole-library migration status (2026-09-18):** every activity's `config.json` had `markingScheme`/
+  `accept`/`insufficient`/`dependsOn`/rubric `levels`/rubric `source`/`markingInstructions` moved into a
+  new sibling `marking.json`, and every non-auto rubric criterion gained a safe `studentHint`. Any
+  activity whose `config.json` still contains any of those marker-only fields after this date has
+  regressed; treat it as a bug on sight, the same status as a missing `learningFocus`.
 
 **Amendment — no JSON download (agreed 2026-09-09).** The engine builds a structured JSON payload internally (see `buildPayload()` in `engine/engine.js`) purely as the data model it renders the PDF from — it is never written to a file or offered as a second download. The reasoning: the PDF and JSON download to the student's own device (per Section 7, nothing leaves the browser), and the only file Diego actually receives back is the PDF a student chooses to upload to Learning Lab — the JSON companion file was an extra download that only ever reached the student, never the teacher, so a proper rubric with level descriptors belongs printed in the PDF itself (see the level-descriptors amendment below), not off in a file only the student can see. `generateEvidence()` calls `downloadBlob()` once, for the PDF only. The internal payload shape below is retained as documentation of what the PDF is built from — it is not a file format a student or teacher ever sees:
 
@@ -636,9 +719,12 @@ spec it. Ask only if the course or age band is genuinely ambiguous.
 4. Add the module and simulation entries to `subjects.json`, including `mechanic`, `ageBand`,
    `version`, `questionCount`, `minutes`, `thumbnail: "thumbnail.gif"`, and `status: "coming-soon"`.
    Give the term/module a `keywords` snapshot (3–5 terms) if it does not have one yet.
-5. Build the activity in its own folder: `activity.html` + `config.json`. Start from
-   `_template/`. Write its `learningFocus` (skills + one strong paragraph) — it is required.
-   **Never edit the shared engine for a content change.** Include a bonus round — check which genre
+5. Build the activity in its own folder: `activity.html` + `config.json` + `marking.json`. Start from
+   `_template/` (which now has all three). `config.json` is public/student-facing — never put
+   `markingScheme`/`accept`/`insufficient`/`dependsOn`/rubric `levels`/rubric `source`/
+   `markingInstructions` there. That marker-only data goes in `marking.json` instead (see Section 5's
+   assessment-security amendment). Write its `learningFocus` (skills + one strong paragraph) — it is
+   required. **Never edit the shared engine for a content change.** Include a bonus round — check which genre
    (arcade via `engine/arcade.js`, or realistic 3D via `engine/quest3d.js`) the other simulations in
    this same course used last and build the other one (Section 4's alternation amendment — same
    lookup discipline as `mechanic` below). Reuse the activity's own real photos as the flying/placed

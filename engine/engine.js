@@ -31,7 +31,7 @@
    ========================================================================== */
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=6";
-import { t, getLang, localizeConfig } from "./i18n.js?v=8";
+import { t, getLang, localizeConfig } from "./i18n.js?v=9";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -328,6 +328,33 @@ export async function mountActivity({ simulation = {} } = {}) {
     return;
   }
 
+  /* Marker-only marking specification (markingScheme, rubric levels/source,
+     markingInstructions) lives in a SEPARATE file, marking.json, next to
+     config.json — never in config.json itself, and never fetched until the
+     student actually generates a teacher-facing PDF. This is a client-side
+     best-effort separation, not real security: marking.json is still a
+     plain static file anyone who knows/guesses the URL can fetch directly at
+     any time, since GitHub Pages has no server logic to gate it by
+     submission status. See CLAUDE.md Section 5's assessment-security
+     amendment for the honest limits of this approach. */
+  async function fetchMarking() {
+    try {
+      const res = await fetch("./marking.json", { cache: "no-cache" });
+      if (!res.ok) throw new Error(res.status);
+      return await res.json();
+    } catch (e) {
+      console.error("Discovery Lab: marking.json missing or invalid", e);
+      return null;
+    }
+  }
+
+  /* assessmentMode: "formative" (default — practice, single combined PDF,
+     matches every activity's current behaviour) or "assessed" (graded
+     work/tests — locks answers on Final Submit, splits the export into a
+     student receipt and a teacher-only marking PDF). See CLAUDE.md §5. */
+  const assessmentMode = config.assessmentMode === "assessed" ? "assessed" : "formative";
+  const isTeacherView = new URLSearchParams(location.search).get("teacher") === "1";
+
   document.title = `${config.title} — Discovery Lab`;
   if (config.ageBand) document.documentElement.setAttribute("data-age-band", config.ageBand);
   if (config.theme) document.documentElement.setAttribute("data-theme", config.theme);
@@ -359,6 +386,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     explain: "", apply: "",
     kc: {}, kcMarked: false,
     badges: [], student: "",
+    locked: false, submittedAt: null,
   });
   let state = load() || fresh();
   function load() {
@@ -420,12 +448,18 @@ export async function mountActivity({ simulation = {} } = {}) {
     config,
     get trials() { return state.trials; },
     get state() { return state.custom; },
+    /* Every evidence-writing method below no-ops once state.locked is true —
+       the one central enforcement point for "answers become immutable after
+       Final Submit" (CLAUDE.md §5/§6) that works for every activity's own
+       Investigate code without per-activity changes. */
     recordTrial(row) {
+      if (state.locked) return state.trials.length;
       state.trials.push({ ...row });
       save(); refreshRecord();
       return state.trials.length;
     },
     clearTrials() {
+      if (state.locked) return;
       state.trials = [];
       save(); refreshRecord();
     },
@@ -436,18 +470,20 @@ export async function mountActivity({ simulation = {} } = {}) {
        "remember" prior progress even though its Record was wiped, which
        reads as broken rather than reset. */
     resetInvestigation() {
+      if (state.locked) return;
       state.trials = [];
       state.custom = {};
       save(); refreshRecord();
     },
-    setResult(k, v) { state.simResults[k] = v; save(); },
+    setResult(k, v) { if (state.locked) return; state.simResults[k] = v; save(); },
     setScienceMethod(k, v) {
+      if (state.locked) return;
       if (typeof k === "object" && k !== null) { Object.assign(state.scienceMethod, k); }
       else { state.scienceMethod[k] = v; }
       save();
     },
-    mark(k, v = true) { state.evidence[k] = v; save(); },
-    saveState() { save(); },
+    mark(k, v = true) { if (state.locked) return; state.evidence[k] = v; save(); },
+    saveState() { if (!state.locked) save(); },
     award(id, label) {
       if (state.badges.find(b => b.id === id)) return false;
       state.badges.push({ id, label }); save(); renderBadges();
@@ -468,6 +504,23 @@ export async function mountActivity({ simulation = {} } = {}) {
   buildApply(stageEls.apply);
   buildCheck(stageEls.check);
   buildEvidence(stageEls.evidence);
+
+  /* Visual + interaction lock for a submitted Assessed-Mode attempt. The
+     real enforcement is the state.locked guards above (sim.* methods and
+     each stage's own onChange/input handlers) — this pass just disables the
+     rendered controls so the read-only state is obvious, and never blocks
+     the accessibility panel or read-aloud, which live outside these
+     sections. */
+  if (state.locked) {
+    ["predict", "explain", "apply", "check", "investigate"].forEach(id => {
+      const s = stageEls[id];
+      if (!s) return;
+      s.querySelectorAll("input, textarea, select, button").forEach(node => { node.disabled = true; });
+      const banner = el("p", "toast toast--info");
+      banner.textContent = t("submission-locked", { date: state.submittedAt ? new Date(state.submittedAt).toLocaleString() : "" });
+      s.prepend(banner);
+    });
+  }
 
   /* --- nav bar ---------------------------------------------------------- */
   const navBar = el("div", "lab-nav no-print");
@@ -644,6 +697,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     controllers.predict = ctl;
     if (state.predict != null) ctl.set(state.predict);
     ctl.onChange(() => {
+      if (state.locked) return;
       state.predict = ctl.get();
       if (state.predictInitial == null && ctl.answered()) {
         state.predictInitial = JSON.stringify(state.predict);
@@ -738,11 +792,21 @@ export async function mountActivity({ simulation = {} } = {}) {
     const counter = el("p", "counter");
     const min = cfg.minChars || 0;
     const upd = () => { const n = ta.value.trim().length; counter.textContent = min ? t("chars.aim", { n, min }) : t("chars", { n }); counter.style.color = min && n < min ? "var(--caution)" : "var(--ink-3)"; };
-    ta.addEventListener("input", () => { state[key] = ta.value; save(); upd(); });
+    ta.addEventListener("input", () => { if (state.locked) return; state[key] = ta.value; save(); upd(); });
+    if (state.locked) ta.readOnly = true;
     upd();
     field.append(ta, counter);
     ctl.wrap.append(field);
     if (cfg.frame) { const fr = el("p", "q__hint"); fr.textContent = cfg.frame; fr.style.marginTop = "var(--sp-2)"; ctl.wrap.append(fr); }
+    /* skillFocus: a short, safe, non-answer-revealing statement of the broad
+       skill being assessed ("Use evidence from your investigation and
+       explain your reasoning clearly.") — never the analytic mark scheme,
+       which lives only in marking.json. See CLAUDE.md §5. */
+    if (cfg.skillFocus) {
+      const sk = el("p", "q__hint"); sk.style.marginTop = "var(--sp-2)"; sk.style.fontStyle = "italic";
+      sk.textContent = t("skill-focus", { text: cfg.skillFocus });
+      ctl.wrap.append(sk);
+    }
   }
   function buildExplain(host) { buildWritten(host, config.explain || {}, "explain", stageLabel("explain"), t("explain.title")); }
   function buildApply(host)   { buildWritten(host, config.apply   || {}, "apply",   stageLabel("apply"),   t("apply.title")); }
@@ -755,7 +819,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       const ctl = makeQuestion(q, i);
       controllers.kc.push({ ctl, q });
       if (state.kc[q.id] != null) ctl.set(state.kc[q.id]);
-      ctl.onChange(() => { state.kc[q.id] = ctl.get(); save(); });
+      ctl.onChange(() => { if (state.locked) return; state.kc[q.id] = ctl.get(); save(); });
       list.append(ctl.node);
     });
     host.append(list);
@@ -807,21 +871,18 @@ export async function mountActivity({ simulation = {} } = {}) {
     [t("criterion"), t("what-good-shows"), t("marks-col")].forEach(h => htr.append(el("th", null, h)));
     thead.append(htr); rtable.append(thead);
     const tb = el("tbody");
+    /* Student-safe rubric only: label, max marks, and studentHint — a short,
+       generic statement of the skill assessed (e.g. "Use evidence clearly
+       from your own investigation"). Deliberately NEVER renders `levels` or
+       `source`, even if a config accidentally carries them — those are
+       content-specific/structural marking data and belong only in
+       marking.json, read only when building the teacher PDF. See CLAUDE.md
+       §5's assessment-security amendment. */
     crit.forEach(c => {
       const tr = el("tr");
       tr.append(el("td", null, c.label + (c.auto ? t("auto") : "")));
       const descCell = el("td");
-      if (c.levels && c.levels.length) {
-        const list = el("ul", "rubric__levels");
-        [...c.levels].sort((a, b) => b.marks - a.marks).forEach(lv => {
-          const li = el("li", null, `${lv.marks} ${lv.marks === 1 ? t("mark-singular") : t("marks-col")} — ${lv.descriptor}`);
-          list.append(li);
-        });
-        descCell.append(list);
-      } else {
-        descCell.append(document.createTextNode(c.descriptor || ""));
-      }
-      if (c.source) descCell.append(el("p", "q__hint", t("marks-source", { source: c.source })));
+      descCell.append(document.createTextNode(c.studentHint || c.descriptor || ""));
       tr.append(descCell);
       tr.append(el("td", null, `${c.max}  (${Math.round((c.max / total) * 100)}%)`));
       tb.append(tr);
@@ -840,50 +901,133 @@ export async function mountActivity({ simulation = {} } = {}) {
     field.append(Object.assign(el("label", "field__label", t("your-name")), { htmlFor: "student-name" }));
     const nameInput = el("input", "input"); nameInput.id = "student-name"; nameInput.autocomplete = "off";
     nameInput.placeholder = t("name-placeholder"); nameInput.value = state.student || "";
-    nameInput.addEventListener("input", () => { state.student = nameInput.value; save(); });
+    nameInput.disabled = state.locked;
+    nameInput.addEventListener("input", () => { if (state.locked) return; state.student = nameInput.value; save(); });
     field.append(nameInput);
     gen.append(field);
 
-    const upload = el("p", "toast toast--info"); upload.style.marginTop = "var(--sp-4)";
-    upload.append(el("strong", null, t("upload-important")), document.createTextNode(t("upload-note")));
-    gen.append(upload);
+    const status = el("div"); status.id = "gen-status";
 
-    const btnRow = el("div", "cluster no-print"); btnRow.style.marginTop = "var(--sp-4)";
-    const genBtn = el("button", "btn btn--lg btn--signal", t("generate-evidence"));
-    btnRow.append(genBtn);
-    gen.append(btnRow);
-    const status = el("div"); status.id = "gen-status"; gen.append(status);
+    if (assessmentMode === "formative") {
+      /* Formative Mode (default — practice work): unchanged single-PDF
+         flow. The one combined PDF (student answers + full marking
+         specification) is generated only when the student is done and
+         clicks Generate — it is still the single document a tutor relies
+         on, per this project's real 1:1-tutoring workflow, so it is not
+         split or gated here. What HAS changed is that the marking
+         specification itself now lives in marking.json, fetched only at
+         this point, and the on-page rubric above never showed it anyway. */
+      const upload = el("p", "toast toast--info"); upload.style.marginTop = "var(--sp-4)";
+      upload.append(el("strong", null, t("upload-important")), document.createTextNode(t("upload-note")));
+      gen.append(upload);
 
-    genBtn.addEventListener("click", async () => {
-      if (!state.student.trim()) { toast(t("type-name-first"), "info"); nameInput.focus(); return; }
-      if (!state.kcMarked) { toast(t("check-first"), "info"); return; }
-      genBtn.disabled = true; genBtn.textContent = t("building-files");
-      try {
-        await generateEvidence(status);
-        genBtn.textContent = t("generate-again");
-        genBtn.disabled = false;
-      } catch (e) {
-        console.error(e);
-        toast(t("pdf-error"), "info");
-        genBtn.disabled = false; genBtn.textContent = t("generate-evidence");
+      const btnRow = el("div", "cluster no-print"); btnRow.style.marginTop = "var(--sp-4)";
+      const genBtn = el("button", "btn btn--lg btn--signal", t("generate-evidence"));
+      btnRow.append(genBtn);
+      gen.append(btnRow, status);
+
+      genBtn.addEventListener("click", async () => {
+        if (!state.student.trim()) { toast(t("type-name-first"), "info"); nameInput.focus(); return; }
+        if (!state.kcMarked) { toast(t("check-first"), "info"); return; }
+        genBtn.disabled = true; genBtn.textContent = t("building-files");
+        try {
+          await generateTeacherPDF(status);
+          genBtn.textContent = t("generate-again");
+          genBtn.disabled = false;
+        } catch (e) {
+          console.error(e);
+          toast(t("pdf-error"), "info");
+          genBtn.disabled = false; genBtn.textContent = t("generate-evidence");
+        }
+      });
+
+      const clearRow = el("div", "cluster no-print"); clearRow.style.marginTop = "var(--sp-6)";
+      const clearBtn = el("button", "btn btn--ghost", t("clear-work"));
+      clearBtn.addEventListener("click", () => {
+        if (confirm(t("clear-confirm"))) {
+          try { localStorage.removeItem(STORE_KEY); } catch {}
+          state = fresh(); location.reload();
+        }
+      });
+      clearRow.append(clearBtn);
+      gen.append(clearRow);
+    } else {
+      /* Assessed Mode: Final Submit locks the attempt and produces ONLY a
+         student submission receipt (their own answers/evidence + a
+         confirmation + timestamp — no marking scheme, no rubric levels, no
+         mark-source mapping). The full teacher marking PDF is a SEPARATE,
+         not-automatically-offered action, reachable only via ?teacher=1 on
+         the URL — a convenience gate for the teacher's own use during a 1:1
+         session, never real security (marking.json is still a fetchable
+         static file). See CLAUDE.md §5. */
+      if (!state.locked) {
+        const warn = el("p", "toast toast--info"); warn.style.marginTop = "var(--sp-4)";
+        warn.append(el("strong", null, t("assessed.lock-warning-title")), document.createTextNode(t("assessed.lock-warning-body")));
+        gen.append(warn);
+
+        const btnRow = el("div", "cluster no-print"); btnRow.style.marginTop = "var(--sp-4)";
+        const submitBtn = el("button", "btn btn--lg btn--signal", t("assessed.final-submit"));
+        btnRow.append(submitBtn);
+        gen.append(btnRow, status);
+
+        submitBtn.addEventListener("click", async () => {
+          if (!state.student.trim()) { toast(t("type-name-first"), "info"); nameInput.focus(); return; }
+          if (!state.kcMarked) { toast(t("check-first"), "info"); return; }
+          if (!confirm(t("assessed.confirm-submit"))) return;
+          submitBtn.disabled = true; submitBtn.textContent = t("building-files");
+          try {
+            state.locked = true; state.submittedAt = new Date().toISOString(); save();
+            await generateStudentReceipt(status);
+            toast(t("assessed.submitted-toast"), "correct");
+            setTimeout(() => location.reload(), 1400);
+          } catch (e) {
+            console.error(e);
+            state.locked = false; state.submittedAt = null; save();
+            toast(t("pdf-error"), "info");
+            submitBtn.disabled = false; submitBtn.textContent = t("assessed.final-submit");
+          }
+        });
+      } else {
+        const submitted = el("p", "toast toast--correct"); submitted.style.marginTop = "var(--sp-4)";
+        submitted.textContent = t("assessed.submitted-on", { date: state.submittedAt ? new Date(state.submittedAt).toLocaleString() : "" });
+        gen.append(submitted);
+
+        const btnRow = el("div", "cluster no-print"); btnRow.style.marginTop = "var(--sp-4)";
+        const receiptBtn = el("button", "btn btn--lg", t("assessed.download-receipt-again"));
+        btnRow.append(receiptBtn);
+        gen.append(btnRow, status);
+        receiptBtn.addEventListener("click", async () => {
+          receiptBtn.disabled = true; receiptBtn.textContent = t("building-files");
+          try { await generateStudentReceipt(status); } catch (e) { console.error(e); toast(t("pdf-error"), "info"); }
+          receiptBtn.disabled = false; receiptBtn.textContent = t("assessed.download-receipt-again");
+        });
+
+        if (isTeacherView) {
+          const teacherCard = el("div", "card"); teacherCard.style.marginTop = "var(--sp-5)";
+          teacherCard.style.border = "2px solid var(--signal)";
+          teacherCard.append(el("p", "eyebrow", t("assessed.teacher-only")));
+          teacherCard.append(el("p", "q__hint", t("assessed.teacher-note")));
+          const teacherBtn = el("button", "btn btn--lg", t("assessed.teacher-generate"));
+          teacherBtn.style.marginTop = "var(--sp-3)";
+          teacherCard.append(teacherBtn);
+          const teacherStatus = el("div"); teacherCard.append(teacherStatus);
+          teacherBtn.addEventListener("click", async () => {
+            teacherBtn.disabled = true; teacherBtn.textContent = t("building-files");
+            try { await generateTeacherPDF(teacherStatus); } catch (e) { console.error(e); toast(t("pdf-error"), "info"); }
+            teacherBtn.disabled = false; teacherBtn.textContent = t("assessed.teacher-generate");
+          });
+          host.append(teacherCard);
+        }
       }
-    });
+    }
 
-    const clearRow = el("div", "cluster no-print"); clearRow.style.marginTop = "var(--sp-6)";
-    const clearBtn = el("button", "btn btn--ghost", t("clear-work"));
-    clearBtn.addEventListener("click", () => {
-      if (confirm(t("clear-confirm"))) {
-        try { localStorage.removeItem(STORE_KEY); } catch {}
-        state = fresh(); location.reload();
-      }
-    });
-    clearRow.append(clearBtn);
-    gen.append(clearRow);
     host.append(gen);
   }
 
   /* --------- evidence payload + export --------------------------------- */
-  function buildPayload() {
+  /* marking: the fetched marking.json (or null for the student receipt,
+     which must never carry markingScheme/levels/source — see CLAUDE.md §5). */
+  function buildPayload(marking) {
     const completed = todayISO();
     const autoScore = state.kcScore ? state.kcScore.got : 0;
     const autoMax = state.kcScore ? state.kcScore.max : (config.knowledgeCheck || []).reduce((n, q) => n + (q.marks || 1), 0);
@@ -908,13 +1052,24 @@ export async function mountActivity({ simulation = {} } = {}) {
     };
 
     const constructed = [
-      wrapConstructed(config.explain, state.explain),
-      wrapConstructed(config.apply, state.apply),
+      wrapConstructed(config.explain, state.explain, marking && marking.explain),
+      wrapConstructed(config.apply, state.apply, marking && marking.apply),
     ].filter(Boolean);
 
     const rb = config.rubric || {}; const crit = (rb.criteria || []);
+    const markingCrit = (marking && marking.rubric && marking.rubric.criteria) || [];
     const rubricOut = {};
-    crit.forEach(c => { rubricOut[c.key] = { max: c.max, auto: !!c.auto, awarded: c.auto ? autoScore : null, source: c.source || null }; });
+    crit.forEach(c => {
+      const mc = markingCrit.find(m => m.key === c.key) || {};
+      rubricOut[c.key] = {
+        max: c.max, auto: !!c.auto, awarded: c.auto ? autoScore : null,
+        descriptor: c.descriptor || null,
+        // levels/source are marker-only — present only when `marking` (marking.json) was supplied,
+        // i.e. never on the student receipt. Never sourced from `config` (config.json is public).
+        levels: mc.levels || null,
+        source: mc.source || null,
+      };
+    });
     const rubricTotal = crit.reduce((n, c) => n + (c.max || 0), 0);
     const autoPct = autoMax ? Math.round((autoScore / autoMax) * 100) : 0;
 
@@ -923,6 +1078,9 @@ export async function mountActivity({ simulation = {} } = {}) {
       student: state.student.trim(), course: config.course, pathway: config.pathway,
       module: config.module, activity_name: config.title,
       simulation_url: simURL,
+      assessment_mode: assessmentMode,
+      locked: !!state.locked,
+      submitted_at: state.submittedAt || null,
       learning_objective: (config.orient && config.orient.objective) || null,
       success_criteria: (config.orient && config.orient.successCriteria) || [],
       learning_focus: config.learningFocus || null,
@@ -945,33 +1103,58 @@ export async function mountActivity({ simulation = {} } = {}) {
       auto_marked_percent: autoPct,
       constructed_responses: constructed,
       rubric: { ...rubricOut, total_marks: rubricTotal, grade_is: "marks ÷ total × 100 = percentage" },
-      marking_instructions: config.markingInstructions || "Mark the constructed responses against the rubric and expected points. Accept scientifically valid alternative wording. Do not penalise spelling unless meaning is unclear.",
+      marking_instructions: (marking && marking.markingInstructions) || null,
+      is_marker_copy: !!marking,
     };
     const sum = checksum({ ...core, checksum: undefined });
     return { ...core, integrity_checksum: sum, integrity_note: t("pdf.integrity-note") };
   }
-  function wrapConstructed(cfg, answer) {
+  /* markingCfg: the fetched marking.json's entry for this question (e.g.
+     marking.explain) — null on the student receipt, where marking_scheme
+     must never be populated. */
+  function wrapConstructed(cfg, answer, markingCfg) {
     if (!cfg) return null;
-    const scheme = cfg.markingScheme || null;
+    const scheme = (markingCfg && markingCfg.markingScheme) || null;
     const maxMarks = cfg.maxMarks || (scheme ? scheme.reduce((n, pt) => n + (pt.marks || 0), 0) : 3);
     return {
       question: cfg.prompt, response: (answer || "").trim(),
-      marking_context: {
-        max_marks: maxMarks,
-        // marking_scheme: point-by-point, reproducible marking (preferred — see CLAUDE.md §5).
-        // expected_points: legacy flat list, kept only for activities not yet migrated.
-        marking_scheme: scheme,
-        expected_points: scheme ? null : (cfg.expectedPoints || []),
-      },
+      marking_context: { max_marks: maxMarks, marking_scheme: scheme },
     };
   }
 
-  async function generateEvidence(statusHost) {
-    const payload = buildPayload();
-    const base = [sanitize(payload.student), sanitize(config.course), sanitize(config.module), sanitize(config.title), dateStamp()].join("_");
+  /* Teacher/marker PDF — the complete document (student evidence + full
+     analytic marking scheme + rubric levels/source). In Formative Mode this
+     is the ONE PDF a student generates and hands in (unchanged real-world
+     workflow: this project has no separate teacher portal, the tutor marks
+     from the file the student uploads). In Assessed Mode it is a SEPARATE,
+     not-automatically-offered action — see buildEvidence's ?teacher=1 gate. */
+  async function generateTeacherPDF(statusHost) {
+    const marking = await fetchMarking();
+    const payload = buildPayload(marking);
+    const suffix = assessmentMode === "assessed" ? "_TEACHER" : "";
+    const base = [sanitize(payload.student), sanitize(config.course), sanitize(config.module), sanitize(config.title), dateStamp()].join("_") + suffix;
 
     const jsPDF = await loadJsPDF();
     const pdfBlob = buildPDF(jsPDF, payload);
+    downloadBlob(pdfBlob, `${base}.pdf`);
+
+    statusHost.textContent = "";
+    const done = el("div", "toast toast--correct anim-pop"); done.style.marginTop = "var(--sp-4)";
+    done.append(el("strong", null, t("done")), document.createTextNode(t("file-downloaded", { base, checksum: payload.integrity_checksum })));
+    statusHost.append(done);
+    celebrate(1);
+  }
+
+  /* Student submission receipt (Assessed Mode) — the student's own answers,
+     evidence and a submission confirmation. Deliberately built WITHOUT ever
+     fetching marking.json, so the marking scheme is never in memory or in
+     this document. */
+  async function generateStudentReceipt(statusHost) {
+    const payload = buildPayload(null);
+    const base = [sanitize(payload.student), sanitize(config.course), sanitize(config.module), sanitize(config.title), dateStamp()].join("_") + "_receipt";
+
+    const jsPDF = await loadJsPDF();
+    const pdfBlob = buildStudentPDF(jsPDF, payload);
     downloadBlob(pdfBlob, `${base}.pdf`);
 
     statusHost.textContent = "";
@@ -1251,6 +1434,147 @@ function buildPDF(jsPDF, p) {
      to several pages) — stamped in one final pass now that every page
      exists, centred on the footer rule so it never collides with the
      activity name/checksum (left) or "Discovery Lab" (right). */
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); setColor(mut);
+    doc.text(pdfSafe(t("pdf.page", { n: i, total: totalPages })), W / 2, H - 28, { align: "center" });
+  }
+
+  return doc.output("blob");
+}
+
+/* Student submission receipt (Assessed Mode) — deliberately built from a
+   payload that never had marking.json merged in (marking_scheme/levels/
+   source are all null on every entry). Shows the student's own evidence and
+   a submission confirmation, never the marking guidance. See CLAUDE.md §5's
+   assessment-security amendment. */
+function buildStudentPDF(jsPDF, p) {
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 54; const RIGHT = W - M; const CW = W - M * 2;
+  let y = M;
+
+  const ink = [29, 33, 28], mut = [110, 118, 112], accent = [22, 116, 79], line = [200, 205, 198];
+  const setColor = c => doc.setTextColor(c[0], c[1], c[2]);
+
+  function ensure(space) { if (y + space > H - M) { footer(); doc.addPage(); y = M; } }
+  function rule(c = line) { doc.setDrawColor(c[0], c[1], c[2]); doc.setLineWidth(0.75); doc.line(M, y, RIGHT, y); y += 12; }
+  function h(text, size = 13) { ensure(size + 12); doc.setFont("helvetica", "bold"); doc.setFontSize(size); setColor(accent); doc.text(pdfSafe(text).toUpperCase(), M, y); y += size + 4; setColor(ink); }
+  function para(text, size = 10, style = "normal", color = ink, gap = 5) {
+    doc.setFont("helvetica", style); doc.setFontSize(size); setColor(color);
+    const lines = doc.splitTextToSize(pdfSafe(text), CW);
+    lines.forEach(ln => { ensure(size + 3); doc.text(ln, M, y); y += size + 3; });
+    y += gap;
+  }
+  function kv(label, value) {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); setColor(mut);
+    ensure(14); doc.text(pdfSafe(label), M, y);
+    doc.setFont("helvetica", "normal"); setColor(ink);
+    const lines = doc.splitTextToSize(pdfSafe(value || "-"), CW - 130);
+    doc.text(lines, M + 130, y); y += Math.max(14, lines.length * 13);
+  }
+  function footer() {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); setColor(mut);
+    doc.text(pdfSafe(p.activity_name + "  -  " + (p.integrity_checksum || "")), M, H - 28);
+    doc.text("Discovery Lab", RIGHT, H - 28, { align: "right" });
+    doc.setDrawColor(line[0], line[1], line[2]); doc.setLineWidth(0.5); doc.line(M, H - 40, RIGHT, H - 40);
+  }
+
+  // Masthead — deliberately NOT "Discovery Lab Report": this is a receipt, not the marked document.
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); setColor(accent);
+  doc.text(t("pdf.receipt-masthead"), M, y); y += 6;
+  rule(accent);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(20); setColor(ink);
+  doc.text(doc.splitTextToSize(pdfSafe(p.activity_name), CW), M, y + 8); y += 30;
+  para(`${p.course}  -  ${p.module}`, 10, "normal", mut, 8);
+
+  kv(t("pdf.student"), p.student);
+  kv(t("pdf.course"), `${p.course}  (${p.pathway})`);
+  kv(t("pdf.activityId"), `${p.activity_id}   v${p.activity_version}`);
+  y += 2;
+
+  // Submission confirmation banner
+  ensure(46);
+  doc.setFillColor(235, 245, 239); doc.setDrawColor(accent[0], accent[1], accent[2]);
+  doc.roundedRect(M, y, CW, 40, 4, 4, "FD");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); setColor(accent);
+  doc.text(t("pdf.receipt-confirmed"), M + 12, y + 15);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); setColor(mut);
+  doc.text(t("pdf.receipt-submitted-at", { date: p.submitted_at ? new Date(p.submitted_at).toLocaleString() : new Date(p.completed).toLocaleString() }), M + 12, y + 30);
+  y += 52;
+
+  const lf = p.learning_focus;
+  if (lf && lf.summary) { h(t("pdf.about-activity")); para(lf.summary, 9.5, "normal", ink, 8); }
+
+  h(t("pdf.result"));
+  para(t("pdf.auto-summary-receipt", { score: p.auto_marked_score, pct: p.auto_marked_percent }), 10);
+
+  h(t("pdf.prediction"));
+  para(p.prediction.question, 10, "italic", mut, 3);
+  para(t("pdf.your-prediction") + fmt(p.prediction.student_prediction), 10);
+
+  const smLabels = {
+    observation: t("pdf.observation"), question: t("pdf.question"), hypothesis: t("pdf.hypothesis"),
+    variables: t("pdf.variables"), results: t("pdf.results"), analysis: t("pdf.analysis"),
+    conclusion: t("pdf.conclusion"), reflection: t("pdf.reflection"),
+  };
+  const sm = p.scientific_method || {};
+  const smEntries = Object.keys(smLabels).filter(k => {
+    const v = sm[k];
+    return v !== null && v !== undefined && v !== "" && !(typeof v === "object" && !Object.keys(v).length);
+  });
+  if (smEntries.length) {
+    h(t("pdf.scientific-method"));
+    smEntries.forEach(k => {
+      const v = sm[k];
+      const text = typeof v === "object" ? Object.entries(v).map(([kk, vv]) => `${kk}: ${vv}`).join("   |   ") : String(v);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
+      ensure(14); doc.text(smLabels[k], M, y); y += 12;
+      para(text, 9.5, "normal", mut, 6);
+    });
+  }
+
+  h(t("pdf.investigation-record"));
+  drawTrials(doc, p, { M, RIGHT, CW, H, footer, get y(){return y;}, set y(v){y=v;} });
+  y = tableCursor.y;
+
+  h(t("pdf.kc-auto"));
+  p.auto_marked.forEach((a, i) => {
+    ensure(34);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
+    const q = doc.splitTextToSize(pdfSafe(`${i + 1}. ${a.question}`), CW - 40); doc.text(q, M, y); y += q.length * 12;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); setColor(mut);
+    const ansLines = doc.splitTextToSize(pdfSafe(t("pdf.your-answer") + fmt(a.student_answer)), CW - 40);
+    doc.text(ansLines, M + 10, y); y += ansLines.length * 12;
+    const ok = a.marks_awarded >= a.marks_available;
+    setColor(ok ? accent : [163, 44, 30]);
+    doc.setFont("helvetica", "bold");
+    doc.text(pdfSafe(`${ok ? t("pdf.correct-tag") : t("pdf.review-tag")}  ${a.marks_awarded} / ${a.marks_available}`), M + 10, y); y += 16; setColor(ink);
+  });
+
+  // Written answers — the student's own response ONLY. Deliberately no
+  // marking scheme, no rubric, no mark-source mapping: this document is the
+  // student's receipt, not the marking specification (that is the separate
+  // teacher PDF, generated only via the teacher-only action).
+  h(t("pdf.written-answers"));
+  p.constructed_responses.forEach((c, i) => {
+    ensure(40);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
+    const qLines = doc.splitTextToSize(pdfSafe(`${i + 1}. ${c.question}`), CW);
+    doc.text(qLines, M, y); y += qLines.length * 12 + 3;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); setColor(ink);
+    const ansLines = doc.splitTextToSize(pdfSafe(c.response ? c.response : t("pdf.blank")), CW - 10);
+    doc.text(ansLines, M + 10, y); y += ansLines.length * 13 + 6;
+  });
+  para(t("pdf.receipt-marking-note"), 8.5, "italic", mut, 4);
+
+  ensure(40);
+  rule();
+  para(t("pdf.checksum", { checksum: p.integrity_checksum, note: p.integrity_note }), 8, "normal", mut, 0);
+
+  footer();
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);

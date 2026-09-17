@@ -1,0 +1,61 @@
+{
+  "_README": "MARKER-ONLY. Never shipped to the student's browser until a teacher/marker PDF is actually generated (formative: automatically, when the student clicks Generate — this project's real workflow has no separate teacher portal, so this is still the one document the tutor marks from; assessed: only via the ?teacher=1-gated action, after Final Submit has locked the attempt). Never render anything from this file on the student-facing page — the shared engine already refuses to (CLAUDE.md §5), but never work around that. Keep this file's activityId/version in sync with config.json's, as a sanity check. This file is ENGLISH-ONLY, never translated — the marker reads it regardless of the student's chosen language, exactly like markingInstructions/expectedPoints always were before this file existed.",
+
+  "activityId": "XXX-M00-SIM00",
+  "version": "0.1",
+
+  "_markingScheme_note": "One entry per available mark: 'marks' (usually 1), 'criterion' (the specific, assessable thing that earns it — not a vague theme), 'accept' (acceptable alternative/equivalent wording, so the marker doesn't require exact keywords), 'insufficient' (a common response that looks right but doesn't earn the mark, where useful), and 'dependsOn' (0-based index of another point in THIS array that must also be met, or omit/null if independent). maxMarks (in config.json) must equal the sum of markingScheme[].marks. The marker never has to invent the scheme from the question's wording.",
+  "explain": {
+    "markingScheme": [
+      { "marks": 1, "criterion": "Accurately describes the pattern/relationship observed, quoting at least two of their own results from the Investigation Record.", "accept": "Any two genuine values from the student's own trials that show the trend; exact wording not required.", "insufficient": "A general claim ('it changed') with no actual figures quoted." },
+      { "marks": 1, "criterion": "Explains the underlying scientific mechanism that causes the pattern (state the actual mechanism for this activity here).", "accept": "Scientifically equivalent phrasing; do not require exact keywords when the meaning is clear." },
+      { "marks": 1, "criterion": "States clearly whether this evidence supports or contradicts the hypothesis made in Predict, and why.", "insufficient": "Restating the hypothesis without judging it against the evidence.", "dependsOn": 1 }
+    ]
+  },
+
+  "apply": {
+    "markingScheme": [
+      { "marks": 1, "criterion": "Identifies the relevant fact about the new context that makes the concept apply." },
+      { "marks": 1, "criterion": "Links that fact to the mechanism learned in Explain, named correctly.", "dependsOn": 0 },
+      { "marks": 1, "criterion": "Names both sides of the comparison the question asks for, not just one.", "insufficient": "A single vague reason with no named mechanism or comparison." }
+    ]
+  },
+
+  "_rubric_note": "One entry per config.json rubric.criteria[].key. Each non-auto criterion needs a 'levels' array — one entry per mark value from 0 up to max — spelling out exactly what earns that many marks (content-specific; this is exactly what must NEVER appear in config.json's studentHint). EVERY criterion (including the auto one) needs a 'source' string stating exactly which question's marks it equals (e.g. '= Explain question's 3-point marking scheme above, one-to-one; do not award these marks twice') or, if scored holistically across more than one answer, saying so explicitly and that it never overlaps with other criteria's marks. Every mark in the final total must have one clear, stated source.",
+  "rubric": {
+    "criteria": [
+      { "key": "knowledge_accuracy", "source": "Auto-marked from the Knowledge Check (auto_marked_score) — the teacher does not mark this row." },
+      {
+        "key": "use_of_evidence",
+        "source": "= Explain question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
+        "levels": [
+          { "marks": 0, "descriptor": "No data or evidence referenced." },
+          { "marks": 1, "descriptor": "Mentions data but does not connect it to the claim being made." },
+          { "marks": 2, "descriptor": "Refers to own results and links them to the claim, with a minor gap." },
+          { "marks": 3, "descriptor": "Clearly cites specific figures from own Investigation Record and uses them to justify the claim." }
+        ]
+      },
+      {
+        "key": "reasoning",
+        "source": "= Apply question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
+        "levels": [
+          { "marks": 0, "descriptor": "No attempt to apply the concept to the new context." },
+          { "marks": 1, "descriptor": "States what would happen but not why." },
+          { "marks": 2, "descriptor": "Explains why, with one gap in the scientific logic." },
+          { "marks": 3, "descriptor": "Explains why using correct scientific reasoning, fully applied to the new context." }
+        ]
+      },
+      {
+        "key": "communication",
+        "source": "Assessed holistically across both the Explain and Apply answers together — independent of, and never overlapping with, the content marks above.",
+        "levels": [
+          { "marks": 0, "descriptor": "Unclear or missing sentences; no scientific terms." },
+          { "marks": 1, "descriptor": "Understandable but with unclear phrasing or missing key terms." },
+          { "marks": 2, "descriptor": "Clear, well-formed sentences using correct scientific vocabulary." }
+        ]
+      }
+    ]
+  },
+
+  "markingInstructions": "Mark ONLY the two constructed responses, using the point-by-point marking_scheme carried in each question's marking_context (award each point independently unless it states a dependsOn, in which case only award it if the point it depends on was also awarded) and the rubric's level descriptors, which restate the same points as bands — do not invent extra criteria beyond what is defined. Each rubric row's 'source' states exactly which question's marks it equals; never award a criterion's marks a second time on top of the question-level marks they restate. Copy auto_marked_score into knowledge_accuracy. Accept scientifically valid alternative wording per each point's 'accept' field; do not penalise spelling unless meaning is unclear. Use the raw Investigation Record data (not just the student's summary of it) to verify any claim the student makes about their own results. Report total, percentage, one strength, one correction, one next step, under 80 words."
+}

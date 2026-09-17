@@ -1,5 +1,7 @@
 {
-  "_README": "KNOWN-GOOD ACTIVITY SKELETON. Copy this whole folder into the activity's place in the tree, then edit these two files only. Never edit the shared engine for a content change. Question budget: Predict (structured, not scored) + Knowledge Check (3-4 auto items) + Explain + Apply (exactly 2 constructed). See CLAUDE.md sections 3 and 10.",
+  "_README": "KNOWN-GOOD ACTIVITY SKELETON. Copy this whole folder into the activity's place in the tree, then edit config.json, marking.json and activity.html only. Never edit the shared engine for a content change. Question budget: Predict (structured, not scored) + Knowledge Check (3-4 auto items) + Explain + Apply (exactly 2 constructed). See CLAUDE.md sections 3, 5 and 10.",
+
+  "_assessment_security_note": "REQUIRED READING (CLAUDE.md §5's assessment-security amendment). This file, config.json, is PUBLIC — it is what the student's browser fetches and can always be read, including before they start writing. It must NEVER contain markingScheme, accept, insufficient, dependsOn, rubric levels/source, or markingInstructions. All of that lives ONLY in the sibling file marking.json (see _template/marking.json), which the engine fetches lazily — never on page load, only when a teacher/marker PDF is actually generated. This is a client-side best-effort separation, not real security (marking.json is still a fetchable static file on GitHub Pages) — document it that way, never oversell it.",
 
   "activityId": "XXX-M00-SIM00",
   "version": "0.1",
@@ -11,6 +13,9 @@
   "theme": "biology",
   "ageBand": "lower-secondary",
   "estimatedMinutes": 20,
+
+  "_assessmentMode_note": "OPTIONAL, defaults to \"formative\" if omitted. \"formative\" (practice — the normal case) generates a single combined PDF exactly as before, just now built from config.json + marking.json together. \"assessed\" (graded work/tests) locks the attempt on Final Submit, gives the student only a submission receipt (no marking scheme), and puts the full marking PDF behind a separate ?teacher=1-gated action. See CLAUDE.md §5.",
+  "assessmentMode": "formative",
 
   "_learningFocus_note": "REQUIRED. Prints as 'About this activity' on the evidence PDF and rides in the JSON, so leadership, parents and educators see the meaning of the activity. 'skills' is a short chip list drawn from the school's skill language (critical thinking, creativity, mathematical, digital literacy, communication, analytical, research, scientific enquiry...). 'summary' is ONE high-quality paragraph that names both the skills developed AND the specific curriculum content practised, tied to the course and module. Make it sound genuinely impressive and accurate — never generic.",
   "learningFocus": {
@@ -56,17 +61,13 @@
     ]
   },
 
-  "_markingScheme_note": "REQUIRED reproducible marking (CLAUDE.md §5). markingScheme replaces the old flat expectedPoints array. One entry per available mark: 'marks' (usually 1), 'criterion' (the specific, assessable thing that earns it — not a vague theme), 'accept' (acceptable alternative/equivalent wording, so the marker doesn't require exact keywords), 'insufficient' (a common response that looks right but doesn't earn the mark, where useful), and 'dependsOn' (0-based index of another point in THIS array that must also be met, or omit/null if independent). maxMarks must equal the sum of markingScheme[].marks. The marker never has to invent the scheme from the question's wording.",
+  "_written_note": "Student-facing only. maxMarks (a bare number) is fine to show — it doesn't reveal content. skillFocus is REQUIRED: a short, generic, non-answer-revealing statement of the broad skill assessed (e.g. 'Use evidence from your investigation and explain your reasoning clearly.'). NEVER put markingScheme, accept, insufficient or dependsOn here — those go in marking.json's matching 'explain'/'apply' entry.",
   "explain": {
     "prompt": "Ask the student to interpret a pattern they observed, using their own data.",
     "lede": "Use the numbers from your Investigation Record.",
     "maxMarks": 3,
     "minChars": 80,
-    "markingScheme": [
-      { "marks": 1, "criterion": "Accurately describes the pattern/relationship observed, quoting at least two of their own results from the Investigation Record.", "accept": "Any two genuine values from the student's own trials that show the trend; exact wording not required.", "insufficient": "A general claim ('it changed') with no actual figures quoted." },
-      { "marks": 1, "criterion": "Explains the underlying scientific mechanism that causes the pattern (state the actual mechanism for this activity here).", "accept": "Scientifically equivalent phrasing; do not require exact keywords when the meaning is clear." },
-      { "marks": 1, "criterion": "States clearly whether this evidence supports or contradicts the hypothesis made in Predict, and why.", "insufficient": "Restating the hypothesis without judging it against the evidence.", "dependsOn": 1 }
-    ]
+    "skillFocus": "Use evidence from your own investigation and explain your reasoning clearly."
   },
 
   "apply": {
@@ -74,11 +75,7 @@
     "lede": "Think about where this happens outside the lab.",
     "maxMarks": 3,
     "minChars": 80,
-    "markingScheme": [
-      { "marks": 1, "criterion": "Identifies the relevant fact about the new context that makes the concept apply." },
-      { "marks": 1, "criterion": "Links that fact to the mechanism learned in Explain, named correctly.", "dependsOn": 0 },
-      { "marks": 1, "criterion": "Names both sides of the comparison the question asks for, not just one.", "insufficient": "A single vague reason with no named mechanism or comparison." }
-    ]
+    "skillFocus": "Apply what you found to a new situation and give clear, well-explained reasons."
   },
 
   "knowledgeCheck": [
@@ -111,46 +108,18 @@
     }
   ],
 
-  "_rubric_note": "Each non-auto criterion should carry a 'levels' array — one entry per mark value from 0 up to max — spelling out exactly what earns that many marks. This is what tells the student how they're being judged and tells the marker (human or AI) what to look for at each score, not just the ceiling. 'auto' criteria (Knowledge Check) don't need levels since they're graded by the engine. EVERY non-auto criterion also needs a 'source' string stating exactly which question's marks it equals (e.g. '= Explain question's 3-point marking scheme above; do not award these marks twice') or, if it is scored holistically across more than one answer, saying so explicitly. Every mark in the final total must have one clear, stated source — never let a criterion's max silently duplicate marks already awarded on a specific question.",
+  "_rubric_note": "Student-facing rubric: key/label/max/auto only, plus a REQUIRED 'studentHint' on every non-auto criterion — a short, GENERIC, non-content-revealing statement of what good work looks like (e.g. 'Use evidence clearly from your own investigation to support your answer.'), never the content-specific level descriptors. NEVER put 'levels' or 'source' here — those are marker-only and belong in marking.json's matching rubric.criteria entry (matched by 'key'). The auto criterion may keep a plain, non-revealing 'descriptor' (e.g. 'Knowledge Check correct.') since that doesn't disclose anything.",
   "rubric": {
     "note": "You are graded out of the total marks, shown as a percentage.",
     "criteria": [
-      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 5, "auto": true, "source": "Auto-marked from the Knowledge Check (auto_marked_score) — the teacher does not mark this row." },
-      {
-        "key": "use_of_evidence", "label": "Use of evidence", "max": 3,
-        "source": "= Explain question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
-        "levels": [
-          { "marks": 0, "descriptor": "No data or evidence referenced." },
-          { "marks": 1, "descriptor": "Mentions data but does not connect it to the claim being made." },
-          { "marks": 2, "descriptor": "Refers to own results and links them to the claim, with a minor gap." },
-          { "marks": 3, "descriptor": "Clearly cites specific figures from own Investigation Record and uses them to justify the claim." }
-        ]
-      },
-      {
-        "key": "reasoning", "label": "Scientific reasoning", "max": 3,
-        "source": "= Apply question's 3-point marking scheme above, one-to-one. Do not award these marks a second time here.",
-        "levels": [
-          { "marks": 0, "descriptor": "No attempt to apply the concept to the new context." },
-          { "marks": 1, "descriptor": "States what would happen but not why." },
-          { "marks": 2, "descriptor": "Explains why, with one gap in the scientific logic." },
-          { "marks": 3, "descriptor": "Explains why using correct scientific reasoning, fully applied to the new context." }
-        ]
-      },
-      {
-        "key": "communication", "label": "Communication", "max": 2,
-        "source": "Assessed holistically across both the Explain and Apply answers together — independent of, and never overlapping with, the content marks above.",
-        "levels": [
-          { "marks": 0, "descriptor": "Unclear or missing sentences; no scientific terms." },
-          { "marks": 1, "descriptor": "Understandable but with unclear phrasing or missing key terms." },
-          { "marks": 2, "descriptor": "Clear, well-formed sentences using correct scientific vocabulary." }
-        ]
-      }
+      { "key": "knowledge_accuracy", "label": "Knowledge & understanding", "descriptor": "Knowledge Check correct.", "max": 5, "auto": true },
+      { "key": "use_of_evidence", "label": "Use of evidence", "max": 3, "studentHint": "Use evidence clearly from your own investigation to support your answer." },
+      { "key": "reasoning", "label": "Scientific reasoning", "max": 3, "studentHint": "Explain the scientific reasoning behind your answer, applying it correctly to the situation asked about." },
+      { "key": "communication", "label": "Communication", "max": 2, "studentHint": "Write clearly, in full sentences, using correct scientific vocabulary." }
     ]
   },
 
-  "markingInstructions": "Mark ONLY the two constructed responses, using the point-by-point marking_scheme carried in each question's marking_context (award each point independently unless it states a dependsOn, in which case only award it if the point it depends on was also awarded) and the rubric's level descriptors, which restate the same points as bands — do not invent extra criteria beyond what is defined. Each rubric row's 'source' states exactly which question's marks it equals; never award a criterion's marks a second time on top of the question-level marks they restate. Copy auto_marked_score into knowledge_accuracy. Accept scientifically valid alternative wording per each point's 'accept' field; do not penalise spelling unless meaning is unclear. Use the raw Investigation Record data (not just the student's summary of it) to verify any claim the student makes about their own results. Report total, percentage, one strength, one correction, one next step, under 80 words.",
-
-  "_es_note": "REQUIRED (see CLAUDE.md Section 15). Mirror every translatable field here in natural, age-appropriate Spanish. Arrays of objects with an 'id' (predict.options, knowledgeCheck) merge by id — keep the same ids, translate only 'label'/'prompt'/'explain'. Other arrays (orient.steps, record.columns, rubric.criteria, match 'pairs') merge by position. Never translate markingScheme, expectedPoints, rubric criteria 'source', or markingInstructions — they are marker-only and never shown to the student.",
+  "_es_note": "REQUIRED (see CLAUDE.md Section 15). Mirror every translatable field here in natural, age-appropriate Spanish, including skillFocus and studentHint. Arrays of objects with an 'id' (predict.options, knowledgeCheck) merge by id — keep the same ids, translate only 'label'/'prompt'/'explain'. Other arrays (orient.steps, record.columns, rubric.criteria, match 'pairs') merge by position. This file has NOTHING marker-only in it to begin with, so there is nothing to withhold from translation here — markingScheme/accept/insufficient/rubric-source/markingInstructions all live in the English-only marking.json instead, which has no 'es' block at all.",
   "es": {
     "title": "Título de la actividad",
     "subtitle": "Frase gancho de una línea que anime al estudiante a empezar.",
@@ -166,8 +135,8 @@
     "predict": { "prompt": "Una predicción estructurada.", "hint": "Una línea de orientación.", "options": [{ "id": "a", "label": "Opción A" }, { "id": "b", "label": "Opción B" }, { "id": "c", "label": "Opción C" }] },
     "investigate": { "title": "El interactivo", "lede": "Una o dos frases explicando qué hacer." },
     "record": { "intro": "Cada prueba se registra aquí automáticamente.", "emptyText": "Todavía no hay pruebas.", "columns": [{ "key": "input", "label": "Lo que ajustaste", "unit": "" }, { "key": "result", "label": "Resultado", "unit": "" }] },
-    "explain": { "prompt": "Pide interpretar un patrón observado, usando sus propios datos.", "lede": "Usa los números de tu Registro de investigación." },
-    "apply": { "prompt": "Pide aplicar el concepto a un contexto nuevo y real.", "lede": "Piensa en dónde ocurre esto fuera del laboratorio." },
+    "explain": { "prompt": "Pide interpretar un patrón observado, usando sus propios datos.", "lede": "Usa los números de tu Registro de investigación.", "skillFocus": "Usa evidencia de tu propia investigación y explica tu razonamiento con claridad." },
+    "apply": { "prompt": "Pide aplicar el concepto a un contexto nuevo y real.", "lede": "Piensa en dónde ocurre esto fuera del laboratorio.", "skillFocus": "Aplica lo que descubriste a una situación nueva y da razones claras y bien explicadas." },
     "knowledgeCheck": [
       { "id": "kc1", "prompt": "Una pregunta de opción múltiple.", "options": [{ "id": "a", "label": "Respuesta correcta" }, { "id": "b", "label": "Respuesta incorrecta" }, { "id": "c", "label": "Respuesta incorrecta" }], "explain": "Por qué la respuesta es correcta." },
       { "id": "kc2", "prompt": "Una pregunta numérica.", "explain": "Se muestra al comprobar." },
@@ -176,33 +145,10 @@
     "rubric": {
       "note": "Tu nota son los puntos que obtienes del total, como porcentaje.",
       "criteria": [
-        { "label": "Conocimiento y comprensión", "descriptor": "Comprobación de conocimientos correcta." },
-        {
-          "label": "Uso de la evidencia",
-          "levels": [
-            { "descriptor": "No se menciona ningún dato ni evidencia." },
-            { "descriptor": "Menciona datos pero no los relaciona con la afirmación." },
-            { "descriptor": "Se refiere a sus propios resultados y los relaciona con la afirmación, con un pequeño vacío." },
-            { "descriptor": "Cita cifras concretas de su propio Registro de investigación y las usa para justificar la afirmación." }
-          ]
-        },
-        {
-          "label": "Razonamiento científico",
-          "levels": [
-            { "descriptor": "No intenta aplicar el concepto al nuevo contexto." },
-            { "descriptor": "Indica qué pasaría pero no explica por qué." },
-            { "descriptor": "Explica por qué, con un vacío en la lógica científica." },
-            { "descriptor": "Explica por qué usando un razonamiento científico correcto, aplicado por completo al nuevo contexto." }
-          ]
-        },
-        {
-          "label": "Comunicación",
-          "levels": [
-            { "descriptor": "Frases confusas o ausentes; sin términos científicos." },
-            { "descriptor": "Comprensible pero con frases poco claras o sin términos clave." },
-            { "descriptor": "Frases claras y bien construidas usando vocabulario científico correcto." }
-          ]
-        }
+        { "descriptor": "Comprobación de conocimientos correcta." },
+        { "studentHint": "Usa evidencia con claridad de tu propia investigación para respaldar tu respuesta." },
+        { "studentHint": "Explica el razonamiento científico detrás de tu respuesta, aplicándolo correctamente a la situación planteada." },
+        { "studentHint": "Escribe con claridad, en oraciones completas, usando vocabulario científico correcto." }
       ]
     }
   }
