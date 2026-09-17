@@ -179,6 +179,58 @@ rush every time.
   forward axis rather than assuming a sign — this is exactly the kind of thing that looks fine in code
   review and only shows up as "backwards" when someone actually plays it.
 
+**Amendment — at least THREE hands-on, things-move moments in every Investigate, on top of the
+bonus round, hard rule going forward (agreed 2026-09-18).** Diego, after seeing Mission: Blue
+Planet's first cut (a slider plus a static-looking floating egg): "this looks quite static... there
+is only one thing you are playing with in each simulation... I want the student to have at least one
+video game moment and then at least three moments when they are managing things and things are
+moving and it's dynamic." His comparison point is explicit: it should feel like "playing a Mario
+Nintendo video game" — pressing keys or using the mouse and *something visibly, exaggeratedly
+moves* — not a form with a live-updating number next to it. This is additive to, not a replacement
+for, every existing gamification rule above (arcade/quest bonus round, badges, streaks, XP) — it is
+about the core Investigate/Experiment stage itself, which was still reading as one static control
+even in simulations that already had a bonus round bolted on.
+
+- **The floor is now four distinct moments per simulation**, not one: **(1)** at least one bonus
+  arcade/quest round (already mandatory, see above) that plays like a real video game, **plus (2), (3)
+  and (4)** — at least three separate hands-on interactions inside Investigate itself where the
+  student actively manages something and watches it move/grow/shrink/fall/rise, each with its own
+  clear moment of feedback (a splash, a burst, a camera punch, a pop), not just a number changing in
+  a corner. A single slider driving a single visual is a policy miss now, regardless of how correct
+  the underlying model is.
+- **Real 3D wherever the topic can carry it, not just in the bonus round.** The core Investigate
+  scene itself should default to an orbitable Three.js scene (drag to orbit, scroll to zoom, exactly
+  the pattern already used in `sim-seed-germination-lab`/`sim-cuvier-deep-dive`) with continuous idle
+  motion — bobbing, drifting, a slow auto-orbit — so the scene is never perfectly still even before
+  the student touches anything. Reference implementation: `sim-mission-blue-planet`'s Salinity &
+  Buoyancy Station, rebuilt 2026-09-18 around three explicit moments — (1) **Mix the Brine**: tap a
+  shaker to add salt pinch by pinch, each tap spawning a falling/dissolving particle burst, not a bare
+  slider; (2) **Drop Test**: a button that sends a 3D object falling with a splash, ripple ring and a
+  camera "punch" (brief dolly-in) on impact, then continuous bobbing at rest; (3) **Catch the
+  Reading**: a sweeping needle the student must time a click against to "lock in" a result — a real
+  timing mini-game, generous and never punishing (unlimited retries, no score penalty, see the
+  no-penalise-time rule in §6), but still a skill moment, not a passive readout.
+  Keep the exact slider/preset controls too where they help precision or accessibility — the fix is
+  to make them one option alongside the game-like ones, never the *only* option.
+  **Vet camera-orbit fixes before trusting them:** a perfectly rotationally-symmetric scene (a plain
+  cylinder tank, say) can make an orbit that works correctly in code look "broken" in a screenshot
+  because nothing on-axis changes — put at least one off-axis landmark (a dock, a prop, a label) in
+  every 3D scene specifically so orbiting is visibly rewarding, and verify with a drag that actually
+  moves an off-axis object across the frame, not just by eyeballing a symmetric object from two angles.
+- **Every one of the three moments needs its own juice.** Reuse the shared burst-particle pattern (a
+  small DOM/Canvas particle pop layered over the 3D or 2D stage — see `burst()` in
+  `sim-mission-blue-planet`) for taps, drops and catches alike, plus at least one camera or scale
+  "punch" on the biggest moment (typically the drop/impact). No interaction should ever resolve
+  silently.
+- **This is a floor for every future simulation, science or otherwise (Spanish, primary, A-Level,
+  everything)** — Diego was explicit that this applies "moving forward" to all subjects, not just
+  science, and is not a one-off fix to Mission: Blue Planet. When designing a new activity's
+  Investigate stage, explicitly plan out what the three-plus hands-on moments will be *before* writing
+  any code, the same way `learningFocus` and the rubric are planned up front.
+- **This does not relax anything in §6 (accessibility).** No-penalise-pacing, keyboard operability,
+  reduced-motion fallbacks and a non-3D/non-drag alternative path all still apply to every one of these
+  moments — "exciting" and "accessible" are not in tension here, they are both required.
+
 ---
 
 ## 5. Evidence export — the assessment engine

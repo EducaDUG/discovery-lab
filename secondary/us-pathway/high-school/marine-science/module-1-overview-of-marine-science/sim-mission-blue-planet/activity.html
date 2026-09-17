@@ -65,30 +65,68 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .obs-credit{font-size:.65rem;color:var(--ink-3);padding:0 var(--sp-4) var(--sp-3);}
 .obs-credit a{color:inherit;}
 
-/* ---- Investigate: Salinity & Buoyancy Station ---- */
+/* ---- Investigate: Salinity & Buoyancy Station (real 3D) ---- */
 .station{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
-@media(min-width:58rem){.station{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:start;}}
-.tankwrap{display:flex;gap:var(--sp-4);align-items:flex-end;justify-content:center;}
-.tank{position:relative;width:11rem;height:16rem;border-radius:0 0 14px 14px;
-  border:3px solid #0d3a4f;border-top:none;background:linear-gradient(180deg,#eaf6fb 0%,#eaf6fb 22%,var(--water-col,#3aa6c9) 22%,var(--water-col2,#1c6f8f) 100%);
-  overflow:hidden;box-shadow:inset 0 0 30px rgba(0,0,0,.2), var(--shadow-1);flex:none;}
-.tank__waterline{position:absolute;left:0;right:0;top:22%;height:2px;background:#ffffffaa;}
-.tank__egg{position:absolute;left:50%;width:2.6rem;height:3.4rem;transform:translate(-50%,-50%);
-  transition:top .9s cubic-bezier(.4,1.4,.5,1),opacity .3s;}
-.tank__egg svg{width:100%;height:100%;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35));}
-.tank__bubble{position:absolute;bottom:0;width:6px;height:6px;border-radius:50%;background:#ffffffcc;
-  animation:bubbleup 1.1s ease-in forwards;}
-@keyframes bubbleup{0%{transform:translateY(0) scale(1);opacity:.9;}100%{transform:translateY(-15rem) scale(.4);opacity:0;}}
-[data-reduced-motion=on] .tank__bubble{animation:none;display:none;}
-.gauge{width:4.4rem;height:15rem;border-radius:10px;border:2px solid var(--line-strong);background:var(--paper);
-  position:relative;flex:none;overflow:hidden;}
-.gauge__scale{position:absolute;inset:.4rem;display:flex;flex-direction:column-reverse;justify-content:space-between;
-  font-family:var(--font-data);font-size:.55rem;color:var(--ink-3);}
-.gauge__band{position:absolute;left:.2rem;right:.2rem;background:color-mix(in srgb, var(--accent) 14%, transparent);
-  border-top:1px dashed var(--accent);border-bottom:1px dashed var(--accent);}
-.gauge__needle{position:absolute;left:0;right:0;height:3px;background:var(--signal);box-shadow:0 0 6px var(--signal);
-  transition:bottom .9s cubic-bezier(.4,1.4,.5,1);}
-.gauge__cap{text-align:center;font-family:var(--font-data);font-size:.6rem;color:var(--ink-3);margin-top:.3em;}
+@media(min-width:58rem){.station{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start;}}
+.stage3d{position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  border:1px solid #062633;aspect-ratio:5/4;min-height:19rem;
+  background:radial-gradient(120% 100% at 50% 10%, #0f4a63 0%, #0a3346 46%, #041824 100%);
+  box-shadow:inset 0 0 120px rgba(0,0,0,.55), var(--shadow-2);}
+.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:grab;touch-action:none;}
+.stage3d canvas:active{cursor:grabbing;}
+.stage3d::after{content:"";position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 90px rgba(0,0,0,.55);border-radius:inherit;}
+.stage3d__boot{position:absolute;inset:0;display:grid;place-items:center;color:#bfe9f5;
+  font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.1em;text-transform:uppercase;gap:var(--sp-3);}
+.boot-dot{width:44px;height:44px;border-radius:50%;border:3px solid #17607d;border-top-color:#5fe0ff;
+  animation:spin 1s linear infinite;margin-inline:auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+[data-reduced-motion=on] .boot-dot{animation-duration:2s;}
+.hud{position:absolute;pointer-events:none;color:#eafcff;font-family:var(--font-data);z-index:2;}
+.hud--hint{bottom:var(--sp-3);left:0;right:0;text-align:center;font-size:.68rem;letter-spacing:.13em;
+  text-transform:uppercase;color:#8fd6ec;opacity:.85;}
+.hud--sal{top:var(--sp-3);right:var(--sp-3);left:auto;background:#04222dcc;border:1px solid #17607d;
+  padding:.3em .8em;border-radius:999px;font-weight:700;font-size:var(--step--1);letter-spacing:.05em;}
+
+/* juicy DOM overlay bursts (positioned inside .stage3d, painted over the canvas) */
+.dl-burst{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+.dl-burst i{position:absolute;width:7px;height:7px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+
+/* ---- Moment 1: Mix the Brine — tap-to-add-salt mini-game ---- */
+.mixbox{border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--sp-3);background:var(--surface);}
+.mixbox__row{display:flex;align-items:center;gap:var(--sp-3);}
+.shaker-btn{flex:none;width:3.6rem;height:3.6rem;border-radius:50%;border:2px solid var(--line-strong);
+  background:var(--paper);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;
+  transition:transform var(--dur-fast) var(--ease-out-back),border-color var(--dur-fast) var(--ease);}
+.shaker-btn:hover{border-color:var(--accent);}
+.shaker-btn:active{transform:scale(.88) rotate(-14deg);}
+.shaker-btn svg{width:1.9rem;height:1.9rem;}
+.mixbox__meter{flex:1;min-width:0;}
+.mixbox__val{font-family:var(--font-data);font-weight:800;font-variant-numeric:tabular-nums;font-size:var(--step-1);}
+.mixbox__track{height:12px;border-radius:999px;background:var(--paper);border:1px solid var(--line-strong);overflow:hidden;margin-top:.3em;position:relative;}
+.mixbox__fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#1f8fb3,#5fe0ff);
+  box-shadow:0 0 10px #5fe0ff88;transition:width .35s var(--ease-out-back);}
+.mixbox__marks{position:absolute;inset:0;}
+.mixbox__marks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(0,0,0,.18);}
+
+/* ---- Moment 2: Drop Test button ---- */
+.drop-btn{width:100%;font-size:var(--step-1);}
+.drop-btn.is-armed{animation:dropready 1.3s ease-in-out infinite;}
+@keyframes dropready{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--signal) 45%, transparent);}50%{box-shadow:0 0 0 10px color-mix(in srgb, var(--signal) 0%, transparent);}}
+[data-reduced-motion=on] .drop-btn.is-armed{animation:none;}
+
+/* ---- Moment 3: Catch the Reading — needle-sweep timing game ---- */
+.catchbox{border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--sp-3);background:var(--surface);}
+.sweep{position:relative;height:2.4rem;border-radius:999px;background:var(--paper);border:1px solid var(--line-strong);
+  overflow:hidden;margin:var(--sp-2) 0;}
+.sweep__zone{position:absolute;top:2px;bottom:2px;border-radius:999px;background:color-mix(in srgb, var(--positive) 25%, transparent);
+  border:1px dashed var(--positive);}
+.sweep__needle{position:absolute;top:0;bottom:0;width:4px;background:var(--signal);box-shadow:0 0 8px var(--signal);
+  border-radius:2px;}
+.sweep__scale{display:flex;justify-content:space-between;font-family:var(--font-data);font-size:.62rem;color:var(--ink-3);}
+.catch-btn{width:100%;}
+.catch-btn.pop{animation:catchpop .3s var(--ease-out-back);}
+@keyframes catchpop{0%{transform:scale(1);}45%{transform:scale(1.06);}100%{transform:scale(1);}}
 
 .ctrl{display:flex;flex-direction:column;gap:var(--sp-2);}
 .ctrl__top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
@@ -182,11 +220,257 @@ function waterLabel(pct){
   const hit = PRESETS.find(p => Math.abs(p.pct - pct) < 0.26);
   return hit ? hit.label : L("Custom mix","Mezcla personalizada");
 }
-function eggIconSVG(floats){
+function eggIconSVG(){
   return `<svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <ellipse cx="20" cy="28" rx="17" ry="22" fill="#fbf3dd" stroke="#c9a765" stroke-width="1.5"/>
     <ellipse cx="15" cy="18" rx="5" ry="7" fill="#ffffff" opacity=".55"/>
   </svg>`;
+}
+function shakerIconSVG(){
+  return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect x="14" y="6" width="12" height="22" rx="5" fill="#e7edf1" stroke="#7c8b93" stroke-width="1.5"/>
+    <circle cx="17" cy="10" r="1" fill="#7c8b93"/><circle cx="20" cy="9" r="1" fill="#7c8b93"/><circle cx="23" cy="10" r="1" fill="#7c8b93"/>
+    <circle cx="18.5" cy="12.5" r="1" fill="#7c8b93"/><circle cx="21.5" cy="12.5" r="1" fill="#7c8b93"/>
+    <rect x="12" y="26" width="16" height="8" rx="2" fill="#c9a765"/>
+  </svg>`;
+}
+
+/* ======================================================================
+   THREE.JS LOADER — shared pattern used across Discovery Lab 3D activities:
+   window.THREE is cached globally so this and engine/arcade.js's own loader
+   never fetch the vendored bundle twice.
+   ====================================================================== */
+let threePromise = null;
+function loadThree(){
+  if (window.THREE) return Promise.resolve(window.THREE);
+  if (threePromise) return threePromise;
+  threePromise = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = THREE_URL;
+    s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("THREE missing"));
+    s.onerror = () => rej(new Error("three.min.js failed to load"));
+    document.head.appendChild(s);
+  });
+  return threePromise;
+}
+
+/* ======================================================================
+   JUICE — a small DOM particle burst painted over a 3D/2D stage. Used for
+   every hands-on moment (mixing, dropping, catching) so success always
+   *feels* like a hit, not just a state change.
+   ====================================================================== */
+function burst(container, opts = {}){
+  const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
+  const n = reduced ? 5 : (opts.count || 14);
+  const colors = opts.colors || ["#5fe0ff", "#eafcff", "#1f8fb3"];
+  const host = document.createElement("div"); host.className = "dl-burst";
+  container.appendChild(host);
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement("i");
+    const ang = Math.random() * Math.PI * 2, dist = 26 + Math.random() * 64;
+    p.style.background = colors[i % colors.length];
+    host.appendChild(p);
+    p.animate([
+      { transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
+      { transform: `translate(calc(-50% + ${Math.cos(ang) * dist}px), calc(-50% + ${Math.sin(ang) * dist}px)) scale(.25)`, opacity: 0 },
+    ], { duration: reduced ? 260 : 650 + Math.random() * 300, easing: "cubic-bezier(.2,.8,.3,1)" });
+  }
+  setTimeout(() => host.remove(), 1100);
+}
+
+/* ======================================================================
+   THE 3D SCENE — an orbitable "brine tank" on a lab bench. The egg lives on
+   a dock beside the tank until Drop Test sends it falling in (splash +
+   ripple + camera punch), then it bobs continuously at its buoyancy-correct
+   depth. Salt pinches fall as particles and dissolve at the surface. A slow
+   auto-orbit and constant bobbing keep the scene moving even at rest.
+   ====================================================================== */
+function build3D(THREE, stageEl){
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stageEl.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x041824, 8, 20);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+
+  scene.add(new THREE.HemisphereLight(0xbfe9f5, 0x0a1f2b, 0.7));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  const sun = new THREE.DirectionalLight(0xfff2d0, 1.1);
+  sun.position.set(4, 6, 3); sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  scene.add(sun);
+
+  // bench
+  const bench = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.4, 40),
+    new THREE.MeshStandardMaterial({ color: 0x0d3a4f, roughness: 0.9 }));
+  bench.position.y = -1.6; bench.receiveShadow = true; scene.add(bench);
+
+  // glass tank (outer) + water (inner, color driven by salinity)
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 2.6, 40, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.16, roughness: 0.05, side: THREE.DoubleSide }));
+  glass.position.y = -0.2; scene.add(glass);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.05, 12, 48),
+    new THREE.MeshStandardMaterial({ color: 0xeafcff, transparent: true, opacity: 0.4 }));
+  rim.rotation.x = Math.PI / 2; rim.position.y = 1.1; scene.add(rim);
+  const waterMat = new THREE.MeshStandardMaterial({ color: 0x3aa6c9, transparent: true, opacity: 0.72, roughness: 0.15 });
+  const water = new THREE.Mesh(new THREE.CylinderGeometry(1.62, 1.62, 1.9, 40), waterMat);
+  water.position.y = -0.35; scene.add(water);
+  const waterTopY = 0.6, waterBotY = -1.28;
+
+  // dock ledge beside the tank, where the egg waits
+  const dock = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.14, 24),
+    new THREE.MeshStandardMaterial({ color: 0x134e6f, roughness: 0.7 }));
+  dock.position.set(2.35, -1.32, 0); dock.castShadow = true; dock.receiveShadow = true; scene.add(dock);
+
+  // the egg
+  const egg = new THREE.Group();
+  const eggMesh = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 20), new THREE.MeshStandardMaterial({ color: 0xfbf3dd, roughness: 0.5 }));
+  eggMesh.scale.set(1, 1.28, 1); eggMesh.castShadow = true; egg.add(eggMesh);
+  const DOCK_POS = new THREE.Vector3(2.35, -1.1, 0);
+  egg.position.copy(DOCK_POS);
+  scene.add(egg);
+
+  // salt particles (recycled pool)
+  const saltMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
+  const salts = []; const SALT_POOL = 16;
+  for (let i = 0; i < SALT_POOL; i++) {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), saltMat);
+    s.visible = false; scene.add(s); salts.push(s);
+  }
+  function addSaltPinch(){
+    for (let i = 0; i < 5; i++) {
+      const s = salts.find(x => !x.visible); if (!s) continue;
+      s.visible = true;
+      s.position.set((Math.random() - 0.5) * 2, 1.6, (Math.random() - 0.5) * 2);
+      s.userData = { vy: -0.9 - Math.random() * 0.5, drift: (Math.random() - 0.5) * 0.6 };
+    }
+  }
+
+  // splash ripple ring (flat, scales up + fades)
+  const ripple = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.5, 32),
+    new THREE.MeshBasicMaterial({ color: 0xeafcff, transparent: true, opacity: 0, side: THREE.DoubleSide }));
+  ripple.rotation.x = -Math.PI / 2; ripple.position.y = waterTopY + 0.02; scene.add(ripple);
+  let rippleT = 2;
+
+  let restY = waterBotY, targetRestY = waterBotY, dropped = false, dropAnimT = 2;
+  function setSalinity(pct){
+    const t = Math.min(1, pct / 40);
+    waterMat.color.setHSL(0.53 - t * 0.08, 0.55, 0.42 - t * 0.14);
+    waterMat.opacity = 0.72 + t * 0.14;
+    const d = densityFor(pct);
+    const ratio = Math.min(1.15, EGG_DENSITY / d);
+    targetRestY = waterTopY - ratio * (waterTopY - waterBotY) * 0.92;
+  }
+  function dropEgg(){
+    dropped = true; dropAnimT = 0;
+  }
+  function resetEggToDock(){
+    dropped = false; dropAnimT = 0;
+  }
+  function celebrate(){ camPunch = 1; }
+
+  // ---- camera orbit ----
+  let az = 0.6, pol = 1.2, rad = 6.6, autoT = 0, dragging = false, lastX = 0, lastY = 0, camPunch = 0;
+  function applyCam(){
+    const punch = camPunch > 0 ? rad - camPunch * 1.1 : rad;
+    const x = punch * Math.sin(pol) * Math.cos(az), z = punch * Math.sin(pol) * Math.sin(az), y = punch * Math.cos(pol);
+    camera.position.set(x, y - 0.2, z); camera.lookAt(0, -0.3, 0);
+  }
+  const dom = renderer.domElement;
+  dom.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; autoT = 0; dom.setPointerCapture(e.pointerId); });
+  dom.addEventListener("pointermove", e => { if (!dragging) return; az -= (e.clientX - lastX) * 0.008; pol = Math.max(0.5, Math.min(1.5, pol - (e.clientY - lastY) * 0.006)); lastX = e.clientX; lastY = e.clientY; });
+  dom.addEventListener("pointerup", () => { dragging = false; });
+  dom.addEventListener("wheel", e => { e.preventDefault(); rad = Math.max(4.5, Math.min(9, rad + e.deltaY * 0.003)); }, { passive: false });
+
+  function resize(){ const w = stageEl.clientWidth, h = stageEl.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  const ro = new ResizeObserver(resize); ro.observe(stageEl); resize();
+
+  let bobPhase = 0, last = performance.now();
+  function loop(now){
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
+    if (!dragging && !reduced) { autoT += dt; if (autoT > 1.5) az += dt * 0.1; }
+    applyCam();
+    if (camPunch > 0) camPunch = Math.max(0, camPunch - dt * 2.2);
+
+    // egg motion: dock <-> water, with a splash on the way in
+    dropAnimT += dt;
+    if (dropped) {
+      const t = Math.min(1, dropAnimT / 0.55);
+      const fallY = THREE.MathUtils.lerp(DOCK_POS.y, targetRestY, t * t);
+      egg.position.x = THREE.MathUtils.lerp(DOCK_POS.x, 0, Math.min(1, t * 1.3));
+      egg.position.z = 0;
+      restY = targetRestY;
+      if (t >= 1) {
+        bobPhase += dt * 1.6;
+        egg.position.y = restY + (reduced ? 0 : Math.sin(bobPhase) * 0.05);
+        egg.rotation.z = reduced ? 0 : Math.sin(bobPhase * 0.7) * 0.12;
+      } else {
+        egg.position.y = fallY;
+        if (t > 0.75 && rippleT > 1.5) { rippleT = 0; }
+      }
+    } else {
+      const t = Math.min(1, dropAnimT / 0.5);
+      egg.position.x = THREE.MathUtils.lerp(egg.position.x, DOCK_POS.x, t);
+      egg.position.y = THREE.MathUtils.lerp(egg.position.y, DOCK_POS.y, t);
+      bobPhase += dt * 0.8;
+      egg.position.y += reduced ? 0 : Math.sin(bobPhase) * 0.02;
+    }
+
+    // ripple animation
+    if (rippleT < 1.5) {
+      rippleT += dt * 1.8;
+      ripple.scale.setScalar(1 + rippleT * 3.2);
+      ripple.material.opacity = Math.max(0, 0.6 - rippleT * 0.5);
+    }
+
+    // salt particles falling + dissolving
+    salts.forEach(s => {
+      if (!s.visible) return;
+      s.position.y += s.userData.vy * dt;
+      s.position.x += s.userData.drift * dt;
+      if (s.position.y <= waterTopY) { s.visible = false; }
+    });
+
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(loop);
+  }
+  let raf = requestAnimationFrame(loop);
+
+  return {
+    setSalinity, addSaltPinch, dropEgg, resetEggToDock, celebrate,
+    dispose(){ cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); },
+  };
+}
+
+/* ======================================================================
+   2D FALLBACK — for devices without WebGL. Same three moments, same state
+   machine, expressed as CSS transforms instead of a Three.js scene.
+   ====================================================================== */
+function build2DFallback(stageEl){
+  stageEl.innerHTML = "";
+  const tank = document.createElement("div");
+  tank.style.cssText = "position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:60%;height:70%;border-radius:0 0 14px 14px;border:3px solid #0d3a4f;border-top:none;overflow:hidden;transition:background .4s;";
+  const egg = document.createElement("div");
+  egg.style.cssText = "position:absolute;left:50%;width:2.4rem;height:3.1rem;transform:translate(-50%,-50%);transition:top .8s cubic-bezier(.4,1.4,.5,1);";
+  egg.innerHTML = eggIconSVG();
+  tank.append(egg); stageEl.append(tank);
+  let dropped = false, pct = 0;
+  function setSalinity(p){
+    pct = p;
+    const t = Math.min(1, p / 40);
+    tank.style.background = `linear-gradient(180deg,#eaf6fb 0%,#eaf6fb 18%,hsl(${195 - p * 1.1},70%,${48 - p * 0.5}%) 18%,hsl(${195 - p * 1.1},75%,${28 - p * 0.3}%) 100%)`;
+    if (dropped) place();
+  }
+  function place(){
+    const d = densityFor(pct); const ratio = Math.min(1.15, EGG_DENSITY / d);
+    const top = d > EGG_DENSITY ? 22 + ratio * 14 : 22 + (ratio - 1) * 170 + 10;
+    egg.style.top = Math.max(14, Math.min(90, top)) + "%";
+  }
+  function dropEgg(){ dropped = true; place(); }
+  function resetEggToDock(){ dropped = false; egg.style.top = "6%"; }
+  return { setSalinity, addSaltPinch(){}, dropEgg, resetEggToDock, celebrate(){}, dispose(){} };
 }
 
 /* ======================================================================
@@ -331,72 +615,85 @@ const simulation = {
     host.append(grid);
   },
 
-  /* ---- EXPERIMENT: the Salinity & Buoyancy Station ---- */
+  /* ---- EXPERIMENT: the Salinity & Buoyancy Station (real 3D, 3 hands-on
+     moments: mix the brine, drop-test the egg, catch the hydrometer reading)
+     ---- */
   investigate(host, api){
     host.innerHTML = "";
     const game = api.state.game || (api.state.game = { badges: {} });
 
     const wrap = document.createElement("div"); wrap.className = "station";
 
-    /* left: tank + gauge */
-    const left = document.createElement("div"); left.className = "tankwrap";
-    const tank = document.createElement("div"); tank.className = "tank"; tank.id = "tank";
-    tank.append(Object.assign(document.createElement("div"), { className: "tank__waterline" }));
-    const egg = document.createElement("div"); egg.className = "tank__egg"; egg.id = "egg";
-    egg.innerHTML = eggIconSVG(true);
-    tank.append(egg);
-    left.append(tank);
-
-    const gauge = document.createElement("div"); gauge.className = "gauge";
-    const GMIN = 0.98, GMAX = 1.30;
-    const pctToBottom = d => ((d - GMIN) / (GMAX - GMIN)) * 100;
-    const band = document.createElement("div"); band.className = "gauge__band";
-    band.style.bottom = pctToBottom(densityFor(5)) + "%";
-    band.style.height = (pctToBottom(densityFor(27)) - pctToBottom(densityFor(5))) + "%";
-    gauge.append(band);
-    const needle = document.createElement("div"); needle.className = "gauge__needle"; needle.id = "needle";
-    gauge.append(needle);
-    const scale = document.createElement("div"); scale.className = "gauge__scale";
-    [1.30, 1.20, 1.10, 1.00].forEach(v => scale.append(Object.assign(document.createElement("span"), { textContent: v.toFixed(2) })));
-    gauge.append(scale);
-    const gaugeCol = document.createElement("div");
-    gaugeCol.append(gauge, Object.assign(document.createElement("p"), { className: "gauge__cap", textContent: L("Density (g/cm³)", "Densidad (g/cm³)") }));
-    left.append(gaugeCol);
-    wrap.append(left);
-
-    /* right: controls */
-    const side = document.createElement("div");
-
-    const ctrl = document.createElement("div"); ctrl.className = "ctrl";
-    const top = document.createElement("div"); top.className = "ctrl__top";
-    top.innerHTML = `<span class="ctrl__name">${L("Salinity","Salinidad")}</span><span class="ctrl__val" id="salval">0.0%</span>`;
-    ctrl.append(top);
-    const slider = document.createElement("input");
-    slider.type = "range"; slider.min = "0"; slider.max = "40"; slider.step = "0.5"; slider.value = "0";
-    ctrl.append(slider);
-    const chipRow = document.createElement("div"); chipRow.className = "chip-row";
-    const chipBtns = {};
-    PRESETS.forEach(p => {
-      const c = document.createElement("button"); c.type = "button"; c.className = "chip-btn"; c.textContent = p.label;
-      c.addEventListener("click", () => { slider.value = String(p.pct); update(); });
-      chipBtns[p.id] = c; chipRow.append(c);
-    });
-    ctrl.append(chipRow);
-    side.append(ctrl);
+    /* left: the 3D stage */
+    const left = document.createElement("div");
+    const stage = document.createElement("div"); stage.className = "stage3d";
+    const boot = document.createElement("div"); boot.className = "stage3d__boot";
+    boot.innerHTML = `<div><div class="boot-dot"></div><div style="margin-top:.8em">${L("Booting 3D station…","Iniciando estación 3D…")}</div></div>`;
+    stage.append(boot);
+    const hudSal = document.createElement("div"); hudSal.className = "hud hud--sal"; hudSal.id = "hud-sal"; hudSal.textContent = "0.0%";
+    const hudHint = document.createElement("div"); hudHint.className = "hud hud--hint";
+    hudHint.textContent = L("drag to orbit · scroll to zoom","arrastra para orbitar · rueda para acercar");
+    stage.append(hudSal, hudHint);
+    left.append(stage);
 
     const readouts = document.createElement("div"); readouts.className = "readout-row";
     readouts.innerHTML = `
       <div class="ro"><span class="ro__k">${L("Water","Agua")}</span><span class="ro__v" id="ro-water">—</span></div>
       <div class="ro"><span class="ro__k">${L("Hydrometer reads","El densímetro marca")}</span><span class="ro__v" id="ro-density">—</span></div>
       <div class="ro"><span class="ro__k">${L("Egg","Huevo")}</span><span class="ro__v" id="ro-egg">—</span></div>`;
-    side.append(readouts);
+    left.append(readouts);
+    wrap.append(left);
 
-    const logBtn = document.createElement("button"); logBtn.type = "button"; logBtn.className = "btn btn--signal log-btn";
-    logBtn.style.marginTop = "var(--sp-3)";
-    logBtn.textContent = L("Log this reading","Registrar esta lectura");
-    side.append(logBtn);
+    /* right: the three hands-on moments */
+    const side = document.createElement("div"); side.style.display = "flex"; side.style.flexDirection = "column"; side.style.gap = "var(--sp-4)";
 
-    const hint = document.createElement("p"); hint.className = "q__hint"; hint.style.marginTop = "var(--sp-2)";
+    // MOMENT 1 — Mix the Brine: tap the shaker to add salt, pinch by pinch
+    const mixbox = document.createElement("div"); mixbox.className = "mixbox";
+    mixbox.innerHTML = `<p class="ctrl__name" style="margin-bottom:.5em">${L("1 · Mix the brine","1 · Mezcla la salmuera")}</p>`;
+    const mixRow = document.createElement("div"); mixRow.className = "mixbox__row";
+    const shakerBtn = document.createElement("button"); shakerBtn.type = "button"; shakerBtn.className = "shaker-btn";
+    shakerBtn.setAttribute("aria-label", L("Add a pinch of salt","Añadir un pellizco de sal"));
+    shakerBtn.innerHTML = shakerIconSVG();
+    const meter = document.createElement("div"); meter.className = "mixbox__meter";
+    meter.innerHTML = `<span class="mixbox__val" id="salval">0.0%</span>
+      <div class="mixbox__track"><div class="mixbox__marks"></div><div class="mixbox__fill" id="mixfill" style="width:0%"></div></div>`;
+    mixRow.append(shakerBtn, meter);
+    mixbox.append(mixRow);
+    const chipRow = document.createElement("div"); chipRow.className = "chip-row"; chipRow.style.marginTop = "var(--sp-3)";
+    const chipBtns = {};
+    PRESETS.forEach(p => {
+      const c = document.createElement("button"); c.type = "button"; c.className = "chip-btn"; c.textContent = p.label;
+      c.addEventListener("click", () => setSalinity(p.pct));
+      chipBtns[p.id] = c; chipRow.append(c);
+    });
+    mixbox.append(chipRow);
+    const slider = document.createElement("input");
+    slider.type = "range"; slider.min = "0"; slider.max = "40"; slider.step = "0.5"; slider.value = "0";
+    slider.setAttribute("aria-label", L("Fine-tune salinity","Ajustar la salinidad con precisión"));
+    slider.style.marginTop = "var(--sp-2)";
+    slider.addEventListener("input", () => setSalinity(parseFloat(slider.value)));
+    mixbox.append(slider);
+    side.append(mixbox);
+
+    // MOMENT 2 — Drop Test: send the egg down into the brine
+    const dropWrap = document.createElement("div");
+    const dropBtn = document.createElement("button"); dropBtn.type = "button"; dropBtn.className = "btn btn--signal drop-btn is-armed";
+    dropBtn.textContent = L("2 · Drop the test egg ▼","2 · Soltar el huevo de prueba ▼");
+    dropWrap.append(dropBtn);
+    side.append(dropWrap);
+
+    // MOMENT 3 — Catch the Reading: time the sweeping needle to lock it in
+    const catchbox = document.createElement("div"); catchbox.className = "catchbox";
+    catchbox.innerHTML = `<p class="ctrl__name" style="margin-bottom:.3em">${L("3 · Catch the hydrometer reading","3 · Atrapa la lectura del densímetro")}</p>
+      <p class="q__hint">${L("The needle drifts as the egg settles. Tap Catch! while it sits inside the green band.","La aguja se mueve mientras el huevo se asienta. Toca ¡Atrapar! mientras esté dentro de la banda verde.")}</p>
+      <div class="sweep"><div class="sweep__zone" id="sweepzone"></div><div class="sweep__needle" id="sweepneedle"></div></div>
+      <div class="sweep__scale"><span>0.98</span><span>1.30 g/cm³</span></div>`;
+    const catchBtn = document.createElement("button"); catchBtn.type = "button"; catchBtn.className = "btn catch-btn"; catchBtn.disabled = true;
+    catchBtn.textContent = L("Catch!","¡Atrapar!");
+    catchbox.append(catchBtn);
+    side.append(catchbox);
+
+    const hint = document.createElement("p"); hint.className = "q__hint";
     hint.textContent = L(
       "Water volume, temperature and the egg itself never change — salinity is the only thing you are testing.",
       "El volumen de agua, la temperatura y el huevo nunca cambian — la salinidad es lo único que estás probando."
@@ -405,56 +702,117 @@ const simulation = {
     wrap.append(side);
     host.append(wrap);
 
-    let sawFloat = false, sawSink = false;
-    function update(){
-      const pct = parseFloat(slider.value);
-      const d = densityFor(pct);
-      const floats = EGG_DENSITY < d;
+    /* ---- state + model ---- */
+    let salinityPct = 0, dropped = false, sawFloat = false, sawSink = false;
+    const GMIN = 0.98, GMAX = 1.30;
+    const sweepZone = catchbox.querySelector("#sweepzone");
+    const sweepNeedle = catchbox.querySelector("#sweepneedle");
+
+    function currentReading(){
+      const d = densityFor(salinityPct);
+      return { pct: salinityPct, d, floats: EGG_DENSITY < d };
+    }
+    function paintReadouts(){
+      const { pct, d, floats } = currentReading();
       document.getElementById("salval").textContent = pct.toFixed(1) + "%";
-      const waterCol = `hsl(${195 - pct * 1.1}, 70%, ${48 - pct * 0.5}%)`;
-      const waterCol2 = `hsl(${195 - pct * 1.1}, 75%, ${28 - pct * 0.3}%)`;
-      tank.style.setProperty("--water-col", waterCol);
-      tank.style.setProperty("--water-col2", waterCol2);
-      needle.style.bottom = Math.max(0, Math.min(100, pctToBottom(d))) + "%";
-      const ratio = Math.min(1.15, EGG_DENSITY / d);
-      const surfaceTopPct = 22, floorTopPct = 90;
-      const eggTopPct = floats
-        ? surfaceTopPct + ratio * 14
-        : surfaceTopPct + (ratio - 1) * ((floorTopPct - surfaceTopPct) / 0.4) + 10;
-      egg.style.top = Math.max(14, Math.min(floorTopPct, eggTopPct)) + "%";
-      egg.style.opacity = "1";
+      hudSal.textContent = pct.toFixed(1) + "%";
+      document.getElementById("mixfill").style.width = Math.min(100, (pct / 40) * 100) + "%";
       document.getElementById("ro-water").textContent = waterLabel(pct);
-      document.getElementById("ro-density").textContent = d.toFixed(3) + " g/cm³";
-      document.getElementById("ro-egg").textContent = floats ? L("Floats","Flota") : L("Sinks","Se hunde");
+      document.getElementById("ro-density").textContent = dropped ? d.toFixed(3) + " g/cm³" : "—";
+      document.getElementById("ro-egg").textContent = dropped ? (floats ? L("Floats","Flota") : L("Sinks","Se hunde")) : L("Not dropped yet","Aún no soltado");
       Object.entries(chipBtns).forEach(([id, btn]) => {
         const p = PRESETS.find(x => x.id === id);
         btn.setAttribute("aria-pressed", Math.abs(p.pct - pct) < 0.26 ? "true" : "false");
       });
-      return { pct, d, floats };
+      const zonePct = Math.min(100, Math.max(0, ((d - GMIN) / (GMAX - GMIN)) * 100));
+      sweepZone.style.left = Math.max(0, zonePct - 9) + "%";
+      sweepZone.style.width = "18%";
     }
-    slider.addEventListener("input", update);
-    update();
 
-    logBtn.addEventListener("click", () => {
-      const { pct, d, floats } = update();
+    function setSalinity(pct){
+      salinityPct = Math.max(0, Math.min(40, pct));
+      slider.value = String(salinityPct);
+      paintReadouts();
+      if (scene3d) scene3d.setSalinity(salinityPct);
+      if (dropped) { dropped = false; catchBtn.disabled = true; if (scene3d) scene3d.resetEggToDock(); dropBtn.classList.add("is-armed"); dropBtn.disabled = false; }
+    }
+
+    shakerBtn.addEventListener("click", () => {
+      setSalinity(salinityPct + 1.5);
+      burst(stage, { count: 10, colors: ["#ffffff", "#cfe9f5"] });
+      if (scene3d) scene3d.addSaltPinch();
+      if (!game.badges.mixer) { game.badges.mixer = true; api.award("mixer", L("Brine mixed by hand","Salmuera mezclada a mano")); }
+    });
+
+    dropBtn.addEventListener("click", () => {
+      if (dropped) return;
+      dropped = true; dropBtn.disabled = true; dropBtn.classList.remove("is-armed");
+      dropBtn.textContent = L("Dropping…","Soltando…");
+      const { floats } = currentReading();
+      if (scene3d) scene3d.dropEgg(floats);
+      burst(stage, { count: 18, colors: ["#eafcff", "#5fe0ff", "#9fefff"] });
+      paintReadouts();
+      setTimeout(() => {
+        dropBtn.textContent = L("2 · Drop the test egg ▼","2 · Soltar el huevo de prueba ▼");
+        catchBtn.disabled = false;
+        if (!game.badges.dropper) { game.badges.dropper = true; api.award("dropper", L("First splash","Primer chapuzón")); }
+      }, 900);
+    });
+
+    let sweepPhase = Math.random() * Math.PI * 2;
+    catchBtn.addEventListener("click", () => {
+      const needleRect = sweepNeedle.getBoundingClientRect();
+      const zoneRect = sweepZone.getBoundingClientRect();
+      const hit = needleRect.left + needleRect.width / 2 >= zoneRect.left && needleRect.left + needleRect.width / 2 <= zoneRect.right;
+      catchBtn.classList.remove("pop"); void catchBtn.offsetWidth; catchBtn.classList.add("pop");
+      if (!hit) { api.toast(L("Almost — wait for the needle and try again!","¡Casi! Espera a la aguja e inténtalo de nuevo."), "info"); return; }
+      const { pct, d, floats } = currentReading();
       api.recordTrial({ water: waterLabel(pct), salinity: pct.toFixed(1), density: d.toFixed(3), egg: floats ? L("Floats","Flota") : L("Sinks","Se hunde") });
-      // bubble burst
-      for (let i = 0; i < 8; i++) {
-        const bub = document.createElement("span"); bub.className = "tank__bubble";
-        bub.style.left = (35 + Math.random() * 30) + "%";
-        bub.style.animationDelay = (Math.random() * 0.3) + "s";
-        tank.append(bub);
-        setTimeout(() => bub.remove(), 1400);
-      }
+      burst(stage, { count: 22, colors: ["#ffd45c", "#5fe0ff", "#a6ff5c"] });
+      if (scene3d) scene3d.celebrate();
       if (floats) sawFloat = true; else sawSink = true;
       if (!game.badges.first) { game.badges.first = true; api.award("first-reading", L("First reading logged","Primera lectura registrada")); }
       if (Math.abs(pct - 34) < 0.26 && floats && !game.badges.deadsea) { game.badges.deadsea = true; api.award("dead-sea", L("Dead Sea diver","Buzo del Mar Muerto")); }
       if (Math.abs(pct - 3.5) < 0.26 && !game.badges.ocean) { game.badges.ocean = true; api.award("ocean-match", L("Open-ocean baseline","Referencia del océano abierto")); }
       if (sawFloat && sawSink && !game.badges.threshold) { game.badges.threshold = true; api.award("threshold", L("Found the floating point","Encontró el punto de flotación")); }
       api.saveState();
-      api.toast(L("Reading logged to your Investigation Record.","Lectura registrada en tu Registro de Investigación."), "correct");
+      api.toast(L("Reading locked in — logged to your Investigation Record.","¡Lectura atrapada! Registrada en tu Registro de Investigación."), "correct");
+      // egg returns to the dock, ready for the next trial
+      dropped = false; catchBtn.disabled = true; dropBtn.disabled = false; dropBtn.classList.add("is-armed");
+      if (scene3d) scene3d.resetEggToDock();
+      paintReadouts();
       paintArcade();
     });
+
+    /* ---- needle sweep animation loop (runs always; only meaningful once
+       dropped). Bails out and disposes the 3D scene the moment `stage` is no
+       longer in the document — which is exactly what happens when the
+       engine's Reset Investigation button clears and re-mounts this stage —
+       so resetting never leaks a second render loop or a detached renderer. */
+    let sweepRaf = requestAnimationFrame(function loop(){
+      if (!stage.isConnected) { if (scene3d) scene3d.dispose(); return; }
+      sweepPhase += 0.028;
+      const wobble = dropped ? Math.sin(sweepPhase) * 6 : Math.sin(sweepPhase * 0.6) * 22;
+      const { d } = currentReading();
+      const basePct = Math.min(100, Math.max(0, ((d - GMIN) / (GMAX - GMIN)) * 100));
+      sweepNeedle.style.left = Math.min(97, Math.max(0, basePct + wobble)) + "%";
+      sweepRaf = requestAnimationFrame(loop);
+    });
+
+    /* ---- boot the 3D scene (with a non-WebGL fallback) ---- */
+    let scene3d = null;
+    loadThree().then(THREE => {
+      if (!stage.isConnected) return;
+      boot.remove();
+      scene3d = build3D(THREE, stage);
+      scene3d.setSalinity(salinityPct);
+    }).catch(() => {
+      if (!stage.isConnected) return;
+      boot.remove();
+      scene3d = build2DFallback(stage);
+      scene3d.setSalinity(salinityPct);
+    });
+    paintReadouts();
 
     /* ---- BONUS ROUND — "Ocean Command Rush": a fast arcade recall of the
        whole overview module's big ideas (salinity, climate, pollution,
