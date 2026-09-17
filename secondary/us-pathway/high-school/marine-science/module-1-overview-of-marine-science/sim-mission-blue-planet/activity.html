@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mission: Blue Planet — Discovery Lab</title>
+<meta name="description" content="Report for duty as an Ocean Research Recruit: test how salinity changes density and buoyancy with a real hydrometer, then meet the plankton, pollution, energy and climate ideas that run the whole ocean.">
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%23134E6F' stroke-width='4'/><path d='M14 36q9-9 18 0t18 0' fill='none' stroke='%2317A2B8' stroke-width='4' stroke-linecap='round'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ===== Activity-specific styling (lives with the activity) ===== */
+
+/* ---- Orient: hydrometer hotspot-labelling activity ---- */
+.hs-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:46rem){.hs-wrap{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:start;}}
+.hs-photo{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:#eef3f5;
+  border:1px solid var(--line-strong);max-width:20rem;margin-inline:auto;}
+.hs-photo img{display:block;width:100%;height:auto;}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.4rem;height:2.4rem;border:none;background:transparent;
+  cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.05rem;height:1.05rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 25%, transparent);
+  animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+.hotspot.is-done .hotspot__dot{background:var(--positive);box-shadow:0 0 0 5px color-mix(in srgb, var(--positive) 22%, transparent);animation:none;}
+.hotspot.is-wrong{animation:hsshake .32s ease;}
+@keyframes hsshake{0%,100%{transform:translate(-50%,-50%);}30%{transform:translate(calc(-50% - 6px),-50%);}60%{transform:translate(calc(-50% + 6px),-50%);}}
+.hs-credit{font-size:.68rem;color:var(--ink-3);text-align:center;padding:.5em;}
+.hs-credit a{color:inherit;}
+.hs-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.hs-part{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.hs-part:hover{border-color:var(--accent);}
+.hs-part[aria-pressed=true]{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.hs-part.is-done{border-color:var(--positive);cursor:default;}
+.hs-part.is-done .hs-part__mark{color:var(--positive);}
+.hs-part__mark{margin-left:auto;font-weight:800;}
+.hs-note{font-size:var(--step--1);color:var(--ink-2);margin-top:.3em;}
+
+/* ---- Observation: two real-photo notice cards ---- */
+.obs-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-4);margin-top:var(--sp-4);}
+@media(min-width:42rem){.obs-grid{grid-template-columns:repeat(2,1fr);}}
+.obs-card{border:1px solid var(--line-strong);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);}
+.obs-card img{width:100%;height:11rem;object-fit:cover;display:block;background:#0c2230;}
+.obs-card__body{padding:var(--sp-4);}
+.obs-card__name{font-weight:800;margin:0 0 .6em;}
+.obs-card__tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.obs-card__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;font-size:var(--step--1);}
+.obs-card__btn:hover{border-color:var(--accent);}
+.obs-card__btn.is-done{border-color:var(--positive);cursor:default;}
+.obs-card__btn.is-done .obs-card__mark{display:none;}
+.obs-card__mark{margin-left:auto;}
+.obs-credit{font-size:.65rem;color:var(--ink-3);padding:0 var(--sp-4) var(--sp-3);}
+.obs-credit a{color:inherit;}
+
+/* ---- Investigate: Salinity & Buoyancy Station ---- */
+.station{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:58rem){.station{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:start;}}
+.tankwrap{display:flex;gap:var(--sp-4);align-items:flex-end;justify-content:center;}
+.tank{position:relative;width:11rem;height:16rem;border-radius:0 0 14px 14px;
+  border:3px solid #0d3a4f;border-top:none;background:linear-gradient(180deg,#eaf6fb 0%,#eaf6fb 22%,var(--water-col,#3aa6c9) 22%,var(--water-col2,#1c6f8f) 100%);
+  overflow:hidden;box-shadow:inset 0 0 30px rgba(0,0,0,.2), var(--shadow-1);flex:none;}
+.tank__waterline{position:absolute;left:0;right:0;top:22%;height:2px;background:#ffffffaa;}
+.tank__egg{position:absolute;left:50%;width:2.6rem;height:3.4rem;transform:translate(-50%,-50%);
+  transition:top .9s cubic-bezier(.4,1.4,.5,1),opacity .3s;}
+.tank__egg svg{width:100%;height:100%;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35));}
+.tank__bubble{position:absolute;bottom:0;width:6px;height:6px;border-radius:50%;background:#ffffffcc;
+  animation:bubbleup 1.1s ease-in forwards;}
+@keyframes bubbleup{0%{transform:translateY(0) scale(1);opacity:.9;}100%{transform:translateY(-15rem) scale(.4);opacity:0;}}
+[data-reduced-motion=on] .tank__bubble{animation:none;display:none;}
+.gauge{width:4.4rem;height:15rem;border-radius:10px;border:2px solid var(--line-strong);background:var(--paper);
+  position:relative;flex:none;overflow:hidden;}
+.gauge__scale{position:absolute;inset:.4rem;display:flex;flex-direction:column-reverse;justify-content:space-between;
+  font-family:var(--font-data);font-size:.55rem;color:var(--ink-3);}
+.gauge__band{position:absolute;left:.2rem;right:.2rem;background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border-top:1px dashed var(--accent);border-bottom:1px dashed var(--accent);}
+.gauge__needle{position:absolute;left:0;right:0;height:3px;background:var(--signal);box-shadow:0 0 6px var(--signal);
+  transition:bottom .9s cubic-bezier(.4,1.4,.5,1);}
+.gauge__cap{text-align:center;font-family:var(--font-data);font-size:.6rem;color:var(--ink-3);margin-top:.3em;}
+
+.ctrl{display:flex;flex-direction:column;gap:var(--sp-2);}
+.ctrl__top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
+.ctrl__name{font-family:var(--font-data);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);}
+.ctrl__val{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);color:var(--ink);}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);height:1.6rem;}
+.chip-row{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.chip-btn{font-family:var(--font-data);font-size:.7rem;padding:.3em .75em;border-radius:999px;
+  border:1px solid var(--line-strong);color:var(--ink-2);background:var(--paper);cursor:pointer;}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash);}
+.chip-btn[aria-pressed=true]{border-color:var(--accent);color:var(--accent-ink);background:var(--accent);}
+.readout-row{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin-top:var(--sp-3);}
+.ro{display:flex;flex-direction:column;gap:1px;}
+.ro__k{font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.ro__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);color:var(--ink);}
+.log-btn{width:100%;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <g stroke="currentColor" stroke-width="1.5" opacity=".45"><path d="M32 2v7M32 55v7M2 32h7M55 32h7"/></g>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Marine Science</a></li>
+      <li><a href="../">Module 1: Overview</a></li>
+      <li><span aria-current="page">Mission: Blue Planet</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=18";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../engine/arcade.js?v=3";
+import { getLang } from "../../../../../../engine/i18n.js?v=8";
+
+const THREE_URL = "../../../../../../engine/vendor/three.min.js";
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   SALINITY / DENSITY MODEL (deterministic; simplified linear approximation
+   validated against real reference points: fresh water 1.00 g/cm3, ocean
+   ~3.5% -> ~1.026, Great Salt Lake 5-27% -> ~1.04-1.20, Dead Sea ~34% ->
+   ~1.255. Egg density fixed at 1.08 g/cm3, the commonly used approximate
+   value for a raw hen's egg, so the floating threshold (~10.7% salinity)
+   lands realistically between the low and high end of the Great Salt Lake.
+   ====================================================================== */
+const EGG_DENSITY = 1.08;
+function densityFor(salinityPct){ return 1.000 + salinityPct * 0.0075; }
+const PRESETS = [
+  { id:"tap",   label:L("Tap water — 0%","Agua del grifo — 0%"), pct:0 },
+  { id:"ocean", label:L("Ocean — 3.5%","Océano — 3.5%"), pct:3.5 },
+  { id:"gsl-lo",label:L("Great Salt Lake (calm) — 5%","Gran Lago Salado (bajo) — 5%"), pct:5 },
+  { id:"gsl-hi",label:L("Great Salt Lake (peak) — 27%","Gran Lago Salado (alto) — 27%"), pct:27 },
+  { id:"dead",  label:L("Dead Sea — 34%","Mar Muerto — 34%"), pct:34 },
+];
+function waterLabel(pct){
+  const hit = PRESETS.find(p => Math.abs(p.pct - pct) < 0.26);
+  return hit ? hit.label : L("Custom mix","Mezcla personalizada");
+}
+function eggIconSVG(floats){
+  return `<svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="20" cy="28" rx="17" ry="22" fill="#fbf3dd" stroke="#c9a765" stroke-width="1.5"/>
+    <ellipse cx="15" cy="18" rx="5" ry="7" fill="#ffffff" opacity=".55"/>
+  </svg>`;
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+const simulation = {
+
+  /* ---- ORIENT: real-photo hotspot labelling of a hydrometer ---- */
+  orient(host, api){
+    host.innerHTML = "";
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L(
+      "Marine scientists measure water density with a real instrument called a hydrometer. Tap a part name, then tap the matching spot on the photo.",
+      "Los científicos marinos miden la densidad del agua con un instrumento real llamado densímetro. Toca el nombre de una parte y luego toca el punto correspondiente en la foto."
+    );
+    host.append(intro);
+
+    const PARTS = [
+      { id:"cylinder", x:47, y:12, name:L("Sample cylinder","Cilindro de muestra"),
+        note:L("The tall glass jar holding the liquid being tested — here, a graduated cylinder of water.",
+               "El frasco de vidrio alto que contiene el líquido que se analiza — aquí, una probeta graduada de agua.") },
+      { id:"stem", x:47, y:31, name:L("Calibrated stem","Vástago calibrado"),
+        note:L("The thin, marked scale. Wherever the liquid surface crosses it is the density reading.",
+               "La escala fina y marcada. Donde la superficie del líquido la cruza es la lectura de densidad.") },
+      { id:"bulb", x:47, y:60, name:L("Glass float bulb","Bulbo flotante de vidrio"),
+        note:L("A sealed, air-filled bulb. It's what makes the whole instrument buoyant enough to float upright.",
+               "Un bulbo sellado y lleno de aire. Es lo que hace que todo el instrumento flote en posición vertical.") },
+      { id:"ballast", x:47, y:93, name:L("Weighted ballast","Lastre con peso"),
+        note:L("A heavy weight in the base that keeps the hydrometer standing up instead of tipping over.",
+               "Un peso pesado en la base que mantiene el densímetro en pie en lugar de volcarse.") },
+    ];
+    let current = null; const doneIds = new Set();
+
+    const wrap = document.createElement("div"); wrap.className = "hs-wrap";
+    const photoBox = document.createElement("div");
+    const frame = document.createElement("div"); frame.className = "hs-photo";
+    frame.innerHTML = `<img src="photos/hydrometer.jpg" alt="${L('A glass hydrometer floating in a graduated cylinder of liquid','Un densímetro de vidrio flotando en una probeta graduada de líquido')}">`;
+    PARTS.forEach(p => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "hotspot";
+      b.style.left = p.x + "%"; b.style.top = p.y + "%";
+      b.setAttribute("aria-label", p.name);
+      b.innerHTML = `<span class="hotspot__dot"></span>`;
+      b.addEventListener("click", () => {
+        if (doneIds.has(p.id)) return;
+        if (!current) { api.toast(L("Choose a part name first.","Elige primero el nombre de una parte."), "info"); return; }
+        if (current === p.id) {
+          doneIds.add(p.id); b.classList.add("is-done");
+          const row = tray.querySelector(`[data-part="${p.id}"]`);
+          row.classList.add("is-done"); row.querySelector(".hs-part__mark").textContent = "✓";
+          const note = document.createElement("p"); note.className = "hs-note"; note.textContent = p.note;
+          row.append(note);
+          if (api.ttsEnabled && api.ttsEnabled()) api.speak(`${p.name}. ${p.note}`);
+          current = null;
+          Array.from(tray.children).forEach(r => r.setAttribute("aria-pressed", "false"));
+        } else {
+          b.classList.add("is-wrong"); setTimeout(() => b.classList.remove("is-wrong"), 320);
+          const wrongRow = tray.querySelector(`[data-part="${current}"]`);
+          if (wrongRow) { wrongRow.classList.add("is-wrong-flash"); setTimeout(() => wrongRow.classList.remove("is-wrong-flash"), 320); }
+        }
+      });
+      frame.append(b);
+    });
+    photoBox.append(frame);
+    const credit = document.createElement("p"); credit.className = "hs-credit";
+    credit.innerHTML = L(
+      `Photo: <a href="https://commons.wikimedia.org/wiki/File:Ar%C3%A4ometer.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> — public domain.`,
+      `Foto: <a href="https://commons.wikimedia.org/wiki/File:Ar%C3%A4ometer.jpg" target="_blank" rel="noopener">Wikimedia Commons</a> — dominio público.`
+    );
+    photoBox.append(credit);
+    wrap.append(photoBox);
+
+    const tray = document.createElement("div"); tray.className = "hs-tray";
+    PARTS.forEach(p => {
+      const row = document.createElement("button"); row.type = "button"; row.className = "hs-part"; row.dataset.part = p.id;
+      row.setAttribute("aria-pressed", "false");
+      row.innerHTML = `<span>${p.name}</span><span class="hs-part__mark">→</span>`;
+      row.addEventListener("click", () => {
+        if (doneIds.has(p.id)) return;
+        Array.from(tray.children).forEach(r => r.setAttribute("aria-pressed", "false"));
+        current = p.id; row.setAttribute("aria-pressed", "true");
+      });
+      tray.append(row);
+    });
+    wrap.append(tray);
+    host.append(wrap);
+  },
+
+  /* ---- OBSERVATION: two real photos, tap-to-reveal notices ---- */
+  observation(host, api){
+    host.innerHTML = "";
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L(
+      "Two real photographs from the living ocean just arrived. Tap each one to notice real details — before you know anything else about them.",
+      "Acaban de llegar dos fotografías reales del océano vivo. Toca cada una para notar detalles reales — antes de saber nada más sobre ellas."
+    );
+    host.append(intro);
+
+    const CARDS = [
+      { img:"photos/bioluminescence.jpg", name:L("A glowing night sea","Un mar nocturno que brilla"),
+        credit:`Safa Daneshvar — <a href="https://commons.wikimedia.org/wiki/File:991119-Phytoplankton-IMG_6606.jpg" target="_blank" rel="noopener">CC BY-SA 4.0</a>`,
+        notices:[
+          L("The glowing blue light isn't reflected moonlight — it is coming from inside the water itself.",
+            "La luz azul brillante no es luz de luna reflejada — proviene del interior del agua misma."),
+          L("It lights up brightest where the waves crash and stir the water; calmer water nearby stays dark.",
+            "Brilla más donde rompen las olas y agitan el agua; el agua tranquila cercana permanece oscura."),
+          L("This glow is made by billions of microscopic phytoplankton, each one flashing when disturbed.",
+            "Este brillo lo producen miles de millones de fitoplancton microscópicos, cada uno destellando al ser perturbado.") ] },
+      { img:"photos/copepod.jpg", name:L("A drifting hunter","Un cazador a la deriva"),
+        credit:`U.S. EPA Great Lakes Image Collection — ${L("public domain","dominio público")}`,
+        notices:[
+          L("It's almost see-through — you can see straight through its body under the microscope.",
+            "Es casi transparente — se puede ver directamente a través de su cuerpo bajo el microscopio."),
+          L("It has long antennae and bristly legs it uses to swim in short, sudden hops.",
+            "Tiene antenas largas y patas con cerdas que usa para nadar en saltos cortos y repentinos."),
+          L("Even an animal this small still has to actively hunt for its food — phytoplankton like the ones glowing in the other photo.",
+            "Incluso un animal tan pequeño tiene que cazar activamente su alimento — fitoplancton como el que brilla en la otra foto.") ] },
+    ];
+    const grid = document.createElement("div"); grid.className = "obs-grid";
+    CARDS.forEach(c => {
+      const card = document.createElement("div"); card.className = "obs-card";
+      card.innerHTML = `<img src="${c.img}" alt="${c.name}">
+        <div class="obs-card__body">
+          <p class="obs-card__name">${c.name}</p>
+          <div class="obs-card__tray"></div>
+        </div>`;
+      const tray = card.querySelector(".obs-card__tray");
+      c.notices.forEach((note, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "obs-card__btn";
+        b.innerHTML = `<span>${L("Notice something #","Notar algo #")}${i + 1}</span><span class="obs-card__mark">👁</span>`;
+        b.addEventListener("click", () => {
+          if (b.classList.contains("is-done")) return;
+          b.classList.add("is-done");
+          b.querySelector("span").textContent = note;
+          if (api.ttsEnabled && api.ttsEnabled()) api.speak(note);
+        });
+        tray.append(b);
+      });
+      const credit = document.createElement("p"); credit.className = "obs-credit"; credit.innerHTML = c.credit;
+      card.append(credit);
+      grid.append(card);
+    });
+    host.append(grid);
+  },
+
+  /* ---- EXPERIMENT: the Salinity & Buoyancy Station ---- */
+  investigate(host, api){
+    host.innerHTML = "";
+    const game = api.state.game || (api.state.game = { badges: {} });
+
+    const wrap = document.createElement("div"); wrap.className = "station";
+
+    /* left: tank + gauge */
+    const left = document.createElement("div"); left.className = "tankwrap";
+    const tank = document.createElement("div"); tank.className = "tank"; tank.id = "tank";
+    tank.append(Object.assign(document.createElement("div"), { className: "tank__waterline" }));
+    const egg = document.createElement("div"); egg.className = "tank__egg"; egg.id = "egg";
+    egg.innerHTML = eggIconSVG(true);
+    tank.append(egg);
+    left.append(tank);
+
+    const gauge = document.createElement("div"); gauge.className = "gauge";
+    const GMIN = 0.98, GMAX = 1.30;
+    const pctToBottom = d => ((d - GMIN) / (GMAX - GMIN)) * 100;
+    const band = document.createElement("div"); band.className = "gauge__band";
+    band.style.bottom = pctToBottom(densityFor(5)) + "%";
+    band.style.height = (pctToBottom(densityFor(27)) - pctToBottom(densityFor(5))) + "%";
+    gauge.append(band);
+    const needle = document.createElement("div"); needle.className = "gauge__needle"; needle.id = "needle";
+    gauge.append(needle);
+    const scale = document.createElement("div"); scale.className = "gauge__scale";
+    [1.30, 1.20, 1.10, 1.00].forEach(v => scale.append(Object.assign(document.createElement("span"), { textContent: v.toFixed(2) })));
+    gauge.append(scale);
+    const gaugeCol = document.createElement("div");
+    gaugeCol.append(gauge, Object.assign(document.createElement("p"), { className: "gauge__cap", textContent: L("Density (g/cm³)", "Densidad (g/cm³)") }));
+    left.append(gaugeCol);
+    wrap.append(left);
+
+    /* right: controls */
+    const side = document.createElement("div");
+
+    const ctrl = document.createElement("div"); ctrl.className = "ctrl";
+    const top = document.createElement("div"); top.className = "ctrl__top";
+    top.innerHTML = `<span class="ctrl__name">${L("Salinity","Salinidad")}</span><span class="ctrl__val" id="salval">0.0%</span>`;
+    ctrl.append(top);
+    const slider = document.createElement("input");
+    slider.type = "range"; slider.min = "0"; slider.max = "40"; slider.step = "0.5"; slider.value = "0";
+    ctrl.append(slider);
+    const chipRow = document.createElement("div"); chipRow.className = "chip-row";
+    const chipBtns = {};
+    PRESETS.forEach(p => {
+      const c = document.createElement("button"); c.type = "button"; c.className = "chip-btn"; c.textContent = p.label;
+      c.addEventListener("click", () => { slider.value = String(p.pct); update(); });
+      chipBtns[p.id] = c; chipRow.append(c);
+    });
+    ctrl.append(chipRow);
+    side.append(ctrl);
+
+    const readouts = document.createElement("div"); readouts.className = "readout-row";
+    readouts.innerHTML = `
+      <div class="ro"><span class="ro__k">${L("Water","Agua")}</span><span class="ro__v" id="ro-water">—</span></div>
+      <div class="ro"><span class="ro__k">${L("Hydrometer reads","El densímetro marca")}</span><span class="ro__v" id="ro-density">—</span></div>
+      <div class="ro"><span class="ro__k">${L("Egg","Huevo")}</span><span class="ro__v" id="ro-egg">—</span></div>`;
+    side.append(readouts);
+
+    const logBtn = document.createElement("button"); logBtn.type = "button"; logBtn.className = "btn btn--signal log-btn";
+    logBtn.style.marginTop = "var(--sp-3)";
+    logBtn.textContent = L("Log this reading","Registrar esta lectura");
+    side.append(logBtn);
+
+    const hint = document.createElement("p"); hint.className = "q__hint"; hint.style.marginTop = "var(--sp-2)";
+    hint.textContent = L(
+      "Water volume, temperature and the egg itself never change — salinity is the only thing you are testing.",
+      "El volumen de agua, la temperatura y el huevo nunca cambian — la salinidad es lo único que estás probando."
+    );
+    side.append(hint);
+    wrap.append(side);
+    host.append(wrap);
+
+    let sawFloat = false, sawSink = false;
+    function update(){
+      const pct = parseFloat(slider.value);
+      const d = densityFor(pct);
+      const floats = EGG_DENSITY < d;
+      document.getElementById("salval").textContent = pct.toFixed(1) + "%";
+      const waterCol = `hsl(${195 - pct * 1.1}, 70%, ${48 - pct * 0.5}%)`;
+      const waterCol2 = `hsl(${195 - pct * 1.1}, 75%, ${28 - pct * 0.3}%)`;
+      tank.style.setProperty("--water-col", waterCol);
+      tank.style.setProperty("--water-col2", waterCol2);
+      needle.style.bottom = Math.max(0, Math.min(100, pctToBottom(d))) + "%";
+      const ratio = Math.min(1.15, EGG_DENSITY / d);
+      const surfaceTopPct = 22, floorTopPct = 90;
+      const eggTopPct = floats
+        ? surfaceTopPct + ratio * 14
+        : surfaceTopPct + (ratio - 1) * ((floorTopPct - surfaceTopPct) / 0.4) + 10;
+      egg.style.top = Math.max(14, Math.min(floorTopPct, eggTopPct)) + "%";
+      egg.style.opacity = "1";
+      document.getElementById("ro-water").textContent = waterLabel(pct);
+      document.getElementById("ro-density").textContent = d.toFixed(3) + " g/cm³";
+      document.getElementById("ro-egg").textContent = floats ? L("Floats","Flota") : L("Sinks","Se hunde");
+      Object.entries(chipBtns).forEach(([id, btn]) => {
+        const p = PRESETS.find(x => x.id === id);
+        btn.setAttribute("aria-pressed", Math.abs(p.pct - pct) < 0.26 ? "true" : "false");
+      });
+      return { pct, d, floats };
+    }
+    slider.addEventListener("input", update);
+    update();
+
+    logBtn.addEventListener("click", () => {
+      const { pct, d, floats } = update();
+      api.recordTrial({ water: waterLabel(pct), salinity: pct.toFixed(1), density: d.toFixed(3), egg: floats ? L("Floats","Flota") : L("Sinks","Se hunde") });
+      // bubble burst
+      for (let i = 0; i < 8; i++) {
+        const bub = document.createElement("span"); bub.className = "tank__bubble";
+        bub.style.left = (35 + Math.random() * 30) + "%";
+        bub.style.animationDelay = (Math.random() * 0.3) + "s";
+        tank.append(bub);
+        setTimeout(() => bub.remove(), 1400);
+      }
+      if (floats) sawFloat = true; else sawSink = true;
+      if (!game.badges.first) { game.badges.first = true; api.award("first-reading", L("First reading logged","Primera lectura registrada")); }
+      if (Math.abs(pct - 34) < 0.26 && floats && !game.badges.deadsea) { game.badges.deadsea = true; api.award("dead-sea", L("Dead Sea diver","Buzo del Mar Muerto")); }
+      if (Math.abs(pct - 3.5) < 0.26 && !game.badges.ocean) { game.badges.ocean = true; api.award("ocean-match", L("Open-ocean baseline","Referencia del océano abierto")); }
+      if (sawFloat && sawSink && !game.badges.threshold) { game.badges.threshold = true; api.award("threshold", L("Found the floating point","Encontró el punto de flotación")); }
+      api.saveState();
+      api.toast(L("Reading logged to your Investigation Record.","Lectura registrada en tu Registro de Investigación."), "correct");
+      paintArcade();
+    });
+
+    /* ---- BONUS ROUND — "Ocean Command Rush": a fast arcade recall of the
+       whole overview module's big ideas (salinity, climate, pollution,
+       energy, plankton), once at least three readings are logged. Purely a
+       bonus (no marks, no gating) — see engine/arcade.js. This course
+       alternates arcade rounds with the realistic-3D "Cuvier's Deep Dive"
+       investigation in Module 4 (CLAUDE.md §4). ---- */
+    const arcadeSection = document.createElement("div"); arcadeSection.style.marginTop = "var(--sp-5)";
+    host.append(arcadeSection);
+    const LANES = [
+      { id:"salinity", label:L("Salinity","Salinidad"), color:"#1f8fb3" },
+      { id:"climate", label:L("Climate","Clima"), color:"#d9534f" },
+      { id:"pollution", label:L("Pollution","Contaminación"), color:"#8a6338" },
+      { id:"energy", label:L("Energy","Energía"), color:"#d9a521" },
+      { id:"plankton", label:L("Plankton","Plancton"), color:"#3f9e5c" },
+    ];
+    const ITEMS = [
+      { id:"sal1", label:L("The ocean's average salinity is about 3.5%","La salinidad promedio del océano es de aproximadamente 3.5%"), laneId:"salinity" },
+      { id:"sal2", label:L("The Dead Sea's salinity is around 34%","La salinidad del Mar Muerto es de alrededor del 34%"), laneId:"salinity" },
+      { id:"sal3", label:L("The Great Salt Lake's salinity swings between 5% and 27%","La salinidad del Gran Lago Salado varía entre 5% y 27%"), laneId:"salinity" },
+      { id:"cli1", label:L("Melting ice caps and glaciers are raising sea levels","El deshielo de los casquetes polares está elevando el nivel del mar"), laneId:"climate" },
+      { id:"cli2", label:L("The last decade was the hottest on record","La última década fue la más calurosa registrada"), laneId:"climate" },
+      { id:"cli3", label:L("Warming seawater expands and takes up more space","El agua de mar caliente se expande y ocupa más espacio"), laneId:"climate" },
+      { id:"pol1", label:L("A factory pipe discharging chemicals is a point source","Una tubería de fábrica que descarga químicos es una fuente puntual"), laneId:"pollution" },
+      { id:"pol2", label:L("Farm runoff from many fields is a nonpoint source","La escorrentía agrícola de muchos campos es una fuente difusa"), laneId:"pollution" },
+      { id:"pol3", label:L("Nonpoint-source pollution is the #1 cause of water-quality problems","La contaminación de fuente difusa es la causa número uno de los problemas de calidad del agua"), laneId:"pollution" },
+      { id:"ene1", label:L("Wind, wave and tidal power are renewable","La energía eólica, undimotriz y mareomotriz es renovable"), laneId:"energy" },
+      { id:"ene2", label:L("Oil and natural gas are non-renewable","El petróleo y el gas natural son no renovables"), laneId:"energy" },
+      { id:"pla1", label:L("Phytoplankton make about half of the oxygen we breathe","El fitoplancton produce cerca de la mitad del oxígeno que respiramos"), laneId:"plankton" },
+      { id:"pla2", label:L("Zooplankton are a key food source for marine animals","El zooplancton es una fuente clave de alimento para los animales marinos"), laneId:"plankton" },
+      { id:"pla3", label:L("Copepods and krill are types of zooplankton","Los copépodos y el krill son tipos de zooplancton"), laneId:"plankton" },
+    ];
+    function paintArcade(){
+      if (api.trials.length < 3) { arcadeSection.innerHTML = ""; arcadeSection.dataset.rendered = ""; return; }
+      if (arcadeSection.dataset.rendered) return;
+      arcadeSection.dataset.rendered = "1";
+      const launchWrap = document.createElement("div");
+      arcadeSection.append(launchWrap);
+      const bestLine = game.arcadeBest ? L(`Your best score so far: ${game.arcadeBest}.`, `Tu mejor puntaje hasta ahora: ${game.arcadeBest}.`) : "";
+      renderArcadeLaunch(launchWrap, {
+        strings: {
+          title: L("Bonus round — Ocean Command Rush","Ronda bonus — Ocean Command Rush"),
+          instructions: L("Ocean facts fly at you — tap the right topic lane before each one reaches the ring.","Datos del océano vuelan hacia ti — toca el carril del tema correcto antes de que cada uno llegue al anillo.") + (bestLine ? " " + bestLine : ""),
+          play: L("Play Ocean Command Rush","Jugar Ocean Command Rush"), skip: L("Skip bonus round","Omitir ronda bonus"),
+        },
+        onPlay(){
+          launchWrap.remove();
+          const gameHost = document.createElement("div");
+          arcadeSection.append(gameHost);
+          mountArcadeRush(gameHost, {
+            threeUrl: THREE_URL, rounds: 24,
+            lanes: LANES, items: ITEMS,
+            strings: {
+              title: L("Ocean Command Rush","Ocean Command Rush"),
+              instructions: L("Tap the topic before the fact reaches the ring. A late or wrong answer just resets your streak — never a fail.","Toca el tema antes de que el dato llegue al anillo. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es una falla."),
+              score: L("Score","Puntaje"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"), progress: L("Fact","Dato"),
+              correct: L("Correct!","¡Correcto!"), wrong: L("Not quite.","No es así."), missed: L("Missed it.","Lo perdiste."),
+              finishTitle: L("Round complete!","¡Ronda completa!"), accuracy: L("Accuracy","Precisión"), playAgain: L("Play again","Jugar de nuevo"), continueLabel: L("Continue","Continuar"),
+            },
+            onExit(stats){
+              game.arcadeBest = Math.max(game.arcadeBest || 0, stats.score);
+              api.saveState();
+              gameHost.innerHTML = ""; gameHost.remove();
+              arcadeSection.dataset.rendered = "";
+              paintArcade();
+              api.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntaje ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+            }
+          });
+        },
+        onSkip(){ arcadeSection.innerHTML = ""; arcadeSection.dataset.rendered = "skipped"; }
+      });
+    }
+    paintArcade();
+  },
+};
+
+mountActivity({ simulation });
+</script>
+</body>
+</html>
