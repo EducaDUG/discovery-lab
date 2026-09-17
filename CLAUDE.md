@@ -471,6 +471,61 @@ anything below as securely preventing a determined student from finding marker-o
   activity whose `config.json` still contains any of those marker-only fields after this date has
   regressed; treat it as a bug on sight, the same status as a missing `learningFocus`.
 
+**Amendment — SUPER-CRITICAL, RELEASE-BLOCKING: question, analytic mark scheme, rubric descriptors and
+final scoring structure must all describe the literal same assessment (agreed 2026-09-18, whole-library
+audit, permanent standing rule).** Diego found the Marine Science Apply question asking for "TWO
+reasons" while the `markingScheme` actually rewarded three linked scientific steps (compare salinity →
+density mechanism → buoyancy/effort consequence) — a real mismatch between what the student was asked
+to do and what was marked. This is now a permanent, super-critical rule, not a one-off fix, and it never
+needs to be re-explained in a future chat.
+
+- **The question shown to the student must directly match what the mark scheme rewards.** Never reward
+  content the question did not reasonably ask for, and never ask for one kind of thinking (e.g. "give two
+  reasons") while marking a different one (e.g. three linked steps of a single causal chain). If the mark
+  scheme rewards *explanation*, the question must ask the student to explain. If it rewards *evaluation*,
+  the question must ask for a judgement supported by evidence. If it rewards *comparison*, the question
+  must clearly ask for a comparison. If full marks genuinely need three linked steps, the question's
+  wording should make that expectation reasonable and clear — **without revealing the answer** (state the
+  required moves — e.g. "compare X, then explain the effect of Y on Z" — never the specific content that
+  earns each mark; that stays in `marking.json`).
+  **Reference fix:** `sim-mission-blue-planet`'s Apply question was rewritten from "give TWO reasons" to
+  *"Explain why a tourist floats much more easily in the Dead Sea than in ordinary ocean water. In your
+  answer, compare salinity and explain the effect of density on buoyancy,"* with a matching 3-point
+  `markingScheme` (1: compares salinity of the two seas; 1: explains higher salinity → higher density;
+  1: explains higher density → greater buoyant force → less swimming effort). Use this as the template
+  for any similar chain-forced-into-two-reasons mismatch found elsewhere.
+- **Rubric level descriptors must always restate the exact same analytic points as the mark scheme —
+  never a different route to the same score, never an extra requirement introduced only in the rubric,
+  never an analytic point silently dropped from the summary.** If the 3-point `markingScheme` for a
+  question is (1) evidence, (2) mechanism, (3) judgement, the criterion's `levels` array must describe
+  those same three things at every band — 0 (none achieved), 1 (any one achieved), 2 (any two achieved),
+  3 (all three achieved) — not a vaguer or different-sounding holistic paraphrase that happens to land on
+  the same mark values. **Reference fix:** `sim-mission-blue-planet`'s `use_of_evidence` and `reasoning`
+  criteria in `marking.json` were rewritten so every level (0-3) explicitly names all three analytic
+  points from the matching `markingScheme`, e.g. level 3: *"Uses relevant low- and high-salinity evidence
+  from their own investigation, explains the density/buoyancy mechanism correctly, and states whether the
+  hypothesis was supported using that evidence — all three analytic points present."* Mirror this
+  "0/1/2/3 of N points achieved" shape for any criterion whose rubric levels were written before this
+  amendment and don't already visibly restate the full mark scheme.
+- **The final test, to be applied to every teacher-marked question on every simulation, existing or
+  new:** *if a teacher reads only the student-facing question and then reads the marking scheme, do the
+  marks reward exactly what the student was asked to do — no more, no less?* If the answer is not clearly
+  yes, the assessment is not release-ready — fix the question wording, the `markingScheme`, or the rubric
+  `levels` (whichever is actually wrong) before the activity goes live. This sits alongside, and is
+  checked at the same time as, the existing pre-publish QC test above ("could a teacher mark this from
+  the PDF alone?") — a simulation must pass both, not just one.
+- **This is now a required step in the authoring workflow (Section 11), not optional polish.** When
+  designing a new teacher-marked question, write the question wording, the `markingScheme`, and the
+  rubric `levels` together, as one unit, and explicitly check they describe the same assessment before
+  moving on — the same discipline already required for `learningFocus`/`orient.successCriteria`/
+  `assessmentMode`. A simulation is not assessment-ready if its student question, analytic mark scheme,
+  rubric descriptors, mark-source mapping and final scoring structure don't all describe the same
+  assessment — treat a mismatch found at this stage exactly like a missing `learningFocus`: it blocks
+  going live.
+- **Whole-library audit status (2026-09-18):** every existing simulation's Explain/Apply question wording
+  was checked against its `markingScheme` and rubric `levels` for this exact mismatch and corrected where
+  found, alongside `sim-mission-blue-planet`'s reference fix above.
+
 **Amendment — no JSON download (agreed 2026-09-09).** The engine builds a structured JSON payload internally (see `buildPayload()` in `engine/engine.js`) purely as the data model it renders the PDF from — it is never written to a file or offered as a second download. The reasoning: the PDF and JSON download to the student's own device (per Section 7, nothing leaves the browser), and the only file Diego actually receives back is the PDF a student chooses to upload to Learning Lab — the JSON companion file was an extra download that only ever reached the student, never the teacher, so a proper rubric with level descriptors belongs printed in the PDF itself (see the level-descriptors amendment below), not off in a file only the student can see. `generateEvidence()` calls `downloadBlob()` once, for the PDF only. The internal payload shape below is retained as documentation of what the PDF is built from — it is not a file format a student or teacher ever sees:
 
 ```json
