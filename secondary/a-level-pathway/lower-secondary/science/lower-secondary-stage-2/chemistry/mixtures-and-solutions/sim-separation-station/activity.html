@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="chemistry" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Separation Station — Discovery Lab</title>
+<meta name="description" content="Mix real solutes into water to see what dissolves, label a real filtration set-up, then route five unlabelled mixtures through the correct separating machine — filter, evaporator, sieve or magnet.">
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%234FB8C6' stroke-width='4'/><path d='M22 20 L42 20 L34 38 L34 50 L30 50 L30 38 Z' fill='%23F0B34C'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ===== Activity-specific styling (lives with the activity) ===== */
+
+/* ---- Observation: two real-photo "notice something" cards ---- */
+.obs-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-4);margin-top:var(--sp-4);}
+@media(min-width:42rem){.obs-grid{grid-template-columns:repeat(2,1fr);}}
+.obs-card{border:1px solid var(--line-strong);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);}
+.obs-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.obs-card__name{font-weight:800;padding:.6em .8em 0;}
+.obs-card .chip-tray{padding:.6em .8em .8em;}
+.obs-card .chip-tray__btn.is-done{opacity:1;pointer-events:default;cursor:default;border-color:var(--positive);background:var(--paper);}
+.obs-card .chip-tray__btn.is-done .tray-mark{display:none;}
+.diagram-credit{font-size:.66rem;color:var(--ink-3);margin-top:.3em;}
+.diagram-credit a{color:inherit;}
+
+/* ---- Orient classification chart (reused by the Machine chart) ---- */
+.class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-top:var(--sp-4);}
+@media(min-width:36rem){.class-grid{grid-template-columns:repeat(4,1fr);}}
+.class-btn{position:relative;padding:1.1em .8em;border-radius:var(--radius-lg);border:none;cursor:pointer;
+  font:inherit;font-weight:800;color:#fff;text-align:center;transition:transform var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:.4em;}
+.class-btn svg{width:2rem;height:2rem;}
+.class-btn:hover{transform:translateY(-2px);}
+.class-btn.is-active{box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--k-color, var(--accent));}
+.class-panel__hint{color:var(--ink-3);font-size:var(--step--1);}
+
+/* ---- persistent rank/XP/streak bar (Experiment) ---- */
+.rankbar{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);
+  border-radius:var(--radius-lg);background:linear-gradient(160deg,#0e2224,#123338);color:#e9fbff;margin-bottom:var(--sp-4);}
+.rankbar__badge{flex:none;width:2.8rem;height:2.8rem;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#1f7a8a,#0c454d);border:1px solid #4fd8e6;box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.rankbar__badge b{font-size:1.2rem;font-weight:800;}
+.rankbar__body{flex:1;min-width:0;}
+.rankbar__row{display:flex;justify-content:space-between;font-size:.7rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#a9e9f0;margin-bottom:3px;flex-wrap:wrap;gap:.3em;}
+.rankbar__track{height:9px;border-radius:999px;background:#04181a;border:1px solid #2f5b63;overflow:hidden;}
+.rankbar__fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#4fd8e6,#a6fff0);
+  box-shadow:0 0 12px #4fd8e6aa;transition:width var(--dur-slow) var(--ease);}
+.streak-chip{display:inline-flex;align-items:center;gap:.25em;font-size:.72rem;font-weight:700;color:#ffd27a;letter-spacing:.06em;}
+.streak-chip.hot{animation:flamepulse 1.1s ease-in-out infinite;}
+@keyframes flamepulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+[data-reduced-motion=on] .streak-chip.hot{animation:none;}
+
+/* ---- MOMENT 1: the mixing bench ---- */
+.mixbench{display:grid;grid-template-columns:1fr;gap:var(--sp-5);}
+@media(min-width:56rem){.mixbench{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start;}}
+.beaker-wrap{position:relative;display:flex;justify-content:center;padding:var(--sp-4) 0;}
+.beaker{position:relative;width:11rem;height:13rem;border:3px solid #2b565c;border-top:none;border-radius:0 0 18px 18px;
+  background:linear-gradient(180deg,#0a1f22,#0a1f22);overflow:hidden;box-shadow:inset 0 0 30px rgba(0,0,0,.5), var(--shadow-2);}
+.beaker::before{content:"";position:absolute;left:-6px;right:-6px;top:-3px;height:10px;border:3px solid #2b565c;border-bottom:none;border-radius:6px 6px 0 0;background:transparent;}
+.beaker__water{position:absolute;left:0;right:0;bottom:0;height:68%;background:linear-gradient(180deg,#3fb6c6cc,#1c6470cc);
+  transition:background var(--dur-slow) var(--ease);}
+.beaker__water.is-cloudy{background:linear-gradient(180deg,#c9d6d3cc,#8fa6a1cc);}
+.beaker__settle{position:absolute;left:8%;right:8%;bottom:0;height:0;background:#b8925a;border-radius:2px 2px 0 0;transition:height var(--dur-slow) var(--ease);}
+.beaker__particle{position:absolute;width:6px;height:6px;border-radius:50%;top:-10px;}
+.beaker-label{text-align:center;font-family:var(--font-data);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:.5em;}
+.solute-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.solute-btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.solute-btn:hover{border-color:var(--accent);}
+.solute-btn.is-done{opacity:.55;pointer-events:none;}
+.solute-btn .tray-mark{margin-left:auto;}
+.mix-note{margin-top:var(--sp-3);min-height:2.6rem;}
+
+/* ---- MOMENT 2: real-photo feature labelling (filtration set-up) ---- */
+.scan-frame{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;
+  background:#050505;border:2px solid #163a44;box-shadow:0 0 0 1px #0c2830, var(--shadow-2);}
+.scan-frame img{width:100%;height:auto;display:block;}
+.scan-frame::before{content:"";position:absolute;left:0;right:0;height:38%;top:-40%;pointer-events:none;z-index:3;
+  background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent-hi) 55%, transparent) 45%, transparent);
+  animation:scansweep 3.4s linear infinite;mix-blend-mode:screen;}
+[data-reduced-motion=on] .scan-frame::before{display:none;}
+@keyframes scansweep{0%{top:-40%;}100%{top:100%;}}
+.scan-corner{position:absolute;width:1.4rem;height:1.4rem;border:2px solid #7be6ff;z-index:3;pointer-events:none;opacity:.9;}
+.scan-corner--tl{top:8px;left:8px;border-right:none;border-bottom:none;}
+.scan-corner--tr{top:8px;right:8px;border-left:none;border-bottom:none;}
+.scan-corner--bl{bottom:8px;left:8px;border-right:none;border-top:none;}
+.scan-corner--br{bottom:8px;right:8px;border-left:none;border-top:none;}
+.scan-label{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:3;background:#04121899;
+  border:1px solid #2f5b63;color:#7be6ff;font-family:var(--font-data);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2em .7em;border-radius:999px;}
+.label-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:60rem){.label-wrap{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start;}}
+.spot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border-radius:50%;z-index:4;
+  border:2px dashed #7be6ff;background:rgba(4,18,24,.45);color:#e9fbff;font-weight:800;font-family:var(--font-data);
+  display:grid;place-items:center;cursor:pointer;touch-action:manipulation;transition:all var(--dur-fast) var(--ease);font-size:.85rem;}
+.spot:hover{border-color:var(--signal);}
+.spot.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+@keyframes spotshake{0%,100%{transform:translate(-50%,-50%);}30%{transform:translate(calc(-50% - 5px),-50%);}60%{transform:translate(calc(-50% + 5px),-50%);}}
+.spot.is-correct{border-style:solid;border-color:transparent;color:#fff;font-size:.62rem;padding:2px;text-align:center;line-height:1.05;
+  background:var(--positive);animation:spotpop .4s var(--ease-out-back);}
+@keyframes spotpop{0%{transform:translate(-50%,-50%) scale(.5);}60%{transform:translate(-50%,-50%) scale(1.25);}100%{transform:translate(-50%,-50%) scale(1);}}
+[data-reduced-motion=on] .spot.is-correct{animation:none;}
+.chip-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.chip-tray__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.chip-tray__btn:hover{border-color:var(--accent);}
+.chip-tray__btn.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.chip-tray__btn.is-done{opacity:.45;pointer-events:none;}
+.chip-tray__btn .tray-mark{margin-left:auto;}
+.result-note{margin-top:var(--sp-3);min-height:2.6rem;}
+
+/* ---- MOMENT 3: scan & sort samples into separating machines ---- */
+.specimen-tray{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-bottom:var(--sp-4);}
+@media(min-width:36rem){.specimen-tray{grid-template-columns:repeat(3,1fr);}}
+.specimen-card{border:1px solid var(--line-strong);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);
+  cursor:pointer;font:inherit;text-align:left;padding:0;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;position:relative;}
+.specimen-card:hover{border-color:var(--accent);}
+.specimen-card.is-armed{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent);}
+.specimen-card.is-placed{opacity:.4;pointer-events:none;}
+.specimen-card__img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#111;}
+.specimen-card__body{padding:.55em .7em;}
+.specimen-card__name{font-weight:800;font-size:var(--step--1);}
+.specimen-card__scanflag{display:inline-block;margin-top:.3em;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:.15em .55em;border-radius:999px;background:var(--line-strong);color:#fff;}
+.clue-panel{border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-3);margin-bottom:var(--sp-3);
+  background:var(--surface);min-height:3rem;}
+.clue-panel__title{font-weight:800;margin:0 0 .4em;}
+.clue-panel ul{margin:0;padding-left:1.2em;}
+.clue-panel li{margin-bottom:.2em;}
+.machine-grid{display:grid;gap:var(--sp-2);grid-template-columns:repeat(2,1fr);}
+@media(min-width:42rem){.machine-grid{grid-template-columns:repeat(4,1fr);}}
+.machine{position:relative;border:2px dashed var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-2) var(--sp-2);min-height:7.5rem;
+  transition:border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);overflow:hidden;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:.3em;font:inherit;background:var(--paper);}
+.machine__icon{width:1.8rem;height:1.8rem;}
+.machine.is-target{border-color:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 18%, transparent);}
+.machine.is-shake{animation:machshake .32s ease;}
+.machine.is-flash{animation:machflash .5s ease;}
+@keyframes machshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-6px);}60%{transform:translateX(6px);}}
+@keyframes machflash{0%{box-shadow:inset 0 0 0 3px var(--positive);}100%{box-shadow:inset 0 0 0 0 transparent;}}
+[data-reduced-motion=on] .machine.is-shake,[data-reduced-motion=on] .machine.is-flash{animation:none;}
+.machine__title{font-weight:800;font-size:var(--step--1);}
+.machine__items{display:flex;flex-wrap:wrap;gap:.25em;justify-content:center;}
+.machine__item{padding:.2em .55em;border-radius:999px;color:#fff;font-weight:700;font-size:.62rem;background:var(--positive);
+  animation:chipland .4s var(--ease-out-back);}
+@keyframes chipland{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+[data-reduced-motion=on] .machine__item{animation:none;}
+/* per-machine "running" micro-animation, added briefly on a correct sort */
+.machine__fx{position:absolute;inset:0;pointer-events:none;}
+.machine.run-filtration .machine__fx::before{content:"";position:absolute;left:50%;top:20%;width:4px;height:14px;
+  background:#4fb8c6;border-radius:2px;transform:translateX(-50%);animation:drip .6s ease-in 2;}
+@keyframes drip{0%{top:20%;opacity:1;}100%{top:85%;opacity:0;}}
+.machine.run-evaporation .machine__fx::before{content:"";position:absolute;left:30%;top:55%;width:8px;height:8px;
+  border-radius:50%;background:#fff;box-shadow:14px -6px 0 -1px #fff, 26px -14px 0 -2px #fff;
+  animation:steamrise .8s ease-out 2;opacity:0;}
+@keyframes steamrise{0%{transform:translateY(0) scale(.6);opacity:.9;}100%{transform:translateY(-30px) scale(1.4);opacity:0;}}
+.machine.run-sieving .machine__fx{animation:sieveshake .12s linear 5;}
+@keyframes sieveshake{0%,100%{transform:translateX(0);}50%{transform:translateX(3px);}}
+.machine.run-magnetism .machine__fx::before{content:"";position:absolute;left:50%;top:60%;width:5px;height:5px;background:#e9c46a;
+  border-radius:1px;transform:translate(-50%,0);animation:magpull .5s ease-in 2;}
+@keyframes magpull{0%{top:70%;opacity:1;}100%{top:15%;opacity:0;}}
+[data-reduced-motion=on] .machine__fx::before,[data-reduced-motion=on] .machine__fx{animation:none!important;}
+.sort-progress{font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);margin-top:var(--sp-2);}
+
+/* ---- a clear finish line for the point-scoring Experiment game ---- */
+.invdone{display:flex;gap:var(--sp-3);align-items:center;margin-top:var(--sp-4);padding:var(--sp-4);
+  border-radius:var(--radius-lg);border:1px solid #4fd8e6;background:linear-gradient(160deg,#0e2224,#123338);
+  color:#e9fbff;animation:invdonepop .5s var(--ease-out-back);}
+[data-reduced-motion=on] .invdone{animation:none;}
+@keyframes invdonepop{0%{transform:scale(.92);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.invdone__badge{flex:none;font-size:2rem;line-height:1;}
+.invdone__title{font-family:var(--font-display);font-weight:800;font-size:var(--step-0);margin:0 0 .2em;}
+.invdone__line{margin:0;color:#bfeef4;font-size:var(--step--1);}
+
+/* ---- particle bursts + level-up celebration ---- */
+.game-layer{position:relative;}
+.burst-anchor{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:6;}
+.burst-anchor i{position:absolute;width:8px;height:8px;border-radius:2px;opacity:.95;}
+.levelup{position:fixed;inset:0;z-index:50;display:grid;place-items:center;pointer-events:none;
+  background:radial-gradient(circle at 50% 45%, rgba(6,20,22,.55), rgba(6,20,22,.85));
+  opacity:0;transition:opacity var(--dur-mid) var(--ease);}
+.levelup.show{opacity:1;}
+.levelup__card{text-align:center;color:#e9fbff;transform:scale(.7);transition:transform var(--dur-slow) var(--ease-out-back);}
+.levelup.show .levelup__card{transform:scale(1);}
+.levelup__k{font-family:var(--font-data);letter-spacing:.3em;font-size:.8rem;color:#7be6ff;}
+.levelup__n{font-family:var(--font-display);font-size:2rem;line-height:1.15;font-weight:800;margin:.1em 0;
+  text-shadow:0 0 24px #4fd8e688;}
+.levelup__s{font-family:var(--font-data);font-size:.8rem;color:#bfeef4;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<script>
+(function(){try{
+  var lang=(localStorage.getItem('dl-lang')||'en');
+  if(lang==='es'){
+    var m=document.querySelector('meta[name="description"]');
+    if(m)m.setAttribute('content','Mezcla solutos reales en agua para ver qué se disuelve, etiqueta un montaje real de filtración y luego dirige cinco mezclas sin etiquetar a la máquina de separación correcta —filtro, evaporador, tamiz o imán.');
+  }
+}catch(e){}})();
+</script>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../">Secondary</a></li>
+      <li><a href="../../../../../">A-Level Pathway</a></li>
+      <li><a href="../../../../">Lower Secondary</a></li>
+      <li><a href="../../../">Science</a></li>
+      <li><a href="../../../">Stage 2</a></li>
+      <li><a href="../../">Chemistry</a></li>
+      <li><a href="../">Mixtures and Solutions</a></li>
+      <li><span aria-current="page">Separation Station</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../">Secundaria</a></li>
+      <li><a href="../../../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../../../">Lower Secondary</a></li>
+      <li><a href="../../../">Ciencias</a></li>
+      <li><a href="../../../">Etapa 2</a></li>
+      <li><a href="../../">Química</a></li>
+      <li><a href="../">Mezclas y Disoluciones</a></li>
+      <li><span aria-current="page">Estación de Separación</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../../../../engine/i18n.js?v=9";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../../../engine/arcade.js?v=3";
+
+const THREE_URL = "../../../../../../../../engine/vendor/three.min.js";
+
+/* Simulation-local strings — this activity's own in-canvas labels and
+   reveal text. Engine-level chrome is translated in engine/i18n.js;
+   this dictionary is scoped to this one activity's custom mechanic. */
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   PHOTO CREDITS — all four photos vendored into photos/, licenses
+   verified on each file's own Wikimedia Commons page before use.
+   ====================================================================== */
+const CC_BY = '<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>';
+const CC_BY_SA3 = '<a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a>';
+const CC_BY_SA2 = '<a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 2.0</a>';
+const MAGNET_IMG = "photos/magnet-iron-sulfur.jpg";
+const MAGNET_CREDIT = 'Photo: Asoult — Wikimedia Commons, ' + CC_BY;
+const FILTER_IMG = "photos/filtration-funnel.jpg";
+const FILTER_CREDIT = 'Photo: Alljal — Wikimedia Commons, ' + CC_BY_SA3;
+const SIEVE_IMG = "photos/sieving-apparatus.jpg";
+const SIEVE_CREDIT = 'Photo: Goodymeraj — Wikimedia Commons, public domain (CC0)';
+const EVAP_IMG = "photos/evaporation-salt-pan.jpg";
+const EVAP_CREDIT = 'Photo: Dennis G. Jarvis — Wikimedia Commons, ' + CC_BY_SA2;
+
+/* ======================================================================
+   THE FOUR SEPARATING MACHINES
+   ====================================================================== */
+const MACHINES = {
+  filtration: { name: L("Filtration","Filtración"), color: "#4FB8C6",
+    icon: '<path d="M14 16h36l-14 22v18h-8V38Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>' },
+  evaporation: { name: L("Evaporation","Evaporación"), color: "#F0B34C",
+    icon: '<path d="M14 42a18 8 0 0 0 36 0Z" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 30c-2 3 2 4 0 7M32 26c-2 3 2 4 0 7M40 30c-2 3 2 4 0 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>' },
+  sieving: { name: L("Sieving","Tamizado"), color: "#8E6BAE",
+    icon: '<rect x="14" y="24" width="36" height="16" rx="2" fill="none" stroke="#fff" stroke-width="3"/><path d="M20 24v16M28 24v16M36 24v16M44 24v16M14 32h36" stroke="#fff" stroke-width="1.6"/>' },
+  magnetism: { name: L("Magnetism","Magnetismo"), color: "#C0392B",
+    icon: '<path d="M20 14v20a12 12 0 0 0 24 0V14" fill="none" stroke="#fff" stroke-width="5"/><rect x="14" y="8" width="10" height="8" fill="#fff"/><rect x="40" y="8" width="10" height="8" fill="#fff"/>' }
+};
+const MACHINE_ORDER = ["filtration","evaporation","sieving","magnetism"];
+
+/* ======================================================================
+   MOMENT 1 — solutes tested at the mixing bench: which dissolve to
+   form a true solution, and which stay a visible, settling mixture?
+   ====================================================================== */
+const SOLUTES = [
+  { id: "salt", name: L("Table salt","Sal de mesa"), dissolves: true, color: "#e8f6f8" },
+  { id: "sugar", name: L("Sugar","Azúcar"), dissolves: true, color: "#fff3da" },
+  { id: "sand", name: L("Fine sand","Arena fina"), dissolves: false, color: "#c9a06a" },
+  { id: "iron", name: L("Iron filings","Limaduras de hierro"), dissolves: false, color: "#5b5b5b" }
+];
+
+/* ======================================================================
+   MOMENT 2 — real-photo feature labelling on a real filtration set-up.
+   Hotspot fractions checked against the real photo so each dot lands on
+   a feature a student can actually recognise.
+   ====================================================================== */
+const FILTER_TERMS = {
+  funnel: { name: L("Funnel","Embudo"), fx: 0.40, fy: 0.30,
+    job: L("The cone-shaped part that holds the sample and its filter medium. The mixture is poured in here, and only what can pass through the medium below makes it out the bottom.",
+      "La parte en forma de cono que sostiene la muestra y su medio filtrante. La mezcla se vierte aquí, y solo lo que puede pasar por el medio de abajo sale por el fondo.") },
+  flask: { name: L("Collection flask","Matraz de recolección"), fx: 0.44, fy: 0.78,
+    job: L("The vessel underneath that catches the filtrate — the liquid (and anything truly dissolved in it) that made it through. Whatever couldn't pass through stays behind as the residue, up in the funnel.",
+      "El recipiente de abajo que recoge el filtrado —el líquido (y todo lo realmente disuelto en él) que logró pasar. Lo que no pudo pasar queda atrás como el residuo, arriba en el embudo.") },
+  neck: { name: L("Side-arm tube","Tubo lateral"), fx: 0.71, fy: 0.62,
+    job: L("The side tube on this particular set-up connects to a vacuum pump to speed filtration up — a detail this exact apparatus has that a simple gravity funnel and filter paper on a stand does not, though both work on the very same principle.",
+      "El tubo lateral de este montaje concreto se conecta a una bomba de vacío para acelerar la filtración —un detalle que tiene este aparato exacto y que un simple embudo de gravedad con papel de filtro no tiene, aunque ambos funcionan según el mismo principio.") }
+};
+const FILTER_KEYS = ["funnel","flask","neck"];
+
+/* ======================================================================
+   MOMENT 3 — the five unlabelled samples, each with a real diagnostic
+   property that decides its one correct separating machine.
+   ====================================================================== */
+const SAMPLES = [
+  { id: "mudwater", name: L("Muddy river water","Agua turbia de río"), machine: "filtration", img: FILTER_IMG, credit: FILTER_CREDIT,
+    clues: [
+      L("Fine soil particles are suspended in the water and never dissolve — they stay as separate solid bits.","Partículas finas de tierra están suspendidas en el agua y nunca se disuelven —quedan como trozos sólidos separados."),
+      L("The soil particles are far too big to pass through the tiny holes in filter paper.","Las partículas de tierra son demasiado grandes para pasar por los diminutos agujeros del papel de filtro."),
+      L("Left standing, the mud slowly settles instead of staying dissolved.","Si se deja reposar, el barro se asienta lentamente en vez de quedarse disuelto.")
+    ] },
+  { id: "saltwater", name: L("Salt fully dissolved in water","Sal totalmente disuelta en agua"), machine: "evaporation", img: EVAP_IMG, credit: EVAP_CREDIT,
+    clues: [
+      L("The water is completely clear — no visible salt particles anywhere.","El agua está completamente clara —no hay partículas de sal visibles en ningún sitio."),
+      L("The salt has genuinely dissolved, so no filter paper can catch it.","La sal se ha disuelto de verdad, así que ningún papel de filtro puede atraparla."),
+      L("Heating the water drives it off as vapour and leaves the solid salt behind.","Calentar el agua la elimina como vapor y deja atrás la sal sólida.")
+    ] },
+  { id: "gravelsand", name: L("Sand mixed with small pebbles","Arena mezclada con guijarros pequeños"), machine: "sieving", img: SIEVE_IMG, credit: SIEVE_CREDIT,
+    clues: [
+      L("Both parts are solid — nothing here is dissolved or magnetic.","Ambas partes son sólidas —nada aquí está disuelto ni es magnético."),
+      L("The pebbles are much bigger than the individual grains of sand.","Los guijarros son mucho más grandes que los granos individuales de arena."),
+      L("A mesh with holes bigger than sand grains but smaller than the pebbles sorts them instantly by size.","Una malla con agujeros más grandes que los granos de arena pero más pequeños que los guijarros los separa al instante por tamaño.")
+    ] },
+  { id: "ironsand", name: L("Iron filings mixed with sand","Limaduras de hierro mezcladas con arena"), machine: "magnetism", img: MAGNET_IMG, credit: MAGNET_CREDIT,
+    clues: [
+      L("The iron filings are strongly attracted to a magnet.","Las limaduras de hierro son fuertemente atraídas por un imán."),
+      L("The sand grains are not magnetic at all and are left behind.","Los granos de arena no son magnéticos en absoluto y quedan atrás."),
+      L("Neither substance is dissolved, and they are not different enough in size for sieving to help much.","Ninguna sustancia está disuelta, y no son lo bastante distintas en tamaño para que el tamizado ayude mucho.")
+    ] },
+  { id: "driedbeans", name: L("Dried beans mixed with rice","Frijoles secos mezclados con arroz"), machine: "sieving", img: SIEVE_IMG, credit: SIEVE_CREDIT,
+    clues: [
+      L("Both are dry solids — no dissolving and no magnetism involved.","Ambos son sólidos secos —sin disolución ni magnetismo involucrados."),
+      L("The beans are far bigger than the individual grains of rice.","Los frijoles son mucho más grandes que los granos individuales de arroz."),
+      L("A mesh sized between the two grabs the beans while the rice passes straight through.","Una malla con un tamaño intermedio entre los dos atrapa los frijoles mientras el arroz pasa directamente.")
+    ] }
+];
+
+function slideImgHTML(src, alt, w, h){
+  return `<img src="${src}" width="${w}" height="${h}" loading="lazy" alt="${alt}">`;
+}
+
+/* ======================================================================
+   GAME LAYER — rank/XP/streak + particle bursts + level-up celebration.
+   ====================================================================== */
+const XP_PER_ACTION = 16;
+const RANKS = [
+  { at: 0,   name: L("Bench Trainee","Aprendiz de laboratorio") },
+  { at: 70,  name: L("Lab Technician","Técnico/a de laboratorio") },
+  { at: 160, name: L("Separation Specialist","Especialista en separación") },
+  { at: 260, name: L("Master Chemist","Químico/a maestro/a") },
+];
+function rankFor(xp){ let r = RANKS[0]; for (const x of RANKS) if (xp >= x.at) r = x; return r; }
+function nextRankAt(xp){ const next = RANKS.find(x => x.at > xp); return next ? next.at : null; }
+
+function reducedMotion(){ return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+
+function fireBurst(host, colors){
+  if (reducedMotion()) return;
+  let layer = host.querySelector(":scope > .burst-anchor");
+  if (!layer){ layer = document.createElement("div"); layer.className = "burst-anchor"; host.appendChild(layer); }
+  const rect = host.getBoundingClientRect();
+  const cx = rect.width / 2, cy = Math.min(80, rect.height / 2);
+  for (let i = 0; i < 18; i++){
+    const p = document.createElement("i");
+    const ang = Math.random() * Math.PI * 2, dist = 40 + Math.random() * 90;
+    p.style.background = colors[i % colors.length];
+    p.style.left = cx + "px"; p.style.top = cy + "px";
+    layer.append(p);
+    const x = Math.cos(ang) * dist, y = Math.sin(ang) * dist - 30;
+    p.animate(
+      [{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${x}px,${y}px) rotate(${Math.random()*480}deg) scale(.3)`, opacity: 0 }],
+      { duration: 700 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
+}
+
+function ensureLevelUpEl(){
+  let el = document.getElementById("ss-levelup");
+  if (!el){
+    el = document.createElement("div"); el.id = "ss-levelup"; el.className = "levelup";
+    el.innerHTML = `<div class="levelup__card"><div class="levelup__k">${L("RANK UP","SUBIDA DE RANGO")}</div><div class="levelup__n" id="ss-lu-n"></div><div class="levelup__s">${L("New rank reached!","¡Nuevo rango alcanzado!")}</div></div>`;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function celebrateLevelUp(rankName){
+  const el = ensureLevelUpEl();
+  el.querySelector("#ss-lu-n").textContent = rankName;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+let sim = null;
+
+const simulation = {
+  observation(host, api){
+    host.innerHTML = "";
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Two mystery jars are on the bench. Tap each one to notice real details about it — before you know anything else about mixtures and solutions.",
+      "Hay dos frascos misteriosos en la mesa. Toca cada uno para notar detalles reales —antes de saber nada más sobre mezclas y disoluciones.");
+    host.append(intro);
+
+    const OBS_JARS = [
+      { img: MAGNET_IMG, name: L("Mystery Jar A","Frasco Misterioso A"),
+        notices: [
+          L("A grey powder was stirred into another grey powder in this jar.","En este frasco se agitó un polvo gris con otro polvo gris."),
+          L("A magnet held nearby pulls some of the grains straight out of the jar.","Un imán acercado atrae directamente algunos de los granos fuera del frasco."),
+          L("The two powders never actually joined together — they just sit mixed, side by side.","Los dos polvos nunca se unieron realmente —solo quedan mezclados, uno junto al otro.")
+        ] },
+      { img: EVAP_IMG, name: L("Mystery Jar B","Frasco Misterioso B"),
+        notices: [
+          L("This jar's liquid was left out in the sun for days.","El líquido de este frasco se dejó al sol durante días."),
+          L("As the liquid disappeared, solid white crystals were left behind.","A medida que el líquido desaparecía, quedaron cristales blancos sólidos."),
+          L("Before it disappeared, the liquid looked completely clear — no solid was ever visible in it.","Antes de desaparecer, el líquido se veía completamente claro —nunca se vio ningún sólido en él.")
+        ] }
+    ];
+    const grid = document.createElement("div"); grid.className = "obs-grid";
+    OBS_JARS.forEach(a => {
+      const card = document.createElement("div"); card.className = "obs-card";
+      card.innerHTML = `<img src="${a.img}" alt="${a.name}" loading="lazy">
+        <p class="obs-card__name">${a.name}</p>
+        <div class="chip-tray" role="group" aria-label="${L('Things to notice','Cosas que notar')}"></div>`;
+      const tray = card.querySelector(".chip-tray");
+      a.notices.forEach((note, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn";
+        b.innerHTML = `<span>${L("Notice something","Notar algo")} #${i + 1}</span><span class="tray-mark">👁</span>`;
+        b.addEventListener("click", () => {
+          if (b.classList.contains("is-done")) return;
+          b.classList.add("is-done");
+          b.querySelector("span").textContent = note;
+          if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(note);
+        });
+        tray.append(b);
+      });
+      grid.append(card);
+    });
+    host.append(grid);
+
+    const wrap = document.createElement("p"); wrap.className = "q__hint"; wrap.style.marginTop = "var(--sp-4)";
+    wrap.textContent = L("Keep what you noticed in mind — you'll test dissolving and sort real samples properly once you reach Experiment.",
+      "Ten en cuenta lo que notaste —probarás la disolución y clasificarás muestras reales cuando llegues a Experimento.");
+    host.append(wrap);
+  },
+
+  orient(host, api){
+    host.innerHTML = "";
+    sim = api;
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Tap each separating machine below to meet it before you start sorting real samples.",
+      "Toca cada máquina de separación de abajo para conocerla antes de empezar a clasificar muestras reales.");
+    host.append(intro);
+
+    const grid = document.createElement("div"); grid.className = "machine-grid"; grid.setAttribute("role","group");
+    grid.setAttribute("aria-label", L("The four separating machines","Las cuatro máquinas de separación"));
+    const panel = document.createElement("div"); panel.className = "clue-panel";
+    panel.innerHTML = `<p class="class-panel__hint">${L("Tap a machine above ↑","Toca una máquina de arriba ↑")}</p>`;
+
+    const FACTS = {
+      filtration: [ L("Separates an insoluble solid from a liquid.","Separa un sólido insoluble de un líquido."), L("The liquid and any dissolved substance pass through filter paper; the undissolved solid is trapped as residue.","El líquido y cualquier sustancia disuelta pasan por el papel de filtro; el sólido no disuelto queda atrapado como residuo.") ],
+      evaporation: [ L("Recovers a solute that is already dissolved in a solution.","Recupera un soluto ya disuelto en una disolución."), L("Heating drives off the solvent as vapour, leaving the solid solute behind.","El calor elimina el disolvente como vapor, dejando atrás el soluto sólido.") ],
+      sieving: [ L("Separates solid particles of clearly different sizes.","Separa partículas sólidas de tamaños claramente distintos."), L("A mesh lets smaller particles fall through while trapping larger ones.","Una malla deja pasar las partículas más pequeñas mientras atrapa las más grandes.") ],
+      magnetism: [ L("Separates a magnetic material from a non-magnetic one.","Separa un material magnético de uno no magnético."), L("A magnet pulls out only the magnetic substance, leaving everything else behind.","Un imán extrae solo la sustancia magnética, dejando todo lo demás atrás.") ]
+    };
+    const btns = {};
+    MACHINE_ORDER.forEach(key => {
+      const m = MACHINES[key];
+      const b = document.createElement("button"); b.type = "button"; b.className = "class-btn";
+      b.style.background = m.color; b.style.setProperty("--k-color", m.color);
+      b.innerHTML = `<svg viewBox="0 0 64 64" aria-hidden="true">${m.icon}</svg><span>${m.name}</span>`;
+      b.addEventListener("click", () => {
+        Object.values(btns).forEach(x => x.classList.remove("is-active"));
+        b.classList.add("is-active");
+        panel.innerHTML = `<p class="clue-panel__title" style="color:${m.color}">${m.name}</p>
+          <ul>${FACTS[key].map(f => `<li>${f}</li>`).join("")}</ul>`;
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(`${m.name}. ${FACTS[key].join(". ")}`);
+      });
+      btns[key] = b; grid.append(b);
+    });
+    host.append(grid, panel);
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = "";
+    const game = sim.state.game || (sim.state.game = {});
+    game.phase = game.phase || "mix";
+    game.mixDone = game.mixDone || {};
+    game.labelDone = game.labelDone || {};
+    game.scanned = game.scanned || {};
+    game.sortDone = game.sortDone || {};
+    game.xp = game.xp || 0;
+    game.streak = game.streak || 0;
+
+    sim.setScienceMethod({
+      observation: L(
+        "Two mystery jars sit on the bench. One looks completely clear after salt was stirred into it — you can't see any salt at all. The other stays cloudy no matter how long sand is stirred into it, and the sand slowly settles back to the bottom.",
+        "Hay dos frascos misteriosos en la mesa. Uno se ve completamente claro después de agitar sal en él —no se ve nada de sal. El otro sigue turbio sin importar cuánto se agite arena en él, y la arena se asienta lentamente de nuevo en el fondo."),
+      question: L("What property actually decides whether a substance dissolves into a true solution, or just stays mixed as tiny separate solid pieces?",
+        "¿Qué propiedad decide realmente si una sustancia se disuelve en una disolución verdadera, o simplemente queda mezclada como pequeñas piezas sólidas separadas?"),
+      hypothesis: L(
+        "If a substance is a soluble solid like salt or sugar, then it will dissolve completely into water to form a true, clear solution, because its particles break apart and spread evenly among the water particles, while an insoluble solid like sand or iron keeps its particles whole and simply stays mixed.",
+        "Si una sustancia es un sólido soluble como la sal o el azúcar, entonces se disolverá completamente en agua para formar una disolución verdadera y clara, porque sus partículas se separan y se dispersan uniformemente entre las partículas de agua, mientras que un sólido insoluble como la arena o el hierro mantiene sus partículas enteras y simplemente queda mezclado."),
+      variables: {
+        independent: L("Which solute is added to the water, and which unlabelled sample is being diagnosed and sorted.",
+          "Qué soluto se añade al agua, y qué muestra sin etiquetar se está diagnosticando y clasificando."),
+        dependent: L("Whether the substance dissolves into a true solution or stays a visible mixture, and which separating machine correctly recovers each sample.",
+          "Si la sustancia se disuelve en una disolución verdadera o queda como una mezcla visible, y qué máquina de separación recupera correctamente cada muestra."),
+        controlled: L("The same amount of water, the same stirring, and the same diagnostic checks (dissolving, particle size, magnetism) are used for every substance and sample, so the comparison is fair.",
+          "Se usa la misma cantidad de agua, la misma agitación y las mismas comprobaciones diagnósticas (disolución, tamaño de partícula, magnetismo) para cada sustancia y muestra, así la comparación es justa.")
+      }
+    });
+
+    const wrap = document.createElement("div"); wrap.className = "game-layer"; host.append(wrap);
+
+    /* ---- persistent rank/XP/streak bar ---- */
+    const rankbar = document.createElement("div"); rankbar.className = "rankbar";
+    rankbar.innerHTML = `<div class="rankbar__badge"><b id="ss-lvl">1</b></div>
+      <div class="rankbar__body">
+        <div class="rankbar__row"><span id="ss-rankname">${rankFor(game.xp).name}</span><span id="ss-xptext">${game.xp} XP</span></div>
+        <div class="rankbar__track"><div class="rankbar__fill" id="ss-xpfill"></div></div>
+        <div class="streak-chip" id="ss-streak" hidden></div>
+      </div>`;
+    wrap.append(rankbar);
+    function paintRank(){
+      const rank = rankFor(game.xp);
+      document.getElementById("ss-rankname").textContent = rank.name;
+      document.getElementById("ss-xptext").textContent = game.xp + " XP";
+      const idx = RANKS.indexOf(rank);
+      document.getElementById("ss-lvl").textContent = idx + 1;
+      const next = nextRankAt(game.xp);
+      const base = rank.at, span = next ? next - base : 100;
+      const pct = Math.max(0, Math.min(1, (game.xp - base) / span)) * 100;
+      document.getElementById("ss-xpfill").style.width = pct + "%";
+      const streakEl = document.getElementById("ss-streak");
+      if (game.streak >= 3){ streakEl.hidden = false; streakEl.classList.add("hot"); streakEl.innerHTML = L(`🔥 streak x${game.streak}`,`🔥 racha x${game.streak}`); }
+      else { streakEl.hidden = true; streakEl.classList.remove("hot"); }
+    }
+    paintRank();
+    function awardXP(host2){
+      const before = rankFor(game.xp);
+      game.xp += XP_PER_ACTION; game.streak += 1;
+      game.bestStreak = Math.max(game.bestStreak || 0, game.streak);
+      sim.save && sim.save();
+      paintRank();
+      fireBurst(host2, ["#7be6ff","#4fd8e6","#ffd45c","#e9fbff"]);
+      const after = rankFor(game.xp);
+      if (after !== before) celebrateLevelUp(after.name);
+    }
+    function breakStreak(){ game.streak = 0; sim.save && sim.save(); paintRank(); }
+
+    const phaseHost = document.createElement("div"); wrap.append(phaseHost);
+    if (game.phase === "mix") renderMixPhase();
+    else if (game.phase === "label") renderLabelPhase();
+    else renderSortPhase();
+
+    /* ==================================================================
+       PHASE 1 — MIXING BENCH: tap a solute chip to add it to the beaker.
+       Each tap immediately shows whether it dissolves (clears, tints the
+       water) or stays a visible, settling mixture — real, moving feedback
+       at the point of interaction, every time.
+       ================================================================== */
+    function renderMixPhase(){
+      phaseHost.innerHTML = "";
+      const bench = document.createElement("div");
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = L("Step 1 of 3 — Mix real solutes into water","Paso 1 de 3 — Mezcla solutos reales en agua");
+      bench.append(stepLabel);
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Tap a solute below to add it to the beaker. Watch closely — does it dissolve into the water, or stay visible as a mixture?",
+        "Toca un soluto abajo para añadirlo al vaso. Observa bien —¿se disuelve en el agua, o queda visible como una mezcla?");
+      bench.append(lede);
+
+      const mixbench = document.createElement("div"); mixbench.className = "mixbench";
+      const beakerWrap = document.createElement("div"); beakerWrap.className = "beaker-wrap";
+      beakerWrap.innerHTML = `<div>
+        <div class="beaker"><div class="beaker__water" id="beaker-water"></div><div class="beaker__settle" id="beaker-settle"></div></div>
+        <p class="beaker-label" id="beaker-label">${L("Water (solvent)","Agua (disolvente)")}</p>
+      </div>`;
+      mixbench.append(beakerWrap);
+
+      const side = document.createElement("div");
+      const tray = document.createElement("div"); tray.className = "solute-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Solutes to test","Solutos a probar"));
+      const note = document.createElement("div"); note.className = "mix-note"; note.id = "mix-note";
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+      let settleHeight = 0;
+      const btns = {};
+      SOLUTES.forEach(sub => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "solute-btn";
+        if (game.mixDone[sub.id]) b.classList.add("is-done");
+        b.innerHTML = `<span>${sub.name}</span><span class="tray-mark">${game.mixDone[sub.id] ? "✓" : "＋"}</span>`;
+        b.addEventListener("click", () => {
+          if (b.classList.contains("is-done")) return;
+          b.classList.add("is-done");
+          game.mixDone[sub.id] = true; sim.save && sim.save();
+
+          const beaker = beakerWrap.querySelector(".beaker");
+          if (!reducedMotion()){
+            for (let i = 0; i < 10; i++){
+              const p = document.createElement("i"); p.className = "beaker__particle";
+              p.style.background = sub.color; p.style.left = (30 + Math.random()*40) + "%";
+              beaker.append(p);
+              p.animate([{ top: "-10px", opacity: 1 }, { top: "85%", opacity: sub.dissolves ? 0 : 1 }],
+                { duration: 550 + Math.random()*250, easing: "ease-in" }).onfinish = () => p.remove();
+            }
+          }
+          setTimeout(() => {
+            if (sub.dissolves){
+              beakerWrap.querySelector("#beaker-water").classList.remove("is-cloudy");
+              flashNote(L(`${sub.name} dissolved completely — a true solution! ${sub.name} is the solute, water is the solvent.`,`¡${sub.name} se disolvió completamente —una disolución verdadera! ${sub.name} es el soluto, el agua es el disolvente.`), "correct");
+            } else {
+              beakerWrap.querySelector("#beaker-water").classList.add("is-cloudy");
+              settleHeight += 10;
+              beakerWrap.querySelector("#beaker-settle").style.height = Math.min(settleHeight, 30) + "%";
+              flashNote(L(`${sub.name} did not dissolve — it stays as separate solid pieces, just a mixture.`,`${sub.name} no se disolvió —queda como piezas sólidas separadas, solo una mezcla.`), "info");
+            }
+          }, 500);
+
+          sim.recordTrial({ stage: L("Mixing bench","Mesa de mezcla"), sample: sub.name,
+            result: sub.dissolves ? L("Dissolved — true solution","Se disolvió — disolución verdadera") : L("Did not dissolve — mixture","No se disolvió — mezcla") });
+          awardXP(mixbench);
+          btns[sub.id] = b;
+
+          if (Object.keys(game.mixDone).length === SOLUTES.length){
+            setTimeout(() => {
+              game.phase = "label"; sim.save && sim.save();
+              renderLabelPhase();
+            }, 900);
+          }
+        });
+        btns[sub.id] = b; tray.append(b);
+      });
+      side.append(tray, note);
+      mixbench.append(side);
+      bench.append(mixbench);
+      phaseHost.append(bench);
+    }
+
+    /* ==================================================================
+       PHASE 2 — FEATURE BENCH: label the real parts of a real filtration
+       set-up. Tap a feature, then tap its spot on the photo — every tap
+       reacts immediately, right where it happened.
+       ================================================================== */
+    function renderLabelPhase(){
+      phaseHost.innerHTML = "";
+      const done = game.labelDone;
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = L("Step 2 of 3 — Label a real filtration set-up","Paso 2 de 3 — Etiqueta un montaje real de filtración");
+      phaseHost.append(stepLabel);
+
+      const labelWrap = document.createElement("div"); labelWrap.className = "label-wrap";
+      const left = document.createElement("div");
+      const frame = document.createElement("div"); frame.className = "scan-frame";
+      frame.innerHTML = slideImgHTML(FILTER_IMG, L("Filtration apparatus","Aparato de filtración"), 352, 303) +
+        `<span class="scan-corner scan-corner--tl"></span><span class="scan-corner scan-corner--tr"></span>
+         <span class="scan-corner scan-corner--bl"></span><span class="scan-corner scan-corner--br"></span>
+         <span class="scan-label">${L("ANALYZING APPARATUS","ANALIZANDO APARATO")}</span>`;
+      left.append(frame);
+      const hint = document.createElement("p"); hint.className = "diagram-caption";
+      hint.textContent = L("Tap a feature below, then tap its spot on the photo.","Toca una característica abajo y luego toca su lugar en la foto.");
+      left.append(hint);
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "label-note";
+      left.append(note);
+      const creditEl = document.createElement("p"); creditEl.className = "diagram-credit"; creditEl.innerHTML = FILTER_CREDIT;
+      left.append(creditEl);
+      labelWrap.append(left);
+
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+
+      const side = document.createElement("div");
+      side.innerHTML = `<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Features","Características")}</p>`;
+      const tray = document.createElement("div"); tray.className = "chip-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Features to identify","Características a identificar"));
+      const shuffled = [...FILTER_KEYS].sort(() => Math.random() - 0.5);
+      const chipNodes = {}; let armed = null;
+      shuffled.forEach(key => {
+        const term = FILTER_TERMS[key];
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn";
+        if (done[key]) b.classList.add("is-done");
+        b.innerHTML = `<span>${term.name}</span><span class="tray-mark">✓</span>`;
+        b.addEventListener("click", () => {
+          if (b.classList.contains("is-done")) return;
+          Object.values(chipNodes).forEach(x => x.classList.remove("is-armed"));
+          b.classList.add("is-armed"); armed = key;
+          flashNote(L(`${term.name} selected — now tap its spot on the photo.`,`${term.name} seleccionado —ahora toca su lugar en la foto.`), "info");
+        });
+        chipNodes[key] = b; tray.append(b);
+      });
+      side.append(tray); labelWrap.append(side);
+      phaseHost.append(labelWrap);
+
+      let matched = Object.keys(done).length;
+      if (matched) hint.textContent = L(`${matched} / ${FILTER_KEYS.length} identified. Tap a feature below, then tap its spot.`, `${matched} / ${FILTER_KEYS.length} identificadas. Toca una característica abajo y luego su lugar.`);
+      FILTER_KEYS.forEach(key => {
+        const term = FILTER_TERMS[key];
+        const s = document.createElement("button"); s.type = "button"; s.className = "spot";
+        s.style.left = (term.fx * 100) + "%"; s.style.top = (term.fy * 100) + "%";
+        s.setAttribute("aria-label", L("Unlabelled spot","Punto sin etiquetar"));
+        if (done[key]){ s.classList.add("is-correct"); s.textContent = "✓"; chipNodes[key].classList.add("is-done"); }
+        s.addEventListener("click", () => {
+          if (s.classList.contains("is-correct")) return;
+          if (!armed){
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            flashNote(L("Tap a feature in the list first, then tap its spot.","Toca primero una característica de la lista y luego toca su lugar."), "info");
+            return;
+          }
+          if (armed === key){
+            s.classList.add("is-correct"); s.textContent = "✓";
+            chipNodes[key].classList.add("is-done");
+            done[key] = true; matched++;
+            hint.textContent = L(`${matched} / ${FILTER_KEYS.length} identified.`, `${matched} / ${FILTER_KEYS.length} identificadas.`);
+            flashNote(L(`Correct! ${term.name} identified.`,`¡Correcto! ${term.name} identificado.`), "correct");
+            sim.recordTrial({ stage: L("Feature labelling","Etiquetado de características"), sample: L("Filtration apparatus","Aparato de filtración"), result: `${term.name} — ${L("identified","identificado")}` });
+            awardXP(wrap);
+            if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(term.name + (getLang() === "es" ? " identificado." : " identified."));
+            armed = null;
+            if (matched === FILTER_KEYS.length){
+              setTimeout(() => { game.phase = "sort"; sim.save && sim.save(); renderSortPhase(); }, 700);
+            }
+          } else {
+            s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
+            breakStreak();
+            const wrongName = FILTER_TERMS[armed].name;
+            flashNote(L(`Not quite — that's not where the ${wrongName} is. Try again.`,`No exactamente —ahí no está ${wrongName}. Inténtalo de nuevo.`), "info");
+          }
+        });
+        frame.append(s);
+      });
+    }
+
+    /* ==================================================================
+       PHASE 3 — SCAN & SORT: tap a sample to reveal its real diagnostic
+       clues, then tap the separating machine it belongs in. Every tap
+       reacts immediately, right where it happened, including a distinct
+       "running" animation on the correct machine.
+       ================================================================== */
+    function renderSortPhase(){
+      phaseHost.innerHTML = "";
+      const sortWrap = document.createElement("div"); sortWrap.className = "stack";
+      const stepLabel = document.createElement("p"); stepLabel.className = "slide-card__label";
+      stepLabel.textContent = L("Step 3 of 3 — Scan and sort every sample","Paso 3 de 3 — Escanea y clasifica cada muestra");
+      sortWrap.append(stepLabel);
+      const lede = document.createElement("p"); lede.className = "q__hint";
+      lede.textContent = L("Tap a sample to run a diagnostic scan, then tap the separating machine it belongs in.","Toca una muestra para escanearla y luego toca la máquina de separación a la que pertenece.");
+      sortWrap.append(lede);
+
+      const clue = document.createElement("div"); clue.className = "clue-panel";
+      clue.innerHTML = `<p class="clue-panel__title">${L("Diagnostic readout","Lectura diagnóstica")}</p><p class="class-panel__hint">${L("Tap a sample below ↓","Toca una muestra de abajo ↓")}</p>`;
+      sortWrap.append(clue);
+
+      const tray = document.createElement("div"); tray.className = "specimen-tray"; tray.setAttribute("role","group");
+      tray.setAttribute("aria-label", L("Samples to classify","Muestras a clasificar"));
+      const cards = {};
+      const shuffledSamples = [...SAMPLES].sort(() => Math.random() - 0.5);
+      let armed = null;
+
+      const note = document.createElement("div"); note.className = "result-note"; note.id = "sort-note";
+      function flashNote(text, kind){
+        note.innerHTML = "";
+        const box = document.createElement("div"); box.className = "toast toast--"+kind+" anim-pop";
+        box.textContent = text; note.append(box);
+      }
+
+      shuffledSamples.forEach(sp => {
+        const c = document.createElement("button"); c.type = "button"; c.className = "specimen-card";
+        if (game.sortDone[sp.id]) c.classList.add("is-placed");
+        c.innerHTML = `<img class="specimen-card__img" src="${sp.img}" alt="${sp.name}" loading="lazy">
+          <div class="specimen-card__body">
+            <div class="specimen-card__name">${sp.name}</div>
+            <span class="specimen-card__scanflag">${game.scanned[sp.id] ? L("Scanned","Escaneado") : L("Unscanned","Sin escanear")}</span>
+          </div>`;
+        c.addEventListener("click", () => {
+          if (c.classList.contains("is-placed")) return;
+          if (!game.scanned[sp.id]){
+            game.scanned[sp.id] = true; sim.save && sim.save();
+            c.querySelector(".specimen-card__scanflag").textContent = L("Scanned","Escaneado");
+            clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl => `<li>${cl}</li>`).join("")}</ul>
+              <p class="diagram-credit">${sp.credit}</p>`;
+            sim.recordTrial({ stage: L("Diagnostic scan","Escaneo diagnóstico"), sample: sp.name, result: L("Scanned","Escaneado") });
+            if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(sp.clues.join(". "));
+            return;
+          }
+          Object.values(cards).forEach(x => x.classList.remove("is-armed"));
+          c.classList.add("is-armed"); armed = sp.id;
+          clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl => `<li>${cl}</li>`).join("")}</ul>
+            <p class="diagram-credit">${sp.credit}</p>`;
+          Object.values(machineEls).forEach(m => m.el.classList.add("is-target"));
+        });
+        cards[sp.id] = c; tray.append(c);
+      });
+      sortWrap.append(tray, note);
+
+      const machines = document.createElement("div"); machines.className = "machine-grid";
+      const machineEls = {};
+      MACHINE_ORDER.forEach(key => {
+        const m = MACHINES[key];
+        const b = document.createElement("button"); b.type = "button"; b.className = "machine";
+        b.style.borderColor = "color-mix(in srgb, " + m.color + " 45%, var(--line-strong))";
+        b.innerHTML = `<div class="machine__fx"></div>
+          <svg class="machine__icon" viewBox="0 0 64 64" aria-hidden="true">${m.icon.replace(/#fff/g, m.color)}</svg>
+          <div class="machine__title">${m.name}</div><div class="machine__items" id="machine-${key}"></div>`;
+        SAMPLES.filter(sp => sp.machine === key && game.sortDone[sp.id]).forEach(sp => {
+          const tag = document.createElement("span"); tag.className = "machine__item"; tag.textContent = sp.name;
+          b.querySelector(".machine__items").append(tag);
+        });
+        b.addEventListener("click", () => {
+          if (!armed) return;
+          const sp = SAMPLES.find(s => s.id === armed);
+          Object.values(machineEls).forEach(x => x.el.classList.remove("is-target"));
+          if (sp.machine === key){
+            const tag = document.createElement("span"); tag.className = "machine__item"; tag.textContent = sp.name;
+            b.querySelector(".machine__items").append(tag);
+            cards[armed].classList.add("is-placed");
+            game.sortDone[armed] = true; sim.save && sim.save();
+            sim.recordTrial({ stage: L("Separation","Separación"), sample: sp.name,
+              result: L(`Correctly routed to ${m.name}`,`Correctamente enviado a ${m.name}`) });
+            flashNote(L(`Correct! ${sp.name} is separated by ${m.name}.`,`¡Correcto! ${sp.name} se separa por ${m.name}.`), "correct");
+            b.classList.remove("is-flash"); void b.offsetWidth; b.classList.add("is-flash");
+            b.classList.add("run-" + key);
+            setTimeout(() => b.classList.remove("run-" + key), 1200);
+            awardXP(wrap);
+            armed = null;
+            updateProgress();
+            if (Object.keys(game.sortDone).length === SAMPLES.length){
+              sim.setScienceMethod({
+                results: L(
+                  `All ${SOLUTES.length} solutes were tested at the mixing bench, all ${FILTER_KEYS.length} real features were labelled on the filtration photo, and all ${SAMPLES.length} unlabelled samples were scanned and routed to the correct separating machine.`,
+                  `Se probaron los ${SOLUTES.length} solutos en la mesa de mezcla, se etiquetaron las ${FILTER_KEYS.length} características reales en la foto de filtración, y se escanearon y enviaron las ${SAMPLES.length} muestras sin etiquetar a la máquina de separación correcta.`),
+                analysis: L(
+                  "Salt and sugar dissolved completely into clear, true solutions, while sand and iron filings stayed as visible, settling mixtures — confirming that dissolving, not appearance, is what separates a solution from a mixture. Each of the five samples had exactly one real property (undissolved particle size, a genuinely dissolved solute, particle size difference, or magnetism) that pointed to one correct machine, and every wrong machine failed to separate the sample at all.",
+                  "La sal y el azúcar se disolvieron completamente en disoluciones verdaderas y claras, mientras que la arena y las limaduras de hierro quedaron como mezclas visibles que se asientan —confirmando que disolverse, no la apariencia, es lo que separa una disolución de una mezcla. Cada una de las cinco muestras tenía exactamente una propiedad real (tamaño de partícula no disuelta, un soluto realmente disuelto, diferencia de tamaño de partícula, o magnetismo) que señalaba una máquina correcta, y cada máquina equivocada no logró separar la muestra en absoluto."),
+                conclusion: L(
+                  "Every sample's correct separation method could be confirmed from a real, testable property — whether it dissolved, its particle size, or whether it was magnetic — supporting the hypothesis that these real properties, not appearance alone, decide both whether a substance forms a solution and which physical method separates it.",
+                  "El método de separación correcto de cada muestra pudo confirmarse a partir de una propiedad real y comprobable —si se disolvió, su tamaño de partícula, o si era magnética— apoyando la hipótesis de que estas propiedades reales, y no solo la apariencia, deciden tanto si una sustancia forma una disolución como qué método físico la separa."),
+                reflection: L(
+                  "The clearest evidence came from actually watching each substance behave — dissolving, settling, being pulled by a magnet, or passing through a mesh — rather than guessing from how a sample looked. The trickiest calls were the two sieving samples, which is exactly why checking real particle size, not just 'it's a solid mixture', matters.",
+                  "La evidencia más clara vino de observar realmente cómo se comportaba cada sustancia —disolviéndose, asentándose, siendo atraída por un imán, o pasando por una malla— en vez de adivinar por el aspecto de una muestra. Los casos más difíciles fueron las dos muestras de tamizado, y por eso comprobar el tamaño real de partícula, no solo 'es una mezcla sólida', importa.")
+              });
+              setTimeout(() => {
+                flashNote(L("All samples separated! Move on to Record to see your results.","¡Todas las muestras separadas! Continúa a Registro para ver tus resultados."), "correct");
+              }, 300);
+            }
+          } else {
+            b.classList.remove("is-shake"); void b.offsetWidth; b.classList.add("is-shake");
+            breakStreak();
+            flashNote(L("Not that machine — check the diagnostic readout again before choosing.","Esa máquina no —revisa de nuevo la lectura diagnóstica antes de elegir."), "info");
+          }
+        });
+        machineEls[key] = { el: b };
+        machines.append(b);
+      });
+      sortWrap.append(machines);
+
+      const progress = document.createElement("p"); progress.className = "sort-progress"; progress.id = "sort-progress";
+      sortWrap.append(progress);
+      const finishHost = document.createElement("div");
+      sortWrap.append(finishHost);
+      const arcadeSection = document.createElement("div"); arcadeSection.id = "arcade-section";
+      sortWrap.append(arcadeSection);
+      function updateProgress(){
+        const doneCount = Object.keys(game.sortDone).length;
+        progress.textContent = L(`${doneCount} / ${SAMPLES.length} separated`, `${doneCount} / ${SAMPLES.length} separadas`);
+        paintFinishCard();
+        paintArcadeSection();
+      }
+      /* ================================================================
+         A CLEAR END TO THE POINT-SCORING GAME — once every solute is
+         tested, every feature labelled and every sample sorted, the
+         rank/XP/streak game needs an actual finish line, not just a
+         quiet toast.
+         ================================================================ */
+      function paintFinishCard(){
+        if (Object.keys(game.sortDone).length < SAMPLES.length){ finishHost.innerHTML = ""; return; }
+        if (finishHost.dataset.rendered) return;
+        finishHost.dataset.rendered = "1";
+        const rank = rankFor(game.xp);
+        const card = document.createElement("div"); card.className = "invdone";
+        card.innerHTML = `
+          <div class="invdone__badge">🏅</div>
+          <div class="invdone__body">
+            <p class="invdone__title">${L("Investigation complete!","¡Investigación completa!")}</p>
+            <p class="invdone__line">${L(`You finished as ${rank.name}, with ${game.xp} XP and a best streak of ${game.bestStreak || game.streak}.`,`Terminaste como ${rank.name}, con ${game.xp} XP y una mejor racha de ${game.bestStreak || game.streak}.`)}</p>
+          </div>`;
+        finishHost.append(card);
+      }
+      updateProgress();
+      phaseHost.append(sortWrap);
+
+      /* ================================================================
+         BONUS ROUND — "Sort Rush": an arcade tunnel-rush reusing the
+         same real sample photos, once the careful diagnostic sort is
+         complete. Purely a bonus (no marks, no gating) — see
+         engine/arcade.js. This is this course's "arcade" bonus round;
+         other simulations in this tree may use engine/quest3d.js instead
+         so the site alternates between the two genres (CLAUDE.md §4).
+         ================================================================ */
+      function paintArcadeSection(){
+        if (Object.keys(game.sortDone).length < SAMPLES.length){ arcadeSection.innerHTML = ""; arcadeSection.dataset.rendered = ""; return; }
+        if (arcadeSection.dataset.rendered) return;
+        arcadeSection.dataset.rendered = "1";
+        const launchWrap = document.createElement("div");
+        launchWrap.style.marginTop = "var(--sp-5)";
+        arcadeSection.append(launchWrap);
+        const bestLine = game.arcadeBest
+          ? L(`Your best score so far: ${game.arcadeBest}.`, `Tu mejor puntuación hasta ahora: ${game.arcadeBest}.`)
+          : "";
+        renderArcadeLaunch(launchWrap, {
+          strings: {
+            title: L("Bonus round — Sort Rush","Ronda bonus — Carrera de Separación"),
+            instructions: (L("Real samples fly at you — tap the correct machine lane before each one reaches the ring.","Muestras reales vuelan hacia ti —toca el carril de la máquina correcta antes de que cada una llegue al aro.") + (bestLine ? " " + bestLine : "")),
+            play: L("Play Sort Rush","Jugar Carrera de Separación"),
+            skip: L("Skip bonus round","Saltar ronda bonus"),
+          },
+          onPlay(){
+            launchWrap.remove();
+            const gameHost = document.createElement("div");
+            arcadeSection.append(gameHost);
+            mountArcadeRush(gameHost, {
+              threeUrl: THREE_URL,
+              rounds: 24,
+              lanes: MACHINE_ORDER.map(key => ({ id: key, label: MACHINES[key].name, color: MACHINES[key].color, icon: MACHINES[key].icon })),
+              items: SAMPLES.map(sp => ({ id: sp.id, label: sp.name, laneId: sp.machine, img: sp.img })),
+              strings: {
+                title: L("Sort Rush","Carrera de Separación"),
+                instructions: L("Tap the machine before the sample reaches the ring. A late or wrong answer just resets your streak — never a fail.","Toca la máquina antes de que la muestra llegue al aro. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
+                score: L("Score","Puntos"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"),
+                progress: L("Sample","Muestra"), correct: L("Correct!","¡Correcto!"), wrong: L("Not quite.","No exactamente."),
+                missed: L("Missed it.","Se te escapó."), finishTitle: L("Round complete!","¡Ronda completa!"),
+                accuracy: L("Accuracy","Precisión"), playAgain: L("Play again","Jugar de nuevo"), continueLabel: L("Continue","Continuar"),
+              },
+              onExit(stats){
+                game.arcadeBest = Math.max(game.arcadeBest || 0, stats.score);
+                sim.save && sim.save();
+                gameHost.innerHTML = "";
+                gameHost.remove();
+                arcadeSection.dataset.rendered = "";
+                paintArcadeSection();
+                sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`,`Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+              }
+            });
+          },
+          onSkip(){
+            arcadeSection.innerHTML = "";
+            arcadeSection.dataset.rendered = "skipped";
+          }
+        });
+      }
+      paintArcadeSection();
+    }
+  }
+};
+
+mountActivity({ simulation }).catch(e=>{
+  console.error("Activity failed to start:", e);
+  const r=document.getElementById("lab-root");
+  if(r) r.innerHTML='<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
