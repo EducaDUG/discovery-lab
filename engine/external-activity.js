@@ -427,6 +427,34 @@ function fmtAnswer(ctl, ids) {
    shorter, distinct document type: an external-practice evidence sheet.
    There is no teacher-marking section because every question here is
    auto-marked — that is the whole point of this activity type. */
+/* Word-wraps a URL to a max width. jsPDF's own splitTextToSize only breaks on
+   spaces, so a long space-free URL just overflows instead of wrapping — this
+   breaks after "/" (and other safe URL characters) first, falling back to a
+   hard character break only if a single segment is still too wide. */
+function wrapUrl(doc, url, maxWidth) {
+  const parts = String(url).split(/(?<=[/&?=_.-])/);
+  const rough = [];
+  let cur = "";
+  parts.forEach(part => {
+    const test = cur + part;
+    if (cur && doc.getTextWidth(test) > maxWidth) { rough.push(cur); cur = part; }
+    else cur = test;
+  });
+  if (cur) rough.push(cur);
+  const lines = [];
+  rough.forEach(line => {
+    if (doc.getTextWidth(line) <= maxWidth) { lines.push(line); return; }
+    let chunk = "";
+    for (const ch of line) {
+      const test = chunk + ch;
+      if (chunk && doc.getTextWidth(test) > maxWidth) { lines.push(chunk); chunk = ch; }
+      else chunk = test;
+    }
+    if (chunk) lines.push(chunk);
+  });
+  return lines.length ? lines : [""];
+}
+
 function buildExternalPDF(jsPDF, p) {
   const { config, simURL, student, controllers, kcScore } = p;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
@@ -473,24 +501,53 @@ function buildExternalPDF(jsPDF, p) {
   kv(t("pdf.activityId"), `${config.activityId}   v${config.version}`);
   y += 2;
 
-  // Source simulation banner — link + credit
-  ensure(56);
+  // Source simulation banner — link + credit. Box height and every wrapped
+  // line are computed up front so a long URL never overflows the box (a URL
+  // has no spaces for jsPDF's own word-wrap to break on — see wrapUrl above).
+  const pad = 12, availW = CW - pad * 2, lineH = 11;
+  // Measure labels in the (normal) font they're drawn in, but measure the
+  // URLs themselves in "helvetica bold" — the font they're actually drawn
+  // in below — since bold glyphs are wider and a wrap computed against the
+  // narrower normal-weight metrics still overflows once rendered bold.
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+  const simLabel = pdfSafe(t("pdf.ext-link")) + "  ";
+  const simLabelW = doc.getTextWidth(simLabel);
+  doc.setFont("helvetica", "bold");
+  const simUrlLines = wrapUrl(doc, config.externalUrl, availW - simLabelW);
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+  const daLabel = pdfSafe(t("pdf.sim-link")) + "  ";
+  const daLabelW = doc.getTextWidth(daLabel);
+  doc.setFont("helvetica", "bold");
+  const daUrlLines = wrapUrl(doc, simURL, availW - daLabelW);
+
+  const sourceLineH = 15;
+  const boxH = 6 + sourceLineH + 6 + simUrlLines.length * lineH + 5 + daUrlLines.length * lineH + 8;
+  ensure(boxH + 14);
   doc.setFillColor(235, 245, 239); doc.setDrawColor(accent[0], accent[1], accent[2]);
-  doc.roundedRect(M, y, CW, 46, 4, 4, "FD");
+  doc.roundedRect(M, y, CW, boxH, 4, 4, "FD");
+
+  let by = y + 6 + sourceLineH;
   doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(accent);
-  doc.text(pdfSafe(`${t("pdf.ext-source")} ${config.source || "-"}`), M + 12, y + 15);
+  doc.text(pdfSafe(`${t("pdf.ext-source")} ${config.source || "-"}`), M + pad, by);
+
+  by += lineH + 6;
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); setColor(mut);
-  doc.text(t("pdf.ext-link"), M + 12, y + 30);
+  doc.text(simLabel, M + pad, by);
   doc.setFont("helvetica", "bold"); setColor(accent);
-  const linkX = M + 12 + doc.getTextWidth(t("pdf.ext-link") + "  ");
-  const urlLines = doc.splitTextToSize(pdfSafe(config.externalUrl), CW - (linkX - M) - 12);
-  doc.textWithLink(urlLines[0], linkX, y + 30, { url: config.externalUrl });
-  doc.setFont("helvetica", "normal"); setColor(mut); doc.setFontSize(8);
-  doc.text(t("pdf.sim-link"), M + 12, y + 41);
-  const thisLinkLines = doc.splitTextToSize(pdfSafe(simURL), CW - doc.getTextWidth(t("pdf.sim-link") + "  ") - 24);
+  simUrlLines.forEach((ln, i) => {
+    doc.textWithLink(ln, i === 0 ? M + pad + simLabelW : M + pad, by + i * lineH, { url: config.externalUrl });
+  });
+  by += simUrlLines.length * lineH + 5;
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); setColor(mut);
+  doc.text(daLabel, M + pad, by);
   doc.setFont("helvetica", "bold"); setColor(accent);
-  doc.textWithLink(thisLinkLines[0], M + 12 + doc.getTextWidth(t("pdf.sim-link") + "  "), y + 41, { url: simURL });
-  y += 60; setColor(ink);
+  daUrlLines.forEach((ln, i) => {
+    doc.textWithLink(ln, i === 0 ? M + pad + daLabelW : M + pad, by + i * lineH, { url: simURL });
+  });
+
+  y += boxH + 14; setColor(ink);
 
   // What this practises — skills + curriculum content, and what to do
   const lf = config.learningFocus;
