@@ -100,6 +100,32 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #475569;
         }
+
+        /* Download Notes (PDF): uses the browser's own print-to-PDF rather than
+           a hand-built export, so this stays purely functional (no new visual
+           design) - a print stylesheet just hides the header, hero buttons,
+           and the Interactive Labs / Quiz / Resources sections, leaving only
+           the Level 1/2/3 theory notes for the student to save as a PDF. */
+        @media print {
+            header, .no-print, #simulations, #quiz-section, #resources {
+                display: none !important;
+            }
+            body { background: #fff; }
+            main { padding: 0; margin: 0; max-width: 100%; }
+            section { break-inside: avoid; }
+            /* Force readable text regardless of whether the browser's
+               "print background graphics" option is on - white text on a
+               dark gradient would otherwise vanish on plain paper. */
+            #hero-banner {
+                background: #fff !important;
+                color: #0f172a !important;
+                padding-top: 0;
+            }
+            #hero-banner span, #hero-banner p {
+                color: #0f172a !important;
+                -webkit-text-fill-color: #0f172a !important;
+            }
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-brand-500 selection:text-white">
@@ -148,7 +174,7 @@
     </header>
 
     <!-- Hero Banner -->
-    <section class="relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white py-16 px-4 overflow-hidden">
+    <section id="hero-banner" class="relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white py-16 px-4 overflow-hidden">
         <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#22c55e_1px,transparent_1px)] [background-size:16px_16px]"></div>
         <div class="max-w-7xl mx-auto relative z-10 text-center">
             <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-500/20 text-brand-400 border border-brand-500/30 mb-4">
@@ -160,17 +186,20 @@
             <p class="max-w-3xl mx-auto text-slate-300 text-lg md:text-xl font-light mb-8">
                 An interactive, scaffolded learning suite integrating Earth's four spheres, population dynamics, hydrological balance, ecotoxicology, and climate mechanics.
             </p>
-            <div class="flex flex-wrap justify-center gap-4">
+            <div class="flex flex-wrap justify-center gap-4 no-print">
                 <a href="#simulations" class="btn-3d btn-green-3d px-6 py-3 rounded-xl font-bold text-white shadow-lg inline-flex items-center gap-2">
                     <i class="fa-solid fa-play"></i> Launch Interactive Labs
                 </a>
                 <a href="#quiz-section" class="btn-3d btn-blue-3d px-6 py-3 rounded-xl font-bold text-white shadow-lg inline-flex items-center gap-2">
                     <i class="fa-solid fa-list-check"></i> Test Your Knowledge
                 </a>
+                <button onclick="window.print()" class="btn-3d px-6 py-3 rounded-xl font-bold text-white shadow-lg inline-flex items-center gap-2" style="background-color:#78716c;border-bottom:4px solid #57534e">
+                    <i class="fa-solid fa-download"></i> Download Notes (PDF)
+                </button>
             </div>
 
             <!-- Stats Bar -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-12 pt-8 border-t border-slate-700/60 text-center">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-12 pt-8 border-t border-slate-700/60 text-center no-print">
                 <div class="p-3">
                     <p class="text-2xl md:text-3xl font-extrabold text-brand-400">3 Levels</p>
                     <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Scaffolded Content</p>
