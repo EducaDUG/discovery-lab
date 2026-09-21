@@ -237,10 +237,11 @@ function postFinalRow() {
       year: 'Final (after drought)',
       action: '20-year outcome',
       reasoning: '—',
-      event: st.survived ? 'Survived the drought' : 'Failed the drought',
+      event: (st.survived ? 'Survived the drought' : 'Failed the drought') + ` (retained ${st.retained}% of pre-drought biodiversity)`,
       biodiversity: Math.round(s.biodiversity),
       water: Math.round(s.waterQuality),
-      resilience: Math.round(s.resilience)
+      resilience: Math.round(s.resilience),
+      biodiversityRetained: st.retained + '%'
     };
     window.parent.postMessage({ source: 'marisma-wetland', kind: 'record', row }, '*');
   } catch (e) { /* ignore */ }

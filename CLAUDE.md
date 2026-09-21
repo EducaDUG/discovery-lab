@@ -1125,3 +1125,87 @@ worked example when translating another activity. As of 2026-09-07 it is the onl
 activity translated this deeply; the other live activities have bilingual site chrome (header,
 footer, nav, accessibility panel) but still need their `config.json` `es` blocks and in-canvas
 strings done — treat that as backlog, not a blocker for new work.
+
+---
+
+## 16. External Simulation Activities — the standard workflow whenever Diego sends a link (agreed 2026-09-21, standing rule)
+
+Diego will sometimes send a link to a third-party simulation (PhET and similar — see also
+Section 12's "Also recommended" links) and ask for it to be added **as a proper Discovery Lab
+activity that produces evidence**, not just a no-evidence recommendation. This is a **third,
+distinct content type**, alongside a full built simulation (Sections 3-5) and a plain §12
+external link:
+
+| | Built simulation | §12 "Also recommended" link | **External Simulation Activity (this section)** |
+|---|---|---|---|
+| Where it lives | its own folder, full engine | an entry in a node's `resources` array | its own folder, `engine/external-activity.js` |
+| Produces evidence? | Yes — full Interactive Learning Package | **No — explicitly, by design** | **Yes — auto-marked quiz + PDF** |
+| Has a Knowledge Check? | Yes | No | Yes (mc/multi only) |
+| Nav tile | normal simulation tile | dashed, signal-colour, "External" badge | normal simulation tile (it IS a real activity) |
+
+**When Diego sends a link and says to add it as an activity (not just a recommendation), always
+do the following — this is the standard, not a one-off:**
+
+1. **Open the simulation and actually use it first.** Read what it teaches and, where the
+   interface isn't obvious from documentation alone, click through it yourself (drag the
+   controls, toggle the switches) so every quiz question and every "what to do" step describes
+   something that is actually true of the simulation, not an assumption. This is the same
+   discipline as §12's "never add a link without opening it first," extended to writing real
+   assessment content about it.
+2. **Give it its own folder**, sibling to normal simulations, inside the course/module Diego
+   named (create the module the same way Section 11 describes if none fits yet). Copy
+   `_external-template/` (`activity.html` + `config.json`) — fix the relative-depth `../` paths
+   the same way `_template/` requires.
+3. **Fill in `config.json`:**
+   - `title`/`title_es`, `course`, `module`, `pathway`, `ageBand`, `theme`, `estimatedMinutes`.
+   - `source` — the publisher/institution credit (e.g. `"PhET Interactive Simulations ·
+     University of Colorado Boulder"`) — and `externalUrl`, the direct link Diego gave you.
+   - `description` — one or two plain sentences: what the student sees and controls.
+   - `whatToDo` — 3-5 concrete steps ("turn X off, see what happens," "drag the Y slider") that
+     guide the student through the specific interactions the quiz will then ask about. Never
+     generic ("explore the simulation") — name the actual controls.
+   - `learningFocus` — same shape and same bar as the built-simulation `learningFocus`
+     (Section 5's amendment): real skills plus one strong paragraph naming the exact curriculum
+     content practised and why it matters, tied to the named course/module.
+   - `knowledgeCheck` — **3-6 questions, `mc` or `multi` (select-all-that-apply) only.** Every
+     question must be objectively auto-markable — this activity type has no teacher-marking
+     stage, unlike a built simulation's Explain/Apply, precisely so a busy 1:1 tutoring session
+     can generate graded evidence from a link in minutes. Write real distractors, not
+     giveaways, and a one-sentence `explain` on every question (shown after marking) that
+     teaches the correct idea, not just states it.
+   - An `es` block mirroring all translatable fields, same discipline as every other activity
+     (Section 15).
+4. **Add a `thumbnail`** — a simple static SVG badge is fine here (unlike a built simulation's
+   looping GIF of its own 3D scene, there is no in-house scene to capture) — or omit `thumbnail`
+   entirely if none is made; nav.js renders the tile fine either way.
+5. **Add the `data/subjects.json` entry** as a normal `"type": "simulation"` node (it gets a
+   normal tile, normal `status: "live"`/`"coming-soon"`, normal `questionCount`/`minutes`) with
+   one addition: `"kind": "external"` — a marker for future tooling/reporting, not yet used by
+   nav.js. **Do not set a `mechanic` field.** The `mechanics`/"always different" rule (Section 11)
+   governs the interaction Discovery Lab itself builds; the interaction here lives on someone
+   else's site and isn't part of that internal-variety count.
+6. Run `python tools/build-nav.py`, then QA it live in the browser exactly like any other
+   simulation (CLAUDE.md's standing QA rule): click every quiz option including wrong answers,
+   check the auto-mark result, generate the evidence PDF, and open it to confirm the simulation
+   link, credit, description, skills, and every question/answer/mark line are all present and
+   correct.
+7. Commit and push, and give Diego the direct link.
+
+**The evidence PDF this produces (`engine/external-activity.js`'s `buildExternalPDF`) is a
+distinct, shorter document type from the full "Discovery Lab Report"** (Section 5's hard rule) —
+masthead reads "DISCOVERY LAB — EXTERNAL PRACTICE EVIDENCE," not "DISCOVERY LAB REPORT." It still
+always includes, non-negotiably: the student's name, course/module/pathway, a clickable link to
+the external simulation with its source credited, a clickable link back to the Discovery Lab
+activity page itself, the "what this practises" description and skills (so a teacher or an AI
+marker reading only the PDF understands the pedagogical purpose without opening either site),
+every knowledge-check question with the student's answer, whether it was correct, and the marks
+awarded, and a total auto-marked score as a percentage — everything Diego needs to enter a grade
+into Learning Lab or hand the PDF to an AI marker for feedback, without opening the simulation
+itself. Because every question is auto-marked, there is no separate `marking.json` and no
+teacher/student PDF split (Section 5's Assessed Mode machinery) — the one PDF a student generates
+already contains nothing but their own answers and objective marking, so there is nothing to hide
+from them.
+
+**Reference implementation:** `primary/science/primary-2-science/physics/module-1-our-solar-system-and-beyond/ext-gravity-and-orbits-phet/`
+(PhET's "Gravity and Orbits") — use it and `_external-template/` as the worked examples for the
+next one.

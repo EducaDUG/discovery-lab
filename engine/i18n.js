@@ -256,6 +256,28 @@ const STRINGS = {
     "a11y.reset": "Reset to defaults",
     "a11y.speak": "Read aloud",
     "pdf.integrity-note": "Tamper-EVIDENT, not tamper-proof: the PDF and this file share this checksum. If either was edited after download, the two will no longer match. A determined student could still recompute it — treat as a low-stakes formative check.",
+
+    /* External Simulation Activity (engine/external-activity.js) — a
+       Discovery Lab wrapper around a third-party simulation (e.g. a PhET
+       sim) that still produces marking-ready evidence, unlike a plain
+       §12 "also recommended" link. See CLAUDE.md §16. */
+    "ext.badge": "External simulation",
+    "ext.credit-lede": "This activity uses a real simulation built by",
+    "ext.open": "Open the simulation ↗",
+    "ext.open-note": "Opens in a new tab. Play with it for a few minutes, then come back to this tab to answer the questions below.",
+    "ext.what-to-do": "What to do",
+    "ext.about": "About this practice",
+    "ext.check-lede": "Answer these once you have explored the simulation. They are marked automatically.",
+    "ext.evidence-lede": "Type your name, then download your evidence — a PDF with the simulation link, what you practised, and your marked answers, ready to upload.",
+    "ext.generate": "Generate Evidence",
+    "ext.generate-again": "Generate again",
+    "ext.building": "Building your file…",
+    "ext.check-first": "Answer and check the questions above first.",
+    "pdf.ext-masthead": "DISCOVERY LAB — EXTERNAL PRACTICE EVIDENCE",
+    "pdf.ext-source": "Simulation by",
+    "pdf.ext-link": "Simulation link:",
+    "pdf.ext-about": "What this practises",
+    "pdf.ext-score": "Auto-marked score",
   },
   es: {
     "skip": "Ir al contenido",
@@ -464,6 +486,24 @@ const STRINGS = {
     "a11y.tts-unavailable": "Tu navegador no ofrece voz — prueba con Chrome o Edge.",
     "a11y.reset": "Restablecer valores predeterminados",
     "a11y.speak": "Leer en voz alta",
+
+    "ext.badge": "Simulación externa",
+    "ext.credit-lede": "Esta actividad utiliza una simulación real creada por",
+    "ext.open": "Abrir la simulación ↗",
+    "ext.open-note": "Se abre en una pestaña nueva. Juega con ella unos minutos y luego vuelve a esta pestaña para responder las preguntas de abajo.",
+    "ext.what-to-do": "Qué hacer",
+    "ext.about": "Sobre esta práctica",
+    "ext.check-lede": "Responde esto después de explorar la simulación. Se corrige automáticamente.",
+    "ext.evidence-lede": "Escribe tu nombre y descarga tu evidencia — un PDF con el enlace a la simulación, lo que practicaste y tus respuestas corregidas, listo para subir.",
+    "ext.generate": "Generar evidencia",
+    "ext.generate-again": "Generar de nuevo",
+    "ext.building": "Preparando tu archivo…",
+    "ext.check-first": "Responde y comprueba las preguntas de arriba primero.",
+    "pdf.ext-masthead": "DISCOVERY LAB — EVIDENCIA DE PRÁCTICA EXTERNA",
+    "pdf.ext-source": "Simulación de",
+    "pdf.ext-link": "Enlace a la simulación:",
+    "pdf.ext-about": "Qué practica esta actividad",
+    "pdf.ext-score": "Puntuación automática",
   },
 };
 
