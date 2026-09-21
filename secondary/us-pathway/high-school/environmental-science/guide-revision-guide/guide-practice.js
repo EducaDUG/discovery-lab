@@ -1251,3 +1251,43 @@ function buildQuizArenaPool() {
 
   startRound();
 })();
+
+/* ==========================================================================
+   COMPACT CARD PREVIEW — collapses everything in a chapter card after its
+   head+dek into a short, fading preview with a "Read full chapter" toggle,
+   so the card grid reads at the density of the reference design without
+   deleting or rewriting any of the deeper chapter content underneath.
+   ========================================================================== */
+(function () {
+  document.querySelectorAll(".chapter--card").forEach(function (card) {
+    const head = card.querySelector(".chapter__head");
+    const dek = card.querySelector(".chapter__dek");
+    if (!head) return;
+    const afterEl = dek || head;
+    const rest = [];
+    let node = afterEl.nextElementSibling;
+    while (node) {
+      const next = node.nextElementSibling;
+      if (node.classList.contains("back-to-top")) { node = next; continue; }
+      rest.push(node);
+      node = next;
+    }
+    if (!rest.length) return;
+    const body = document.createElement("div");
+    body.className = "chapter--card__body";
+    rest.forEach(function (n) { body.append(n); });
+    afterEl.after(body);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chapter-expand-btn";
+    btn.innerHTML = '<span data-lang="en">Read full chapter, practice &amp; try it</span>' +
+      '<span data-lang="es" hidden>Leer el capítulo completo, practicar y probarlo</span>' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>';
+    body.after(btn);
+    btn.addEventListener("click", function () {
+      const open = body.classList.toggle("is-expanded");
+      btn.classList.toggle("is-open", open);
+    });
+  });
+})();

@@ -421,6 +421,55 @@
   .resource-card__title svg { width: 14px; height: 14px; color: var(--ink-3); flex: none; }
   .resource-card:hover .resource-card__title { color: var(--signal); }
   .resource-card p { font-size: var(--step--1); color: var(--ink-2); margin-top: var(--sp-2); }
+
+  /* ---------------------------------------------------------------------
+     Level intro banners + card grid — mirrors the "L1/L2/L3 + card grid"
+     layout from the reference design Diego shared: a small coloured badge,
+     a title and one-line blurb, then chapters laid out as bordered white
+     cards in a responsive grid instead of one long continuous scroll.
+     --------------------------------------------------------------------- */
+  .level-intro { display: flex; align-items: center; gap: var(--sp-4); margin-top: var(--sp-7); }
+  .chapter:first-of-type ~ .level-intro:first-of-type,
+  main > .level-intro:first-of-type { margin-top: var(--sp-6); }
+  .level-intro__badge {
+    flex: none; width: 44px; height: 44px; border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-data); font-weight: 800; font-size: .78rem;
+  }
+  .level-intro__title { font-size: var(--step-1); margin: 0; }
+  .level-intro__blurb { font-size: var(--step--1); color: var(--ink-2); margin-top: .2em; max-width: 62ch; }
+
+  .level-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-5); margin-top: var(--sp-5); margin-bottom: var(--sp-7); }
+  @media (min-width: 860px) { .level-grid--2 { grid-template-columns: 1fr 1fr; } }
+
+  .chapter--card {
+    border: 1px solid var(--line); border-top: 1px solid var(--line);
+    border-radius: var(--radius-lg); background: var(--surface);
+    padding: var(--sp-5); box-shadow: 0 1px 3px rgba(20, 24, 20, .06);
+  }
+  .chapter--card:first-of-type { border-top: 1px solid var(--line); }
+  .chapter--card .chip-icon { border-radius: var(--radius); }
+  .chapter--card .back-to-top { margin-top: var(--sp-5); }
+
+  /* Each card shows a short preview by default (matching the reference's
+     compact card density) with everything else — extra key terms, tables,
+     diagrams, case files, field test, the practice/sim mounts — collapsed
+     underneath a "Read full chapter" toggle, added at runtime by
+     guide-practice.js so no chapter content has to be rewritten or lost. */
+  .chapter--card__body { position: relative; overflow: hidden; max-height: 210px; transition: max-height var(--dur-mid) var(--ease); }
+  .chapter--card__body::after {
+    content: ""; position: absolute; inset: auto 0 0 0; height: 70px; pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--surface));
+  }
+  .chapter--card__body.is-expanded { max-height: none; }
+  .chapter--card__body.is-expanded::after { display: none; }
+  .chapter-expand-btn {
+    display: inline-flex; align-items: center; gap: .4em; margin-top: var(--sp-4);
+    font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer;
+    background: none; border: none; color: var(--signal); padding: 0;
+  }
+  .chapter-expand-btn svg { width: 14px; height: 14px; transition: transform var(--dur-fast) var(--ease); }
+  .chapter-expand-btn.is-open svg { transform: rotate(180deg); }
 </style>
 </head>
 <body>
@@ -573,7 +622,22 @@
   </div>
 
   <!-- ============================================================ CHAPTER 1 -->
-  <section class="chapter" id="ch1">
+  <div class="level-intro" data-lang="en">
+    <span class="level-intro__badge" style="background:#dcfce7;color:#16a34a">LEVEL 1</span>
+    <div>
+      <h2 class="level-intro__title">Foundations</h2>
+      <p class="level-intro__blurb">Core principles: what environmental science studies, Earth's four connected systems, energy flow through food webs, and biodiversity.</p>
+    </div>
+  </div>
+  <div class="level-intro" data-lang="es" hidden>
+    <span class="level-intro__badge" style="background:#dcfce7;color:#16a34a">NIVEL 1</span>
+    <div>
+      <h2 class="level-intro__title">Fundamentos</h2>
+      <p class="level-intro__blurb">Principios básicos: qué estudian las ciencias ambientales, los cuatro sistemas conectados de la Tierra, el flujo de energía en las cadenas alimentarias y la biodiversidad.</p>
+    </div>
+  </div>
+  <div class="level-grid level-grid--2">
+  <section class="chapter chapter--card" id="ch1">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.8 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.8-4-9s1.5-6.5 4-9z"/></svg></span>
       <div>
@@ -627,7 +691,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 2 -->
-  <section class="chapter" id="ch2">
+  <section class="chapter chapter--card" id="ch2">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3C8 6 6 10 6 13a6 6 0 0 0 12 0c0-3-2-7-6-10z"/><path d="M12 13V21"/></svg></span>
       <div>
@@ -748,7 +812,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 3 -->
-  <section class="chapter" id="ch3">
+  <section class="chapter chapter--card" id="ch3">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="10"/></svg></span>
       <div>
@@ -835,7 +899,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 4 -->
-  <section class="chapter" id="ch4">
+  <section class="chapter chapter--card" id="ch4">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg></span>
       <div>
@@ -917,7 +981,24 @@
   </section>
 
   <!-- ============================================================ CHAPTER 5 -->
-  <section class="chapter" id="ch5">
+  </div>
+
+  <div class="level-intro" data-lang="en">
+    <span class="level-intro__badge" style="background:#e0f2fe;color:#0369a1">LEVEL 2</span>
+    <div>
+      <h2 class="level-intro__title">Applied Systems</h2>
+      <p class="level-intro__blurb">Population dynamics, soil and hydrology, land use and agriculture, and the tools used to prioritise conservation.</p>
+    </div>
+  </div>
+  <div class="level-intro" data-lang="es" hidden>
+    <span class="level-intro__badge" style="background:#e0f2fe;color:#0369a1">NIVEL 2</span>
+    <div>
+      <h2 class="level-intro__title">Sistemas Aplicados</h2>
+      <p class="level-intro__blurb">Dinámica de poblaciones, suelo e hidrología, uso del suelo y agricultura, y las herramientas usadas para priorizar la conservación.</p>
+    </div>
+  </div>
+  <div class="level-grid level-grid--2">
+  <section class="chapter chapter--card" id="ch5">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 20h18"/><path d="M6 20V13M11 20V8M16 20V11M21 20V5"/></svg></span>
       <div>
@@ -997,7 +1078,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 6 -->
-  <section class="chapter" id="ch6">
+  <section class="chapter chapter--card" id="ch6">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M6 6c3 3 9 3 12 0M6 18c3-3 9-3 12 0"/></svg></span>
       <div>
@@ -1056,7 +1137,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 7 -->
-  <section class="chapter" id="ch7">
+  <section class="chapter chapter--card" id="ch7">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 1 1-12 0c0-3.5 3-7 6-11z"/></svg></span>
       <div>
@@ -1158,7 +1239,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 8 -->
-  <section class="chapter" id="ch8">
+  <section class="chapter chapter--card" id="ch8">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.4"/><path d="M4 19c1.5-3.5 4.7-5.5 8-5.5s6.5 2 8 5.5"/></svg></span>
       <div>
@@ -1223,7 +1304,24 @@
   </section>
 
   <!-- ============================================================ CHAPTER 9 -->
-  <section class="chapter" id="ch9">
+  </div>
+
+  <div class="level-intro" data-lang="en">
+    <span class="level-intro__badge" style="background:#f3e8ff;color:#7e22ce">LEVEL 3</span>
+    <div>
+      <h2 class="level-intro__title">Expert Analysis</h2>
+      <p class="level-intro__blurb">Global systems: water scarcity, energy and climate forcing, pollution ecotoxicology, and the ozone-vs-climate distinction.</p>
+    </div>
+  </div>
+  <div class="level-intro" data-lang="es" hidden>
+    <span class="level-intro__badge" style="background:#f3e8ff;color:#7e22ce">NIVEL 3</span>
+    <div>
+      <h2 class="level-intro__title">Análisis Experto</h2>
+      <p class="level-intro__blurb">Sistemas globales: escasez de agua, energía y forzamiento climático, ecotoxicología de la contaminación, y la distinción entre ozono y clima.</p>
+    </div>
+  </div>
+  <div class="level-grid level-grid--2">
+  <section class="chapter chapter--card" id="ch9">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 14h16v6H4z"/><path d="M7 14V6l5-3 5 3v8"/></svg></span>
       <div>
@@ -1273,7 +1371,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 10 -->
-  <section class="chapter" id="ch10">
+  <section class="chapter chapter--card" id="ch10">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></span>
       <div>
@@ -1322,7 +1420,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 11 -->
-  <section class="chapter" id="ch11">
+  <section class="chapter chapter--card" id="ch11">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 20V10l3-6h6l3 6v10"/><line x1="3" y1="20" x2="21" y2="20"/></svg></span>
       <div>
@@ -1369,7 +1467,7 @@
   </section>
 
   <!-- ============================================================ CHAPTER 12 -->
-  <section class="chapter" id="ch12">
+  <section class="chapter chapter--card" id="ch12">
     <div class="chapter__head">
       <span class="chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 15a4 4 0 0 1 1.2-7.9A5.5 5.5 0 0 1 15.8 6 4.5 4.5 0 0 1 19 15H4z"/></svg></span>
       <div>
@@ -1431,6 +1529,7 @@
     <div class="sim-mount" id="sim-ch12"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
+  </div>
 
   <hr class="rule--ticked" style="margin-top:var(--sp-7)">
 
@@ -1798,7 +1897,7 @@
   </div>
 </footer>
 
-<script type="module" src="./guide-practice.js?v=2"></script>
+<script type="module" src="./guide-practice.js?v=3"></script>
 <script type="module" src="./guide-pdf.js?v=2"></script>
 </body>
 </html>
