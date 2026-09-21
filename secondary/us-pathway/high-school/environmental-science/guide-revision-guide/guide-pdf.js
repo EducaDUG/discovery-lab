@@ -63,6 +63,16 @@ function buildGuidePDF(jsPDF) {
     sky: [2, 132, 199], skyTint: [224, 242, 254], amber: [217, 119, 6], amberTint: [253, 235, 208],
     rose: [190, 40, 60], roseTint: [250, 222, 226], white: [255, 255, 255],
   };
+  // One vivid signature colour per level - makes the print edition instantly
+  // scannable (a student flipping through sees at a glance which third of
+  // the course a page belongs to), and gives every chapter number its own
+  // "badge" colour instead of one flat monochrome heading everywhere.
+  const LEVEL_COLORS = [
+    { solid: [22, 101, 52], tint: [220, 240, 226], name: "green" },   // Level 1 - Foundations
+    { solid: [3, 105, 161], tint: [219, 238, 250], name: "blue" },    // Level 2 - Applied Systems
+    { solid: [107, 33, 168], tint: [237, 224, 247], name: "purple" }, // Level 3 - Expert Analysis
+  ];
+  let levelColor = LEVEL_COLORS[0];
   const setText = c => doc.setTextColor(c[0], c[1], c[2]);
   const setFill = c => doc.setFillColor(c[0], c[1], c[2]);
   const setDraw = c => doc.setDrawColor(c[0], c[1], c[2]);
@@ -77,14 +87,29 @@ function buildGuidePDF(jsPDF) {
   function ensure(space) { if (y + space > H - M) newPage(); }
   function rule() { setDraw(LINE); doc.setLineWidth(0.75); doc.line(M, y, RIGHT, y); y += 12; }
 
-  function h1(text) {
-    ensure(30); doc.setFont("helvetica", "bold"); doc.setFontSize(16); setText(ACCENT);
-    doc.text(pdfSafe(text), M, y); y += 22; setText(INK);
+  function h1(text, chapterNum) {
+    ensure(34);
+    if (chapterNum != null) {
+      const r = 14, cx = M + r, cy = y - 5;
+      setFill(levelColor.solid); doc.circle(cx, cy, r, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(11); setText(PALETTE.white);
+      doc.text(String(chapterNum), cx, cy + 4, { align: "center" });
+      doc.setFont("helvetica", "bold"); doc.setFontSize(16); setText(levelColor.solid);
+      doc.text(pdfSafe(text), cx + r + 12, y);
+    } else {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(16); setText(levelColor.solid);
+      doc.text(pdfSafe(text), M, y);
+    }
+    y += 8;
+    setDraw(levelColor.solid); doc.setLineWidth(1.6);
+    doc.line(M, y, M + 46, y);
+    y += 18; setText(INK);
   }
-  function levelBanner(label, title) {
+  function levelBanner(label, title, colorIndex) {
     newPage();
+    levelColor = LEVEL_COLORS[colorIndex] || LEVEL_COLORS[0];
     ensure(60);
-    setFill(ACCENT); doc.roundedRect(M, y, CW, 46, 4, 4, "F");
+    setFill(levelColor.solid); doc.roundedRect(M, y, CW, 46, 4, 4, "F");
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); setText(PALETTE.white);
     doc.text(pdfSafe(label), M + 16, y + 18);
     doc.setFont("helvetica", "bold"); doc.setFontSize(15);
@@ -129,7 +154,7 @@ function buildGuidePDF(jsPDF) {
   }
   function termBox(term, def) {
     ensure(16);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setText(ACCENT);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setText(levelColor.solid);
     doc.text(pdfSafe(term) + ":", M, y);
     const labelW = doc.getTextWidth(pdfSafe(term) + ": ");
     doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); setText(INK);
@@ -141,8 +166,8 @@ function buildGuidePDF(jsPDF) {
   }
   function caseBox(title, text) {
     ensure(18);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setText(SIGNAL);
-    doc.text("CASE FILE - " + pdfSafe(title), M, y); y += 13;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setText(levelColor.solid);
+    doc.text("CASE FILE - " + pdfSafe(title).toUpperCase(), M, y); y += 13;
     para(text, { size: 9.2, color: [70, 76, 68], gap: 10 });
   }
   function table(headers, rows, colWidths) {
@@ -150,7 +175,7 @@ function buildGuidePDF(jsPDF) {
     const rowH = 16;
     ensure(rowH * (rows.length + 1) + 10);
     let cx = M;
-    setFill(ACCENT);
+    setFill(levelColor.solid);
     doc.rect(M, y, CW, rowH, "F");
     doc.setFont("helvetica", "bold"); doc.setFontSize(8.3); setText(PALETTE.white);
     headers.forEach((htext, i) => { doc.text(pdfSafe(htext), cx + 5, y + 11); cx += cw[i]; });
@@ -414,14 +439,32 @@ function buildGuidePDF(jsPDF) {
   }
 
   /* ------------------------------------------------------------------------
-     Cover page
+     Cover page — a colour-banded title block instead of a plain heading,
+     so the print edition feels designed rather than defaulted-to.
      ------------------------------------------------------------------------ */
+  setFill([22, 101, 52]); doc.rect(0, 0, W, 8, "F");
+  setFill([3, 105, 161]); doc.rect(0, 8, W * (2 / 3), 5, "F");
+  setFill([107, 33, 168]); doc.rect(W * (2 / 3), 8, W / 3, 5, "F");
+  y = M + 24;
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); setText(SIGNAL);
-  doc.text("DISCOVERY LAB - COURSE REVISION GUIDE", M, y); y += 26;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(24); setText(INK);
-  doc.text("Environmental Science", M, y); y += 20;
+  doc.text("DISCOVERY LAB - COURSE REVISION GUIDE", M, y); y += 30;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(26); setText(INK);
+  doc.text("Environmental Science", M, y); y += 22;
   doc.setFont("helvetica", "normal"); doc.setFontSize(11); setText(MUT);
-  doc.text("Master Study & Revision Guide - US Pathway, High School", M, y); y += 28;
+  doc.text("Master Study & Revision Guide - US Pathway, High School", M, y); y += 22;
+  [
+    ["LEVEL 1", "Foundations", LEVEL_COLORS[0]],
+    ["LEVEL 2", "Applied Systems", LEVEL_COLORS[1]],
+    ["LEVEL 3", "Expert Analysis", LEVEL_COLORS[2]],
+  ].forEach(([tag, name, col], i) => {
+    const chipW = (CW - 16) / 3, cx = M + i * (chipW + 8);
+    setFill(col.tint); doc.roundedRect(cx, y, chipW, 30, 4, 4, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8); setText(col.solid);
+    doc.text(tag, cx + 10, y + 13);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
+    doc.text(name, cx + 10, y + 25);
+  });
+  y += 30 + 20; setText(INK);
   rule();
   para(
     "This print edition mirrors the three-level structure of the online guide: Level 1 (Foundations), " +
@@ -430,23 +473,40 @@ function buildGuidePDF(jsPDF) {
     "auto-marked Practice Bank and an interactive concept model for every chapter -- open the course page to use them.",
     { size: 9.3, style: "italic", color: MUT, gap: 18 }
   );
+  levelColor = LEVEL_COLORS[0];
   h1("Contents");
-  [
-    "LEVEL 1 - FOUNDATIONS", "  1. What Is Environmental Science?", "  2. Earth's Four Connected Systems",
-    "  3. Ecosystems & Energy Flow", "  4. Biodiversity: Levels & Ecosystem Services",
-    "LEVEL 2 - APPLIED SYSTEMS", "  5. Population Ecology & Environmental Resistance", "  6. Soil Stratigraphy & Hydrology",
-    "  7. Land Use, Agriculture & Agroforestry", "  8. Threats to Biodiversity & Conservation Priorities",
-    "LEVEL 3 - EXPERT ANALYSIS", "  9. Water Resource Management & Scarcity", "  10. Energy Systems & Climate Forcing",
-    "  11. Pollution Ecotoxicology & Runoff", "  12. Stratospheric Ozone vs. Global Climate Change",
-    "Exam Practice: Short Answer & Extended Response", "Glossary of Key Terms",
-  ].forEach(t => para(t, { size: t.startsWith("  ") ? 9.5 : 10.5, style: t.startsWith("  ") ? "normal" : "bold", gap: 5, color: t.startsWith("  ") ? INK : ACCENT }));
+  const CONTENTS_LEVELS = [
+    { label: "LEVEL 1 - FOUNDATIONS", color: LEVEL_COLORS[0], items: [
+      "1. What Is Environmental Science?", "2. Earth's Four Connected Systems",
+      "3. Ecosystems & Energy Flow", "4. Biodiversity: Levels & Ecosystem Services" ] },
+    { label: "LEVEL 2 - APPLIED SYSTEMS", color: LEVEL_COLORS[1], items: [
+      "5. Population Ecology & Environmental Resistance", "6. Soil Stratigraphy & Hydrology",
+      "7. Land Use, Agriculture & Agroforestry", "8. Threats to Biodiversity & Conservation Priorities" ] },
+    { label: "LEVEL 3 - EXPERT ANALYSIS", color: LEVEL_COLORS[2], items: [
+      "9. Water Resource Management & Scarcity", "10. Energy Systems & Climate Forcing",
+      "11. Pollution Ecotoxicology & Runoff", "12. Stratospheric Ozone vs. Global Climate Change" ] },
+  ];
+  CONTENTS_LEVELS.forEach(lvl => {
+    ensure(20);
+    setFill(lvl.color.tint); doc.roundedRect(M, y - 10, CW, 16, 3, 3, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setText(lvl.color.solid);
+    doc.text(lvl.label, M + 8, y); y += 18;
+    lvl.items.forEach(t => {
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); setText(INK);
+      ensure(13); doc.text("  " + pdfSafe(t), M + 4, y); y += 13;
+    });
+    y += 6;
+  });
+  ["Exam Practice: Short Answer & Extended Response", "Glossary of Key Terms"].forEach(t =>
+    para(t, { size: 10.5, style: "bold", gap: 5, color: ACCENT })
+  );
 
   /* ========================================================================
      LEVEL 1 — FOUNDATIONS
      ======================================================================== */
-  levelBanner("LEVEL 1 - FOUNDATIONS", "Core Principles & Definitions");
+  levelBanner("LEVEL 1 - FOUNDATIONS", "Core Principles & Definitions", 0);
 
-  h1("1. What Is Environmental Science?");
+  h1("What Is Environmental Science?", 1);
   para(
     "Environmental Science is an interdisciplinary, problem-solving science: it observes natural phenomena, " +
     "asks testable questions, gathers empirical evidence, and designs sustainable solutions. It integrates " +
@@ -463,7 +523,7 @@ function buildGuidePDF(jsPDF) {
   termBox("The Water Shortage Paradox", "Earth is not \"running out of water\" - it moves in a closed hydrological loop and total volume stays constant. The real crisis is the shortage of clean, safe, accessible fresh water fit for human use.");
   caseBox("Manila, Philippines", "Single-use plastic sachets used for daily household goods take minutes to consume but persist in urban waterways and ocean gyres for centuries.");
 
-  h1("2. Earth's Four Connected Systems");
+  h1("Earth's Four Connected Systems", 2);
   para("Earth functions as one dynamic super-system. An event in one sphere triggers ripple effects across the other three.");
   diagramSpheres();
   table(
@@ -478,7 +538,7 @@ function buildGuidePDF(jsPDF) {
   );
   caseBox("Sumatra, Indonesia", "An undersea earthquake (geosphere) generated a tsunami (hydrosphere) that devastated coastal mangroves (biosphere), indirectly reducing regional carbon sequestration (atmosphere) - one event, four systems.");
 
-  h1("3. Ecosystems & Energy Flow");
+  h1("Ecosystems & Energy Flow", 3);
   termBox("Biotic factor", "A living or once-living component of an ecosystem (mangrove trees, coral polyps, soil bacteria, top predators).");
   termBox("Abiotic factor", "A non-living physical or chemical element (solar irradiance, water temperature, soil pH, dissolved oxygen).");
   para("In food webs, an arrow always points from the organism being eaten to the organism consuming it - the direction energy travels.");
@@ -495,7 +555,7 @@ function buildGuidePDF(jsPDF) {
   ]);
   caseBox("Australian freshwater wetland", "Algae -> tadpole -> small native fish -> white-faced heron. Decomposers break down waste back into nutrient-rich mud, completing the loop.");
 
-  h1("4. Biodiversity: Levels & Ecosystem Services");
+  h1("Biodiversity: Levels & Ecosystem Services", 4);
   diagramNestedCircles();
   table(
     ["Level", "Definition", "Example"],
@@ -523,9 +583,9 @@ function buildGuidePDF(jsPDF) {
   /* ========================================================================
      LEVEL 2 — APPLIED SYSTEMS
      ======================================================================== */
-  levelBanner("LEVEL 2 - APPLIED SYSTEMS", "Processes, Dynamics & Applied Systems");
+  levelBanner("LEVEL 2 - APPLIED SYSTEMS", "Processes, Dynamics & Applied Systems", 1);
 
-  h1("5. Population Ecology & Environmental Resistance");
+  h1("Population Ecology & Environmental Resistance", 5);
   termBox("Population", "Individuals of the SAME species in a specific, NAMED area at the same time (e.g. African elephants in Chobe National Park, Botswana).");
   formulaBox("Delta N  =  (Births + Immigration)  -  (Deaths + Emigration)");
   diagramGrowthCurves();
@@ -548,7 +608,7 @@ function buildGuidePDF(jsPDF) {
   );
   caseBox("Sclerophyll forests, Victoria, Australia", "Eucalyptus regenerates rapidly after a single wildfire from epicormic buds. If fire frequency increases, seed banks burn before reaching maturity and the ecosystem can collapse.");
 
-  h1("6. Soil Stratigraphy & Hydrology");
+  h1("Soil Stratigraphy & Hydrology", 6);
   h2("Soil horizon profile (top to bottom)");
   diagramStack([
     ["O Horizon", "Organic layer: humus, leaf litter, decaying biomass", [92, 64, 38], PALETTE.white],
@@ -567,7 +627,7 @@ function buildGuidePDF(jsPDF) {
   );
   caseBox("The water cycle in motion", "Evaporation -> transpiration (release from plant leaves) -> condensation -> precipitation -> runoff -> infiltration into aquifers (porous rock storing fresh groundwater).");
 
-  h1("7. Land Use, Agriculture & Agroforestry");
+  h1("Land Use, Agriculture & Agroforestry", 7);
   termBox("Primary forest", "Native forest with original ecological structure, not substantially disturbed by human activity.");
   termBox("Edge effect", "Microclimatic/biological changes where forest meets cleared land - more wind, less humidity, more invasive species and fire risk.");
   table(
@@ -586,7 +646,7 @@ function buildGuidePDF(jsPDF) {
   );
   caseBox("Coffee Triangle, Colombia", "Native timber trees planted above coffee bushes anchor steep hillside topsoil, host pest-controlling migratory birds, and store far more carbon than open-sun monoculture.");
 
-  h1("8. Threats to Biodiversity & Conservation Priorities");
+  h1("Threats to Biodiversity & Conservation Priorities", 8);
   para("An organism is only classified as INVASIVE if it satisfies all three criteria: (1) non-native, (2) establishes and spreads rapidly, (3) causes quantifiable ecological, economic or health harm.");
   h2("IUCN Red List classification framework");
   diagramLadder([
@@ -610,9 +670,9 @@ function buildGuidePDF(jsPDF) {
   /* ========================================================================
      LEVEL 3 — EXPERT ANALYSIS
      ======================================================================== */
-  levelBanner("LEVEL 3 - EXPERT ANALYSIS", "Global Systems, Resource Policy & Solutions");
+  levelBanner("LEVEL 3 - EXPERT ANALYSIS", "Global Systems, Resource Policy & Solutions", 2);
 
-  h1("9. Water Resource Management & Scarcity");
+  h1("Water Resource Management & Scarcity", 9);
   formulaBox("Delta Storage = (Precipitation + Inflow + Aquifer Recharge)\n              - (Evaporation + Municipal Extraction + Agricultural Extraction)");
   diagramReservoirFlow();
   para("Agriculture accounts for roughly 70% of global freshwater withdrawals. Modernising irrigation is the fastest lever for reducing that demand:");
@@ -623,7 +683,7 @@ function buildGuidePDF(jsPDF) {
   ]);
   caseBox("Cape Town, South Africa (2018)", "A multi-year drought brought the city within weeks of \"Day Zero\". Aggressive rationing, pressure reduction and agricultural diversions cut water use by over 50%, averting shutdown.");
 
-  h1("10. Energy Systems & Climate Forcing");
+  h1("Energy Systems & Climate Forcing", 10);
   table(
     ["Category", "Sources", "Replenishment", "Trade-offs"],
     [
@@ -641,7 +701,7 @@ function buildGuidePDF(jsPDF) {
   para("The natural greenhouse effect keeps Earth's average surface temperature near +15C (rather than -18C) - essential for life. The problem is the ENHANCED greenhouse effect: extra CO2, CH4 and N2O from human activity trap additional outgoing heat.");
   caseBox("Sumatra & Borneo, Indonesia/Malaysia", "Clearing biodiverse peatland rainforest for palm oil destroys orangutan habitat and releases stored soil carbon - turning a carbon sink into a major emissions source.");
 
-  h1("11. Pollution Ecotoxicology & Runoff");
+  h1("Pollution Ecotoxicology & Runoff", 11);
   diagramTwoColumn(
     "Point source", "Single, identifiable outlet (factory pipe, drilling platform). Direct legal accountability.",
     "Non-point source", "Diffuse regional sources (farm runoff, urban stormwater). Requires landscape-wide policy.",
@@ -650,7 +710,7 @@ function buildGuidePDF(jsPDF) {
   caseBox("Montara oil spill (2009), Timor Sea", "A blowout at the West Atlas drilling platform, north of Darwin, Australia, spilled crude oil from one identifiable point over 75 days, affecting roughly 6,000 km2 of ocean. Because the source was clear, legal and financial liability fell on the operator.");
   caseBox("Great Barrier Reef agricultural runoff, Queensland", "Excess nitrogen and phosphorus from thousands of cattle ranches and sugarcane farms washes into river catchments during monsoons, triggering algal blooms and crown-of-thorns starfish outbreaks - a non-point problem needing region-wide policy, not one fine.");
 
-  h1("12. Stratospheric Ozone vs. Global Climate Change");
+  h1("Stratospheric Ozone vs. Global Climate Change", 12);
   para("A common confusion: ozone depletion and global climate change are DISTINCT problems, driven by different chemistry in different atmospheric layers.");
   diagramStack([
     ["Stratosphere (15-35 km)", "Contains the ozone layer (O3); filters UV-B; depleted by CFCs", PALETTE.skyTint, INK],
