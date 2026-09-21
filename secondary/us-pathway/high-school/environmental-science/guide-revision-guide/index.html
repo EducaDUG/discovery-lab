@@ -12,12 +12,81 @@
   /* Page-specific layout — a one-off reference page, same discipline as about/index.html:
      the engine carries patterns used across many pages, this guide is its own thing. */
 
-  .guide-head { padding-block: var(--sp-6) var(--sp-5); }
-  .guide-head h1 { margin-top: var(--sp-3); max-width: 20ch; }
-  .guide-head__lede { font-size: var(--step-1); color: var(--ink-2); max-width: 56ch; margin-top: var(--sp-4); }
-  .guide-head__row { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; margin-top: var(--sp-5); }
+  /* ---------------------------------------------------------------------
+     Hero — deliberately a fixed dark "island" regardless of the site's own
+     light/dark tint, same allowance as any single-committed-look component.
+     Bold and vivid on purpose (CLAUDE.md §4 amendment, 2026-09-21): a
+     gradient banner, saturated stat pills, real drawn icons in place of
+     emoji glyphs (rendering-consistency, not an aesthetic ban).
+     --------------------------------------------------------------------- */
+  .hero {
+    background:
+      radial-gradient(120% 160% at 15% -10%, #23345E 0%, transparent 55%),
+      radial-gradient(100% 140% at 100% 0%, #124A4A 0%, transparent 60%),
+      linear-gradient(160deg, #0B1120 0%, #0F1B33 55%, #0B1120 100%);
+    color: #F3F6FC;
+    padding-block: var(--sp-7) var(--sp-6);
+    overflow: hidden;
+    position: relative;
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+    background-image: radial-gradient(circle, #ffffff22 1px, transparent 1px);
+    background-size: 26px 26px;
+    mask-image: linear-gradient(180deg, #000 0%, transparent 75%);
+  }
+  .hero__inner { position: relative; }
+  .hero__eyebrow {
+    display: inline-flex; align-items: center; gap: .5em;
+    font-family: var(--font-data); font-size: var(--step--1); letter-spacing: .1em; text-transform: uppercase;
+    color: #BFD9FF; background: #ffffff14; border: 1px solid #ffffff2a;
+    padding: .4em 1em; border-radius: 999px;
+  }
+  .hero__eyebrow::before { content: ""; width: .5em; height: .5em; border-radius: 50%; background: #34D2C7; box-shadow: 0 0 10px #34D2C7; }
+  .hero h1 {
+    margin-top: var(--sp-4); max-width: 18ch; color: #fff;
+    font-size: clamp(2.1rem, 4.5vw, var(--step-4));
+  }
+  .hero h1 .grad {
+    background: linear-gradient(100deg, #6EE7DD 0%, #8FB4FF 50%, #C9A6FF 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero__lede { font-size: var(--step-1); color: #C9D3E8; max-width: 56ch; margin-top: var(--sp-4); }
+  .hero__row { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; margin-top: var(--sp-5); }
+  .hero__row .btn { --btn-bg: linear-gradient(100deg, #34D2C7, #6C8CFF); background: linear-gradient(100deg, #34D2C7, #6C8CFF); --btn-fg: #06121F; --btn-bd: transparent; font-weight: 700; }
+  .hero__row .btn:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 8px 24px -8px #34D2C766; }
 
-  #pdfStatus { font-family: var(--font-data); font-size: var(--step--1); color: var(--ink-3); }
+  #pdfStatus { font-family: var(--font-data); font-size: var(--step--1); color: #9FB0CC; }
+
+  .stat-pills { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-6); }
+  .stat-pill {
+    flex: 1 1 11rem; background: #ffffff0d; border: 1px solid #ffffff22; border-radius: var(--radius-lg);
+    padding: var(--sp-3) var(--sp-4); backdrop-filter: blur(6px);
+  }
+  .stat-pill__n { display: block; font-family: var(--font-display); font-weight: 700; font-size: var(--step-2);
+    font-variation-settings: "opsz" var(--opsz), "wght" 700, "SOFT" var(--soft), "WONK" var(--wonk); }
+  .stat-pill__l { display: block; font-family: var(--font-data); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: #A9B7D1; margin-top: .2em; }
+  .stat-pill--a .stat-pill__n { color: #6EE7DD; }
+  .stat-pill--b .stat-pill__n { color: #FFC978; }
+  .stat-pill--c .stat-pill__n { color: #FF9EC4; }
+  .stat-pill--d .stat-pill__n { color: #A6C6FF; }
+
+  /* Sticky quick-nav — replaces the old plain grid TOC */
+  .quicknav {
+    position: sticky; top: var(--head-h, 61px); z-index: 20;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .quicknav__scroll { display: flex; gap: var(--sp-2); overflow-x: auto; padding-block: var(--sp-3); scrollbar-width: thin; }
+  .quicknav__scroll a {
+    flex: none; display: inline-flex; align-items: center; gap: .45em;
+    font-family: var(--font-data); font-size: .72rem; font-weight: 700; letter-spacing: .02em;
+    color: var(--ink-2); text-decoration: none; background: var(--surface); border: 1px solid var(--line);
+    padding: .45em .9em; border-radius: 999px; white-space: nowrap;
+    transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  }
+  .quicknav__scroll a:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+  .quicknav__scroll a .n { color: var(--signal); }
 
   /* How-to-use note */
   .howto {
@@ -27,21 +96,6 @@
   .howto p { color: var(--ink-2); max-width: var(--measure); }
   .howto p + p { margin-top: var(--sp-3); }
 
-  /* Table of contents */
-  .toc { display: grid; gap: var(--sp-2); grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-         margin-bottom: var(--sp-7); }
-  .toc a {
-    display: flex; align-items: center; gap: var(--sp-3);
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: var(--sp-3) var(--sp-4); color: var(--ink); text-decoration: none;
-    transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
-  }
-  .toc a:hover { border-color: var(--accent); transform: translateX(2px); }
-  .toc__n {
-    font-family: var(--font-data); font-weight: 700; font-size: var(--step--1);
-    color: var(--accent); flex: none; width: 1.8em;
-  }
-  .toc__t { font-size: var(--step--1); }
 
   /* Chapter */
   .chapter { padding-block: var(--sp-7); border-top: 1px solid var(--line); scroll-margin-top: var(--sp-5); }
@@ -219,50 +273,106 @@
   </div>
 </header>
 
+<section class="hero">
+  <div class="shell hero__inner">
+    <nav class="crumbs" aria-label="Breadcrumb" data-lang="en" style="--line:#ffffff2a;--line-strong:#ffffff55">
+      <ol class="crumbs__list" style="color:#9FB0CC">
+        <li><a href="../../../../../" style="color:#C9D3E8">Discovery Lab</a></li>
+        <li><a href="../../../../" style="color:#C9D3E8">Environmental Science</a></li>
+        <li aria-current="page"><span style="color:#fff">Course Revision Guide</span></li>
+      </ol>
+    </nav>
+    <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden style="--line:#ffffff2a;--line-strong:#ffffff55">
+      <ol class="crumbs__list" style="color:#9FB0CC">
+        <li><a href="../../../../../" style="color:#C9D3E8">Discovery Lab</a></li>
+        <li><a href="../../../../" style="color:#C9D3E8">Ciencias Ambientales</a></li>
+        <li aria-current="page"><span style="color:#fff">Guía de repaso del curso</span></li>
+      </ol>
+    </nav>
+
+    <p class="hero__eyebrow" style="margin-top:var(--sp-5)" data-lang="en">Comprehensive Exam Mastery Guide</p>
+    <p class="hero__eyebrow" style="margin-top:var(--sp-5)" data-lang="es" hidden>Guía Integral de Dominio para el Examen</p>
+
+    <div data-lang="en">
+      <h1>The Complete <span class="grad">Course Guide</span></h1>
+      <p class="hero__lede">Every topic covered in class, in one place &mdash; explained from scratch, with diagrams,
+        real case studies and practice questions at the end of each chapter. Use it to revise before a test, or read
+        one chapter the night before its topic comes up again.</p>
+      <div class="hero__row">
+        <button class="btn" id="pdfBtn" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          <span id="pdfBtnLabel">Download as PDF</span>
+        </button>
+        <span id="pdfStatus" role="status" aria-live="polite"></span>
+      </div>
+      <div class="stat-pills">
+        <div class="stat-pill stat-pill--a"><span class="stat-pill__n">12</span><span class="stat-pill__l">Chapters</span></div>
+        <div class="stat-pill stat-pill--b"><span class="stat-pill__n">72</span><span class="stat-pill__l">Auto-marked questions</span></div>
+        <div class="stat-pill stat-pill--c"><span class="stat-pill__n">2</span><span class="stat-pill__l">Interactive models</span></div>
+        <div class="stat-pill stat-pill--d"><span class="stat-pill__n">PDF</span><span class="stat-pill__l">Printable edition</span></div>
+      </div>
+    </div>
+    <div data-lang="es" hidden>
+      <h1>La Guía <span class="grad">Completa del Curso</span></h1>
+      <p class="hero__lede">Todos los temas vistos en clase, en un solo lugar &mdash; explicados desde cero, con
+        diagramas, casos reales y preguntas de práctica al final de cada capítulo. Úsala para repasar antes de un
+        examen, o lee un capítulo la noche antes de que vuelva a aparecer ese tema.</p>
+      <div class="hero__row">
+        <button class="btn" id="pdfBtnEs" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          <span>Descargar como PDF</span>
+        </button>
+      </div>
+      <div class="stat-pills">
+        <div class="stat-pill stat-pill--a"><span class="stat-pill__n">12</span><span class="stat-pill__l">Capítulos</span></div>
+        <div class="stat-pill stat-pill--b"><span class="stat-pill__n">72</span><span class="stat-pill__l">Preguntas autocorregidas</span></div>
+        <div class="stat-pill stat-pill--c"><span class="stat-pill__n">2</span><span class="stat-pill__l">Modelos interactivos</span></div>
+        <div class="stat-pill stat-pill--d"><span class="stat-pill__n">PDF</span><span class="stat-pill__l">Edición imprimible</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="quicknav" data-lang="en">
+  <div class="shell quicknav__scroll">
+    <a href="#ch1"><span class="n">01</span> What Is Env. Science?</a>
+    <a href="#ch2"><span class="n">02</span> Ecosystems &amp; Energy</a>
+    <a href="#ch3"><span class="n">03</span> Biodiversity I</a>
+    <a href="#ch4"><span class="n">04</span> Biodiversity II</a>
+    <a href="#ch5"><span class="n">05</span> Population Ecology</a>
+    <a href="#ch6"><span class="n">06</span> Earth's Systems</a>
+    <a href="#ch7"><span class="n">07</span> Hydrosphere &amp; Soil</a>
+    <a href="#ch8"><span class="n">08</span> Land &amp; Agriculture</a>
+    <a href="#ch9"><span class="n">09</span> Water Resources</a>
+    <a href="#ch10"><span class="n">10</span> Energy &amp; Climate</a>
+    <a href="#ch11"><span class="n">11</span> Pollution</a>
+    <a href="#ch12"><span class="n">12</span> Ozone Layer</a>
+    <a href="#glossary"><span class="n">&middot;</span> Glossary</a>
+    <a href="#practice-bank"><span class="n">&middot;</span> Practice Bank</a>
+    <a href="#exam-practice"><span class="n">&middot;</span> Exam Practice</a>
+  </div>
+</div>
+<div class="quicknav" data-lang="es" hidden>
+  <div class="shell quicknav__scroll">
+    <a href="#ch1"><span class="n">01</span> Qué es Ciencias Amb.</a>
+    <a href="#ch2"><span class="n">02</span> Ecosistemas y Energía</a>
+    <a href="#ch3"><span class="n">03</span> Biodiversidad I</a>
+    <a href="#ch4"><span class="n">04</span> Biodiversidad II</a>
+    <a href="#ch5"><span class="n">05</span> Ecología de Poblaciones</a>
+    <a href="#ch6"><span class="n">06</span> Sistemas de la Tierra</a>
+    <a href="#ch7"><span class="n">07</span> Hidrosfera y Suelo</a>
+    <a href="#ch8"><span class="n">08</span> Uso del Suelo</a>
+    <a href="#ch9"><span class="n">09</span> Recursos Hídricos</a>
+    <a href="#ch10"><span class="n">10</span> Energía y Clima</a>
+    <a href="#ch11"><span class="n">11</span> Contaminación</a>
+    <a href="#ch12"><span class="n">12</span> Capa de Ozono</a>
+    <a href="#glossary"><span class="n">&middot;</span> Glosario</a>
+    <a href="#practice-bank"><span class="n">&middot;</span> Banco de Práctica</a>
+    <a href="#exam-practice"><span class="n">&middot;</span> Práctica de Examen</a>
+  </div>
+</div>
+
 <main id="main" class="shell">
-  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
-    <ol class="crumbs__list">
-      <li><a href="../../../../../">Discovery Lab</a></li>
-      <li><a href="../../../../">Environmental Science</a></li>
-      <li aria-current="page"><span>Course Revision Guide</span></li>
-    </ol>
-  </nav>
-  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
-    <ol class="crumbs__list">
-      <li><a href="../../../../../">Discovery Lab</a></li>
-      <li><a href="../../../../">Ciencias Ambientales</a></li>
-      <li aria-current="page"><span>Guía de repaso del curso</span></li>
-    </ol>
-  </nav>
-
-  <div class="guide-head" data-lang="en">
-    <p class="eyebrow">Environmental Science &middot; revision guide</p>
-    <h1>The Complete Course Guide</h1>
-    <p class="guide-head__lede">Every topic covered in class, in one place &mdash; explained from scratch, with diagrams,
-      real case studies and practice questions at the end of each chapter. Use it to revise before a test, or read
-      one chapter the night before its topic comes up again.</p>
-    <div class="guide-head__row">
-      <button class="btn" id="pdfBtn" type="button">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-        <span id="pdfBtnLabel">Download as PDF</span>
-      </button>
-      <span id="pdfStatus" role="status" aria-live="polite"></span>
-    </div>
-  </div>
-  <div class="guide-head" data-lang="es" hidden>
-    <p class="eyebrow">Ciencias Ambientales &middot; guía de repaso</p>
-    <h1>La Guía Completa del Curso</h1>
-    <p class="guide-head__lede">Todos los temas vistos en clase, en un solo lugar &mdash; explicados desde cero, con
-      diagramas, casos reales y preguntas de práctica al final de cada capítulo. Úsala para repasar antes de un
-      examen, o lee un capítulo la noche antes de que vuelva a aparecer ese tema.</p>
-    <div class="guide-head__row">
-      <button class="btn" id="pdfBtnEs" type="button">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-        <span>Descargar como PDF</span>
-      </button>
-    </div>
-  </div>
-
   <div class="howto" data-lang="en">
     <p><strong>How to use this guide:</strong> each chapter builds an idea from a plain explanation, into the exact
       vocabulary an exam expects, into a real event that shows the idea at work. Read the chapter, then close it and
@@ -277,24 +387,6 @@
     <p>¿Con poco tiempo? Las secciones de <a href="#glossary">Glosario</a> y <a href="#exam-practice">Práctica de
       examen</a> al final funcionan por sí solas como repaso rápido de todo el curso.</p>
   </div>
-
-  <nav class="toc" aria-label="Chapters" data-lang="en">
-    <a href="#ch1"><span class="toc__n">01</span><span class="toc__t">What Is Environmental Science?</span></a>
-    <a href="#ch2"><span class="toc__n">02</span><span class="toc__t">Ecosystems &amp; Energy Flow</span></a>
-    <a href="#ch3"><span class="toc__n">03</span><span class="toc__t">Biodiversity I: Levels &amp; Value</span></a>
-    <a href="#ch4"><span class="toc__n">04</span><span class="toc__t">Biodiversity II: Threats &amp; Conservation</span></a>
-    <a href="#ch5"><span class="toc__n">05</span><span class="toc__t">Population Ecology</span></a>
-    <a href="#ch6"><span class="toc__n">06</span><span class="toc__t">Earth's Systems</span></a>
-    <a href="#ch7"><span class="toc__n">07</span><span class="toc__t">The Hydrosphere &amp; Soil</span></a>
-    <a href="#ch8"><span class="toc__n">08</span><span class="toc__t">Land Use &amp; Agriculture</span></a>
-    <a href="#ch9"><span class="toc__n">09</span><span class="toc__t">Water Resource Management</span></a>
-    <a href="#ch10"><span class="toc__n">10</span><span class="toc__t">Energy &amp; Climate</span></a>
-    <a href="#ch11"><span class="toc__n">11</span><span class="toc__t">Pollution</span></a>
-    <a href="#ch12"><span class="toc__n">12</span><span class="toc__t">The Ozone Layer</span></a>
-    <a href="#glossary"><span class="toc__n">&middot;</span><span class="toc__t">Glossary</span></a>
-    <a href="#practice-bank"><span class="toc__n">&middot;</span><span class="toc__t">Practice Bank</span></a>
-    <a href="#exam-practice"><span class="toc__n">&middot;</span><span class="toc__t">Exam Practice</span></a>
-  </nav>
 
   <!-- ============================================================ CHAPTER 1 -->
   <section class="chapter" id="ch1">

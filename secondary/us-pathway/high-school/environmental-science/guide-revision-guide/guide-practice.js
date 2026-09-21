@@ -11,6 +11,19 @@
    content-vs-engine rule.
    ========================================================================== */
 
+/* The sticky quick-nav docks just below the shared site header rather than
+   under it — measure the header's real rendered height (its size depends on
+   font metrics/loading, not just a fixed CSS value) and expose it as a CSS
+   var the quicknav's `top` reads, so the two sticky bars never overlap. */
+function syncHeaderHeight() {
+  const head = document.querySelector(".site-head");
+  if (head) document.documentElement.style.setProperty("--head-h", head.getBoundingClientRect().height + "px");
+}
+syncHeaderHeight();
+window.addEventListener("resize", syncHeaderHeight);
+window.addEventListener("load", syncHeaderHeight);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeaderHeight);
+
 /* ------------------------------------------------------------------------
    Question bank — 3 per chapter, pooled into the Practice Bank below.
    ------------------------------------------------------------------------ */

@@ -88,6 +88,28 @@ This is not optional polish — it's core to the brief. The bar: **someone shoul
 
 Explicitly avoid the "generic AI-generated web app" look: no default Bootstrap cards, no cliché purple-to-blue gradient hero sections, no emoji standing in for real icons, no generic centered-card-on-white-background layouts, no overuse of one default font (e.g. Inter) with no personality.
 
+**Amendment — the banned-pattern list above is relaxed site-wide; bold, vivid, high-energy visual
+styles are explicitly welcome (agreed 2026-09-21).** Diego pointed to
+`https://mrguevaracga.github.io/PreIG-1-Science-Matter/` (a study guide he built previously) as a
+look he likes: a dark gradient hero, saturated multi-colour stat badges, a sticky pill-style quick
+nav, and bold gradient-text headlines — after finding the site's existing "field notebook" system
+boring. That example uses several of the patterns the paragraph above bans. Going forward,
+**for all future work, not just the page that prompted this**:
+
+- A gradient hero, saturated/vivid accent colours, pill-shaped badges and a punchier "exam-prep
+  dashboard" energy are all acceptable and encouraged where they suit the topic — this is no longer
+  a banned "AI-generated" look, it is a valid deliberate style to reach for.
+- Emoji as icons are no longer banned outright. Still **prefer a real drawn SVG icon over a bare
+  emoji glyph where practical** — this is a practical rendering-consistency preference (emoji
+  glyphs render differently across student devices/OSes/fonts), not an aesthetic ban — but reaching
+  for an emoji deliberately and consistently is fine.
+- What still applies, unchanged: build a genuine, deliberate design system per subject rather than
+  reaching for a generic default template (still true whether the palette is muted or vivid), and
+  avoid one flat, personality-free font doing all the work.
+- The rest of this section (§4) — 3D where it adds value, motion/feedback, gamification, the
+  interactivity-density and real-photo amendments below — is unaffected; this amendment only
+  relaxes the specific banned-pattern list in the paragraph immediately above.
+
 Instead:
 - Build a genuine **design system** in `engine/style.css`: a deliberate color palette and typography pairing per subject area (e.g. Biology: organic greens/earth tones; Chemistry: vivid lab-glass colors; Physics: deep technical blues; Spanish: warm Mediterranean tones). Subjects should feel visually distinct from each other while sharing the same underlying UI patterns (buttons, cards, progress indicators) for consistency.
 - Use **real custom graphics** — SVG illustrations, canvas drawing, or CSS/3D — not stock icon sets alone.
