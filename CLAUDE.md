@@ -1202,6 +1202,34 @@ do the following — this is the standard, not a one-off:**
      assume the simulation does; if a control's effect is ambiguous or you can't confirm it
      (e.g. a subtle physics effect that doesn't visibly show in the simplified view), leave it
      out rather than guess.
+   - **Amendment — questions test the concept and the learning journey, never the interface
+     (agreed 2026-09-21, non-negotiable).** Diego: a question like "what does the Remove Salt
+     button do?" or "which of these is a real checkbox in the simulation?" is testing whether the
+     student can operate software, not whether they understand the science/subject. Every one of
+     the 10 questions must instead test **what a student at this course/age level needs to know
+     about the topic**, using the simulation as the evidence/context, not as the subject of the
+     question itself. Concretely:
+     - Ask what the simulation *demonstrates* about the concept ("why does a salt solution
+       conduct electricity but a sugar solution doesn't — what does this tell you about how each
+       one dissolves?"), never what a specific slider/button/tab is called or does.
+     - Before writing questions, step back and ask: *if this simulation didn't exist, what would
+       a textbook/curriculum question on this exact topic look like at this age band?* Write that
+       question, then ground its distractors and its correct answer in what the student actually
+       observed by using the simulation — the simulation is the evidence base for the answer, not
+       the subject of the question.
+     - **Check the simulation's own website for its stated learning goals, background reading, or
+       teacher notes** (PhET's "About" tab has a "Sample Learning Goals" list, for example) —
+       these are usually written in exactly the concept-level language a question should use, and
+       are a better source to mine than the interface itself.
+     - A quick self-test per question: could a student who has memorised the simulation's button
+       layout but doesn't understand the underlying concept still get it right? If yes, rewrite
+       it. Could a student who deeply understands the concept but has never seen this exact
+       simulation still reason their way to the right answer from a description of what happened?
+       If yes, the question is well-aimed.
+     - This does not relax step 1's "verify every question against the real simulation" rule —
+       the concept-level question still has to be grounded in something the simulation actually
+       shows, not an assumption. It changes *what part* of that verified interaction the question
+       is about: the science being demonstrated, not the control that demonstrated it.
    - An `es` block mirroring all translatable fields, same discipline as every other activity
      (Section 15).
 4. **Add a `thumbnail`** — a simple static SVG badge is fine here (unlike a built simulation's
