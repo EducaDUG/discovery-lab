@@ -817,3 +817,437 @@ function buildClassifyGrid(mount, categories, items) {
     result.innerHTML = "<b>PASSES STRAIGHT THROUGH.</b> Heat arrives as infrared radiation, which the ozone layer does not filter at all — this is why ozone depletion and global warming are different problems.";
   });
 })();
+
+/* ==========================================================================
+   INTERACTIVE LABS — four live canvas simulators. Plain 2D canvas, no
+   Three.js needed for this content; ported from the design brief Diego
+   shared, kept vendored (no CDN) and bilingual via data-lang siblings for
+   any on-page label, with only the canvas rendering itself in English
+   text (short, plain data labels — same treatment as an axis label on the
+   existing SVG diagrams elsewhere in this guide).
+   ========================================================================== */
+
+/* --- Lab 1: Trophic Pyramid ------------------------------------------------ */
+(function () {
+  const canvas = document.getElementById("trophicCanvas");
+  const input = document.getElementById("producerInput");
+  if (!canvas || !input) return;
+  const ctx = canvas.getContext("2d");
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+  }
+
+  function render() {
+    const p1 = parseInt(input.value, 10);
+    const p2 = Math.round(p1 * 0.1), p3 = Math.round(p2 * 0.1), p4 = Math.round(p3 * 0.1);
+    document.getElementById("producerVal").textContent = p1.toLocaleString() + " kJ";
+    const esVal = document.getElementById("producerValEs"); if (esVal) esVal.textContent = p1.toLocaleString() + " kJ";
+    document.getElementById("trophic2").textContent = p2.toLocaleString() + " kJ";
+    document.getElementById("trophic3").textContent = p3.toLocaleString() + " kJ";
+    document.getElementById("trophic4").textContent = p4.toLocaleString() + " kJ";
+
+    resize();
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const maxW = w * 0.82;
+    const hBlock = (h - 20) / 4;
+    const widths = [maxW, maxW * 0.55, maxW * 0.3, maxW * 0.15];
+    const colors = ["#16a34a", "#0d9488", "#0284c7", "#f43f5e"];
+    const labels = [
+      "Producers - " + p1.toLocaleString() + " kJ",
+      "Herbivores - " + p2.toLocaleString() + " kJ",
+      "Carnivores - " + p3.toLocaleString() + " kJ",
+      "Apex - " + p4.toLocaleString() + " kJ",
+    ];
+    for (let i = 0; i < 4; i++) {
+      const bw = widths[i];
+      const x = (w - bw) / 2;
+      const y = h - 10 - (i + 1) * hBlock;
+      ctx.fillStyle = colors[i];
+      const r = 6;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + bw, y, x + bw, y + hBlock - 4, r);
+      ctx.arcTo(x + bw, y + hBlock - 4, x, y + hBlock - 4, r);
+      ctx.arcTo(x, y + hBlock - 4, x, y, r);
+      ctx.arcTo(x, y, x + bw, y, r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(labels[i], w / 2, y + hBlock / 2 + 2);
+    }
+  }
+
+  input.addEventListener("input", render);
+  window.addEventListener("resize", render);
+  render();
+})();
+
+/* --- Lab 2: Population Growth Inspector ------------------------------------ */
+(function () {
+  const canvas = document.getElementById("popCanvas");
+  const rInput = document.getElementById("rInput");
+  const kInput = document.getElementById("kInput");
+  if (!canvas || !rInput || !kInput) return;
+  const ctx = canvas.getContext("2d");
+  let wildfireActive = false;
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+  }
+
+  function render() {
+    const r = parseFloat(rInput.value);
+    const K = parseInt(kInput.value, 10);
+    document.getElementById("rVal").textContent = r.toFixed(2);
+    document.getElementById("kVal").textContent = String(K);
+    const rEs = document.getElementById("rValEs"); if (rEs) rEs.textContent = r.toFixed(2);
+    const kEs = document.getElementById("kValEs"); if (kEs) kEs.textContent = String(K);
+
+    resize();
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const kY = h - 20 - (K / 900) * (h - 40);
+    ctx.strokeStyle = "#f59e0b";
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(30, kY); ctx.lineTo(w - 10, kY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "10px sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText("K = " + K, w - 12, kY - 6);
+
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    let N = 20;
+    const steps = 60;
+    for (let t = 0; t <= steps; t++) {
+      const x = 30 + (t / steps) * (w - 42);
+      if (wildfireActive && t === 30) N = Math.max(10, N * 0.2);
+      const dN = r * N * (1 - N / K);
+      N += dN;
+      const y = h - 20 - (N / 900) * (h - 40);
+      if (t === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    if (wildfireActive) {
+      ctx.fillStyle = "#ef4444";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Wildfire strike (density-independent loss)", w / 2, 18);
+    }
+  }
+
+  function triggerWildfire() {
+    wildfireActive = true;
+    render();
+    setTimeout(function () { wildfireActive = false; }, 2500);
+  }
+  function resetLab() {
+    wildfireActive = false;
+    rInput.value = "0.15"; kInput.value = "500";
+    render();
+  }
+
+  rInput.addEventListener("input", render);
+  kInput.addEventListener("input", render);
+  window.addEventListener("resize", render);
+  ["wildfireBtn", "wildfireBtnEs"].forEach(function (id) {
+    const b = document.getElementById(id); if (b) b.addEventListener("click", triggerWildfire);
+  });
+  ["popResetBtn", "popResetBtnEs"].forEach(function (id) {
+    const b = document.getElementById(id); if (b) b.addEventListener("click", resetLab);
+  });
+  render();
+})();
+
+/* --- Lab 3: Reservoir "Day Zero" ------------------------------------------- */
+(function () {
+  const canvas = document.getElementById("reservoirCanvas");
+  const inflowInput = document.getElementById("inflowInput");
+  const agriInput = document.getElementById("agriInput");
+  if (!canvas || !inflowInput || !agriInput) return;
+  const ctx = canvas.getContext("2d");
+  const dripBoxes = ["dripToggle", "dripToggleEs"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+  }
+
+  function render() {
+    const inflow = parseInt(inflowInput.value, 10);
+    let agri = parseInt(agriInput.value, 10);
+    const drip = dripBoxes.some(function (b) { return b.checked; });
+    if (drip) agri = Math.round(agri * 0.6);
+
+    const net = inflow - agri;
+    let days = 999;
+    if (net < 0) days = Math.max(1, Math.round(1000 / Math.abs(net)));
+
+    const status = document.getElementById("dayZeroStatus");
+    if (days === 999) {
+      status.textContent = "Sustainable"; status.className = "lab-status ok";
+    } else {
+      status.textContent = days + " days left"; status.className = "lab-status bad";
+    }
+
+    resize();
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const levelRatio = days === 999 ? 0.8 : Math.min(0.9, Math.max(0.08, days / 100));
+    const waterH = (h - 30) * levelRatio;
+
+    ctx.strokeStyle = "#475569"; ctx.lineWidth = 3;
+    ctx.strokeRect(30, 14, w - 60, h - 28);
+    ctx.fillStyle = "#0d9488";
+    ctx.fillRect(32, h - 14 - waterH, w - 64, waterH);
+
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "10px sans-serif"; ctx.textAlign = "left";
+    ctx.fillText("Inflow +" + inflow, 36, 30);
+    ctx.textAlign = "right";
+    ctx.fillText("Demand -" + agri, w - 36, 30);
+  }
+
+  [inflowInput, agriInput].forEach(function (i) { i.addEventListener("input", render); });
+  dripBoxes.forEach(function (b) {
+    b.addEventListener("change", function () {
+      dripBoxes.forEach(function (other) { other.checked = b.checked; });
+      render();
+    });
+  });
+  window.addEventListener("resize", render);
+  render();
+})();
+
+/* --- Lab 4: Formula Logic Parser ------------------------------------------- */
+(function () {
+  const select = document.getElementById("calcType");
+  const inputs = document.getElementById("dynamicInputs");
+  const result = document.getElementById("logicResult");
+  const resultEs = document.getElementById("logicResultEs");
+  if (!select || !inputs || !result) return;
+
+  function setResult(html) {
+    result.innerHTML = html;
+    if (resultEs) resultEs.innerHTML = html;
+  }
+
+  function build() {
+    const type = select.value;
+    if (type === "ocean") {
+      inputs.innerHTML = '<label style="margin-top:.8em"><span>Atmospheric CO2 (ppm)</span></label>' +
+        '<input type="number" id="co2Input" value="420">';
+      inputs.querySelector("#co2Input").addEventListener("input", runOcean);
+      runOcean();
+    } else if (type === "trophic") {
+      inputs.innerHTML = '<label style="margin-top:.8em"><span>Producer energy (kJ)</span></label>' +
+        '<input type="number" id="energyIn" value="80000">';
+      inputs.querySelector("#energyIn").addEventListener("input", runTrophic);
+      runTrophic();
+    } else {
+      inputs.innerHTML = '<div class="lab-inline-inputs">' +
+        '<input type="number" id="pB" placeholder="Births" value="120">' +
+        '<input type="number" id="pD" placeholder="Deaths" value="80">' +
+        '<input type="number" id="pI" placeholder="Immigration" value="15">' +
+        '<input type="number" id="pE" placeholder="Emigration" value="10">' +
+        '</div>';
+      ["pB", "pD", "pI", "pE"].forEach(function (id) { inputs.querySelector("#" + id).addEventListener("input", runPop); });
+      runPop();
+    }
+  }
+
+  function runOcean() {
+    const co2 = parseFloat(document.getElementById("co2Input").value) || 420;
+    const pH = (8.2 - (co2 - 280) * 0.0008).toFixed(2);
+    setResult("<b>CO2 + H2O &harr; H2CO3 &harr; H+ + HCO3-</b><br>" +
+      "Estimated ocean pH: <b>" + pH + "</b> (pre-industrial baseline: 8.2)<br>" +
+      "Extra H+ ions bind available carbonate, making it harder for corals to build CaCO3 skeletons.");
+  }
+  function runTrophic() {
+    const e = parseFloat(document.getElementById("energyIn").value) || 0;
+    setResult("<b>10% trophic transfer:</b><br>" +
+      "Producers: " + e.toLocaleString() + " kJ<br>" +
+      "Herbivores: " + (e * 0.1).toLocaleString() + " kJ<br>" +
+      "Carnivores: " + (e * 0.01).toLocaleString() + " kJ<br>" +
+      "Apex predators: " + (e * 0.001).toLocaleString() + " kJ<br>" +
+      "About 90% of energy is lost as heat at every step.");
+  }
+  function runPop() {
+    const B = parseFloat(document.getElementById("pB").value) || 0;
+    const D = parseFloat(document.getElementById("pD").value) || 0;
+    const I = parseFloat(document.getElementById("pI").value) || 0;
+    const E = parseFloat(document.getElementById("pE").value) || 0;
+    const dN = (B + I) - (D + E);
+    setResult("<b>&Delta;N = (Births + Immigration) - (Deaths + Emigration)</b><br>" +
+      "&Delta;N = (" + B + " + " + I + ") - (" + D + " + " + E + ") = <b>" + (dN >= 0 ? "+" : "") + dN + "</b><br>" +
+      "Population is " + (dN >= 0 ? "expanding" : "declining") + ".");
+  }
+
+  select.addEventListener("change", build);
+  build();
+})();
+
+/* ==========================================================================
+   QUIZ ARENA — a 100-item pool, 20 pulled at random per session, instant
+   marking with a full explanation and an end-of-round summary screen.
+   Reuses the same {q, opts, correct, explain} shape as the chapter BANK
+   above so the two pools could later be merged, but is kept separate here
+   since this section deliberately mixes questions across every chapter.
+   ========================================================================== */
+const QUIZ_ARENA_EXTRA = [
+  { q: "Which gas makes up roughly 78% of the atmosphere?", opts: ["Oxygen", "Nitrogen", "Carbon dioxide", "Argon"], correct: 1, explain: "Nitrogen is by far the most abundant atmospheric gas; oxygen is a distant second at ~21%." },
+  { q: "What is the biosphere's core function among Earth's four systems?", opts: ["Storing rock and minerals", "Converting solar energy into biomass", "Regulating ocean currents", "Filtering ultraviolet light"], correct: 1, explain: "Living things (the biosphere) capture solar energy and turn it into biological tissue." },
+  { q: "A country with deserts, forests, coastlines and grasslands has high...", opts: ["Genetic diversity", "Species diversity only", "Ecosystem diversity", "No particular diversity"], correct: 2, explain: "A wide range of contrasting habitats is exactly what ecosystem diversity measures." },
+  { q: "Which is a provisioning ecosystem service?", opts: ["Pollination", "Flood control", "Timber and fresh water", "Cultural inspiration"], correct: 2, explain: "Provisioning services are material goods taken directly from nature." },
+  { q: "What does it mean for a limiting factor to be density-dependent?", opts: ["It never changes", "Its effect strengthens as the population gets more crowded", "It only affects predators", "It is caused by weather"], correct: 1, explain: "Food competition, disease and waste buildup all intensify as density rises." },
+  { q: "In the water cycle, what is infiltration?", opts: ["Water evaporating into the air", "Water falling as rain", "Water soaking down into the ground", "Water flowing over the surface"], correct: 2, explain: "Infiltration carries water down into aquifers; runoff carries it over the surface instead." },
+  { q: "Which forest type is grown in rows, often as one species, for timber or paper?", opts: ["Primary forest", "Naturally regenerating forest", "Plantation forest", "Agroforestry"], correct: 2, explain: "Plantation forests are managed, single-species, row-planted timber operations." },
+  { q: "Why is drip irrigation more water-efficient than flood irrigation?", opts: ["It uses more water pressure", "It waters crops slowly and directly at the roots", "It only works at night", "It requires no infrastructure"], correct: 1, explain: "Targeted, slow delivery at the roots cuts evaporation and runoff losses dramatically." },
+  { q: "What does an Alliance for Zero Extinction (AZE) site protect?", opts: ["Any protected forest", "The last known wild population of a highly threatened species", "A country's entire coastline", "A generic nature reserve"], correct: 1, explain: "AZE sites are the sharpest, most urgent tier of conservation-priority mapping." },
+  { q: "Ocean acidification makes it harder for corals to do what?", opts: ["Photosynthesise", "Build calcium-carbonate skeletons", "Reproduce sexually", "Absorb sunlight"], correct: 1, explain: "Extra hydrogen ions bind carbonate that corals need to build their structures." },
+  { q: "What triggers a population's shift from exponential to logistic growth?", opts: ["A change in the weather only", "Increasing environmental resistance as density rises", "A drop in genetic diversity", "Immigration stopping completely"], correct: 1, explain: "As resources become limited, density-dependent resistance slows growth toward K." },
+  { q: "Which is an example of a non-point source of pollution?", opts: ["A single factory discharge pipe", "An offshore drilling platform blowout", "Fertiliser runoff from many farms across a region", "A ruptured underground storage tank"], correct: 2, explain: "Non-point pollution comes from many diffuse, hard-to-trace sources at once." },
+  { q: "What is the main difference between renewable and non-renewable energy?", opts: ["Renewable energy is always cheaper", "Renewable energy replenishes on a human timescale; non-renewable does not", "Non-renewable energy causes no pollution", "There is no real difference"], correct: 1, explain: "The test is replenishment speed relative to how fast we use it, not just being natural." },
+  { q: "What keeps Earth's natural greenhouse effect essential rather than harmful?", opts: ["It blocks all sunlight", "It keeps Earth warm enough to support life", "It removes oxygen from the air", "It has no actual effect"], correct: 1, explain: "Without any greenhouse effect Earth would be far too cold for life as we know it - the problem is the enhanced, human-added version." },
+  { q: "What does a carbon footprint measure?", opts: ["Total land and water used for all resources and waste", "Mainly greenhouse gas emissions from an activity", "A person's total physical footprint size", "Ocean plastic pollution only"], correct: 1, explain: "An environmental/ecological footprint is the broader measure; a carbon footprint focuses on emissions." },
+  { q: "What does the ozone layer specifically filter out of sunlight?", opts: ["Infrared heat", "Visible light", "Ultraviolet radiation", "Radio waves"], correct: 2, explain: "The ozone layer's entire job is absorbing most incoming UV light, especially UV-B." },
+  { q: "What international agreement addresses ozone-depleting chemicals?", opts: ["Paris Agreement", "Kyoto Protocol", "Montreal Protocol", "Geneva Convention"], correct: 2, explain: "The 1987 Montreal Protocol phased out CFCs and let the ozone layer begin recovering." },
+  { q: "Why are threatened species categories on the IUCN Red List ranked by severity?", opts: ["To rank zoos by quality", "To combine risk level with population trend for a fuller picture of urgency", "To decide ticket prices for safaris", "They are not actually ranked"], correct: 1, explain: "Category plus population trend together show how urgent conservation action really is." },
+  { q: "What is a buffer zone in conservation?", opts: ["A fenced tourist area", "A protective strip of land between a human land use and a sensitive ecosystem", "A backup water reservoir", "An area with no legal protection"], correct: 1, explain: "Buffer zones reduce edge pressures - noise, runoff, invasive species - on protected habitats." },
+  { q: "Why does agriculture use more water than any other human sector?", opts: ["Crops need constant electricity", "Irrigating crops and livestock requires enormous, continuous volumes of water", "Farms are mostly located near oceans", "Agriculture uses no water at all"], correct: 1, explain: "Agriculture accounts for roughly 70% of global freshwater withdrawals worldwide." }
+];
+
+function buildQuizArenaPool() {
+  const pool = [];
+  Object.values(BANK).forEach(function (list) { list.forEach(function (item) { pool.push(item); }); });
+  QUIZ_ARENA_EXTRA.forEach(function (item) { pool.push(item); });
+  return pool;
+}
+
+(function () {
+  const mount = document.getElementById("quiz-arena-mount");
+  if (!mount) return;
+  const POOL = buildQuizArenaPool();
+  const ROUND_SIZE = 20;
+  let round = [];
+  let answered = {};
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function startRound() {
+    round = shuffle(POOL).slice(0, Math.min(ROUND_SIZE, POOL.length));
+    answered = {};
+    render();
+  }
+
+  function score() {
+    return Object.keys(answered).filter(function (k) { return answered[k] === round[k].correct; }).length;
+  }
+
+  function render() {
+    mount.innerHTML = "";
+    const wrap = el("div", "quiz-arena");
+    wrap.innerHTML =
+      '<div class="quiz-arena__head">' +
+      '<div><p class="lab-card__tag" style="margin-bottom:.5em;display:inline-block">' + POOL.length + '-QUESTION POOL</p>' +
+      '<h3 style="margin:0;font-size:var(--step-1)">Round in progress</h3></div>' +
+      '<div style="display:flex;align-items:center;gap:var(--sp-4)">' +
+      '<div class="quiz-arena__score"><span class="l">Score</span><span class="v" id="qa-score">0 / ' + round.length + '</span></div>' +
+      '<button class="lab-btn" id="qa-new" type="button" style="background:linear-gradient(100deg,#34D2C7,#6C8CFF);color:#06121F">New quiz session</button>' +
+      '</div></div>' +
+      '<div id="qa-cards"></div>' +
+      '<div id="qa-summary" class="quiz-summary" hidden>' +
+      '<div class="quiz-summary__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a3 3 0 0 0 3 5M17 6h3a3 3 0 0 1-3 5"/></svg></div>' +
+      '<h3 id="qa-final-score">You scored 0 / ' + round.length + '</h3>' +
+      '<p id="qa-feedback"></p>' +
+      '<button class="lab-btn" id="qa-again" type="button" style="background:linear-gradient(100deg,#34D2C7,#6C8CFF);color:#06121F;margin-top:var(--sp-4)">Try another 20 questions</button>' +
+      '</div>';
+    mount.append(wrap);
+    wrap.querySelector("#qa-new").addEventListener("click", startRound);
+    wrap.querySelector("#qa-again").addEventListener("click", startRound);
+    renderCards();
+  }
+
+  function renderCards() {
+    const container = document.getElementById("qa-cards");
+    const summary = document.getElementById("qa-summary");
+    if (!container) return;
+    container.hidden = false;
+    if (summary) summary.hidden = true;
+    container.innerHTML = "";
+    round.forEach(function (item, idx) {
+      const card = el("div", "qa-card");
+      const optsHtml = item.opts.map(function (opt, oi) {
+        return '<button type="button" class="qa-opt" data-i="' + oi + '"><span class="qa-opt__letter">' +
+          String.fromCharCode(65 + oi) + '</span><span>' + opt + '</span></button>';
+      }).join("");
+      card.innerHTML =
+        '<div class="qa-card__head"><span>Question ' + (idx + 1) + ' of ' + round.length + '</span>' +
+        '<span class="qa-card__badge" id="qa-badge-' + idx + '">Unanswered</span></div>' +
+        '<h4>' + item.q + '</h4>' +
+        '<div>' + optsHtml + '</div>' +
+        '<div class="qa-explain" id="qa-explain-' + idx + '" hidden></div>';
+      container.append(card);
+      card.querySelectorAll(".qa-opt").forEach(function (btn) {
+        btn.addEventListener("click", function () { selectAnswer(idx, parseInt(btn.dataset.i, 10)); });
+      });
+    });
+  }
+
+  function selectAnswer(idx, optIdx) {
+    if (answered[idx] !== undefined) return;
+    answered[idx] = optIdx;
+    const item = round[idx];
+    const isCorrect = optIdx === item.correct;
+    const card = document.querySelectorAll(".qa-card")[idx];
+    card.querySelectorAll(".qa-opt").forEach(function (btn, i) {
+      btn.disabled = true;
+      if (i === item.correct) btn.classList.add("correct");
+      else if (i === optIdx) btn.classList.add("wrong");
+    });
+    const badge = document.getElementById("qa-badge-" + idx);
+    badge.textContent = isCorrect ? "Correct" : "Incorrect";
+    badge.className = "qa-card__badge " + (isCorrect ? "correct" : "wrong");
+    const explain = document.getElementById("qa-explain-" + idx);
+    explain.hidden = false;
+    explain.className = "qa-explain " + (isCorrect ? "correct" : "wrong");
+    explain.innerHTML = "<b>" + (isCorrect ? "Correct!" : "Explanation:") + "</b> " + item.explain;
+
+    document.getElementById("qa-score").textContent = score() + " / " + round.length;
+
+    if (Object.keys(answered).length === round.length) {
+      setTimeout(function () {
+        const container = document.getElementById("qa-cards");
+        const summary = document.getElementById("qa-summary");
+        const s = score();
+        const pct = Math.round((s / round.length) * 100);
+        document.getElementById("qa-final-score").textContent = "You scored " + s + " / " + round.length + " (" + pct + "%)";
+        document.getElementById("qa-feedback").textContent =
+          pct >= 90 ? "Mastery achieved - outstanding environmental literacy." :
+          pct >= 70 ? "Solid grasp of the course - a little more revision on the misses." :
+          "Good start - go back over the chapters for the questions you missed.";
+        if (container) container.hidden = true;
+        if (summary) summary.hidden = false;
+      }, 900);
+    }
+  }
+
+  startRound();
+})();
