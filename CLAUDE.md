@@ -760,7 +760,20 @@ never be described more strongly than that — to the student, the tutor, or in 
 
 - **No build step, no npm.** Plain ES modules. Any activity is editable by opening one file.
 - **Everything vendored, nothing from a CDN** (`engine/vendor/`). School wifi filters block CDNs,
-  and vendored code still works years from now when a CDN path 404s.
+  and vendored code still works years from now when a CDN path 404s. **Exception (agreed
+  2026-09-21):** a page Diego designs entirely himself in another tool (so far: Gemini) and hands
+  over as a complete, finished HTML file, with an explicit instruction to upload it as-is, is
+  uploaded verbatim — CDN links, external fonts and all — with no redesign, restructuring, or
+  "porting into the architecture" by Claude. Diego was explicit after two earlier attempts at
+  this got progressively rejected: "I don't want you, Claude, to design that... I would like to
+  see the HTML as it has been designed by Gemini." This is a deliberate, informed tradeoff on his
+  part (the resulting page will not render, or will render unstyled, on a network that blocks
+  CDNs) — flag that once when it's relevant, then upload the file exactly as given and stop.
+  Reference instance: `secondary/us-pathway/high-school/environmental-science/guide-revision-guide/`
+  is a single self-contained HTML file (Tailwind CDN + FontAwesome CDN + Google Fonts), uploaded
+  byte-for-byte. This exception is scoped to pages Diego hands over complete and finished — it is
+  not a general license to reach for a CDN in a normal built simulation, which still follows every
+  rule in this file as before.
 - **PDF via jsPDF** with a hand-written layout function. Never `window.print()`.
 - **`simulation_url` is computed at runtime** from `window.location` — never hardcoded, so a custom
   domain later breaks nothing.
