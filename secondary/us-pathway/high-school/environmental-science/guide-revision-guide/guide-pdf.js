@@ -297,9 +297,9 @@ function buildGuidePDF(jsPDF) {
   doc.text("US Pathway, High School - every topic from the course, start to finish.", M, y); y += 28;
   rule();
   para(
-    "This is a compact print edition of the online guide. The live version has interactive diagrams for the " +
-    "food web, water cycle, population growth curves, Earth's systems and the ozone layer - open the activity " +
-    "link on the course page to see them.",
+    "This is a compact print edition of the online guide. The live version also has interactive diagrams, a " +
+    "72-question auto-marked Practice Bank, and two interactive models (a Reservoir Manager and a Population " +
+    "Growth Explorer) - open the course page to use them.",
     { size: 9.5, style: "italic", color: mut, gap: 18 }
   );
 

@@ -145,6 +145,56 @@
   details.answers li { color: var(--ink-2); font-size: var(--step--1); margin-top: var(--sp-3); }
 
   .back-to-top { display: inline-flex; margin-top: var(--sp-4); }
+
+  /* Practice: auto-marked multiple-choice questions */
+  .practice-mount { margin-top: var(--sp-6); }
+  .practice-mount__head { display: flex; align-items: center; gap: var(--sp-2); color: var(--accent); margin-bottom: var(--sp-3); }
+  .practice-mount__head svg { width: 18px; height: 18px; }
+  .practice-mount__head span { font-size: var(--step--1); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-family: var(--font-data); }
+  .mcq { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--sp-4) var(--sp-5); margin-top: var(--sp-3); }
+  .mcq__q { font-size: var(--step--1); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-3); }
+  .mcq__opts { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .mcq__opt {
+    display: flex; align-items: flex-start; gap: var(--sp-3); text-align: left;
+    background: var(--paper); border: 1px solid var(--line-strong); border-radius: var(--radius);
+    padding: var(--sp-3) var(--sp-4); font: inherit; font-size: var(--step--1); color: var(--ink);
+    cursor: pointer; width: 100%; transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  }
+  .mcq__opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-wash); }
+  .mcq__opt:disabled { cursor: default; }
+  .mcq__opt .letter {
+    font-family: var(--font-data); font-weight: 700; font-size: 0.75rem; flex: none;
+    width: 1.6em; height: 1.6em; border-radius: 50%; border: 1px solid var(--line-strong);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mcq__opt.is-correct { border-color: var(--positive); background: color-mix(in srgb, var(--positive) 14%, var(--surface)); }
+  .mcq__opt.is-correct .letter { background: var(--positive); border-color: var(--positive); color: #fff; }
+  .mcq__opt.is-wrong { border-color: var(--negative); background: color-mix(in srgb, var(--negative) 12%, var(--surface)); }
+  .mcq__opt.is-wrong .letter { background: var(--negative); border-color: var(--negative); color: #fff; }
+  .mcq__opt.is-faded { opacity: 0.55; }
+  .mcq__explain { margin-top: var(--sp-3); font-size: var(--step--1); color: var(--ink-2); font-style: italic; border-left: 3px solid var(--accent); padding-left: var(--sp-3); }
+
+  .practice-bank__toolbar { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; margin: var(--sp-4) 0 var(--sp-2); }
+  .practice-bank__score { font-family: var(--font-data); font-size: var(--step--1); color: var(--ink-2); }
+  .practice-bank__score b { color: var(--accent); }
+
+  /* Try-it interactive concept models */
+  .sim-mount { margin-top: var(--sp-6); }
+  .sim-mount__loading { color: var(--ink-3); font-size: var(--step--1); font-style: italic; }
+  .sim-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--sp-5); }
+  .sim-card__title { display: flex; align-items: center; gap: var(--sp-2); color: var(--signal); font-family: var(--font-data);
+    font-size: var(--step--1); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: var(--sp-4); }
+  .sim-card__title svg { width: 18px; height: 18px; }
+  .sim-row { display: grid; gap: var(--sp-5); grid-template-columns: minmax(0,1fr); }
+  @media (min-width: 46rem) { .sim-row { grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); } }
+  .sim-controls label { display: block; font-size: var(--step--1); font-weight: 700; color: var(--ink); margin-top: var(--sp-4); }
+  .sim-controls label:first-child { margin-top: 0; }
+  .sim-controls input[type="range"] { width: 100%; margin-top: var(--sp-2); accent-color: var(--accent); }
+  .sim-controls .val { font-family: var(--font-data); color: var(--accent); }
+  .sim-readout { margin-top: var(--sp-4); font-size: var(--step--1); color: var(--ink-2); }
+  .sim-readout strong { color: var(--ink); }
+  .sim-readout.is-alert { color: var(--negative); font-weight: 700; }
+  .sim-canvas { display: block; width: 100%; height: auto; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); }
 </style>
 </head>
 <body>
@@ -242,6 +292,7 @@
     <a href="#ch11"><span class="toc__n">11</span><span class="toc__t">Pollution</span></a>
     <a href="#ch12"><span class="toc__n">12</span><span class="toc__t">The Ozone Layer</span></a>
     <a href="#glossary"><span class="toc__n">&middot;</span><span class="toc__t">Glossary</span></a>
+    <a href="#practice-bank"><span class="toc__n">&middot;</span><span class="toc__t">Practice Bank</span></a>
     <a href="#exam-practice"><span class="toc__n">&middot;</span><span class="toc__t">Exam Practice</span></a>
   </nav>
 
@@ -294,6 +345,7 @@
       <div class="qa"><div class="q">2. Why is "energy" too broad as an environmental-impact example unless it's explained further?</div><div class="a">It doesn't name the specific action or impact — a stronger answer names something like heating a house, charging devices, or driving a petrol car.</div></div>
       <div class="qa"><div class="q">3. Why is clean water a more accurate concern than "we will run out of water"?</div><div class="a">Water stays in the water cycle, so the real issue is whether it's clean, safe and available for people, ecosystems, rivers, oceans and soils.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch1" data-chapter="1"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -413,6 +465,7 @@
       <div class="qa"><div class="q">2. What does the 10% rule explain?</div><div class="a">Why top predators are rare — only about a tenth of the energy at one trophic level transfers to the next.</div></div>
       <div class="qa"><div class="q">3. What is the difference between a biotic and an abiotic factor?</div><div class="a">Biotic factors are living parts of an ecosystem; abiotic factors are non-living conditions such as sunlight, water or soil.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch2" data-chapter="2"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -498,6 +551,7 @@
       <div class="qa"><div class="q">2. Why is more species not always better for an ecosystem?</div><div class="a">Some added species may be invasive and can damage native food webs, habitats and ecological balance.</div></div>
       <div class="qa"><div class="q">3. Name the four categories of ecosystem services.</div><div class="a">Provisioning, regulating, supporting and cultural.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch3" data-chapter="3"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -571,6 +625,7 @@
       <div class="qa"><div class="q">2. Put these in order of increasing extinction risk: Endangered, Vulnerable, Critically Endangered.</div><div class="a">Vulnerable, then Endangered, then Critically Endangered.</div></div>
       <div class="qa"><div class="q">3. How does extra carbon dioxide end up harming coral reefs?</div><div class="a">It dissolves into seawater, makes it more acidic, and makes it harder for corals to build their structures.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch4" data-chapter="4"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -643,6 +698,8 @@
       <div class="qa"><div class="q">2. What does carrying capacity mean?</div><div class="a">The maximum population size an environment can support over time, given the food, water and space available.</div></div>
       <div class="qa"><div class="q">3. Give one density-dependent and one density-independent limiting factor.</div><div class="a">Density-dependent: food, water, space or disease. Density-independent: a wildfire, flood or hurricane.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch5" data-chapter="5"></div>
+    <div class="sim-mount" id="sim-growth"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -700,6 +757,7 @@
       <div class="qa"><div class="q">2. Using a tsunami as an example, explain how it affects at least three of them.</div><div class="a">It changes the geosphere through seafloor and coastline movement, moves huge amounts of water in the hydrosphere, and damages people, animals and habitats in the biosphere.</div></div>
       <div class="qa"><div class="q">3. Why is it more accurate to treat the four systems as one connected model?</div><div class="a">Because changes in land, water, air and living things spread through the planet as connected consequences, rather than staying in one system.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch6" data-chapter="6"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -800,6 +858,7 @@
       <div class="qa"><div class="q">2. Trace the water cycle from evaporation back to the ocean.</div><div class="a">Sun evaporates water &rarr; vapour condenses into a cloud &rarr; precipitation falls &rarr; water runs off over the surface or infiltrates into an aquifer &rarr; eventually returns to the ocean.</div></div>
       <div class="qa"><div class="q">3. What is an aquifer?</div><div class="a">An underground layer of rock or soil that stores fresh water in the spaces between particles.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch7" data-chapter="7"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -863,6 +922,7 @@
       <div class="qa"><div class="q">2. Why can a monoculture support less biodiversity than a native forest?</div><div class="a">It's dominated by one species, so it provides far less food, shelter and habitat variety than a native forest with many species.</div></div>
       <div class="qa"><div class="q">3. What is the difference between industrial and subsistence agriculture?</div><div class="a">Industrial agriculture is run mainly as a business selling most of what is produced; subsistence agriculture is farming mainly to feed the farming family itself.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch8" data-chapter="8"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -911,6 +971,8 @@
       <div class="qa"><div class="q">2. What is the largest human cause of water scarcity?</div><div class="a">Agriculture, which uses more water than domestic or industrial use.</div></div>
       <div class="qa"><div class="q">3. Name two conservation measures and how each saves water.</div><div class="a">Drip irrigation waters crops directly at the roots, cutting farm water use by ~35%; rainwater harvesting collects and stores rain instead of drawing more from the reservoir.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch9" data-chapter="9"></div>
+    <div class="sim-mount" id="sim-reservoir"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -958,6 +1020,7 @@
       <div class="qa"><div class="q">2. What do greenhouse gases do, and what is the actual problem with them?</div><div class="a">They absorb and re-emit heat, keeping Earth warm enough for life naturally — the problem is extra greenhouse gases from human activity trapping more heat than usual.</div></div>
       <div class="qa"><div class="q">3. How is an environmental footprint broader than a carbon footprint?</div><div class="a">A carbon footprint focuses on greenhouse gas emissions; an environmental footprint also includes land, water, food, packaging, pollution, transport and housing.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch10" data-chapter="10"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -1003,6 +1066,7 @@
       <div class="qa"><div class="q">2. What actually caused the Montara oil spill, and where?</div><div class="a">A blowout at the West Atlas offshore drilling platform in the Timor Sea, north of Darwin.</div></div>
       <div class="qa"><div class="q">3. Why can't agricultural run-off be "switched off" the way a single factory can?</div><div class="a">It comes from many farms spread across an entire region, so there's no single source to target — it needs broad, coordinated change instead.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch11" data-chapter="11"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -1065,6 +1129,7 @@
       <div class="qa"><div class="q">2. Why are ozone depletion and global warming two separate problems?</div><div class="a">Ozone depletion is caused by CFCs damaging the ozone layer's ability to filter UV light; global warming is caused by greenhouse gases trapping heat that arrives as infrared radiation — different gases and mechanisms.</div></div>
       <div class="qa"><div class="q">3. What did the Montreal Protocol do?</div><div class="a">Signed in 1987, it banned CFCs and other ozone-depleting chemicals internationally, allowing the ozone layer to begin recovering.</div></div>
     </div>
+    <div class="practice-mount" id="practice-ch12" data-chapter="12"></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -1122,6 +1187,21 @@
       <div class="gloss-item"><b>Transpiration</b> — <span>the release of water vapour from plants into the atmosphere.</span></div>
       <div class="gloss-item"><b>Trophic level</b> — <span>a feeding position in a food chain — producer, primary consumer, and so on.</span></div>
     </div>
+  </section>
+
+  <!-- ============================================================ PRACTICE BANK -->
+  <section class="chapter" id="practice-bank">
+    <p class="eyebrow chapter__eyebrow" data-lang="en">Practice</p>
+    <p class="eyebrow chapter__eyebrow" data-lang="es" hidden>Práctica</p>
+    <h2 data-lang="en">Practice Bank</h2>
+    <h2 data-lang="es" hidden>Banco de Práctica</h2>
+    <p class="chapter__lede" data-lang="en">Every multiple-choice question from every chapter, pooled into one shuffled
+      set with instant marking. Use "New set" to reshuffle and try again &mdash; a good way to check the whole
+      course is secure, not just one chapter.</p>
+    <p class="chapter__lede" data-lang="es" hidden>Todas las preguntas de opción múltiple de cada capítulo, agrupadas
+      en un conjunto aleatorio con corrección instantánea. Usa "Nuevo conjunto" para barajar de nuevo &mdash; una
+      buena forma de comprobar que todo el curso está firme, no solo un capítulo.</p>
+    <div id="practice-bank-mount"></div>
   </section>
 
   <!-- ============================================================ EXAM PRACTICE -->
@@ -1200,6 +1280,7 @@
   </div>
 </footer>
 
+<script type="module" src="./guide-practice.js"></script>
 <script type="module" src="./guide-pdf.js"></script>
 </body>
 </html>
