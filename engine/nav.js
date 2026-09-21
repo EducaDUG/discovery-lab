@@ -44,6 +44,7 @@ function metaFor(node) {
     if (node.minutes) bits.push(t("count.min", { n: node.minutes }));
     return bits.filter(Boolean).join(" · ");
   }
+  if (node.type === "guide") return pl(node, "meta") || t("in-preparation");
   const live = liveCount(node), total = totalCount(node);
   const hasGame = !!node.featuredGame;
   if (live) return plural(live, "activity") + (total > live ? ` · ${t("count.coming", { n: total - live })}` : "") + (hasGame ? ` · ${t("learning-game")}` : "");
@@ -60,8 +61,14 @@ function metaFor(node) {
    units are built, so those count as walkable too. */
 function tile(node, href) {
   const hasExtras = !!node.featuredGame || (node.resources || []).length > 0;
-  const live = node.type === "simulation" ? node.status === "live" : (liveCount(node) > 0 || !!node.featuredGame);
-  const walkable = node.type === "simulation" ? node.status === "live" : ((node.children || []).length > 0 || hasExtras);
+  // A "guide" is a static reference page, not a graded activity with a status —
+  // it is always available, the same way a finished simulation always is.
+  const live = node.type === "simulation" ? node.status === "live"
+    : node.type === "guide" ? true
+    : (liveCount(node) > 0 || !!node.featuredGame);
+  const walkable = node.type === "simulation" ? node.status === "live"
+    : node.type === "guide" ? true
+    : ((node.children || []).length > 0 || hasExtras);
 
   const n = el(walkable && href ? "a" : "div", "tile");
   if (walkable && href) n.href = href; else n.setAttribute("aria-disabled", "true");

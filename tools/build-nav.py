@@ -80,9 +80,12 @@ ASSET_VERSION = "11"
 STYLE_VERSION = "12"
 
 
+LEAF_TYPES = {"simulation", "guide"}  # own hand-written page; never gets a generated nav shell
+
+
 def walk(nodes, trail, out):
     for node in nodes:
-        if node.get("type") == "simulation":
+        if node.get("type") in LEAF_TYPES:
             continue
         path = trail + [node["id"]]
         out.append((path, node))
@@ -96,8 +99,18 @@ def walk_live_simulations(nodes, trail, out):
         if node.get("type") == "simulation":
             if node.get("status") == "live":
                 out.append(path)
-        else:
+        elif node.get("type") != "guide":
             walk_live_simulations(node.get("children", []), path, out)
+
+
+def walk_guides(nodes, trail, out):
+    """Collect every guide's folder path, for the sitemap (served as .../index.html)."""
+    for node in nodes:
+        path = trail + [node["id"]]
+        if node.get("type") == "guide":
+            out.append(path)
+        elif node.get("type") != "simulation":
+            walk_guides(node.get("children", []), path, out)
 
 
 def main():
@@ -133,10 +146,17 @@ def main():
         )
         written.append(url_path)
 
-    # sitemap.xml — every nav page plus every live simulation's activity.html
+    # sitemap.xml — every nav page, every live simulation's activity.html, every guide
     sim_paths = []
     walk_live_simulations(data["tree"], [], sim_paths)
-    sitemap_urls = ["", "about/"] + [w + "/" for w in written] + ["/".join(p) + "/activity.html" for p in sim_paths]
+    guide_paths = []
+    walk_guides(data["tree"], [], guide_paths)
+    sitemap_urls = (
+        ["", "about/"]
+        + [w + "/" for w in written]
+        + ["/".join(p) + "/activity.html" for p in sim_paths]
+        + ["/".join(p) + "/" for p in guide_paths]
+    )
     sitemap = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for u in sitemap_urls:
         sitemap.append(f"  <url><loc>{SITE_URL}{u}</loc></url>")
