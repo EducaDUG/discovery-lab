@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Primary 2 Physics · Module 1: Our Solar System and Beyond · Orbit Architects. Content lives here + config.json only. -->
+<!-- Primary 2 Physics · Module 1: Our Solar System and Beyond · Orbit Architects. Content lives here + config.json/marking.json only. -->
 <html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
 <head>
 <meta charset="utf-8">
@@ -32,6 +32,48 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .oa-flip__a { display: none; margin-top: .5rem; color: var(--ink-2); font-size: .9rem; }
   .oa-flip[data-open="true"] .oa-flip__a { display: block; }
   .oa-flip[data-open="true"] { border-style: solid; border-color: var(--accent); }
+
+  .oa-moment { border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1rem; background: var(--surface); margin-top: 12px; transition: opacity .3s ease; }
+  .oa-moment__head { display: flex; align-items: center; gap: .6rem; margin-bottom: .3rem; }
+  .oa-moment__n { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-ink, #fff); font-family: var(--font-data); font-weight: 800; font-size: .85rem; flex: none; }
+  .oa-moment__title { font-weight: 800; font-size: 1.02rem; margin: 0; }
+  .oa-moment__done { margin-left: auto; font-family: var(--font-data); font-size: .74rem; color: var(--positive, var(--accent)); display: none; }
+  .oa-moment__done[data-show="true"] { display: inline; }
+  .oa-locked { opacity: .4; pointer-events: none; }
+
+  /* particles (shared burst pattern, CLAUDE.md's "every interaction needs juice") */
+  .oa-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 5; }
+
+  /* Moment 1 — nebula collapse */
+  .oa-nebula-stage { position: relative; height: 200px; border-radius: 12px; overflow: hidden; background: radial-gradient(120% 140% at 50% 60%, #1b1030 0%, #0a0715 60%, #05040c 100%); border: 1px solid #2a2050; margin-top: .6rem; }
+  .oa-nebula-cloud { position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #c79bff 0%, #7a5fd6 35%, #3a2a70 65%, transparent 78%); filter: blur(1px); transition: transform .32s cubic-bezier(.34,1.4,.4,1), background .5s ease, filter .4s ease; }
+  .oa-nebula-cloud[data-ignited="true"] { background: radial-gradient(circle at 42% 38%, #fff6d8 0%, #ffd27a 30%, #ffaa33 58%, transparent 80%); filter: blur(0) drop-shadow(0 0 30px #ffaa33); }
+  .oa-nebula-cloud.oa-punch { animation: oa-punch .5s ease; }
+  [data-reduced-motion="on"] .oa-nebula-cloud.oa-punch { animation: none; }
+  @keyframes oa-punch { 0% { transform: scale(1); } 35% { transform: scale(1.5); } 60% { transform: scale(0.92); } 100% { transform: scale(1); } }
+  .oa-density-bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: .7rem; }
+  .oa-density-bar__fill { height: 100%; width: 0%; background: linear-gradient(90deg, #7a5fd6, #ffaa33); transition: width .3s ease; border-radius: 999px; }
+  .oa-density-label { font-family: var(--font-data); font-size: .78rem; color: var(--ink-2); margin-top: .35rem; display: flex; justify-content: space-between; }
+
+  /* Moment 2 — Sun's Recipe donut */
+  .oa-recipe-row { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: center; margin-top: .6rem; }
+  .oa-donut-wrap { position: relative; flex: none; width: 160px; height: 160px; }
+  .oa-donut-wrap svg { width: 100%; height: 100%; }
+  .oa-donut-seg { cursor: pointer; transition: transform .25s ease, opacity .2s ease; transform-box: fill-box; transform-origin: center; }
+  .oa-donut-seg:hover { opacity: .85; }
+  .oa-donut-seg[data-open="true"] { transform: scale(1.06); }
+  .oa-donut-seg.oa-seg-pulse { animation: oa-pulse .4s ease; }
+  [data-reduced-motion="on"] .oa-donut-seg.oa-seg-pulse { animation: none; }
+  .oa-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+  .oa-donut-center b { font-family: var(--font-data); font-size: 1.3rem; }
+  .oa-donut-center span { font-size: .68rem; color: var(--ink-3); }
+  .oa-recipe-facts { flex: 1 1 220px; min-width: 200px; }
+  .oa-recipe-legend { display: flex; flex-direction: column; gap: .4rem; margin-bottom: .5rem; }
+  .oa-legend-item { display: flex; align-items: center; gap: .5rem; font-size: .86rem; cursor: pointer; border: none; background: none; padding: .2rem 0; text-align: left; font: inherit; color: var(--ink-1); }
+  .oa-legend-dot { width: 13px; height: 13px; border-radius: 50%; flex: none; }
+  .oa-legend-item[data-done="true"] { font-weight: 700; }
+  .oa-legend-item__check { font-size: .75rem; color: var(--positive, var(--accent)); margin-left: auto; visibility: hidden; }
+  .oa-legend-item[data-done="true"] .oa-legend-item__check { visibility: visible; }
 
   .oa-hyp-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .95rem; line-height: 2.4; }
   .oa-hyp-row select { font: inherit; font-weight: 700; color: var(--accent); background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 8px; padding: .25rem .5rem; }
@@ -74,6 +116,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .oa-dist-row input[type=range] { flex: 1 1 220px; accent-color: var(--accent); }
   .oa-dist-read { font-family: var(--font-data); font-weight: 700; min-width: 7ch; text-align: right; }
   .oa-real-chip { font-family: var(--font-data); font-size: .78rem; background: var(--signal-wash); color: var(--ink-2); border-radius: 999px; padding: .2rem .7rem; }
+  .oa-ellipse-note { font-size: .82rem; color: var(--ink-2); background: var(--signal-wash); border-radius: 8px; padding: .5rem .7rem; margin-top: .6rem; }
 </style>
 </head>
 <body>
@@ -114,8 +157,10 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../engine/arcade.js?v=3";
 
 const L = (en, es) => getLang() === "es" ? es : en;
+const THREE_URL = "../../../../../../engine/vendor/three.min.js";
 
 function reducedMotion() {
   return document.documentElement.getAttribute("data-reduced-motion") === "on";
@@ -129,6 +174,30 @@ function tween(duration, onUpdate, onDone) {
     if (t < 1) requestAnimationFrame(step); else onDone && onDone();
   }
   requestAnimationFrame(step);
+}
+/* Small DOM/CSS particle burst, shared by every new moment — see CLAUDE.md's
+   "every interaction needs juice" amendment. `container` must be
+   position:relative/absolute so particles anchor to it correctly. */
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return;
+  count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span");
+    p.className = "oa-particle";
+    const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px";
+    p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.append(p);
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 50;
+    const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 20;
+    p.animate(
+      [{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
+       { transform: `translate(${dx}px, ${dy}px) scale(.3)`, opacity: 0 }],
+      { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
 }
 
 /* ============================================================
@@ -146,7 +215,7 @@ const PLANETS = [
   { id: "jupiter", en: "Jupiter", es: "Júpiter",  au: 5.20, days: 4333,  type: "jovian",      color: 0xd8ae7e },
   { id: "saturn",  en: "Saturn",  es: "Saturno",  au: 9.58, days: 10759, type: "jovian",      color: 0xe3c98a },
   { id: "uranus",  en: "Uranus",  es: "Urano",    au: 19.18, days: 30687, type: "jovian",     color: 0x8fd6e0 },
-  { id: "neptune", en: "Neptune", es: "Neptuno",  au: 30.07, days: 60190, type: "jovian",     color: 0x4f6fd6 },
+  { id: "neptune", en: "Neptune", es: "Neptuno",  au: 30.07, days: 60190, type: "jovian",      color: 0x4f6fd6 },
 ];
 function keplerDays(au) { return Math.round(365.25 * Math.pow(au, 1.5)); }
 function visualRadius(au) { return 1.1 + 1.55 * Math.log10(au * 10 + 1); }
@@ -154,30 +223,116 @@ function fmtDays(d) {
   if (d >= 365) return (d / 365).toFixed(d >= 3650 ? 0 : 1) + L(" Earth years", " años terrestres") + ` (${d.toLocaleString()} ${L("days", "días")})`;
   return d.toLocaleString() + L(" Earth days", " días terrestres");
 }
+/* Visual-only orbit eccentricity — a gentle, honest nod to real orbits
+   being ellipses, not perfect circles (see the orbit ring/planet motion
+   below). Kepler's-law period math above is completely untouched by this;
+   it only flattens the drawn path and the dot's position along it. */
+const ORBIT_ECC = 0.84;
+
+/* ============================================================
+   OBSERVATION — a real Hubble photo of a nebula, tap-to-reveal.
+   This is where the investigation's enquiry actually starts.
+   ============================================================ */
+function observation(host, sim) {
+  host.innerHTML = "";
+
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L(
+    "This is a real photograph of the Eagle Nebula's 'Pillars of Creation', taken by the Hubble Space Telescope. Tap each glowing spot to notice something real about it — before you learn any names.",
+    "Esta es una fotografía real de los «Pilares de la Creación» en la Nebulosa del Águila, tomada por el telescopio espacial Hubble. Toca cada punto luminoso para observar algo real — antes de aprender ningún nombre."
+  );
+  host.append(intro);
+
+  const photoWrap = document.createElement("div");
+  photoWrap.className = "oa-photo-wrap";
+  photoWrap.innerHTML = `<img src="photos/nebula.jpg" alt="${L(
+      "A real photograph of the Pillars of Creation, towering columns of gas and dust in the Eagle Nebula, taken by the Hubble Space Telescope",
+      "Una fotografía real de los Pilares de la Creación, columnas de gas y polvo en la Nebulosa del Águila, tomada por el telescopio espacial Hubble")}">`;
+
+  const SPOTS = [
+    { x: 0.5, y: 0.5,
+      en: "A cloud of gas and dust", es: "Una nube de gas y polvo",
+      revealEn: "Everything glowing here is a nebula — an enormous cloud of gas (mostly hydrogen) and tiny grains of dust, stretched across trillions of kilometres of space.",
+      revealEs: "Todo lo que brilla aquí es una nebulosa — una nube enorme de gas (sobre todo hidrógeno) y diminutos granos de polvo, extendida a lo largo de billones de kilómetros de espacio." },
+    { x: 0.28, y: 0.58,
+      en: "A denser, glowing clump", es: "Un grumo más denso y brillante",
+      revealEn: "Some patches of the cloud are thicker and denser than others. Gravity pulls the gas and dust in these denser clumps together even more — this is exactly where new stars begin to form.",
+      revealEs: "Algunas zonas de la nube son más gruesas y densas que otras. La gravedad atrae aún más el gas y el polvo de estos grumos densos — es justo ahí donde empiezan a formarse las estrellas nuevas." },
+    { x: 0.68, y: 0.34,
+      en: "Bright points inside the pillars", es: "Puntos brillantes dentro de los pilares",
+      revealEn: "Those tiny bright points buried inside the columns are newborn stars — stars that have only just switched on, still wrapped in the gas and dust they formed from.",
+      revealEs: "Esos pequeños puntos brillantes enterrados dentro de las columnas son estrellas recién nacidas — estrellas que acaban de encenderse, todavía envueltas en el gas y el polvo con los que se formaron." },
+    { x: 0.86, y: 0.72,
+      en: "Wispy, sculpted edges", es: "Bordes deshilachados y esculpidos",
+      revealEn: "The pillar shapes are sculpted by radiation and fierce winds streaming from bright young stars nearby, slowly eroding the cloud away over thousands of years.",
+      revealEs: "Las formas de los pilares están esculpidas por la radiación y vientos feroces que llegan de estrellas jóvenes y brillantes cercanas, que erosionan la nube lentamente a lo largo de miles de años." }
+  ];
+  SPOTS.forEach((s, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "oa-spot";
+    btn.style.left = (s.x * 100) + "%";
+    btn.style.top = (s.y * 100) + "%";
+    btn.textContent = String(i + 1);
+    btn.setAttribute("aria-label", L(s.en, s.es));
+    btn.addEventListener("click", () => {
+      btn.classList.remove("oa-spot__pulse"); void btn.offsetWidth; btn.classList.add("oa-spot__pulse");
+      const isOpen = btn.dataset.open === "true";
+      photoWrap.querySelectorAll(".oa-spot").forEach(b => b.dataset.open = "false");
+      reveal.dataset.show = "false";
+      if (!isOpen) {
+        btn.dataset.open = "true";
+        reveal.dataset.show = "true";
+        reveal.textContent = `${L(s.en, s.es)} — ${L(s.revealEn, s.revealEs)}`;
+      }
+    });
+    photoWrap.append(btn);
+  });
+  host.append(photoWrap);
+
+  const reveal = document.createElement("p");
+  reveal.className = "oa-reveal";
+  host.append(reveal);
+
+  const credit = document.createElement("p");
+  credit.className = "oa-credit";
+  credit.innerHTML = L(
+    'Photo: NASA, ESA, and the Hubble Heritage Team (STScI/AURA) — <a href="https://commons.wikimedia.org/wiki/File:Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg" target="_blank" rel="noopener">public domain, via Wikimedia Commons</a>.',
+    'Foto: NASA, ESA y The Hubble Heritage Team (STScI/AURA) — <a href="https://commons.wikimedia.org/wiki/File:Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg" target="_blank" rel="noopener">dominio público, vía Wikimedia Commons</a>.'
+  );
+  host.append(credit);
+
+  const wrap = document.createElement("p"); wrap.className = "q__hint"; wrap.style.marginTop = "var(--sp-4)";
+  wrap.textContent = L(
+    "Keep this in mind — in a moment, you'll build a star of your own from a cloud just like this one.",
+    "Recuerda esto — dentro de un momento, construirás tu propia estrella a partir de una nube como esta."
+  );
+  host.append(wrap);
+
+  sim.setScienceMethod({
+    observation: L(
+      "A real photograph of the Eagle Nebula's Pillars of Creation, taken by the Hubble Space Telescope, shows towering columns of glowing gas and dust, with denser clumps and tiny bright newborn stars embedded inside them.",
+      "Una fotografía real de los Pilares de la Creación en la Nebulosa del Águila, tomada por el telescopio espacial Hubble, muestra columnas de gas y polvo brillante, con grumos más densos y pequeñas estrellas recién nacidas incrustadas dentro."
+    ),
+    question: L(
+      "What determines how long it takes a planet to complete one full orbit around the Sun?",
+      "¿Qué determina cuánto tarda un planeta en completar una vuelta completa alrededor del Sol?"
+    )
+  });
+}
 
 /* ============================================================
    ORIENT — a real photo of Mars, hotspot-labelled, plus a
-   tap-to-reveal about its two tiny moons.
+   tap-to-reveal about gravity holding planets in orbit.
    ============================================================ */
 function orient(host, sim) {
-  sim.setScienceMethod({
-    observation: L(
-      "A real photograph of Mars, taken by the Hubble Space Telescope, shows a white polar ice cap, a rusty-red surface, darker rocky patches, and a thin blue haze at its edge.",
-      "Una fotografía real de Marte, tomada por el telescopio espacial Hubble, muestra un casquete polar blanco, una superficie rojiza, zonas rocosas más oscuras y una fina bruma azul en su borde."
-    ),
-    question: L(
-      "If Mars is a real planet, right next door to Earth in the solar system, what holds it — and every other planet — in place around the Sun instead of drifting away into space?",
-      "Si Marte es un planeta real, justo al lado de la Tierra en el sistema solar, ¿qué lo mantiene a él — y a todos los demás planetas — en su sitio alrededor del Sol en vez de alejarse flotando por el espacio?"
-    )
-  });
-
   const wrap = document.createElement("div");
 
   const obsCard = document.createElement("div");
   obsCard.className = "card";
   obsCard.style.marginBottom = "10px";
   obsCard.innerHTML =
-    `<p class="eyebrow">${L("Observation", "Observación")}</p>
+    `<p class="eyebrow">${L("Meet a real planet", "Conoce un planeta real")}</p>
      <p class="q__hint" style="margin:0 0 8px">${L(
         "Tap each glowing spot on this real photo of Mars, taken by the Hubble Space Telescope.",
         "Toca cada punto luminoso de esta foto real de Marte, tomada por el telescopio espacial Hubble."
@@ -255,17 +410,161 @@ function orient(host, sim) {
 }
 
 /* ============================================================
-   INVESTIGATE — Part A: a structured hypothesis. Part B: Mission
-   Control, a 3D orbit sandbox where the independent variable is
-   distance-from-Sun and the dependent variable is orbit time.
+   EXPERIMENT (formerly Investigate) — three hands-on, things-move
+   moments, in order:
+     1) Build the Sun — compress a nebula until it collapses and
+        ignites (CLAUDE.md's "at least three hands-on moments" rule).
+     2) The Sun's Recipe — a tappable composition donut.
+     3) Mission Control — the planet-launch orbit sandbox (now with
+        visibly elliptical orbit paths).
    ============================================================ */
 function investigate(host, sim) {
   host.innerHTML = "";
   const wrap = document.createElement("div"); wrap.className = "stack";
 
-  /* ---- Part A: hypothesis ------------------------------------------- */
-  const hypCard = document.createElement("div"); hypCard.className = "card";
-  hypCard.innerHTML = `<p class="eyebrow">${L("Your hypothesis", "Tu hipótesis")}</p>
+  /* ---- Moment 1: Build the Sun --------------------------------------- */
+  const m1 = document.createElement("div"); m1.className = "oa-moment";
+  m1.innerHTML = `<div class="oa-moment__head">
+      <span class="oa-moment__n">1</span>
+      <p class="oa-moment__title">${L("Build the Sun", "Construye el Sol")}</p>
+      <span class="oa-moment__done" id="oa-m1-done">${L("✓ Ignited!", "✓ ¡Encendido!")}</span>
+    </div>
+    <p class="q__hint" style="margin:0">${L(
+      "Tap Compress again and again to pull this cloud of gas and dust together with gravity — just like the real nebula you explored.",
+      "Toca Comprimir una y otra vez para juntar esta nube de gas y polvo con la gravedad — igual que la nebulosa real que exploraste."
+    )}</p>`;
+  const nebulaStage = document.createElement("div"); nebulaStage.className = "oa-nebula-stage";
+  const cloud = document.createElement("div"); cloud.className = "oa-nebula-cloud";
+  nebulaStage.append(cloud);
+  m1.append(nebulaStage);
+
+  const densityRow = document.createElement("div"); densityRow.className = "oa-density-bar";
+  const densityFill = document.createElement("div"); densityFill.className = "oa-density-bar__fill";
+  densityRow.append(densityFill);
+  m1.append(densityRow);
+  const densityLabel = document.createElement("div"); densityLabel.className = "oa-density-label";
+  densityLabel.innerHTML = `<span>${L("Gravity pulling the cloud together", "La gravedad reúne la nube")}</span><span id="oa-density-pct">0%</span>`;
+  m1.append(densityLabel);
+
+  const compressBtn = document.createElement("button"); compressBtn.type = "button"; compressBtn.className = "btn btn--signal";
+  compressBtn.style.marginTop = ".7rem";
+  compressBtn.textContent = L("🌀 Compress the cloud", "🌀 Comprimir la nube");
+  m1.append(compressBtn);
+  wrap.append(m1);
+
+  /* ---- Moment 2: The Sun's Recipe (locked until Moment 1 done) ------- */
+  const m2 = document.createElement("div"); m2.className = "oa-moment oa-locked";
+  m2.innerHTML = `<div class="oa-moment__head">
+      <span class="oa-moment__n">2</span>
+      <p class="oa-moment__title">${L("The Sun's Recipe", "La Receta del Sol")}</p>
+      <span class="oa-moment__done" id="oa-m2-done">${L("✓ Explored!", "✓ ¡Explorado!")}</span>
+    </div>
+    <p class="q__hint" style="margin:0">${L(
+      "The Sun is made almost entirely of just two ingredients. Tap each slice to find out what — and how much.",
+      "El Sol está hecho casi por completo de solo dos ingredientes. Toca cada porción para descubrir cuáles — y cuánto de cada uno."
+    )}</p>`;
+  const recipeRow = document.createElement("div"); recipeRow.className = "oa-recipe-row";
+
+  const ELEMENTS = [
+    { id: "h", pct: 91, color: "#ffd27a", label: L("Hydrogen", "Hidrógeno"),
+      fact: L("About 91 out of every 100 atoms in the Sun are hydrogen — the simplest, lightest element in the universe, and the fuel the Sun burns for energy.",
+              "Unos 91 de cada 100 átomos del Sol son hidrógeno — el elemento más simple y ligero del universo, y el combustible que el Sol quema para producir energía.") },
+    { id: "he", pct: 8.5, color: "#8fd6ff", label: L("Helium", "Helio"),
+      fact: L("About 8 or 9 out of every 100 atoms are helium, made deep in the Sun's core when hydrogen atoms fuse together and release enormous energy.",
+              "Unos 8 o 9 de cada 100 átomos son helio, formado en lo más profundo del núcleo del Sol cuando los átomos de hidrógeno se fusionan y liberan una energía enorme.") },
+    { id: "o", pct: 0.5, color: "#c1553a", label: L("Other elements", "Otros elementos"),
+      fact: L("Less than 1 in 100 atoms are heavier elements, like oxygen, carbon and nitrogen — leftover ingredients from older stars that exploded long before the Sun formed.",
+              "Menos de 1 de cada 100 átomos son elementos más pesados, como oxígeno, carbono y nitrógeno — ingredientes que quedaron de estrellas más antiguas que explotaron mucho antes de que se formara el Sol.") },
+  ];
+  // Build donut arcs (SVG, r=15.9155 trick so pct == stroke-dasharray length out of 100)
+  const R = 15.9155, CIRC = 2 * Math.PI * R;
+  let acc = 0;
+  const donutWrap = document.createElement("div"); donutWrap.className = "oa-donut-wrap";
+  const segs = [];
+  const svgParts = ELEMENTS.map((e, i) => {
+    const len = (e.pct / 100) * CIRC;
+    const dash = `${len} ${CIRC - len}`;
+    const offset = -((acc / 100) * CIRC) + CIRC * 0.25;
+    acc += e.pct;
+    return `<circle class="oa-donut-seg" data-id="${e.id}" cx="18" cy="18" r="${R}" fill="none" stroke="${e.color}" stroke-width="6" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"></circle>`;
+  }).join("");
+  donutWrap.innerHTML = `<svg viewBox="0 0 36 36">${svgParts}</svg>
+    <div class="oa-donut-center"><b id="oa-donut-pct">?</b><span>${L("tap a slice", "toca una porción")}</span></div>`;
+  recipeRow.append(donutWrap);
+
+  const factsCol = document.createElement("div"); factsCol.className = "oa-recipe-facts";
+  const legend = document.createElement("div"); legend.className = "oa-recipe-legend";
+  const legendBtns = {};
+  ELEMENTS.forEach(e => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "oa-legend-item";
+    b.innerHTML = `<span class="oa-legend-dot" style="background:${e.color}"></span><span>${e.label}</span><span class="oa-legend-item__check">✓</span>`;
+    b.addEventListener("click", () => tapElement(e.id));
+    legend.append(b);
+    legendBtns[e.id] = b;
+  });
+  factsCol.append(legend);
+  const factBox = document.createElement("p"); factBox.className = "oa-reveal"; factBox.style.marginTop = "0";
+  factsCol.append(factBox);
+  recipeRow.append(factsCol);
+  m2.append(recipeRow);
+  wrap.append(m2);
+
+  const exploredEls = new Set();
+  function tapElement(id) {
+    const e = ELEMENTS.find(x => x.id === id);
+    const segEl = donutWrap.querySelector(`.oa-donut-seg[data-id="${id}"]`);
+    donutWrap.querySelectorAll(".oa-donut-seg").forEach(s => s.dataset.open = "false");
+    segEl.dataset.open = "true";
+    segEl.classList.remove("oa-seg-pulse"); void segEl.offsetWidth; segEl.classList.add("oa-seg-pulse");
+    burst(donutWrap, 50, 50, [e.color, "#ffffff"], 10);
+    donutWrap.querySelector("#oa-donut-pct").textContent = e.pct + "%";
+    factBox.dataset.show = "true";
+    factBox.textContent = `${e.label} (${e.pct}%) — ${e.fact}`;
+    legendBtns[id].dataset.done = "true";
+    exploredEls.add(id);
+    if (exploredEls.size === ELEMENTS.length && !m2.dataset.complete) {
+      m2.dataset.complete = "true";
+      document.getElementById("oa-m2-done").dataset.show = "true";
+      sim.award("sun-scholar", L("Sun Scholar", "Sabio del Sol"));
+      sim.toast(L("Composition explored — Mission Control unlocked!", "¡Composición explorada — Control de Misión desbloqueado!"), "correct");
+      m3.classList.remove("oa-locked");
+    }
+  }
+
+  /* ---- Moment 1 logic: compress until ignition ------------------------ */
+  let density = 0, taps = 0, ignited = false;
+  compressBtn.addEventListener("click", () => {
+    if (ignited) return;
+    taps++;
+    density = Math.min(100, density + 100 / 8);
+    densityFill.style.width = density + "%";
+    document.getElementById("oa-density-pct").textContent = Math.round(density) + "%";
+    cloud.style.transform = `scale(${1 - (density / 100) * 0.55})`;
+    burst(nebulaStage, 50, 50, ["#c79bff", "#7a5fd6", "#ffffff"], 8);
+    if (density >= 100) {
+      ignited = true;
+      cloud.dataset.ignited = "true";
+      cloud.classList.add("oa-punch");
+      burst(nebulaStage, 50, 50, ["#fff6d8", "#ffd27a", "#ffaa33"], 22);
+      compressBtn.disabled = true;
+      compressBtn.textContent = L("☀️ The Sun has ignited!", "☀️ ¡El Sol se ha encendido!");
+      document.getElementById("oa-m1-done").dataset.show = "true";
+      sim.award("star-former", L("Star Former", "Formador de Estrellas"));
+      sim.toast(L(`Gravity pulled the cloud together over ${taps} taps — nuclear fusion switched on and the Sun was born!`, `La gravedad reunió la nube en ${taps} toques — la fusión nuclear se activó y nació el Sol.`), "correct");
+      m2.classList.remove("oa-locked");
+    }
+  });
+
+  /* ---- Moment 3: Mission Control (locked until Moment 2 done) -------- */
+  const m3 = document.createElement("div"); m3.className = "oa-moment oa-locked"; m3.id = "oa-m3";
+
+  /* Part A: hypothesis-sentence gate, a pre-launch commitment device
+     distinct from the formal Hypothesis stage's structured predict. */
+  const hypBlock = document.createElement("div");
+  hypBlock.innerHTML = `<div class="oa-moment__head">
+      <span class="oa-moment__n">3</span>
+      <p class="oa-moment__title">${L("Mission Control", "Control de Misión")}</p>
+    </div>
     <p class="q__hint" style="margin:0 0 6px">${L("Complete the sentence, then lock it in before you launch anything.", "Completa la frase y guárdala antes de lanzar nada.")}</p>`;
   const hypRow = document.createElement("div"); hypRow.className = "oa-hyp-row";
   const mkSelect = (opts) => {
@@ -283,14 +582,14 @@ function investigate(host, sim) {
     document.createTextNode(L(", because ", ", porque "))
   );
   hypRow.append(selWhy, document.createTextNode("."));
-  hypCard.append(hypRow);
+  hypBlock.append(hypRow);
   const lockBtn = document.createElement("button"); lockBtn.type = "button"; lockBtn.className = "btn btn--signal"; lockBtn.style.marginTop = ".6rem";
-  lockBtn.textContent = L("Lock in my hypothesis", "Guardar mi hipótesis");
+  lockBtn.textContent = L("Lock in my mission plan", "Guardar mi plan de misión");
   const hypLocked = document.createElement("p"); hypLocked.className = "oa-hyp-locked";
-  hypCard.append(lockBtn, hypLocked);
-  wrap.append(hypCard);
+  hypBlock.append(lockBtn, hypLocked);
+  m3.append(hypBlock);
 
-  const missionCard = document.createElement("div"); missionCard.className = "card";
+  const missionCard = document.createElement("div");
   missionCard.style.marginTop = "12px";
   missionCard.style.opacity = "0.45";
   missionCard.style.pointerEvents = "none";
@@ -303,15 +602,14 @@ function investigate(host, sim) {
     const sentence = `${L("If a planet is", "Si un planeta está")} ${selDist.selectedOptions[0].textContent} ${L("the Sun, then its orbit will take", "del Sol, entonces su órbita tardará")} ${selTime.selectedOptions[0].textContent}, ${L("because", "porque")} ${selWhy.selectedOptions[0].textContent}.`;
     sim.setScienceMethod({ hypothesis: sentence });
     hypLocked.dataset.show = "true";
-    hypLocked.textContent = L("Hypothesis locked in — head down to Mission Control.", "Hipótesis guardada — baja a Control de Misión.");
+    hypLocked.textContent = L("Mission plan locked in — head down to the launch pad.", "Plan de misión guardado — baja a la plataforma de lanzamiento.");
     lockBtn.disabled = true; selDist.disabled = true; selTime.disabled = true; selWhy.disabled = true;
     missionCard.style.opacity = "1"; missionCard.style.pointerEvents = "auto";
-    sim.toast(L("Hypothesis saved!", "¡Hipótesis guardada!"), "correct");
+    sim.toast(L("Plan saved!", "¡Plan guardado!"), "correct");
   });
 
-  /* ---- Part B: Mission Control --------------------------------------- */
-  missionCard.innerHTML = `<p class="eyebrow">${L("Mission Control", "Control de Misión")}</p>
-    <p class="q__hint" style="margin:0 0 6px">${L(
+  /* ---- Part B: launch pad --------------------------------------------- */
+  missionCard.innerHTML = `<p class="q__hint" style="margin:0 0 6px">${L(
       "Use this field guide, then classify and launch at least four planets into their true orbit.",
       "Usa esta guía de campo y luego clasifica y lanza al menos cuatro planetas a su órbita real."
     )}</p>`;
@@ -388,11 +686,19 @@ function investigate(host, sim) {
   space.append(hud);
   missionCard.append(space);
 
+  const ellipseNote = document.createElement("p"); ellipseNote.className = "oa-ellipse-note";
+  ellipseNote.textContent = L(
+    "Honest note: real planetary orbits are actually gentle ellipses (ovals), not perfect circles — that's why every path you launch curves in slightly, just like this. What Mission Control measures and compares is the orbit TIME, and that pattern works exactly the same whether a path is round or a gentle oval.",
+    "Nota honesta: las órbitas reales de los planetas son en realidad óvalos suaves (elipses), no círculos perfectos — por eso cada trayectoria que lanzas se curva un poco hacia dentro, igual que aquí. Lo que Control de Misión mide y compara es el TIEMPO de órbita, y ese patrón funciona exactamente igual tanto si la trayectoria es redonda como si es un óvalo suave."
+  );
+  missionCard.append(ellipseNote);
+
   const missionNote = document.createElement("p"); missionNote.className = "q__hint"; missionNote.style.marginTop = ".6rem";
   missionNote.textContent = L("Drag inside Mission Control to look around — the camera doesn't change the science, only the distance slider does.", "Arrastra dentro de Control de Misión para mirar alrededor — la cámara no cambia la ciencia, solo lo hace el control de distancia.");
   missionCard.append(missionNote);
 
-  wrap.append(missionCard);
+  m3.append(missionCard);
+  wrap.append(m3);
   host.append(wrap);
 
   sim.setScienceMethod({
@@ -454,7 +760,7 @@ function investigate(host, sim) {
     const spin = reducedMotion() ? 0 : 1;
     Object.values(launched).forEach(pl => {
       pl.angle += pl.speed * spin;
-      pl.mesh.position.set(Math.cos(pl.angle) * pl.radius, 0, Math.sin(pl.angle) * pl.radius);
+      pl.mesh.position.set(Math.cos(pl.angle) * pl.radius, 0, Math.sin(pl.angle) * pl.radius * ORBIT_ECC);
     });
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
@@ -464,7 +770,7 @@ function investigate(host, sim) {
   const orbitRings = [];
   function addOrbitRing(radius, color) {
     const pts = [];
-    for (let i = 0; i <= 96; i++) { const a = (i / 96) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius)); }
+    for (let i = 0; i <= 96; i++) { const a = (i / 96) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius * ORBIT_ECC)); }
     const g = new THREE.BufferGeometry().setFromPoints(pts);
     const m = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.35 });
     const line = new THREE.Line(g, m);
@@ -590,9 +896,62 @@ function investigate(host, sim) {
     sim.toast(L("All planets reset — pick one to launch again.", "Todos los planetas reiniciados — elige uno para lanzarlo de nuevo."), "info");
   }
   resetBtn.addEventListener("click", resetMission);
+
+  /* ---- Bonus round — "Solar System Sprint" (arcade genre; this course
+     has no prior sim yet, arcade is the lighter-weight of the two
+     genres to alternate against next time — CLAUDE.md §4). Reuses this
+     activity's own real Mars/Jupiter photos as flying items. ---- */
+  const arcadeSection = document.createElement("div"); arcadeSection.style.marginTop = "var(--sp-5)";
+  wrap.append(arcadeSection);
+  let arcadeRendered = false;
+  const ARCADE_ITEMS = [
+    { id: "mercury", label: L("Mercury — smallest planet, closest to the Sun, covered in craters", "Mercurio — el planeta más pequeño, el más cercano al Sol, cubierto de cráteres"), laneId: "terrestrial" },
+    { id: "venus", label: L("Venus — thick toxic clouds trap heat, hotter than Mercury", "Venus — nubes tóxicas y espesas atrapan el calor, más caliente que Mercurio"), laneId: "terrestrial" },
+    { id: "earth", label: L("Earth — the only known planet with liquid water oceans and life", "Tierra — el único planeta conocido con océanos de agua líquida y vida"), laneId: "terrestrial" },
+    { id: "mars", label: L("Mars — rusty red, iron-oxide surface, two tiny moons", "Marte — superficie rojiza de óxido de hierro, dos lunas diminutas"), laneId: "terrestrial", img: "photos/mars.jpg" },
+    { id: "jupiter", label: L("Jupiter — the largest planet, with a giant storm called the Great Red Spot", "Júpiter — el planeta más grande, con una tormenta gigante llamada la Gran Mancha Roja"), laneId: "jovian", img: "photos/jupiter.jpg" },
+    { id: "saturn", label: L("Saturn — famous for its wide, icy rings", "Saturno — famoso por sus amplios anillos helados"), laneId: "jovian" },
+    { id: "uranus", label: L("Uranus — spins on its side, tipped over at a steep angle", "Urano — gira de lado, muy inclinado sobre su eje"), laneId: "jovian" },
+    { id: "neptune", label: L("Neptune — the farthest planet, with fierce winds over 2,000 km/h", "Neptuno — el planeta más lejano, con vientos feroces de más de 2000 km/h"), laneId: "jovian" },
+  ];
+  function paintArcade() {
+    if (Object.keys(done).length < 3 || arcadeRendered) return;
+    arcadeRendered = true;
+    const launchWrap = document.createElement("div"); arcadeSection.append(launchWrap);
+    renderArcadeLaunch(launchWrap, {
+      strings: {
+        title: L("Bonus round — Solar System Sprint", "Ronda extra — Sprint del Sistema Solar"),
+        instructions: L("Planet clues fly at you — sort each one into Terrestrial or Jovian before it reaches the ring.", "Llegan pistas sobre planetas — clasifica cada una en Terrestre o Joviano antes de que llegue al anillo."),
+        play: L("Play Solar System Sprint", "Jugar Sprint del Sistema Solar"), skip: L("Skip bonus round", "Saltar ronda extra"),
+      },
+      onPlay() {
+        launchWrap.remove();
+        const gameHost = document.createElement("div"); arcadeSection.append(gameHost);
+        mountArcadeRush(gameHost, {
+          threeUrl: THREE_URL, rounds: 24,
+          lanes: [
+            { id: "terrestrial", label: L("Terrestrial", "Terrestre"), color: "#c1553a" },
+            { id: "jovian", label: L("Jovian", "Joviano"), color: "#d8ae7e" },
+          ],
+          items: ARCADE_ITEMS,
+          strings: {
+            title: L("Solar System Sprint", "Sprint del Sistema Solar"),
+            instructions: L("Tap Terrestrial or Jovian before the clue reaches the ring. A late or wrong answer just resets your streak — never a fail.", "Toca Terrestre o Joviano antes de que la pista llegue al anillo. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
+          },
+          onExit(stats) {
+            sim.saveState(); gameHost.innerHTML = ""; gameHost.remove();
+            arcadeSection.innerHTML = ""; arcadeRendered = false; paintArcade();
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda completa — puntaje ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+          },
+        });
+      },
+      onSkip() { arcadeSection.innerHTML = ""; },
+    });
+  }
+  launchBtn.addEventListener("click", paintArcade);
 }
 
-mountActivity({ simulation: { orient, investigate } }).catch(e => {
+mountActivity({ simulation: { orient, observation, investigate } }).catch(e => {
   console.error("Activity failed to start:", e);
   const r = document.getElementById("lab-root");
   if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
