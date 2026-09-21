@@ -1167,17 +1167,47 @@ do the following — this is the standard, not a one-off:**
    - `learningFocus` — same shape and same bar as the built-simulation `learningFocus`
      (Section 5's amendment): real skills plus one strong paragraph naming the exact curriculum
      content practised and why it matters, tied to the named course/module.
-   - `knowledgeCheck` — **3-6 questions, `mc` or `multi` (select-all-that-apply) only.** Every
-     question must be objectively auto-markable — this activity type has no teacher-marking
-     stage, unlike a built simulation's Explain/Apply, precisely so a busy 1:1 tutoring session
-     can generate graded evidence from a link in minutes. Write real distractors, not
-     giveaways, and a one-sentence `explain` on every question (shown after marking) that
-     teaches the correct idea, not just states it.
+   - `knowledgeCheck` — **10 questions, `mc` or `multi` (select-all-that-apply) only** (agreed
+     2026-09-21 — this activity type's question budget is deliberately larger than a built
+     simulation's 3-4 Knowledge Check items, since it has no Predict/Explain/Apply stages at
+     all — the whole assessment lives here). Every question must be objectively auto-markable —
+     this activity type has no teacher-marking stage, precisely so a busy 1:1 tutoring session
+     can generate graded evidence from a link in minutes. Mix `mc` and `multi` across the 10.
+     Write real distractors, not giveaways, and a one-sentence `explain` on every question
+     (shown after marking) that teaches the correct idea, not just states it. **Every question
+     must be traceable to something you actually did in the simulation** — verify each one by
+     clicking through the real controls yourself (see step 1) rather than writing what you
+     assume the simulation does; if a control's effect is ambiguous or you can't confirm it
+     (e.g. a subtle physics effect that doesn't visibly show in the simplified view), leave it
+     out rather than guess.
    - An `es` block mirroring all translatable fields, same discipline as every other activity
      (Section 15).
 4. **Add a `thumbnail`** — a simple static SVG badge is fine here (unlike a built simulation's
    looping GIF of its own 3D scene, there is no in-house scene to capture) — or omit `thumbnail`
    entirely if none is made; nav.js renders the tile fine either way.
+
+**Visual design, built once into `engine/external-activity.js` (not per-activity — no content
+change needed to get these) — fixed 2026-09-21 after the first instance shipped looking broken:**
+
+- The page opens with a **dashed-border "portal" card** (`.ext-portal`) carrying a small hand-drawn
+  rocket-through-a-ring SVG icon and an uppercase "External simulation" badge — visually distinct
+  from a built activity's stages at a glance, on the same design logic as §12's dashed/signal-colour
+  external links, but built as a real card with a title, description, credit line and the "Open the
+  simulation" button, not just a link row. Never reuse the internal `.card` plain styling for this
+  box — it must read as "you are about to leave Discovery Lab," not as another built-in stage.
+- The **"What to do" steps** render as a numbered list with real circular number badges
+  (`.ext-steps`/`.ext-steps__n`), matching the visual weight of a built activity's own Orient
+  "How this works" steps — never a bare paragraph of squished numbers and text.
+- The **"About this practice" card** (`.ext-about`) gets a tinted gradient background, a small
+  icon (a lightbulb by default), and skill tags rendered as solid colour pill chips
+  (`.ext-chip`), not plain text — it should read as a genuine highlight card, not a footnote.
+- **This module (`engine/external-activity.js`) intentionally does NOT reuse `engine.js`'s
+  `.steps-list`/`.lesson-brief`/`.dl-toast-host` classes** — those only exist inside
+  `engine.js`'s own `injectEngineStyles()`, which this lighter module never loads. It carries its
+  own small `injectExternalStyles()` with an `ext-`-prefixed class set instead. If a future edit
+  to this file uses an engine.js-only class name without adding the matching CSS here, it will
+  render completely unstyled (this is exactly the bug the 2026-09-21 fix corrected) — always
+  verify a new class actually has CSS backing it in this file before using it.
 5. **Add the `data/subjects.json` entry** as a normal `"type": "simulation"` node (it gets a
    normal tile, normal `status: "live"`/`"coming-soon"`, normal `questionCount`/`minutes`) with
    one addition: `"kind": "external"` — a marker for future tooling/reporting, not yet used by

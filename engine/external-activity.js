@@ -143,6 +143,68 @@ function makeQuestion(q, index) {
   return ctl;
 }
 
+/* A small "leaving Discovery Lab" rocket-through-a-portal icon — fun, and
+   unambiguous that the student is about to go to someone else's site. Pure
+   inline SVG using currentColor/CSS vars, same as the rest of the site's
+   hand-drawn graphics (CLAUDE.md §4's "real custom graphics" rule). */
+const PORTAL_SVG = `<svg viewBox="0 0 64 64" aria-hidden="true">
+  <circle cx="32" cy="32" r="27" fill="none" stroke="var(--signal)" stroke-width="2.5" stroke-dasharray="5 6"/>
+  <circle cx="32" cy="32" r="16" fill="none" stroke="var(--signal)" stroke-width="1.5" opacity="0.35"/>
+  <g transform="rotate(-38 32 32)">
+    <path d="M32 12c4.5 0 8 6.4 8 14 0 5.4-2.9 9.7-8 12-5.1-2.3-8-6.6-8-12 0-7.6 3.5-14 8-14z" fill="#fff"/>
+    <circle cx="32" cy="23" r="3.1" fill="var(--signal)"/>
+    <path d="M24 27l-8 6 9-2z" fill="var(--accent)"/>
+    <path d="M40 27l8 6-9-2z" fill="var(--accent)"/>
+    <path d="M28.5 36l-2 10 5.5-7z" fill="#ffb347"/>
+    <path d="M35.5 36l2 10-5.5-7z" fill="#ff8a3d"/>
+  </g>
+  <circle cx="14" cy="18" r="1.4" fill="var(--signal)" opacity="0.7"/>
+  <circle cx="50" cy="46" r="1.2" fill="var(--signal)" opacity="0.6"/>
+  <circle cx="50" cy="16" r="1" fill="var(--signal)" opacity="0.5"/>
+</svg>`;
+
+/* Engine-owned styles for this module — mirrors engine.js's own
+   injectEngineStyles() pattern (CLAUDE.md: content lives per-activity, the
+   engine is built once). engine.js's equivalent classes (.steps-list,
+   .lesson-brief, .dl-toast-host…) are NOT reusable here — they only exist
+   inside engine.js's own injector, which this lighter module never loads —
+   so this file carries its own small, "ext"-prefixed set. */
+function injectExternalStyles() {
+  if (document.getElementById("ext-styles")) return;
+  const css = `
+  .ext-portal{border:2px dashed var(--signal);border-radius:18px;
+    background:linear-gradient(135deg,color-mix(in srgb,var(--signal) 9%,var(--surface)) 0%,var(--surface) 65%);}
+  .ext-portal__head{display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap;}
+  .ext-portal__icon{flex:none;width:60px;height:60px;}
+  .ext-portal__icon svg{width:100%;height:100%;display:block;}
+  .ext-portal__badge{display:inline-block;font-family:var(--font-data);font-size:.68rem;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--signal);border:1px solid var(--signal);border-radius:999px;
+    padding:.22em .85em;margin-bottom:.5em;}
+  .ext-portal__title{margin:0;}
+
+  .ext-steps{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-4);list-style:none;padding:0;}
+  .ext-steps li{display:flex;gap:var(--sp-3);align-items:flex-start;}
+  .ext-steps__n{flex:none;width:1.8rem;height:1.8rem;border-radius:50%;display:grid;place-items:center;
+    background:var(--accent);color:#fff;font-family:var(--font-data);font-weight:700;font-size:.85rem;}
+  .ext-steps__text{padding-top:.2rem;}
+
+  .ext-about{border-radius:18px;border:1px solid var(--accent);
+    background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 13%,var(--surface)) 0%,var(--surface) 72%);}
+  .ext-about__head{display:flex;align-items:center;gap:var(--sp-3);}
+  .ext-about__icon{flex:none;width:30px;height:30px;color:var(--accent);}
+  .ext-about__chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-4);}
+  .ext-chip{background:var(--accent);color:#fff;padding:.4em 1.05em;border-radius:999px;font-weight:700;
+    font-size:.78rem;letter-spacing:.02em;box-shadow:var(--shadow-1);}
+  .ext-about__summary{margin-top:var(--sp-4);font-size:var(--step-0);color:var(--ink-2);max-width:var(--measure);}
+
+  .dl-toast-host{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);z-index:300;
+    display:flex;flex-direction:column;gap:var(--sp-2);width:min(28rem,calc(100vw - 2rem));}
+  .dl-toast-host .toast{background:var(--surface);box-shadow:var(--shadow-2);transition:opacity .3s;}
+  @media print{.no-print{display:none !important;}}`;
+  const style = el("style"); style.id = "ext-styles"; style.textContent = css;
+  document.head.appendChild(style);
+}
+
 function toastHost() {
   let host = document.querySelector(".dl-toast-host");
   if (!host) { host = el("div", "dl-toast-host"); document.body.append(host); }
@@ -172,6 +234,7 @@ export async function mountExternalActivity() {
   document.title = `${config.title} — Discovery Lab`;
   if (config.ageBand) document.documentElement.setAttribute("data-age-band", config.ageBand);
   if (config.theme) document.documentElement.setAttribute("data-theme", config.theme);
+  injectExternalStyles();
 
   const STORE_KEY = `dl-ext:${config.activityId}:${config.version}`;
   const simURL = window.location.href.split("#")[0].split("?")[0];
@@ -194,14 +257,20 @@ export async function mountExternalActivity() {
   const wrap = el("div", "stack"); wrap.style.setProperty("--flow", "var(--sp-7)");
   root.append(wrap);
 
-  /* --- 1. the external simulation card ------------------------------------ */
-  const simCard = el("div", "card"); simCard.style.borderLeft = "3px solid var(--signal)";
-  const badgeRow = el("div", "cluster");
-  badgeRow.append(el("span", "eyebrow", t("ext.badge")));
-  simCard.append(badgeRow);
-  simCard.append(el("h2", null, config.title));
+  /* --- 1. the "leaving Discovery Lab" portal card -------------------------- */
+  const simCard = el("div", "card ext-portal");
+  const head = el("div", "ext-portal__head");
+  const iconWrap = el("div", "ext-portal__icon");
+  iconWrap.innerHTML = PORTAL_SVG;
+  head.append(iconWrap);
+  const headText = el("div");
+  headText.append(el("span", "ext-portal__badge", t("ext.badge")));
+  headText.append(el("h2", "ext-portal__title", config.title));
+  head.append(headText);
+  simCard.append(head);
   if (config.description) {
     const p = el("p", "nav-title__blurb", config.description);
+    p.style.marginTop = "var(--sp-4)";
     if (ttsEnabled) { const row = el("div", "cluster"); row.append(speakerBtn(() => config.description), p); simCard.append(row); }
     else simCard.append(p);
   }
@@ -222,10 +291,10 @@ export async function mountExternalActivity() {
   if (config.whatToDo?.length) {
     const card = el("div", "card");
     card.append(el("p", "eyebrow", t("ext.what-to-do")));
-    const ol = el("ol", "steps-list");
+    const ol = el("ol", "ext-steps");
     config.whatToDo.forEach((stp, i) => {
       const li = el("li");
-      li.append(el("span", "steps-list__n", String(i + 1)), el("span", null, stp));
+      li.append(el("span", "ext-steps__n", String(i + 1)), el("span", "ext-steps__text", stp));
       ol.append(li);
     });
     card.append(ol);
@@ -235,14 +304,18 @@ export async function mountExternalActivity() {
   /* --- 3. learning focus --------------------------------------------------- */
   const lf = config.learningFocus;
   if (lf && (lf.summary || lf.skills?.length)) {
-    const card = el("div", "card lesson-brief");
-    card.append(el("p", "eyebrow", t("ext.about")));
+    const card = el("div", "card ext-about");
+    const aHead = el("div", "ext-about__head");
+    const bulb = el("div", "ext-about__icon");
+    bulb.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.7 10.7c.6.5 1 1.2 1.1 2h5.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    aHead.append(bulb, el("p", "eyebrow", t("ext.about")));
+    card.append(aHead);
     if (lf.skills?.length) {
-      const chipRow = el("div", "cluster"); chipRow.style.marginTop = "var(--sp-2)";
-      lf.skills.forEach(s => chipRow.append(el("span", "lesson-brief__tag", s)));
+      const chipRow = el("div", "ext-about__chips");
+      lf.skills.forEach(s => chipRow.append(el("span", "ext-chip", s)));
       card.append(chipRow);
     }
-    if (lf.summary) card.append(el("p", "nav-title__blurb", lf.summary));
+    if (lf.summary) card.append(el("p", "ext-about__summary", lf.summary));
     wrap.append(card);
   }
 
