@@ -298,8 +298,8 @@ function buildGuidePDF(jsPDF) {
   rule();
   para(
     "This is a compact print edition of the online guide. The live version also has interactive diagrams, a " +
-    "72-question auto-marked Practice Bank, and two interactive models (a Reservoir Manager and a Population " +
-    "Growth Explorer) - open the course page to use them.",
+    "72-question auto-marked Practice Bank, and one interactive model per chapter (from a Vague-or-Specific " +
+    "sorter through a Reservoir Manager to firing a ray at the ozone layer) - open the course page to use them.",
     { size: 9.5, style: "italic", color: mut, gap: 18 }
   );
 

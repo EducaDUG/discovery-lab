@@ -98,7 +98,10 @@
 
 
   /* Chapter */
-  .chapter { padding-block: var(--sp-7); border-top: 1px solid var(--line); scroll-margin-top: var(--sp-5); }
+  .chapter {
+    padding-block: var(--sp-7); border-top: 1px solid var(--line);
+    scroll-margin-top: calc(var(--head-h, 61px) + var(--nav-h, 53px) + var(--sp-4));
+  }
   .chapter:first-of-type { border-top: none; }
   .chapter__eyebrow { color: var(--signal); }
   .chapter h2 { margin-top: var(--sp-2); }
@@ -249,6 +252,69 @@
   .sim-readout strong { color: var(--ink); }
   .sim-readout.is-alert { color: var(--negative); font-weight: 700; }
   .sim-canvas { display: block; width: 100%; height: auto; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); }
+
+  /* Shared lightweight interactive patterns — one per chapter, every topic
+     gets something to click/drag/toggle, not just the two full "Try It"
+     models above. Kept deliberately simple (tap-to-reveal, classify-by-click,
+     a slider, a set of toggles) so every chapter can have one without each
+     needing a bespoke mini-app. */
+  .reveal-grid { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); margin-top: var(--sp-4); }
+  .reveal-chip {
+    text-align: left; background: var(--paper); border: 1px solid var(--line-strong); border-radius: var(--radius);
+    padding: var(--sp-3) var(--sp-4); cursor: pointer; font: inherit; color: var(--ink);
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  .reveal-chip:hover { border-color: var(--accent); }
+  .reveal-chip__label { font-weight: 700; font-size: var(--step--1); }
+  .reveal-chip__verdict { display: none; margin-top: var(--sp-2); font-size: var(--step--1); }
+  .reveal-chip.is-open .reveal-chip__verdict { display: block; }
+  .reveal-chip.is-open { cursor: default; }
+  .reveal-chip__tag { font-family: var(--font-data); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase;
+    padding: .15em .6em; border-radius: 999px; display: inline-block; margin-bottom: .4em; }
+  .reveal-chip__tag--good { background: color-mix(in srgb, var(--positive) 16%, var(--surface)); color: var(--positive); }
+  .reveal-chip__tag--bad { background: color-mix(in srgb, var(--signal) 16%, var(--surface)); color: var(--signal); }
+  .reveal-chip__explain { color: var(--ink-2); }
+
+  .classify-grid { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-4); }
+  .classify-item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--sp-3) var(--sp-4); }
+  .classify-item__label { font-size: var(--step--1); color: var(--ink); }
+  .classify-item__btns { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+  .classify-item__btns button {
+    font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: 999px;
+    padding: .4em 1em; color: var(--ink-2);
+  }
+  .classify-item__btns button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .classify-item__btns button:disabled { cursor: default; }
+  .classify-item.is-answered .classify-item__btns button:not(.chosen) { opacity: .4; }
+  .classify-item__btns button.chosen.correct { background: color-mix(in srgb, var(--positive) 18%, var(--surface)); border-color: var(--positive); color: var(--positive); }
+  .classify-item__btns button.chosen.wrong { background: color-mix(in srgb, var(--negative) 16%, var(--surface)); border-color: var(--negative); color: var(--negative); }
+  .classify-item__explain { display: none; margin-top: var(--sp-3); font-size: var(--step--1); color: var(--ink-2); font-style: italic; border-left: 3px solid var(--accent); padding-left: var(--sp-3); }
+  .classify-item.is-answered .classify-item__explain { display: block; }
+
+  .chip-toggle-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-4); }
+  .chip-toggle {
+    font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+    background: var(--paper); border: 1.5px solid var(--line-strong); border-radius: 999px;
+    padding: .5em 1.1em; color: var(--ink-2);
+    transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+  .chip-toggle.is-on { background: color-mix(in srgb, var(--signal) 16%, var(--surface)); border-color: var(--signal); color: var(--signal); }
+  .meter { margin-top: var(--sp-4); }
+  .meter__track { height: 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+  .meter__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--positive), var(--caution), var(--negative)); transition: width var(--dur-mid) var(--ease); }
+  .meter__label { margin-top: var(--sp-2); font-size: var(--step--1); color: var(--ink-2); }
+  .meter__label b { color: var(--ink); }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-4); }
+  .btn-row button {
+    font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer;
+    background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: var(--radius);
+    padding: .55em 1.1em; color: var(--ink);
+  }
+  .btn-row button.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .reveal-result { margin-top: var(--sp-4); padding: var(--sp-4); border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line); font-size: var(--step--1); color: var(--ink-2); min-height: 1.5em; }
+  .reveal-result b { color: var(--ink); }
 </style>
 </head>
 <body>
@@ -308,7 +374,7 @@
       <div class="stat-pills">
         <div class="stat-pill stat-pill--a"><span class="stat-pill__n">12</span><span class="stat-pill__l">Chapters</span></div>
         <div class="stat-pill stat-pill--b"><span class="stat-pill__n">72</span><span class="stat-pill__l">Auto-marked questions</span></div>
-        <div class="stat-pill stat-pill--c"><span class="stat-pill__n">2</span><span class="stat-pill__l">Interactive models</span></div>
+        <div class="stat-pill stat-pill--c"><span class="stat-pill__n">12</span><span class="stat-pill__l">Interactive models</span></div>
         <div class="stat-pill stat-pill--d"><span class="stat-pill__n">PDF</span><span class="stat-pill__l">Printable edition</span></div>
       </div>
     </div>
@@ -326,7 +392,7 @@
       <div class="stat-pills">
         <div class="stat-pill stat-pill--a"><span class="stat-pill__n">12</span><span class="stat-pill__l">Capítulos</span></div>
         <div class="stat-pill stat-pill--b"><span class="stat-pill__n">72</span><span class="stat-pill__l">Preguntas autocorregidas</span></div>
-        <div class="stat-pill stat-pill--c"><span class="stat-pill__n">2</span><span class="stat-pill__l">Modelos interactivos</span></div>
+        <div class="stat-pill stat-pill--c"><span class="stat-pill__n">12</span><span class="stat-pill__l">Modelos interactivos</span></div>
         <div class="stat-pill stat-pill--d"><span class="stat-pill__n">PDF</span><span class="stat-pill__l">Edición imprimible</span></div>
       </div>
     </div>
@@ -438,6 +504,7 @@
       <div class="qa"><div class="q">3. Why is clean water a more accurate concern than "we will run out of water"?</div><div class="a">Water stays in the water cycle, so the real issue is whether it's clean, safe and available for people, ecosystems, rivers, oceans and soils.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch1" data-chapter="1"></div>
+    <div class="sim-mount" id="sim-ch1"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -558,6 +625,7 @@
       <div class="qa"><div class="q">3. What is the difference between a biotic and an abiotic factor?</div><div class="a">Biotic factors are living parts of an ecosystem; abiotic factors are non-living conditions such as sunlight, water or soil.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch2" data-chapter="2"></div>
+    <div class="sim-mount" id="sim-ch2"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -644,6 +712,7 @@
       <div class="qa"><div class="q">3. Name the four categories of ecosystem services.</div><div class="a">Provisioning, regulating, supporting and cultural.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch3" data-chapter="3"></div>
+    <div class="sim-mount" id="sim-ch3"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -718,6 +787,7 @@
       <div class="qa"><div class="q">3. How does extra carbon dioxide end up harming coral reefs?</div><div class="a">It dissolves into seawater, makes it more acidic, and makes it harder for corals to build their structures.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch4" data-chapter="4"></div>
+    <div class="sim-mount" id="sim-ch4"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -850,6 +920,7 @@
       <div class="qa"><div class="q">3. Why is it more accurate to treat the four systems as one connected model?</div><div class="a">Because changes in land, water, air and living things spread through the planet as connected consequences, rather than staying in one system.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch6" data-chapter="6"></div>
+    <div class="sim-mount" id="sim-ch6"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -951,6 +1022,7 @@
       <div class="qa"><div class="q">3. What is an aquifer?</div><div class="a">An underground layer of rock or soil that stores fresh water in the spaces between particles.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch7" data-chapter="7"></div>
+    <div class="sim-mount" id="sim-ch7"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -1015,6 +1087,7 @@
       <div class="qa"><div class="q">3. What is the difference between industrial and subsistence agriculture?</div><div class="a">Industrial agriculture is run mainly as a business selling most of what is produced; subsistence agriculture is farming mainly to feed the farming family itself.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch8" data-chapter="8"></div>
+    <div class="sim-mount" id="sim-ch8"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -1113,6 +1186,7 @@
       <div class="qa"><div class="q">3. How is an environmental footprint broader than a carbon footprint?</div><div class="a">A carbon footprint focuses on greenhouse gas emissions; an environmental footprint also includes land, water, food, packaging, pollution, transport and housing.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch10" data-chapter="10"></div>
+    <div class="sim-mount" id="sim-ch10"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -1159,6 +1233,7 @@
       <div class="qa"><div class="q">3. Why can't agricultural run-off be "switched off" the way a single factory can?</div><div class="a">It comes from many farms spread across an entire region, so there's no single source to target — it needs broad, coordinated change instead.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch11" data-chapter="11"></div>
+    <div class="sim-mount" id="sim-ch11"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 
@@ -1222,6 +1297,7 @@
       <div class="qa"><div class="q">3. What did the Montreal Protocol do?</div><div class="a">Signed in 1987, it banned CFCs and other ozone-depleting chemicals internationally, allowing the ozone layer to begin recovering.</div></div>
     </div>
     <div class="practice-mount" id="practice-ch12" data-chapter="12"></div>
+    <div class="sim-mount" id="sim-ch12"><p class="sim-mount__loading">Loading interactive…</p></div>
     <a class="back-to-top btn btn--ghost" href="#main">&uarr; Back to contents</a>
   </section>
 

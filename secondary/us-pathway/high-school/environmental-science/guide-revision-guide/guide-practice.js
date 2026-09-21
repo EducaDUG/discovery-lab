@@ -11,18 +11,22 @@
    content-vs-engine rule.
    ========================================================================== */
 
-/* The sticky quick-nav docks just below the shared site header rather than
-   under it — measure the header's real rendered height (its size depends on
-   font metrics/loading, not just a fixed CSS value) and expose it as a CSS
-   var the quicknav's `top` reads, so the two sticky bars never overlap. */
-function syncHeaderHeight() {
+/* Two sticky bars stack at the top of this page (the shared site header,
+   then this page's own quick-nav). Both react to font metrics/loading and
+   viewport width, so their real heights are measured at runtime rather than
+   hardcoded — exposed as CSS vars that both the quicknav's `top` and every
+   anchor target's `scroll-margin-top` read, so jumping to a chapter (or a
+   pill click) never lands a heading underneath either bar. */
+function syncStickyHeights() {
   const head = document.querySelector(".site-head");
+  const nav = document.querySelector(".quicknav:not([hidden])");
   if (head) document.documentElement.style.setProperty("--head-h", head.getBoundingClientRect().height + "px");
+  if (nav) document.documentElement.style.setProperty("--nav-h", nav.getBoundingClientRect().height + "px");
 }
-syncHeaderHeight();
-window.addEventListener("resize", syncHeaderHeight);
-window.addEventListener("load", syncHeaderHeight);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeaderHeight);
+syncStickyHeights();
+window.addEventListener("resize", syncStickyHeights);
+window.addEventListener("load", syncStickyHeights);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncStickyHeights);
 
 /* ------------------------------------------------------------------------
    Question bank — 3 per chapter, pooled into the Practice Bank below.
@@ -482,3 +486,334 @@ if (reservoirMount) {
   resetBtn.addEventListener("click", () => { level = 60; year = 0; paint(); });
   paint();
 }
+
+/* ==========================================================================
+   One lightweight interactive per remaining chapter. Deliberately simple —
+   tap-to-reveal, classify-by-click, a slider, a set of toggles — rather than
+   a bespoke mini-app each, so every topic gets something to manipulate
+   without the build cost of ten more "Try It" models.
+   ========================================================================== */
+
+function el(tag, cls, html) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (html != null) n.innerHTML = html;
+  return n;
+}
+
+/* Tap-to-reveal grid: click a chip, see a verdict + explanation. Used where
+   the point is "notice the difference", not "get it right or wrong". */
+function buildRevealGrid(mount, items) {
+  const grid = el("div", "reveal-grid");
+  items.forEach(item => {
+    const chip = el("button", "reveal-chip");
+    chip.type = "button";
+    chip.innerHTML = `<span class="reveal-chip__label">${item.label}</span>
+      <div class="reveal-chip__verdict">
+        <span class="reveal-chip__tag reveal-chip__tag--${item.good ? "good" : "bad"}">${item.tag}</span>
+        <p class="reveal-chip__explain">${item.explain}</p>
+      </div>`;
+    chip.addEventListener("click", () => chip.classList.add("is-open"));
+    grid.append(chip);
+  });
+  mount.append(grid);
+}
+
+/* Classify-by-click: one label, a row of category buttons, instant right/
+   wrong feedback plus an explanation. Used for sorting real cases. */
+function buildClassifyGrid(mount, categories, items) {
+  const grid = el("div", "classify-grid");
+  items.forEach(item => {
+    const row = el("div", "classify-item");
+    row.append(el("p", "classify-item__label", item.label));
+    const btns = el("div", "classify-item__btns");
+    categories.forEach(cat => {
+      const b = el("button", null, cat);
+      b.type = "button";
+      b.addEventListener("click", () => {
+        if (row.classList.contains("is-answered")) return;
+        row.classList.add("is-answered");
+        const correct = cat === item.answer;
+        b.classList.add("chosen", correct ? "correct" : "wrong");
+        if (!correct) {
+          [...btns.children].forEach(other => { if (other.textContent === item.answer) other.classList.add("chosen", "correct"); });
+        }
+        [...btns.children].forEach(other => other.disabled = true);
+        explainEl.textContent = item.explain;
+      });
+      btns.append(b);
+    });
+    row.append(btns);
+    const explainEl = el("p", "classify-item__explain");
+    row.append(explainEl);
+    grid.append(row);
+  });
+  mount.append(grid);
+}
+
+/* --- Chapter 1: Vague or Specific? --------------------------------------- */
+(function () {
+  const mount = document.getElementById("sim-ch1");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+    Try It &mdash; Vague or Specific?</p>
+    <p style="color:var(--ink-2);font-size:var(--step--1)">Tap each example. Which ones would earn full marks in an exam answer?</p>`;
+  mount.append(card);
+  buildRevealGrid(card, [
+    { label: "“Energy”", good: false, tag: "Too vague", explain: "Names no exact action or impact — an examiner can't tell what you mean." },
+    { label: "“Charging a phone overnight”", good: true, tag: "Specific", explain: "A named action, using a named resource (electricity) — this is exam-ready." },
+    { label: "“Pollution”", good: false, tag: "Too vague", explain: "Pollution of what, from what source, affecting what? Needs detail." },
+    { label: "“Driving a petrol car to work every day”", good: true, tag: "Specific", explain: "Names the action, the fuel, and the frequency — easy to build an impact chain from this." },
+    { label: "“Nature”", good: false, tag: "Too vague", explain: "Not an environmental impact at all — no action, no consequence." },
+    { label: "“Buying food in single-use plastic packaging”", good: true, tag: "Specific", explain: "A concrete choice with a traceable waste consequence." },
+  ]);
+})();
+
+/* --- Chapter 2: Energy Pyramid Calculator -------------------------------- */
+(function () {
+  const mount = document.getElementById("sim-ch2");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `
+    <p class="sim-card__title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 18H3z"/></svg>
+      Try It &mdash; Energy Pyramid Calculator
+    </p>
+    <label style="display:block;font-size:var(--step--1);font-weight:700">
+      Energy available at the producer level: <span class="val" id="ep-val" style="font-family:var(--font-data);color:var(--accent)">200</span> units
+      <input type="range" id="ep-slider" min="50" max="500" step="10" value="200" style="width:100%;margin-top:var(--sp-2);accent-color:var(--accent)">
+    </label>
+    <div class="table-scroll">
+      <table class="field" id="ep-table">
+        <tr><th>Trophic level</th><th>Energy available</th></tr>
+        <tr><td>Producer</td><td id="ep-l0"></td></tr>
+        <tr><td>Primary consumer</td><td id="ep-l1"></td></tr>
+        <tr><td>Secondary consumer</td><td id="ep-l2"></td></tr>
+        <tr><td>Top predator</td><td id="ep-l3"></td></tr>
+      </table>
+    </div>
+    <p class="sim-readout" id="ep-readout"></p>
+  `;
+  mount.append(card);
+  const slider = card.querySelector("#ep-slider");
+  const val = card.querySelector("#ep-val");
+  const cells = [0, 1, 2, 3].map(i => card.querySelector(`#ep-l${i}`));
+  const readout = card.querySelector("#ep-readout");
+  function paint() {
+    const start = parseFloat(slider.value);
+    val.textContent = start;
+    let level = start;
+    cells.forEach((cell, i) => {
+      cell.textContent = (i === 0 ? level : level).toFixed(i === 0 ? 0 : 2) + " units";
+      level *= 0.1;
+    });
+    readout.innerHTML = `A top predator only ever has access to about <strong>${(start * 0.001).toFixed(3)}</strong> units
+      of the original ${start} — which is why a food chain rarely supports more than 4 or 5 levels.`;
+  }
+  slider.addEventListener("input", paint);
+  paint();
+})();
+
+/* --- Chapter 3: Which level of biodiversity? ----------------------------- */
+(function () {
+  const mount = document.getElementById("sim-ch3");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+    Try It &mdash; Which Level Is This?</p>
+    <p style="color:var(--ink-2);font-size:var(--step--1)">Tap each example to see which level of biodiversity it demonstrates.</p>`;
+  mount.append(card);
+  buildRevealGrid(card, [
+    { label: "Two koalas whose DNA makes them respond differently to disease", good: true, tag: "Genetic diversity", explain: "Variation inside one species — the koala." },
+    { label: "A rainforest with 500 species vs. a wheat field with one", good: true, tag: "Species diversity", explain: "Comparing how many different species live in each place." },
+    { label: "A country with deserts, forests, coastlines and grasslands", good: true, tag: "Ecosystem diversity", explain: "The variety of habitats across a whole region." },
+    { label: "Bees relaxing on a beach for their summer holiday", good: false, tag: "Not biodiversity", explain: "A fun distractor — biodiversity is about variation and habitats, not bee vacations." },
+  ]);
+})();
+
+/* --- Chapter 4: Sort by IUCN risk ---------------------------------------- */
+(function () {
+  const mount = document.getElementById("sim-ch4");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
+    Try It &mdash; Sort by IUCN Risk</p>`;
+  mount.append(card);
+  buildClassifyGrid(card, ["Least Concern", "Vulnerable", "Endangered", "Critically Endangered"], [
+    { label: "Javan rhino — fewer than 80 individuals left, habitat shrinking fast", answer: "Critically Endangered", explain: "One of the rarest large mammals on Earth — the most urgent category." },
+    { label: "Koala — population decreasing, but still tens of thousands remain", answer: "Vulnerable", explain: "At real risk, but not yet at the two most severe levels." },
+    { label: "A common garden bird with a large, stable population", answer: "Least Concern", explain: "No significant threat to its survival at present." },
+    { label: "A frog species restricted to one shrinking wetland, numbers falling sharply every year", answer: "Endangered", explain: "Serious, worsening risk — one level below Critically Endangered." },
+  ]);
+})();
+
+/* --- Chapter 6: Pick the event, see the systems respond ------------------ */
+(function () {
+  const mount = document.getElementById("sim-ch6");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const EVENTS = {
+    Tsunami: { systems: ["Geosphere", "Hydrosphere", "Biosphere"], note: "Seafloor movement (geosphere), a huge wall of moving ocean water (hydrosphere), and damage to people, animals and habitats (biosphere). Atmospheric effects are more indirect here." },
+    "Volcanic eruption": { systems: ["Geosphere", "Atmosphere", "Biosphere"], note: "Molten rock reshapes land (geosphere), ash and gases fill the sky (atmosphere), and nearby life is directly affected (biosphere)." },
+    Wildfire: { systems: ["Atmosphere", "Biosphere", "Geosphere"], note: "Smoke fills the atmosphere, vegetation and animals are directly affected (biosphere), and burned soil changes the geosphere." },
+    Flood: { systems: ["Hydrosphere", "Geosphere", "Biosphere"], note: "Excess water (hydrosphere) reshapes land and moves soil (geosphere), and damages crops, homes and wildlife (biosphere)." },
+  };
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+    Try It &mdash; Pick an Event</p>
+    <div class="btn-row" id="ev-btns"></div>
+    <div class="chip-toggle-row" id="ev-systems">
+      ${["Geosphere", "Hydrosphere", "Atmosphere", "Biosphere"].map(s => `<span class="chip-toggle" data-sys="${s}">${s}</span>`).join("")}
+    </div>
+    <div class="reveal-result" id="ev-note">Pick an event above to see which Earth systems respond most directly.</div>`;
+  mount.append(card);
+  const btnRow = card.querySelector("#ev-btns");
+  const note = card.querySelector("#ev-note");
+  const chips = [...card.querySelectorAll('[data-sys]')];
+  Object.keys(EVENTS).forEach(name => {
+    const b = el("button", null, name);
+    b.type = "button";
+    b.addEventListener("click", () => {
+      [...btnRow.children].forEach(x => x.classList.remove("is-active"));
+      b.classList.add("is-active");
+      const affected = EVENTS[name].systems;
+      chips.forEach(chip => chip.classList.toggle("is-on", affected.includes(chip.dataset.sys)));
+      note.innerHTML = `<b>${name}:</b> ${EVENTS[name].note}`;
+    });
+    btnRow.append(b);
+  });
+})();
+
+/* --- Chapter 7: Tap the water-cycle stage -------------------------------- */
+(function () {
+  const mount = document.getElementById("sim-ch7");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 1 1-12 0c0-3.5 3-7 6-11z"/></svg>
+    Try It &mdash; Name That Stage</p>
+    <p style="color:var(--ink-2);font-size:var(--step--1)">Tap a stage to check your own definition against the real one.</p>`;
+  mount.append(card);
+  buildRevealGrid(card, [
+    { label: "Evaporation", good: true, tag: "Stage 1", explain: "The sun heats water in oceans, lakes and rivers, turning it into invisible water vapour." },
+    { label: "Condensation", good: true, tag: "Stage 2", explain: "Water vapour cools high in the atmosphere and forms clouds." },
+    { label: "Precipitation", good: true, tag: "Stage 3", explain: "Water falls back to Earth as rain, snow or hail." },
+    { label: "Infiltration", good: true, tag: "Stage 4a", explain: "Water soaks into the ground and can be stored in an aquifer." },
+    { label: "Runoff", good: true, tag: "Stage 4b", explain: "Water flows over the land into rivers and lakes instead of soaking in." },
+  ]);
+})();
+
+/* --- Chapter 8: Classify the land use ------------------------------------ */
+(function () {
+  const mount = document.getElementById("sim-ch8");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.4"/><path d="M4 19c1.5-3.5 4.7-5.5 8-5.5s6.5 2 8 5.5"/></svg>
+    Try It &mdash; Classify the Land</p>`;
+  mount.append(card);
+  buildClassifyGrid(card, ["Primary forest", "Monoculture plantation", "Agroforestry", "Arable land"], [
+    { label: "Rows of a single pine species, grown for paper", answer: "Monoculture plantation", explain: "One species, planted in rows, grown for one product." },
+    { label: "Trees, shrubs and grazing animals managed together on the same land", answer: "Agroforestry", explain: "A mixed system — more biodiversity and healthier soil than a single-species plantation." },
+    { label: "Old, established forest with little recent human conversion", answer: "Primary forest", explain: "Remember: this doesn't automatically mean zero human impact, just less visible conversion." },
+    { label: "Ploughed fields growing wheat this season, potatoes next", answer: "Arable land", explain: "Land worked for seasonal crops — not livestock (pasture) or trees in rows (plantation)." },
+  ]);
+})();
+
+/* --- Chapter 10: Footprint mixer ------------------------------------------ */
+(function () {
+  const mount = document.getElementById("sim-ch10");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const CHOICES = [
+    { label: "Flying abroad this year", weight: 30 },
+    { label: "Driving a petrol car daily", weight: 22 },
+    { label: "Solar panels at home", weight: -18 },
+    { label: "Recycling and reusing packaging", weight: -12 },
+    { label: "Eating a lot of imported food", weight: 15 },
+    { label: "Walking or cycling most journeys", weight: -15 },
+  ];
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+    Try It &mdash; Footprint Mixer</p>
+    <p style="color:var(--ink-2);font-size:var(--step--1)">Toggle choices on or off and watch the environmental footprint meter respond.</p>
+    <div class="chip-toggle-row" id="fp-chips"></div>
+    <div class="meter"><div class="meter__track"><div class="meter__fill" id="fp-fill" style="width:40%"></div></div>
+      <p class="meter__label" id="fp-label"></p></div>`;
+  mount.append(card);
+  const chipRow = card.querySelector("#fp-chips");
+  const fill = card.querySelector("#fp-fill");
+  const label = card.querySelector("#fp-label");
+  const on = new Set();
+  CHOICES.forEach(choice => {
+    const chip = el("span", "chip-toggle", choice.label);
+    chip.addEventListener("click", () => {
+      if (on.has(choice.label)) on.delete(choice.label); else on.add(choice.label);
+      chip.classList.toggle("is-on");
+      paint();
+    });
+    chipRow.append(chip);
+  });
+  function paint() {
+    let score = 40 + CHOICES.filter(c => on.has(c.label)).reduce((s, c) => s + c.weight, 0);
+    score = Math.max(4, Math.min(96, score));
+    fill.style.width = score + "%";
+    const tier = score < 35 ? "Low impact" : score < 65 ? "Medium impact" : "High impact";
+    label.innerHTML = `<b>${tier}</b> — an environmental footprint is more than just carbon: it's every choice added together.`;
+  }
+  paint();
+})();
+
+/* --- Chapter 11: Point or non-point? -------------------------------------- */
+(function () {
+  const mount = document.getElementById("sim-ch11");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 20V10l3-6h6l3 6v10"/></svg>
+    Try It &mdash; Point or Non-Point?</p>`;
+  mount.append(card);
+  buildClassifyGrid(card, ["Point source", "Non-point source"], [
+    { label: "An offshore drilling platform blowout", answer: "Point source", explain: "One identifiable location — the rig." },
+    { label: "Fertiliser washing off hundreds of farms across a whole valley", answer: "Non-point source", explain: "Many spread-out sources, no single origin to target." },
+    { label: "A single factory pipe discharging into a river", answer: "Point source", explain: "One traceable pipe, one traceable owner." },
+    { label: "Stormwater picking up oil and litter from an entire city's streets", answer: "Non-point source", explain: "Comes from everywhere at once — needs city-wide action, not one fix." },
+  ]);
+})();
+
+/* --- Chapter 12: Fire a ray at the ozone layer ---------------------------- */
+(function () {
+  const mount = document.getElementById("sim-ch12");
+  if (!mount) return;
+  mount.innerHTML = "";
+  const card = el("div", "sim-card");
+  card.innerHTML = `<p class="sim-card__title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15a4 4 0 0 1 1.2-7.9A5.5 5.5 0 0 1 15.8 6 4.5 4.5 0 0 1 19 15H4z"/></svg>
+    Try It &mdash; Fire a Ray</p>
+    <div class="btn-row">
+      <button type="button" id="ray-uv">Fire a UV ray</button>
+      <button type="button" id="ray-heat">Fire a heat ray</button>
+    </div>
+    <div class="reveal-result" id="ray-result">Choose a ray to see whether the ozone layer stops it.</div>`;
+  mount.append(card);
+  const result = card.querySelector("#ray-result");
+  card.querySelector("#ray-uv").addEventListener("click", () => {
+    result.innerHTML = "<b>ABSORBED.</b> The ozone layer catches ultraviolet light before it reaches the ground — this is its entire job.";
+  });
+  card.querySelector("#ray-heat").addEventListener("click", () => {
+    result.innerHTML = "<b>PASSES STRAIGHT THROUGH.</b> Heat arrives as infrared radiation, which the ozone layer does not filter at all — this is why ozone depletion and global warming are different problems.";
+  });
+})();
