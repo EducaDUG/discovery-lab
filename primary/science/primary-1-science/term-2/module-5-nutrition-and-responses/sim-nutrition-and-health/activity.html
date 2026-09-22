@@ -112,17 +112,28 @@ const PILLARS = [
 ];
 
 const HABITS = [
-  { id: "h1", pillar: "nutrition", en: "Ate vegetables", es: "Comió verduras" },
-  { id: "h2", pillar: "sleep", en: "Went to bed on time", es: "Se acostó a tiempo" },
-  { id: "h3", pillar: "exercise", en: "Played outside", es: "Jugó afuera" },
-  { id: "h4", pillar: "community", en: "Hugged a friend", es: "Abrazó a un amigo" },
-  { id: "h5", pillar: "stress", en: "Took deep, slow breaths", es: "Respiró lento y profundo" },
-  { id: "h6", pillar: "nutrition", en: "Drank water instead of soda", es: "Bebió agua en vez de refresco" },
-  { id: "h7", pillar: "sleep", en: "Turned off the screen before bed", es: "Apagó la pantalla antes de dormir" },
-  { id: "h8", pillar: "exercise", en: "Rode a bike", es: "Montó en bicicleta" },
-  { id: "h9", pillar: "community", en: "Said thank you and shared", es: "Dio las gracias y compartió" },
-  { id: "h10", pillar: "stress", en: "Rested quietly in the sun", es: "Descansó tranquilo al sol" },
+  { id: "h1", pillar: "nutrition", icon: "🥕", en: "Ate vegetables", es: "Comió verduras" },
+  { id: "h2", pillar: "sleep", icon: "🌙", en: "Went to bed on time", es: "Se acostó a tiempo" },
+  { id: "h3", pillar: "exercise", icon: "⚽", en: "Played outside", es: "Jugó afuera" },
+  { id: "h4", pillar: "community", icon: "🤗", en: "Hugged a friend", es: "Abrazó a un amigo" },
+  { id: "h5", pillar: "stress", icon: "🧘", en: "Took deep, slow breaths", es: "Respiró lento y profundo" },
+  { id: "h6", pillar: "nutrition", icon: "💧", en: "Drank water instead of soda", es: "Bebió agua en vez de refresco" },
+  { id: "h7", pillar: "sleep", icon: "📴", en: "Turned off the screen before bed", es: "Apagó la pantalla antes de dormir" },
+  { id: "h8", pillar: "exercise", icon: "🚴", en: "Rode a bike", es: "Montó en bicicleta" },
+  { id: "h9", pillar: "community", icon: "🙏", en: "Said thank you and shared", es: "Dio las gracias y compartió" },
+  { id: "h10", pillar: "stress", icon: "☀️", en: "Rested quietly in the sun", es: "Descansó tranquilo al sol" },
 ];
+
+/* A tiny emoji-on-colour SVG data URI, used as the flying item's texture in
+   the Pentagon Rush bonus round (mountArcadeRush's makeItemMesh needs a real
+   img — with none supplied it falls back to a plain, unlabelled green box). */
+function habitIconDataUri(icon, color) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">
+    <rect width="256" height="256" rx="28" fill="${color}"/>
+    <text x="128" y="150" font-size="130" text-anchor="middle" dominant-baseline="middle">${icon}</text>
+  </svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
 
 const FOODS = [
   { id: "bread", nutrient: "carb", en: "Bread", es: "Pan", file: "bread.jpg",
@@ -406,7 +417,10 @@ function drawInvestigate(host, sim) {
   arcadeSection.style.marginTop = "var(--sp-5)";
   host.append(arcadeSection);
 
-  const RUSH_ITEMS = HABITS.map(h => ({ id: h.id, label: L(h.en, h.es), laneId: h.pillar }));
+  const RUSH_ITEMS = HABITS.map(h => ({
+    id: h.id, label: L(h.en, h.es), laneId: h.pillar,
+    img: habitIconDataUri(h.icon, PILLARS.find(p => p.id === h.pillar).color),
+  }));
   const RUSH_LANES = PILLARS.map(p => ({ id: p.id, label: L(p.en, p.es), color: p.color }));
 
   function paintArcade() {
