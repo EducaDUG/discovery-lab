@@ -23,6 +23,9 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .nh-chip.is-selected{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash);}
 .nh-chip.is-correct{animation:nhPop .5s var(--ease-out-back);border-color:var(--signal);background:var(--accent-wash);}
 .nh-chip.is-wrong{animation:nhShake .35s ease;border-color:#c0392b;}
+.nh-chip.nh-photo-card{padding:0;overflow:hidden;display:block;width:100%;}
+.nh-chip.nh-photo-card .nh-photo{border-radius:0;}
+.nh-chip.nh-photo-card .nh-photo-cap{display:block;padding:.5em .5em;font-size:var(--step--2);}
 @keyframes nhPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
 @keyframes nhShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 [data-reduced-motion=on] .nh-chip.is-correct,[data-reduced-motion=on] .nh-chip.is-wrong{animation:none}
@@ -112,21 +115,45 @@ const PILLARS = [
 ];
 
 const HABITS = [
-  { id: "h1", pillar: "nutrition", icon: "🥕", en: "Ate vegetables", es: "Comió verduras" },
-  { id: "h2", pillar: "sleep", icon: "🌙", en: "Went to bed on time", es: "Se acostó a tiempo" },
-  { id: "h3", pillar: "exercise", icon: "⚽", en: "Played outside", es: "Jugó afuera" },
-  { id: "h4", pillar: "community", icon: "🤗", en: "Hugged a friend", es: "Abrazó a un amigo" },
+  { id: "h1", pillar: "nutrition", icon: "🥕", en: "Ate vegetables", es: "Comió verduras",
+    photo: "habit-h1.jpg",
+    credit: "HaJunkiyada, CC BY-SA 4.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:Liat_Portal_for_Foodie_Disorder_-_Mixed_vegetable_salad_with_fresh_herbs.jpg" },
+  { id: "h2", pillar: "sleep", icon: "🌙", en: "Went to bed on time", es: "Se acostó a tiempo",
+    photo: "habit-h2.jpg",
+    credit: "Paul Goyette, CC BY-SA 2.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:Sleeping_baby_in_crib.jpg" },
+  { id: "h3", pillar: "exercise", icon: "⚽", en: "Played outside", es: "Jugó afuera",
+    photo: "habit-h3.jpg",
+    credit: "terri_bateman, CC BY 2.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:-365_monkeyBars_(21665576909).jpg" },
+  { id: "h4", pillar: "community", icon: "🤗", en: "Hugged a friend", es: "Abrazó a un amigo",
+    photo: "habit-h4.jpg",
+    credit: "Kengee8, CC BY-SA 4.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:Children_hug.jpg" },
   { id: "h5", pillar: "stress", icon: "🧘", en: "Took deep, slow breaths", es: "Respiró lento y profundo" },
-  { id: "h6", pillar: "nutrition", icon: "💧", en: "Drank water instead of soda", es: "Bebió agua en vez de refresco" },
+  { id: "h6", pillar: "nutrition", icon: "💧", en: "Drank water instead of soda", es: "Bebió agua en vez de refresco",
+    photo: "habit-h6.jpg",
+    credit: "Shixart1985, CC BY 2.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:Young_child_drinks_from_a_glass_while_standing_in_a_kitchen.jpg" },
   { id: "h7", pillar: "sleep", icon: "📴", en: "Turned off the screen before bed", es: "Apagó la pantalla antes de dormir" },
-  { id: "h8", pillar: "exercise", icon: "🚴", en: "Rode a bike", es: "Montó en bicicleta" },
-  { id: "h9", pillar: "community", icon: "🙏", en: "Said thank you and shared", es: "Dio las gracias y compartió" },
-  { id: "h10", pillar: "stress", icon: "☀️", en: "Rested quietly in the sun", es: "Descansó tranquilo al sol" },
+  { id: "h8", pillar: "exercise", icon: "🚴", en: "Rode a bike", es: "Montó en bicicleta",
+    photo: "habit-h8.jpg",
+    credit: "Matt Robertson/DFAT, CC BY 2.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:A_child_riding_his_bike_outside_Nauru_College.jpg" },
+  { id: "h9", pillar: "community", icon: "🙏", en: "Said thank you and shared", es: "Dio las gracias y compartió",
+    photo: "habit-h9.jpg",
+    credit: "Shixart1985, CC BY 2.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:Two_children_happily_run_down_a_pathway_in_a_backyard,_holding_colorful_light_toys.jpg" },
+  { id: "h10", pillar: "stress", icon: "☀️", en: "Rested quietly in the sun", es: "Descansó tranquilo al sol",
+    photo: "habit-h10.jpg",
+    credit: "Shixart1985, CC BY 2.0, via Wikimedia Commons",
+    creditUrl: "https://commons.wikimedia.org/wiki/File:Woman_enjoying_a_peaceful_afternoon_in_a_sunny_garden.jpg" },
 ];
 
-/* A tiny emoji-on-colour SVG data URI, used as the flying item's texture in
-   the Pentagon Rush bonus round (mountArcadeRush's makeItemMesh needs a real
-   img — with none supplied it falls back to a plain, unlabelled green box). */
+/* A tiny emoji-on-colour SVG data URI, used as a fallback texture (and fallback
+   card art) for the two habits (h5, h7) without a licensed real photo — see
+   RUSH_ITEMS below and paintHabits()'s photo-card markup. */
 function habitIconDataUri(icon, color) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">
     <rect width="256" height="256" rx="28" fill="${color}"/>
@@ -238,11 +265,13 @@ function drawInvestigate(host, sim) {
     <div class="nh-grid" id="habit-grid"></div>
     <div class="nh-pillars" id="pillar-row"></div>
     <p class="readout" id="pillar-readout" aria-live="polite">${L("Tap a habit card to begin.", "Toca una tarjeta de hábito para empezar.")}</p>
+    <p class="nh-credit" id="habit-credit"></p>
   `;
   wrap.append(pillarPanel);
   const habitGrid = pillarPanel.querySelector("#habit-grid");
   const pillarRow = pillarPanel.querySelector("#pillar-row");
   const pillarReadout = pillarPanel.querySelector("#pillar-readout");
+  const habitCredit = pillarPanel.querySelector("#habit-credit");
   let selectedHabit = null;
   let sortedCount = 0;
 
@@ -251,13 +280,19 @@ function drawInvestigate(host, sim) {
     HABITS.forEach(h => {
       if (h.done) return;
       const c = document.createElement("button");
-      c.type = "button"; c.className = "nh-chip"; c.textContent = L(h.en, h.es);
+      c.type = "button"; c.className = "nh-chip nh-photo-card";
+      const imgSrc = h.photo ? `photos/${h.photo}` : habitIconDataUri(h.icon, PILLARS.find(p => p.id === h.pillar).color);
+      c.innerHTML = `<img class="nh-photo" src="${imgSrc}" alt="${L(h.en, h.es)}" style="aspect-ratio:4/3">
+        <span class="nh-photo-cap">${L(h.en, h.es)}</span>`;
       c.addEventListener("click", () => {
         habitGrid.querySelectorAll(".nh-chip").forEach(x => x.classList.remove("is-selected"));
         c.classList.add("is-selected");
         selectedHabit = h;
         pillarReadout.textContent = L(`Now tap the group for "${h.en}".`, `Ahora toca el grupo para "${h.es}".`);
         pillarRow.querySelectorAll(".nh-pillar").forEach(p => p.classList.toggle("is-target", p.dataset.id === h.pillar ? false : false));
+        habitCredit.innerHTML = h.credit
+          ? `${L("Photo", "Foto")}: <a href="${h.creditUrl}" target="_blank" rel="noopener">${h.credit}</a>`
+          : "";
       });
       habitGrid.append(c);
     });
@@ -419,7 +454,7 @@ function drawInvestigate(host, sim) {
 
   const RUSH_ITEMS = HABITS.map(h => ({
     id: h.id, label: L(h.en, h.es), laneId: h.pillar,
-    img: habitIconDataUri(h.icon, PILLARS.find(p => p.id === h.pillar).color),
+    img: h.photo ? `photos/${h.photo}` : habitIconDataUri(h.icon, PILLARS.find(p => p.id === h.pillar).color),
   }));
   const RUSH_LANES = PILLARS.map(p => ({ id: p.id, label: L(p.en, p.es), color: p.color }));
 
