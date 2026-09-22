@@ -449,7 +449,43 @@ function drawInvestigate(host, sim) {
   paintArcade();
 }
 
-const simulation = { observation: drawObservation, investigate: drawInvestigate };
+function drawOrient(host) {
+  const PTS = [
+    { x: 160, y: 42 },   // top — nutrition
+    { x: 262.7, y: 116.6 }, // upper-right — sleep
+    { x: 223.5, y: 237.4 }, // lower-right — exercise
+    { x: 96.5, y: 237.4 },  // lower-left — stress
+    { x: 57.3, y: 116.6 },  // upper-left — community
+  ];
+  const ICONS = ["🥦", "😴", "🏃", "🧘", "🤝"];
+  const poly = PTS.map(p => `${p.x},${p.y}`).join(" ");
+  const spokes = PTS.map(p => `<line x1="160" y1="150" x2="${p.x}" y2="${p.y}" stroke="var(--line)" stroke-width="2"/>`).join("");
+  const nodes = PTS.map((p, i) => {
+    const pl = PILLARS[i];
+    return `
+      <g>
+        <circle cx="${p.x}" cy="${p.y}" r="34" fill="${pl.color}"/>
+        <text x="${p.x}" y="${p.y - 2}" text-anchor="middle" font-size="22">${ICONS[i]}</text>
+        <text x="${p.x}" y="${p.y + 52}" text-anchor="middle" font-family="var(--font-body)" font-weight="800"
+              font-size="12" fill="var(--ink)">${(L(pl.en, pl.es)).replace("&", "&amp;")}</text>
+      </g>`;
+  }).join("");
+  host.innerHTML =
+    `<p class="q__hint">${L(
+      "This is the Pentagon of Health — five habits that work together to keep you happy and well. You will sort real habits and foods into these five groups.",
+      "Este es el Pentágono de la Salud — cinco hábitos que trabajan juntos para mantenerte feliz y sano. Vas a clasificar hábitos y alimentos reales en estos cinco grupos."
+    )}</p>
+    <svg viewBox="0 0 320 300" style="width:100%;height:auto;margin-top:8px" role="img"
+         aria-label="${L('A pentagon diagram with five habits: nutrition, sleep, exercise, calm mind, and kindness and friends, all connected to a heart in the middle', 'Un diagrama pentagonal con cinco hábitos: nutrición, sueño, ejercicio, mente tranquila, y amabilidad y amigos, todos conectados a un corazón en el centro')}">
+      <polygon points="${poly}" fill="var(--accent-wash)" stroke="var(--line)" stroke-width="1.5"/>
+      ${spokes}
+      <circle cx="160" cy="150" r="30" fill="var(--paper)" stroke="var(--accent)" stroke-width="3"/>
+      <text x="160" y="158" text-anchor="middle" font-size="26">❤️</text>
+      ${nodes}
+    </svg>`;
+}
+
+const simulation = { orient: drawOrient, observation: drawObservation, investigate: drawInvestigate };
 
 mountActivity({ simulation }).catch(e => {
   console.error("Activity failed to start:", e);
