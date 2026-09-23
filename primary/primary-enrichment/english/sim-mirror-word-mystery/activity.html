@@ -265,20 +265,17 @@ function initChamber(container) {
   const group = new THREE.Group();
   scene.add(group);
 
-  let az = 0.35, pol = 1.1, dragging = false, lastX = 0, lastY = 0;
+  // Orbit state lives on `three` (not as closures here) so that re-mounting
+  // the chamber into a fresh container div on every round (rounds() rebuilds
+  // the whole DOM subtree via innerHTML) can rebind the drag listeners to
+  // the *current* container instead of leaving them stuck on a detached one
+  // — that mismatch was the cause of "drag stopped orbiting after round 1".
+  const orbit = { az: 0.35, pol: 1.1, dragging: false, lastX: 0, lastY: 0, travel: 0 };
   const rad = 6.2;
   function place() {
-    camera.position.set(rad * Math.sin(pol) * Math.sin(az), rad * Math.cos(pol), rad * Math.sin(pol) * Math.cos(az));
+    camera.position.set(rad * Math.sin(orbit.pol) * Math.sin(orbit.az), rad * Math.cos(orbit.pol), rad * Math.sin(orbit.pol) * Math.cos(orbit.az));
     camera.lookAt(0, 0, -0.2);
   }
-  container.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; container.setPointerCapture(e.pointerId); });
-  container.addEventListener("pointermove", e => {
-    if (!dragging) return;
-    az -= (e.clientX - lastX) * 0.008;
-    pol = Math.min(1.45, Math.max(0.65, pol - (e.clientY - lastY) * 0.006));
-    lastX = e.clientX; lastY = e.clientY;
-  });
-  window.addEventListener("pointerup", () => dragging = false);
 
   function resize() {
     const w = container.clientWidth, h = container.clientHeight;
@@ -291,14 +288,45 @@ function initChamber(container) {
   resize();
 
   function loop() {
-    if (!dragging && !reducedMotion()) az += 0.0008;
+    if (!orbit.dragging && !reducedMotion()) orbit.az += 0.0008;
     place();
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
   loop();
 
-  three = { renderer, scene, camera, group, container, key, baseFov: 40 };
+  three = { renderer, scene, camera, group, container, key, baseFov: 40, orbit, frame, glass };
+  bindChamberDrag(container);
+}
+
+/* Binds (or rebinds) pointer-drag-to-orbit on whichever container currently
+   hosts the chamber canvas. Uses a cumulative-travel threshold rather than a
+   boolean set on the first pointermove, so a real click/tap's inevitable
+   sub-pixel jitter never gets misread as an orbit drag — same pitfall class
+   as canvases that both orbit-on-drag and pick-on-click. */
+function bindChamberDrag(container) {
+  if (container.dataset.mwDragBound === "1") return;
+  container.dataset.mwDragBound = "1";
+  const DRAG_THRESHOLD = 4; // px of cumulative travel before it counts as a drag
+  container.addEventListener("pointerdown", e => {
+    const o = three.orbit;
+    o.dragging = true; o.lastX = e.clientX; o.lastY = e.clientY; o.travel = 0;
+    container.setPointerCapture(e.pointerId);
+  });
+  container.addEventListener("pointermove", e => {
+    const o = three.orbit;
+    if (!o.dragging) return;
+    const dx = e.clientX - o.lastX, dy = e.clientY - o.lastY;
+    o.travel += Math.abs(dx) + Math.abs(dy);
+    o.az -= dx * 0.008;
+    o.pol = Math.min(1.45, Math.max(0.65, o.pol - dy * 0.006));
+    o.lastX = e.clientX; o.lastY = e.clientY;
+  });
+  container.addEventListener("pointerup", e => {
+    three.orbit.dragging = false;
+    try { container.releasePointerCapture(e.pointerId); } catch (err) {}
+  });
+  container.addEventListener("pointercancel", () => { three.orbit.dragging = false; });
 }
 
 /* Quick FOV dolly-punch + light flash for the reveal moment — cheap "juice"
@@ -320,8 +348,37 @@ function mountChamber(container) {
   if (!three) { initChamber(container); return; }
   container.appendChild(three.renderer.domElement);
   three.container = container;
+  bindChamberDrag(container);
   const w = container.clientWidth, h = container.clientHeight;
   if (w && h) { three.renderer.setSize(w, h); three.camera.aspect = w / h; three.camera.updateProjectionMatrix(); }
+}
+
+/* Per-question mirror colour coding — cycles through a small palette keyed
+   by round index so each question's mirror frame/glass reads as visually
+   distinct, and dynamic sizing so longer words (e.g. PENCIL) never clip
+   outside the glass. */
+const MIRROR_PALETTE = [
+  { frame: 0xD6A24C, glass: 0x6a53a8 }, // gold / violet (round 1)
+  { frame: 0x4CA6D6, glass: 0x2f4f7a }, // sky blue / navy (round 2)
+  { frame: 0x4CD68B, glass: 0x2f7a55 }, // mint green / forest (round 3)
+  { frame: 0xD64C7A, glass: 0x7a2f4f }, // rose / plum (round 4)
+  { frame: 0xD68B4C, glass: 0x7a552f }, // amber / bronze (round 5)
+  { frame: 0x9B4CD6, glass: 0x552f7a }  // purple / indigo (round 6)
+];
+function colorChamberForRound(idx) {
+  if (!three) return;
+  const c = MIRROR_PALETTE[idx % MIRROR_PALETTE.length];
+  three.frame.material.color.setHex(c.frame);
+  three.glass.material.color.setHex(c.glass);
+}
+function sizeChamberForWord(word) {
+  if (!three) return;
+  const L = word.length;
+  const halfWidth = (L - 1) * 0.31; // matches the .62 tile spacing used in buildRoundTiles
+  const desiredGlassRadius = Math.max(1.4, halfWidth + 0.65);
+  const scale = desiredGlassRadius / 1.4; // 1.4 is glass's base geometry radius
+  three.frame.scale.set(scale, scale, 1);
+  three.glass.scale.set(scale, scale, 1);
 }
 function clearChamber() {
   while (three.group.children.length) three.group.remove(three.group.children[0]);
@@ -329,6 +386,7 @@ function clearChamber() {
 
 function buildRoundTiles(word) {
   clearChamber();
+  sizeChamberForWord(word);
   const letters = word.split("");
   const L = letters.length;
   const spacing = 0.62;
@@ -567,6 +625,7 @@ function rounds(host) {
 
   mountSpeakers(host);
   mountChamber(host.querySelector("#mw-3d"));
+  colorChamberForRound(roundIdx);
   const refs = buildRoundTiles(r.word);
 
   host.querySelectorAll(".mw-opt").forEach(btn=>{
@@ -696,6 +755,29 @@ function initArcade3D(container) {
     scene.add(stripe);
   }
 
+  // Lime-green grass platforms flanking the road, so the trolley clearly
+  // drives across a "field" rather than floating on a bare purple slab.
+  const grassMat = new THREE.MeshStandardMaterial({ color: 0x32CD32, roughness: 0.95 });
+  const grassL = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.08, 60), grassMat);
+  grassL.position.set(-4.6, -0.42, -18);
+  const grassR = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.08, 60), grassMat.clone());
+  grassR.position.set(4.6, -0.42, -18);
+  scene.add(grassL, grassR);
+
+  // A simple city skyline of building silhouettes sits far behind the road.
+  const cityGroup = new THREE.Group();
+  scene.add(cityGroup);
+  const cityMat = new THREE.MeshStandardMaterial({ color: 0x241537, roughness: 1 });
+  for (let side = -1; side <= 1; side += 2) {
+    for (let i = 0; i < 9; i++) {
+      const bw = 1.1 + Math.random() * 1.3;
+      const bh = 2.5 + Math.random() * 5.5;
+      const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bw), cityMat);
+      b.position.set(side * (7.5 + Math.random() * 2.5), bh / 2 - 0.4, -i * 6 - Math.random() * 3);
+      cityGroup.add(b);
+    }
+  }
+
   const sceneryGroup = new THREE.Group();
   scene.add(sceneryGroup);
   function scatterScenery() {
@@ -723,11 +805,21 @@ function initArcade3D(container) {
   body.position.y = 0.28;
   const rider = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), new THREE.MeshStandardMaterial({ color: 0xE8C7A0 }));
   rider.position.set(0, 0.7, 0.05);
-  const wheelGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.16, 16);
+  // Four distinct wheel meshes (front-left/right, back-left/right), not two
+  // wide axle cylinders mirrored to fake four wheels.
+  const wheelGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.1, 16);
   const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-  const w1 = new THREE.Mesh(wheelGeo, wheelMat); w1.rotation.z = Math.PI / 2; w1.position.set(0, 0, 0.42);
-  const w2 = w1.clone(); w2.position.z = -0.42;
-  vehicle.add(body, rider, w1, w2);
+  const wheelPositions = [
+    [0.34, 0, 0.42], [-0.34, 0, 0.42],
+    [0.34, 0, -0.42], [-0.34, 0, -0.42]
+  ];
+  const wheels = wheelPositions.map(([x, y, z]) => {
+    const w = new THREE.Mesh(wheelGeo, wheelMat);
+    w.rotation.z = Math.PI / 2;
+    w.position.set(x, y, z);
+    return w;
+  });
+  vehicle.add(body, rider, ...wheels);
   vehicle.position.set(0, 0, 2.4);
   scene.add(vehicle);
 
