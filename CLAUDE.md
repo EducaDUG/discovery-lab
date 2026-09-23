@@ -201,6 +201,73 @@ rush every time.
   forward axis rather than assuming a sign — this is exactly the kind of thing that looks fine in code
   review and only shows up as "backwards" when someone actually plays it.
 
+**Amendment — a real Bonus Game Mechanic Library, not a 2-genre coin flip; visual bar set to
+Gizmos/CK-12, not generic arcade (agreed 2026-09-23, standing rule).** Diego: the bonus rounds
+across sims are landing as "basic, old-fashioned arcade" and repetitive — with dozens of sims
+ahead, alternating only arcade-vs-quest3d converges on two mechanics repeated over and over, which
+is exactly the boredom this section exists to prevent. He wants students to feel like gamers whose
+game is the subject matter, referencing [Gizmos](https://gizmos.explorelearning.com/) and
+[CK-12's Physics](https://interactives.ck12.org/simulations/physics.html)/
+[Chemistry](https://interactives.ck12.org/simulations/chemistry.html) Interactives as the visual
+and interaction bar to hit.
+
+- **What Gizmos/CK-12 actually do differently — this is a distinct aesthetic, not just "more 3D."**
+  They read as polished, semi-realistic interactive dioramas, not arcade games: clean, consistently
+  drawn vector illustration (characters, props, environments — a believable little world, not
+  neon/particle-heavy game chrome), staged isometric or side-view scenes, and — the important
+  part — **direct manipulation with believable physics**: drag a car and it actually accelerates
+  and coasts, flip a switch and current visibly flows, turn a dial and a wave/graph updates live in
+  real time. The "game" feeling comes from *how satisfying and true-to-physics the manipulation
+  feels*, not from lives/scores/lanes. Reach for this look specifically for a sim's core
+  Investigate 3D scene (already required to be orbitable Three.js, per the amendment below) — not
+  only the bonus round.
+- **The mechanic library — a genre is not enough, the specific mechanic must vary too.** Below is
+  the standing menu. Same lookup discipline as the `mechanic` field (§10/§11) and the existing
+  arcade/quest genre alternation: before building a new bonus round, check what every other
+  simulation in that same course has already used (both genre and specific mechanic) and pick one
+  that hasn't appeared yet in that course. At library scale (dozens of sims), a mechanic may repeat
+  *across different courses*, but never twice in a row and never more than roughly once every 8-10
+  sims within the same course.
+  - **Tunnel-rush** (existing, `engine/arcade.js`) — items fly down a lane toward the camera; tap
+    the matching lane/key before they arrive.
+  - **Rover-quest** (existing, `engine/quest3d.js`) — drive/steer a third-person avatar around an
+    arena, collecting items matching a cycling category banner, timed.
+  - **Launch-and-land** — aim and fire a projectile (trebuchet, pH-neutralising dropper, seed
+    catapult) at a moving or positioned target, reading off an angle/power/variable that maps to
+    the subject content; physics-real arc, not a fixed animation.
+  - **Build-and-balance** — place/stack/assemble real 3D pieces onto a model (build a molecule,
+    balance a food chain, stack a circuit) where physically-simulated balance/fit is the win
+    condition, not a checklist.
+  - **Sorting conveyor** — items move past on a real moving belt/stream; the student diverts each
+    one into the correct bin in real time before it passes (classification, states of matter, parts
+    of speech).
+  - **Timing/rhythm catch** — a sweeping needle, pulsing indicator, or moving marker must be caught
+    at the right instant, repeated across a short real-time round (reaction titration endpoint,
+    metronome-paced vocabulary drill) — always generous/retry-friendly per §6's no-penalise-pacing
+    rule, never a hard-fail reflex test.
+  - **Hidden-object / first-person scene hunt** — a static, richly detailed 3D or illustrated scene
+    the student explores (orbit/pan) to find and tap items matching a prompt, within a real-time
+    window.
+  - **Race/vehicle control** — steer or pace a vehicle/character along a track where the subject
+    variable (friction, pH, translation accuracy) directly changes handling/speed, racing against a
+    clock or a ghost.
+  - **Tycoon/resource loop** — a short real-time resource-management loop (balance inputs/outputs —
+    population growth, supply and demand, an ecosystem's energy budget) with visible, moving
+    stock/flow feedback, not a static spreadsheet-style form.
+  - **Precision instrument challenge** — operate a realistic 3D instrument (a virtual telescope,
+    a titration burette, a balance) under a time or tolerance constraint, Gizmos-style: clean,
+    labelled, physically believable controls rather than gamey chrome.
+  - Where none of the above fits, design an equivalent activity-specific mechanic — the requirement
+    is genuine mechanical variety, not forcing content into a mismatched template.
+- **This does not relax any existing rule** — the ~2-minute/time-boxed duration, no-penalise-pacing,
+  full keyboard operability, reduced-motion fallback, always-visible mute button, and "bonus, never
+  mandatory, no fail state" rules from the amendments above apply to every mechanic in this library
+  exactly as they apply to tunnel-rush and rover-quest today.
+- **When building a new simulation:** plan the specific mechanic (not just the genre) at the same
+  design-time step as `learningFocus` and the rubric — pick it from this library against what the
+  course has already used, and note the choice in the commit/PR description so the pattern is easy
+  to audit later at library scale.
+
 **Amendment — at least THREE hands-on, things-move moments in every Investigate, on top of the
 bonus round, hard rule going forward (agreed 2026-09-18).** Diego, after seeing Mission: Blue
 Planet's first cut (a slider plus a static-looking floating egg): "this looks quite static... there
