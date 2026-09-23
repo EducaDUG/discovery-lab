@@ -51,9 +51,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../../engine/i18n.js?v=9";
-import { mountQuest3D, renderQuestLaunch } from "../../../../../engine/quest3d.js?v=2";
+import { mountConveyorSort, renderConveyorLaunch } from "../../../../../engine/conveyor.js?v=1";
 
-const THREE_URL = "../../../../../engine/vendor/three.min.js";
 const L = (en, es) => (getLang() === "es" ? es : en);
 const REDUCED_MOTION = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
 
@@ -382,74 +381,77 @@ function drawInvestigate(host, sim) {
 
   host.append(wrap);
 
-  /* ---------- Bonus round: Bakery Delivery Run (realistic 3D quest genre) ----------
-     This is the Maths course's first bonus round, and the "realistic 3D" genre
-     (engine/quest3d.js) — a deliberately different feel from the fast tunnel-rush
-     arcade genre used elsewhere on the site (CLAUDE.md §4's genre-alternation rule),
-     and richer than plain text: every crate the student drives past is a drawn
-     bar-model icon of the actual fraction, not a bare label. */
-  const questSection = document.createElement("div");
-  questSection.id = "quest-section";
-  questSection.style.marginTop = "var(--sp-5)";
-  host.append(questSection);
+  /* ---------- Bonus round: Bakery Sorting Belt (Sorting-conveyor mechanic) ----------
+     Swapped 2026-09-23 from the rover-quest genre (engine/quest3d.js) to the
+     new "sorting conveyor" mechanic (engine/conveyor.js) — CLAUDE.md §4's
+     Bonus Game Mechanic Library. Same fraction-bar data as before, but the
+     feel is deliberately different: a continuous stream of crates rides a
+     real moving belt toward the student, who must divert each one into the
+     matching decimal bin before it reaches the end — direct, physical,
+     always-different-mechanic manipulation rather than another drive-around
+     or tunnel-rush round. */
+  const conveyorSection = document.createElement("div");
+  conveyorSection.id = "conveyor-section";
+  conveyorSection.style.marginTop = "var(--sp-5)";
+  host.append(conveyorSection);
 
   const FRACTION_ITEMS = [
-    { id: "f1", num: 1, den: 2, groupId: "d05" },
-    { id: "f2", num: 2, den: 4, groupId: "d05" },
-    { id: "f3", num: 3, den: 6, groupId: "d05" },
-    { id: "f4", num: 1, den: 4, groupId: "d025" },
-    { id: "f5", num: 2, den: 8, groupId: "d025" },
-    { id: "f6", num: 3, den: 4, groupId: "d075" },
-    { id: "f7", num: 6, den: 8, groupId: "d075" },
-    { id: "f8", num: 1, den: 1, groupId: "d10" },
-    { id: "f9", num: 4, den: 4, groupId: "d10" },
-  ].map(it => ({ id: it.id, label: `${it.num}/${it.den}`, groupId: it.groupId, img: barIconDataURI(it.num, it.den, "#7a4b34") }));
-  const GROUPS = [
+    { id: "f1", num: 1, den: 2, binId: "d05" },
+    { id: "f2", num: 2, den: 4, binId: "d05" },
+    { id: "f3", num: 3, den: 6, binId: "d05" },
+    { id: "f4", num: 1, den: 4, binId: "d025" },
+    { id: "f5", num: 2, den: 8, binId: "d025" },
+    { id: "f6", num: 3, den: 4, binId: "d075" },
+    { id: "f7", num: 6, den: 8, binId: "d075" },
+    { id: "f8", num: 1, den: 1, binId: "d10" },
+    { id: "f9", num: 4, den: 4, binId: "d10" },
+  ].map(it => ({ id: it.id, label: `${it.num}/${it.den}`, binId: it.binId, img: barIconDataURI(it.num, it.den, "#7a4b34") }));
+  const BINS = [
     { id: "d025", label: "0.25", color: "#e0b64c" },
     { id: "d05", label: "0.5", color: "#3f8f6b" },
     { id: "d075", label: "0.75", color: "#3f7fbf" },
     { id: "d10", label: "1.0", color: "#a24f7a" },
   ];
 
-  function paintQuest() {
-    questSection.innerHTML = "";
-    renderQuestLaunch(questSection, {
+  function paintConveyor() {
+    conveyorSection.innerHTML = "";
+    renderConveyorLaunch(conveyorSection, {
       strings: {
-        title: L("Bonus round — Bakery Delivery Run", "Ronda bonus — Reparto de la panadería"),
-        instructions: L("Drive your delivery cart around the bakery yard for 2 minutes, collecting crates that match the decimal named on the banner.", "Conduce tu carrito de reparto por el patio de la panadería durante 2 minutos, recogiendo cajas que coincidan con el decimal indicado en el letrero."),
-        play: L("Play Bakery Delivery Run", "Jugar Reparto de la panadería"),
+        title: L("Bonus round — Bakery Sorting Belt", "Ronda bonus — Cinta de reparto de la panadería"),
+        instructions: L("Crates of dough ride the belt toward you — tap the bin that matches each crate's decimal value before it reaches the end.", "Las cajas de masa avanzan por la cinta hacia ti — toca el cubo que coincida con el valor decimal de cada caja antes de que llegue al final."),
+        play: L("Play Bakery Sorting Belt", "Jugar Cinta de reparto"),
         skip: L("Skip bonus round", "Saltar ronda bonus"),
       },
       onPlay() {
-        questSection.innerHTML = "";
+        conveyorSection.innerHTML = "";
         const gameHost = document.createElement("div");
-        questSection.append(gameHost);
-        mountQuest3D(gameHost, {
-          threeUrl: THREE_URL,
-          durationMs: 120000,
-          groups: GROUPS,
+        conveyorSection.append(gameHost);
+        mountConveyorSort(gameHost, {
+          rounds: 24,
+          bins: BINS,
           items: FRACTION_ITEMS,
           strings: {
-            title: L("Bakery Delivery Run", "Reparto de la panadería"),
-            instructions: L("Arrow keys or WASD to drive — or drag the pad. Collect crates matching the decimal named above. A wrong pickup just resets your streak — never a fail.", "Flechas o WASD para conducir — o arrastra el mando. Recoge cajas que coincidan con el decimal indicado arriba. Una recogida incorrecta solo reinicia tu racha — nunca es un fallo."),
-            time: L("Time", "Tiempo"), score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
-            find: L("Find", "Busca"), correct: L("Got it!", "¡Lo tienes!"), wrong: L("Not that one.", "Ese no."),
-            finishTitle: L("Time's up!", "¡Se acabó el tiempo!"), accuracy: L("Accuracy", "Precisión"),
+            title: L("Bakery Sorting Belt", "Cinta de reparto de la panadería"),
+            instructions: L("Tap the matching bin, or press 1-4, before the crate reaches the red line. A wrong sort just resets your streak — never a fail.", "Toca el cubo correcto, o pulsa 1-4, antes de que la caja llegue a la línea roja. Una clasificación incorrecta solo reinicia tu racha — nunca es un fallo."),
+            score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
+            progress: L("Crate", "Caja"), correct: L("Sorted!", "¡Clasificada!"), wrong: L("Wrong bin.", "Cubo equivocado."),
+            missed: L("Missed it.", "Se te escapó."),
+            finishTitle: L("Belt's empty!", "¡Cinta vacía!"), accuracy: L("Accuracy", "Precisión"),
             playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
-            moveHint: L("Arrow keys or WASD to move — or drag the pad.", "Flechas o WASD para moverte — o arrastra el mando."),
+            soundOn: L("Sound on", "Sonido activado"), soundOff: L("Sound off", "Sonido desactivado"),
           },
           onExit(stats) {
             gameHost.innerHTML = "";
-            questSection.innerHTML = "";
+            conveyorSection.innerHTML = "";
             sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
-            paintQuest();
+            paintConveyor();
           }
         });
       },
-      onSkip() { questSection.innerHTML = ""; }
+      onSkip() { conveyorSection.innerHTML = ""; }
     });
   }
-  paintQuest();
+  paintConveyor();
 }
 
 const simulation = { orient: drawOrient, investigate: drawInvestigate };
