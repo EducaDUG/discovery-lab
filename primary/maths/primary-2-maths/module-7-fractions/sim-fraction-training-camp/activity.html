@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fraction Training Camp — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../engine/i18n.js?v=9";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../engine/arcade.js?v=3";
+
+const THREE_URL = "../../../../../engine/vendor/three.min.js";
+const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED_MOTION = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* Shared confetti-style burst — see CLAUDE.md §4's "things visibly, exaggeratedly
+   move" amendment. Container must be position:relative. Skipped under reduced motion. */
+function burst(container, x, y, color) {
+  if (REDUCED_MOTION()) return;
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement("span");
+    p.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:7px;height:7px;margin:-3px;border-radius:50%;background:${color};pointer-events:none;z-index:5`;
+    container.appendChild(p);
+    const ang = Math.random() * Math.PI * 2, dist = 24 + Math.random() * 34;
+    const anim = p.animate([
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0.3)`, opacity: 0 }
+    ], { duration: 480 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    anim.onfinish = () => p.remove();
+  }
+}
+
+/* A small bar-model icon as an inline SVG data URI, so arcade items genuinely
+   depict the fraction instead of bare text (CLAUDE.md §4, 2026-09-23 amendment). */
+function barIconDataURI(num, den, color) {
+  const w = 72, h = 30, segW = (w - 2) / den;
+  let rects = "";
+  for (let i = 0; i < den; i++) {
+    const filled = i < num;
+    rects += `<rect x="${1 + i * segW}" y="1" width="${segW - 1.5}" height="${h - 2}" rx="2" fill="${filled ? color : "#fff"}" stroke="#233b57" stroke-width="1.4"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${rects}</svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+function orderBannerHTML(id) {
+  return `<p id="${id}" style="align-self:flex-start;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)"></p>`;
+}
+
+/* ============================================================
+   ORIENT — the number line + area-model diagram this whole camp
+   trains against, readable on its own before touching anything.
+   ============================================================ */
+function drawOrient(host) {
+  host.innerHTML =
+    `<p class="q__hint">${L(
+      "A number line shows exactly where a fraction sits between 0 and 1 — the closer the numerator is to half the denominator, the closer the fraction sits to 1/2. An area-model grid shows what multiplying two fractions really means: the shaded overlap.",
+      "Una recta numérica muestra exactamente dónde se ubica una fracción entre 0 y 1 — cuanto más cerca esté el numerador de la mitad del denominador, más cerca estará la fracción de 1/2. Una cuadrícula de modelo de área muestra lo que realmente significa multiplicar dos fracciones: la superposición sombreada."
+    )}</p>
+    <svg viewBox="0 0 320 170" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px" role="img"
+         aria-label="${L('A number line from 0 to 1 with 3/8 marked, and a 2 by 3 grid with 2 cells shaded to show 1/2 times 2/3', 'Una recta numérica de 0 a 1 con 3/8 marcado, y una cuadrícula de 2 por 3 con 2 celdas sombreadas para mostrar 1/2 por 2/3')}">
+      <text x="10" y="18" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Number line — where does 3/8 sit?','Recta numérica — ¿dónde está 3/8?')}</text>
+      <line x1="15" y1="45" x2="305" y2="45" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="15" y1="38" x2="15" y2="52" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="160" y1="38" x2="160" y2="52" stroke="var(--signal)" stroke-width="2"/>
+      <line x1="305" y1="38" x2="305" y2="52" stroke="var(--ink)" stroke-width="2"/>
+      <text x="15" y="65" text-anchor="middle" font-family="var(--font-data)" font-size="10" fill="var(--ink-3)">0</text>
+      <text x="160" y="65" text-anchor="middle" font-family="var(--font-data)" font-size="10" fill="var(--signal)">1/2</text>
+      <text x="305" y="65" text-anchor="middle" font-family="var(--font-data)" font-size="10" fill="var(--ink-3)">1</text>
+      <circle cx="123.75" cy="45" r="6" fill="var(--accent)"/>
+      <text x="123.75" y="30" text-anchor="middle" font-family="var(--font-data)" font-size="11" fill="var(--accent)">3/8</text>
+
+      <text x="10" y="96" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Area model — 1/2 × 2/3 = 2/6','Modelo de área — 1/2 × 2/3 = 2/6')}</text>
+      <g transform="translate(10,104)">
+        <rect x="0"  y="0" width="45" height="24" fill="var(--accent)"/>
+        <rect x="45" y="0" width="45" height="24" fill="var(--accent)"/>
+        <rect x="90" y="0" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="0"  y="24" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="45" y="24" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="90" y="24" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="0" y="0" width="135" height="48" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      </g>
+      <text x="10" y="165" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('The training stations are on the next screen — lots of reps at each one.','Las estaciones de entrenamiento están en la siguiente pantalla — muchas repeticiones en cada una.')}</text>
+    </svg>`;
+}
+
+/* ============================================================
+   INVESTIGATE — four calculation stations, each a queue of reps.
+   ============================================================ */
+function drawInvestigate(host, sim) {
+  host.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "stack";
+  wrap.style.gap = "var(--sp-5)";
+
+  /* ---------- Station 1: Number Line Track ---------- */
+  const LINE_TARGETS = [
+    { num: 1, den: 4 }, { num: 3, den: 4 }, { num: 5, den: 6 }, { num: 1, den: 3 }, { num: 7, den: 8 }
+  ];
+  let lineIx = 0;
+
+  const linePanel = document.createElement("div");
+  linePanel.className = "panel stack";
+  linePanel.style.position = "relative";
+  linePanel.style.overflow = "visible";
+  linePanel.innerHTML = `
+    <p class="eyebrow">${L("Station 1 — Number Line Track","Estación 1 — Pista de la recta numérica")}</p>
+    <p class="q__hint">${L("Tap anywhere along the track to place your marker where you think the target fraction belongs.","Toca cualquier punto de la pista para colocar tu marcador donde crees que va la fracción objetivo.")}</p>
+    ${orderBannerHTML("line-order-banner")}
+    <svg id="line-track" viewBox="0 0 320 60" style="width:100%;max-width:420px;height:auto;cursor:pointer;touch-action:none"></svg>
+    <p class="readout" id="line-readout" aria-live="polite"></p>
+    <button id="line-check-btn" class="btn btn--signal" type="button">${L("Check placement →","Comprobar colocación →")}</button>
+    <p class="q__hint" id="line-progress" aria-live="polite"></p>
+  `;
+  wrap.append(linePanel);
+
+  const lineTrack = linePanel.querySelector("#line-track"), lineReadout = linePanel.querySelector("#line-readout");
+  const lineOrderBanner = linePanel.querySelector("#line-order-banner"), lineProgress = linePanel.querySelector("#line-progress"), lineCheckBtn = linePanel.querySelector("#line-check-btn");
+  let linePos = 0.5;
+
+  function paintLineTrack() {
+    const x0 = 20, x1 = 300, y = 30;
+    const px = x0 + linePos * (x1 - x0);
+    let svg = `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="var(--ink)" stroke-width="2"/>`;
+    for (let i = 0; i <= 4; i++) {
+      const tx = x0 + (i / 4) * (x1 - x0);
+      svg += `<line x1="${tx}" y1="${y - 6}" x2="${tx}" y2="${y + 6}" stroke="var(--ink-3)" stroke-width="1.5"/>`;
+    }
+    svg += `<text x="${x0}" y="${y + 22}" text-anchor="middle" font-family="var(--font-data)" font-size="10" fill="var(--ink-3)">0</text>`;
+    svg += `<text x="${x1}" y="${y + 22}" text-anchor="middle" font-family="var(--font-data)" font-size="10" fill="var(--ink-3)">1</text>`;
+    svg += `<circle cx="${px}" cy="${y}" r="7" fill="var(--accent)"/>`;
+    lineTrack.innerHTML = svg;
+    lineTrack.dataset.x0 = x0; lineTrack.dataset.x1 = x1;
+  }
+  function paintLineOrderBanner() {
+    if (lineIx >= LINE_TARGETS.length) {
+      lineOrderBanner.textContent = L("All targets placed! Keep training freely.", "¡Todos los objetivos colocados! Sigue entrenando libremente.");
+      lineProgress.textContent = "";
+      return;
+    }
+    const t = LINE_TARGETS[lineIx];
+    lineOrderBanner.textContent = L(`Target: place ${t.num}/${t.den}`, `Objetivo: coloca ${t.num}/${t.den}`);
+    lineProgress.textContent = L(`Rep ${lineIx + 1} of ${LINE_TARGETS.length}`, `Repetición ${lineIx + 1} de ${LINE_TARGETS.length}`);
+  }
+  lineTrack.addEventListener("click", (ev) => {
+    const rect = lineTrack.getBoundingClientRect();
+    const scaleX = 320 / rect.width;
+    const localX = (ev.clientX - rect.left) * scaleX;
+    const x0 = Number(lineTrack.dataset.x0), x1 = Number(lineTrack.dataset.x1);
+    linePos = Math.max(0, Math.min(1, (localX - x0) / (x1 - x0)));
+    lineReadout.textContent = L(`Marker at about ${linePos.toFixed(2)}`, `Marcador en aproximadamente ${linePos.toFixed(2)}`);
+    paintLineTrack();
+  });
+  lineCheckBtn.addEventListener("click", (ev) => {
+    const target = LINE_TARGETS[lineIx];
+    const rect = ev.target.getBoundingClientRect(), panelRect = linePanel.getBoundingClientRect();
+    if (!target) {
+      burst(linePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f7fbf");
+      return;
+    }
+    const exact = target.num / target.den;
+    const matched = Math.abs(linePos - exact) <= 0.05;
+    sim.recordTrial({ task: L("Number line", "Recta numérica"), input: L(`target ${target.num}/${target.den}`, `objetivo ${target.num}/${target.den}`), result: `${L("placed at", "colocado en")} ${linePos.toFixed(2)} (${L("exact", "exacto")} ${exact.toFixed(2)})${matched ? " ✓" : ""}` });
+    if (matched) {
+      burst(linePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
+      lineIx++;
+      paintLineOrderBanner();
+      sim.toast(L(`Nice placement — ${target.num}/${target.den} = ${exact.toFixed(2)}!`, `¡Buena colocación — ${target.num}/${target.den} = ${exact.toFixed(2)}!`), "correct");
+    } else {
+      burst(linePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");
+      sim.toast(L(`You placed it at ${linePos.toFixed(2)} — ${target.num}/${target.den} is actually at ${exact.toFixed(2)}. Try again.`, `Lo colocaste en ${linePos.toFixed(2)} — ${target.num}/${target.den} está en realidad en ${exact.toFixed(2)}. Inténtalo de nuevo.`), "info");
+    }
+  });
+  paintLineTrack();
+  paintLineOrderBanner();
+
+  /* ---------- Station 2: Face-Off Ring ---------- */
+  const FACEOFF_PAIRS = [
+    { a: [3, 8], b: [5, 8] }, { a: [2, 3], b: [3, 5] }, { a: [5, 6], b: [7, 9] },
+    { a: [1, 4], b: [2, 7] }, { a: [4, 5], b: [7, 8] }, { a: [3, 10], b: [1, 3] }
+  ];
+  let faceoffIx = 0;
+
+  const faceoffPanel = document.createElement("div");
+  faceoffPanel.className = "panel stack";
+  faceoffPanel.style.position = "relative";
+  faceoffPanel.style.overflow = "visible";
+  faceoffPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 2 — Face-Off Ring","Estación 2 — Ring de enfrentamientos")}</p>
+    <p class="q__hint">${L("Two fractions step into the ring. Tap the bigger one.","Dos fracciones entran al ring. Toca la mayor.")}</p>
+    ${orderBannerHTML("faceoff-order-banner")}
+    <div class="cluster" style="gap:var(--sp-5);justify-content:center" id="faceoff-cards"></div>
+    <p class="q__hint" id="faceoff-progress" aria-live="polite"></p>
+  `;
+  wrap.append(faceoffPanel);
+
+  const faceoffCards = faceoffPanel.querySelector("#faceoff-cards"), faceoffOrderBanner = faceoffPanel.querySelector("#faceoff-order-banner"), faceoffProgress = faceoffPanel.querySelector("#faceoff-progress");
+
+  function paintFaceoff() {
+    if (faceoffIx >= FACEOFF_PAIRS.length) {
+      faceoffOrderBanner.textContent = L("All face-offs done! Keep training freely.", "¡Todos los enfrentamientos hechos! Sigue entrenando libremente.");
+      faceoffCards.innerHTML = "";
+      faceoffProgress.textContent = "";
+      return;
+    }
+    const pair = FACEOFF_PAIRS[faceoffIx];
+    faceoffOrderBanner.textContent = L("Which fraction is bigger?", "¿Qué fracción es mayor?");
+    faceoffProgress.textContent = L(`Face-off ${faceoffIx + 1} of ${FACEOFF_PAIRS.length}`, `Enfrentamiento ${faceoffIx + 1} de ${FACEOFF_PAIRS.length}`);
+    faceoffCards.innerHTML = "";
+    ["a", "b"].forEach((key) => {
+      const [num, den] = pair[key];
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "btn btn--ghost";
+      card.style.cssText = "flex:1;min-width:120px;padding:var(--sp-4);font-size:var(--step-1);font-family:var(--font-data)";
+      card.textContent = `${num}/${den}`;
+      card.addEventListener("click", (ev) => onFaceoffPick(key, pair, ev));
+      faceoffCards.append(card);
+    });
+  }
+  function onFaceoffPick(key, pair, ev) {
+    const va = pair.a[0] / pair.a[1], vb = pair.b[0] / pair.b[1];
+    const correctKey = va > vb ? "a" : "b";
+    const matched = key === correctKey;
+    const rect = ev.target.getBoundingClientRect(), panelRect = faceoffPanel.getBoundingClientRect();
+    sim.recordTrial({ task: L("Fraction face-off", "Enfrentamiento de fracciones"), input: `${pair.a[0]}/${pair.a[1]} vs ${pair.b[0]}/${pair.b[1]}`, result: `${L("picked", "elegido")} ${pair[key][0]}/${pair[key][1]}${matched ? " ✓" : " ✗ (" + pair[correctKey][0] + "/" + pair[correctKey][1] + " " + L("is bigger","es mayor") + ")"}` });
+    if (matched) {
+      burst(faceoffPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
+      faceoffIx++;
+      paintFaceoff();
+      sim.toast(L(`Correct — ${pair[correctKey][0]}/${pair[correctKey][1]} is bigger!`, `¡Correcto — ${pair[correctKey][0]}/${pair[correctKey][1]} es mayor!`), "correct");
+    } else {
+      burst(faceoffPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");
+      sim.toast(L(`Not quite — ${pair[correctKey][0]}/${pair[correctKey][1]} is actually bigger. Try the next one.`, `No exactamente — ${pair[correctKey][0]}/${pair[correctKey][1]} es en realidad mayor. Prueba con el siguiente.`), "info");
+    }
+  }
+  paintFaceoff();
+
+  /* ---------- Station 3: Estimation Bench ---------- */
+  const ESTIMATE_ITEMS = [
+    { a: [4, 9], b: [5, 8], op: "+" }, { a: [1, 8], b: [1, 10], op: "+" },
+    { a: [7, 8], b: [6, 7], op: "+" }, { a: [5, 6], b: [1, 9], op: "−" },
+    { a: [9, 10], b: [4, 9], op: "−" }
+  ];
+  let estimateIx = 0;
+  const BENCHMARKS = [0, 0.5, 1];
+  const BENCHMARK_LABELS = ["0", "1/2", "1"];
+
+  const estimatePanel = document.createElement("div");
+  estimatePanel.className = "panel stack";
+  estimatePanel.style.position = "relative";
+  estimatePanel.style.overflow = "visible";
+  estimatePanel.innerHTML = `
+    <p class="eyebrow">${L("Station 3 — Estimation Bench","Estación 3 — Banco de estimación")}</p>
+    <p class="q__hint">${L("Round each fraction to its nearest benchmark, then see how close your quick estimate lands to the exact answer.","Redondea cada fracción a su fracción de referencia más cercana, y observa qué tan cerca queda tu estimación rápida de la respuesta exacta.")}</p>
+    ${orderBannerHTML("estimate-order-banner")}
+    <div id="estimate-body"></div>
+    <p class="q__hint" id="estimate-progress" aria-live="polite"></p>
+  `;
+  wrap.append(estimatePanel);
+
+  const estimateBody = estimatePanel.querySelector("#estimate-body"), estimateOrderBanner = estimatePanel.querySelector("#estimate-order-banner"), estimateProgress = estimatePanel.querySelector("#estimate-progress");
+  let pickedA = null, pickedB = null;
+
+  function paintEstimate() {
+    if (estimateIx >= ESTIMATE_ITEMS.length) {
+      estimateOrderBanner.textContent = L("All estimates done! Keep training freely.", "¡Todas las estimaciones hechas! Sigue entrenando libremente.");
+      estimateBody.innerHTML = "";
+      estimateProgress.textContent = "";
+      return;
+    }
+    const item = ESTIMATE_ITEMS[estimateIx];
+    pickedA = null; pickedB = null;
+    estimateOrderBanner.textContent = L(`Estimate: ${item.a[0]}/${item.a[1]} ${item.op} ${item.b[0]}/${item.b[1]} ≈ ?`, `Estima: ${item.a[0]}/${item.a[1]} ${item.op} ${item.b[0]}/${item.b[1]} ≈ ?`);
+    estimateProgress.textContent = L(`Estimate ${estimateIx + 1} of ${ESTIMATE_ITEMS.length}`, `Estimación ${estimateIx + 1} de ${ESTIMATE_ITEMS.length}`);
+    estimateBody.innerHTML = `
+      <div class="cluster" style="gap:var(--sp-5);flex-wrap:wrap;align-items:flex-start">
+        <div>
+          <p class="field__label">${L(`Round ${item.a[0]}/${item.a[1]} to:`, `Redondea ${item.a[0]}/${item.a[1]} a:`)}</p>
+          <div class="cluster" id="bench-a" style="gap:var(--sp-2)"></div>
+        </div>
+        <div>
+          <p class="field__label">${L(`Round ${item.b[0]}/${item.b[1]} to:`, `Redondea ${item.b[0]}/${item.b[1]} a:`)}</p>
+          <div class="cluster" id="bench-b" style="gap:var(--sp-2)"></div>
+        </div>
+      </div>
+      <p class="readout" id="estimate-readout" style="margin-top:var(--sp-3)" aria-live="polite"></p>
+    `;
+    const groupA = estimateBody.querySelector("#bench-a"), groupB = estimateBody.querySelector("#bench-b");
+    BENCHMARKS.forEach((v, i) => {
+      const btnA = document.createElement("button"); btnA.type = "button"; btnA.className = "btn btn--ghost"; btnA.textContent = BENCHMARK_LABELS[i];
+      btnA.addEventListener("click", (ev) => { pickedA = v; checkEstimate(ev); });
+      groupA.append(btnA);
+      const btnB = document.createElement("button"); btnB.type = "button"; btnB.className = "btn btn--ghost"; btnB.textContent = BENCHMARK_LABELS[i];
+      btnB.addEventListener("click", (ev) => { pickedB = v; checkEstimate(ev); });
+      groupB.append(btnB);
+    });
+  }
+  function nearestBenchmark(num, den) {
+    const v = num / den;
+    return BENCHMARKS.reduce((best, b) => Math.abs(v - b) < Math.abs(v - best) ? b : best, 0);
+  }
+  function checkEstimate(ev) {
+    if (pickedA === null || pickedB === null) return;
+    const item = ESTIMATE_ITEMS[estimateIx];
+    const readout = estimateBody.querySelector("#estimate-readout");
+    const correctA = nearestBenchmark(item.a[0], item.a[1]), correctB = nearestBenchmark(item.b[0], item.b[1]);
+    const matched = pickedA === correctA && pickedB === correctB;
+    const estimate = item.op === "+" ? pickedA + pickedB : pickedA - pickedB;
+    const exact = item.op === "+" ? item.a[0] / item.a[1] + item.b[0] / item.b[1] : item.a[0] / item.a[1] - item.b[0] / item.b[1];
+    readout.innerHTML = `${L("Your estimate", "Tu estimación")}: <strong>${estimate}</strong> — ${L("exact answer", "respuesta exacta")}: ${exact.toFixed(2)}`;
+    sim.recordTrial({ task: L("Benchmark estimate", "Estimación con referencia"), input: `${item.a[0]}/${item.a[1]} ${item.op} ${item.b[0]}/${item.b[1]}`, result: `${L("estimate","estimación")} ${estimate}, ${L("exact","exacto")} ${exact.toFixed(2)}${matched ? " ✓" : ""}` });
+    const rect = ev.target.getBoundingClientRect(), panelRect = estimatePanel.getBoundingClientRect();
+    if (matched) {
+      burst(estimatePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
+      sim.toast(L(`Great benchmarks — estimate ${estimate}, exact ${exact.toFixed(2)}!`, `¡Buenas fracciones de referencia — estimación ${estimate}, exacto ${exact.toFixed(2)}!`), "correct");
+      estimateIx++;
+      setTimeout(paintEstimate, 900);
+    } else {
+      burst(estimatePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");
+      sim.toast(L(`Not quite the closest benchmarks — try again.`, `No son las fracciones de referencia más cercanas — inténtalo de nuevo.`), "info");
+      pickedA = null; pickedB = null;
+    }
+  }
+  paintEstimate();
+
+  /* ---------- Station 4: Multiplication Grid Builder ---------- */
+  const GRID_TARGETS = [
+    { n1: 1, d1: 2, n2: 1, d2: 3 }, { n1: 2, d1: 3, n2: 1, d2: 2 },
+    { n1: 3, d1: 4, n2: 1, d2: 2 }, { n1: 2, d1: 3, n2: 3, d2: 4 }
+  ];
+  let gridIx = 0, gridShaded = 0;
+
+  const gridPanel = document.createElement("div");
+  gridPanel.className = "panel stack";
+  gridPanel.style.position = "relative";
+  gridPanel.style.overflow = "visible";
+  gridPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 4 — Multiplication Grid Builder","Estación 4 — Constructor de cuadrículas de multiplicación")}</p>
+    <p class="q__hint">${L("Tap cells to shade the overlap that shows the product of the two fractions.","Toca celdas para sombrear la superposición que muestra el producto de las dos fracciones.")}</p>
+    ${orderBannerHTML("grid-order-banner")}
+    <div id="grid-body" style="display:grid;gap:4px;max-width:280px"></div>
+    <p class="readout" id="grid-readout" aria-live="polite"></p>
+    <p class="q__hint" id="grid-progress" aria-live="polite"></p>
+  `;
+  wrap.append(gridPanel);
+
+  const gridBody = gridPanel.querySelector("#grid-body"), gridReadout = gridPanel.querySelector("#grid-readout");
+  const gridOrderBanner = gridPanel.querySelector("#grid-order-banner"), gridProgress = gridPanel.querySelector("#grid-progress");
+
+  function paintGridTarget() {
+    if (gridIx >= GRID_TARGETS.length) {
+      gridOrderBanner.textContent = L("All grids built! Keep training freely.", "¡Todas las cuadrículas construidas! Sigue entrenando libremente.");
+      gridBody.innerHTML = "";
+      gridReadout.textContent = "";
+      gridProgress.textContent = "";
+      return;
+    }
+    const t = GRID_TARGETS[gridIx];
+    gridShaded = 0;
+    const totalCells = t.d1 * t.d2, targetCells = t.n1 * t.n2;
+    gridOrderBanner.textContent = L(`Build: ${t.n1}/${t.d1} × ${t.n2}/${t.d2}`, `Construye: ${t.n1}/${t.d1} × ${t.n2}/${t.d2}`);
+    gridProgress.textContent = L(`Grid ${gridIx + 1} of ${GRID_TARGETS.length}`, `Cuadrícula ${gridIx + 1} de ${GRID_TARGETS.length}`);
+    gridBody.style.gridTemplateColumns = `repeat(${t.d1}, 1fr)`;
+    gridBody.innerHTML = "";
+    for (let i = 0; i < totalCells; i++) {
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.setAttribute("aria-label", L(`Cell ${i + 1}`, `Celda ${i + 1}`));
+      cell.style.cssText = "aspect-ratio:1;border:2px solid var(--ink);border-radius:3px;background:#fff;cursor:pointer";
+      cell.dataset.shaded = "0";
+      cell.addEventListener("click", (ev) => onGridCellTap(cell, ev, targetCells, t));
+      gridBody.append(cell);
+    }
+    gridReadout.textContent = L(`0/${targetCells} shaded (grid: ${t.d1} × ${t.d2} = ${totalCells} cells)`, `0/${targetCells} sombreadas (cuadrícula: ${t.d1} × ${t.d2} = ${totalCells} celdas)`);
+  }
+  function onGridCellTap(cell, ev, targetCells, t) {
+    const on = cell.dataset.shaded === "1";
+    cell.dataset.shaded = on ? "0" : "1";
+    cell.style.background = on ? "#fff" : "var(--accent)";
+    gridShaded = gridBody.querySelectorAll('[data-shaded="1"]').length;
+    gridReadout.textContent = L(`${gridShaded}/${targetCells} shaded`, `${gridShaded}/${targetCells} sombreadas`);
+    const rect = cell.getBoundingClientRect(), panelRect = gridPanel.getBoundingClientRect();
+    burst(gridPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top + rect.height / 2, on ? "#c0392b" : "#3f7fbf");
+    if (gridShaded === targetCells) {
+      const productNum = t.n1 * t.n2, productDen = t.d1 * t.d2;
+      sim.recordTrial({ task: L("Multiplication grid", "Cuadrícula de multiplicación"), input: `${t.n1}/${t.d1} × ${t.n2}/${t.d2}`, result: `${productNum}/${productDen} ✓` });
+      sim.toast(L(`Grid built — ${t.n1}/${t.d1} × ${t.n2}/${t.d2} = ${productNum}/${productDen}!`, `¡Cuadrícula construida — ${t.n1}/${t.d1} × ${t.n2}/${t.d2} = ${productNum}/${productDen}!`), "correct");
+      gridIx++;
+      setTimeout(paintGridTarget, 650);
+    }
+  }
+  paintGridTarget();
+
+  host.append(wrap);
+
+  /* ---------- Bonus round: Benchmark Blitz (arcade genre) ----------
+     This course's second bonus round — the first (sim-fraction-bakery)
+     used the realistic-3D quest genre, so this one alternates back to
+     the fast arcade tunnel-rush genre (CLAUDE.md §4's genre-alternation
+     rule). Every flying item carries a real bar-model icon, not bare
+     text, and the classification task (nearest benchmark) is genuinely
+     different from Fraction Bakery's exact-decimal-match arcade round. */
+  const arcadeSection = document.createElement("div");
+  arcadeSection.id = "arcade-section";
+  arcadeSection.style.marginTop = "var(--sp-5)";
+  host.append(arcadeSection);
+
+  const BLITZ_ITEMS = [
+    { id: "b1", num: 1, den: 10, laneId: "z0" }, { id: "b2", num: 1, den: 8, laneId: "z0" },
+    { id: "b3", num: 2, den: 9, laneId: "z0" },
+    { id: "b4", num: 4, den: 9, laneId: "z05" }, { id: "b5", num: 5, den: 9, laneId: "z05" },
+    { id: "b6", num: 3, den: 7, laneId: "z05" },
+    { id: "b7", num: 7, den: 8, laneId: "z1" }, { id: "b8", num: 8, den: 9, laneId: "z1" },
+    { id: "b9", num: 9, den: 10, laneId: "z1" },
+  ].map(it => ({ id: it.id, label: `${it.num}/${it.den}`, laneId: it.laneId, img: barIconDataURI(it.num, it.den, "#3a6ea5") }));
+  const BLITZ_LANES = [
+    { id: "z0", label: "0", color: "#a24f7a" },
+    { id: "z05", label: "1/2", color: "#3f8f6b" },
+    { id: "z1", label: "1", color: "#e0b64c" },
+  ];
+
+  function paintArcade() {
+    arcadeSection.innerHTML = "";
+    renderArcadeLaunch(arcadeSection, {
+      strings: {
+        title: L("Bonus round — Benchmark Blitz", "Ronda bonus — Ráfaga de referencia"),
+        instructions: L("Fractions fly at you — tap the benchmark it's closest to before it reaches the ring.", "Las fracciones vuelan hacia ti — toca la fracción de referencia más cercana antes de que llegue al aro."),
+        play: L("Play Benchmark Blitz", "Jugar Ráfaga de referencia"),
+        skip: L("Skip bonus round", "Saltar ronda bonus"),
+      },
+      onPlay() {
+        arcadeSection.innerHTML = "";
+        const gameHost = document.createElement("div");
+        arcadeSection.append(gameHost);
+        mountArcadeRush(gameHost, {
+          threeUrl: THREE_URL,
+          rounds: 24,
+          lanes: BLITZ_LANES,
+          items: BLITZ_ITEMS,
+          strings: {
+            title: L("Benchmark Blitz", "Ráfaga de referencia"),
+            instructions: L("Tap the benchmark (0, 1/2 or 1) the flying fraction is closest to. A late or wrong answer just resets your streak — never a fail.", "Toca la fracción de referencia (0, 1/2 o 1) más cercana a la fracción que vuela. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
+            score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
+            progress: L("Fraction", "Fracción"), correct: L("Correct!", "¡Correcto!"), wrong: L("Not quite.", "No exactamente."),
+            missed: L("Missed it.", "Se te escapó."), finishTitle: L("Round complete!", "¡Ronda completa!"),
+            accuracy: L("Accuracy", "Precisión"), playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+          },
+          onExit(stats) {
+            gameHost.innerHTML = "";
+            arcadeSection.innerHTML = "";
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+            paintArcade();
+          }
+        });
+      },
+      onSkip() { arcadeSection.innerHTML = ""; }
+    });
+  }
+  paintArcade();
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
