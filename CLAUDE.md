@@ -1302,3 +1302,60 @@ from them.
 **Reference implementation:** `primary/science/primary-2-science/physics/module-1-our-solar-system-and-beyond/ext-gravity-and-orbits-phet/`
 (PhET's "Gravity and Orbits") — use it and `_external-template/` as the worked examples for the
 next one.
+
+---
+
+## 12. Student/community feedback — always dual-applied (agreed 2026-09-23)
+
+Diego: every piece of feedback he relays from a student is really feedback from the whole
+community of people trying these simulations, and the goal is to co-create the library from all of
+it, not just patch one activity in isolation. **From now on, every time Diego relays feedback on a
+simulation, it gets applied twice, in the same pass:**
+
+1. **Fix the specific simulation** the feedback was about, exactly as instructed.
+2. **Extract the general, reusable lesson** and fold it into this CLAUDE.md as a standing
+   instruction for every future simulation — not filed away as a one-off suggestion Diego has to
+   remember to ask for later. If the lesson is genuinely new, add it under the relevant existing
+   section (§3 Interactive Learning Package, §4 Visual/3D design, §5 Evidence export, §6
+   Accessibility, etc.) as a dated amendment in that section's existing style, or as a new numbered
+   entry here in §12 if it doesn't fit an existing section. Skip only the parts of a piece of
+   feedback that are genuinely one-off content fixes with no generalizable lesson (e.g. "this one
+   diagram's label is misspelled").
+3. **When building any new simulation, check §12 (and the relevant dated amendments elsewhere in
+   this file) the same way §4/§10/§11 are already checked for mechanic variety** — these lessons
+   are load-bearing build rules, not historical trivia.
+
+This section will grow over time as more feedback comes in. Treat every new entry with the same
+weight as the rest of this document — these are things a real student or teacher noticed broke or
+felt wrong, which is exactly the kind of signal this project exists to act on.
+
+### 12.1 Lessons from `sim-mirror-word-mystery` feedback (2026-09-23)
+
+A student's feedback on this 3D mirror-writing activity surfaced two reusable bug classes and one
+reusable enhancement idea, now standing rules for every simulation:
+
+- **Stale DOM-node event bindings when a stage rebuilds via `innerHTML`.** Any simulation that
+  mounts a persistent 3D canvas (Three.js or otherwise) into a container that gets destroyed and
+  recreated on re-render (e.g. `host.innerHTML = ...` between rounds/questions) must never bind
+  drag/pointer listeners to that wrapping container directly at first-mount only — the container is
+  a *new* DOM node on every rebuild, so listeners silently stop firing after the first round while
+  the underlying canvas/state (if held in a persistent singleton) looks fine. The bug is invisible
+  in code review and only shows up as "the first rotation was amazing, then it stopped working,"
+  which reads as a working feature that broke, not an obviously missing one. **Fix pattern:** hold
+  orbit/drag state on a persistent object (not a closure over the container div), and rebind
+  listeners to the *current* live container on every mount/round, not just at initial init. When
+  building or reviewing any orbit-on-drag 3D scene, explicitly test dragging on round 2+, not just
+  round 1 — a scripted or manual test that only ever exercises the first round will pass while this
+  exact bug ships.
+- **Fixed-size containers must size to their actual content, not an assumed worst case.** Any
+  container built to display variable-length text/words (a "mirror," sign, card, label, speech
+  bubble) must compute its size from the specific content it will show — the longest word/string
+  actually used in that activity's `config.json` — rather than a single hardcoded size picked while
+  testing with one example word. Before flipping any such activity to `"live"`, check every word/
+  string routed through that container, not just the one used while building it.
+- **Colour-coding by progress/question is a valid, well-received enhancement pattern.** Cycling a
+  distinguishing colour (a palette keyed by round/question index) across an otherwise-identical 3D
+  object between questions is a cheap way to reinforce "you're on a new question now" and was
+  called out as a specific positive ask. Consider this as an available technique — not mandatory
+  everywhere — wherever a simulation reuses one 3D object across multiple rounds/questions and
+  could use a lightweight visual cue that the round has changed, beyond just the text/HUD updating.
