@@ -1359,3 +1359,49 @@ reusable enhancement idea, now standing rules for every simulation:
   called out as a specific positive ask. Consider this as an available technique — not mandatory
   everywhere — wherever a simulation reuses one 3D object across multiple rounds/questions and
   could use a lightweight visual cue that the round has changed, beyond just the text/HUD updating.
+
+### 12.2 Lessons from general site feedback on gamification and content depth (2026-09-23)
+
+Diego, reviewing the site broadly rather than one activity: "not enough is gamified... you're
+repeating the video game style too often, using that rotating thing... make it more gamy, like a
+3D sort of video game instead of that style... please ensure there is much more to practice
+there... very, very quick to go through it." Applied immediately to `sim-fraction-bakery`
+(v1.4 — a customer-order queue added to both the ratio mixer and the fair-share kitchen, a brand
+new third hands-on Investigate moment (the Fraction Model Workshop, tap-to-shade bar model), and
+the bonus round switched from the arcade tunnel-rush genre to the realistic-3D quest genre with
+real bar-model icons on every collectible instead of bare text). Two reusable lessons follow:
+
+- **A repeated visual "signature" across many simulations reads as laziness even when each
+  instance is individually well-built.** If several recent simulations in a row lean on the same
+  visual treatment — the arcade tunnel-rush's flying-item-toward-a-ring shot, or a plain rotating
+  orbit-camera 3D scene with nothing distinctive inside it — a student/parent moving between them
+  notices the repetition before they notice the content. **Before building a new simulation's
+  bonus round or hero 3D scene, check not just the current course (the existing `mechanic`/genre
+  lookup discipline in §4/§11) but the last 2-3 simulations built site-wide, regardless of course,
+  and deliberately pick a different visual treatment if they were samey.** This is stricter than
+  the existing "alternate arcade vs. quest per course" rule — it is a site-wide variety check, not
+  just a per-course one, precisely because a student/parent experiences the site as one continuous
+  thing, not siloed by course.
+- **"An item flies at you" is not visually complete without something to actually look at.**
+  Diego's specific complaint about the arcade round — "it doesn't have anything in the image" —
+  was about `engine/arcade.js`/`engine/quest3d.js` items passed with only a bare text `label` and
+  no `img`. **Every arcade/quest item should carry a real `img`** — a photo where the activity has
+  one (already required elsewhere), or, for abstract content with no photographable subject (a
+  fraction, a ratio, an equation), a small generated icon that actually depicts the content (e.g.
+  `barIconDataURI()` in `sim-fraction-bakery`'s `activity.html` — an inline SVG data URI of a
+  shaded bar model) rather than plain text standing in for the visual. A bare-text item is now a
+  policy miss for any new arcade/quest integration, the same standing as a missing `learningFocus`.
+- **"Enough to practice" means multiple genuinely different attempts per mechanic, not one
+  control manipulated once.** A single slider-then-button interaction that logs one trial and
+  moves on reads as "quick" regardless of how well-designed that one interaction is — this is the
+  same underlying problem the 2026-09-18 "three hands-on moments" amendment (§4) was written to
+  fix, and `sim-fraction-bakery` had in fact only shipped two hands-on moments at first review, not
+  three — a real compliance gap this feedback caught. **When building or reviewing any Investigate
+  mechanic built around setting-then-confirming a value (a slider + a "do it" button, a picker + a
+  submit), default to a queue of several distinct target values the student works through in
+  sequence** (see `RATIO_ORDERS`/`SHARE_ORDERS`/`MODEL_TARGETS` in `sim-fraction-bakery`'s
+  `activity.html` — each panel now presents an explicit "order"/"target" banner and a progress
+  count, and a visible celebratory reaction — see [[discovery-lab-production-bar]] — plays when the
+  student's setting matches it), not a single one-shot control. This directly satisfies both "more
+  to practice" and the requirement that Investigate feel like managing several distinct dynamic
+  things rather than one static form.

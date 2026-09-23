@@ -51,10 +51,44 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../../engine/i18n.js?v=9";
-import { mountArcadeRush, renderArcadeLaunch } from "../../../../../engine/arcade.js?v=3";
+import { mountQuest3D, renderQuestLaunch } from "../../../../../engine/quest3d.js?v=2";
 
 const THREE_URL = "../../../../../engine/vendor/three.min.js";
 const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED_MOTION = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* A small confetti-style burst — the shared "something visibly, exaggeratedly
+   moves" reaction every hands-on moment below needs on success (CLAUDE.md §4's
+   "at least three moments... things are moving" amendment). Container must be
+   position:relative. Skipped under reduced motion. */
+function burst(container, x, y, color) {
+  if (REDUCED_MOTION()) return;
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement("span");
+    p.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:7px;height:7px;margin:-3px;border-radius:50%;background:${color};pointer-events:none;z-index:5`;
+    container.appendChild(p);
+    const ang = Math.random() * Math.PI * 2, dist = 24 + Math.random() * 34;
+    const anim = p.animate([
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0.3)`, opacity: 0 }
+    ], { duration: 480 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    anim.onfinish = () => p.remove();
+  }
+}
+
+/* A small bar-model icon rendered as an inline SVG data URI — used as the
+   flying/collectible item image in the bonus round, so items genuinely show
+   the fraction rather than bare text (see 2026-09-23 feedback in CLAUDE.md §4). */
+function barIconDataURI(num, den, color) {
+  const w = 72, h = 30, segW = (w - 2) / den;
+  let rects = "";
+  for (let i = 0; i < den; i++) {
+    const filled = i < num;
+    rects += `<rect x="${1 + i * segW}" y="1" width="${segW - 1.5}" height="${h - 2}" rx="2" fill="${filled ? color : "#fff"}" stroke="#2a1b12" stroke-width="1.4"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${rects}</svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
 
 /* ============================================================
    ORIENT — a bar model + a ratio strip, both static teaching
@@ -104,12 +138,18 @@ function drawInvestigate(host, sim) {
   wrap.className = "stack";
   wrap.style.gap = "var(--sp-5)";
 
-  /* ---------- Panel 1: Icing Ratio Mixer ---------- */
+  /* ---------- Panel 1: Icing Ratio Mixer — a queue of 4 customer orders ---------- */
+  const RATIO_ORDERS = [{ r: 2, w: 3 }, { r: 1, w: 4 }, { r: 3, w: 2 }, { r: 4, w: 1 }];
+  let ratioOrderIx = 0;
+
   const ratioPanel = document.createElement("div");
   ratioPanel.className = "panel stack";
+  ratioPanel.style.position = "relative";
+  ratioPanel.style.overflow = "visible";
   ratioPanel.innerHTML = `
     <p class="eyebrow">${L("Job 1 — Icing Ratio Mixer","Trabajo 1 — Mezclador de glaseado por razón")}</p>
-    <p class="q__hint">${L("A customer wants icing with red and white mixed in a ratio. Set the parts, then pour — every block stays the same size, however many parts you use.","Un cliente quiere glaseado con rojo y blanco mezclados en una razón. Ajusta las partes y vierte — cada bloque mantiene el mismo tamaño, sin importar cuántas partes uses.")}</p>
+    <p class="q__hint">${L("Customers queue up asking for icing in a set ratio. Match their order with the sliders, then pour.","Los clientes hacen cola pidiendo glaseado en una razón fija. Iguala su pedido con los deslizadores y vierte.")}</p>
+    <p id="ratio-order-banner" style="align-self:flex-start;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)"></p>
     <div class="cluster" style="gap:var(--sp-5);flex-wrap:wrap">
       <div>
         <label class="field__label" for="red-parts">${L("Red parts","Partes rojas")}</label>
@@ -125,44 +165,82 @@ function drawInvestigate(host, sim) {
     <svg id="ratio-strip" viewBox="0 0 320 40" style="width:100%;max-width:420px;height:auto"></svg>
     <p class="readout" id="ratio-readout" aria-live="polite"></p>
     <button id="pour-btn" class="btn btn--signal" type="button">${L("Pour this mix →","Verter esta mezcla →")}</button>
+    <p class="q__hint" id="ratio-progress" aria-live="polite"></p>
   `;
   wrap.append(ratioPanel);
 
   const redRange = ratioPanel.querySelector("#red-parts"), whiteRange = ratioPanel.querySelector("#white-parts");
   const redRead = ratioPanel.querySelector("#red-read"), whiteRead = ratioPanel.querySelector("#white-read");
   const strip = ratioPanel.querySelector("#ratio-strip"), ratioReadout = ratioPanel.querySelector("#ratio-readout");
+  const orderBanner = ratioPanel.querySelector("#ratio-order-banner"), ratioProgress = ratioPanel.querySelector("#ratio-progress"), pourBtn = ratioPanel.querySelector("#pour-btn");
 
   function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  function simplify(a, b) { const g = gcd(a, b); return [a / g, b / g]; }
+
+  function paintOrderBanner() {
+    if (ratioOrderIx >= RATIO_ORDERS.length) {
+      orderBanner.textContent = L("All orders served! Keep mixing freely.", "¡Todos los pedidos servidos! Sigue mezclando libremente.");
+      ratioProgress.textContent = "";
+      return;
+    }
+    const o = RATIO_ORDERS[ratioOrderIx];
+    orderBanner.textContent = L(`Customer order: ${o.r} : ${o.w}`, `Pedido del cliente: ${o.r} : ${o.w}`);
+    ratioProgress.textContent = L(`Order ${ratioOrderIx + 1} of ${RATIO_ORDERS.length}`, `Pedido ${ratioOrderIx + 1} de ${RATIO_ORDERS.length}`);
+  }
+
   function paintRatio() {
     const r = Number(redRange.value), w = Number(whiteRange.value);
     redRead.textContent = r; whiteRead.textContent = w;
-    const g = gcd(r, w);
+    const [sr, sw] = simplify(r, w);
     const total = r + w, blockW = 300 / total;
     let x = 10, svg = "";
     for (let i = 0; i < r; i++) { svg += `<rect x="${x}" y="4" width="${blockW - 2}" height="28" fill="var(--signal)"/>`; x += blockW; }
     for (let i = 0; i < w; i++) { svg += `<rect x="${x}" y="4" width="${blockW - 2}" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>`; x += blockW; }
     strip.innerHTML = svg;
-    ratioReadout.innerHTML = g > 1
-      ? `${r} : ${w} <span class="readout__unit">${L("→ simplest form","→ forma más simple")} ${r / g} : ${w / g}</span>`
+    ratioReadout.innerHTML = (sr !== r || sw !== w)
+      ? `${r} : ${w} <span class="readout__unit">${L("→ simplest form","→ forma más simple")} ${sr} : ${sw}</span>`
       : `${r} : ${w} <span class="readout__unit">${L("(already simplest form)","(ya es la forma más simple)")}</span>`;
   }
   redRange.addEventListener("input", paintRatio);
   whiteRange.addEventListener("input", paintRatio);
   paintRatio();
+  paintOrderBanner();
 
-  ratioPanel.querySelector("#pour-btn").addEventListener("click", () => {
-    const r = Number(redRange.value), w = Number(whiteRange.value), g = gcd(r, w);
-    const simplest = g > 1 ? `${r / g} : ${w / g}` : `${r} : ${w}`;
-    sim.recordTrial({ task: L("Icing ratio", "Razón de glaseado"), input: `${r} : ${w}`, result: `${L("simplest form", "forma más simple")} ${simplest}` });
-    sim.toast(L(`Poured a ${r}:${w} mix — simplest form ${simplest}.`, `Mezcla ${r}:${w} vertida — forma más simple ${simplest}.`), "info");
+  pourBtn.addEventListener("click", (ev) => {
+    const r = Number(redRange.value), w = Number(whiteRange.value);
+    const [sr, sw] = simplify(r, w);
+    const simplest = `${sr} : ${sw}`;
+    const target = RATIO_ORDERS[ratioOrderIx];
+    let matched = false;
+    if (target) {
+      const [tr, tw] = simplify(target.r, target.w);
+      matched = tr === sr && tw === sw;
+    }
+    sim.recordTrial({ task: L("Icing ratio", "Razón de glaseado"), input: `${r} : ${w}`, result: `${L("simplest form", "forma más simple")} ${simplest}${matched ? " ✓" : ""}` });
+    const rect = ev.target.getBoundingClientRect(), panelRect = ratioPanel.getBoundingClientRect();
+    if (matched) {
+      burst(ratioPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
+      ratioOrderIx++;
+      paintOrderBanner();
+      sim.toast(L(`Order served — ${r}:${w} matched the customer's order!`, `¡Pedido servido — ${r}:${w} coincide con el pedido del cliente!`), "correct");
+    } else {
+      burst(ratioPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");
+      sim.toast(L(`Poured a ${r}:${w} mix — simplest form ${simplest}. Not quite this customer's order yet.`, `Mezcla ${r}:${w} vertida — forma más simple ${simplest}. Todavía no es el pedido de este cliente.`), "info");
+    }
   });
 
-  /* ---------- Panel 2: Fair-Share Kitchen ---------- */
+  /* ---------- Panel 2: Fair-Share Kitchen — a queue of 4 delivery orders ---------- */
+  const SHARE_ORDERS = [{ bars: 3, friends: 4 }, { bars: 5, friends: 2 }, { bars: 2, friends: 6 }, { bars: 7, friends: 3 }];
+  let shareOrderIx = 0;
+
   const sharePanel = document.createElement("div");
   sharePanel.className = "panel stack";
+  sharePanel.style.position = "relative";
+  sharePanel.style.overflow = "visible";
   sharePanel.innerHTML = `
     <p class="eyebrow">${L("Job 2 — Fair-Share Kitchen","Trabajo 2 — Cocina de reparto justo")}</p>
-    <p class="q__hint">${L("Choose how many chocolate bars arrive, and how many friends are sharing. Split them fairly and watch the fraction turn into a division — and a decimal.","Elige cuántas barras de chocolate llegan y cuántos amigos las comparten. Repártelas de forma justa y observa cómo la fracción se convierte en una división — y en un decimal.")}</p>
+    <p class="q__hint">${L("Deliveries queue up too. Match how many bars and friends each one needs, split them fairly, and watch the fraction turn into a division — and a decimal.","Los pedidos de reparto también hacen cola. Iguala cuántas barras y amigos necesita cada uno, repártelas de forma justa, y observa cómo la fracción se convierte en una división — y en un decimal.")}</p>
+    <p id="share-order-banner" style="align-self:flex-start;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)"></p>
     <div class="cluster" style="gap:var(--sp-5);flex-wrap:wrap">
       <div>
         <label class="field__label" for="bars-count">${L("Chocolate bars","Barras de chocolate")}</label>
@@ -178,12 +256,25 @@ function drawInvestigate(host, sim) {
     <svg id="share-model" viewBox="0 0 320 60" style="width:100%;max-width:420px;height:auto"></svg>
     <p class="readout" id="share-readout" aria-live="polite"></p>
     <button id="share-btn" class="btn btn--signal" type="button">${L("Share fairly →","Repartir de forma justa →")}</button>
+    <p class="q__hint" id="share-progress" aria-live="polite"></p>
   `;
   wrap.append(sharePanel);
 
   const barsRange = sharePanel.querySelector("#bars-count"), friendsRange = sharePanel.querySelector("#friends-count");
   const barsRead = sharePanel.querySelector("#bars-read"), friendsRead = sharePanel.querySelector("#friends-read");
   const shareModel = sharePanel.querySelector("#share-model"), shareReadout = sharePanel.querySelector("#share-readout");
+  const shareOrderBanner = sharePanel.querySelector("#share-order-banner"), shareProgress = sharePanel.querySelector("#share-progress"), shareBtn = sharePanel.querySelector("#share-btn");
+
+  function paintShareOrderBanner() {
+    if (shareOrderIx >= SHARE_ORDERS.length) {
+      shareOrderBanner.textContent = L("All deliveries done! Keep sharing freely.", "¡Todos los repartos hechos! Sigue repartiendo libremente.");
+      shareProgress.textContent = "";
+      return;
+    }
+    const o = SHARE_ORDERS[shareOrderIx];
+    shareOrderBanner.textContent = L(`Delivery: ${o.bars} bars for ${o.friends} friends`, `Reparto: ${o.bars} barras para ${o.friends} amigos`);
+    shareProgress.textContent = L(`Delivery ${shareOrderIx + 1} of ${SHARE_ORDERS.length}`, `Reparto ${shareOrderIx + 1} de ${SHARE_ORDERS.length}`);
+  }
 
   function paintShare() {
     const bars = Number(barsRange.value), friends = Number(friendsRange.value);
@@ -203,78 +294,162 @@ function drawInvestigate(host, sim) {
   barsRange.addEventListener("input", paintShare);
   friendsRange.addEventListener("input", paintShare);
   paintShare();
+  paintShareOrderBanner();
 
-  sharePanel.querySelector("#share-btn").addEventListener("click", () => {
+  shareBtn.addEventListener("click", (ev) => {
     const bars = Number(barsRange.value), friends = Number(friendsRange.value);
     const decimal = (bars / friends).toFixed(3).replace(/0+$/,"").replace(/\.$/,"");
-    sim.recordTrial({ task: L("Fair share","Reparto justo"), input: `${bars} ${L("bars ÷", "barras ÷")} ${friends} ${L("friends","amigos")}`, result: `${bars}/${friends} = ${decimal}` });
-    sim.toast(L(`Shared: ${bars} bars ÷ ${friends} friends = ${decimal} each.`, `Repartido: ${bars} barras ÷ ${friends} amigos = ${decimal} cada uno.`), "info");
+    const target = SHARE_ORDERS[shareOrderIx];
+    const matched = !!target && target.bars === bars && target.friends === friends;
+    sim.recordTrial({ task: L("Fair share","Reparto justo"), input: `${bars} ${L("bars ÷", "barras ÷")} ${friends} ${L("friends","amigos")}`, result: `${bars}/${friends} = ${decimal}${matched ? " ✓" : ""}` });
+    const rect = ev.target.getBoundingClientRect(), panelRect = sharePanel.getBoundingClientRect();
+    if (matched) {
+      burst(sharePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
+      shareOrderIx++;
+      paintShareOrderBanner();
+      sim.toast(L(`Delivery complete — ${bars} bars for ${friends} friends, ${decimal} each!`, `¡Reparto completo — ${bars} barras para ${friends} amigos, ${decimal} cada uno!`), "correct");
+    } else {
+      burst(sharePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");
+      sim.toast(L(`Shared: ${bars} bars ÷ ${friends} friends = ${decimal} each. Not quite this delivery yet.`, `Repartido: ${bars} barras ÷ ${friends} amigos = ${decimal} cada uno. Todavía no es este reparto.`), "info");
+    }
   });
+
+  /* ---------- Panel 3: Fraction Model Workshop — shade the bar to match ---------- */
+  const MODEL_TARGETS = [{ num: 3, den: 4 }, { num: 2, den: 5 }, { num: 5, den: 8 }, { num: 1, den: 6 }];
+  let modelIx = 0, shaded = 0;
+
+  const modelPanel = document.createElement("div");
+  modelPanel.className = "panel stack";
+  modelPanel.style.position = "relative";
+  modelPanel.style.overflow = "visible";
+  modelPanel.innerHTML = `
+    <p class="eyebrow">${L("Job 3 — Fraction Model Workshop","Trabajo 3 — Taller de modelos de fracciones")}</p>
+    <p class="q__hint">${L("Decorate the display bar for the shop window. Tap segments to shade them until you match the fraction on the order card.","Decora la barra del escaparate. Toca los segmentos para sombrearlos hasta igualar la fracción de la tarjeta de pedido.")}</p>
+    <p id="model-order-banner" style="align-self:flex-start;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)"></p>
+    <div id="model-bar" style="display:flex;gap:4px;max-width:420px"></div>
+    <p class="readout" id="model-readout" aria-live="polite"></p>
+    <p class="q__hint" id="model-progress" aria-live="polite"></p>
+  `;
+  wrap.append(modelPanel);
+
+  const modelBar = modelPanel.querySelector("#model-bar"), modelReadout = modelPanel.querySelector("#model-readout");
+  const modelOrderBanner = modelPanel.querySelector("#model-order-banner"), modelProgress = modelPanel.querySelector("#model-progress");
+
+  function paintModelTarget() {
+    if (modelIx >= MODEL_TARGETS.length) {
+      modelOrderBanner.textContent = L("All display bars finished! Keep decorating freely.", "¡Todas las barras del escaparate terminadas! Sigue decorando libremente.");
+      modelBar.innerHTML = "";
+      modelReadout.textContent = "";
+      modelProgress.textContent = "";
+      return;
+    }
+    const t = MODEL_TARGETS[modelIx];
+    shaded = 0;
+    modelOrderBanner.textContent = L(`Order card: shade ${t.num}/${t.den} of the bar`, `Tarjeta de pedido: sombrea ${t.num}/${t.den} de la barra`);
+    modelProgress.textContent = L(`Display ${modelIx + 1} of ${MODEL_TARGETS.length}`, `Escaparate ${modelIx + 1} de ${MODEL_TARGETS.length}`);
+    modelBar.innerHTML = "";
+    for (let i = 0; i < t.den; i++) {
+      const seg = document.createElement("button");
+      seg.type = "button";
+      seg.setAttribute("aria-label", L(`Segment ${i + 1}`, `Segmento ${i + 1}`));
+      seg.style.cssText = "flex:1;height:44px;border:2px solid var(--ink);border-radius:4px;background:#fff;cursor:pointer;transition:background .15s";
+      seg.dataset.shaded = "0";
+      seg.addEventListener("click", (ev) => onSegmentTap(seg, ev));
+      modelBar.append(seg);
+    }
+    modelReadout.textContent = L(`0/${t.den} shaded`, `0/${t.den} sombreado`);
+  }
+
+  function onSegmentTap(seg, ev) {
+    const t = MODEL_TARGETS[modelIx];
+    if (!t) return;
+    const on = seg.dataset.shaded === "1";
+    seg.dataset.shaded = on ? "0" : "1";
+    seg.style.background = on ? "#fff" : "var(--accent)";
+    shaded = modelBar.querySelectorAll('[data-shaded="1"]').length;
+    modelReadout.textContent = L(`${shaded}/${t.den} shaded`, `${shaded}/${t.den} sombreado`);
+    const rect = seg.getBoundingClientRect(), panelRect = modelPanel.getBoundingClientRect();
+    burst(modelPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top + rect.height / 2, on ? "#c0392b" : "#3f7fbf");
+    if (shaded === t.num) {
+      const decimal = (t.num / t.den).toFixed(3).replace(/0+$/,"").replace(/\.$/,"");
+      sim.recordTrial({ task: L("Fraction model", "Modelo de fracción"), input: L(`shade ${t.num}/${t.den}`, `sombrea ${t.num}/${t.den}`), result: `${t.num}/${t.den} = ${decimal} ✓` });
+      sim.toast(L(`Display bar matched — ${t.num}/${t.den} = ${decimal}!`, `¡Barra del escaparate lograda — ${t.num}/${t.den} = ${decimal}!`), "correct");
+      modelIx++;
+      setTimeout(paintModelTarget, 650);
+    }
+  }
+  paintModelTarget();
 
   host.append(wrap);
 
-  /* ---------- Bonus round: Fraction Rush ---------- */
-  const arcadeSection = document.createElement("div");
-  arcadeSection.id = "arcade-section";
-  arcadeSection.style.marginTop = "var(--sp-5)";
-  host.append(arcadeSection);
+  /* ---------- Bonus round: Bakery Delivery Run (realistic 3D quest genre) ----------
+     This is the Maths course's first bonus round, and the "realistic 3D" genre
+     (engine/quest3d.js) — a deliberately different feel from the fast tunnel-rush
+     arcade genre used elsewhere on the site (CLAUDE.md §4's genre-alternation rule),
+     and richer than plain text: every crate the student drives past is a drawn
+     bar-model icon of the actual fraction, not a bare label. */
+  const questSection = document.createElement("div");
+  questSection.id = "quest-section";
+  questSection.style.marginTop = "var(--sp-5)";
+  host.append(questSection);
 
   const FRACTION_ITEMS = [
-    { id: "f1", label: "1/2", laneId: "d05" },
-    { id: "f2", label: "2/4", laneId: "d05" },
-    { id: "f3", label: "3/6", laneId: "d05" },
-    { id: "f4", label: "1/4", laneId: "d025" },
-    { id: "f5", label: "2/8", laneId: "d025" },
-    { id: "f6", label: "3/4", laneId: "d075" },
-    { id: "f7", label: "6/8", laneId: "d075" },
-    { id: "f8", label: "1/1", laneId: "d10" },
-    { id: "f9", label: "4/4", laneId: "d10" },
-  ];
-  const LANES = [
+    { id: "f1", num: 1, den: 2, groupId: "d05" },
+    { id: "f2", num: 2, den: 4, groupId: "d05" },
+    { id: "f3", num: 3, den: 6, groupId: "d05" },
+    { id: "f4", num: 1, den: 4, groupId: "d025" },
+    { id: "f5", num: 2, den: 8, groupId: "d025" },
+    { id: "f6", num: 3, den: 4, groupId: "d075" },
+    { id: "f7", num: 6, den: 8, groupId: "d075" },
+    { id: "f8", num: 1, den: 1, groupId: "d10" },
+    { id: "f9", num: 4, den: 4, groupId: "d10" },
+  ].map(it => ({ id: it.id, label: `${it.num}/${it.den}`, groupId: it.groupId, img: barIconDataURI(it.num, it.den, "#7a4b34") }));
+  const GROUPS = [
     { id: "d025", label: "0.25", color: "#e0b64c" },
     { id: "d05", label: "0.5", color: "#3f8f6b" },
     { id: "d075", label: "0.75", color: "#3f7fbf" },
     { id: "d10", label: "1.0", color: "#a24f7a" },
   ];
 
-  function paintArcade() {
-    arcadeSection.innerHTML = "";
-    renderArcadeLaunch(arcadeSection, {
+  function paintQuest() {
+    questSection.innerHTML = "";
+    renderQuestLaunch(questSection, {
       strings: {
-        title: L("Bonus round — Fraction Rush", "Ronda bonus — Carrera de fracciones"),
-        instructions: L("Fractions fly at you — tap the decimal it matches before it reaches the ring.", "Las fracciones vuelan hacia ti — toca el decimal que le corresponde antes de que llegue al aro."),
-        play: L("Play Fraction Rush", "Jugar Carrera de fracciones"),
+        title: L("Bonus round — Bakery Delivery Run", "Ronda bonus — Reparto de la panadería"),
+        instructions: L("Drive your delivery cart around the bakery yard for 2 minutes, collecting crates that match the decimal named on the banner.", "Conduce tu carrito de reparto por el patio de la panadería durante 2 minutos, recogiendo cajas que coincidan con el decimal indicado en el letrero."),
+        play: L("Play Bakery Delivery Run", "Jugar Reparto de la panadería"),
         skip: L("Skip bonus round", "Saltar ronda bonus"),
       },
       onPlay() {
-        arcadeSection.innerHTML = "";
+        questSection.innerHTML = "";
         const gameHost = document.createElement("div");
-        arcadeSection.append(gameHost);
-        mountArcadeRush(gameHost, {
+        questSection.append(gameHost);
+        mountQuest3D(gameHost, {
           threeUrl: THREE_URL,
-          rounds: 24,
-          lanes: LANES,
+          durationMs: 120000,
+          groups: GROUPS,
           items: FRACTION_ITEMS,
           strings: {
-            title: L("Fraction Rush", "Carrera de fracciones"),
-            instructions: L("Tap the decimal that matches the flying fraction. A late or wrong answer just resets your streak — never a fail.", "Toca el decimal que corresponde a la fracción que vuela. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
-            score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
-            progress: L("Fraction", "Fracción"), correct: L("Correct!", "¡Correcto!"), wrong: L("Not quite.", "No exactamente."),
-            missed: L("Missed it.", "Se te escapó."), finishTitle: L("Round complete!", "¡Ronda completa!"),
-            accuracy: L("Accuracy", "Precisión"), playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+            title: L("Bakery Delivery Run", "Reparto de la panadería"),
+            instructions: L("Arrow keys or WASD to drive — or drag the pad. Collect crates matching the decimal named above. A wrong pickup just resets your streak — never a fail.", "Flechas o WASD para conducir — o arrastra el mando. Recoge cajas que coincidan con el decimal indicado arriba. Una recogida incorrecta solo reinicia tu racha — nunca es un fallo."),
+            time: L("Time", "Tiempo"), score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
+            find: L("Find", "Busca"), correct: L("Got it!", "¡Lo tienes!"), wrong: L("Not that one.", "Ese no."),
+            finishTitle: L("Time's up!", "¡Se acabó el tiempo!"), accuracy: L("Accuracy", "Precisión"),
+            playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+            moveHint: L("Arrow keys or WASD to move — or drag the pad.", "Flechas o WASD para moverte — o arrastra el mando."),
           },
           onExit(stats) {
             gameHost.innerHTML = "";
-            arcadeSection.innerHTML = "";
+            questSection.innerHTML = "";
             sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
-            paintArcade();
+            paintQuest();
           }
         });
       },
-      onSkip() { arcadeSection.innerHTML = ""; }
+      onSkip() { questSection.innerHTML = ""; }
     });
   }
-  paintArcade();
+  paintQuest();
 }
 
 const simulation = { orient: drawOrient, investigate: drawInvestigate };
