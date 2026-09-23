@@ -98,11 +98,11 @@ function orderBannerHTML(id) {
 function drawOrient(host) {
   host.innerHTML =
     `<p class="q__hint">${L(
-      "A number line shows exactly where a fraction sits between 0 and 1 — the closer the numerator is to half the denominator, the closer the fraction sits to 1/2. An area-model grid shows what multiplying two fractions really means: the shaded overlap.",
-      "Una recta numérica muestra exactamente dónde se ubica una fracción entre 0 y 1 — cuanto más cerca esté el numerador de la mitad del denominador, más cerca estará la fracción de 1/2. Una cuadrícula de modelo de área muestra lo que realmente significa multiplicar dos fracciones: la superposición sombreada."
+      "A number line shows exactly where a fraction sits between 0 and 1 — the closer the numerator is to half the denominator, the closer the fraction sits to 1/2. Two fraction bars of the same length make it easy to see at a glance which fraction is bigger.",
+      "Una recta numérica muestra exactamente dónde se ubica una fracción entre 0 y 1 — cuanto más cerca esté el numerador de la mitad del denominador, más cerca estará la fracción de 1/2. Dos barras de fracción de la misma longitud facilitan ver de un vistazo cuál fracción es mayor."
     )}</p>
     <svg viewBox="0 0 320 170" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px" role="img"
-         aria-label="${L('A number line from 0 to 1 with 3/8 marked, and a 2 by 3 grid with 2 cells shaded to show 1/2 times 2/3', 'Una recta numérica de 0 a 1 con 3/8 marcado, y una cuadrícula de 2 por 3 con 2 celdas sombreadas para mostrar 1/2 por 2/3')}">
+         aria-label="${L('A number line from 0 to 1 with 3/8 marked, and two fraction bars comparing 3/8 and 5/8', 'Una recta numérica de 0 a 1 con 3/8 marcado, y dos barras de fracción comparando 3/8 y 5/8')}">
       <text x="10" y="18" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Number line — where does 3/8 sit?','Recta numérica — ¿dónde está 3/8?')}</text>
       <line x1="15" y1="45" x2="305" y2="45" stroke="var(--ink)" stroke-width="2"/>
       <line x1="15" y1="38" x2="15" y2="52" stroke="var(--ink)" stroke-width="2"/>
@@ -114,22 +114,27 @@ function drawOrient(host) {
       <circle cx="123.75" cy="45" r="6" fill="var(--accent)"/>
       <text x="123.75" y="30" text-anchor="middle" font-family="var(--font-data)" font-size="11" fill="var(--accent)">3/8</text>
 
-      <text x="10" y="96" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Area model — 1/2 × 2/3 = 2/6','Modelo de área — 1/2 × 2/3 = 2/6')}</text>
+      <text x="10" y="96" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Comparing fractions — which is bigger, 3/8 or 5/8?','Comparar fracciones — ¿cuál es mayor, 3/8 o 5/8?')}</text>
       <g transform="translate(10,104)">
-        <rect x="0"  y="0" width="45" height="24" fill="var(--accent)"/>
-        <rect x="45" y="0" width="45" height="24" fill="var(--accent)"/>
-        <rect x="90" y="0" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="0"  y="24" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="45" y="24" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="90" y="24" width="45" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="0" y="0" width="135" height="48" fill="none" stroke="var(--ink)" stroke-width="2"/>
+        <rect x="0" y="0" width="60" height="24" fill="var(--accent)"/>
+        <rect x="60" y="0" width="60" height="24" fill="var(--accent)"/>
+        <rect x="120" y="0" width="60" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="0" y="0" width="180" height="24" fill="none" stroke="var(--ink)" stroke-width="2"/>
+        <text x="0" y="-4" font-family="var(--font-data)" font-size="9" fill="var(--ink-3)">3/8</text>
+      </g>
+      <g transform="translate(200,104)">
+        <rect x="0" y="0" width="60" height="24" fill="var(--signal)"/>
+        <rect x="60" y="0" width="30" height="24" fill="var(--signal)"/>
+        <rect x="90" y="0" width="30" height="24" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect x="0" y="0" width="120" height="24" fill="none" stroke="var(--ink)" stroke-width="2"/>
+        <text x="0" y="-4" font-family="var(--font-data)" font-size="9" fill="var(--ink-3)">5/8</text>
       </g>
       <text x="10" y="165" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('The training stations are on the next screen — lots of reps at each one.','Las estaciones de entrenamiento están en la siguiente pantalla — muchas repeticiones en cada una.')}</text>
     </svg>`;
 }
 
 /* ============================================================
-   INVESTIGATE — four calculation stations, each a queue of reps.
+   INVESTIGATE — three calculation stations, each a queue of reps.
    ============================================================ */
 function drawInvestigate(host, sim) {
   host.innerHTML = "";
@@ -367,74 +372,6 @@ function drawInvestigate(host, sim) {
     }
   }
   paintEstimate();
-
-  /* ---------- Station 4: Multiplication Grid Builder ---------- */
-  const GRID_TARGETS = [
-    { n1: 1, d1: 2, n2: 1, d2: 3 }, { n1: 2, d1: 3, n2: 1, d2: 2 },
-    { n1: 3, d1: 4, n2: 1, d2: 2 }, { n1: 2, d1: 3, n2: 3, d2: 4 }
-  ];
-  let gridIx = 0, gridShaded = 0;
-
-  const gridPanel = document.createElement("div");
-  gridPanel.className = "panel stack";
-  gridPanel.style.position = "relative";
-  gridPanel.style.overflow = "visible";
-  gridPanel.innerHTML = `
-    <p class="eyebrow">${L("Station 4 — Multiplication Grid Builder","Estación 4 — Constructor de cuadrículas de multiplicación")}</p>
-    <p class="q__hint">${L("Tap cells to shade the overlap that shows the product of the two fractions.","Toca celdas para sombrear la superposición que muestra el producto de las dos fracciones.")}</p>
-    ${orderBannerHTML("grid-order-banner")}
-    <div id="grid-body" style="display:grid;gap:4px;max-width:280px"></div>
-    <p class="readout" id="grid-readout" aria-live="polite"></p>
-    <p class="q__hint" id="grid-progress" aria-live="polite"></p>
-  `;
-  wrap.append(gridPanel);
-
-  const gridBody = gridPanel.querySelector("#grid-body"), gridReadout = gridPanel.querySelector("#grid-readout");
-  const gridOrderBanner = gridPanel.querySelector("#grid-order-banner"), gridProgress = gridPanel.querySelector("#grid-progress");
-
-  function paintGridTarget() {
-    if (gridIx >= GRID_TARGETS.length) {
-      gridOrderBanner.textContent = L("All grids built! Keep training freely.", "¡Todas las cuadrículas construidas! Sigue entrenando libremente.");
-      gridBody.innerHTML = "";
-      gridReadout.textContent = "";
-      gridProgress.textContent = "";
-      return;
-    }
-    const t = GRID_TARGETS[gridIx];
-    gridShaded = 0;
-    const totalCells = t.d1 * t.d2, targetCells = t.n1 * t.n2;
-    gridOrderBanner.textContent = L(`Build: ${t.n1}/${t.d1} × ${t.n2}/${t.d2}`, `Construye: ${t.n1}/${t.d1} × ${t.n2}/${t.d2}`);
-    gridProgress.textContent = L(`Grid ${gridIx + 1} of ${GRID_TARGETS.length}`, `Cuadrícula ${gridIx + 1} de ${GRID_TARGETS.length}`);
-    gridBody.style.gridTemplateColumns = `repeat(${t.d1}, 1fr)`;
-    gridBody.innerHTML = "";
-    for (let i = 0; i < totalCells; i++) {
-      const cell = document.createElement("button");
-      cell.type = "button";
-      cell.setAttribute("aria-label", L(`Cell ${i + 1}`, `Celda ${i + 1}`));
-      cell.style.cssText = "aspect-ratio:1;border:2px solid var(--ink);border-radius:3px;background:#fff;cursor:pointer";
-      cell.dataset.shaded = "0";
-      cell.addEventListener("click", (ev) => onGridCellTap(cell, ev, targetCells, t));
-      gridBody.append(cell);
-    }
-    gridReadout.textContent = L(`0/${targetCells} shaded (grid: ${t.d1} × ${t.d2} = ${totalCells} cells)`, `0/${targetCells} sombreadas (cuadrícula: ${t.d1} × ${t.d2} = ${totalCells} celdas)`);
-  }
-  function onGridCellTap(cell, ev, targetCells, t) {
-    const on = cell.dataset.shaded === "1";
-    cell.dataset.shaded = on ? "0" : "1";
-    cell.style.background = on ? "#fff" : "var(--accent)";
-    gridShaded = gridBody.querySelectorAll('[data-shaded="1"]').length;
-    gridReadout.textContent = L(`${gridShaded}/${targetCells} shaded`, `${gridShaded}/${targetCells} sombreadas`);
-    const rect = cell.getBoundingClientRect(), panelRect = gridPanel.getBoundingClientRect();
-    burst(gridPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top + rect.height / 2, on ? "#c0392b" : "#3f7fbf");
-    if (gridShaded === targetCells) {
-      const productNum = t.n1 * t.n2, productDen = t.d1 * t.d2;
-      sim.recordTrial({ task: L("Multiplication grid", "Cuadrícula de multiplicación"), input: `${t.n1}/${t.d1} × ${t.n2}/${t.d2}`, result: `${productNum}/${productDen} ✓` });
-      sim.toast(L(`Grid built — ${t.n1}/${t.d1} × ${t.n2}/${t.d2} = ${productNum}/${productDen}!`, `¡Cuadrícula construida — ${t.n1}/${t.d1} × ${t.n2}/${t.d2} = ${productNum}/${productDen}!`), "correct");
-      gridIx++;
-      setTimeout(paintGridTarget, 650);
-    }
-  }
-  paintGridTarget();
 
   host.append(wrap);
 

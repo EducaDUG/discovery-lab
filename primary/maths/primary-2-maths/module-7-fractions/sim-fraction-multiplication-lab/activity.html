@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Multiplication Grid Lab — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../engine/i18n.js?v=9";
+import { mountQuest3D, renderQuestLaunch } from "../../../../../engine/quest3d.js?v=2";
+
+const THREE_URL = "../../../../../engine/vendor/three.min.js";
+const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED_MOTION = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* Shared confetti-style burst — see CLAUDE.md §4's "things visibly, exaggeratedly
+   move" amendment. Container must be position:relative. Skipped under reduced motion. */
+function burst(container, x, y, color) {
+  if (REDUCED_MOTION()) return;
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement("span");
+    p.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:7px;height:7px;margin:-3px;border-radius:50%;background:${color};pointer-events:none;z-index:5`;
+    container.appendChild(p);
+    const ang = Math.random() * Math.PI * 2, dist = 24 + Math.random() * 34;
+    const anim = p.animate([
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0.3)`, opacity: 0 }
+    ], { duration: 480 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    anim.onfinish = () => p.remove();
+  }
+}
+
+/* A small bar-model icon as an inline SVG data URI, so quest items genuinely
+   depict the fraction instead of bare text (CLAUDE.md §4, 2026-09-23 amendment). */
+function barIconDataURI(num, den, color) {
+  const w = 72, h = 30, segW = (w - 2) / den;
+  let rects = "";
+  for (let i = 0; i < den; i++) {
+    const filled = i < num;
+    rects += `<rect x="${1 + i * segW}" y="1" width="${segW - 1.5}" height="${h - 2}" rx="2" fill="${filled ? color : "#fff"}" stroke="#233b57" stroke-width="1.4"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${rects}</svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+function orderBannerHTML(id) {
+  return `<p id="${id}" style="align-self:flex-start;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)"></p>`;
+}
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+function simplifyFrac(n, d) { const g = gcd(n, d); return [n / g, d / g]; }
+
+/* ============================================================
+   ORIENT — the area-model diagram this whole lab trains against.
+   ============================================================ */
+function drawOrient(host) {
+  host.innerHTML =
+    `<p class="q__hint">${L(
+      "An area-model grid shows what multiplying two fractions really means: shade some columns for the first fraction, shade some rows for the second, and the overlap is the product.",
+      "Una cuadrícula de modelo de área muestra lo que realmente significa multiplicar dos fracciones: sombrea algunas columnas para la primera fracción, sombrea algunas filas para la segunda, y la superposición es el producto."
+    )}</p>
+    <svg viewBox="0 0 320 150" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px" role="img"
+         aria-label="${L('A 3 by 4 grid with 2 columns and 3 rows shaded, overlap showing 2/3 times 3/4 equals 6/12', 'Una cuadrícula de 3 por 4 con 2 columnas y 3 filas sombreadas, mostrando que 2/3 por 3/4 es igual a 6/12')}">
+      <text x="10" y="18" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('2/3 × 3/4 — shade 2 of 3 columns, 3 of 4 rows','2/3 × 3/4 — sombrea 2 de 3 columnas, 3 de 4 filas')}</text>
+      <g transform="translate(10,30)">
+        <rect x="0" y="0" width="45" height="90" fill="var(--accent)" opacity="0.35"/>
+        <rect x="45" y="0" width="45" height="90" fill="var(--accent)" opacity="0.35"/>
+        <rect x="90" y="0" width="45" height="90" fill="none"/>
+        <rect x="0" y="0" width="180" height="67.5" fill="var(--signal)" opacity="0.35"/>
+        <rect x="0" y="0" width="120" height="67.5" fill="var(--accent)"/>
+        <line x1="45" y1="0" x2="45" y2="90" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="90" y1="0" x2="90" y2="90" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="0" y1="22.5" x2="180" y2="22.5" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="0" y1="45" x2="180" y2="45" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="0" y1="67.5" x2="180" y2="67.5" stroke="var(--ink)" stroke-width="1.5"/>
+        <rect x="0" y="0" width="180" height="90" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      </g>
+      <text x="200" y="60" font-family="var(--font-data)" font-size="13" fill="var(--ink)">${L('= 6/12','= 6/12')}</text>
+      <text x="200" y="80" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('(the darker overlap)','(la superposición más oscura)')}</text>
+      <text x="10" y="130" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('The multiplication stations are on the next screen — lots of reps at each one.','Las estaciones de multiplicación están en la siguiente pantalla — muchas repeticiones en cada una.')}</text>
+    </svg>`;
+}
+
+/* ============================================================
+   INVESTIGATE — three calculation stations, each a queue of reps.
+   ============================================================ */
+function drawInvestigate(host, sim) {
+  host.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "stack";
+  wrap.style.gap = "var(--sp-5)";
+
+  /* ---------- Station 1: Grid Builder ---------- */
+  const GRID_TARGETS = [
+    { n1: 1, d1: 2, n2: 1, d2: 3 }, { n1: 2, d1: 3, n2: 1, d2: 2 },
+    { n1: 3, d1: 4, n2: 1, d2: 2 }, { n1: 2, d1: 3, n2: 3, d2: 4 },
+    { n1: 1, d1: 4, n2: 2, d2: 3 }, { n1: 3, d1: 4, n2: 2, d2: 3 }
+  ];
+  let gridIx = 0, gridShaded = 0;
+
+  const gridPanel = document.createElement("div");
+  gridPanel.className = "panel stack";
+  gridPanel.style.position = "relative";
+  gridPanel.style.overflow = "visible";
+  gridPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 1 — Grid Builder","Estación 1 — Constructor de cuadrículas")}</p>
+    <p class="q__hint">${L("Tap cells to shade the overlap that shows the product of the two fractions.","Toca celdas para sombrear la superposición que muestra el producto de las dos fracciones.")}</p>
+    ${orderBannerHTML("grid-order-banner")}
+    <div id="grid-body" style="display:grid;gap:4px;max-width:280px"></div>
+    <p class="readout" id="grid-readout" aria-live="polite"></p>
+    <p class="q__hint" id="grid-progress" aria-live="polite"></p>
+  `;
+  wrap.append(gridPanel);
+
+  const gridBody = gridPanel.querySelector("#grid-body"), gridReadout = gridPanel.querySelector("#grid-readout");
+  const gridOrderBanner = gridPanel.querySelector("#grid-order-banner"), gridProgress = gridPanel.querySelector("#grid-progress");
+
+  function paintGridTarget() {
+    if (gridIx >= GRID_TARGETS.length) {
+      gridOrderBanner.textContent = L("All grids built! Keep training freely.", "¡Todas las cuadrículas construidas! Sigue entrenando libremente.");
+      gridBody.innerHTML = "";
+      gridReadout.textContent = "";
+      gridProgress.textContent = "";
+      return;
+    }
+    const t = GRID_TARGETS[gridIx];
+    gridShaded = 0;
+    const totalCells = t.d1 * t.d2, targetCells = t.n1 * t.n2;
+    gridOrderBanner.textContent = L(`Build: ${t.n1}/${t.d1} × ${t.n2}/${t.d2}`, `Construye: ${t.n1}/${t.d1} × ${t.n2}/${t.d2}`);
+    gridProgress.textContent = L(`Grid ${gridIx + 1} of ${GRID_TARGETS.length}`, `Cuadrícula ${gridIx + 1} de ${GRID_TARGETS.length}`);
+    gridBody.style.gridTemplateColumns = `repeat(${t.d1}, 1fr)`;
+    gridBody.innerHTML = "";
+    for (let i = 0; i < totalCells; i++) {
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.setAttribute("aria-label", L(`Cell ${i + 1}`, `Celda ${i + 1}`));
+      cell.style.cssText = "aspect-ratio:1;border:2px solid var(--ink);border-radius:3px;background:#fff;cursor:pointer";
+      cell.dataset.shaded = "0";
+      cell.addEventListener("click", (ev) => onGridCellTap(cell, ev, targetCells, t));
+      gridBody.append(cell);
+    }
+    gridReadout.textContent = L(`0/${targetCells} shaded (grid: ${t.d1} × ${t.d2} = ${totalCells} cells)`, `0/${targetCells} sombreadas (cuadrícula: ${t.d1} × ${t.d2} = ${totalCells} celdas)`);
+  }
+  function onGridCellTap(cell, ev, targetCells, t) {
+    const on = cell.dataset.shaded === "1";
+    cell.dataset.shaded = on ? "0" : "1";
+    cell.style.background = on ? "#fff" : "var(--accent)";
+    gridShaded = gridBody.querySelectorAll('[data-shaded="1"]').length;
+    gridReadout.textContent = L(`${gridShaded}/${targetCells} shaded`, `${gridShaded}/${targetCells} sombreadas`);
+    const rect = cell.getBoundingClientRect(), panelRect = gridPanel.getBoundingClientRect();
+    burst(gridPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top + rect.height / 2, on ? "#c0392b" : "#3f7fbf");
+    if (gridShaded === targetCells) {
+      const [sn, sd] = simplifyFrac(t.n1 * t.n2, t.d1 * t.d2);
+      sim.recordTrial({ task: L("Grid Builder", "Constructor de cuadrículas"), input: `${t.n1}/${t.d1} × ${t.n2}/${t.d2}`, result: `${t.n1 * t.n2}/${t.d1 * t.d2} = ${sn}/${sd} ✓` });
+      sim.toast(L(`Grid built — ${t.n1}/${t.d1} × ${t.n2}/${t.d2} = ${sn}/${sd}!`, `¡Cuadrícula construida — ${t.n1}/${t.d1} × ${t.n2}/${t.d2} = ${sn}/${sd}!`), "correct");
+      gridIx++;
+      setTimeout(paintGridTarget, 650);
+    }
+  }
+  paintGridTarget();
+
+  /* ---------- Station 2: Speed Multiply Drill ---------- */
+  const DRILL_ITEMS = [
+    { a: [1, 2], b: [2, 5] }, { a: [3, 4], b: [1, 3] }, { a: [2, 3], b: [3, 5] },
+    { a: [1, 4], b: [2, 3] }, { a: [5, 6], b: [1, 2] }, { a: [3, 5], b: [2, 3] }
+  ];
+  let drillIx = 0;
+
+  const drillPanel = document.createElement("div");
+  drillPanel.className = "panel stack";
+  drillPanel.style.position = "relative";
+  drillPanel.style.overflow = "visible";
+  drillPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 2 — Speed Multiply Drill","Estación 2 — Entrenamiento rápido de multiplicación")}</p>
+    <p class="q__hint">${L("Multiply as fast and accurately as you can. Type the product as a decimal.","Multiplica lo más rápido y con la mayor precisión posible. Escribe el producto como decimal.")}</p>
+    ${orderBannerHTML("drill-order-banner")}
+    <label class="field__label" for="drill-input">${L("Product (decimal)","Producto (decimal)")}</label>
+    <input id="drill-input" class="input" type="number" step="0.01" style="max-width:160px">
+    <button id="drill-check-btn" class="btn btn--signal" type="button">${L("Check →","Comprobar →")}</button>
+    <p class="readout" id="drill-readout" aria-live="polite"></p>
+    <p class="q__hint" id="drill-progress" aria-live="polite"></p>
+  `;
+  wrap.append(drillPanel);
+
+  const drillOrderBanner = drillPanel.querySelector("#drill-order-banner"), drillInput = drillPanel.querySelector("#drill-input");
+  const drillReadout = drillPanel.querySelector("#drill-readout"), drillProgress = drillPanel.querySelector("#drill-progress"), drillCheckBtn = drillPanel.querySelector("#drill-check-btn");
+
+  function paintDrill() {
+    if (drillIx >= DRILL_ITEMS.length) {
+      drillOrderBanner.textContent = L("All drills done! Keep training freely.", "¡Todos los entrenamientos hechos! Sigue entrenando libremente.");
+      drillProgress.textContent = "";
+      drillReadout.textContent = "";
+      return;
+    }
+    const item = DRILL_ITEMS[drillIx];
+    drillOrderBanner.textContent = L(`${item.a[0]}/${item.a[1]} × ${item.b[0]}/${item.b[1]} = ?`, `${item.a[0]}/${item.a[1]} × ${item.b[0]}/${item.b[1]} = ?`);
+    drillProgress.textContent = L(`Drill ${drillIx + 1} of ${DRILL_ITEMS.length}`, `Entrenamiento ${drillIx + 1} de ${DRILL_ITEMS.length}`);
+    drillInput.value = "";
+    drillReadout.textContent = "";
+  }
+  drillCheckBtn.addEventListener("click", (ev) => {
+    const item = DRILL_ITEMS[drillIx];
+    if (!item) return;
+    const given = Number(drillInput.value);
+    const exact = (item.a[0] * item.b[0]) / (item.a[1] * item.b[1]);
+    const matched = !isNaN(given) && Math.abs(given - exact) <= 0.02;
+    const [sn, sd] = simplifyFrac(item.a[0] * item.b[0], item.a[1] * item.b[1]);
+    sim.recordTrial({ task: L("Speed multiply", "Multiplicación rápida"), input: `${item.a[0]}/${item.a[1]} × ${item.b[0]}/${item.b[1]}`, result: `${L("your answer","tu respuesta")} ${isNaN(given) ? "—" : given}, ${sn}/${sd} = ${exact.toFixed(2)}${matched ? " ✓" : ""}` });
+    const rect = ev.target.getBoundingClientRect(), panelRect = drillPanel.getBoundingClientRect();
+    if (matched) {
+      burst(drillPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
+      drillReadout.textContent = L(`Correct — ${sn}/${sd} = ${exact.toFixed(2)}!`, `¡Correcto — ${sn}/${sd} = ${exact.toFixed(2)}!`);
+      sim.toast(L(`Correct — ${item.a[0]}/${item.a[1]} × ${item.b[0]}/${item.b[1]} = ${sn}/${sd}!`, `¡Correcto — ${item.a[0]}/${item.a[1]} × ${item.b[0]}/${item.b[1]} = ${sn}/${sd}!`), "correct");
+      drillIx++;
+      setTimeout(paintDrill, 900);
+    } else {
+      burst(drillPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");
+      drillReadout.textContent = L(`Not quite — try again.`, `No exactamente — inténtalo de nuevo.`);
+      sim.toast(L(`Not quite — the exact answer is ${exact.toFixed(2)}. Try again.`, `No exactamente — la respuesta exacta es ${exact.toFixed(2)}. Inténtalo de nuevo.`), "info");
+    }
+  });
+  paintDrill();
+
+  /* ---------- Station 3: Word Problem Solver ---------- */
+  const WORD_PROBLEMS = [
+    { text: { en: "A ribbon is 2/3 of a metre long. You use 3/4 of the ribbon on a gift.", es: "Una cinta mide 2/3 de metro. Usas 3/4 de la cinta en un regalo." }, a: [2, 3], b: [3, 4] },
+    { text: { en: "A tank is 4/5 full of fuel. A trip uses 1/2 of the fuel in the tank.", es: "Un tanque está 4/5 lleno de combustible. Un viaje usa 1/2 del combustible del tanque." }, a: [4, 5], b: [1, 2] },
+    { text: { en: "You have 5/6 of a pizza left. You eat 2/3 of what's left.", es: "Te queda 5/6 de una pizza. Te comes 2/3 de lo que queda." }, a: [5, 6], b: [2, 3] },
+    { text: { en: "A recipe needs 3/4 of a bag of flour. You only want to make 1/3 of the recipe.", es: "Una receta necesita 3/4 de una bolsa de harina. Solo quieres hacer 1/3 de la receta." }, a: [3, 4], b: [1, 3] }
+  ];
+  let wordIx = 0;
+
+  const wordPanel = document.createElement("div");
+  wordPanel.className = "panel stack";
+  wordPanel.style.position = "relative";
+  wordPanel.style.overflow = "visible";
+  wordPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 3 — Word Problem Solver","Estación 3 — Solucionador de problemas verbales")}</p>
+    <p class="q__hint">${L("Read the problem, then tap the expression that solves it.","Lee el problema y luego toca la expresión que lo resuelve.")}</p>
+    ${orderBannerHTML("word-order-banner")}
+    <p class="readout" id="word-text"></p>
+    <div class="cluster" id="word-options" style="gap:var(--sp-3);flex-wrap:wrap"></div>
+    <p class="q__hint" id="word-progress" aria-live="polite"></p>
+  `;
+  wrap.append(wordPanel);
+
+  const wordOrderBanner = wordPanel.querySelector("#word-order-banner"), wordText = wordPanel.querySelector("#word-text");
+  const wordOptions = wordPanel.querySelector("#word-options"), wordProgress = wordPanel.querySelector("#word-progress");
+
+  function paintWord() {
+    if (wordIx >= WORD_PROBLEMS.length) {
+      wordOrderBanner.textContent = L("All word problems done! Keep training freely.", "¡Todos los problemas verbales hechos! Sigue entrenando libremente.");
+      wordText.textContent = "";
+      wordOptions.innerHTML = "";
+      wordProgress.textContent = "";
+      return;
+    }
+    const item = WORD_PROBLEMS[wordIx];
+    wordOrderBanner.textContent = L("Which expression solves this problem?", "¿Qué expresión resuelve este problema?");
+    wordText.textContent = L(item.text.en, item.text.es);
+    wordProgress.textContent = L(`Word problem ${wordIx + 1} of ${WORD_PROBLEMS.length}`, `Problema verbal ${wordIx + 1} de ${WORD_PROBLEMS.length}`);
+    const correctExpr = `${item.a[0]}/${item.a[1]} × ${item.b[0]}/${item.b[1]}`;
+    const distractors = [`${item.a[0]}/${item.a[1]} + ${item.b[0]}/${item.b[1]}`, `${item.a[0]}/${item.a[1]} ÷ ${item.b[0]}/${item.b[1]}`];
+    const options = [correctExpr, ...distractors].sort(() => Math.random() - 0.5);
+    wordOptions.innerHTML = "";
+    options.forEach((expr) => {
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "btn btn--ghost"; btn.style.fontFamily = "var(--font-data)";
+      btn.textContent = expr;
+      btn.addEventListener("click", (ev) => onWordPick(expr, correctExpr, item, ev));
+      wordOptions.append(btn);
+    });
+  }
+  function onWordPick(picked, correctExpr, item, ev) {
+    const matched = picked === correctExpr;
+    const rect = ev.target.getBoundingClientRect(), panelRect = wordPanel.getBoundingClientRect();
+    const [sn, sd] = simplifyFrac(item.a[0] * item.b[0], item.a[1] * item.b[1]);
+    sim.recordTrial({ task: L("Word problem", "Problema verbal"), input: L(item.text.en, item.text.es), result: `${L("picked", "elegido")} ${picked}${matched ? ` ✓ (${sn}/${sd})` : " ✗ (" + correctExpr + ")"}` });
+    if (matched) {
+      burst(wordPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
+      sim.toast(L(`Correct — ${correctExpr} = ${sn}/${sd}!`, `¡Correcto — ${correctExpr} = ${sn}/${sd}!`), "correct");
+      wordIx++;
+      paintWord();
+    } else {
+      burst(wordPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");
+      sim.toast(L(`Not quite — you need a fraction OF a fraction, which means multiply: ${correctExpr}.`, `No exactamente — necesitas una fracción DE una fracción, lo que significa multiplicar: ${correctExpr}.`), "info");
+    }
+  }
+  paintWord();
+
+  host.append(wrap);
+
+  /* ---------- Bonus round: Product Rover (realistic 3D quest genre) ----------
+     Alternates back from Fraction Training Camp's arcade genre (Benchmark
+     Blitz) to the realistic-3D quest genre, per CLAUDE.md §4's genre
+     alternation rule. Every collectible carries a real generated bar-model
+     icon of its product, not bare text. */
+  const questSection = document.createElement("div");
+  questSection.id = "quest-section";
+  questSection.style.marginTop = "var(--sp-5)";
+  host.append(questSection);
+
+  const PRODUCT_ITEMS = [
+    { id: "p1", a: [1, 4], b: [1, 3] }, { id: "p2", a: [1, 3], b: [1, 4] }, { id: "p3", a: [1, 6], b: [1, 2] },
+    { id: "p4", a: [1, 2], b: [2, 5] }, { id: "p5", a: [3, 5], b: [1, 2] }, { id: "p6", a: [2, 3], b: [1, 2] },
+    { id: "p7", a: [3, 4], b: [3, 4] }, { id: "p8", a: [5, 6], b: [4, 5] }, { id: "p9", a: [7, 8], b: [7, 8] },
+  ].map(it => {
+    const value = (it.a[0] * it.b[0]) / (it.a[1] * it.b[1]);
+    const groupId = value <= 0.25 ? "tiny" : value <= 0.5 ? "medium" : "big";
+    const [sn, sd] = simplifyFrac(it.a[0] * it.b[0], it.a[1] * it.b[1]);
+    return { id: it.id, label: `${it.a[0]}/${it.a[1]} × ${it.b[0]}/${it.b[1]}`, groupId, img: barIconDataURI(sn, sd, "#3a6ea5") };
+  });
+  const PRODUCT_GROUPS = [
+    { id: "tiny", label: L("Tiny (≤1/4)", "Diminuto (≤1/4)"), color: "#a24f7a" },
+    { id: "medium", label: L("Medium (1/4–1/2)", "Mediano (1/4–1/2)"), color: "#e0b64c" },
+    { id: "big", label: L("Big (>1/2)", "Grande (>1/2)"), color: "#3f8f6b" },
+  ];
+
+  function paintQuest() {
+    questSection.innerHTML = "";
+    renderQuestLaunch(questSection, {
+      strings: {
+        title: L("Bonus round — Product Rover", "Ronda bonus — Vehículo de productos"),
+        instructions: L("Drive your rover around the lab for 2 minutes, collecting crates whose product matches the size named on the banner.", "Conduce tu vehículo por el laboratorio durante 2 minutos, recogiendo cajas cuyo producto coincida con el tamaño indicado en el letrero."),
+        play: L("Play Product Rover", "Jugar Vehículo de productos"),
+        skip: L("Skip bonus round", "Saltar ronda bonus"),
+      },
+      onPlay() {
+        questSection.innerHTML = "";
+        const gameHost = document.createElement("div");
+        questSection.append(gameHost);
+        mountQuest3D(gameHost, {
+          threeUrl: THREE_URL,
+          durationMs: 120000,
+          groups: PRODUCT_GROUPS,
+          items: PRODUCT_ITEMS,
+          strings: {
+            title: L("Product Rover", "Vehículo de productos"),
+            instructions: L("Arrow keys or WASD to drive — or drag the pad. Collect crates whose multiplication gives a product of the size named above. A wrong pickup just resets your streak — never a fail.", "Flechas o WASD para conducir — o arrastra el mando. Recoge cajas cuya multiplicación dé un producto del tamaño indicado arriba. Una recogida incorrecta solo reinicia tu racha — nunca es un fallo."),
+            time: L("Time", "Tiempo"), score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
+            find: L("Find", "Busca"), correct: L("Got it!", "¡Lo tienes!"), wrong: L("Not that one.", "Ese no."),
+            finishTitle: L("Time's up!", "¡Se acabó el tiempo!"), accuracy: L("Accuracy", "Precisión"),
+            playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+            moveHint: L("Arrow keys or WASD to move — or drag the pad.", "Flechas o WASD para moverte — o arrastra el mando."),
+          },
+          onExit(stats) {
+            gameHost.innerHTML = "";
+            questSection.innerHTML = "";
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+            paintQuest();
+          }
+        });
+      },
+      onSkip() { questSection.innerHTML = ""; }
+    });
+  }
+  paintQuest();
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
