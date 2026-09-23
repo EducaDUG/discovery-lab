@@ -63,7 +63,7 @@ function ensureStyles() {
   background:repeating-linear-gradient(90deg,#4a3c22 0 2.2rem,#3a2f1a 2.2rem 2.4rem);
   border:3px solid #6b5530;box-shadow:inset 0 6px 14px rgba(0,0,0,.4);}
 .conv__belt.is-moving{background-position-x:0;animation:conv-scroll 1.1s linear infinite;}
-@keyframes conv-scroll{from{background-position-x:0}to{background-position-x:-2.4rem}}
+@keyframes conv-scroll{from{background-position-x:0}to{background-position-x:2.4rem}}
 .conv__item{position:absolute;top:50%;transform:translateY(-50%);width:4.4rem;height:4.4rem;
   border-radius:var(--radius);background:#fff;display:grid;place-items:center;font-weight:800;
   box-shadow:0 6px 14px rgba(0,0,0,.35);will-change:left;z-index:2;}
@@ -149,8 +149,11 @@ export function mountConveyorSort(host, opts) {
   const rounds = opts.rounds || 24;
   const queue = buildQueue(opts.items, rounds);
 
-  const state = { index: 0, score: 0, streak: 0, bestStreak: 0, hits: 0, answered: false, disposed: false, travelMs: 5600, spawnedAt: 0 };
-  const START_TRAVEL = 5600, MIN_TRAVEL = 2600, RAMP = 90, SETTLE_PAD = 400;
+  const state = { index: 0, score: 0, streak: 0, bestStreak: 0, hits: 0, answered: false, disposed: false, travelMs: 6800, spawnedAt: 0 };
+  /* Starts slow (6.8s to cross the belt) and ramps down to a floor of 2.2s by
+     the last item — RAMP is tuned so a `rounds`-length round reaches MIN_TRAVEL
+     with a few items to spare, so the fastest stretch is felt, not just brushed. */
+  const START_TRAVEL = 6800, MIN_TRAVEL = 2200, RAMP = (START_TRAVEL - MIN_TRAVEL) / Math.max(1, rounds - 4), SETTLE_PAD = 400;
 
   host.innerHTML = "";
   const wrap = document.createElement("div"); wrap.className = "conv";
@@ -290,6 +293,7 @@ export function mountConveyorSort(host, opts) {
     state.answered = false;
     state.travelMs = Math.max(MIN_TRAVEL, START_TRAVEL - state.index * RAMP);
     state.spawnedAt = performance.now();
+    if (!reducedMotion()) belt.style.animationDuration = ((state.travelMs / START_TRAVEL) * 1.1).toFixed(2) + "s";
     paintHud();
     spawnItem(state.current, state.travelMs);
   }
