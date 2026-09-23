@@ -89,6 +89,59 @@ function barIconDataURI(num, den, color) {
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
+/* A single iced cupcake, used to build the Icing Ratio Mixer's ratio strip as
+   real bakery objects instead of flat coloured blocks — critical rule agreed
+   2026-09-23: every manipulative must depict a real recognisable object for
+   visual learners, never bare bars/numbers/letters alone. Each unit is one
+   cupcake: a pleated paper case plus a piped frosting swirl in the given
+   colour, so the student is literally counting cupcakes, not rectangles. */
+function cupcakeSVG(x, frostColor, frostStroke) {
+  let s = `<g transform="translate(${x},0)">`;
+  s += `<path d="M5 34 L2 47 Q2 52 7 52 H31 Q36 52 36 47 L33 34 Z" fill="#d9a24b" stroke="#8a5a1f" stroke-width="1.3"/>`;
+  for (let px = 9; px <= 29; px += 6.5) s += `<line x1="${px}" y1="35" x2="${px - 1.6}" y2="51" stroke="#b9822f" stroke-width="1.1"/>`;
+  s += `<ellipse cx="19" cy="30" rx="17" ry="10" fill="${frostColor}" stroke="${frostStroke}" stroke-width="1.3"/>`;
+  s += `<ellipse cx="19" cy="19.5" rx="12.5" ry="8" fill="${frostColor}" stroke="${frostStroke}" stroke-width="1.3"/>`;
+  s += `<ellipse cx="19" cy="10.5" rx="7.5" ry="6.5" fill="${frostColor}" stroke="${frostStroke}" stroke-width="1.3"/>`;
+  s += `<circle cx="19" cy="3.5" r="2.6" fill="#c0392b"/>`;
+  s += `</g>`;
+  return s;
+}
+function cupcakeRowSVG(count, frostColor, frostStroke, startX) {
+  let s = "", x = startX;
+  for (let i = 0; i < count; i++) { s += cupcakeSVG(x, frostColor, frostStroke); x += 40; }
+  return s;
+}
+
+/* A real chocolate bar (rounded, warm brown, individually snappable squares)
+   for the Fair-Share Kitchen — same critical visual-learners rule as above:
+   a real bar of chocolate, not a flat abstract rectangle. */
+function chocolateBarSVG(x, w, h) {
+  const squares = Math.max(1, Math.round(w / 18));
+  const sqW = w / squares;
+  let s = `<g transform="translate(${x},0)">`;
+  s += `<rect x="0" y="0" width="${w}" height="${h}" rx="5" fill="#6b3f1d"/>`;
+  s += `<rect x="0" y="0" width="${w}" height="${h * 0.38}" rx="5" fill="#8a5a2c" opacity="0.55"/>`;
+  for (let i = 1; i < squares; i++) s += `<line x1="${i * sqW}" y1="3" x2="${i * sqW}" y2="${h - 3}" stroke="#4a2a10" stroke-width="1.2"/>`;
+  s += `<rect x="0" y="0" width="${w}" height="${h}" rx="5" fill="none" stroke="#3a2010" stroke-width="1.5"/>`;
+  s += `</g>`;
+  return s;
+}
+/* A chocolate bar with `total` snappable squares, the first `shaded` of them
+   dark chocolate and the rest a pale, unbroken vanilla square — used wherever
+   the teaching point is "N out of M" (an orient diagram, a fraction model),
+   so the shaded/unshaded split itself stays legible as real bakery objects. */
+function chocolateBarPartialSVG(x, total, shaded, w, h) {
+  const sqW = w / total;
+  let s = `<g transform="translate(${x},0)">`;
+  for (let i = 0; i < total; i++) {
+    const on = i < shaded;
+    s += `<rect x="${i * sqW + 1}" y="1" width="${sqW - 2}" height="${h - 2}" rx="4" fill="${on ? "#6b3f1d" : "#fdf6e8"}" stroke="#4a2a10" stroke-width="1.3"/>`;
+    if (on) s += `<rect x="${i * sqW + 3}" y="3" width="${sqW - 6}" height="${(h - 6) * 0.35}" rx="3" fill="#8a5a2c" opacity="0.55"/>`;
+  }
+  s += `</g>`;
+  return s;
+}
+
 /* ============================================================
    ORIENT — a bar model + a ratio strip, both static teaching
    diagrams the student can read on their own before touching
@@ -100,30 +153,18 @@ function drawOrient(host) {
       "A fraction bar shows a whole split into equal parts. The ratio strip shows two amounts kept in proportion — for every block of red, there are always the same number of blocks of white.",
       "Una barra de fracción muestra un entero dividido en partes iguales. La franja de razón muestra dos cantidades mantenidas en proporción — por cada bloque rojo, siempre hay el mismo número de bloques blancos."
     )}</p>
-    <svg viewBox="0 0 320 190" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px" role="img"
-         aria-label="${L('A bar split into 5 equal parts with 3 shaded, and a ratio strip of 2 red blocks to 3 white blocks','Una barra dividida en 5 partes iguales con 3 sombreadas, y una franja de razón de 2 bloques rojos a 3 blancos')}">
+    <svg viewBox="0 0 320 210" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px" role="img"
+         aria-label="${L('A chocolate bar split into 5 equal squares with 3 shaded, and a row of 2 red-iced cupcakes and 3 white-iced cupcakes','Una barra de chocolate dividida en 5 cuadros iguales con 3 sombreados, y una fila de 2 cupcakes con glaseado rojo y 3 con glaseado blanco')}">
       <text x="10" y="18" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('3/5 of a bar = 3 ÷ 5','3/5 de una barra = 3 ÷ 5')}</text>
       <g transform="translate(10,26)">
-        <rect x="0" y="0" width="60" height="34" fill="var(--accent)"/>
-        <rect x="60" y="0" width="60" height="34" fill="var(--accent)"/>
-        <rect x="120" y="0" width="60" height="34" fill="var(--accent)"/>
-        <rect x="180" y="0" width="60" height="34" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="240" y="0" width="60" height="34" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="0" y="0" width="300" height="34" fill="none" stroke="var(--ink)" stroke-width="2"/>
-        <line x1="60" y1="0" x2="60" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
-        <line x1="120" y1="0" x2="120" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
-        <line x1="180" y1="0" x2="180" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
-        <line x1="240" y1="0" x2="240" y2="34" stroke="var(--ink)" stroke-width="1.5"/>
+        ${chocolateBarPartialSVG(0, 5, 3, 180, 34)}
       </g>
-      <text x="10" y="96" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Ratio strip — 2 red : 3 white','Franja de razón — 2 rojo : 3 blanco')}</text>
-      <g transform="translate(10,104)">
-        <rect x="0"  y="0" width="30" height="28" fill="#c0392b"/>
-        <rect x="32" y="0" width="30" height="28" fill="#c0392b"/>
-        <rect x="66" y="0" width="30" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="98" y="0" width="30" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
-        <rect x="130" y="0" width="30" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+      <text x="10" y="106" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('Ratio strip — 2 red-iced : 3 white-iced cupcakes','Franja de razón — 2 con glaseado rojo : 3 con glaseado blanco')}</text>
+      <g transform="translate(10,114)">
+        ${cupcakeRowSVG(2, "#c0392b", "#7a1f16", 0)}
+        ${cupcakeRowSVG(3, "#fff8ee", "#c9b088", 84)}
       </g>
-      <text x="10" y="165" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('The bakery counter is on the next screen — you will build both of these for real.','El mostrador de la panadería está en la siguiente pantalla — construirás ambos de verdad.')}</text>
+      <text x="10" y="195" font-family="var(--font-data)" font-size="11" fill="var(--ink-3)">${L('The bakery counter is on the next screen — you will build both of these for real.','El mostrador de la panadería está en la siguiente pantalla — construirás ambos de verdad.')}</text>
     </svg>`;
 }
 
@@ -161,7 +202,7 @@ function drawInvestigate(host, sim) {
         <p class="readout"><span id="white-read">3</span></p>
       </div>
     </div>
-    <svg id="ratio-strip" viewBox="0 0 320 40" style="width:100%;max-width:420px;height:auto"></svg>
+    <svg id="ratio-strip" viewBox="0 0 320 55" style="width:100%;max-width:480px;height:auto"></svg>
     <p class="readout" id="ratio-readout" aria-live="polite"></p>
     <button id="pour-btn" class="btn btn--signal" type="button">${L("Pour this mix →","Verter esta mezcla →")}</button>
     <p class="q__hint" id="ratio-progress" aria-live="polite"></p>
@@ -191,10 +232,10 @@ function drawInvestigate(host, sim) {
     const r = Number(redRange.value), w = Number(whiteRange.value);
     redRead.textContent = r; whiteRead.textContent = w;
     const [sr, sw] = simplify(r, w);
-    const total = r + w, blockW = 300 / total;
-    let x = 10, svg = "";
-    for (let i = 0; i < r; i++) { svg += `<rect x="${x}" y="4" width="${blockW - 2}" height="28" fill="#c0392b"/>`; x += blockW; }
-    for (let i = 0; i < w; i++) { svg += `<rect x="${x}" y="4" width="${blockW - 2}" height="28" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>`; x += blockW; }
+    const total = r + w;
+    strip.setAttribute("viewBox", `0 0 ${Math.max(320, total * 40 + 10)} 55`);
+    let svg = cupcakeRowSVG(r, "#c0392b", "#7a1f16", 5);
+    svg += cupcakeRowSVG(w, "#fff8ee", "#c9b088", 5 + r * 40);
     strip.innerHTML = svg;
     ratioReadout.innerHTML = (sr !== r || sw !== w)
       ? `${r} : ${w} <span class="readout__unit">${L("→ simplest form","→ forma más simple")} ${sr} : ${sw}</span>`
@@ -280,13 +321,9 @@ function drawInvestigate(host, sim) {
     barsRead.textContent = bars; friendsRead.textContent = friends;
     const each = bars / friends;
     const barW = Math.min(56, 300 / bars) - 6;
+    shareModel.setAttribute("viewBox", `0 0 ${Math.max(320, (barW + 6) * bars + 20)} 46`);
     let x = 10, svg = "";
-    for (let i = 0; i < bars; i++) {
-      svg += `<rect x="${x}" y="6" width="${barW}" height="34" fill="var(--accent)" opacity="${each >= 1 ? 1 : 0.85}"/>`;
-      svg += `<line x1="${x}" y1="6" x2="${x}" y2="40" stroke="var(--ink)" stroke-width="1"/>`;
-      x += barW + 6;
-    }
-    svg += `<rect x="10" y="6" width="${(barW + 6) * bars - 6}" height="34" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+    for (let i = 0; i < bars; i++) { svg += chocolateBarSVG(x, barW, 34); x += barW + 6; }
     shareModel.innerHTML = svg;
     shareReadout.innerHTML = `${bars} ÷ ${friends} = <strong>${each.toFixed(3).replace(/0+$/,"").replace(/\.$/,"")}</strong> <span class="readout__unit">${L("bars per friend", "barras por amigo")} (${bars}/${friends})</span>`;
   }
@@ -351,7 +388,7 @@ function drawInvestigate(host, sim) {
       const seg = document.createElement("button");
       seg.type = "button";
       seg.setAttribute("aria-label", L(`Segment ${i + 1}`, `Segmento ${i + 1}`));
-      seg.style.cssText = "flex:1;height:44px;border:2px solid var(--ink);border-radius:4px;background:#fff;cursor:pointer;transition:background .15s";
+      seg.style.cssText = "flex:1;height:44px;border:2px solid #8a5a1f;border-radius:4px 4px 10px 10px;background:#fdf6e8;cursor:pointer;transition:background .15s";
       seg.dataset.shaded = "0";
       seg.addEventListener("click", (ev) => onSegmentTap(seg, ev));
       modelBar.append(seg);
@@ -364,7 +401,7 @@ function drawInvestigate(host, sim) {
     if (!t) return;
     const on = seg.dataset.shaded === "1";
     seg.dataset.shaded = on ? "0" : "1";
-    seg.style.background = on ? "#fff" : "var(--accent)";
+    seg.style.background = on ? "#fdf6e8" : "#c0392b";
     shaded = modelBar.querySelectorAll('[data-shaded="1"]').length;
     modelReadout.textContent = L(`${shaded}/${t.den} shaded`, `${shaded}/${t.den} sombreado`);
     const rect = seg.getBoundingClientRect(), panelRect = modelPanel.getBoundingClientRect();

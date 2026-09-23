@@ -320,6 +320,52 @@ even in simulations that already had a bonus round bolted on.
   reduced-motion fallbacks and a non-3D/non-drag alternative path all still apply to every one of these
   moments — "exciting" and "accessible" are not in tension here, they are both required.
 
+**CRITICAL, STANDING RULE — every manipulative must depict a real, recognisable object, never a bare
+coloured block, letter or number standing in for one (agreed 2026-09-23, applies to every simulation,
+every subject, from now on).** Diego, looking at `sim-fraction-bakery`'s Icing Ratio Mixer: "can you
+make it more visual? so the student can see a chocolate bar, or whatever whilst doing the practice, not
+just numbers and letters? Apply this always, the simulations need to be also for visual learners. This
+is a critical rule, clear?" The ratio strip was rendering each unit as a flat coloured rectangle — correct
+mathematically, but a visual learner sees "a red box" and "a white box," not an icing colour on a cupcake.
+
+- **Wherever a mechanic manipulates a countable quantity of a real-world thing (icing, chocolate,
+  tickets, seeds, coins, animals...), render each unit as that thing, drawn as a small recognisable
+  SVG icon or illustration — not a flat rectangle, a letter, or a bare digit standing in for it.**
+  `sim-fraction-bakery`'s fix is the reference pattern: `cupcakeSVG()`/`cupcakeRowSVG()` (a pleated
+  paper case plus a piped frosting swirl, coloured per unit — red-iced vs. white-iced) replaced the
+  Icing Ratio Mixer's flat blocks, and `chocolateBarSVG()`/`chocolateBarPartialSVG()` (a rounded,
+  snappable, warm-brown bar with visible squares) replaced the Fair-Share Kitchen's and the orient
+  diagram's abstract bars. Both are small, self-contained SVG-string-building functions local to that
+  activity's `<script>` — this is not a shared engine module, because the *object* differs by activity
+  (a cupcake here, something else entirely for a different topic); write a new one each time, matching
+  whatever real object the content is actually about.
+  **Test before calling it done:** could a student who has never seen a maths textbook still tell,
+  from the picture alone, roughly what quantity of what is being compared? If the honest answer is "only
+  if they can already read the fraction/ratio," the visual is not carrying its own weight yet.
+- **This is stricter than, and does not replace, the existing real-photo rule (§4's 2026-09-07/08
+  amendments).** That rule is about photographing a real object that exists and can be photographed (a
+  computer, a plant). This rule is about *illustrating* a countable manipulative so it reads as the real
+  thing it represents, which applies even to purely abstract Maths/Spanish/etc. content that has no
+  single photographable subject — an icing swirl or a chocolate square is drawn, not photographed, and
+  that is fine; SVG illustration is the right tool here, same as CLAUDE.md already says for anything
+  that isn't a photographable real object.
+  Similarly, when a stage displays a fixed number of pre-set discrete things (a fraction bar model's
+  segments, a set of match cards), even the *unshaded/default* state should read as a real object at
+  rest (e.g. `sim-fraction-bakery`'s Fraction Model Workshop segments are styled as pale iced squares on
+  a bakery display bar, not blank white rectangles) — the "before" state is still part of what a visual
+  learner is looking at, not just the "after."
+- **A slider, a number readout and a decimal answer are still required alongside the visual, never
+  replaced by it** — the visual is additive scaffolding for the exact same underlying calculation, not
+  a substitute for the maths. Numeric precision (the slider value, the readout, the exact/decimal
+  answer) stays exactly as accurate as before; only the *representation* of each counted unit changes
+  from an abstract block to a real object.
+- **Apply this retroactively when next touching an existing activity, and always for new ones.** Check
+  any Investigate mechanic that currently renders countable units as flat coloured rectangles, bare
+  numbers, or single letters standing in for a real thing, and redraw them as the real object the
+  moment that activity is next opened for any other change — the same "fix it when you're back in
+  there" discipline already used for other retroactive amendments in this file (e.g. the marker-only
+  data split). Do not wait for a separate feedback round to ask for it a second time.
+
 ---
 
 ## 5. Evidence export — the assessment engine
@@ -1472,3 +1518,24 @@ real bar-model icons on every collectible instead of bare text). Two reusable le
   student's setting matches it), not a single one-shot control. This directly satisfies both "more
   to practice" and the requirement that Investigate feel like managing several distinct dynamic
   things rather than one static form.
+
+### 12.3 Lesson from `sim-fraction-bakery` feedback — real objects, not blocks/letters/numbers (2026-09-23)
+
+Diego, looking at the Icing Ratio Mixer's flat red/white rectangle strip: "can you make it more visual?
+so the student can see a chocolate bar, or whatever whilst doing the practice, not just numbers and
+letters? Apply this always... this is a critical rule, clear?" The specific fix (cupcakes with piped
+icing swirls for the ratio mixer, a real snappable chocolate bar for the fair-share kitchen and the
+orient diagram) is recorded as the reference pattern in the new CRITICAL amendment at the end of §4 —
+search "must depict a real, recognisable object." The generalisable lesson, for every future
+simulation in every subject:
+
+- **A countable manipulative (ratio parts, shared amounts, tally counts, anything the student is
+  literally counting units of) must be drawn as the real thing it represents**, not a coloured block
+  standing in for it and not a bare number/letter. Plan this at design time, the same way the
+  three-hands-on-moments and `learningFocus` are planned up front — never ship the abstract-block
+  version and wait for this feedback to be repeated activity by activity.
+- **This was also a caught compliance gap, not just a style note**: the abstract-rectangle version had
+  already shipped and been reviewed once before this feedback arrived, which is exactly the kind of
+  thing this checklist exists to prevent recurring. When reviewing any Investigate mechanic before
+  flipping `status` to `"live"`, explicitly check every rendered manipulative against this rule, not
+  just the mechanics singled out in past feedback.
