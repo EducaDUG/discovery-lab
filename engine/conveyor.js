@@ -102,6 +102,8 @@ function ensureStyles() {
 .conv__finish .conv__stat b{display:block;font-size:var(--step-2);font-family:var(--font-display);color:#ffcf6b;}
 .conv__finish .conv__stat span{font-family:var(--font-data);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#d9c497;}
 .conv__finish__actions{display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;}
+.conv__finish__actions .btn--ghost{--btn-bg:transparent;--btn-fg:#ffe9b8;--btn-bd:#6b5530;}
+.conv__finish__actions .btn--ghost:hover:not(:disabled){--btn-bg:rgba(255,207,107,.12);--btn-fg:#ffcf6b;--btn-bd:#ffcf6b;}
 .conv-launch{padding:var(--sp-5);border-radius:var(--radius-lg);border:2px dashed var(--line-strong);
   background:var(--surface);text-align:center;}
 .conv-launch p{margin-bottom:var(--sp-3);}
