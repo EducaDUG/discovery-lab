@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="earth" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spaceship Earth: Welcome Aboard — Discovery Lab</title>
+<meta name="description" content="Tour Spaceship Earth: sort real cargo into the four key areas of Environmental Science, scan the hull for real planet facts, and calculate your own environmental footprint.">
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%233F8FA8' stroke-width='4'/><circle cx='32' cy='32' r='11' fill='%2377B255'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.dl-burst{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+.dl-burst i{position:absolute;width:7px;height:7px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+
+.ship-stations{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-4);}
+.ship-station-btn{flex:1 1 9rem;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);
+  color:var(--ink-2);padding:.7em .5em;font:inherit;font-size:var(--step--1);cursor:pointer;text-align:center;
+  transition:all var(--dur-fast) var(--ease);}
+.ship-station-btn.is-active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;}
+.ship-station-btn.is-done::after{content:" ✓";}
+
+/* Station 1: cargo sort */
+.cargo-hold{position:relative;border:1px solid var(--line);border-radius:var(--radius-lg);background:#0e1a12;
+  padding:var(--sp-4);overflow:hidden;}
+.cargo-rack{display:flex;gap:var(--sp-2);flex-wrap:wrap;justify-content:center;margin-bottom:var(--sp-4);min-height:5.5rem;}
+.cargo-item{width:4.6rem;height:4.6rem;border-radius:var(--radius);background:#182a1d;border:2px solid #2c4a34;
+  display:grid;place-items:center;cursor:pointer;padding:.4em;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.cargo-item svg{width:100%;height:100%;}
+.cargo-item.is-selected{border-color:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 30%, transparent);transform:scale(1.06);}
+.cargo-item.is-placed{opacity:0;transform:scale(.3);pointer-events:none;}
+.cargo-buckets{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-2);}
+@media(min-width:36rem){.cargo-buckets{grid-template-columns:repeat(4,1fr);}}
+.cargo-bucket{position:relative;border:2px dashed #3a5c43;border-radius:var(--radius);background:#12241a;color:#cfe9d6;
+  padding:var(--sp-3) var(--sp-2);text-align:center;font-size:var(--step--1);font-weight:700;cursor:pointer;
+  min-height:5rem;display:flex;flex-direction:column;justify-content:center;gap:.3em;transition:all var(--dur-fast) var(--ease);}
+.cargo-bucket small{font-weight:400;color:#9dc4a8;font-size:.68rem;}
+.cargo-bucket.is-shake{animation:cargoshake .3s ease;border-color:var(--negative);}
+.cargo-bucket.is-hit{border-color:var(--positive);background:#173322;}
+@keyframes cargoshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-6px);}60%{transform:translateX(6px);}}
+[data-reduced-motion=on] .cargo-bucket.is-shake{animation:none;}
+.cargo-hint{color:#bfe6cf;font-size:var(--step--1);text-align:center;margin-bottom:var(--sp-3);}
+
+/* Station 2: hull scan */
+.hull-scan{display:flex;flex-direction:column;align-items:center;gap:var(--sp-4);}
+.hull-globe-wrap{position:relative;width:14rem;height:14rem;}
+.hull-globe{width:100%;height:100%;border-radius:50%;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%, #6fbfe0, #2a6b8f 55%, #123449 100%);
+  border:3px solid #7bd3a8;box-shadow:0 0 0 8px color-mix(in srgb, var(--signal) 12%, transparent), inset -12px -12px 24px rgba(0,0,0,.35);
+  display:grid;place-items:center;color:#eafff5;font-family:var(--font-display);font-weight:800;
+  transition:transform .6s var(--ease-out-back);touch-action:manipulation;}
+.hull-globe.is-spinning{transform:rotate(360deg);}
+[data-reduced-motion=on] .hull-globe.is-spinning{transform:none;}
+.hull-globe span{font-size:var(--step-0);}
+.hull-fact-panel{border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);
+  padding:var(--sp-3);min-height:4rem;width:100%;max-width:28rem;text-align:center;font-size:var(--step--1);}
+.hull-fact-panel b{display:block;color:var(--accent);margin-bottom:.2em;}
+.hull-progress{display:flex;gap:.35em;}
+.hull-progress i{width:.6rem;height:.6rem;border-radius:50%;background:var(--line-strong);display:block;}
+.hull-progress i.is-seen{background:var(--signal);}
+
+/* Station 3: footprint calculator */
+.footprint-panel{display:grid;gap:var(--sp-4);}
+.footprint-slider{display:grid;gap:.3em;}
+.footprint-slider label{font-weight:700;font-size:var(--step--1);}
+.footprint-earths{display:flex;flex-wrap:wrap;gap:.35em;align-items:center;justify-content:center;
+  min-height:4.5rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);padding:var(--sp-3);}
+.footprint-earths svg{width:2.1rem;height:2.1rem;transition:transform .25s var(--ease-out-back), opacity .25s var(--ease);}
+.footprint-readout{text-align:center;font-family:var(--font-display);font-weight:800;font-size:var(--step-2);color:var(--accent);}
+.footprint-readout small{display:block;font-family:var(--font-ui);font-weight:600;font-size:var(--step--1);color:var(--ink-3);}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<script>
+(function(){try{
+  var lang=(localStorage.getItem('dl-lang')||'en');
+  if(lang==='es'){
+    var m=document.querySelector('meta[name="description"]');
+    if(m)m.setAttribute('content','Recorre la Nave Tierra: clasifica carga real en las cuatro áreas clave de las Ciencias Ambientales, escanea el casco en busca de datos reales del planeta, y calcula tu propia huella ambiental.');
+  }
+}catch(e){}})();
+</script>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Environmental Science</a></li>
+      <li><a href="../">Introduction to the course</a></li>
+      <li><span aria-current="page">Spaceship Earth: Welcome Aboard</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secundaria</a></li>
+      <li><a href="../../../../">Itinerario estadounidense</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Ciencias Ambientales</a></li>
+      <li><a href="../">Introducción al curso</a></li>
+      <li><span aria-current="page">Nave Tierra: Bienvenido a bordo</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { mountQuest3D, renderQuestLaunch } from "../../../../../../engine/quest3d.js?v=2";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+const THREE_URL = "../../../../../../engine/vendor/three.min.js";
+
+/* ======================================================================
+   JUICE — small DOM particle burst, reused for every hands-on moment.
+   ====================================================================== */
+function burst(container, opts = {}){
+  const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
+  const n = reduced ? 5 : (opts.count || 14);
+  const colors = opts.colors || ["#7bd3a8", "#eaffef", "#3F8FA8"];
+  const host = document.createElement("div"); host.className = "dl-burst";
+  container.appendChild(host);
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement("i");
+    const ang = Math.random() * Math.PI * 2, dist = 26 + Math.random() * 64;
+    p.style.background = colors[i % colors.length];
+    host.appendChild(p);
+    p.animate([
+      { transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
+      { transform: `translate(calc(-50% + ${Math.cos(ang) * dist}px), calc(-50% + ${Math.sin(ang) * dist}px)) scale(.25)`, opacity: 0 },
+    ], { duration: reduced ? 260 : 650 + Math.random() * 300, easing: "cubic-bezier(.2,.8,.3,1)" });
+  }
+  setTimeout(() => host.remove(), 1100);
+}
+
+/* ======================================================================
+   REAL-OBJECT SVG ICONS — every cargo item is a small, recognisable
+   drawn icon of the real thing (solar panel, coal plant, coral reef...),
+   never an abstract block/letter (CLAUDE.md's visual-manipulatives rule).
+   Each returns a raw <svg>...</svg> string, reused in the sort AND the
+   bonus-round quest as an <img> data URI.
+   ====================================================================== */
+const ICONS = {
+  solar: `<svg viewBox="0 0 64 64"><rect x="10" y="18" width="44" height="30" rx="2" fill="#2b5b8f" stroke="#8fd0ff" stroke-width="1.5"/><path d="M10 18 44 48 M20 18 54 48 M30 18 54 38 M10 28 34 48" stroke="#8fd0ff" stroke-width="1.2"/><rect x="27" y="48" width="10" height="10" fill="#5c4a2e"/></svg>`,
+  coal: `<svg viewBox="0 0 64 64"><rect x="16" y="34" width="10" height="20" fill="#7a7a7a"/><rect x="30" y="26" width="10" height="28" fill="#8f8f8f"/><rect x="44" y="20" width="8" height="34" fill="#7a7a7a"/><circle cx="20" cy="20" r="6" fill="#c9c9c9" opacity=".8"/><circle cx="34" cy="14" r="7" fill="#d8d8d8" opacity=".8"/><circle cx="47" cy="10" r="6" fill="#c9c9c9" opacity=".8"/><rect x="8" y="54" width="48" height="4" fill="#4a3c2c"/></svg>`,
+  coral: `<svg viewBox="0 0 64 64"><rect y="46" width="64" height="18" fill="#1a5c78"/><path d="M18 46c0-10 4-16 0-24 6 4 8 12 8 20 4-8 2-16 8-22 2 8-2 16 2 24 4-10 8-14 6-24 6 6 4 16 0 26z" fill="#ff7f6b"/><circle cx="16" cy="40" r="3" fill="#ffd76b"/><circle cx="44" cy="36" r="2.4" fill="#ffd76b"/></svg>`,
+  factory: `<svg viewBox="0 0 64 64"><rect x="8" y="34" width="48" height="22" fill="#5c5c68"/><path d="M14 34V24l8 6V24l8 6V18l8 8" stroke="#5c5c68" stroke-width="6" fill="none" stroke-linejoin="round"/><rect x="42" y="10" width="7" height="24" fill="#5c5c68"/><ellipse cx="45.5" cy="8" rx="6" ry="4" fill="#aeb4bd" opacity=".8"/></svg>`,
+  bike: `<svg viewBox="0 0 64 64"><circle cx="16" cy="46" r="10" fill="none" stroke="#2f2f2f" stroke-width="3"/><circle cx="48" cy="46" r="10" fill="none" stroke="#2f2f2f" stroke-width="3"/><path d="M16 46 28 26h14l6 20 M28 26l10 20 M22 46h26" stroke="#4a8f4a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
+  bottle: `<svg viewBox="0 0 64 64"><rect y="40" width="64" height="16" fill="#3a7fa8"/><path d="M26 8h6v8l6 4v30a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V20l6-4z" fill="#bfe9f5" stroke="#5fb8d6" stroke-width="1.5" opacity=".9"/></svg>`,
+  forest: `<svg viewBox="0 0 64 64"><rect y="52" width="64" height="8" fill="#4a3c2c"/><path d="M14 52 22 30l8 22z" fill="#3f8f5c"/><path d="M30 52 40 22l10 30z" fill="#2f7a4c"/><path d="M46 52 53 34l7 18z" fill="#3f8f5c"/></svg>`,
+  turbine: `<svg viewBox="0 0 64 64"><rect x="30" y="26" width="4" height="34" fill="#8f97a3"/><circle cx="32" cy="24" r="3" fill="#5c6470"/><path d="M32 24 14 12 M32 24 48 10 M32 24 34 4" stroke="#dfe4ea" stroke-width="4" stroke-linecap="round"/></svg>`,
+};
+function iconDataURI(key){ return "data:image/svg+xml;utf8," + encodeURIComponent(ICONS[key]); }
+
+/* ======================================================================
+   THE FOUR SHIP SYSTEMS = the four Key Areas of Study.
+   ====================================================================== */
+const AREAS = [
+  { id: "eco", en: "Ecosystems & Biodiversity", es: "Ecosistemas y biodiversidad", color: "#3f8f5c" },
+  { id: "cli", en: "Climate & Weather", es: "Clima y tiempo", color: "#3f8fa8" },
+  { id: "energy", en: "Energy Resources", es: "Recursos energéticos", color: "#c9862b" },
+  { id: "human", en: "Human Impact", es: "Impacto humano", color: "#a13f5c" },
+];
+const CARGO = [
+  { id: "solar", area: "energy", en: "Solar panel", es: "Panel solar" },
+  { id: "coal", area: "energy", en: "Coal power plant", es: "Planta de carbón" },
+  { id: "coral", area: "eco", en: "Coral reef", es: "Arrecife de coral" },
+  { id: "factory", area: "human", en: "Factory smokestack", es: "Chimenea de fábrica" },
+  { id: "bike", area: "human", en: "Bicycle commute", es: "Bicicleta al trabajo" },
+  { id: "bottle", area: "human", en: "Plastic bottle in the ocean", es: "Botella de plástico en el océano" },
+  { id: "forest", area: "eco", en: "Rainforest", es: "Selva tropical" },
+  { id: "turbine", area: "cli", en: "Wind turbine", es: "Turbina eólica" },
+];
+const HULL_FACTS = [
+  { en: "Earth is about 4.5 billion years old — roughly 22,000 times longer than all of human history.", es: "La Tierra tiene unos 4.500 millones de años — unas 22.000 veces más que toda la historia humana." },
+  { en: "The Amazon Rainforest produces about 20% of Earth's oxygen.", es: "La selva amazónica produce alrededor del 20% del oxígeno de la Tierra." },
+  { en: "About 70% of Earth's surface is covered by oceans.", es: "Alrededor del 70% de la superficie de la Tierra está cubierta por océanos." },
+  { en: "Forests cover about 31% of Earth's land — but are disappearing through deforestation.", es: "Los bosques cubren alrededor del 31% de la tierra emergida — pero están desapareciendo por la deforestación." },
+  { en: "The average person uses 80-100 gallons of water every single day.", es: "La persona promedio usa entre 300 y 380 litros de agua cada día." },
+  { en: "If everyone on Earth lived like the average American, we would need about five Earths' worth of resources.", es: "Si todos en la Tierra vivieran como el estadounidense promedio, necesitaríamos los recursos de unas cinco Tierras." },
+];
+
+let sim = null;
+let cargoSortedCount = 0;
+
+const simulation = {
+  orient(host){
+    host.innerHTML = "";
+    const p = document.createElement("p"); p.className = "q__hint";
+    p.textContent = L(
+      "Spaceship Earth has four life-support systems: Ecosystems & Biodiversity, Climate & Weather, Energy Resources, and Human Impact. Every topic in this course fits into one of them.",
+      "La Nave Tierra tiene cuatro sistemas de soporte vital: Ecosistemas y biodiversidad, Clima y tiempo, Recursos energéticos, e Impacto humano. Todos los temas de este curso encajan en uno de ellos.");
+    host.append(p);
+    const grid = document.createElement("div"); grid.className = "cargo-buckets"; grid.style.marginTop = "12px";
+    AREAS.forEach(a=>{
+      const c = document.createElement("div"); c.className = "cargo-bucket"; c.style.cursor = "default";
+      c.style.borderColor = a.color; c.style.color = "var(--ink)";
+      c.innerHTML = `<span>${L(a.en, a.es)}</span>`;
+      grid.append(c);
+    });
+    host.append(grid);
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = "";
+    const wrap = document.createElement("div"); wrap.className = "stack";
+
+    const stations = document.createElement("div"); stations.className = "ship-stations";
+    const stationHost = document.createElement("div");
+    wrap.append(stations, stationHost);
+    host.append(wrap);
+
+    const done = { cargo: false, hull: false, footprint: false };
+    const btns = {};
+    const STATIONS = [
+      { id: "cargo", en: "Station 1 — Sort the Cargo", es: "Estación 1 — Clasifica la carga" },
+      { id: "hull", en: "Station 2 — Scan the Hull", es: "Estación 2 — Escanea el casco" },
+      { id: "footprint", en: "Station 3 — Footprint Calculator", es: "Estación 3 — Calculadora de huella" },
+    ];
+    function paintStations(active){
+      STATIONS.forEach(s=>{
+        btns[s.id].classList.toggle("is-active", s.id === active);
+        btns[s.id].classList.toggle("is-done", !!done[s.id]);
+      });
+    }
+    STATIONS.forEach(s=>{
+      const b = document.createElement("button"); b.type = "button"; b.className = "ship-station-btn";
+      b.textContent = L(s.en, s.es);
+      b.addEventListener("click", ()=>{ paintStations(s.id); renderStation(s.id); });
+      btns[s.id] = b; stations.append(b);
+    });
+
+    /* -------------------- STATION 1: Sort the Cargo -------------------- */
+    function renderCargo(){
+      stationHost.innerHTML = "";
+      const box = document.createElement("div"); box.className = "cargo-hold";
+      const hint = document.createElement("p"); hint.className = "cargo-hint";
+      hint.textContent = L("Tap a cargo item, then tap the ship system it belongs to.",
+        "Toca un objeto de carga y luego toca el sistema de la nave al que pertenece.");
+      const rack = document.createElement("div"); rack.className = "cargo-rack";
+      const buckets = document.createElement("div"); buckets.className = "cargo-buckets";
+      box.append(hint, rack, buckets);
+      stationHost.append(box);
+
+      let selected = null;
+      const itemEls = {};
+      CARGO.forEach(c=>{
+        const el = document.createElement("button"); el.type = "button"; el.className = "cargo-item";
+        el.setAttribute("aria-label", L(c.en, c.es));
+        el.innerHTML = ICONS[c.id];
+        el.addEventListener("click", ()=>{
+          if (el.classList.contains("is-placed")) return;
+          Object.values(itemEls).forEach(e=>e.classList.remove("is-selected"));
+          if (selected === c.id) { selected = null; return; }
+          selected = c.id; el.classList.add("is-selected");
+        });
+        itemEls[c.id] = el; rack.append(el);
+      });
+
+      const bucketEls = {};
+      AREAS.forEach(a=>{
+        const b = document.createElement("button"); b.type = "button"; b.className = "cargo-bucket";
+        b.style.borderColor = a.color;
+        b.innerHTML = `<span>${L(a.en, a.es)}</span><small>${L("tap to place","toca para colocar")}</small>`;
+        b.addEventListener("click", ()=>{
+          if (!selected) { sim.toast(L("Select a cargo item first.","Selecciona un objeto de carga primero."), "info"); return; }
+          const item = CARGO.find(c=>c.id === selected);
+          const correct = item.area === a.id;
+          if (correct){
+            itemEls[selected].classList.add("is-placed");
+            b.classList.remove("is-shake"); void b.offsetWidth; b.classList.add("is-hit");
+            burst(b, { colors: [a.color, "#eaffef"] });
+            sim.toast(L(`${item.en} correctly sorted into ${AREAS.find(x=>x.id===a.id)[getLang()==="es"?"es":"en"]}!`,
+              `¡${item.es} clasificado correctamente en ${AREAS.find(x=>x.id===a.id).es}!`), "correct");
+            sim.recordTrial({ item: L(item.en, item.es), area: L(a.en, a.es), result: L("Correct","Correcto") });
+            cargoSortedCount++;
+          } else {
+            b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-shake");
+            sim.toast(L("Not quite — try another system.","No es correcto — prueba otro sistema."), "incorrect");
+            sim.recordTrial({ item: L(item.en, item.es), area: L(a.en, a.es), result: L("Incorrect","Incorrecto") });
+          }
+          selected = null;
+          Object.values(itemEls).forEach(e=>e.classList.remove("is-selected"));
+          if (Object.values(itemEls).every(e=>e.classList.contains("is-placed"))){
+            done.cargo = true; paintStations("cargo");
+            sim.toast(L("All cargo sorted! Try Station 2.","¡Toda la carga clasificada! Prueba la Estación 2."), "info");
+          }
+        });
+        bucketEls[a.id] = b; buckets.append(b);
+      });
+    }
+
+    /* -------------------- STATION 2: Scan the Hull -------------------- */
+    function renderHull(){
+      stationHost.innerHTML = "";
+      const wrap2 = document.createElement("div"); wrap2.className = "hull-scan";
+      const hint = document.createElement("p"); hint.className = "cargo-hint";
+      hint.textContent = L("Tap the globe to scan the hull for a real fact about planet Earth.",
+        "Toca el globo para escanear el casco en busca de un dato real sobre el planeta Tierra.");
+      const globeWrap = document.createElement("div"); globeWrap.className = "hull-globe-wrap";
+      const globe = document.createElement("button"); globe.type = "button"; globe.className = "hull-globe";
+      globe.setAttribute("aria-label", L("Scan the hull","Escanea el casco"));
+      globe.innerHTML = `<span>${L("SCAN","ESCANEAR")}</span>`;
+      globeWrap.append(globe);
+      const panel = document.createElement("div"); panel.className = "hull-fact-panel";
+      panel.innerHTML = `<span class="reveal-panel__hint">${L("Tap the globe above ↑","Toca el globo de arriba ↑")}</span>`;
+      const progress = document.createElement("div"); progress.className = "hull-progress";
+      const dots = HULL_FACTS.map(()=>{ const i=document.createElement("i"); progress.append(i); return i; });
+      wrap2.append(globeWrap, panel, progress);
+      stationHost.append(wrap2);
+
+      let seen = new Set();
+      globe.addEventListener("click", ()=>{
+        globe.classList.remove("is-spinning"); void globe.offsetWidth; globe.classList.add("is-spinning");
+        const idx = seen.size < HULL_FACTS.length
+          ? [...HULL_FACTS.keys()].find(i=>!seen.has(i))
+          : Math.floor(Math.random()*HULL_FACTS.length);
+        seen.add(idx); dots[idx].classList.add("is-seen");
+        const fact = HULL_FACTS[idx];
+        panel.innerHTML = `<b>${L("Hull scan result","Resultado del escaneo")}</b>${L(fact.en, fact.es)}`;
+        burst(globeWrap, { colors: ["#7bd3a8", "#eaffef", "#3F8FA8"], count: 12 });
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L(fact.en, fact.es));
+        if (seen.size >= HULL_FACTS.length && !done.hull){
+          done.hull = true; paintStations("hull");
+          sim.toast(L("Hull fully scanned! Try Station 3.","¡Casco escaneado por completo! Prueba la Estación 3."), "info");
+        }
+      });
+    }
+
+    /* -------------------- STATION 3: Footprint Calculator -------------------- */
+    function renderFootprint(){
+      stationHost.innerHTML = "";
+      const panel = document.createElement("div"); panel.className = "panel footprint-panel";
+      const hint = document.createElement("p"); hint.className = "cargo-hint";
+      hint.textContent = L("Move each slider to match your own daily habits, and watch how many Earths it would take if everyone lived like you.",
+        "Mueve cada control para reflejar tus hábitos diarios y observa cuántas Tierras harían falta si todos vivieran como tú.");
+      panel.append(hint);
+
+      const sliders = [
+        { id: "electricity", en: "Electricity use", es: "Uso de electricidad" },
+        { id: "transport", en: "Transport (car use)", es: "Transporte (uso de auto)" },
+        { id: "food", en: "Meat & food waste", es: "Carne y desperdicio de comida" },
+      ];
+      const values = { electricity: 50, transport: 50, food: 50 };
+      const readout = document.createElement("div"); readout.className = "footprint-readout";
+      const earthsRow = document.createElement("div"); earthsRow.className = "footprint-earths";
+
+      sliders.forEach(s=>{
+        const row = document.createElement("div"); row.className = "footprint-slider";
+        row.innerHTML = `<label for="fp-${s.id}">${L(s.en, s.es)}</label>
+          <input id="fp-${s.id}" class="input" type="range" min="0" max="100" value="50" style="accent-color:var(--accent)">`;
+        panel.append(row);
+        row.querySelector("input").addEventListener("input", (e)=>{
+          values[s.id] = Number(e.target.value);
+          updateFootprint();
+        });
+      });
+      panel.append(readout, earthsRow);
+
+      const logBtn = document.createElement("button"); logBtn.type = "button"; logBtn.className = "btn btn--signal";
+      logBtn.textContent = L("Log my footprint reading →","Registrar mi lectura de huella →");
+      panel.append(logBtn);
+      stationHost.append(panel);
+
+      let earthsNeeded = 1;
+      function updateFootprint(){
+        const avg = (values.electricity + values.transport + values.food) / 3;
+        earthsNeeded = Math.round((0.6 + (avg / 100) * 4.4) * 10) / 10;
+        readout.innerHTML = `${earthsNeeded}<small>${L("Earths needed if everyone lived like you","Tierras necesarias si todos vivieran como tú")}</small>`;
+        const whole = Math.floor(earthsNeeded), frac = earthsNeeded - whole;
+        earthsRow.innerHTML = "";
+        for (let i=0;i<Math.ceil(earthsNeeded);i++){
+          const s = document.createElement("span"); s.style.display="inline-block";
+          const opacity = i < whole ? 1 : Math.max(.25, frac);
+          s.innerHTML = `<svg viewBox="0 0 64 64" style="opacity:${opacity}"><circle cx="32" cy="32" r="28" fill="#3F8FA8"/><path d="M14 24c8-6 16 2 22-2s10-8 18-4c2 8-4 14-14 14s-20 0-26-8z" fill="#77B255"/></svg>`;
+          earthsRow.append(s);
+        }
+        burst(earthsRow, { colors: ["#3F8FA8", "#77B255"], count: 6 });
+      }
+      updateFootprint();
+
+      logBtn.addEventListener("click", ()=>{
+        sim.recordTrial({ item: L("Footprint reading","Lectura de huella"), area: L("Human Impact","Impacto humano"), result: `${earthsNeeded} ${L("Earths","Tierras")}` });
+        sim.toast(L(`Logged: ${earthsNeeded} Earths needed.`, `Registrado: ${earthsNeeded} Tierras necesarias.`), "correct");
+        burst(readout, { colors: ["#3F8FA8", "#77B255", "#eaffef"], count: 18 });
+        if (!done.footprint){ done.footprint = true; paintStations("footprint"); }
+      });
+    }
+
+    function renderStation(id){
+      if (id === "cargo") renderCargo();
+      else if (id === "hull") renderHull();
+      else if (id === "footprint") renderFootprint();
+      paintBonus();
+    }
+
+    /* ================================================================
+       BONUS ROUND — "Planet Patrol": a realistic 3D third-person quest.
+       The student drives a rover around Spaceship Earth's cargo bay,
+       collecting items matching the ship system named on the banner.
+       This course's sibling activity (sim-marisma-wetland) has no
+       bonus round yet, and the last few simulations built site-wide
+       used arcade tunnel-rush (Ocean Command Rush) and sorting-conveyor
+       (Fraction Bakery) — this activity deliberately reaches for
+       engine/quest3d.js's realistic-3D genre instead, themed as an
+       "explore the ship" tour to match the orientation mission.
+       Purely a bonus (no marks, no gating) — always available.
+       ================================================================ */
+    const bonusSection = document.createElement("div"); bonusSection.style.marginTop = "var(--sp-5)";
+    wrap.append(bonusSection);
+    function paintBonus(){
+      if (bonusSection.dataset.rendered) return;
+      bonusSection.dataset.rendered = "1";
+      const launchWrap = document.createElement("div");
+      bonusSection.append(launchWrap);
+      renderQuestLaunch(launchWrap, {
+        strings: {
+          title: L("Bonus round — Planet Patrol","Ronda bonus — Patrulla Planetaria"),
+          instructions: L("Drive your rover around the cargo bay for 2 minutes, collecting items that belong to the ship system named on the banner.","Conduce tu vehículo por la bodega de carga durante 2 minutos, recogiendo objetos que pertenezcan al sistema de la nave indicado en el letrero."),
+          play: L("Play Planet Patrol","Jugar Patrulla Planetaria"),
+          skip: L("Skip bonus round","Omitir ronda bonus"),
+        },
+        onPlay(){
+          launchWrap.remove();
+          const gameHost = document.createElement("div");
+          bonusSection.append(gameHost);
+          mountQuest3D(gameHost, {
+            threeUrl: THREE_URL,
+            durationMs: 120000,
+            groups: AREAS.map(a=>({ id: a.id, label: L(a.en, a.es), color: a.color })),
+            items: CARGO.map(c=>({ id: c.id, label: L(c.en, c.es), groupId: c.area, img: iconDataURI(c.id) })),
+            strings: {
+              title: L("Planet Patrol","Patrulla Planetaria"),
+              instructions: L("Arrow keys or WASD to drive — or drag the pad. Find the ship system named above before time runs out. A wrong pickup just resets your streak — never a fail.","Flechas o WASD para conducir — o arrastra el mando. Encuentra el sistema de la nave indicado arriba antes de que se acabe el tiempo. Una recogida incorrecta solo reinicia tu racha — nunca es un fallo."),
+              time: L("Time","Tiempo"), score: L("Score","Puntos"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"),
+              find: L("Find","Busca"), correct: L("Got it!","¡Lo tienes!"), wrong: L("Not that one.","Ese no."),
+              finishTitle: L("Time's up!","¡Se acabó el tiempo!"), accuracy: L("Accuracy","Precisión"),
+              playAgain: L("Play again","Jugar de nuevo"), continueLabel: L("Continue","Continuar"),
+              moveHint: L("Arrow keys or WASD to move — or drag the pad.","Flechas o WASD para moverte — o arrastra el mando."),
+            },
+            onExit(stats){
+              gameHost.innerHTML = ""; gameHost.remove();
+              bonusSection.dataset.rendered = "";
+              paintBonus();
+              sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`,`Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+            }
+          });
+        },
+        onSkip(){
+          bonusSection.innerHTML = "";
+          bonusSection.dataset.rendered = "skipped";
+        }
+      });
+    }
+    paintStations("cargo"); renderStation("cargo");
+  }
+};
+
+mountActivity({ simulation }).catch(e=>{
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
