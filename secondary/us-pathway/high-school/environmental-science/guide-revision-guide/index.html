@@ -1340,7 +1340,11 @@
         let userAnswers = {};
 
         function initQuiz() {
-            const shuffled = [...questionBank].sort(() => 0.5 - Math.random());
+            // De-duplicate by question text first: the bank pads out to 100 entries by
+            // cycling a small set of filler questions, so without this a shuffle can
+            // easily draw the same question more than once into the same 20-question set.
+            const uniqueBank = Array.from(new Map(questionBank.map(item => [item.q, item])).values());
+            const shuffled = uniqueBank.sort(() => 0.5 - Math.random());
             activeQuizSet = shuffled.slice(0, 20);
             userAnswers = {};
 
