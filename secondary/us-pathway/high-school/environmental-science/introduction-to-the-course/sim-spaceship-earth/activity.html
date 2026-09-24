@@ -31,8 +31,13 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   padding:var(--sp-4);overflow:hidden;}
 .cargo-rack{display:flex;gap:var(--sp-2);flex-wrap:wrap;justify-content:center;margin-bottom:var(--sp-4);min-height:5.5rem;}
 .cargo-item{width:4.6rem;height:4.6rem;border-radius:var(--radius);background:#182a1d;border:2px solid #2c4a34;
-  display:grid;place-items:center;cursor:pointer;padding:.4em;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+  display:grid;place-items:center;cursor:pointer;padding:0;overflow:hidden;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
 .cargo-item svg{width:100%;height:100%;}
+.cargo-item img{width:100%;height:100%;object-fit:cover;display:block;border-radius:calc(var(--radius) - 2px);}
+.cargo-credits{margin-top:var(--sp-3);font-size:var(--step--2);color:#9dc4a8;line-height:1.5;}
+.cargo-credits summary{cursor:pointer;color:#bfe6cf;font-weight:600;}
+.cargo-credits ul{margin:.5em 0 0;padding-left:1.2em;}
+.cargo-credits a{color:#8fd0ff;}
 .cargo-item.is-selected{border-color:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 30%, transparent);transform:scale(1.06);}
 .cargo-item.is-placed{opacity:0;transform:scale(.3);pointer-events:none;}
 .cargo-buckets{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-2);}
@@ -172,23 +177,48 @@ function burst(container, opts = {}){
 }
 
 /* ======================================================================
-   REAL-OBJECT SVG ICONS — every cargo item is a small, recognisable
-   drawn icon of the real thing (solar panel, coal plant, coral reef...),
-   never an abstract block/letter (CLAUDE.md's visual-manipulatives rule).
-   Each returns a raw <svg>...</svg> string, reused in the sort AND the
-   bonus-round quest as an <img> data URI.
+   REAL PHOTOS — every cargo item is a real, recognisable vendored photo
+   of the real thing (solar panel, coal plant, coral reef...), never an
+   abstract icon/block/letter (CLAUDE.md's visual-manipulatives + real-
+   photo-over-SVG rules). Reused in the sort station AND the bonus-round
+   quest's collectible items. Sources/licenses: see PHOTO_CREDITS below
+   and the visible credit block under the cargo rack.
    ====================================================================== */
-const ICONS = {
-  solar: `<svg viewBox="0 0 64 64"><rect x="10" y="18" width="44" height="30" rx="2" fill="#2b5b8f" stroke="#8fd0ff" stroke-width="1.5"/><path d="M10 18 44 48 M20 18 54 48 M30 18 54 38 M10 28 34 48" stroke="#8fd0ff" stroke-width="1.2"/><rect x="27" y="48" width="10" height="10" fill="#5c4a2e"/></svg>`,
-  coal: `<svg viewBox="0 0 64 64"><rect x="16" y="34" width="10" height="20" fill="#7a7a7a"/><rect x="30" y="26" width="10" height="28" fill="#8f8f8f"/><rect x="44" y="20" width="8" height="34" fill="#7a7a7a"/><circle cx="20" cy="20" r="6" fill="#c9c9c9" opacity=".8"/><circle cx="34" cy="14" r="7" fill="#d8d8d8" opacity=".8"/><circle cx="47" cy="10" r="6" fill="#c9c9c9" opacity=".8"/><rect x="8" y="54" width="48" height="4" fill="#4a3c2c"/></svg>`,
-  coral: `<svg viewBox="0 0 64 64"><rect y="46" width="64" height="18" fill="#1a5c78"/><path d="M18 46c0-10 4-16 0-24 6 4 8 12 8 20 4-8 2-16 8-22 2 8-2 16 2 24 4-10 8-14 6-24 6 6 4 16 0 26z" fill="#ff7f6b"/><circle cx="16" cy="40" r="3" fill="#ffd76b"/><circle cx="44" cy="36" r="2.4" fill="#ffd76b"/></svg>`,
-  factory: `<svg viewBox="0 0 64 64"><rect x="8" y="34" width="48" height="22" fill="#5c5c68"/><path d="M14 34V24l8 6V24l8 6V18l8 8" stroke="#5c5c68" stroke-width="6" fill="none" stroke-linejoin="round"/><rect x="42" y="10" width="7" height="24" fill="#5c5c68"/><ellipse cx="45.5" cy="8" rx="6" ry="4" fill="#aeb4bd" opacity=".8"/></svg>`,
-  bike: `<svg viewBox="0 0 64 64"><circle cx="16" cy="46" r="10" fill="none" stroke="#2f2f2f" stroke-width="3"/><circle cx="48" cy="46" r="10" fill="none" stroke="#2f2f2f" stroke-width="3"/><path d="M16 46 28 26h14l6 20 M28 26l10 20 M22 46h26" stroke="#4a8f4a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
-  bottle: `<svg viewBox="0 0 64 64"><rect y="40" width="64" height="16" fill="#3a7fa8"/><path d="M26 8h6v8l6 4v30a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V20l6-4z" fill="#bfe9f5" stroke="#5fb8d6" stroke-width="1.5" opacity=".9"/></svg>`,
-  forest: `<svg viewBox="0 0 64 64"><rect y="52" width="64" height="8" fill="#4a3c2c"/><path d="M14 52 22 30l8 22z" fill="#3f8f5c"/><path d="M30 52 40 22l10 30z" fill="#2f7a4c"/><path d="M46 52 53 34l7 18z" fill="#3f8f5c"/></svg>`,
-  turbine: `<svg viewBox="0 0 64 64"><rect x="30" y="26" width="4" height="34" fill="#8f97a3"/><circle cx="32" cy="24" r="3" fill="#5c6470"/><path d="M32 24 14 12 M32 24 48 10 M32 24 34 4" stroke="#dfe4ea" stroke-width="4" stroke-linecap="round"/></svg>`,
+const PHOTOS = {
+  solar: "photos/solar-panel.jpg",
+  coal: "photos/coal-plant.jpg",
+  coral: "photos/coral-reef.jpg",
+  factory: "photos/factory.jpg",
+  bike: "photos/bicycle.jpg",
+  bottle: "photos/plastic-bottle.jpg",
+  forest: "photos/rainforest.jpg",
+  turbine: "photos/wind-turbine.jpg",
 };
-function iconDataURI(key){ return "data:image/svg+xml;utf8," + encodeURIComponent(ICONS[key]); }
+function iconDataURI(key){ return PHOTOS[key]; }
+const PHOTO_CREDITS = [
+  { en: "Solar panel", url: "https://commons.wikimedia.org/wiki/File:Ground_mounted_solar_panels.gk.jpg", author: "Grendelkhan", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/" },
+  { en: "Coal power plant", url: "https://commons.wikimedia.org/wiki/File:Port_Qasim_Coal_Power_Plant,_08.06.2021.jpg", author: "VileGecko", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/" },
+  { en: "Coral reef", url: "https://commons.wikimedia.org/wiki/File:Coral_(Acropora_hemprichii),_Ras_Katy,_Sharm_el-Sheij,_Egipto,_2022-03-26,_DD_108.jpg", author: "Diego Delso", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/" },
+  { en: "Factory smokestack", url: "https://commons.wikimedia.org/wiki/File:Alfred_Palmer_Smokestacks.jpg", author: "Alfred T. Palmer / U.S. Library of Congress", license: "Public domain", licenseUrl: "https://en.wikipedia.org/wiki/Public_domain" },
+  { en: "Bicycle commute", url: "https://commons.wikimedia.org/wiki/File:Bicycle_in_The_Hague_36.JPG", author: "João Pimentel Ferreira", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/" },
+  { en: "Plastic bottle in the ocean", url: "https://commons.wikimedia.org/wiki/File:Plastic_bottle_with_sea_turtle_bite_marks_on_Texas_shoreline.jpg", author: "NOAA", license: "Public domain", licenseUrl: "https://en.wikipedia.org/wiki/Public_domain" },
+  { en: "Rainforest", url: "https://commons.wikimedia.org/wiki/File:Rainforest_of_Ko_Pha-ngan.jpg", author: "Daniel Nikitin", license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/" },
+  { en: "Wind turbine", url: "https://commons.wikimedia.org/wiki/File:Wind_turbine_field_-_US-54_-_Kansas.jpg", author: "Janusz Sobolewski", license: "CC BY 2.0", licenseUrl: "https://creativecommons.org/licenses/by/2.0/" },
+];
+function renderPhotoCredits(){
+  const details = document.createElement("details"); details.className = "cargo-credits";
+  const summary = document.createElement("summary");
+  summary.textContent = L("Photo credits", "Créditos de las fotos");
+  details.append(summary);
+  const ul = document.createElement("ul");
+  PHOTO_CREDITS.forEach(c=>{
+    const li = document.createElement("li");
+    li.innerHTML = `${L(c.en, c.en)} — Wikimedia Commons, ${c.author}, <a href="${c.licenseUrl}" target="_blank" rel="noopener noreferrer">${c.license}</a>`;
+    ul.append(li);
+  });
+  details.append(ul);
+  return details;
+}
 
 /* ======================================================================
    THE FOUR SHIP SYSTEMS = the four Key Areas of Study.
@@ -277,7 +307,7 @@ const simulation = {
         "Toca un objeto de carga y luego toca el sistema de la nave al que pertenece.");
       const rack = document.createElement("div"); rack.className = "cargo-rack";
       const buckets = document.createElement("div"); buckets.className = "cargo-buckets";
-      box.append(hint, rack, buckets);
+      box.append(hint, rack, buckets, renderPhotoCredits());
       stationHost.append(box);
 
       let selected = null;
@@ -285,7 +315,7 @@ const simulation = {
       CARGO.forEach(c=>{
         const el = document.createElement("button"); el.type = "button"; el.className = "cargo-item";
         el.setAttribute("aria-label", L(c.en, c.es));
-        el.innerHTML = ICONS[c.id];
+        el.innerHTML = `<img src="${PHOTOS[c.id]}" alt="${L(c.en, c.es)}" loading="lazy">`;
         el.addEventListener("click", ()=>{
           if (el.classList.contains("is-placed")) return;
           Object.values(itemEls).forEach(e=>e.classList.remove("is-selected"));
