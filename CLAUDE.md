@@ -1539,3 +1539,82 @@ simulation in every subject:
   thing this checklist exists to prevent recurring. When reviewing any Investigate mechanic before
   flipping `status` to `"live"`, explicitly check every rendered manipulative against this rule, not
   just the mechanics singled out in past feedback.
+
+### 12.4 Lesson from `sim-spaceship-earth` feedback — line-art SVG icons for real objects are not
+"realistic" enough; use real photos, not just any SVG (agreed 2026-09-24, standing rule).
+
+Diego, looking at the cargo-sort station's icons (a solar panel, a coal plant, a factory, a plastic
+bottle, drawn as small flat line-art SVGs): "those emojis are not very clear, what do they mean?
+Please replace them with real images for a more realistic experience... from now on make this a rule."
+He is right that they were unclear — several of the hand-drawn icons (the factory read as a bar chart,
+the coal plant and bottle were ambiguous shapes) failed even at the basic job §4's visual-manipulatives
+rule already requires: a student should be able to tell what something is from the picture alone.
+
+- **This sharpens, not replaces, the existing "real photo over SVG illustration" rule (§4, amendments
+  2026-09-07/08 and the visual-manipulatives CRITICAL rule).** Those rules already say a photographable
+  real object gets a real photo, not a drawing — this activity's own cargo items (solar panel, coal
+  power plant, coral reef, factory, bicycle, plastic bottle, rainforest, wind turbine) are *all*
+  textbook cases of exactly that: real, common, easily-photographed things. Building them as
+  hand-drawn line-art SVGs instead was a direct miss of an already-standing rule, not a new gap — same
+  status as [[discovery-lab-visual-manipulatives]].
+- **Any small icon/token representing a real-world object in a sort/match/cargo/inventory-style
+  mechanic must be sourced as a real photo** (Wikimedia Commons, CC0/CC-BY/CC-BY-SA, license verified
+  on the file's own page, vendored into the activity's own `photos/` folder, credited per the existing
+  photo rule) **unless the object is genuinely abstract or not a single photographable thing** (a
+  concept, a process, a cross-section, a fraction/ratio unit — where a drawn SVG remains correct, per
+  §4). A same-size square/rounded-square thumbnail crop of the real photo is the right shape for a
+  cargo/sort tile — this is a styling detail, not a reason to fall back to a drawing.
+- **Before building any new sort/match/inventory mechanic, ask per item: "is this a real object a
+  camera could photograph?"** If yes, that item needs a real photo, full stop — this is now checked at
+  the same design-time step as `learningFocus` and the mechanic choice, not discovered from feedback
+  after the sim ships. If sourcing 6-10 real photos for a mechanic feels heavy, that is normal for this
+  kind of activity and not a reason to substitute drawings.
+
+### 12.5 Lesson from `sim-spaceship-earth` feedback — bonus-round items rendering as blank/black
+tiles; the two shared genre modules are being defaulted to far too often (agreed 2026-09-24, standing
+rule, corrects real drift from an existing rule).
+
+Diego flagged two things from one screenshot of the "Planet Patrol" bonus round: (1) the collectible
+items were rendering as flat, unlabelled dark rectangles floating above blobs — no picture on them at
+all — and (2) "this is not the first simulation with this issue... vary the amount of videogames, as
+you seem to be using this one too often... you are doing this very often." Both are real and distinct:
+
+- **Root cause of the blank tiles**: `engine/quest3d.js` (and `engine/arcade.js`) only draws a real
+  texture on an item when that item's data object carries an `img` (a URL/data-URI) —
+  `if (it.img) { const tex = loader.load(it.img); ... }` in `quest3d.js`. An item built with only a
+  `label` and no `img` silently falls back to a flat colour plane, which is exactly the "empty black
+  square" Diego saw. **Before shipping any activity that mounts `mountArcadeRush`/`mountQuest3D`,
+  actually look at a screenshot of the bonus round in progress, not just the code** — a missing `img`
+  field is invisible in a code review but immediately obvious on screen. This is now a required part
+  of the pre-publish QA pass (Section 5's checklist), same standing as generating and reading the
+  evidence PDF: mount the bonus round, screenshot it mid-play, and confirm every collectible/flying
+  item shows a real picture, not a bare colour or bare text.
+- **The deeper, repeated problem: defaulting to `engine/arcade.js`/`engine/quest3d.js` because they
+  already exist, instead of building the bespoke mechanic the 2026-09-23 "Bonus Game Mechanic Library"
+  amendment (§4) actually requires.** An audit at this date found *every* shipped bonus round site-wide
+  is either `mountArcadeRush` (tunnel-rush) or `mountQuest3D` (rover-collect) — none of the other 8+
+  named mechanics in that library (launch-and-land, build-and-balance, sorting conveyor, timing/rhythm
+  catch, hidden-object scene hunt, race/vehicle control, tycoon/resource loop, precision instrument
+  challenge) have ever actually been built, despite being written into CLAUDE.md as the standing menu.
+  `sim-spaceship-earth` reached for `mountQuest3D`'s drive-and-collect shape a third time (after
+  `sim-fraction-multiplication-lab` and `sim-vertebrate-sorting-lab`), which is also the same specific
+  interaction as `sim-vertebrate-sorting-lab`, not just the same genre — a direct repeat of the exact
+  failure the "vary the specific mechanic inside a genre too" amendment (§4, 2026-09-18) already
+  named. Reaching for an already-built shared module is the easy path for whoever is building the
+  activity; that convenience is exactly what keeps producing this feedback, and it stops being
+  acceptable as an excuse now that Diego has named it twice.
+- **Standing rule, going forward: before wiring up a bonus round, list what the last 4-5 simulations
+  built sitewide actually used (both the shared-module genre AND, if it's quest3d, the specific
+  interaction), and if the answer skews toward `mountArcadeRush`/`mountQuest3D`, build a genuinely new
+  mechanic from the library instead of reusing one of the two existing shared files** — even though
+  that is more work than importing an existing module. A new bespoke mechanic does not need to become
+  a third shared `engine/` file immediately; a good one-off implementation local to that activity is
+  fine, and only gets promoted to a shared module once a pattern is proven, the same way `arcade.js`
+  and `quest3d.js` themselves started as one activity's bespoke build before being generalised.
+  `sim-spaceship-earth`'s own cargo/sort theme is actually a strong natural fit for the **sorting
+  conveyor** mechanic named in the library (items moving past on a belt that the student diverts into
+  the right bin in real time) — prefer building that (or another still-unused library mechanic) over
+  `mountQuest3D` the next time this activity's bonus round is touched.
+- **This does not relax anything about the bonus round itself** (still optional/skippable, ~2 minutes
+  of real play, mute button, keyboard-operable, reduced-motion safe) — it only changes which mechanic
+  gets picked and requires actually looking at it on screen before calling it done.
