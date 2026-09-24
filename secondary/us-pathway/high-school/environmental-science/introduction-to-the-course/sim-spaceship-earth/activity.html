@@ -79,6 +79,46 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .footprint-earths svg{width:2.1rem;height:2.1rem;transition:transform .25s var(--ease-out-back), opacity .25s var(--ease);}
 .footprint-readout{text-align:center;font-family:var(--font-display);font-weight:800;font-size:var(--step-2);color:var(--accent);}
 .footprint-readout small{display:block;font-family:var(--font-ui);font-weight:600;font-size:var(--step--1);color:var(--ink-3);}
+
+/* Bonus round: Cargo Sprint — sorting conveyor */
+.conveyor{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:#0e1a12;
+  border:1px solid #17301f;box-shadow:var(--shadow-2);}
+.conveyor__hud{display:flex;justify-content:space-between;gap:var(--sp-2);padding:var(--sp-3);
+  font-family:var(--font-data);color:#eafff2;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;}
+.conveyor__hud b{display:block;font-size:1.1rem;letter-spacing:0;font-family:var(--font-ui);}
+.conveyor__stage{position:relative;height:9.5rem;overflow:hidden;
+  background:repeating-linear-gradient(100deg,#1d3524 0 2.4rem,#16281c 2.4rem 4.8rem);
+  background-size:200% 100%;animation:conveyorbelt 2.4s linear infinite;
+  border-top:2px solid #2c4a34;border-bottom:2px solid #2c4a34;}
+[data-reduced-motion=on] .conveyor__stage{animation:none;}
+@keyframes conveyorbelt{from{background-position:0 0;}to{background-position:-4.8rem 0;}}
+.conveyor__gate{position:absolute;top:0;bottom:0;left:88%;border-left:2px dashed #7bd3a8;opacity:.6;}
+.conveyor__item{position:absolute;left:-15%;top:50%;margin-top:-2.3rem;width:4.6rem;height:4.6rem;
+  border-radius:var(--radius);overflow:hidden;border:2px solid #2c4a34;background:#182a1d;
+  box-shadow:0 4px 10px rgba(0,0,0,.35);}
+.conveyor__item img{width:100%;height:100%;object-fit:cover;display:block;}
+.conveyor__bins{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-2);padding:var(--sp-3);background:#0a1f18;}
+@media(min-width:36rem){.conveyor__bins{grid-template-columns:repeat(4,1fr);}}
+.conveyor__bin{position:relative;border:2px solid var(--bin-color,#3a5c43);border-radius:var(--radius);
+  background:#12241a;color:#cfe9d6;padding:var(--sp-3) var(--sp-2);text-align:center;font-size:var(--step--1);
+  font-weight:700;cursor:pointer;min-height:4.5rem;display:flex;flex-direction:column;justify-content:center;
+  gap:.3em;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.conveyor__bin__key{position:absolute;top:3px;left:6px;font-family:var(--font-data);font-size:.62rem;opacity:.7;}
+.conveyor__bin.is-hit{background:#173322;box-shadow:0 0 0 4px color-mix(in srgb, var(--bin-color,#7bd3a8) 30%, transparent);}
+.conveyor__bin.is-wrong{animation:cargoshake .3s ease;border-color:var(--negative);}
+[data-reduced-motion=on] .conveyor__bin.is-wrong{animation:none;}
+.conveyor__foot{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-3);padding:var(--sp-3);
+  background:#04120d;color:#8fc9a8;font-family:var(--font-data);font-size:.68rem;flex-wrap:wrap;}
+.conveyor__finish{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:rgba(4,18,13,.92);
+  color:#eafff2;text-align:center;padding:var(--sp-4);}
+.conveyor__finish h3{font-family:var(--font-display);font-size:var(--step-2);margin-bottom:.3em;}
+.conveyor__stats{display:flex;gap:var(--sp-5);justify-content:center;margin:var(--sp-4) 0;flex-wrap:wrap;}
+.conveyor__stat b{display:block;font-size:var(--step-2);font-family:var(--font-display);color:#7bffb0;}
+.conveyor__stat span{font-family:var(--font-data);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#8fc9a8;}
+.conveyor__finish__actions{display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;}
+.conveyor-launch{padding:var(--sp-5);border-radius:var(--radius-lg);border:2px dashed var(--line-strong);
+  background:var(--surface);text-align:center;}
+.conveyor-launch p{margin-bottom:var(--sp-3);}
 </style>
 </head>
 <body>
@@ -149,10 +189,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../../../engine/i18n.js?v=9";
-import { mountQuest3D, renderQuestLaunch } from "../../../../../../engine/quest3d.js?v=2";
-
 const L = (en, es) => getLang() === "es" ? es : en;
-const THREE_URL = "../../../../../../engine/vendor/three.min.js";
 
 /* ======================================================================
    JUICE — small DOM particle burst, reused for every hands-on moment.
@@ -250,6 +287,180 @@ const HULL_FACTS = [
 
 let sim = null;
 let cargoSortedCount = 0;
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+/* ======================================================================
+   BONUS ROUND — "Cargo Sprint": a bespoke sorting-conveyor mechanic.
+   Real cargo photos ride a moving belt toward the loading bay; the
+   student diverts each one into its correct ship-system bin (tap/click,
+   or press 1-4) before it reaches the end. This is a local, one-off
+   implementation of the "sorting conveyor" entry in CLAUDE.md §4's Bonus
+   Game Mechanic Library — deliberately NOT engine/arcade.js or
+   engine/quest3d.js, per CLAUDE.md §12.5: this activity's own prior bonus
+   round ("Planet Patrol") plus sim-fraction-multiplication-lab and
+   sim-vertebrate-sorting-lab had all defaulted to those two shared
+   modules (quest3d's drive-and-collect, twice), and no sorting-conveyor
+   round exists anywhere on the site yet. Purely a bonus (no marks, no
+   gating) — always skippable. Timing mirrors engine/arcade.js's own
+   ramp (flight time always gates the next spawn, never the student's
+   response speed) so a full round runs close to two minutes of real
+   play regardless of how fast the student answers.
+   ====================================================================== */
+function mountCargoSprint(host, { onExit }){
+  const ROUNDS = 24;
+  const START_FLIGHT = 6200, MIN_FLIGHT = 3200, RAMP = 110, SETTLE_PAD = 450;
+  const queue = []; while (queue.length < ROUNDS) queue.push(...shuffleArr(CARGO));
+  queue.length = ROUNDS;
+
+  const state = { index: -1, score: 0, streak: 0, bestStreak: 0, hits: 0, answered: true, disposed: false, flightMs: START_FLIGHT, spawnedAt: 0, current: null };
+  let itemEl = null, timeoutId = null;
+
+  host.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "conveyor";
+  const hud = document.createElement("div"); hud.className = "conveyor__hud";
+  hud.innerHTML = `<div>${L("Item","Objeto")}<b id="cv-progress">1 / ${ROUNDS}</b></div>
+    <div style="text-align:center">${L("Streak","Racha")}<b id="cv-streak">0</b></div>
+    <div style="text-align:right">${L("Score","Puntos")}<b id="cv-score">0</b></div>`;
+  const stage = document.createElement("div"); stage.className = "conveyor__stage";
+  const gate = document.createElement("div"); gate.className = "conveyor__gate";
+  stage.append(gate);
+  wrap.append(hud, stage);
+
+  const binsRow = document.createElement("div"); binsRow.className = "conveyor__bins"; binsRow.setAttribute("role","group");
+  binsRow.setAttribute("aria-label", L("Ship systems","Sistemas de la nave"));
+  const binEls = {};
+  AREAS.forEach((a,i)=>{
+    const b = document.createElement("button"); b.type = "button"; b.className = "conveyor__bin";
+    b.style.setProperty("--bin-color", a.color);
+    b.innerHTML = `<span class="conveyor__bin__key">${i+1}</span><span>${L(a.en,a.es)}</span>`;
+    b.addEventListener("click", ()=>answer(a.id, b));
+    binEls[a.id] = b;
+    binsRow.append(b);
+  });
+  wrap.append(binsRow);
+
+  const foot = document.createElement("div"); foot.className = "conveyor__foot";
+  foot.innerHTML = `<span>${L("Best streak","Mejor racha")}: <b id="cv-best">0</b></span>
+    <span>${L("Tap a bin — or press 1-4 — before the item reaches the loading bay.","Toca un contenedor — o pulsa 1-4 — antes de que el objeto llegue a la bahía de carga.")}</span>`;
+  wrap.append(foot);
+  host.append(wrap);
+
+  function onKey(e){
+    const n = Number(e.key);
+    if (n >= 1 && n <= AREAS.length) answer(AREAS[n-1].id, binEls[AREAS[n-1].id]);
+  }
+  document.addEventListener("keydown", onKey);
+
+  function paintHud(){
+    wrap.querySelector("#cv-progress").textContent = `${Math.min(state.index+1, ROUNDS)} / ${ROUNDS}`;
+    wrap.querySelector("#cv-streak").textContent = state.streak;
+    wrap.querySelector("#cv-score").textContent = state.score;
+    wrap.querySelector("#cv-best").textContent = state.bestStreak;
+  }
+  paintHud();
+
+  function spawnItem(){
+    if (itemEl) { itemEl.remove(); itemEl = null; }
+    const item = state.current;
+    itemEl = document.createElement("div"); itemEl.className = "conveyor__item";
+    itemEl.innerHTML = `<img src="${PHOTOS[item.id]}" alt="${L(item.en,item.es)}" loading="lazy">`;
+    stage.append(itemEl);
+    const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
+    const dur = reduced ? Math.max(state.flightMs, 1) : state.flightMs;
+    requestAnimationFrame(()=>{
+      itemEl.style.transition = `left ${dur}ms linear`;
+      itemEl.style.left = "88%";
+    });
+  }
+
+  function clearBinFx(el){ setTimeout(()=>{ if (el) el.classList.remove("is-hit","is-wrong"); }, 500); }
+
+  function answer(areaId, btnEl){
+    if (state.disposed || state.answered || !state.current || !btnEl) return;
+    state.answered = true;
+    const item = state.current;
+    const correct = areaId === item.area;
+    if (correct){
+      state.score += 10 + state.streak*2; state.streak += 1;
+      state.bestStreak = Math.max(state.bestStreak, state.streak); state.hits += 1;
+      btnEl.classList.remove("is-wrong"); void btnEl.offsetWidth; btnEl.classList.add("is-hit");
+      burst(btnEl, { colors: [AREAS.find(a=>a.id===areaId).color, "#eaffef"] });
+      if (itemEl){ itemEl.style.transition = "left .25s ease-in, transform .25s ease-in, opacity .25s ease-in";
+        itemEl.style.left = "94%"; itemEl.style.transform = "scale(.25)"; itemEl.style.opacity = "0"; }
+    } else {
+      state.streak = 0;
+      btnEl.classList.remove("is-hit"); void btnEl.offsetWidth; btnEl.classList.add("is-wrong");
+      const correctBtn = binEls[item.area];
+      if (correctBtn) { correctBtn.classList.remove("is-wrong"); void correctBtn.offsetWidth; correctBtn.classList.add("is-hit"); clearBinFx(correctBtn); }
+      if (itemEl){ itemEl.style.transition = "top .35s ease-in, opacity .35s ease-in";
+        itemEl.style.top = "150%"; itemEl.style.opacity = "0"; }
+    }
+    clearBinFx(btnEl);
+    paintHud();
+    /* Wait out the rest of this item's scheduled belt time, same discipline
+       as engine/arcade.js — an instant tap feels just as satisfying, but
+       the round as a whole still takes its full ~2 minutes either way. */
+    const elapsed = performance.now() - state.spawnedAt;
+    timeoutId = setTimeout(nextItem, Math.max(SETTLE_PAD, state.flightMs - elapsed + SETTLE_PAD));
+  }
+
+  function timeUp(){
+    if (state.disposed || state.answered || !state.current) return;
+    state.answered = true;
+    state.streak = 0;
+    const cb = binEls[state.current.area];
+    if (cb) { cb.classList.remove("is-wrong"); void cb.offsetWidth; cb.classList.add("is-hit"); clearBinFx(cb); }
+    if (itemEl){ itemEl.style.transition = "top .35s ease-in, opacity .35s ease-in"; itemEl.style.top = "150%"; itemEl.style.opacity = "0"; }
+    paintHud();
+    timeoutId = setTimeout(nextItem, SETTLE_PAD);
+  }
+
+  function nextItem(){
+    if (state.disposed) return;
+    state.index += 1;
+    if (state.index >= ROUNDS) return finish();
+    state.current = queue[state.index];
+    state.answered = false;
+    state.flightMs = Math.max(MIN_FLIGHT, START_FLIGHT - state.index*RAMP);
+    state.spawnedAt = performance.now();
+    paintHud();
+    spawnItem();
+    timeoutId = setTimeout(timeUp, state.flightMs);
+  }
+
+  function finish(){
+    const accuracy = Math.round((state.hits/ROUNDS)*100);
+    const box = document.createElement("div"); box.className = "conveyor__finish";
+    box.innerHTML = `<div>
+      <h3>${L("Shift complete!","¡Turno completo!")}</h3>
+      <div class="conveyor__stats">
+        <div class="conveyor__stat"><b>${state.score}</b><span>${L("Score","Puntos")}</span></div>
+        <div class="conveyor__stat"><b>${accuracy}%</b><span>${L("Accuracy","Precisión")}</span></div>
+        <div class="conveyor__stat"><b>${state.bestStreak}</b><span>${L("Best streak","Mejor racha")}</span></div>
+      </div>
+      <div class="conveyor__finish__actions">
+        <button type="button" class="btn btn--ghost" id="cv-again">↺ ${L("Play again","Jugar de nuevo")}</button>
+        <button type="button" class="btn btn--signal" id="cv-continue">${L("Continue","Continuar")} →</button>
+      </div>
+    </div>`;
+    wrap.append(box);
+    box.querySelector("#cv-again").addEventListener("click", ()=>{ dispose(); mountCargoSprint(host, { onExit }); });
+    box.querySelector("#cv-continue").addEventListener("click", ()=>{ dispose(); onExit({ score: state.score, accuracy, bestStreak: state.bestStreak }); });
+  }
+
+  function dispose(){
+    state.disposed = true;
+    document.removeEventListener("keydown", onKey);
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+
+  nextItem();
+}
 
 const simulation = {
   orient(host){
@@ -463,61 +674,51 @@ const simulation = {
     }
 
     /* ================================================================
-       BONUS ROUND — "Planet Patrol": a realistic 3D third-person quest.
-       The student drives a rover around Spaceship Earth's cargo bay,
-       collecting items matching the ship system named on the banner.
-       This course's sibling activity (sim-marisma-wetland) has no
-       bonus round yet, and the last few simulations built site-wide
-       used arcade tunnel-rush (Ocean Command Rush) and sorting-conveyor
-       (Fraction Bakery) — this activity deliberately reaches for
-       engine/quest3d.js's realistic-3D genre instead, themed as an
-       "explore the ship" tour to match the orientation mission.
-       Purely a bonus (no marks, no gating) — always available.
+       BONUS ROUND — "Cargo Sprint": a sorting-conveyor mechanic.
+       Real cargo photos ride a moving belt toward the loading bay; the
+       student diverts each one into its matching ship-system bin. See
+       mountCargoSprint() above for the full implementation and the
+       reasoning for choosing this mechanic (CLAUDE.md §12.5 — this
+       activity's own prior bonus round, "Planet Patrol", plus two other
+       simulations, had all defaulted to engine/quest3d.js's drive-and-
+       collect; this activity's own cargo/ship theme is a natural fit
+       for the still-unused "sorting conveyor" entry in the mechanic
+       library instead). Purely a bonus (no marks, no gating) — always
+       available and always skippable.
        ================================================================ */
     const bonusSection = document.createElement("div"); bonusSection.style.marginTop = "var(--sp-5)";
     wrap.append(bonusSection);
     function paintBonus(){
       if (bonusSection.dataset.rendered) return;
       bonusSection.dataset.rendered = "1";
-      const launchWrap = document.createElement("div");
+      const launchWrap = document.createElement("div"); launchWrap.className = "conveyor-launch";
+      launchWrap.innerHTML = `<p class="eyebrow">${L("Bonus round — Cargo Sprint","Ronda bonus — Carga Express")}</p>
+        <p>${L("Real cargo rides the conveyor belt toward the loading bay. Tap the matching ship-system bin — or press 1-4 — before each item reaches the end.","La carga real avanza por la cinta transportadora hacia la bahía de carga. Toca el contenedor del sistema correcto — o pulsa 1-4 — antes de que cada objeto llegue al final.")}</p>`;
+      const row = document.createElement("div"); row.className = "cluster"; row.style.justifyContent = "center";
+      const playBtn = document.createElement("button"); playBtn.type = "button"; playBtn.className = "btn btn--signal";
+      playBtn.textContent = "🎮 " + L("Play Cargo Sprint","Jugar Carga Express");
+      const skipBtn = document.createElement("button"); skipBtn.type = "button"; skipBtn.className = "btn btn--ghost";
+      skipBtn.textContent = L("Skip bonus round","Omitir ronda bonus") + " →";
+      row.append(playBtn, skipBtn);
+      launchWrap.append(row);
       bonusSection.append(launchWrap);
-      renderQuestLaunch(launchWrap, {
-        strings: {
-          title: L("Bonus round — Planet Patrol","Ronda bonus — Patrulla Planetaria"),
-          instructions: L("Drive your rover around the cargo bay for 2 minutes, collecting items that belong to the ship system named on the banner.","Conduce tu vehículo por la bodega de carga durante 2 minutos, recogiendo objetos que pertenezcan al sistema de la nave indicado en el letrero."),
-          play: L("Play Planet Patrol","Jugar Patrulla Planetaria"),
-          skip: L("Skip bonus round","Omitir ronda bonus"),
-        },
-        onPlay(){
-          launchWrap.remove();
-          const gameHost = document.createElement("div");
-          bonusSection.append(gameHost);
-          mountQuest3D(gameHost, {
-            threeUrl: THREE_URL,
-            durationMs: 120000,
-            groups: AREAS.map(a=>({ id: a.id, label: L(a.en, a.es), color: a.color })),
-            items: CARGO.map(c=>({ id: c.id, label: L(c.en, c.es), groupId: c.area, img: iconDataURI(c.id) })),
-            strings: {
-              title: L("Planet Patrol","Patrulla Planetaria"),
-              instructions: L("Arrow keys or WASD to drive — or drag the pad. Find the ship system named above before time runs out. A wrong pickup just resets your streak — never a fail.","Flechas o WASD para conducir — o arrastra el mando. Encuentra el sistema de la nave indicado arriba antes de que se acabe el tiempo. Una recogida incorrecta solo reinicia tu racha — nunca es un fallo."),
-              time: L("Time","Tiempo"), score: L("Score","Puntos"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"),
-              find: L("Find","Busca"), correct: L("Got it!","¡Lo tienes!"), wrong: L("Not that one.","Ese no."),
-              finishTitle: L("Time's up!","¡Se acabó el tiempo!"), accuracy: L("Accuracy","Precisión"),
-              playAgain: L("Play again","Jugar de nuevo"), continueLabel: L("Continue","Continuar"),
-              moveHint: L("Arrow keys or WASD to move — or drag the pad.","Flechas o WASD para moverte — o arrastra el mando."),
-            },
-            onExit(stats){
-              gameHost.innerHTML = ""; gameHost.remove();
-              bonusSection.dataset.rendered = "";
-              paintBonus();
-              sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`,`Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
-            }
-          });
-        },
-        onSkip(){
-          bonusSection.innerHTML = "";
-          bonusSection.dataset.rendered = "skipped";
-        }
+
+      playBtn.addEventListener("click", ()=>{
+        launchWrap.remove();
+        const gameHost = document.createElement("div");
+        bonusSection.append(gameHost);
+        mountCargoSprint(gameHost, {
+          onExit(stats){
+            gameHost.innerHTML = ""; gameHost.remove();
+            bonusSection.dataset.rendered = "";
+            paintBonus();
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`,`Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+          }
+        });
+      });
+      skipBtn.addEventListener("click", ()=>{
+        bonusSection.innerHTML = "";
+        bonusSection.dataset.rendered = "skipped";
       });
     }
     paintStations("cargo"); renderStation("cargo");
