@@ -1618,3 +1618,44 @@ you seem to be using this one too often... you are doing this very often." Both 
 - **This does not relax anything about the bonus round itself** (still optional/skippable, ~2 minutes
   of real play, mute button, keyboard-operable, reduced-motion safe) — it only changes which mechanic
   gets picked and requires actually looking at it on screen before calling it done.
+
+### 12.6 Reinforcement — the missing-`img` blank-tile bug recurred on `sim-plant-biology`; the fix is
+always a real photo, never an emoji (agreed 2026-09-25, non-negotiable, supersedes any doubt left by
+§12.5's wording).
+
+`sim-plant-biology`'s "Plant Power Rush" bonus round shipped with every `ARCADE_CLUES` item carrying
+only a `label` and `laneId`, no `img` — the exact §12.5 root cause, on a simulation built before that
+amendment existed but never retrofitted before going live, and never caught by the pre-publish QA
+pass §12.5 itself added. Diego: "I am sick of this, this is a recurring issue... don't fix it by
+adding an emoji, but by adding images." Fixed on this activity by giving every clue a real photo —
+`photos/arcade-roots.jpg`/`arcade-stem.jpg`/`arcade-leaf.jpg` (tight crops of the activity's own real
+navy-bean seedling photo, sized/verified individually, same debug-overlay discipline as hotspot
+placement) and `photos/arcade-flower.jpg` (a separate real photo, a hibiscus close-up chosen because
+it shows stamens/pistil unusually clearly, CC BY-SA 3.0, credited under the launch card). This is now
+recorded as the reference fix for this exact bug going forward:
+
+- **The only acceptable fix for a blank/fallback-colour bonus-round tile is a real photo `img`, never
+  an emoji glyph and never a drawn/generic icon standing in as a shortcut.** This is not a new rule —
+  it is §4's existing real-photo-over-illustration rule and the visual-manipulatives CRITICAL rule
+  ([[discovery-lab-visual-manipulatives]]) applied to arcade/quest items specifically, spelled out here
+  because §12.5 documented the *bug* clearly but did not say this explicitly enough to stop the same
+  gap from shipping again immediately afterward. An emoji is banned as a *fix* for this bug even though
+  §4's 2026-09-21 amendment relaxed emoji as a general design choice elsewhere — a floating item in a
+  3D bonus round representing a real, photographable subject (a plant part, an animal, an object) always
+  gets a real photo here, full stop.
+- **Where a single item has no obvious one-to-one real photo** (an abstract clue describing a function
+  rather than a single object, or several clues about the same category), reuse a real photo already
+  vendored for that activity — crop a fresh region of an existing photo if needed (see the roots/stem/
+  leaf crops above, each independently sized and checked, not one crop reused blindly for three
+  different clues) — rather than falling back to no image or a generic icon.
+- **§12.5's pre-publish QA step ("mount the bonus round, screenshot it mid-play, confirm every item
+  shows a real picture") applies retroactively to every simulation that predates §12.5, not only new
+  ones** — `sim-plant-biology` predated that amendment by six days and still shipped the bug, which is
+  exactly the gap this line closes. When next touching ANY existing simulation with an arcade/quest
+  bonus round for any other reason, check its items for a missing `img` as part of that visit, the same
+  "fix it when you're back in there" discipline already used for other retroactive amendments in this
+  file (visual manipulatives, marker-only data split).
+- **This item stays open as a known site-wide risk until it has been audited.** No full-library sweep
+  of every existing arcade/quest item for a missing `img` has been done as of this date — do not assume
+  `sim-plant-biology` was the only offender; treat any other simulation's bonus round as unverified
+  until someone has actually looked at a screenshot of it mid-play.

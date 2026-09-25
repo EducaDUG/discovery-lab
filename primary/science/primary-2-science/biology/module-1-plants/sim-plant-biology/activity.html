@@ -592,15 +592,21 @@ function buildLaunchPad(mount, sim, onDone) {
    INVESTIGATE — mounts all three stations, a reflection panel,
    and the bonus arcade round.
    ============================================================ */
+/* Every clue carries a real photo — never left to arcade.js's flat-colour
+   fallback, which renders as a blank tile (CLAUDE.md §12.5). Roots/stem/leaf
+   are crops of this activity's own navy-bean photo; flower is a separate
+   real photo (a hibiscus, chosen for its unusually clear stamens/pistil —
+   credited below the launch card, same rule as every other real photo on
+   this site). */
 const ARCADE_CLUES = [
-  { id: "r1", label: L("Absorbs water and nutrients from the soil", "Absorbe agua y nutrientes del suelo"), laneId: "roots" },
-  { id: "r2", label: L("Anchors the plant firmly in the ground", "Ancla la planta firmemente al suelo"), laneId: "roots" },
-  { id: "s1", label: L("Holds the leaves up toward the light", "Sostiene las hojas hacia la luz"), laneId: "stem" },
-  { id: "s2", label: L("Built from xylem and phloem tubes that transport water and food", "Formado por tubos de xilema y floema que transportan agua y alimento"), laneId: "stem" },
-  { id: "l1", label: L("Uses sunlight, water and carbon dioxide to make food", "Usa luz solar, agua y dióxido de carbono para fabricar alimento"), laneId: "leaves" },
-  { id: "l2", label: L("Has tiny holes called stomata that let CO2 in and O2 out", "Tiene aberturas diminutas llamadas estomas que dejan entrar CO2 y salir O2"), laneId: "leaves" },
-  { id: "f1", label: L("Makes seeds, often with help from bees", "Fabrica semillas, a menudo con ayuda de las abejas"), laneId: "flower" },
-  { id: "f2", label: L("Contains the male and female parts of the plant", "Contiene las partes masculina y femenina de la planta"), laneId: "flower" },
+  { id: "r1", label: L("Absorbs water and nutrients from the soil", "Absorbe agua y nutrientes del suelo"), laneId: "roots", img: "photos/arcade-roots.jpg" },
+  { id: "r2", label: L("Anchors the plant firmly in the ground", "Ancla la planta firmemente al suelo"), laneId: "roots", img: "photos/arcade-roots.jpg" },
+  { id: "s1", label: L("Holds the leaves up toward the light", "Sostiene las hojas hacia la luz"), laneId: "stem", img: "photos/arcade-stem.jpg" },
+  { id: "s2", label: L("Built from xylem and phloem tubes that transport water and food", "Formado por tubos de xilema y floema que transportan agua y alimento"), laneId: "stem", img: "photos/arcade-stem.jpg" },
+  { id: "l1", label: L("Uses sunlight, water and carbon dioxide to make food", "Usa luz solar, agua y dióxido de carbono para fabricar alimento"), laneId: "leaves", img: "photos/arcade-leaf.jpg" },
+  { id: "l2", label: L("Has tiny holes called stomata that let CO2 in and O2 out", "Tiene aberturas diminutas llamadas estomas que dejan entrar CO2 y salir O2"), laneId: "leaves", img: "photos/arcade-leaf.jpg" },
+  { id: "f1", label: L("Makes seeds, often with help from bees", "Fabrica semillas, a menudo con ayuda de las abejas"), laneId: "flower", img: "photos/arcade-flower.jpg" },
+  { id: "f2", label: L("Contains the male and female parts of the plant", "Contiene las partes masculina y femenina de la planta"), laneId: "flower", img: "photos/arcade-flower.jpg" },
 ];
 
 function investigate(host, sim) {
@@ -661,6 +667,12 @@ function investigate(host, sim) {
      genres to alternate against next time — CLAUDE.md §4). ---- */
   const arcadeSection = document.createElement("div"); arcadeSection.style.marginTop = "var(--sp-5)";
   host.append(arcadeSection);
+  const arcadeCredit = document.createElement("p"); arcadeCredit.className = "gh-credit";
+  arcadeCredit.innerHTML = L(
+    'Bonus round photos: your own navy bean seedling above, plus a flower photo — <em>Close up (2) to flowers</em> by Ahmed elkastawy — <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>, via <a href="https://commons.wikimedia.org/wiki/File:Close_up_(2)_to_flowers.JPG" target="_blank" rel="noopener">Wikimedia Commons</a>.',
+    'Fotos de la ronda extra: tu propia plántula de judía de arriba, además de una foto de flor — <em>Close up (2) to flowers</em> por Ahmed elkastawy — <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.es" target="_blank" rel="noopener">CC BY-SA 3.0</a>, vía <a href="https://commons.wikimedia.org/wiki/File:Close_up_(2)_to_flowers.JPG" target="_blank" rel="noopener">Wikimedia Commons</a>.'
+  );
+  host.append(arcadeCredit);
   let arcadeRendered = false;
   function paintArcade() {
     if (sim.trials.length < 3 || arcadeRendered) return;
