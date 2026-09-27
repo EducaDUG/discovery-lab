@@ -8,10 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Fonts - matches the rest of Discovery Lab (Fraunces / Public Sans / JetBrains Mono) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -40,8 +40,9 @@
                         }
                     },
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        heading: ['Outfit', 'sans-serif']
+                        sans: ['Public Sans', 'sans-serif'],
+                        heading: ['Fraunces', 'Georgia', 'serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
                     }
                 }
             }
@@ -60,12 +61,18 @@
             --dl-line: #10201A22;
         }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Public Sans', sans-serif;
             background-color: var(--dl-paper);
             color: var(--dl-ink);
+            /* Faint field-notebook grid, same as the rest of Discovery Lab. */
+            background-image:
+                linear-gradient(var(--dl-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--dl-line) 1px, transparent 1px);
+            background-size: 48px 48px, 48px 48px;
+            background-position: -1px -1px;
         }
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Fraunces', Georgia, serif;
         }
         .glass-nav {
             background: rgba(248, 251, 247, 0.88);
@@ -147,7 +154,7 @@
                 </div>
                 <div>
                     <span class="font-heading font-extrabold text-xl text-white tracking-tight flex items-center gap-2">
-                        BioSphere 6 <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-bio-500/20 text-bio-400 border border-bio-500/30">Term 1 Exam Prep</span>
+                        BioSphere 6 <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-bio-500/20 text-bio-400 border border-bio-500/30 uppercase tracking-wide">Term 1 Exam Prep</span>
                     </span>
                     <p class="text-xs text-slate-400">Junior High Life Science Revision Architecture</p>
                 </div>
@@ -256,7 +263,7 @@
         <!-- SECTION 2: MANDATORY INTERACTIVE LABS & SANDBOXES -->
         <section id="labs" class="space-y-8">
             <div class="border-b border-slate-800 pb-5">
-                <span class="text-xs font-bold text-bio-400 uppercase tracking-widest block mb-1">Hands-On STEM Labs</span>
+                <span class="text-xs font-mono font-bold text-bio-400 uppercase tracking-widest block mb-1">Hands-On STEM Labs</span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-heading flex items-center gap-3">
                     <i class="fa-solid fa-microscope text-bio-400"></i> Interactive Science Sandboxes
                 </h2>
@@ -273,7 +280,7 @@
                                 <span class="w-8 h-8 rounded-lg bg-bio-500/20 text-bio-400 flex items-center justify-center text-sm"><i class="fa-solid fa-seedling"></i></span>
                                 Lab 1: Plant Photosynthesis & Transpiration Engine
                             </h3>
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Canvas 2D</span>
+                            <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 uppercase tracking-wide">Canvas 2D</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-2">Adjust light, water, and CO₂ to simulate stomatal opening, transpiration pull, and oxygen bubble production.</p>
                     </div>
@@ -313,7 +320,7 @@
                                 <span class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm"><i class="fa-solid fa-sitemap"></i></span>
                                 Lab 2: Taxonomic Hierarchy & Species Decoder
                             </h3>
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Logic Parser</span>
+                            <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 uppercase tracking-wide">Logic Parser</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-2">Select a specimen or enter a binomial scientific name to parse its exact Linnaean hierarchy and key biological traits.</p>
                     </div>
@@ -339,19 +346,19 @@
                             </div>
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
                                 <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-800">
-                                    <span class="text-slate-500 uppercase tracking-wider block text-[9px]">Domain</span>
+                                    <span class="text-slate-500 font-mono uppercase tracking-wider block text-[9px]">Domain</span>
                                     <span id="tax-domain" class="font-bold text-slate-200">Eukarya</span>
                                 </div>
                                 <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-800">
-                                    <span class="text-slate-500 uppercase tracking-wider block text-[9px]">Kingdom</span>
+                                    <span class="text-slate-500 font-mono uppercase tracking-wider block text-[9px]">Kingdom</span>
                                     <span id="tax-kingdom" class="font-bold text-yellow-400">Animalia</span>
                                 </div>
                                 <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-800">
-                                    <span class="text-slate-500 uppercase tracking-wider block text-[9px]">Phylum</span>
+                                    <span class="text-slate-500 font-mono uppercase tracking-wider block text-[9px]">Phylum</span>
                                     <span id="tax-phylum" class="font-bold text-teal-300">Chordata</span>
                                 </div>
                                 <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-800">
-                                    <span class="text-slate-500 uppercase tracking-wider block text-[9px]">Class</span>
+                                    <span class="text-slate-500 font-mono uppercase tracking-wider block text-[9px]">Class</span>
                                     <span id="tax-class" class="font-bold text-sky-300">Reptilia</span>
                                 </div>
                             </div>
@@ -375,7 +382,7 @@
                                 <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm"><i class="fa-solid fa-circle-nodes"></i></span>
                                 Lab 3: Mitosis (PMAT) & Organelle Explorer
                             </h3>
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Cell Inspector</span>
+                            <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 uppercase tracking-wide">Cell Inspector</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-2">Click through the nuclear stages of mitosis or select cell organelles to view structural functions.</p>
                     </div>
@@ -410,7 +417,7 @@
                                 <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm"><i class="fa-solid fa-tree"></i></span>
                                 Lab 4: Ecosystem Food Web & Abiotic Balance
                             </h3>
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Ecology Simulator</span>
+                            <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 uppercase tracking-wide">Ecology Simulator</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-2">Tweak lake water temperature and dissolved oxygen to monitor aquatic biotic populations.</p>
                     </div>
@@ -442,7 +449,7 @@
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
                 <div>
-                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-widest block mb-1">Interactive Testing Engine</span>
+                    <span class="text-xs font-mono font-bold text-yellow-400 uppercase tracking-widest block mb-1">Interactive Testing Engine</span>
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-heading flex items-center gap-3">
                         <i class="fa-solid fa-gamepad text-yellow-400"></i> Term 1 Exam Mastery Quiz
                     </h2>
@@ -468,7 +475,7 @@
         <!-- SECTION 4: CURATED 6-LINK OPEN RESOURCE HUB -->
         <section id="resources" class="glass-card rounded-3xl p-6 sm:p-10 space-y-6 border border-slate-800">
             <div>
-                <span class="text-xs font-bold text-sky-400 uppercase tracking-widest block mb-1">Extended Learning</span>
+                <span class="text-xs font-mono font-bold text-sky-400 uppercase tracking-widest block mb-1">Extended Learning</span>
                 <h2 class="text-2xl font-extrabold text-white font-heading flex items-center gap-2">
                     <i class="fa-solid fa-compass text-sky-400"></i> Open Educational Resource Hub
                 </h2>
@@ -834,7 +841,7 @@
 
                     <!-- Tier 1 -->
                     <div class="space-y-3">
-                        <h4 class="text-sm font-bold text-bio-400 uppercase tracking-wide flex items-center gap-2">
+                        <h4 class="text-sm font-mono font-bold text-bio-400 uppercase tracking-wide flex items-center gap-2">
                             <i class="fa-solid fa-seedling"></i> ${data.tier1.title}
                         </h4>
                         <ul class="space-y-2 text-xs sm:text-sm text-slate-300 list-disc list-inside">
@@ -845,7 +852,7 @@
 
                     <!-- Tier 2 -->
                     <div class="space-y-3 pt-2 border-t border-slate-800/80">
-                        <h4 class="text-sm font-bold text-teal-400 uppercase tracking-wide flex items-center gap-2">
+                        <h4 class="text-sm font-mono font-bold text-teal-400 uppercase tracking-wide flex items-center gap-2">
                             <i class="fa-solid fa-diagram-project"></i> ${data.tier2.title}
                         </h4>
                         <div>${data.tier2.content}</div>
@@ -853,7 +860,7 @@
 
                     <!-- Tier 3 -->
                     <div class="space-y-3 pt-2 border-t border-slate-800/80">
-                        <h4 class="text-sm font-bold text-yellow-400 uppercase tracking-wide flex items-center gap-2">
+                        <h4 class="text-sm font-mono font-bold text-yellow-400 uppercase tracking-wide flex items-center gap-2">
                             <i class="fa-solid fa-graduation-cap"></i> ${data.tier3.title}
                         </h4>
                         <div>${data.tier3.content}</div>
@@ -1209,7 +1216,7 @@
                     ${currentQuizQuestions.map((q, idx) => `
                         <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 space-y-3">
                             <div class="flex items-start justify-between gap-2">
-                                <span class="text-xs font-bold text-bio-400 bg-bio-500/10 px-2.5 py-1 rounded-lg border border-bio-500/20">Question ${idx + 1} of ${currentQuizQuestions.length}</span>
+                                <span class="text-xs font-mono font-bold text-bio-400 bg-bio-500/10 px-2.5 py-1 rounded-lg border border-bio-500/20 uppercase tracking-wide">Question ${idx + 1} of ${currentQuizQuestions.length}</span>
                             </div>
                             <h4 class="text-sm sm:text-base font-bold text-white">${q.q}</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
