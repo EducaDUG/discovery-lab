@@ -83,15 +83,36 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .msw-wrap { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); }
   .msw-launch { text-align: center; }
   .msw-launch__row { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
-  .msw-sky { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(160% 120% at 50% 0%, #0c1738 0%, #04060f 75%); border: 1px solid var(--line); min-height: 300px; margin-top: .6rem; }
-  .msw-star { position: absolute; border-radius: 50%; background: #fff; }
-  .msw-radiant { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 14px 4px var(--signal); }
-  .msw-streak { position: absolute; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, #fff 60%, #fff); transform-origin: left center; z-index: 4; }
-  .msw-zone { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; border: 3px dashed #ffffff55; z-index: 3; }
-  .msw-zone.msw-hot { border-color: var(--signal); box-shadow: 0 0 0 6px #4CC0DB22; }
-  .msw-hud { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: .82rem; color: #cfe0ff; padding: .4rem .8rem; }
-  .msw-fact { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: #04060fcc; color: #fff; font-size: .78rem; padding: .35rem .8rem; border-radius: 999px; max-width: 90%; text-align: center; opacity: 0; transition: opacity .25s; }
+  .msw-sky { position: relative; border-radius: 14px; overflow: hidden; background:
+      radial-gradient(55% 45% at 78% 72%, #23124a55 0%, transparent 70%),
+      radial-gradient(45% 35% at 15% 60%, #0d2a4455 0%, transparent 70%),
+      radial-gradient(160% 120% at 50% 0%, #0c1738 0%, #04060f 75%);
+    border: 1px solid var(--line); border-top: none; border-radius: 0 0 14px 14px; min-height: 320px; margin-top: 0; }
+  .msw-star { position: absolute; border-radius: 50%; background: #fff; animation: msw-twinkle 2.4s ease-in-out infinite; }
+  [data-reduced-motion="on"] .msw-star { animation: none; }
+  @keyframes msw-twinkle { 0%,100% { opacity: var(--tw-lo, .35); } 50% { opacity: var(--tw-hi, .95); } }
+  .msw-moon { position: absolute; width: 64px; height: 64px; border-radius: 50%; right: 6%; top: 10%; background: radial-gradient(circle at 35% 32%, #eef2f6 0%, #c8ccd6 55%, #9aa0ae 100%); box-shadow: 0 0 26px 4px #ffffff22, inset -10px -8px 18px #6b707c88; }
+  .msw-moon::before, .msw-moon::after { content: ""; position: absolute; border-radius: 50%; background: #00000022; }
+  .msw-moon::before { width: 14px; height: 14px; top: 18px; left: 14px; }
+  .msw-moon::after { width: 9px; height: 9px; top: 38px; left: 34px; }
+  .msw-radiant { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 18px 6px var(--signal); animation: msw-pulse-radiant 1.6s ease-in-out infinite; }
+  [data-reduced-motion="on"] .msw-radiant { animation: none; }
+  @keyframes msw-pulse-radiant { 0%,100% { transform: scale(1); opacity: .85; } 50% { transform: scale(1.4); opacity: 1; } }
+  .msw-streak { position: absolute; height: 4px; border-radius: 4px; background: linear-gradient(90deg, transparent, #bfe4ff 55%, #fff); transform-origin: left center; z-index: 4; filter: drop-shadow(0 0 6px #bfe4ffcc); }
+  .msw-streak__head { position: absolute; right: -7px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: radial-gradient(circle, #fff 0%, #bfe4ff 45%, transparent 75%); }
+  .msw-decor { position: absolute; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #ffffffaa 70%, #fff); transform-origin: left center; z-index: 2; opacity: .55; pointer-events: none; }
+  .msw-zone { position: absolute; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; border: 3px dashed #ffffff66; z-index: 3; }
+  .msw-zone.msw-hot { border-color: var(--signal); box-shadow: 0 0 0 8px #4CC0DB33, 0 0 22px 4px var(--signal); border-style: solid; }
+  .msw-hud { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: .85rem; color: #cfe0ff; background: #04060f; border-radius: 10px 10px 0 0; padding: .5rem .9rem; margin-top: .6rem; }
+  .msw-hud b { color: #fff; font-size: .95rem; }
+  .msw-fact { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: #04060fcc; color: #fff; font-size: .78rem; padding: .35rem .8rem; border-radius: 999px; max-width: 90%; text-align: center; opacity: 0; transition: opacity .25s; z-index: 6; }
   .msw-fact.msw-show { opacity: 1; }
+  .msw-popup { position: absolute; z-index: 7; font-family: var(--font-data); font-weight: 800; font-size: 1.1rem; color: var(--signal); text-shadow: 0 0 8px #04060f; pointer-events: none; }
+  .msw-flash { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; }
+  .msw-flash.msw-flash-hit { background: radial-gradient(circle, #bfe4ff55 0%, transparent 70%); animation: msw-flashpop .4s ease; }
+  .msw-flash.msw-flash-miss { background: #ff4d4d22; animation: msw-flashpop .3s ease; }
+  [data-reduced-motion="on"] .msw-flash { animation: none !important; }
+  @keyframes msw-flashpop { 0% { opacity: 1; } 100% { opacity: 0; } }
   .msw-catchbtn { display: block; margin: .8rem auto 0; min-width: 12rem; }
   .msw-catchbtn.msw-miss { animation: srp-shake .3s ease; }
   [data-reduced-motion="on"] .msw-catchbtn.msw-miss { animation: none; }
@@ -197,6 +218,65 @@ function burst(container, xPct, yPct, colors, count) {
 function hasWebGL() {
   try { const c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
   catch (e) { return false; }
+}
+
+/* ============================================================
+   3D SCENE DRESSING — shared canvas-texture helpers so the comet
+   scene reads as a real, detailed piece of space instead of flat
+   coloured primitives (Diego: "too basic... needs to be way more
+   exciting"). Generated once per page load, small (<=256px), no
+   network fetch — keeps the no-CDN/no-asset-pipeline rule intact.
+   ============================================================ */
+function makeGlowTexture(THREE, hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 128;
+  const ctx = c.getContext("2d");
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(0.35, hex + "aa"); g.addColorStop(1, hex + "00");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+  return tex;
+}
+function makeNoiseTexture(THREE, base, hi, lo, cell) {
+  const size = 128; const c = document.createElement("canvas"); c.width = c.height = size;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = base; ctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 900; i++) {
+    const r = Math.random();
+    ctx.fillStyle = r > 0.5 ? hi : lo;
+    ctx.globalAlpha = 0.12 + Math.random() * 0.22;
+    const s = cell * (0.5 + Math.random());
+    ctx.beginPath(); ctx.arc(Math.random() * size, Math.random() * size, s, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+function makeStarField(THREE, count, radius) {
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const r = radius * (0.6 + Math.random() * 0.4);
+    const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+    pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
+    pos[i * 3 + 1] = r * Math.cos(ph);
+    pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+  }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.045, sizeAttenuation: true, transparent: true, opacity: 0.85, map: makeGlowTexture(THREE, "#ffffff"), depthWrite: false, blending: THREE.AdditiveBlending });
+  return new THREE.Points(geo, mat);
+}
+function makeRockMesh(THREE, mat, scale) {
+  const geo = new THREE.IcosahedronGeometry(0.5, 0);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const j = 1 + (Math.random() - 0.5) * 0.5;
+    pos.setXYZ(i, pos.getX(i) * j, pos.getY(i) * j, pos.getZ(i) * j);
+  }
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.scale.setScalar(scale);
+  mesh.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
+  return mesh;
 }
 
 /* ============================================================
@@ -413,8 +493,8 @@ function buildComet(mount, sim, onDone) {
   const launchBtn = card.querySelector("#srp-c-launch");
   const readEl = card.querySelector("#srp-c-read");
   const doneTag = card.querySelector("#srp-c-done");
-  let camera, renderer, scene, comet, tailGroup, sunMesh;
-  let launching = false;
+  let camera, renderer, scene, comet, sunMesh, sunGlow, tailPoints, tailGeo, tailParams;
+  let launching = false, burstEnergy = 0;
 
   function tailLenFor(v) { return Math.pow(v / 100, 1.5); }
 
@@ -424,14 +504,53 @@ function buildComet(mount, sim, onDone) {
     const rx = 3.6, rz = 2.2;
     const angle = Math.PI * (1 - t) * 0.9 + 0.15; // sweep from far side toward the Sun
     comet.position.set(Math.cos(angle) * (rx - t * 1.6), 0.15 * Math.sin(t * Math.PI), Math.sin(angle) * (rz - t * 0.6));
-    const len = tailLenFor(v);
-    if (tailGroup) {
-      const dir = comet.position.clone().normalize();
-      tailGroup.position.copy(comet.position);
-      tailGroup.lookAt(comet.position.clone().add(dir));
-      tailGroup.scale.set(1, 1, 0.4 + len * 2.2);
-      tailGroup.visible = len > 0.03;
+    comet.userData.tailLen01 = tailLenFor(v);
+  }
+
+  /* Real particle tail (a glowing cone mesh reads as flat/basic — Diego
+     flagged this). N particles are redistributed along the comet→away-from-
+     Sun axis every frame, widening and brightening near the nucleus, with a
+     slow flowing drift so it never sits still even at rest. */
+  const TAIL_N = 260;
+  function makeTail(THREE) {
+    tailParams = [];
+    const positions = new Float32Array(TAIL_N * 3);
+    const colors = new Float32Array(TAIL_N * 3);
+    for (let i = 0; i < TAIL_N; i++) {
+      tailParams.push({ u: Math.random(), lat: (Math.random() - 0.5) * 2, drift: Math.random() * 10, speed: 0.6 + Math.random() * 0.8 });
     }
+    tailGeo = new THREE.BufferGeometry();
+    tailGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    tailGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    const mat = new THREE.PointsMaterial({ size: 0.09, map: makeGlowTexture(THREE, "#bfe4ff"), transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true });
+    tailPoints = new THREE.Points(tailGeo, mat);
+    return tailPoints;
+  }
+  function updateTail(now) {
+    if (!tailPoints || !comet) return;
+    const len01 = comet.userData.tailLen01 || 0;
+    const worldLen = 0.5 + len01 * 4.4;
+    const dirAway = comet.position.clone(); // Sun sits at the origin, so this already points away from the Sun.
+    if (dirAway.lengthSq() < 1e-6) dirAway.set(0, 0, 1); else dirAway.normalize();
+    const up = Math.abs(dirAway.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+    const perp1 = new THREE.Vector3().crossVectors(dirAway, up).normalize();
+    const perp2 = new THREE.Vector3().crossVectors(dirAway, perp1).normalize();
+    const pos = tailGeo.attributes.position, col = tailGeo.attributes.color;
+    for (let i = 0; i < TAIL_N; i++) {
+      const p = tailParams[i];
+      const u = p.u;
+      const spread = (0.03 + u * 0.22) * (0.5 + len01);
+      const flow = Math.sin(now * 0.0012 * p.speed + p.drift) * spread * 0.5;
+      const px = comet.position.x + dirAway.x * u * worldLen + perp1.x * (p.lat * spread + flow) + perp2.x * (Math.cos(now * 0.001 + p.drift) * spread * 0.4);
+      const py = comet.position.y + dirAway.y * u * worldLen + perp1.y * (p.lat * spread + flow) + perp2.y * (Math.cos(now * 0.001 + p.drift) * spread * 0.4);
+      const pz = comet.position.z + dirAway.z * u * worldLen + perp1.z * (p.lat * spread + flow) + perp2.z * (Math.cos(now * 0.001 + p.drift) * spread * 0.4);
+      pos.setXYZ(i, px, py, pz);
+      const bright = Math.max(0, 1 - u) * (0.35 + len01 * 0.9);
+      col.setXYZ(i, 0.75 + bright * 0.25, 0.86 + bright * 0.14, 1);
+    }
+    pos.needsUpdate = true; col.needsUpdate = true;
+    tailPoints.material.opacity = 0.15 + len01 * 0.85 + burstEnergy * 0.4;
+    tailPoints.visible = len01 > 0.02 || burstEnergy > 0.02;
   }
 
   slider.addEventListener("input", () => { updateComet(Number(slider.value)); readEl.textContent = ""; });
@@ -442,14 +561,15 @@ function buildComet(mount, sim, onDone) {
     const v = Number(slider.value);
     const isClose = v >= 55;
     launchBtn.disabled = true;
-    tweenLinear(1400, t => { updateComet(v * Math.min(1, t * 1.3)); }, () => {
+    tweenLinear(1400, t => { updateComet(v * Math.min(1, t * 1.3)); burstEnergy = Math.sin(t * Math.PI) * (isClose ? 1 : 0.35); }, () => {
       const len = tailLenFor(v);
       if (isClose && !reducedMotion()) { flash.classList.remove("srp-flash-on"); void flash.offsetWidth; flash.classList.add("srp-flash-on"); }
-      burst(stage, 50, 45, ["#cfe6ff", "#fff", "#4CC0DB"], isClose ? 16 : 6);
+      burst(stage, 50, 45, ["#cfe6ff", "#fff", "#4CC0DB"], isClose ? 26 : 8);
       if (camera && !reducedMotion()) {
-        const startZ = camera.position.z;
-        tween(500, e => { camera.position.z = startZ - e * (isClose ? 1.2 : 0.3); }, () => tween(400, e => { camera.position.z = (startZ - (isClose ? 1.2 : 0.3)) + e * (isClose ? 1.2 : 0.3); }));
+        const startFov = camera.fov;
+        tween(500, e => { camera.fov = startFov - e * (isClose ? 10 : 3); camera.updateProjectionMatrix(); }, () => tween(500, e => { camera.fov = (startFov - (isClose ? 10 : 3)) + e * (isClose ? 10 : 3); camera.updateProjectionMatrix(); }));
       }
+      tween(1200, e => {}, () => { burstEnergy = 0; });
       const passLabel = isClose ? L("Close pass", "Pase cercano") : L("Far pass", "Pase lejano");
       const pct = Math.round(len * 100);
       readEl.textContent = L(`${passLabel}: tail grew to about ${pct}% of its maximum length.`, `${passLabel}: la cola creció hasta aproximadamente ${pct}% de su longitud máxima.`);
@@ -468,47 +588,69 @@ function buildComet(mount, sim, onDone) {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(44, 1, 0.1, 50);
+    camera = new THREE.PerspectiveCamera(44, 1, 0.1, 60);
     camera.position.set(0, 2.6, 8); camera.lookAt(0, 0, 0);
     scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 
-    sunMesh = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 18), new THREE.MeshBasicMaterial({ color: 0xF4C542 }));
+    /* A real starfield, not an empty dark box — this is the single biggest
+       "basic"-reading gap in the original scene. */
+    scene.add(makeStarField(THREE, 900, 26));
+
+    const sunTex = makeNoiseTexture(THREE, "#F4C542", "#FFE38A", "#C9860F", 8);
+    sunMesh = new THREE.Mesh(new THREE.SphereGeometry(0.55, 28, 20), new THREE.MeshBasicMaterial({ map: sunTex, color: 0xffffff }));
     scene.add(sunMesh);
-    const sunLight = new THREE.PointLight(0xfff2c8, 2.2, 20); scene.add(sunLight);
+    sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture(THREE, "#ffdb6b"), transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
+    sunGlow.scale.setScalar(2.6); scene.add(sunGlow);
+    const sunLight = new THREE.PointLight(0xfff2c8, 2.4, 24); scene.add(sunLight);
 
     const orbitPts = [];
     for (let i = 0; i <= 64; i++) { const a = (i / 64) * Math.PI * 2; orbitPts.push(new THREE.Vector3(Math.cos(a) * 3.6, 0, Math.sin(a) * 2.2)); }
-    const orbitLine = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(orbitPts), new THREE.LineDashedMaterial({ color: 0x445577, dashSize: 0.12, gapSize: 0.08 }));
+    const orbitLine = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(orbitPts), new THREE.LineDashedMaterial({ color: 0x5a6f9c, dashSize: 0.12, gapSize: 0.08 }));
     orbitLine.computeLineDistances(); scene.add(orbitLine);
+
+    /* A scattering of small tumbling asteroid-belt rocks — turns an empty
+       dashed ring into a genuinely busy, alive-looking scene. */
+    const rockMat = new THREE.MeshStandardMaterial({ map: makeNoiseTexture(THREE, "#8a7a68", "#a89478", "#4a3d2e", 10), roughness: 1 });
+    const belt = [];
+    for (let i = 0; i < 26; i++) {
+      const a = (i / 26) * Math.PI * 2 + Math.random() * 0.15;
+      const rock = makeRockMesh(THREE, rockMat, 0.04 + Math.random() * 0.06);
+      rock.position.set(Math.cos(a) * 3.6, (Math.random() - 0.5) * 0.12, Math.sin(a) * 2.2);
+      rock.userData.spin = 0.3 + Math.random() * 0.9;
+      scene.add(rock); belt.push(rock);
+    }
 
     /* Off-axis landmark (Earth) so an orbit-drag is visibly rewarding, not
        just a rotationally-symmetric scene (CLAUDE.md's orbit-verification rule). */
-    const earth = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3a6fd6 }));
+    const earth = new THREE.Mesh(new THREE.SphereGeometry(0.18, 20, 14), new THREE.MeshStandardMaterial({ map: makeNoiseTexture(THREE, "#2c5fb8", "#6fb0ff", "#dff6e0", 9), roughness: 0.8 }));
     earth.position.set(-2.6, 0, 1.9); scene.add(earth);
 
-    comet = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10), new THREE.MeshStandardMaterial({ color: 0xdfe8ee, roughness: 0.6 }));
+    comet = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), new THREE.MeshStandardMaterial({ map: makeNoiseTexture(THREE, "#dfe8ee", "#ffffff", "#9fb0bb", 7), roughness: 0.55 }));
+    comet.userData.tailLen01 = 0;
     scene.add(comet);
-    tailGroup = new THREE.Mesh(new THREE.ConeGeometry(0.14, 1.6, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0x9fd3ff, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
-    tailGroup.rotation.x = Math.PI / 2; tailGroup.position.set(0, 0, 0);
-    const tailPivot = new THREE.Group(); tailPivot.add(tailGroup); scene.add(tailPivot);
-    tailGroup = tailPivot; tailGroup.children[0].position.z = 0.8;
+    scene.add(makeTail(THREE));
 
     updateComet(Number(slider.value));
 
     function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
     new ResizeObserver(resize).observe(stage); resize();
 
-    let dragging = false, lastX = 0, lastY = 0, rotY = 0.5, rotX = 0.35;
-    canvas.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
-    canvas.addEventListener("pointermove", e => { if (!dragging) return; rotY += (e.clientX - lastX) * 0.008; rotX = Math.max(0.05, Math.min(1.1, rotX + (e.clientY - lastY) * 0.006)); lastX = e.clientX; lastY = e.clientY; });
+    let dragging = false, moved = 0, lastX = 0, lastY = 0, rotY = 0.5, rotX = 0.35;
+    canvas.style.touchAction = "none";
+    canvas.addEventListener("pointerdown", e => { dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointermove", e => { if (!dragging) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; moved += Math.abs(dx) + Math.abs(dy); rotY += dx * 0.008; rotX = Math.max(0.05, Math.min(1.1, rotX + dy * 0.006)); lastX = e.clientX; lastY = e.clientY; });
     window.addEventListener("pointerup", () => dragging = false);
 
-    let raf = requestAnimationFrame(function loop() {
+    let raf = requestAnimationFrame(function loop(now) {
       if (!dragging && !reducedMotion()) rotY += 0.0012;
       const dist = 8;
       camera.position.set(Math.sin(rotY) * dist * Math.cos(rotX * 0.5), 2.2 + rotX * 1.5, Math.cos(rotY) * dist * Math.cos(rotX * 0.5));
       camera.lookAt(0, 0, 0);
       sunMesh.rotation.y += 0.004;
+      sunGlow.position.copy(sunMesh.position);
+      comet.rotation.y += 0.02; comet.rotation.x += 0.011;
+      if (!reducedMotion()) belt.forEach(r => { r.rotation.x += 0.004 * r.userData.spin; r.rotation.y += 0.006 * r.userData.spin; });
+      updateTail(reducedMotion() ? 0 : now);
       renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
     });
@@ -653,25 +795,33 @@ function mountMeteorShowerWatch(host, sim, onExit) {
   }
 
   function startRound() {
-    wrap.innerHTML = `<div class="msw-hud"><span id="msw-time">2:00</span><span id="msw-score">${L("Score", "Puntos")}: 0 · ${L("Streak", "Racha")}: 0</span></div>
-      <div class="msw-sky" id="msw-sky"><div class="msw-fact" id="msw-fact"></div></div>
+    wrap.innerHTML = `<div class="msw-hud"><span><b id="msw-time">2:00</b></span><span><b id="msw-score">0</b> ${L("pts", "pts")} · ${L("streak", "racha")} <b id="msw-streak">0</b></span></div>
+      <div class="msw-sky" id="msw-sky"><div class="msw-flash" id="msw-flash"></div><div class="msw-fact" id="msw-fact"></div></div>
       <button type="button" class="btn btn--signal msw-catchbtn" id="msw-catch">${L("Catch! (Space)", "¡Atrapar! (Espacio)")}</button>`;
     const sky = wrap.querySelector("#msw-sky");
     const timeEl = wrap.querySelector("#msw-time");
     const scoreEl = wrap.querySelector("#msw-score");
+    const streakEl = wrap.querySelector("#msw-streak");
     const factEl = wrap.querySelector("#msw-fact");
+    const flashEl = wrap.querySelector("#msw-flash");
     const catchBtn = wrap.querySelector("#msw-catch");
     const skyRect = () => sky.getBoundingClientRect();
 
-    // Starfield (decorative, static)
-    for (let i = 0; i < 40; i++) {
+    // Rich starfield — many more stars, each twinkling on its own phase, plus
+    // a moon and colour-wash nebulae from the .msw-sky background — a dark
+    // near-empty box was the single biggest "basic"-reading gap here.
+    for (let i = 0; i < 110; i++) {
       const s = document.createElement("div"); s.className = "msw-star";
-      const sz = 1 + Math.random() * 1.6;
+      const sz = 1 + Math.random() * 2.2;
       s.style.width = sz + "px"; s.style.height = sz + "px";
-      s.style.left = Math.random() * 100 + "%"; s.style.top = Math.random() * 90 + "%";
-      s.style.opacity = String(0.3 + Math.random() * 0.5);
+      s.style.left = Math.random() * 100 + "%"; s.style.top = Math.random() * 92 + "%";
+      s.style.setProperty("--tw-lo", String(0.2 + Math.random() * 0.25));
+      s.style.setProperty("--tw-hi", String(0.7 + Math.random() * 0.3));
+      s.style.animationDelay = -(Math.random() * 2.4) + "s";
+      s.style.animationDuration = (1.8 + Math.random() * 2) + "s";
       sky.append(s);
     }
+    const moon = document.createElement("div"); moon.className = "msw-moon"; sky.append(moon);
     const radiant = document.createElement("div"); radiant.className = "msw-radiant"; radiant.style.left = "12%"; radiant.style.top = "10%";
     sky.append(radiant);
 
@@ -681,26 +831,63 @@ function mountMeteorShowerWatch(host, sim, onExit) {
     const DURATION_MS = 120000;
     const roundStart = Date.now();
 
-    function updateScore() { scoreEl.textContent = `${L("Score", "Puntos")}: ${score} · ${L("Streak", "Racha")}: ${streak}`; }
+    function updateScore() { scoreEl.textContent = String(score); streakEl.textContent = String(streak); }
     function showFact() {
       const f = SHOWER_FACTS[Math.floor(Math.random() * SHOWER_FACTS.length)];
       factEl.textContent = L(f.en, f.es);
       factEl.classList.add("msw-show");
       setTimeout(() => factEl.classList.remove("msw-show"), 1800);
     }
+    function popup(text, x, y, color) {
+      if (reducedMotion()) return;
+      const p = document.createElement("div"); p.className = "msw-popup"; p.textContent = text;
+      p.style.left = x + "%"; p.style.top = y + "%"; p.style.color = color || "var(--signal)";
+      sky.append(p);
+      p.animate([{ transform: "translate(-50%,-50%)", opacity: 1 }, { transform: "translate(-50%,-160%)", opacity: 0 }], { duration: 750, easing: "ease-out" }).onfinish = () => p.remove();
+    }
+    function flashSky(kind) {
+      if (reducedMotion()) return;
+      flashEl.classList.remove("msw-flash-hit", "msw-flash-miss"); void flashEl.offsetWidth;
+      flashEl.classList.add(kind === "hit" ? "msw-flash-hit" : "msw-flash-miss");
+    }
+
+    /* Purely decorative background streaks — no catch logic, just constant
+       motion so the sky never sits empty between the real, catchable
+       meteors (the actual gameplay target keeps its own slower cadence
+       below, unaffected by this). */
+    let decorRunning = true;
+    function spawnDecor() {
+      if (!decorRunning) return;
+      const rect = skyRect();
+      const startX = rect.width * Math.random() * 0.9, startY = -10;
+      const ang = 0.9 + Math.random() * 0.5;
+      const len = rect.width * (0.18 + Math.random() * 0.22);
+      const el = document.createElement("div"); el.className = "msw-decor";
+      el.style.width = len + "px"; el.style.left = startX + "px"; el.style.top = startY + "px";
+      el.style.transform = `rotate(${ang}rad)`;
+      sky.append(el);
+      if (!reducedMotion()) {
+        el.animate(
+          [{ transform: `rotate(${ang}rad) translateX(0)`, opacity: 0.55 }, { transform: `rotate(${ang}rad) translateX(${rect.width * 0.5}px)`, opacity: 0 }],
+          { duration: 900 + Math.random() * 500, easing: "linear" }
+        ).onfinish = () => el.remove();
+      } else el.remove();
+      if (running) setTimeout(spawnDecor, 500 + Math.random() * 900);
+    }
+    spawnDecor();
 
     function spawnMeteor() {
       if (!running) return;
       spawned++;
       const rect = skyRect();
       const startX = rect.width * (0.08 + Math.random() * 0.1), startY = rect.height * (0.06 + Math.random() * 0.12);
-      const endX = rect.width * (0.65 + Math.random() * 0.3), endY = rect.height * (0.55 + Math.random() * 0.38);
+      const endX = rect.width * (0.62 + Math.random() * 0.32), endY = rect.height * (0.55 + Math.random() * 0.4);
       const zoneT = 0.45 + Math.random() * 0.2; // where along the path the catch zone sits
       const zoneX = startX + (endX - startX) * zoneT, zoneY = startY + (endY - startY) * zoneT;
       const zone = document.createElement("div"); zone.className = "msw-zone"; zone.style.left = zoneX + "px"; zone.style.top = zoneY + "px";
       sky.append(zone);
-      const flightMs = reducedMotion() ? 60 : 1500 + Math.random() * 500;
-      const windowMs = 750;
+      const flightMs = reducedMotion() ? 60 : 1600 + Math.random() * 500;
+      const windowMs = 800;
       const windowStartAt = Date.now() + flightMs * zoneT - windowMs / 2;
       active = { zone, windowStart: windowStartAt, windowEnd: windowStartAt + windowMs, caughtAlready: false };
 
@@ -708,23 +895,24 @@ function mountMeteorShowerWatch(host, sim, onExit) {
         zone.classList.add("msw-hot");
         setTimeout(() => { if (zone.isConnected) { zone.remove(); if (active && active.zone === zone) missIfActive(); } }, windowMs + 300);
       } else {
-        const streak_el = document.createElement("div"); streak_el.className = "msw-streak";
+        const streakEl2 = document.createElement("div"); streakEl2.className = "msw-streak";
         const dx = endX - startX, dy = endY - startY, len = Math.hypot(dx, dy);
-        streak_el.style.width = Math.max(18, len * 0.22) + "px";
-        streak_el.style.left = startX + "px"; streak_el.style.top = startY + "px";
-        streak_el.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
-        sky.append(streak_el);
+        streakEl2.style.width = Math.max(26, len * 0.3) + "px";
+        streakEl2.style.left = startX + "px"; streakEl2.style.top = startY + "px";
+        streakEl2.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+        streakEl2.innerHTML = '<span class="msw-streak__head"></span>';
+        sky.append(streakEl2);
         tweenLinear(flightMs, t => {
           const x = startX + dx * t, y = startY + dy * t;
-          streak_el.style.left = x + "px"; streak_el.style.top = y + "px";
-          if (t >= zoneT - 0.06 && t <= zoneT + 0.06) zone.classList.add("msw-hot"); else zone.classList.remove("msw-hot");
+          streakEl2.style.left = x + "px"; streakEl2.style.top = y + "px";
+          if (t >= zoneT - 0.07 && t <= zoneT + 0.07) zone.classList.add("msw-hot"); else zone.classList.remove("msw-hot");
         }, () => {
-          streak_el.remove();
+          streakEl2.remove();
           if (zone.isConnected) { zone.remove(); if (active && active.zone === zone) missIfActive(); }
         });
       }
 
-      const nextIn = 3200 + Math.random() * 1800;
+      const nextIn = 2600 + Math.random() * 1400;
       if (Date.now() - roundStart + nextIn < DURATION_MS - 800) setTimeout(spawnMeteor, nextIn);
     }
     function missIfActive() {
@@ -737,13 +925,21 @@ function mountMeteorShowerWatch(host, sim, onExit) {
       const now = Date.now();
       if (active && !active.caughtAlready && now >= active.windowStart && now <= active.windowEnd) {
         active.caughtAlready = true;
-        score += 10 + streak * 2; streak++; best = Math.max(best, streak); caught++;
+        const gained = 10 + streak * 2;
+        score += gained; streak++; best = Math.max(best, streak); caught++;
         updateScore();
-        if (active.zone.isConnected) { burst(sky, (active.zone.offsetLeft / skyRect().width) * 100, (active.zone.offsetTop / skyRect().height) * 100, ["#4CC0DB", "#fff", "#7B9DDB"], 12); active.zone.remove(); }
+        if (active.zone.isConnected) {
+          const xPct = (active.zone.offsetLeft / skyRect().width) * 100, yPct = (active.zone.offsetTop / skyRect().height) * 100;
+          burst(sky, xPct, yPct, ["#4CC0DB", "#fff", "#7B9DDB", "#ffe38a"], 20);
+          popup(`+${gained}`, xPct, yPct);
+          active.zone.remove();
+        }
+        flashSky("hit");
         showFact();
         active = null;
       } else {
         catchBtn.classList.remove("msw-miss"); void catchBtn.offsetWidth; catchBtn.classList.add("msw-miss");
+        flashSky("miss");
         streak = 0; updateScore();
       }
     }
@@ -762,6 +958,7 @@ function mountMeteorShowerWatch(host, sim, onExit) {
     function endRound() {
       if (!running) return;
       running = false;
+      decorRunning = false;
       clearInterval(timerId);
       window.removeEventListener("keydown", keyHandler);
       const accuracy = spawned ? Math.round((caught / spawned) * 100) : 0;
