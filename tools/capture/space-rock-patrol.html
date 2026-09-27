@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Space Rock Patrol thumbnail capture</title>
+<style>
+  html,body{margin:0;background:#04060f;color:#cfe0ff;font:14px/1.5 system-ui,sans-serif;}
+  #wrap{display:grid;place-items:center;min-height:100vh;gap:1rem;}
+  #stage{border:1px solid #0c1f18;border-radius:12px;overflow:hidden;}
+  #log{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="stage"></canvas>
+  <div id="log">booting…</div>
+</div>
+<!-- served from repo root by tools/make-thumbnail.py -->
+<script src="/engine/vendor/three.min.js"></script>
+<script>
+const Q = new URLSearchParams(location.search);
+const FRAMES   = +(Q.get("frames")   || 36);
+const W        = +(Q.get("w")        || 380);
+const H        = +(Q.get("h")        || 285);
+const AZ0      = +(Q.get("az0")       || 0.6);
+const DURATION = +(Q.get("duration") || 80);
+const COLORS   = +(Q.get("colors")   || 96);
+const OUT      = Q.get("out") || "";
+const TAIL     = +(Q.get("tail")     || 0.92); // close-pass, big glowing tail for the thumbnail
+
+const log = m => { document.getElementById("log").textContent = m; };
+
+/* Reproduces the Steer the Comet station's scene (see sim-space-rock-patrol's
+   buildComet()), but static and driven frame-by-frame instead of by a render
+   loop, so a 360-degree azimuth sweep produces a seamless loop. */
+function buildScene(THREE, canvas){
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(2);
+  renderer.setSize(W, H, false);
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(44, W/H, 0.1, 50);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+  const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 18), new THREE.MeshBasicMaterial({ color: 0xF4C542 }));
+  scene.add(sunMesh);
+  const sunLight = new THREE.PointLight(0xfff2c8, 2.2, 20); scene.add(sunLight);
+
+  const orbitPts = [];
+  for (let i = 0; i <= 64; i++) { const a = (i / 64) * Math.PI * 2; orbitPts.push(new THREE.Vector3(Math.cos(a) * 3.6, 0, Math.sin(a) * 2.2)); }
+  const orbitLine = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(orbitPts), new THREE.LineDashedMaterial({ color: 0x445577, dashSize: 0.12, gapSize: 0.08 }));
+  orbitLine.computeLineDistances(); scene.add(orbitLine);
+
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3a6fd6 }));
+  earth.position.set(-2.6, 0, 1.9); scene.add(earth);
+
+  const comet = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10), new THREE.MeshStandardMaterial({ color: 0xdfe8ee, roughness: 0.6 }));
+  scene.add(comet);
+  const tailCone = new THREE.Mesh(new THREE.ConeGeometry(0.14, 1.6, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0x9fd3ff, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
+  tailCone.rotation.x = Math.PI / 2; tailCone.position.z = 0.8;
+  const tailPivot = new THREE.Group(); tailPivot.add(tailCone); scene.add(tailPivot);
+
+  function updateComet(t){ // t = 0 (far) .. 1 (close, perihelion)
+    const rx = 3.6, rz = 2.2;
+    const angle = Math.PI * (1 - t) * 0.9 + 0.15;
+    comet.position.set(Math.cos(angle) * (rx - t * 1.6), 0.15 * Math.sin(t * Math.PI), Math.sin(angle) * (rz - t * 0.6));
+    const len = Math.pow(t, 1.5);
+    const dir = comet.position.clone().normalize();
+    tailPivot.position.copy(comet.position);
+    tailPivot.lookAt(comet.position.clone().add(dir));
+    tailPivot.scale.set(1, 1, 0.4 + len * 2.2);
+    tailPivot.visible = len > 0.03;
+  }
+  updateComet(TAIL);
+
+  function renderAt(az){
+    const dist = 8, rotX = 0.55;
+    camera.position.set(Math.sin(az) * dist * Math.cos(rotX * 0.5), 2.2 + rotX * 1.5, Math.cos(az) * dist * Math.cos(rotX * 0.5));
+    camera.lookAt(0, 0, 0);
+    sunMesh.rotation.y += 0.02;
+    renderer.render(scene, camera);
+  }
+  return {renderAt, gl:renderer.domElement};
+}
+
+function makeCompositor(){
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const ctx=c.getContext("2d");
+  const bg=ctx.createRadialGradient(W*0.5,H*0.3,10, W*0.5,H*0.5, Math.max(W,H)*0.95);
+  bg.addColorStop(0,"#0a0f26"); bg.addColorStop(0.5,"#04060f"); bg.addColorStop(1,"#02030a");
+  return function(glCanvas){
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+    ctx.drawImage(glCanvas,0,0,W,H);
+    return c;
+  };
+}
+const toBlob = canvas => new Promise(res=>canvas.toBlob(res,"image/png"));
+
+(async function(){
+  if(!window.THREE){ log("ERROR: three.js failed to load"); return; }
+  const stage=document.getElementById("stage");
+  stage.width=W; stage.height=H; stage.style.width=W+"px"; stage.style.height=H+"px";
+  const {renderAt, gl}=buildScene(window.THREE, stage);
+  const composite=makeCompositor();
+
+  // Pace with setTimeout, not requestAnimationFrame — rAF pauses when the
+  // browser pane is hidden.
+  const tick = () => new Promise(r=>setTimeout(r,0));
+  renderAt(AZ0); await tick(); renderAt(AZ0);
+
+  await fetch("/reset");
+  for(let i=0;i<FRAMES;i++){
+    const az = AZ0 + (i/FRAMES)*Math.PI*2;
+    renderAt(az);
+    const blob = await toBlob(composite(gl));
+    await fetch("/frame/"+i, {method:"POST", body:blob});
+    log(`frame ${i+1}/${FRAMES}`);
+    await tick();
+  }
+  log("assembling GIF…");
+  const res = await fetch(`/assemble?out=${encodeURIComponent(OUT)}&duration=${DURATION}&colors=${COLORS}`);
+  const txt = await res.text();
+  log(txt);
+  window.__DONE = txt;
+  document.title = "DONE " + txt;
+})();
+</script>
+</body>
+</html>

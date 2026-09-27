@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<!-- Primary 2 Science · Physics · Module 1: Our Solar System and Beyond · Space Rock Patrol.
+     Content lives here + config.json/marking.json only. Never edit the shared engine for a content change. -->
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Space Rock Patrol: Dwarf Planets, Comets, Asteroids & Meteors — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Space Rock Patrol — scoped visual treatment (content-vs-engine rule, CLAUDE.md). */
+  .srp-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .srp-station__head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; }
+  .srp-station__n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .srp-station__title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .srp-station__done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .srp-station__done[data-show="true"] { display: inline; }
+  .srp-credit { font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .srp-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  /* Sorter */
+  .srp-sort-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 20% -10%, #0d1730 0%, #060a18 60%, #04060f 100%); border: 1px solid var(--line); margin-top: .6rem; padding: var(--sp-4); }
+  .srp-sort-card { display: flex; flex-direction: column; align-items: center; gap: .5rem; max-width: 20rem; margin: 0 auto; }
+  .srp-sort-photo { width: 100%; aspect-ratio: 4/3; border-radius: 10px; overflow: hidden; border: 2px solid #ffffff33; background: #111; position: relative; }
+  .srp-sort-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .srp-sort-progress { font-family: var(--font-data); font-size: .78rem; color: #cfe0ff; }
+  .srp-sort-bins { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-top: .5rem; }
+  .srp-bin { border: 2px solid #ffffff44; background: #ffffff14; color: #fff; border-radius: 12px; padding: .55rem 1rem; font: inherit; font-weight: 700; font-size: .84rem; cursor: pointer; }
+  .srp-bin:hover, .srp-bin:focus-visible { border-color: var(--signal); outline: none; }
+  .srp-bin.srp-shake { animation: srp-shake .35s ease; border-color: #E8766A; }
+  .srp-sort-photo.srp-pulse { animation: srp-pulse .4s ease; }
+  [data-reduced-motion="on"] .srp-bin.srp-shake, [data-reduced-motion="on"] .srp-sort-photo.srp-pulse { animation: none; }
+  @keyframes srp-pulse { 0% { transform: scale(1); } 45% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  @keyframes srp-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .srp-fly { position: fixed; z-index: 40; pointer-events: none; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 24px #0008; }
+  .srp-fly img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .srp-done-icon { display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--accent-hi); height: 100%; }
+
+  /* Comet station */
+  .srp-comet-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a0f26 0%, #04060f 70%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; min-height: 240px; }
+  .srp-comet-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .srp-comet-stage:active canvas { cursor: grabbing; }
+  .srp-comet-controls { margin-top: .7rem; }
+  .srp-comet-controls input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .srp-comet-readout { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: .82rem; color: var(--ink-2); margin-top: .2rem; }
+  .srp-comet-launch { display: block; margin: .7rem auto 0; }
+  .srp-comet-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  .srp-comet-flash.srp-flash-on { animation: srp-flash .35s ease; }
+  [data-reduced-motion="on"] .srp-comet-flash.srp-flash-on { animation: none; }
+  @keyframes srp-flash { 0% { opacity: 0; } 30% { opacity: .5; } 100% { opacity: 0; } }
+
+  /* Meteor Chain */
+  .srp-sizepick { display: flex; gap: .6rem; justify-content: center; margin-top: .6rem; flex-wrap: wrap; }
+  .srp-sizebtn { display: flex; flex-direction: column; align-items: center; gap: .3rem; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: .6rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; color: var(--ink); }
+  .srp-sizebtn svg { width: 34px; height: 34px; }
+  .srp-sizebtn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
+  .srp-sky { position: relative; margin-top: .7rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); min-height: 260px; background: linear-gradient(180deg, #050a1c 0%, #0c1c3d 55%, #142a1c 70%, #24401f 100%); }
+  .srp-sky__stars { position: absolute; inset: 0; }
+  .srp-star { position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; opacity: .6; }
+  .srp-rock { position: absolute; z-index: 4; }
+  .srp-rock svg { display: block; filter: drop-shadow(0 0 6px #fff8); }
+  .srp-trail { position: absolute; z-index: 3; height: 3px; border-radius: 2px; background: linear-gradient(90deg, #fff, transparent); transform-origin: left center; pointer-events: none; }
+  .srp-impact { position: absolute; z-index: 5; border-radius: 50%; pointer-events: none; }
+  .srp-launchbtn { display: block; margin: .8rem auto 0; }
+  .srp-meteorite-reveal { display: flex; align-items: center; gap: .7rem; margin-top: .7rem; padding: .6rem; border: 1px solid var(--line); border-radius: 10px; background: var(--accent-wash); }
+  .srp-meteorite-reveal img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex: none; }
+
+  /* Reflection (shared shape with other primary sims) */
+  .srp-reflect { display: grid; gap: .4rem; margin-top: .5rem; }
+  .srp-chiprow { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .srp-chiprow button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: .35rem .9rem; font: inherit; font-size: .82rem; cursor: pointer; color: var(--ink); }
+  .srp-chiprow button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); font-weight: 700; }
+
+  /* Bonus round — Meteor Shower Watch */
+  .msw-wrap { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); }
+  .msw-launch { text-align: center; }
+  .msw-launch__row { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
+  .msw-sky { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(160% 120% at 50% 0%, #0c1738 0%, #04060f 75%); border: 1px solid var(--line); min-height: 300px; margin-top: .6rem; }
+  .msw-star { position: absolute; border-radius: 50%; background: #fff; }
+  .msw-radiant { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 14px 4px var(--signal); }
+  .msw-streak { position: absolute; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, #fff 60%, #fff); transform-origin: left center; z-index: 4; }
+  .msw-zone { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; border: 3px dashed #ffffff55; z-index: 3; }
+  .msw-zone.msw-hot { border-color: var(--signal); box-shadow: 0 0 0 6px #4CC0DB22; }
+  .msw-hud { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: .82rem; color: #cfe0ff; padding: .4rem .8rem; }
+  .msw-fact { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: #04060fcc; color: #fff; font-size: .78rem; padding: .35rem .8rem; border-radius: 999px; max-width: 90%; text-align: center; opacity: 0; transition: opacity .25s; }
+  .msw-fact.msw-show { opacity: 1; }
+  .msw-catchbtn { display: block; margin: .8rem auto 0; min-width: 12rem; }
+  .msw-catchbtn.msw-miss { animation: srp-shake .3s ease; }
+  [data-reduced-motion="on"] .msw-catchbtn.msw-miss { animation: none; }
+  .msw-recap { text-align: center; }
+  .msw-recap__stats { display: flex; gap: 1rem; justify-content: center; margin: .8rem 0; flex-wrap: wrap; }
+  .msw-recap__stat { font-family: var(--font-data); }
+  .msw-recap__stat b { display: block; font-size: 1.6rem; color: var(--accent); }
+  .msw-recap__stat span { font-size: .74rem; color: var(--ink-3); }
+
+  .srp-diagram { width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../../engine/i18n.js?v=9";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(1 - Math.pow(1 - t, 3), t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+function tweenLinear(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+/* Small DOM/CSS particle burst, shared by every station (CLAUDE.md "every
+   interaction needs juice" amendment). `container` must be position:relative
+   or absolute so particles anchor to it correctly. */
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return;
+  count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span");
+    p.className = "srp-particle";
+    const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px";
+    p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.append(p);
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 50;
+    const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 20;
+    p.animate(
+      [{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
+       { transform: `translate(${dx}px, ${dy}px) scale(.3)`, opacity: 0 }],
+      { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }
+    ).onfinish = () => p.remove();
+  }
+}
+function hasWebGL() {
+  try { const c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { return false; }
+}
+
+/* ============================================================
+   ICONS — small inline SVGs, never emoji (CLAUDE.md §4).
+   ============================================================ */
+const ICO = {
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>`,
+  rockSmall: `<svg viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,8 27,13 25,24 15,25 10,17" fill="#8a7a68" stroke="#5c4f42" stroke-width="1.5"/></svg>`,
+  rockMed: `<svg viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,4 30,10 31,22 22,32 10,28 6,15" fill="#8a7a68" stroke="#5c4f42" stroke-width="1.5"/></svg>`,
+  rockLarge: `<svg viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,2 33,8 36,20 28,34 14,36 4,26 3,13" fill="#8a7a68" stroke="#5c4f42" stroke-width="1.5"/></svg>`,
+};
+
+/* ============================================================
+   OBSERVATION — tap-to-notice on four real space-mission photos,
+   before any names are taught (CLAUDE.md §4 interactivity-density).
+   ============================================================ */
+const OBS_PHOTOS = [
+  { id: "pluto", file: "photos/pluto.jpg", en: "Pluto, photographed by NASA's New Horizons spacecraft", es: "Plutón, fotografiado por la sonda New Horizons de la NASA",
+    notice: { en: "Pluto is round, just like Earth or Mars — but it shares its neighbourhood with lots of other icy objects, which is exactly why astronomers classify it as a dwarf planet.", es: "Plutón es redondo, igual que la Tierra o Marte — pero comparte su vecindario con muchos otros objetos helados, que es exactamente por qué los astrónomos lo clasifican como planeta enano." } },
+  { id: "bennu", file: "photos/bennu.jpg", en: "Asteroid Bennu, photographed by NASA's OSIRIS-REx spacecraft", es: "El asteroide Bennu, fotografiado por la sonda OSIRIS-REx de la NASA",
+    notice: { en: "Bennu isn't smooth and round at all — it's a lumpy rock about 500 metres across, shaped almost like a spinning top, loosely held together by its own weak gravity.", es: "Bennu no es nada liso ni redondo — es una roca irregular de unos 500 metros, con forma casi de trompo, sostenida apenas por su propia gravedad débil." } },
+  { id: "comet", file: "photos/comet.jpg", en: "Comet NEOWISE, photographed from Earth in 2020", es: "El cometa NEOWISE, fotografiado desde la Tierra en 2020",
+    notice: { en: "This comet only grew that huge glowing tail when it flew close to the Sun — the Sun's heat turned its ice straight into gas and dust, blown away from the Sun.", es: "Este cometa solo desarrolló esa enorme cola brillante cuando voló cerca del Sol — el calor del Sol convirtió su hielo directamente en gas y polvo, que salió disparado en dirección contraria al Sol." } },
+  { id: "meteorite", file: "photos/meteorite.jpg", en: "A polished slice of a real iron meteorite", es: "Una rebanada pulida de un meteorito de hierro real",
+    notice: { en: "This shiny criss-cross pattern only appears when you slice and polish a real iron meteorite — metal crystals that cooled incredibly slowly, over millions of years, deep inside a shattered ancient object.", es: "Este patrón brillante en forma de rejilla solo aparece al cortar y pulir un meteorito de hierro real — cristales de metal que se enfriaron increíblemente despacio, durante millones de años, dentro de un antiguo objeto hecho pedazos." } },
+];
+
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L(
+    "These are four real photographs, taken by real space missions. Tap each one to notice something real about it — before you learn any names.",
+    "Estas son cuatro fotografías reales, tomadas por misiones espaciales reales. Toca cada una para observar algo real — antes de aprender ningún nombre."
+  );
+  host.append(intro);
+
+  const grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.7rem;margin-top:.6rem";
+  OBS_PHOTOS.forEach(p => {
+    const card = document.createElement("button"); card.type = "button";
+    card.style.cssText = "text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:0;cursor:pointer;overflow:hidden;color:var(--ink);display:flex;flex-direction:column";
+    card.innerHTML = `<span style="display:block;aspect-ratio:4/3;overflow:hidden;background:#111"><img src="${p.file}" alt="${L(p.en, p.es)}" style="width:100%;height:100%;object-fit:cover;display:block"></span>
+      <span style="padding:.5rem .6rem;font-size:.82rem;line-height:1.4" class="srp-obs-text">${L("Tap to notice something", "Toca para observar algo")}</span>`;
+    card.addEventListener("click", () => {
+      if (card.dataset.done === "true") return;
+      card.dataset.done = "true";
+      card.querySelector(".srp-obs-text").textContent = L(p.notice.en, p.notice.es);
+      card.style.borderColor = "var(--accent)";
+      if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L(p.notice.en, p.notice.es));
+    });
+    grid.append(card);
+  });
+  host.append(grid);
+
+  const credit = document.createElement("p"); credit.className = "srp-credit";
+  credit.innerHTML = L(
+    'Photos: Pluto — NASA/JHUAPL/SwRI/Alex Parker (public domain). Bennu — NASA/Goddard/University of Arizona (public domain). Comet NEOWISE — BLM Oregon &amp; Washington, photo by Kyle Sullivan (public domain / <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener">CC BY 2.0</a>). Meteorite — Leiem, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, via Wikimedia Commons.',
+    'Fotos: Plutón — NASA/JHUAPL/SwRI/Alex Parker (dominio público). Bennu — NASA/Goddard/Universidad de Arizona (dominio público). Cometa NEOWISE — BLM Oregon &amp; Washington, foto de Kyle Sullivan (dominio público / <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a>). Meteorito — Leiem, <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a>, vía Wikimedia Commons.'
+  );
+  host.append(credit);
+
+  const wrap = document.createElement("p"); wrap.className = "q__hint"; wrap.style.marginTop = "var(--sp-4)";
+  wrap.textContent = L(
+    "Keep what you noticed in mind — you'll sort these exact photos properly once you reach Space Rock Patrol Stations.",
+    "Recuerda lo que observaste — clasificarás estas mismas fotos correctamente cuando llegues a las Estaciones de la Patrulla."
+  );
+  host.append(wrap);
+}
+
+/* ============================================================
+   ORIENT — a simple diagram of where each kind of object lives.
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L(
+    "Beyond the eight planets, our solar system is full of smaller worlds and speeding rocks.",
+    "Más allá de los ocho planetas, nuestro sistema solar está lleno de mundos más pequeños y rocas veloces."
+  );
+  host.append(p);
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <svg class="srp-diagram" viewBox="0 0 360 200" role="img" aria-label="${L("Diagram showing the Sun at the centre, the asteroid belt between Mars and Jupiter, a comet with a tail on a long orbit, and a meteoroid entering Earth's atmosphere as a meteor.", "Diagrama que muestra el Sol en el centro, el cinturón de asteroides entre Marte y Júpiter, un cometa con cola en una órbita larga, y un meteoroide entrando en la atmósfera de la Tierra como meteoro.")}">
+      <circle cx="40" cy="100" r="16" fill="#F4C542"/>
+      <text x="40" y="130" text-anchor="middle" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Sun", "Sol")}</text>
+
+      <ellipse cx="150" cy="100" rx="70" ry="8" fill="none" stroke="#8a7a68" stroke-width="6" stroke-dasharray="2 4" opacity=".7"/>
+      <text x="150" y="70" text-anchor="middle" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Asteroid belt", "Cinturón de asteroides")}</text>
+
+      <path d="M60 40 Q 200 -20 320 60 Q 260 100 200 110 Q 100 100 60 40Z" fill="none" stroke="#7B9DDB" stroke-width="1.6" stroke-dasharray="3 3"/>
+      <circle cx="230" cy="30" r="6" fill="#cfe6ff"/>
+      <path d="M230 30 L 205 15" stroke="#cfe6ff" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+      <text x="255" y="20" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Comet + tail", "Cometa + cola")}</text>
+
+      <circle cx="330" cy="150" r="18" fill="#3a6fd6" opacity=".85"/>
+      <text x="330" y="185" text-anchor="middle" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Earth", "Tierra")}</text>
+      <line x1="290" y1="115" x2="318" y2="140" stroke="#F0B34C" stroke-width="3" stroke-linecap="round"/>
+      <text x="270" y="105" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Meteor", "Meteoro")}</text>
+    </svg>`;
+  host.append(wrap);
+}
+
+/* ============================================================
+   STATION 1 — SPACE ROCK SORTER (real photos, classification)
+   ============================================================ */
+const SORT_ITEMS = [
+  { id: "pluto", file: "photos/pluto.jpg", en: "Pluto", es: "Plutón", bin: "dwarf" },
+  { id: "ceres", file: "photos/ceres.jpg", en: "Ceres", es: "Ceres", bin: "dwarf" },
+  { id: "comet", file: "photos/comet.jpg", en: "Comet NEOWISE", es: "Cometa NEOWISE", bin: "comet" },
+  { id: "bennu", file: "photos/bennu.jpg", en: "Asteroid Bennu", es: "Asteroide Bennu", bin: "asteroid" },
+  { id: "eros", file: "photos/eros.jpg", en: "Asteroid Eros", es: "Asteroide Eros", bin: "asteroid" },
+];
+const BINS = [
+  { id: "dwarf", en: "Dwarf Planet", es: "Planeta Enano" },
+  { id: "comet", en: "Comet", es: "Cometa" },
+  { id: "asteroid", en: "Asteroid", es: "Asteroide" },
+];
+
+function buildSorter(mount, sim, onDone) {
+  const queue = [...SORT_ITEMS].sort(() => Math.random() - 0.5);
+  let idx = 0, solved = 0;
+  const card = document.createElement("div"); card.className = "srp-station";
+  card.innerHTML = `<div class="srp-station__head">
+      <span class="srp-station__n">1</span>
+      <h3 class="srp-station__title">${L("Space Rock Sorter", "Clasificador de Rocas Espaciales")}</h3>
+      <span class="srp-station__done" id="srp-s-done">${L("✓ All sorted!", "✓ ¡Todo clasificado!")}</span>
+    </div>
+    <p class="q__hint">${L("A real photo from a real space mission appears below. Tap the category it belongs to.", "Aparece abajo una foto real de una misión espacial real. Toca la categoría a la que pertenece.")}</p>
+    <div class="srp-sort-stage">
+      <p class="srp-sort-progress" id="srp-s-progress"></p>
+      <div class="srp-sort-card">
+        <div class="srp-sort-photo" id="srp-s-photo"></div>
+      </div>
+      <div class="srp-sort-bins" id="srp-s-bins"></div>
+    </div>
+    <p class="srp-credit">${L(
+      'Photos: NASA/JHUAPL/SwRI (Pluto), NASA/JPL-Caltech/Justin Cowart (Ceres), BLM Oregon &amp; Washington/Kyle Sullivan (comet), NASA/Goddard/University of Arizona (Bennu), NASA/JPL/JHUAPL (Eros) — all public domain, via Wikimedia Commons.',
+      'Fotos: NASA/JHUAPL/SwRI (Plutón), NASA/JPL-Caltech/Justin Cowart (Ceres), BLM Oregon &amp; Washington/Kyle Sullivan (cometa), NASA/Goddard/Universidad de Arizona (Bennu), NASA/JPL/JHUAPL (Eros) — todas de dominio público, vía Wikimedia Commons.'
+    )}</p>`;
+  mount.append(card);
+
+  const photoEl = card.querySelector("#srp-s-photo");
+  const progressEl = card.querySelector("#srp-s-progress");
+  const binsEl = card.querySelector("#srp-s-bins");
+  const doneTag = card.querySelector("#srp-s-done");
+
+  BINS.forEach(b => {
+    const btn = document.createElement("button"); btn.type = "button"; btn.className = "srp-bin"; btn.dataset.bin = b.id;
+    btn.textContent = L(b.en, b.es);
+    btn.addEventListener("click", () => choose(b.id, btn));
+    binsEl.append(btn);
+  });
+
+  function render() {
+    if (idx >= queue.length) {
+      photoEl.innerHTML = `<span class="srp-done-icon">${ICO.check}</span>`;
+      progressEl.textContent = L("All photos sorted!", "¡Todas las fotos clasificadas!");
+      binsEl.style.display = "none";
+      doneTag.dataset.show = "true";
+      sim.award("sorter", L("Space Rock Sorter", "Clasificador de Rocas"));
+      onDone();
+      return;
+    }
+    const item = queue[idx];
+    progressEl.textContent = L(`Photo ${idx + 1} of ${queue.length}`, `Foto ${idx + 1} de ${queue.length}`);
+    photoEl.innerHTML = `<img src="${item.file}" alt="${L(item.en, item.es)}">`;
+  }
+  function choose(binId, btn) {
+    const item = queue[idx];
+    if (item.bin === binId) {
+      photoEl.classList.remove("srp-pulse"); void photoEl.offsetWidth; photoEl.classList.add("srp-pulse");
+      burst(card.querySelector(".srp-sort-stage"), 50, 30, ["#4CC0DB", "#7B9DDB", "#fff"], 10);
+      sim.recordTrial({ station: L("Sorter", "Clasificador"), item: L(item.en, item.es), outcome: L(`Correctly sorted as ${BINS.find(b => b.id === binId).en}`, `Clasificado correctamente como ${BINS.find(b => b.id === binId).es}`) });
+      sim.toast(L("Correct!", "¡Correcto!"), "correct");
+      solved++;
+      idx++;
+      setTimeout(render, 350);
+    } else {
+      btn.classList.remove("srp-shake"); void btn.offsetWidth; btn.classList.add("srp-shake");
+      sim.toast(L("Not quite — look again and try another category.", "No es correcto — mira de nuevo y prueba otra categoría."), "info");
+    }
+  }
+  render();
+}
+
+/* ============================================================
+   STATION 2 — STEER THE COMET (orbitable 3D scene, real physics
+   rule: the tail always points away from the Sun).
+   ============================================================ */
+let cleanupComet = null;
+function buildComet(mount, sim, onDone) {
+  if (cleanupComet) { cleanupComet(); cleanupComet = null; }
+  const passes = { close: false, far: false };
+  const card = document.createElement("div"); card.className = "srp-station";
+  card.innerHTML = `<div class="srp-station__head">
+      <span class="srp-station__n">2</span>
+      <h3 class="srp-station__title">${L("Steer the Comet", "Guía el Cometa")}</h3>
+      <span class="srp-station__done" id="srp-c-done">${L("✓ Both passes done!", "✓ ¡Ambos pases hechos!")}</span>
+    </div>
+    <p class="q__hint">${L("Drag the sky to look around — that's just the camera. Use the slider to choose how close to the Sun you send the comet, then launch it.", "Arrastra el cielo para mirar alrededor — eso solo mueve la cámara. Usa el control para elegir qué tan cerca del Sol envías el cometa, y luego lánzalo.")}</p>
+    <div class="srp-comet-stage" id="srp-c-stage"><div class="srp-comet-flash" id="srp-c-flash"></div></div>
+    <div class="srp-comet-controls">
+      <input type="range" id="srp-c-slider" min="0" max="100" value="20">
+      <div class="srp-comet-readout"><span>${L("Far from Sun", "Lejos del Sol")}</span><span>${L("Right next to the Sun", "Justo al lado del Sol")}</span></div>
+    </div>
+    <button type="button" class="btn btn--signal srp-comet-launch" id="srp-c-launch">${L("Send it around the Sun →", "¡Envíalo alrededor del Sol →")}</button>
+    <p class="srp-comet-readout" id="srp-c-read" style="margin-top:.5rem"></p>`;
+  mount.append(card);
+
+  const stage = card.querySelector("#srp-c-stage");
+  const flash = card.querySelector("#srp-c-flash");
+  const slider = card.querySelector("#srp-c-slider");
+  const launchBtn = card.querySelector("#srp-c-launch");
+  const readEl = card.querySelector("#srp-c-read");
+  const doneTag = card.querySelector("#srp-c-done");
+  let camera, renderer, scene, comet, tailGroup, sunMesh;
+  let launching = false;
+
+  function tailLenFor(v) { return Math.pow(v / 100, 1.5); }
+
+  function updateComet(v) {
+    if (!comet) return;
+    const t = v / 100; // 0 = far (aphelion), 1 = close (perihelion)
+    const rx = 3.6, rz = 2.2;
+    const angle = Math.PI * (1 - t) * 0.9 + 0.15; // sweep from far side toward the Sun
+    comet.position.set(Math.cos(angle) * (rx - t * 1.6), 0.15 * Math.sin(t * Math.PI), Math.sin(angle) * (rz - t * 0.6));
+    const len = tailLenFor(v);
+    if (tailGroup) {
+      const dir = comet.position.clone().normalize();
+      tailGroup.position.copy(comet.position);
+      tailGroup.lookAt(comet.position.clone().add(dir));
+      tailGroup.scale.set(1, 1, 0.4 + len * 2.2);
+      tailGroup.visible = len > 0.03;
+    }
+  }
+
+  slider.addEventListener("input", () => { updateComet(Number(slider.value)); readEl.textContent = ""; });
+
+  launchBtn.addEventListener("click", () => {
+    if (launching) return;
+    launching = true;
+    const v = Number(slider.value);
+    const isClose = v >= 55;
+    launchBtn.disabled = true;
+    tweenLinear(1400, t => { updateComet(v * Math.min(1, t * 1.3)); }, () => {
+      const len = tailLenFor(v);
+      if (isClose && !reducedMotion()) { flash.classList.remove("srp-flash-on"); void flash.offsetWidth; flash.classList.add("srp-flash-on"); }
+      burst(stage, 50, 45, ["#cfe6ff", "#fff", "#4CC0DB"], isClose ? 16 : 6);
+      if (camera && !reducedMotion()) {
+        const startZ = camera.position.z;
+        tween(500, e => { camera.position.z = startZ - e * (isClose ? 1.2 : 0.3); }, () => tween(400, e => { camera.position.z = (startZ - (isClose ? 1.2 : 0.3)) + e * (isClose ? 1.2 : 0.3); }));
+      }
+      const passLabel = isClose ? L("Close pass", "Pase cercano") : L("Far pass", "Pase lejano");
+      const pct = Math.round(len * 100);
+      readEl.textContent = L(`${passLabel}: tail grew to about ${pct}% of its maximum length.`, `${passLabel}: la cola creció hasta aproximadamente ${pct}% de su longitud máxima.`);
+      sim.recordTrial({ station: L("Comet", "Cometa"), item: passLabel, outcome: L(`Tail length ≈ ${pct}% of maximum`, `Longitud de cola ≈ ${pct}% del máximo`) });
+      sim.toast(isClose ? L("The tail grew huge near the Sun!", "¡La cola creció muchísimo cerca del Sol!") : L("Far from the Sun, the tail barely grows.", "Lejos del Sol, la cola casi no crece."), "correct");
+      if (isClose) passes.close = true; else passes.far = true;
+      if (passes.close && passes.far) { doneTag.dataset.show = "true"; sim.award("cometpilot", L("Comet Pilot", "Piloto de Cometas")); }
+      else sim.toast(L(`Try the opposite too — you still need a ${isClose ? "far" : "close"} pass.`, `Prueba también lo contrario — todavía necesitas un pase ${isClose ? "lejano" : "cercano"}.`), "info");
+      launching = false; launchBtn.disabled = false;
+      onDone();
+    });
+  });
+
+  if (THREE_OK && hasWebGL()) {
+    const canvas = document.createElement("canvas"); stage.append(canvas);
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(44, 1, 0.1, 50);
+    camera.position.set(0, 2.6, 8); camera.lookAt(0, 0, 0);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+    sunMesh = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 18), new THREE.MeshBasicMaterial({ color: 0xF4C542 }));
+    scene.add(sunMesh);
+    const sunLight = new THREE.PointLight(0xfff2c8, 2.2, 20); scene.add(sunLight);
+
+    const orbitPts = [];
+    for (let i = 0; i <= 64; i++) { const a = (i / 64) * Math.PI * 2; orbitPts.push(new THREE.Vector3(Math.cos(a) * 3.6, 0, Math.sin(a) * 2.2)); }
+    const orbitLine = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(orbitPts), new THREE.LineDashedMaterial({ color: 0x445577, dashSize: 0.12, gapSize: 0.08 }));
+    orbitLine.computeLineDistances(); scene.add(orbitLine);
+
+    /* Off-axis landmark (Earth) so an orbit-drag is visibly rewarding, not
+       just a rotationally-symmetric scene (CLAUDE.md's orbit-verification rule). */
+    const earth = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3a6fd6 }));
+    earth.position.set(-2.6, 0, 1.9); scene.add(earth);
+
+    comet = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10), new THREE.MeshStandardMaterial({ color: 0xdfe8ee, roughness: 0.6 }));
+    scene.add(comet);
+    tailGroup = new THREE.Mesh(new THREE.ConeGeometry(0.14, 1.6, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0x9fd3ff, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
+    tailGroup.rotation.x = Math.PI / 2; tailGroup.position.set(0, 0, 0);
+    const tailPivot = new THREE.Group(); tailPivot.add(tailGroup); scene.add(tailPivot);
+    tailGroup = tailPivot; tailGroup.children[0].position.z = 0.8;
+
+    updateComet(Number(slider.value));
+
+    function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    new ResizeObserver(resize).observe(stage); resize();
+
+    let dragging = false, lastX = 0, lastY = 0, rotY = 0.5, rotX = 0.35;
+    canvas.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointermove", e => { if (!dragging) return; rotY += (e.clientX - lastX) * 0.008; rotX = Math.max(0.05, Math.min(1.1, rotX + (e.clientY - lastY) * 0.006)); lastX = e.clientX; lastY = e.clientY; });
+    window.addEventListener("pointerup", () => dragging = false);
+
+    let raf = requestAnimationFrame(function loop() {
+      if (!dragging && !reducedMotion()) rotY += 0.0012;
+      const dist = 8;
+      camera.position.set(Math.sin(rotY) * dist * Math.cos(rotX * 0.5), 2.2 + rotX * 1.5, Math.cos(rotY) * dist * Math.cos(rotX * 0.5));
+      camera.lookAt(0, 0, 0);
+      sunMesh.rotation.y += 0.004;
+      renderer.render(scene, camera);
+      raf = requestAnimationFrame(loop);
+    });
+    cleanupComet = () => { cancelAnimationFrame(raf); renderer.dispose(); };
+  } else {
+    stage.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#cfe0ff;font-family:var(--font-data);font-size:.85rem;text-align:center;padding:1rem">${L("3D view unavailable on this device — use the slider below; the tail will still react.", "Vista 3D no disponible en este dispositivo — usa el control de abajo; la cola igual reaccionará.")}</div>`;
+    comet = null;
+  }
+}
+
+/* ============================================================
+   STATION 3 — METEOR CHAIN LAUNCHER (size → survives or not)
+   ============================================================ */
+const ROCK_SIZES = [
+  { id: "small", ico: ICO.rockSmall, en: "Small", es: "Pequeña", outcome: "burn" },
+  { id: "medium", ico: ICO.rockMed, en: "Medium", es: "Mediana", outcome: "small-meteorite" },
+  { id: "large", ico: ICO.rockLarge, en: "Large", es: "Grande", outcome: "large-meteorite" },
+];
+function buildMeteorChain(mount, sim, onDone) {
+  const tried = new Set();
+  const card = document.createElement("div"); card.className = "srp-station";
+  card.innerHTML = `<div class="srp-station__head">
+      <span class="srp-station__n">3</span>
+      <h3 class="srp-station__title">${L("Meteor Chain Launcher", "Lanzador de la Cadena del Meteoro")}</h3>
+      <span class="srp-station__done" id="srp-m-done">${L("✓ All sizes tried!", "✓ ¡Todos los tamaños probados!")}</span>
+    </div>
+    <p class="q__hint">${L("Pick a rock size, then send it into Earth's atmosphere. Watch how far it gets.", "Elige un tamaño de roca y envíala a la atmósfera terrestre. Observa hasta dónde llega.")}</p>
+    <div class="srp-sizepick" id="srp-m-sizes"></div>
+    <div class="srp-sky" id="srp-m-sky"></div>
+    <button type="button" class="btn btn--signal srp-launchbtn" id="srp-m-launch">${L("Send into the atmosphere! →", "¡Enviar a la atmósfera! →")}</button>
+    <div id="srp-m-reveal"></div>`;
+  mount.append(card);
+
+  const sizesEl = card.querySelector("#srp-m-sizes");
+  const sky = card.querySelector("#srp-m-sky");
+  const launchBtn = card.querySelector("#srp-m-launch");
+  const revealBox = card.querySelector("#srp-m-reveal");
+  const doneTag = card.querySelector("#srp-m-done");
+  let chosen = null;
+
+  ROCK_SIZES.forEach(s => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "srp-sizebtn"; b.setAttribute("aria-pressed", "false");
+    b.innerHTML = s.ico + `<span>${L(s.en, s.es)}</span>`;
+    b.addEventListener("click", () => {
+      sizesEl.querySelectorAll(".srp-sizebtn").forEach(x => x.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      chosen = s;
+    });
+    sizesEl.append(b);
+  });
+
+  launchBtn.addEventListener("click", () => {
+    if (!chosen) { sim.toast(L("Pick a rock size first.", "Elige primero un tamaño de roca."), "info"); return; }
+    launchBtn.disabled = true;
+    sky.innerHTML = "";
+    revealBox.innerHTML = "";
+    const skyRect = sky.getBoundingClientRect();
+    const rock = document.createElement("div"); rock.className = "srp-rock";
+    rock.innerHTML = `<svg viewBox="0 0 40 40" width="${chosen.id === "large" ? 34 : chosen.id === "medium" ? 26 : 18}" height="${chosen.id === "large" ? 34 : chosen.id === "medium" ? 26 : 18}">${chosen.ico.replace(/<svg[^>]*>|<\/svg>/g, "")}</svg>`;
+    sky.append(rock);
+    const startX = skyRect.width * 0.12, startY = 8;
+    const fullEndX = skyRect.width * 0.82, fullEndY = skyRect.height * 0.86;
+    const stopFrac = chosen.outcome === "burn" ? 0.62 : chosen.outcome === "small-meteorite" ? 0.9 : 1;
+    let trailPts = [];
+    tweenLinear(chosen.outcome === "large-meteorite" ? 1500 : 1100, t => {
+      const tt = t * stopFrac;
+      const x = startX + (fullEndX - startX) * tt, y = startY + (fullEndY - startY) * tt;
+      rock.style.left = x + "px"; rock.style.top = y + "px";
+      rock.style.opacity = String(chosen.outcome === "burn" ? 1 - Math.max(0, (tt - 0.4) / 0.22) : 1);
+      trailPts.push([x, y]);
+      if (trailPts.length > 2) {
+        const [px, py] = trailPts[trailPts.length - 2];
+        const seg = document.createElement("div"); seg.className = "srp-trail";
+        const dx = x - px, dy = y - py, dist = Math.hypot(dx, dy);
+        seg.style.left = px + "px"; seg.style.top = py + "px"; seg.style.width = dist + "px";
+        seg.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+        seg.style.opacity = "0.7";
+        sky.append(seg);
+        setTimeout(() => seg.style.opacity = "0", 30);
+        setTimeout(() => seg.remove(), 500);
+      }
+    }, () => finish());
+
+    function finish() {
+      const endX = startX + (fullEndX - startX) * stopFrac, endY = startY + (fullEndY - startY) * stopFrac;
+      if (chosen.outcome === "burn") {
+        burst(sky, (endX / skyRect.width) * 100, (endY / skyRect.height) * 100, ["#ffdca0", "#fff", "#ffb35c"], 10);
+        rock.remove();
+        sim.toast(L("Burned up completely — nothing reached the ground.", "Se quemó por completo — nada llegó al suelo."), "info");
+        revealBox.innerHTML = `<p class="q__hint">${L("This rock stayed a <strong>meteor</strong> the whole way — a bright streak of light with nothing left over.", "Esta roca se quedó como <strong>meteoro</strong> todo el trayecto — una estela brillante de luz sin nada que sobreviviera.")}</p>`;
+      } else {
+        const big = chosen.outcome === "large-meteorite";
+        burst(sky, (endX / skyRect.width) * 100, (endY / skyRect.height) * 100, ["#ffdca0", "#fff", "#c98b4a"], big ? 18 : 9);
+        if (big && !reducedMotion()) { sky.animate([{ transform: "translateX(0)" }, { transform: "translateX(-4px)" }, { transform: "translateX(4px)" }, { transform: "translateX(0)" }], { duration: 260 }); }
+        rock.remove();
+        sim.toast(L("A fragment survived — meteorite recovered!", "¡Un fragmento sobrevivió — meteorito recuperado!"), "correct");
+        revealBox.innerHTML = `<div class="srp-meteorite-reveal"><img src="photos/meteorite.jpg" alt="${L("A real iron meteorite specimen", "Un meteorito de hierro real")}"><p class="q__hint" style="margin:0">${L(`This is the same kind of real rock you saw earlier — a ${big ? "large" : "small"} fragment survived all the way to the ground and is now a genuine meteorite.`, `Es el mismo tipo de roca real que viste antes — un fragmento ${big ? "grande" : "pequeño"} sobrevivió hasta el suelo y ahora es un meteorito auténtico.`)}</p></div>`;
+      }
+      const outcomeLabel = chosen.outcome === "burn" ? L("Burned up completely — meteor only, nothing landed", "Se quemó por completo — solo meteoro, nada aterrizó")
+        : chosen.outcome === "small-meteorite" ? L("Meteorite recovered (small fragment)", "Meteorito recuperado (fragmento pequeño)")
+        : L("Meteorite recovered (large fragment)", "Meteorito recuperado (fragmento grande)");
+      sim.recordTrial({ station: L("Meteor Chain", "Cadena del Meteoro"), item: L(`${chosen.en} rock`, `Roca ${chosen.es.toLowerCase()}`), outcome: outcomeLabel });
+      tried.add(chosen.id);
+      if (tried.size === ROCK_SIZES.length) { doneTag.dataset.show = "true"; sim.award("meteorwatcher", L("Meteor Watcher", "Observador de Meteoros")); }
+      launchBtn.disabled = false;
+      onDone();
+    }
+  });
+}
+
+/* ============================================================
+   BONUS ROUND — Meteor Shower Watch (bespoke timing/rhythm-catch
+   mechanic; not a repeat of engine/arcade.js or engine/quest3d.js —
+   CLAUDE.md's Bonus Game Mechanic Library, 2026-09-23 amendment).
+   Runs ~2 minutes of real play, paced on wall-clock time (setInterval/
+   Date.now), never on requestAnimationFrame alone. No fail state: a
+   miss just resets the streak, spawns continue on their own schedule.
+   No audio anywhere, so no mute control is required (CLAUDE.md §6).
+   ============================================================ */
+const SHOWER_FACTS = [
+  { en: "You just caught a Perseid — this shower comes from dust left behind by Comet Swift-Tuttle.", es: "¡Atrapaste una Perseida! — esta lluvia viene del polvo que dejó el cometa Swift-Tuttle." },
+  { en: "You just caught a Geminid — unusually, this shower comes from an asteroid, not a comet.", es: "¡Atrapaste una Gemínida! — de forma poco común, esta lluvia viene de un asteroide, no de un cometa." },
+  { en: "Meteors in a shower all seem to stream from one point in the sky, called the radiant.", es: "Los meteoros de una lluvia parecen salir todos de un mismo punto del cielo, llamado el radiante." },
+  { en: "A meteor shower happens when Earth's orbit carries it straight through a comet's old dust trail.", es: "Una lluvia de meteoros ocurre cuando la órbita de la Tierra la lleva justo a través del antiguo rastro de polvo de un cometa." },
+];
+function mountMeteorShowerWatch(host, sim, onExit) {
+  host.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "msw-wrap";
+  host.append(wrap);
+
+  function renderLaunch() {
+    wrap.innerHTML = `<div class="msw-launch">
+      <h3 class="srp-station__title" style="margin:0 0 .4rem">${L("Bonus round — Meteor Shower Watch", "Ronda extra — Observatorio de Lluvias de Meteoros")}</h3>
+      <p class="q__hint" style="margin:0">${L("Meteors streak from the radiant point. Press Catch! (or the space bar) the instant one crosses the glowing ring. A miss just resets your streak — never a fail.", "Los meteoros salen desde el punto radiante. Pulsa ¡Atrapar! (o la barra espaciadora) justo cuando uno cruce el anillo brillante. Un fallo solo reinicia tu racha — nunca es un fallo total.")}</p>
+      <div class="msw-launch__row">
+        <button type="button" class="btn btn--signal" id="msw-play">${L("Play Meteor Shower Watch", "Jugar Observatorio de Lluvias")}</button>
+        <button type="button" class="btn btn--ghost" id="msw-skip">${L("Skip bonus round", "Saltar ronda extra")}</button>
+      </div>
+    </div>`;
+    wrap.querySelector("#msw-play").addEventListener("click", startRound);
+    wrap.querySelector("#msw-skip").addEventListener("click", () => onExit(null));
+  }
+
+  function startRound() {
+    wrap.innerHTML = `<div class="msw-hud"><span id="msw-time">2:00</span><span id="msw-score">${L("Score", "Puntos")}: 0 · ${L("Streak", "Racha")}: 0</span></div>
+      <div class="msw-sky" id="msw-sky"><div class="msw-fact" id="msw-fact"></div></div>
+      <button type="button" class="btn btn--signal msw-catchbtn" id="msw-catch">${L("Catch! (Space)", "¡Atrapar! (Espacio)")}</button>`;
+    const sky = wrap.querySelector("#msw-sky");
+    const timeEl = wrap.querySelector("#msw-time");
+    const scoreEl = wrap.querySelector("#msw-score");
+    const factEl = wrap.querySelector("#msw-fact");
+    const catchBtn = wrap.querySelector("#msw-catch");
+    const skyRect = () => sky.getBoundingClientRect();
+
+    // Starfield (decorative, static)
+    for (let i = 0; i < 40; i++) {
+      const s = document.createElement("div"); s.className = "msw-star";
+      const sz = 1 + Math.random() * 1.6;
+      s.style.width = sz + "px"; s.style.height = sz + "px";
+      s.style.left = Math.random() * 100 + "%"; s.style.top = Math.random() * 90 + "%";
+      s.style.opacity = String(0.3 + Math.random() * 0.5);
+      sky.append(s);
+    }
+    const radiant = document.createElement("div"); radiant.className = "msw-radiant"; radiant.style.left = "12%"; radiant.style.top = "10%";
+    sky.append(radiant);
+
+    let score = 0, streak = 0, best = 0, caught = 0, spawned = 0;
+    let active = null; // { zoneEl, windowStart, windowEnd }
+    let running = true;
+    const DURATION_MS = 120000;
+    const roundStart = Date.now();
+
+    function updateScore() { scoreEl.textContent = `${L("Score", "Puntos")}: ${score} · ${L("Streak", "Racha")}: ${streak}`; }
+    function showFact() {
+      const f = SHOWER_FACTS[Math.floor(Math.random() * SHOWER_FACTS.length)];
+      factEl.textContent = L(f.en, f.es);
+      factEl.classList.add("msw-show");
+      setTimeout(() => factEl.classList.remove("msw-show"), 1800);
+    }
+
+    function spawnMeteor() {
+      if (!running) return;
+      spawned++;
+      const rect = skyRect();
+      const startX = rect.width * (0.08 + Math.random() * 0.1), startY = rect.height * (0.06 + Math.random() * 0.12);
+      const endX = rect.width * (0.65 + Math.random() * 0.3), endY = rect.height * (0.55 + Math.random() * 0.38);
+      const zoneT = 0.45 + Math.random() * 0.2; // where along the path the catch zone sits
+      const zoneX = startX + (endX - startX) * zoneT, zoneY = startY + (endY - startY) * zoneT;
+      const zone = document.createElement("div"); zone.className = "msw-zone"; zone.style.left = zoneX + "px"; zone.style.top = zoneY + "px";
+      sky.append(zone);
+      const flightMs = reducedMotion() ? 60 : 1500 + Math.random() * 500;
+      const windowMs = 750;
+      const windowStartAt = Date.now() + flightMs * zoneT - windowMs / 2;
+      active = { zone, windowStart: windowStartAt, windowEnd: windowStartAt + windowMs, caughtAlready: false };
+
+      if (reducedMotion()) {
+        zone.classList.add("msw-hot");
+        setTimeout(() => { if (zone.isConnected) { zone.remove(); if (active && active.zone === zone) missIfActive(); } }, windowMs + 300);
+      } else {
+        const streak_el = document.createElement("div"); streak_el.className = "msw-streak";
+        const dx = endX - startX, dy = endY - startY, len = Math.hypot(dx, dy);
+        streak_el.style.width = Math.max(18, len * 0.22) + "px";
+        streak_el.style.left = startX + "px"; streak_el.style.top = startY + "px";
+        streak_el.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+        sky.append(streak_el);
+        tweenLinear(flightMs, t => {
+          const x = startX + dx * t, y = startY + dy * t;
+          streak_el.style.left = x + "px"; streak_el.style.top = y + "px";
+          if (t >= zoneT - 0.06 && t <= zoneT + 0.06) zone.classList.add("msw-hot"); else zone.classList.remove("msw-hot");
+        }, () => {
+          streak_el.remove();
+          if (zone.isConnected) { zone.remove(); if (active && active.zone === zone) missIfActive(); }
+        });
+      }
+
+      const nextIn = 3200 + Math.random() * 1800;
+      if (Date.now() - roundStart + nextIn < DURATION_MS - 800) setTimeout(spawnMeteor, nextIn);
+    }
+    function missIfActive() {
+      if (!active) return;
+      streak = 0; updateScore();
+      active = null;
+    }
+    function attemptCatch() {
+      if (!running) return;
+      const now = Date.now();
+      if (active && !active.caughtAlready && now >= active.windowStart && now <= active.windowEnd) {
+        active.caughtAlready = true;
+        score += 10 + streak * 2; streak++; best = Math.max(best, streak); caught++;
+        updateScore();
+        if (active.zone.isConnected) { burst(sky, (active.zone.offsetLeft / skyRect().width) * 100, (active.zone.offsetTop / skyRect().height) * 100, ["#4CC0DB", "#fff", "#7B9DDB"], 12); active.zone.remove(); }
+        showFact();
+        active = null;
+      } else {
+        catchBtn.classList.remove("msw-miss"); void catchBtn.offsetWidth; catchBtn.classList.add("msw-miss");
+        streak = 0; updateScore();
+      }
+    }
+    catchBtn.addEventListener("click", attemptCatch);
+    function keyHandler(e) { if (e.code === "Space") { e.preventDefault(); attemptCatch(); } }
+    window.addEventListener("keydown", keyHandler);
+
+    const timerId = setInterval(() => {
+      const elapsed = Date.now() - roundStart;
+      const remain = Math.max(0, DURATION_MS - elapsed);
+      const mm = Math.floor(remain / 60000), ss = Math.floor((remain % 60000) / 1000);
+      timeEl.textContent = `${mm}:${String(ss).padStart(2, "0")}`;
+      if (remain <= 0) endRound();
+    }, 250);
+
+    function endRound() {
+      if (!running) return;
+      running = false;
+      clearInterval(timerId);
+      window.removeEventListener("keydown", keyHandler);
+      const accuracy = spawned ? Math.round((caught / spawned) * 100) : 0;
+      wrap.innerHTML = `<div class="msw-recap">
+        <h3 class="srp-station__title" style="margin:0">${L("Meteor Shower Watch — complete!", "¡Observatorio de Lluvias — completo!")}</h3>
+        <div class="msw-recap__stats">
+          <div class="msw-recap__stat"><b>${score}</b><span>${L("Score", "Puntos")}</span></div>
+          <div class="msw-recap__stat"><b>${accuracy}%</b><span>${L("Accuracy", "Precisión")}</span></div>
+          <div class="msw-recap__stat"><b>${best}</b><span>${L("Best streak", "Mejor racha")}</span></div>
+        </div>
+        <button type="button" class="btn btn--signal" id="msw-again">${L("Play again", "Jugar de nuevo")}</button>
+        <button type="button" class="btn btn--ghost" id="msw-done">${L("Done", "Listo")}</button>
+      </div>`;
+      wrap.querySelector("#msw-again").addEventListener("click", startRound);
+      wrap.querySelector("#msw-done").addEventListener("click", () => onExit({ score, accuracy, best }));
+    }
+    setTimeout(spawnMeteor, 600);
+  }
+
+  renderLaunch();
+}
+
+/* ============================================================
+   INVESTIGATE — mounts all three stations, a reflection panel,
+   and the bonus round.
+   ============================================================ */
+function investigate(host, sim) {
+  host.innerHTML = "";
+  sim.setScienceMethod({
+    variables: L(
+      "Independent: how close to the Sun you send the comet, and which rock size you launch at the Meteor Chain. Dependent: how long the comet's tail grows, and whether a rock survives to become a meteorite. Controlled: the same orbit shape and the same atmosphere every time you test.",
+      "Independiente: qué tan cerca del Sol envías el cometa, y qué tamaño de roca lanzas en la Cadena del Meteoro. Dependiente: cuánto crece la cola del cometa, y si una roca sobrevive y se convierte en meteorito. Controladas: la misma forma de órbita y la misma atmósfera cada vez que pruebas."
+    )
+  });
+
+  buildSorter(host, sim, refresh);
+  buildComet(host, sim, refresh);
+  buildMeteorChain(host, sim, refresh);
+
+  /* ---- Reflection ---- */
+  const reflectCard = document.createElement("div"); reflectCard.className = "srp-station";
+  reflectCard.innerHTML = `<div class="srp-station__head"><h3 class="srp-station__title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div>
+    <div class="srp-reflect">
+      <p class="q__hint" style="margin:0">${L("How confident do you feel telling a comet, an asteroid and a dwarf planet apart?", "¿Qué tan seguro te sientes distinguiendo un cometa, un asteroide y un planeta enano?")}</p>
+      <div class="srp-chiprow" id="srp-r-conf"></div>
+      <p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to investigate next?", "¿Qué te gustaría investigar a continuación?")}</p>
+      <div class="srp-chiprow" id="srp-r-next"></div>
+    </div>`;
+  host.append(reflectCard);
+  function mkChipRow(container, opts) {
+    opts.forEach(o => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = o.label; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", () => {
+        container.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false"));
+        b.setAttribute("aria-pressed", "true");
+        container.dataset.value = o.id;
+        saveReflection();
+      });
+      container.append(b);
+    });
+  }
+  mkChipRow(reflectCard.querySelector("#srp-r-conf"), [
+    { id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") },
+  ]);
+  mkChipRow(reflectCard.querySelector("#srp-r-next"), [
+    { id: "moons", label: L("Why some planets have so many moons", "Por qué algunos planetas tienen tantas lunas") },
+    { id: "beltorigin", label: L("How the asteroid belt actually formed", "Cómo se formó realmente el cinturón de asteroides") },
+    { id: "impact", label: L("What would happen if a big asteroid hit Earth", "Qué pasaría si un asteroide grande golpeara la Tierra") },
+  ]);
+  function saveReflection() {
+    const conf = reflectCard.querySelector("#srp-r-conf").dataset.value;
+    const next = reflectCard.querySelector("#srp-r-next").dataset.value;
+    sim.setResult("reflection", { confidence: conf, next_investigation: next });
+    sim.mark("reflection_recorded", !!(conf && next));
+  }
+
+  /* ---- Bonus round ---- */
+  const bonusHost = document.createElement("div"); host.append(bonusHost);
+  let bonusRendered = false;
+  function paintBonus() {
+    if (sim.trials.length < 3 || bonusRendered) return;
+    bonusRendered = true;
+    mountMeteorShowerWatch(bonusHost, sim, (stats) => {
+      sim.saveState();
+      if (stats) sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda completa — puntaje ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+    });
+  }
+  function refresh() { paintBonus(); }
+  refresh();
+}
+
+/* ============================================================
+   MOUNT
+   ============================================================ */
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
