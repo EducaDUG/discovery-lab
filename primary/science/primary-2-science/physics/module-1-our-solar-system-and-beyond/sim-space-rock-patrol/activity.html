@@ -101,7 +101,11 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .msw-recap__stat b { display: block; font-size: 1.6rem; color: var(--accent); }
   .msw-recap__stat span { font-size: .74rem; color: var(--ink-3); }
 
-  .srp-diagram { width: 100%; height: auto; }
+  .srp-orient-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .srp-orient-card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .srp-orient-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .srp-orient-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .srp-orient-card__label { display: block; padding: .4rem .55rem; font-size: .78rem; font-weight: 700; text-align: center; }
 </style>
 </head>
 <body>
@@ -265,34 +269,35 @@ function observation(host, sim) {
 /* ============================================================
    ORIENT — a simple diagram of where each kind of object lives.
    ============================================================ */
+const ORIENT_PHOTOS = [
+  { file: "photos/sun.jpg", en: "The Sun", es: "El Sol" },
+  { file: "photos/bennu.jpg", en: "Asteroid belt (asteroid Bennu)", es: "Cinturón de asteroides (asteroide Bennu)" },
+  { file: "photos/comet.jpg", en: "Comet + tail", es: "Cometa + cola" },
+  { file: "photos/meteor.jpg", en: "Meteor", es: "Meteoro" },
+  { file: "photos/earth.jpg", en: "Earth", es: "Tierra" },
+];
 function orient(host) {
   host.innerHTML = "";
   const p = document.createElement("p"); p.className = "q__hint";
   p.textContent = L(
-    "Beyond the eight planets, our solar system is full of smaller worlds and speeding rocks.",
-    "Más allá de los ocho planetas, nuestro sistema solar está lleno de mundos más pequeños y rocas veloces."
+    "Beyond the eight planets, our solar system is full of smaller worlds and speeding rocks — five real photos, taken by real space missions and real cameras.",
+    "Más allá de los ocho planetas, nuestro sistema solar está lleno de mundos más pequeños y rocas veloces — cinco fotos reales, tomadas por misiones espaciales y cámaras reales."
   );
   host.append(p);
-  const wrap = document.createElement("div");
-  wrap.innerHTML = `
-    <svg class="srp-diagram" viewBox="0 0 360 200" role="img" aria-label="${L("Diagram showing the Sun at the centre, the asteroid belt between Mars and Jupiter, a comet with a tail on a long orbit, and a meteoroid entering Earth's atmosphere as a meteor.", "Diagrama que muestra el Sol en el centro, el cinturón de asteroides entre Marte y Júpiter, un cometa con cola en una órbita larga, y un meteoroide entrando en la atmósfera de la Tierra como meteoro.")}">
-      <circle cx="40" cy="100" r="16" fill="#F4C542"/>
-      <text x="40" y="130" text-anchor="middle" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Sun", "Sol")}</text>
-
-      <ellipse cx="150" cy="100" rx="70" ry="8" fill="none" stroke="#8a7a68" stroke-width="6" stroke-dasharray="2 4" opacity=".7"/>
-      <text x="150" y="70" text-anchor="middle" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Asteroid belt", "Cinturón de asteroides")}</text>
-
-      <path d="M60 40 Q 200 -20 320 60 Q 260 100 200 110 Q 100 100 60 40Z" fill="none" stroke="#7B9DDB" stroke-width="1.6" stroke-dasharray="3 3"/>
-      <circle cx="230" cy="30" r="6" fill="#cfe6ff"/>
-      <path d="M230 30 L 205 15" stroke="#cfe6ff" stroke-width="4" stroke-linecap="round" opacity=".8"/>
-      <text x="255" y="20" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Comet + tail", "Cometa + cola")}</text>
-
-      <circle cx="330" cy="150" r="18" fill="#3a6fd6" opacity=".85"/>
-      <text x="330" y="185" text-anchor="middle" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Earth", "Tierra")}</text>
-      <line x1="290" y1="115" x2="318" y2="140" stroke="#F0B34C" stroke-width="3" stroke-linecap="round"/>
-      <text x="270" y="105" font-family="var(--font-ui)" font-size="10" font-weight="700" fill="var(--ink)">${L("Meteor", "Meteoro")}</text>
-    </svg>`;
-  host.append(wrap);
+  const grid = document.createElement("div"); grid.className = "srp-orient-grid";
+  ORIENT_PHOTOS.forEach(ph => {
+    const card = document.createElement("div"); card.className = "srp-orient-card";
+    card.innerHTML = `<span class="srp-orient-card__photo"><img src="${ph.file}" alt="${L(ph.en, ph.es)}" loading="lazy"></span>
+      <span class="srp-orient-card__label">${L(ph.en, ph.es)}</span>`;
+    grid.append(card);
+  });
+  host.append(grid);
+  const credit = document.createElement("p"); credit.className = "srp-credit";
+  credit.innerHTML = L(
+    'Photos: NASA/SDO (Sun), NASA/Goddard/University of Arizona (asteroid belt — Bennu), BLM Oregon &amp; Washington/Kyle Sullivan (comet), NASA/Joel Kowsky (meteor), NASA/Apollo&nbsp;17 (Earth) — all public domain, via Wikimedia Commons.',
+    'Fotos: NASA/SDO (Sol), NASA/Goddard/Universidad de Arizona (cinturón de asteroides — Bennu), BLM Oregon &amp; Washington/Kyle Sullivan (cometa), NASA/Joel Kowsky (meteoro), NASA/Apollo&nbsp;17 (Tierra) — todas de dominio público, vía Wikimedia Commons.'
+  );
+  host.append(credit);
 }
 
 /* ============================================================
