@@ -48,31 +48,42 @@
         }
     </script>
     <style>
+        /* Discovery Lab biology theme (light) - matches the rest of the site */
+        :root {
+            --dl-paper: #EDF2EC;
+            --dl-surface: #F8FBF7;
+            --dl-surface-2: #E1EADF;
+            --dl-surface-3: #D2E0D0;
+            --dl-ink: #10201A;
+            --dl-ink-2: #3C4F45;
+            --dl-ink-3: #6C7D73;
+            --dl-line: #10201A22;
+        }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0b1320;
-            color: #f3f4f6;
+            background-color: var(--dl-paper);
+            color: var(--dl-ink);
         }
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Outfit', sans-serif;
         }
         .glass-nav {
-            background: rgba(11, 19, 32, 0.85);
+            background: rgba(248, 251, 247, 0.88);
             backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--dl-line);
         }
         .glass-card {
-            background: rgba(22, 34, 55, 0.75);
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--dl-line);
         }
         .glass-card-hover {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .glass-card-hover:hover {
             transform: translateY(-4px);
-            border-color: rgba(74, 222, 128, 0.3);
-            box-shadow: 0 12px 30px -10px rgba(34, 197, 94, 0.2);
+            border-color: rgba(22, 116, 79, 0.35);
+            box-shadow: 0 12px 30px -10px rgba(22, 116, 79, 0.2);
         }
         .btn-3d {
             transition: all 0.15s ease;
@@ -94,15 +105,35 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #0b1320;
+            background: var(--dl-paper);
         }
         ::-webkit-scrollbar-thumb {
-            background: #1f293d;
+            background: var(--dl-surface-3);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #22c55e;
         }
+
+        /* --- Light-theme overrides for the dark-slate utility classes below ---
+           The four instrument-style canvas/readout panels (marked .dl-instrument)
+           are deliberately left dark for contrast with their drawn content. */
+        body .bg-slate-900, body .bg-slate-900\/60, body .bg-slate-900\/80,
+        body .bg-slate-900\/90, body .bg-slate-900\/40 { background-color: var(--dl-surface) !important; }
+        body .bg-slate-800, body .bg-slate-800\/60 { background-color: var(--dl-surface-2) !important; }
+        body .bg-slate-700 { background-color: var(--dl-surface-3) !important; }
+        body .hover\:bg-slate-700:hover,
+        body .hover\:bg-slate-800:hover { background-color: var(--dl-surface-3) !important; }
+        body .hover\:bg-slate-900:hover { background-color: var(--dl-surface) !important; }
+        body .border-slate-800, body .border-slate-800\/80,
+        body .border-slate-700, body .border-slate-700\/50 { border-color: var(--dl-line) !important; }
+        body .text-white { color: var(--dl-ink) !important; }
+        body .text-slate-200 { color: var(--dl-ink) !important; }
+        body .text-slate-300 { color: var(--dl-ink-2) !important; }
+        body .text-slate-400 { color: var(--dl-ink-3) !important; }
+        body .text-slate-500, body .text-slate-600 { color: var(--dl-ink-3) !important; }
+        body .hover\:text-white:hover { color: var(--dl-ink) !important; }
+        body .bg-slate-950.dl-panel-light { background-color: var(--dl-surface) !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-bio-500 selection:text-white">
@@ -139,7 +170,7 @@
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
 
         <!-- Hero Section -->
-        <section class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900/90 to-bio-950/40 border border-slate-800 p-8 sm:p-12 shadow-2xl">
+        <section class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-bio-50 via-white to-bio-100 border border-slate-800 p-8 sm:p-12 shadow-2xl">
             <div class="absolute -top-24 -right-24 w-96 h-96 bg-bio-500/10 rounded-full blur-3xl pointer-events-none"></div>
             <div class="relative z-10 max-w-3xl space-y-6">
                 <h1 class="text-3xl sm:text-5xl font-extrabold text-white font-heading leading-tight">
@@ -175,22 +206,45 @@
 
         <!-- SECTION 1: SCAFFOLDED CURRICULUM MODULES (1-6) -->
         <section id="curriculum" class="space-y-8">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800 pb-5">
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-heading flex items-center gap-3">
-                        <i class="fa-solid fa-layer-group text-bio-400"></i> Curriculum Modules (1–6)
-                    </h2>
-                    <p class="text-slate-400 text-sm mt-1">Select a module to view its scaffolded study content across Tier 1 (Foundation), Tier 2 (Deepening), and Tier 3 (Exam Mastery).</p>
-                </div>
-                <!-- Module Selector Tabs -->
-                <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-                    <button onclick="selectModule(1)" id="mod-tab-1" class="mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-bio-500 text-slate-950 shadow-md">Mod 1: Ecology & Science</button>
-                    <button onclick="selectModule(2)" id="mod-tab-2" class="mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">Mod 2: Taxonomy & Microbes</button>
-                    <button onclick="selectModule(3)" id="mod-tab-3" class="mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">Mod 3: Invertebrates</button>
-                    <button onclick="selectModule(4)" id="mod-tab-4" class="mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">Mod 4: Vertebrates</button>
-                    <button onclick="selectModule(5)" id="mod-tab-5" class="mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">Mod 5: Green Plants</button>
-                    <button onclick="selectModule(6)" id="mod-tab-6" class="mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">Mod 6: Cells & Mitosis</button>
-                </div>
+            <div class="border-b border-slate-800 pb-5">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-heading flex items-center gap-3">
+                    <i class="fa-solid fa-layer-group text-bio-400"></i> Curriculum Modules (1–6)
+                </h2>
+                <p class="text-slate-400 text-sm mt-1">Click a module to view its scaffolded study content across Tier 1 (Foundation), Tier 2 (Deepening), and Tier 3 (Exam Mastery).</p>
+            </div>
+
+            <!-- Module Selector Boxes -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <button onclick="selectModule(1)" id="mod-tab-1" class="mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-bio-500 text-slate-950 shadow-md">
+                    <i class="fa-solid fa-leaf text-lg block mb-2"></i>
+                    <span class="block text-xs sm:text-sm">Module 1</span>
+                    <span class="block text-[11px] sm:text-xs font-semibold opacity-80">Ecology & Science</span>
+                </button>
+                <button onclick="selectModule(2)" id="mod-tab-2" class="mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-sitemap text-lg block mb-2"></i>
+                    <span class="block text-xs sm:text-sm">Module 2</span>
+                    <span class="block text-[11px] sm:text-xs font-semibold opacity-80">Taxonomy & Microbes</span>
+                </button>
+                <button onclick="selectModule(3)" id="mod-tab-3" class="mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-bug text-lg block mb-2"></i>
+                    <span class="block text-xs sm:text-sm">Module 3</span>
+                    <span class="block text-[11px] sm:text-xs font-semibold opacity-80">Invertebrates</span>
+                </button>
+                <button onclick="selectModule(4)" id="mod-tab-4" class="mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-fish text-lg block mb-2"></i>
+                    <span class="block text-xs sm:text-sm">Module 4</span>
+                    <span class="block text-[11px] sm:text-xs font-semibold opacity-80">Vertebrates</span>
+                </button>
+                <button onclick="selectModule(5)" id="mod-tab-5" class="mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-seedling text-lg block mb-2"></i>
+                    <span class="block text-xs sm:text-sm">Module 5</span>
+                    <span class="block text-[11px] sm:text-xs font-semibold opacity-80">Green Plants</span>
+                </button>
+                <button onclick="selectModule(6)" id="mod-tab-6" class="mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-dna text-lg block mb-2"></i>
+                    <span class="block text-xs sm:text-sm">Module 6</span>
+                    <span class="block text-[11px] sm:text-xs font-semibold opacity-80">Cells & Mitosis</span>
+                </button>
             </div>
 
             <!-- MODULE CONTENT CONTAINER -->
@@ -477,7 +531,7 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-500">
+    <footer class="border-t border-slate-800 bg-slate-950 dl-panel-light py-8 text-center text-xs text-slate-500">
         <div class="max-w-7xl mx-auto px-4 space-y-2">
             <p>BioSphere 6: Term 1 Junior High Life Science Revision Hub &bull; 100% Exam Pass Master Prep</p>
             <p class="text-slate-600">Designed with single-file responsive JavaScript and HTML5 Canvas engines.</p>
@@ -734,9 +788,9 @@
         function selectModule(modNum) {
             document.querySelectorAll('.mod-tab-btn').forEach((btn, idx) => {
                 if (idx + 1 === modNum) {
-                    btn.className = "mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-bio-500 text-slate-950 shadow-md";
+                    btn.className = "mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-bio-500 text-slate-950 shadow-md";
                 } else {
-                    btn.className = "mod-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700";
+                    btn.className = "mod-tab-btn text-left p-4 sm:p-5 rounded-2xl font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700";
                 }
             });
 
@@ -1160,12 +1214,12 @@
                             <h4 class="text-sm sm:text-base font-bold text-white">${q.q}</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                                 ${q.opts.map((opt, optIdx) => `
-                                    <button onclick="selectAnswer(${idx}, ${optIdx})" id="q-${idx}-opt-${optIdx}" class="quiz-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300 hover:border-bio-500/50 transition">
+                                    <button onclick="selectAnswer(${idx}, ${optIdx})" id="q-${idx}-opt-${optIdx}" class="quiz-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 dl-panel-light text-xs text-slate-300 hover:border-bio-500/50 transition">
                                         <span class="font-bold mr-2 text-slate-500">${String.fromCharCode(65 + optIdx)}.</span> ${opt}
                                     </button>
                                 `).join('')}
                             </div>
-                            <div id="exp-${idx}" class="hidden p-3 rounded-xl bg-slate-950 border text-xs text-slate-300 mt-2"></div>
+                            <div id="exp-${idx}" class="hidden p-3 rounded-xl bg-slate-950 dl-panel-light border text-xs text-slate-300 mt-2"></div>
                         </div>
                     `).join('')}
 
@@ -1188,7 +1242,7 @@
                     if (i === optIdx) {
                         btn.className = "quiz-opt-btn text-left p-3 rounded-xl border-2 border-bio-500 bg-bio-500/10 text-xs text-white font-bold";
                     } else {
-                        btn.className = "quiz-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-400 opacity-60";
+                        btn.className = "quiz-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 dl-panel-light text-xs text-slate-400 opacity-60";
                     }
                 }
             }
