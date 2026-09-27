@@ -62,12 +62,26 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .srp-sizebtn { display: flex; flex-direction: column; align-items: center; gap: .3rem; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: .6rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; color: var(--ink); }
   .srp-sizebtn svg { width: 34px; height: 34px; }
   .srp-sizebtn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
-  .srp-sky { position: relative; margin-top: .7rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); min-height: 260px; background: linear-gradient(180deg, #050a1c 0%, #0c1c3d 55%, #142a1c 70%, #24401f 100%); }
-  .srp-sky__stars { position: absolute; inset: 0; }
-  .srp-star { position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; opacity: .6; }
+  .srp-sky { position: relative; margin-top: .7rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); min-height: 340px; background: linear-gradient(180deg, #04060f 0%, #050a1c 28%, #0c1c3d 55%, #142a1c 74%, #24401f 100%); }
+  .srp-sky__stars { position: absolute; inset: 0; top: 0; height: 32%; overflow: hidden; pointer-events: none; }
+  .srp-star { position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; opacity: .6; animation: msw-twinkle 2.6s ease-in-out infinite; }
+  [data-reduced-motion="on"] .srp-star { animation: none; }
+  .srp-zoneline { position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #ffffff2a 20%, #ffffff2a 80%, transparent); }
+  .srp-zoneline__label { position: absolute; left: 8px; top: -.9rem; font-family: var(--font-data); font-size: .62rem; letter-spacing: .06em; color: #ffffff6a; text-transform: uppercase; }
+  .srp-sky__flight { position: absolute; inset: 0; }
+  .srp-stage-banner { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 6; font-family: var(--font-data); font-weight: 800; font-size: .82rem; letter-spacing: .04em; text-transform: uppercase; padding: .3rem .8rem; border-radius: 999px; background: #04060fcc; color: #cfe0ff; opacity: 0; transition: opacity .2s, color .25s, background .25s; white-space: nowrap; }
+  .srp-stage-banner.srp-show { opacity: 1; }
+  .srp-stage-banner.srp-band-meteoroid { color: #cfe0ff; background: #04060fcc; }
+  .srp-stage-banner.srp-band-meteor { color: #fff2d4; background: #7a2a0acc; box-shadow: 0 0 16px 2px #ff8a3c66; }
+  .srp-stage-banner.srp-band-meteorite { color: #eafff0; background: #1e6f3fcc; box-shadow: 0 0 16px 2px #4CE39166; }
+  .srp-stage-banner.srp-band-gone { color: #ffd9d9; background: #3a1414cc; }
   .srp-rock { position: absolute; z-index: 4; }
-  .srp-rock svg { display: block; filter: drop-shadow(0 0 6px #fff8); }
-  .srp-trail { position: absolute; z-index: 3; height: 3px; border-radius: 2px; background: linear-gradient(90deg, #fff, transparent); transform-origin: left center; pointer-events: none; }
+  .srp-rock svg { display: block; filter: drop-shadow(0 0 6px #fff8); transition: filter .25s; }
+  .srp-rock.srp-rock--burning svg { filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 12px #ff7a2f) drop-shadow(0 0 20px #ff4d1f); animation: srp-rock-pulse .35s ease-in-out infinite alternate; }
+  [data-reduced-motion="on"] .srp-rock.srp-rock--burning svg { animation: none; }
+  @keyframes srp-rock-pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
+  .srp-trail { position: absolute; z-index: 3; height: 3px; border-radius: 2px; background: linear-gradient(90deg, #cfe6ff, transparent); transform-origin: left center; pointer-events: none; }
+  .srp-trail.srp-trail--burning { height: 5px; background: linear-gradient(90deg, #fff 0%, #ffb35c 40%, #ff5a2f 75%, transparent); filter: drop-shadow(0 0 4px #ff6a2faa); }
   .srp-impact { position: absolute; z-index: 5; border-radius: 50%; pointer-events: none; }
   .srp-launchbtn { display: block; margin: .8rem auto 0; }
   .srp-meteorite-reveal { display: flex; align-items: center; gap: .7rem; margin-top: .7rem; padding: .6rem; border: 1px solid var(--line); border-radius: 10px; background: var(--accent-wash); }
@@ -677,19 +691,40 @@ function buildMeteorChain(mount, sim, onDone) {
       <h3 class="srp-station__title">${L("Meteor Chain Launcher", "Lanzador de la Cadena del Meteoro")}</h3>
       <span class="srp-station__done" id="srp-m-done">${L("✓ All sizes tried!", "✓ ¡Todos los tamaños probados!")}</span>
     </div>
-    <p class="q__hint">${L("Pick a rock size, then send it into Earth's atmosphere. Watch how far it gets.", "Elige un tamaño de roca y envíala a la atmósfera terrestre. Observa hasta dónde llega.")}</p>
+    <p class="q__hint">${L("Pick a rock size, then send it into Earth's atmosphere. Watch it travel through space as a meteoroid, then burn as a meteor when it hits the air — and see whether a piece survives to become a meteorite.", "Elige un tamaño de roca y envíala a la atmósfera terrestre. Obsérvala viajar por el espacio como meteoroide, y luego arder como meteoro al chocar con el aire — y comprueba si un trozo sobrevive y se convierte en meteorito.")}</p>
     <div class="srp-sizepick" id="srp-m-sizes"></div>
-    <div class="srp-sky" id="srp-m-sky"></div>
+    <div class="srp-sky" id="srp-m-sky">
+      <div class="srp-sky__stars" id="srp-m-stars"></div>
+      <div class="srp-zoneline" style="top:32%"><span class="srp-zoneline__label">${L("Outer space", "Espacio exterior")}</span></div>
+      <div class="srp-zoneline" style="top:74%"><span class="srp-zoneline__label">${L("Atmosphere", "Atmósfera")}</span></div>
+      <div class="srp-stage-banner" id="srp-m-banner"></div>
+      <div class="srp-sky__flight" id="srp-m-flight"></div>
+    </div>
     <button type="button" class="btn btn--signal srp-launchbtn" id="srp-m-launch">${L("Send into the atmosphere! →", "¡Enviar a la atmósfera! →")}</button>
     <div id="srp-m-reveal"></div>`;
   mount.append(card);
 
   const sizesEl = card.querySelector("#srp-m-sizes");
   const sky = card.querySelector("#srp-m-sky");
+  const stars = card.querySelector("#srp-m-stars");
+  const banner = card.querySelector("#srp-m-banner");
+  const flight = card.querySelector("#srp-m-flight");
   const launchBtn = card.querySelector("#srp-m-launch");
   const revealBox = card.querySelector("#srp-m-reveal");
   const doneTag = card.querySelector("#srp-m-done");
   let chosen = null;
+
+  /* A real starfield in the top "outer space" band, built once (not
+     regenerated per launch) so the zoomed-out space phase Diego asked for
+     reads as a real place, not just a dark gap before the atmosphere. */
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement("div"); s.className = "srp-star";
+    s.style.left = Math.random() * 100 + "%"; s.style.top = Math.random() * 100 + "%";
+    s.style.animationDelay = -(Math.random() * 2.4) + "s";
+    stars.append(s);
+  }
+
+  const SPACE_FRAC = 0.32, GROUND_FRAC = 0.74; // matches the .srp-zoneline markers above
 
   ROCK_SIZES.forEach(s => {
     const b = document.createElement("button"); b.type = "button"; b.className = "srp-sizebtn"; b.setAttribute("aria-pressed", "false");
@@ -702,33 +737,51 @@ function buildMeteorChain(mount, sim, onDone) {
     sizesEl.append(b);
   });
 
+  function setBanner(text, band) {
+    banner.textContent = text;
+    banner.className = "srp-stage-banner srp-show srp-band-" + band;
+  }
+
   launchBtn.addEventListener("click", () => {
     if (!chosen) { sim.toast(L("Pick a rock size first.", "Elige primero un tamaño de roca."), "info"); return; }
     launchBtn.disabled = true;
-    sky.innerHTML = "";
+    flight.innerHTML = "";
     revealBox.innerHTML = "";
     const skyRect = sky.getBoundingClientRect();
     const rock = document.createElement("div"); rock.className = "srp-rock";
     rock.innerHTML = `<svg viewBox="0 0 40 40" width="${chosen.id === "large" ? 34 : chosen.id === "medium" ? 26 : 18}" height="${chosen.id === "large" ? 34 : chosen.id === "medium" ? 26 : 18}">${chosen.ico.replace(/<svg[^>]*>|<\/svg>/g, "")}</svg>`;
-    sky.append(rock);
-    const startX = skyRect.width * 0.12, startY = 8;
-    const fullEndX = skyRect.width * 0.82, fullEndY = skyRect.height * 0.86;
-    const stopFrac = chosen.outcome === "burn" ? 0.62 : chosen.outcome === "small-meteorite" ? 0.9 : 1;
+    flight.append(rock);
+    setBanner(L("METEOROID — drifting through outer space", "METEOROIDE — flotando por el espacio exterior"), "meteoroid");
+
+    /* Starts high in the "outer space" band (per Diego: zoom out and show it
+       travelling through space FIRST) and only starts burning once it
+       visibly crosses into the atmosphere band below. */
+    const startX = skyRect.width * 0.1, startY = skyRect.height * 0.06;
+    const fullEndX = skyRect.width * 0.82, fullEndY = skyRect.height * 0.9;
+    const stopFrac = chosen.outcome === "burn" ? 0.7 : chosen.outcome === "small-meteorite" ? 0.92 : 1;
     let trailPts = [];
-    tweenLinear(chosen.outcome === "large-meteorite" ? 1500 : 1100, t => {
+    let burning = false;
+    tweenLinear(chosen.outcome === "large-meteorite" ? 2200 : 1800, t => {
       const tt = t * stopFrac;
       const x = startX + (fullEndX - startX) * tt, y = startY + (fullEndY - startY) * tt;
+      const yFrac = y / skyRect.height;
       rock.style.left = x + "px"; rock.style.top = y + "px";
-      rock.style.opacity = String(chosen.outcome === "burn" ? 1 - Math.max(0, (tt - 0.4) / 0.22) : 1);
+      if (!burning && yFrac >= SPACE_FRAC) {
+        burning = true;
+        rock.classList.add("srp-rock--burning");
+        burst(flight, (x / skyRect.width) * 100, (y / skyRect.height) * 100, ["#ffdca0", "#fff", "#ff7a2f"], 10);
+        setBanner(L("METEOR — burning up in the atmosphere!", "METEORO — ¡ardiendo en la atmósfera!"), "meteor");
+      }
+      rock.style.opacity = String(chosen.outcome === "burn" ? 1 - Math.max(0, (tt - 0.5) / 0.2) : 1);
       trailPts.push([x, y]);
       if (trailPts.length > 2) {
         const [px, py] = trailPts[trailPts.length - 2];
-        const seg = document.createElement("div"); seg.className = "srp-trail";
+        const seg = document.createElement("div"); seg.className = "srp-trail" + (burning ? " srp-trail--burning" : "");
         const dx = x - px, dy = y - py, dist = Math.hypot(dx, dy);
         seg.style.left = px + "px"; seg.style.top = py + "px"; seg.style.width = dist + "px";
         seg.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
-        seg.style.opacity = "0.7";
-        sky.append(seg);
+        seg.style.opacity = "0.85";
+        flight.append(seg);
         setTimeout(() => seg.style.opacity = "0", 30);
         setTimeout(() => seg.remove(), 500);
       }
@@ -737,15 +790,17 @@ function buildMeteorChain(mount, sim, onDone) {
     function finish() {
       const endX = startX + (fullEndX - startX) * stopFrac, endY = startY + (fullEndY - startY) * stopFrac;
       if (chosen.outcome === "burn") {
-        burst(sky, (endX / skyRect.width) * 100, (endY / skyRect.height) * 100, ["#ffdca0", "#fff", "#ffb35c"], 10);
+        burst(flight, (endX / skyRect.width) * 100, (endY / skyRect.height) * 100, ["#ffdca0", "#fff", "#ffb35c"], 10);
         rock.remove();
+        setBanner(L("Gone — burned up completely (never became a meteorite)", "Desaparecido — se quemó por completo (nunca fue meteorito)"), "gone");
         sim.toast(L("Burned up completely — nothing reached the ground.", "Se quemó por completo — nada llegó al suelo."), "info");
         revealBox.innerHTML = `<p class="q__hint">${L("This rock stayed a <strong>meteor</strong> the whole way — a bright streak of light with nothing left over.", "Esta roca se quedó como <strong>meteoro</strong> todo el trayecto — una estela brillante de luz sin nada que sobreviviera.")}</p>`;
       } else {
         const big = chosen.outcome === "large-meteorite";
-        burst(sky, (endX / skyRect.width) * 100, (endY / skyRect.height) * 100, ["#ffdca0", "#fff", "#c98b4a"], big ? 18 : 9);
+        burst(flight, (endX / skyRect.width) * 100, (endY / skyRect.height) * 100, ["#ffdca0", "#fff", "#c98b4a"], big ? 18 : 9);
         if (big && !reducedMotion()) { sky.animate([{ transform: "translateX(0)" }, { transform: "translateX(-4px)" }, { transform: "translateX(4px)" }, { transform: "translateX(0)" }], { duration: 260 }); }
         rock.remove();
+        setBanner(L("METEORITE! — a fragment survived to the ground", "¡METEORITO! — un fragmento sobrevivió hasta el suelo"), "meteorite");
         sim.toast(L("A fragment survived — meteorite recovered!", "¡Un fragmento sobrevivió — meteorito recuperado!"), "correct");
         revealBox.innerHTML = `<div class="srp-meteorite-reveal"><img src="photos/meteorite.jpg" alt="${L("A real iron meteorite specimen", "Un meteorito de hierro real")}"><p class="q__hint" style="margin:0">${L(`This is the same kind of real rock you saw earlier — a ${big ? "large" : "small"} fragment survived all the way to the ground and is now a genuine meteorite.`, `Es el mismo tipo de roca real que viste antes — un fragmento ${big ? "grande" : "pequeño"} sobrevivió hasta el suelo y ahora es un meteorito auténtico.`)}</p></div>`;
       }
@@ -756,6 +811,7 @@ function buildMeteorChain(mount, sim, onDone) {
       tried.add(chosen.id);
       if (tried.size === ROCK_SIZES.length) { doneTag.dataset.show = "true"; sim.award("meteorwatcher", L("Meteor Watcher", "Observador de Meteoros")); }
       launchBtn.disabled = false;
+      setTimeout(() => banner.classList.remove("srp-show"), 2600);
       onDone();
     }
   });
