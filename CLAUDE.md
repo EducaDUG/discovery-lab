@@ -1754,3 +1754,57 @@ recorded as the reference fix for this exact bug going forward:
   of every existing arcade/quest item for a missing `img` has been done as of this date — do not assume
   `sim-plant-biology` was the only offender; treat any other simulation's bonus round as unverified
   until someone has actually looked at a screenshot of it mid-play.
+
+### 12.7 Lesson from `sim-space-rock-patrol` feedback — flat coloured primitives and near-empty dark
+boxes read as "basic," even when the mechanic and content are correct (2026-09-28, standing rule).
+
+Diego, looking at the Steer the Comet 3D scene (a flat-shaded Sun, a solid-colour comet, a plain
+translucent cone for the tail, an otherwise empty black background) and the Meteor Shower Watch bonus
+round (a mostly-empty dark box with a handful of tiny static dots and one thin line appearing every few
+seconds): "this simulation is too basic... this is not the type of videogame I want to see in
+simulations, it needs to be way more exciting." Both scenes were functionally correct — the mechanic,
+the science, the pacing all worked — but read as low-effort because nothing in them had real depth,
+texture, or continuous motion. This is a distinct, generalisable failure mode from anything named
+before it (§4's mechanic-variety and real-photo rules are about *what* the interaction is; this is
+about *how visually rich the execution is*, even for an already-correctly-chosen mechanic):
+
+- **A Three.js scene with only flat `MeshBasicMaterial`/`MeshStandardMaterial` solid colours and an
+  empty black background is not finished, regardless of how correct its physics/logic is.** Before
+  calling any 3D scene done, it needs at minimum: a real starfield or equivalent ambient dressing (not
+  literal blackness), at least one surface with generated texture/noise rather than a flat colour (the
+  Sun, a planet, a rock — anything large enough on screen to read as "flat" otherwise), and continuous
+  idle motion beyond just camera auto-orbit (self-rotation, drift, tumbling debris). `sim-space-rock-
+  patrol`'s fix — `makeStarField()`, `makeNoiseTexture()`, `makeGlowTexture()` helpers added to that
+  activity's own `<script>` — is the reference pattern; these are cheap (small canvas-generated
+  textures, no network fetch, no CDN) and worth reaching for by default on every future 3D scene, not
+  just as a fix when flagged.
+- **A particle effect (a tail, a trail, a burst) drawn as a single flat-shaded mesh (a cone, a plane) is
+  a placeholder, not a finished effect.** A real particle system (`THREE.Points`, vertex-coloured,
+  continuously redistributed/animated per frame) reads as genuinely dynamic in a way a static flat mesh
+  never will, for roughly the same code cost. Reach for `THREE.Points` by default for anything meant to
+  look like a flowing/trailing/bursting phenomenon (a comet tail, smoke, sparks, a magic effect) rather
+  than a solid mesh standing in for it.
+- **A 2D/DOM/CSS "arcade sky" mechanic needs constant visible motion, not just the scored target
+  appearing every few seconds.** A dark box that sits empty 80%+ of the time between spawns reads as
+  broken or unfinished even when the underlying timing logic is working exactly as designed. Add
+  cheap, purely decorative, non-scored motion (background streaks, twinkling stars with staggered
+  animation-delay, a drifting/static moon or planet silhouette, soft colour-wash gradients) so the
+  scene is visibly alive at every moment, not just during the few seconds a real catchable target is
+  on screen. None of this needs to affect scoring or timing — it is pure "juice," and it is exactly
+  the kind of low-cost addition that makes the difference between "basic" and "exciting."
+- **Every hit/miss needs its own dedicated, satisfying reaction beyond the existing particle burst** —
+  a floating score popup (e.g. "+10" that rises and fades), a brief full-panel colour flash tied to
+  hit vs. miss, not just a shake on the button being pressed. Reuse this pattern (`popup()`/
+  `flashSky()` in `sim-space-rock-patrol`'s bonus round) for any future timing/catch mechanic.
+- **A real contrast bug was caught and fixed in the same pass, worth naming since it is an easy trap
+  when building a dark space-themed HUD**: text colours chosen for legibility against a dark game
+  panel (pale blue, white) are invisible if that HUD sits outside the dark panel, on the surrounding
+  card's normal light background. Any HUD/score display for a dark-themed game panel must live inside
+  (or have its own matching dark background fused to) that dark panel — never assume the ambient page
+  background will be dark just because the game scene is.
+- **This is a floor for every future dynamic scene or bonus round, in every subject** — not a one-off
+  fix to this simulation's comet station or meteor shower. When building or reviewing any new 3D scene
+  or 2D/DOM arcade-style mechanic, explicitly check it against this list — real texture/particles/
+  starfield dressing, continuous background motion, a dedicated juicy reaction per hit/miss, and HUD
+  contrast against its actual background — before considering it finished, the same standing as the
+  three-hands-on-moments and visual-manipulatives checks already required in §4.
