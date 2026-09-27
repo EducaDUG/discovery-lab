@@ -268,6 +268,101 @@ and interaction bar to hit.
   course has already used, and note the choice in the commit/PR description so the pattern is easy
   to audit later at library scale.
 
+**Amendment — competitor deep-dive on emdesigns.ai (Rachel Weiss / "PWO"), six more concrete
+mechanics added to the library, and quiz-in-the-action as a first-class pattern (agreed 2026-09-28).**
+Diego asked for a hands-on study of `emdesigns.ai/try` and `emdesigns.ai/arcade` — not just playing
+them as a visitor, but reading the actual shipped source (these are plain static builds with no
+server-side hiding, so their HTML/JS is genuinely inspectable, the same way a browser's "view source"
+always has been) — specifically to bring back techniques for Discovery Lab's own bonus rounds. Ten-plus
+finished games were surveyed; several use genuinely different engines and integration patterns from
+anything built here so far. Nothing below should be copied verbatim (their art, copy and code are
+theirs) — these are the *techniques*, re-derived for Discovery Lab's own stack and rules:
+
+- **Quiz-in-the-action, not quiz-as-checkpoint — a new standing option alongside the modal quiz
+  stop.** Their "Coffee Run" (a genuine Three.js subway-surfers-style 3D endless runner) never pauses
+  for a question: a prompt banner appears above the track mid-run, three lanes each become a physically
+  distinct, colour-coded "door" labelled with one answer choice, and the student answers by literally
+  steering the runner through the correct door while still dodging obstacles — right or wrong, the run
+  never stops. A wrong door doesn't fail the run either: it shows a small in-place toast ("Answer:
+  2:30 PM · it comes back soon") naming the correct answer plus a one-line memory hook, then play
+  continues immediately. **This is now an available pattern for any Discovery Lab bonus round or even
+  an Investigate mechanic that already involves steering/choosing a lane/track**: instead of stopping
+  the game for a multiple-choice modal, make the answer choices literal physical lanes/targets/doors
+  the student steers into mid-action. Prefer this over a modal quiz stop wherever the base mechanic
+  already has lanes, a cursor, or discrete targets to steer among — it keeps the "video game" feeling
+  continuous instead of interrupting it with a form.
+- **A lightweight custom Canvas-2D "pseudo-3D" renderer is a legitimate, cheaper alternative to full
+  Three.js for a cinematic action scene — a new available technique, not a replacement for the
+  Three.js rule above.** Their "Crowd Surge" (a medieval siege auto-battler) renders real depth and
+  motion using only a 2D canvas: one perspective-projection formula maps game-world (x, y) to screen
+  space with distance-based scaling (things further away are smaller and sit higher on screen — the
+  classic pseudo-3D "road" trick), composited over a single static, painterly AI-generated background
+  image per stage (swapped for a brighter "victory" version on clearing it), with actors drawn from one
+  small sprite-sheet and every bit of "juice" (particle bursts, screen-flash on a big hit, a pulsing
+  raid-warning banner, floating "×3" text at a multiplier gate) hand-coded as plain canvas draw calls —
+  the whole engine file is about 10KB, no WebGL, no asset pipeline. **Reach for this instead of full
+  Three.js when a scene wants a strong sense of depth and spectacle but doesn't need real orbit/rotate
+  camera control** (contrast with CLAUDE.md's existing orbitable-Three.js default for the core
+  Investigate 3D scene, which stays the right call whenever drag-to-orbit itself is part of the
+  learning moment). This is exactly in Discovery Lab's own spirit (no CDN, no build step, tiny file,
+  fully hand-editable) and is worth promoting to a shared `engine/` module once a second simulation
+  wants it, the same way `arcade.js`/`quest3d.js` themselves started as one activity's bespoke build.
+- **Six more named mechanics for the standing Bonus Game Mechanic Library above** (same "check what the
+  course already used, pick one not yet used" discipline applies):
+  - **Steer-through-the-answer runner** — an endless-runner/lane-dodge base (à la tunnel-rush) where
+    quiz answers are colour-coded doors/lanes steered into mid-run, per the quiz-in-the-action pattern
+    above, instead of a separate multiple-choice screen.
+  - **Auto-battler tug-of-war** — a continuous, mostly-watch-and-nudge simulation (units spawn on a
+    timer, march toward and multiply at a "recruit more / tougher" fork the student drags between,
+    clash automatically with periodic enemy waves, chip down a shared health bar) where quiz answers
+    between stages grant a persistent-for-the-run upgrade that visibly changes the next stage's tactics
+    (e.g. new weapon, tougher units) — good for content with an escalating-stages structure (a process
+    with repeated cycles, a multi-part campaign, successive trophic levels).
+  - **Grow-by-collecting arena (".io-style")** — steer a small avatar around a timed arena absorbing
+    correctly-labelled clutter/resources while avoiding or out-growing rival bots, with a live
+    in-round leaderboard; special glowing pickups trigger a quiz question that "powers up" the avatar
+    on a correct answer. Good for sorting/classification content where "collect the right category of
+    thing, avoid the wrong one" is the whole point.
+  - **Reskin a classic, universally-known arcade format** — Tetris, Pac-Man, Frogger, Wordle,
+    word-scramble, paper-toss and similar formats need zero tutorial because everyone already knows
+    how to play them; the design effort goes entirely into the visual theme and how quiz content maps
+    onto the mechanic (e.g. a Frogger-style "cross safely" where each lane is labelled with an answer
+    choice, or a Wordle-style guess-the-term drill for vocabulary). Consider this whenever a genuinely
+    new bespoke mechanic isn't warranted but tunnel-rush/quest3d have both been used recently in that
+    course — a well-known format executed with Discovery Lab's own art and content still counts as
+    real mechanical variety against the "check what's been used" rule.
+  - **Speech-bubble shooting gallery** — a scenario/question appears in a speech bubble; several
+    labelled targets (cannons, doors, platforms) are the answer choices; hitting the right one pops the
+    bubble and scores, hitting the wrong one visibly misfires (their reference used Phaser 3, a real
+    lightweight 2D game framework — vendoring a small MIT-licensed engine like Phaser is worth
+    considering for a sprite/physics-heavy mechanic where hand-rolled canvas code would be more work
+    than a purpose-built 2D framework, the same judgement call already made for Three.js).
+  - **Cosmetic avatar choice** — a low-cost, no-mechanical-difference pick of who/what represents the
+    student (their reference: "who's running today?", a boy/girl runner choice, explicitly "same
+    ninety seconds either way") is a cheap way to add investment and representation to any runner/
+    avatar-based mechanic; keep it purely cosmetic so it never becomes a hidden difficulty or content
+    fork.
+- **A confirmed real-world instance of "cost time, never health" as a no-fail-state design** — their
+  "Priority Rush" states its own rule on the title card: "Nothing here can hurt you. Everything here
+  can cost you time." This is a concrete worked example of CLAUDE.md §6's existing "no interaction that
+  penalises a student for taking their time" rule *combined* with a genuine sense of urgency: instead of
+  a health bar or a fail state, going slowly costs progress toward the objective (making the meeting,
+  clearing the level in time) while nothing ever kills the run outright. Prefer this shape — urgency
+  through an objective/clock, never through a punishable health/lives system — for any new bonus
+  mechanic that wants stakes without contradicting the no-penalise-pacing rule.
+- **What was seen but is NOT being adopted, and why, stated so it doesn't get re-proposed later:** one
+  of their games ("Spark Circuit") ships the actual Godot game engine compiled to WebAssembly — a real,
+  professional option in general, but a multi-megabyte opaque binary blob is the exact opposite of
+  Discovery Lab's own "no build step, any activity editable by opening one file, everything vendored
+  and hand-inspectable" engineering rule (Section 10). Stick to plain ES modules, Three.js, and
+  hand-written Canvas 2D (optionally a small vendored framework like Phaser for a sprite-heavy
+  mechanic) — never a compiled game-engine binary — for every Discovery Lab simulation.
+- **Immediate, in-place wrong-answer feedback with a memory hook, not just "incorrect."** Coffee Run's
+  toast pattern above ("Answer: X · [one-line reason/mnemonic]") is a good concrete reference for how
+  §4's existing "every click path needs immediate in-place feedback" rule should read in a bonus round
+  specifically: name the right answer and give a one-line reason or hook, in place, without stopping
+  play — never a bare "wrong" with no correction shown.
+
 **Amendment — at least THREE hands-on, things-move moments in every Investigate, on top of the
 bonus round, hard rule going forward (agreed 2026-09-18).** Diego, after seeing Mission: Blue
 Planet's first cut (a slider plus a static-looking floating egg): "this looks quite static... there
