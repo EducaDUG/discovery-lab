@@ -1048,6 +1048,44 @@ What he sends is deliberately minimal: a slide screenshot, a PowerPoint file, or
 the mission, the mechanic, the questions, the real-life hook, the rubric. Do not ask him to
 spec it. Ask only if the course or age band is genuinely ambiguous.
 
+**Mandatory pre-flight checklist — run through this BEFORE writing any code, every time
+(agreed 2026-09-28, non-negotiable).** Diego has now had to give the same categories of
+feedback more than once across different simulations — a scene too basic/flat, a click that
+silently does nothing, a drawing standing in for a real photo — each one gets fixed and folded
+into this file as a dated amendment (§12's standing dual-apply rule), but the point of doing
+that is so it is never needed again, not so there is a longer document to half-remember. His
+own words: *"I wouldn't like to have to give you this sort of feedback... every time I give you
+feedback, you should check your internal instructions so that future simulations contain all of
+that."* From now on this is a literal checklist, consulted before the first line of a new
+activity is written, not background knowledge recalled from memory:
+
+- **Every 3D scene has real texture/particle/starfield dressing and continuous idle motion** —
+  never flat-shaded primitives (`MeshBasicMaterial`/`MeshStandardMaterial` solid colours) floating
+  in an empty background. See §4's Gizmos/CK-12 visual bar and §12.7's `makeStarField()`/
+  `makeNoiseTexture()`/`makeGlowTexture()` pattern.
+- **Every photographable real object gets a real, licence-verified photo** — never an SVG
+  illustration or emoji standing in for one. See §4's real-photo and CRITICAL visual-manipulatives
+  rules, and §12.4/§12.6's "real photo, never an emoji, as the fix" reinforcement.
+- **Every click path — correct or wrong — gets an immediate, in-place visible reaction.** Nothing
+  in the interface should ever silently do nothing when tapped. See §4's interactivity-density
+  amendment.
+- **Every simulation has its mandatory bonus round**, built from a mechanic this course (and the
+  last few simulations sitewide) hasn't just used. See §4's Bonus Game Mechanic Library and §12.5's
+  "don't default to arcade.js/quest3d.js just because they already exist" correction.
+- **Investigate has at least three separate hands-on moments where something visibly moves**, on
+  top of the bonus round. See §4's four-moments floor.
+- **Every arcade/quest/bonus-round item that represents a real object actually renders an `img`**,
+  checked by mounting the round and looking at a screenshot mid-play — not assumed from the code.
+  See §12.5/§12.6.
+
+This list is an index into standing rules already written out in full elsewhere in this file —
+re-read the specific dated amendment for anything you're unsure how to apply, don't guess from
+the one-line summary here. Confirm each point explicitly before calling a new activity's
+Investigate stage or bonus round finished, the same discipline already required for
+`learningFocus`/`orient.successCriteria` before publishing (§13). When Diego relays feedback that
+falls into a category already on this list, that is a signal the checklist was skipped or
+under-applied on that build, not just a normal amendment to log — treat it accordingly.
+
 **Steps for a new activity:**
 
 1. Read `data/subjects.json`. Find the course node he named.
