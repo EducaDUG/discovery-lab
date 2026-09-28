@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar Power Station: Chase the Sun — Discovery Lab</title>
+<meta name="description" content="Tilt a real 3D solar panel, chase the sun across the sky, and catch the moment power peaks — a real investigation into the photovoltaic effect and angle of incidence.">
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='22' r='11' fill='%23F0B34C'/><rect x='12' y='38' width='40' height='20' rx='2' fill='%231F3B5C' stroke='%234CC0DB' stroke-width='2'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Observation: real photo hotspot labelling ---- */
+.hs-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:46rem){.hs-wrap{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:start;}}
+.hs-photo{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:#0c1a26;
+  border:1px solid var(--line-strong);max-width:20rem;margin-inline:auto;}
+.hs-photo img{display:block;width:100%;height:auto;}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.4rem;height:2.4rem;border:none;background:transparent;
+  cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.05rem;height:1.05rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 25%, transparent);
+  animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+.hotspot.is-done .hotspot__dot{background:var(--positive);box-shadow:0 0 0 5px color-mix(in srgb, var(--positive) 22%, transparent);animation:none;}
+.hs-credit{font-size:.68rem;color:var(--ink-3);text-align:center;padding:.5em;}
+.hs-credit a{color:inherit;}
+.hs-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.hs-part{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);font:inherit;color:var(--ink);
+  cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.hs-part:hover{border-color:var(--accent);}
+.hs-part.is-done{border-color:var(--positive);cursor:default;}
+.hs-part.is-done .hs-part__mark{color:var(--positive);}
+.hs-part__mark{margin-left:auto;font-weight:800;}
+.reveal-panel{padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);
+  background:var(--surface);min-height:3.4rem;font-size:var(--step--1);margin-top:var(--sp-3);}
+.reveal-panel__hint{color:var(--ink-3);}
+
+/* ---- Experiment: Solar Power Station (real 3D) ---- */
+.station{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:58rem){.station{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start;}}
+.stage3d{position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  border:1px solid #0c2440;aspect-ratio:5/4;min-height:19rem;
+  background:radial-gradient(120% 100% at 50% 100%, #2a6b8a 0%, #12385c 42%, #071a30 100%);
+  box-shadow:inset 0 0 120px rgba(0,0,0,.5), var(--shadow-2);}
+.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:grab;touch-action:none;}
+.stage3d canvas:active{cursor:grabbing;}
+.stage3d__boot{position:absolute;inset:0;display:grid;place-items:center;color:#cfe8ff;
+  font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.1em;text-transform:uppercase;gap:var(--sp-3);}
+.boot-dot{width:44px;height:44px;border-radius:50%;border:3px solid #1d4c78;border-top-color:#4cc0db;
+  animation:spin 1s linear infinite;margin-inline:auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+[data-reduced-motion=on] .boot-dot{animation-duration:2s;}
+.hud{position:absolute;pointer-events:none;color:#eaf6ff;font-family:var(--font-data);z-index:2;}
+.hud--hint{bottom:var(--sp-3);left:0;right:0;text-align:center;font-size:.68rem;letter-spacing:.13em;
+  text-transform:uppercase;color:#8fc4de;opacity:.85;}
+.hud--pw{top:var(--sp-3);right:var(--sp-3);left:auto;background:#04182ecc;border:1px solid #1d4c78;
+  padding:.3em .8em;border-radius:999px;font-weight:700;font-size:var(--step-1);letter-spacing:.02em;}
+.dl-burst{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+.dl-burst i{position:absolute;width:7px;height:7px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+
+.ctrl{display:flex;flex-direction:column;gap:var(--sp-2);}
+.ctrl__top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
+.ctrl__name{font-family:var(--font-data);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);}
+.ctrl__val{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);color:var(--ink);}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);height:1.6rem;}
+.chip-row{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.chip-btn{font-family:var(--font-data);font-size:.7rem;padding:.3em .75em;border-radius:999px;
+  border:1px solid var(--line-strong);color:var(--ink-2);background:var(--paper);cursor:pointer;}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash);}
+.chip-btn[aria-pressed=true]{border-color:var(--accent);color:var(--accent-ink);background:var(--accent);}
+.readout-row{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin-top:var(--sp-3);}
+.ro{display:flex;flex-direction:column;gap:1px;}
+.ro__k{font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.ro__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);color:var(--ink);}
+.log-btn{width:100%;}
+.log-btn.is-armed{animation:logready 1.3s ease-in-out infinite;}
+@keyframes logready{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--signal) 45%, transparent);}50%{box-shadow:0 0 0 10px color-mix(in srgb, var(--signal) 0%, transparent);}}
+[data-reduced-motion=on] .log-btn.is-armed{animation:none;}
+
+/* ---- Moment 3: Catch the Peak — needle-sweep timing game ---- */
+.catchbox{border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--sp-3);background:var(--surface);margin-top:var(--sp-3);}
+.sweep{position:relative;height:2.4rem;border-radius:999px;background:var(--paper);border:1px solid var(--line-strong);
+  overflow:hidden;margin:var(--sp-2) 0;}
+.sweep__needle{position:absolute;top:0;bottom:0;width:4px;background:var(--signal);box-shadow:0 0 8px var(--signal);border-radius:2px;}
+.sweep__scale{display:flex;justify-content:space-between;font-family:var(--font-data);font-size:.62rem;color:var(--ink-3);}
+.catch-btn{width:100%;}
+.catch-btn.pop{animation:catchpop .3s var(--ease-out-back);}
+@keyframes catchpop{0%{transform:scale(1);}45%{transform:scale(1.06);}100%{transform:scale(1);}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Renewable Energy</a></li>
+      <li><a href="../">Module 1: Solar Energy Fundamentals</a></li>
+      <li><span aria-current="page">Solar Power Station</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secundaria</a></li>
+      <li><a href="../../../../">Itinerario estadounidense</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Energías Renovables</a></li>
+      <li><a href="../">Módulo 1: Fundamentos de la Energía Solar</a></li>
+      <li><span aria-current="page">Central Solar</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=19";
+import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../engine/arcade.js?v=3";
+import { getLang } from "../../../../../../engine/i18n.js?v=9";
+
+const THREE_URL = "../../../../../../engine/vendor/three.min.js";
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ======================================================================
+   REAL PHOTO — close-up photovoltaic panel.
+   Photo: Noggen13, "Photovoltaic Panels Close up", Wikimedia Commons,
+   CC BY-SA 4.0 (resized). License verified on the file's own page.
+   ====================================================================== */
+const PHOTO_SRC = "photos/solar-panel-closeup.jpg";
+const PHOTO_CREDIT = 'Photo: Noggen13 — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a> (resized)';
+const SPOTS = [
+  { id: "cell", fx: 0.5, fy: 0.42,
+    name: L("Photovoltaic cells", "Células fotovoltaicas"),
+    text: L("Each dark blue square is a silicon photovoltaic cell — this is where sunlight is actually converted into electricity.",
+      "Cada cuadro azul oscuro es una célula fotovoltaica de silicio — aquí es donde la luz solar se convierte realmente en electricidad.") },
+  { id: "gridlines", fx: 0.72, fy: 0.30,
+    name: L("Silver grid lines", "Líneas plateadas de rejilla"),
+    text: L("Thin silver wires printed on each cell collect the electric current the cell generates and carry it out to the panel's wiring.",
+      "Finos hilos plateados impresos sobre cada célula recogen la corriente eléctrica que genera y la llevan hasta el cableado del panel.") },
+  { id: "gap", fx: 0.30, fy: 0.66,
+    name: L("Cell gaps", "Uniones entre células"),
+    text: L("The narrow gaps between cells are where individual cells are wired together in a chain, so their small voltages add up to something useful.",
+      "Las estrechas uniones entre células son donde las células individuales se conectan en cadena, para que sus pequeños voltajes se sumen a algo útil.") },
+  { id: "surface", fx: 0.85, fy: 0.78,
+    name: L("Anti-reflective surface", "Superficie antirreflectante"),
+    text: L("The glossy, slightly blue-tinted surface is coated to reflect as little sunlight as possible — reflected light is light the panel never gets to use.",
+      "La superficie brillante, con un ligero tinte azul, está recubierta para reflejar la menor cantidad de luz solar posible — la luz reflejada es luz que el panel nunca llega a usar.") },
+];
+
+/* ======================================================================
+   PHYSICS MODEL (deterministic, simplified).
+   Sun elevation across the day (0deg at 06:00/18:00, 90deg at solar noon):
+     elev(hour) = 90 * sin(PI * (hour-6)/12), clamped to [0,90], 0 outside 6-18.
+   Optimal panel tilt (from horizontal ground) to face the sun square-on:
+     optimalTilt = 90 - elev.
+   Angle of incidence AOI = |tilt - optimalTilt|  (0 = perfectly facing the sun).
+   Power% = cos(AOI) * skyFactor * 100, clamped, 0 if sun is below the horizon.
+   ====================================================================== */
+const SKY = [
+  { id: "sunny", label: L("Sunny", "Soleado"), factor: 1.0 },
+  { id: "hazy", label: L("Hazy / partly cloudy", "Neblina / parcial"), factor: 0.68 },
+  { id: "overcast", label: L("Overcast", "Nublado"), factor: 0.32 },
+];
+function sunElevation(hour) {
+  if (hour <= 6 || hour >= 18) return 0;
+  return Math.max(0, 90 * Math.sin(Math.PI * (hour - 6) / 12));
+}
+function optimalTilt(hour) { return 90 - sunElevation(hour); }
+function powerPct(tilt, hour, skyId) {
+  const elev = sunElevation(hour);
+  if (elev <= 0) return 0;
+  const aoi = Math.abs(tilt - optimalTilt(hour));
+  const sky = SKY.find(s => s.id === skyId) || SKY[0];
+  const p = Math.cos(aoi * Math.PI / 180) * sky.factor * 100;
+  return Math.max(0, Math.round(p));
+}
+function hourLabel(h) {
+  const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+  return String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0");
+}
+
+let sim = null;
+let game = { tilt: 30, hour: 12, sky: "sunny", arcadeBest: 0 };
+
+/* ======================================================================
+   THE 3D SCENE — an orbitable solar power station: a tiltable panel on a
+   post, a sun that arcs across the sky as "hour" changes, drifting clouds
+   for continuous idle motion, and a canvas-generated cell texture (never a
+   flat solid colour) on the panel face. Drag to orbit, scroll to zoom.
+   ====================================================================== */
+function cellTexture(THREE) {
+  const c = document.createElement("canvas"); c.width = 256; c.height = 160;
+  const g = c.getContext("2d");
+  g.fillStyle = "#0e2a4a"; g.fillRect(0, 0, c.width, c.height);
+  const cols = 8, rows = 5, gap = 3;
+  const cw = (c.width - gap * (cols + 1)) / cols, ch = (c.height - gap * (rows + 1)) / rows;
+  for (let r = 0; r < rows; r++) for (let cIdx = 0; cIdx < cols; cIdx++) {
+    const x = gap + cIdx * (cw + gap), y = gap + r * (ch + gap);
+    const grd = g.createLinearGradient(x, y, x + cw, y + ch);
+    grd.addColorStop(0, "#173e6b"); grd.addColorStop(1, "#0b2340");
+    g.fillStyle = grd; g.fillRect(x, y, cw, ch);
+    g.strokeStyle = "rgba(140,190,230,.55)"; g.lineWidth = 0.6;
+    for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(x, y + (ch / 4) * i); g.lineTo(x + cw, y + (ch / 4) * i); g.stroke(); }
+    g.beginPath(); g.moveTo(x + cw / 2, y); g.lineTo(x + cw / 2, y + ch); g.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.needsUpdate = true;
+  return tex;
+}
+function glowTexture(THREE, inner, outer) {
+  const c = document.createElement("canvas"); c.width = c.height = 128;
+  const g = c.getContext("2d");
+  const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, inner); grd.addColorStop(0.4, inner); grd.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+function cloudTexture(THREE) {
+  const c = document.createElement("canvas"); c.width = c.height = 128;
+  const g = c.getContext("2d");
+  for (let i = 0; i < 6; i++) {
+    const x = 20 + Math.random() * 88, y = 40 + Math.random() * 48, r = 18 + Math.random() * 20;
+    const grd = g.createRadialGradient(x, y, 0, x, y, r);
+    grd.addColorStop(0, "rgba(255,255,255,.5)"); grd.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function build3D(THREE, stageEl) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stageEl.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x0a2444, 9, 22);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+
+  scene.add(new THREE.HemisphereLight(0xbfe0ff, 0x142a1a, 0.65));
+  const sunLight = new THREE.DirectionalLight(0xfff2d0, 1.15);
+  sunLight.castShadow = true; sunLight.shadow.mapSize.set(1024, 1024);
+  scene.add(sunLight);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+  // ground field
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0x2c4a2e, roughness: 0.95 });
+  const ground = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 0.3, 48), groundMat);
+  ground.position.y = -1.8; ground.receiveShadow = true; scene.add(ground);
+
+  // post + panel group (pivots at hinge for tilt)
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.5, 12),
+    new THREE.MeshStandardMaterial({ color: 0x555b63, roughness: 0.6 }));
+  post.position.y = -1.05; post.castShadow = true; scene.add(post);
+
+  const hinge = new THREE.Group(); hinge.position.y = -0.3; scene.add(hinge);
+  const panel = new THREE.Group();
+  const cellTex = cellTexture(THREE);
+  const panelMesh = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 0.06),
+    new THREE.MeshStandardMaterial({ map: cellTex, roughness: 0.28, metalness: 0.15 }));
+  panelMesh.castShadow = true; panelMesh.receiveShadow = true;
+  panelMesh.position.z = 0.03;
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.5, 0.04),
+    new THREE.MeshStandardMaterial({ color: 0xc9ced4, metalness: 0.5, roughness: 0.4 }));
+  panel.add(frame, panelMesh);
+  panel.position.set(0, 0.7, 0);
+  hinge.add(panel);
+
+  // sparkle sprite pool (moment 1 feedback)
+  const sparkTex = glowTexture(THREE, "rgba(255,240,170,1)", "");
+  const sparks = [];
+  for (let i = 0; i < 14; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: sparkTex, transparent: true, opacity: 0, depthWrite: false }));
+    s.scale.set(0.35, 0.35, 1); s.visible = false; scene.add(s); sparks.push(s);
+  }
+  function spark() {
+    const origin = panel.localToWorld(new THREE.Vector3(0, 0, 0.1));
+    for (let i = 0; i < 10; i++) {
+      const s = sparks.find(x => !x.visible); if (!s) continue;
+      s.visible = true; s.material.opacity = 1;
+      s.position.copy(origin);
+      s.userData = { vx: (Math.random() - 0.5) * 2.2, vy: Math.random() * 1.8 + 0.4, vz: (Math.random() - 0.5) * 2.2, life: 0 };
+    }
+  }
+
+  // sun sprite, arcs across the sky as hour changes
+  const sunTex = glowTexture(THREE, "rgba(255,230,150,1)", "");
+  const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTex, transparent: true, depthWrite: false }));
+  sunSprite.scale.set(2.2, 2.2, 1);
+  scene.add(sunSprite);
+
+  // drifting clouds — continuous idle motion even before the student touches anything
+  const cloudTex = cloudTexture(THREE);
+  const clouds = [];
+  for (let i = 0; i < 3; i++) {
+    const cl = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, transparent: true, opacity: 0.5, depthWrite: false }));
+    cl.scale.set(4 + i, 1.6 + i * 0.3, 1);
+    cl.position.set(-7 + i * 6, 4.5 + i * 0.6, -6 - i);
+    scene.add(cl); clouds.push(cl);
+  }
+
+  const SUN_R = 7.5;
+  function setHour(hour) {
+    const elev = sunElevation(hour) * Math.PI / 180;
+    const az = ((hour - 12) / 12) * Math.PI * 0.9; // east->west sweep
+    const x = SUN_R * Math.sin(az) * Math.cos(elev);
+    const y = Math.max(0.3, SUN_R * Math.sin(elev)) + 0.5;
+    const z = -SUN_R * Math.cos(az) * Math.cos(elev) + 1;
+    sunSprite.position.set(x, y, z);
+    sunLight.position.set(x, y, z);
+    const below = sunElevation(hour) <= 0;
+    sunSprite.material.opacity = below ? 0.15 : 1;
+    sunLight.intensity = below ? 0.15 : 0.7 + (sunElevation(hour) / 90) * 0.6;
+  }
+  function setTilt(deg) { hinge.rotation.x = -(deg * Math.PI / 180); }
+
+  // ---- camera orbit ----
+  let az2 = 0.5, pol = 1.15, rad = 7.4, autoT = 0, dragging = false, lastX = 0, lastY = 0;
+  function applyCam() {
+    const x = rad * Math.sin(pol) * Math.cos(az2), z = rad * Math.sin(pol) * Math.sin(az2), y = rad * Math.cos(pol);
+    camera.position.set(x, y - 0.1, z); camera.lookAt(0, -0.2, 0);
+  }
+  const dom = renderer.domElement;
+  dom.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; autoT = 0; dom.setPointerCapture(e.pointerId); });
+  dom.addEventListener("pointermove", e => { if (!dragging) return; az2 -= (e.clientX - lastX) * 0.008; pol = Math.max(0.55, Math.min(1.5, pol - (e.clientY - lastY) * 0.006)); lastX = e.clientX; lastY = e.clientY; });
+  dom.addEventListener("pointerup", () => { dragging = false; });
+  dom.addEventListener("wheel", e => { e.preventDefault(); rad = Math.max(4.8, Math.min(10, rad + e.deltaY * 0.003)); }, { passive: false });
+
+  function resize() { const w = stageEl.clientWidth, h = stageEl.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  const ro = new ResizeObserver(resize); ro.observe(stageEl); resize();
+
+  let last = performance.now(), cloudPhase = 0;
+  function loop(now) {
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
+    if (!dragging && !reduced) { autoT += dt; if (autoT > 1.8) az2 += dt * 0.07; }
+    applyCam();
+
+    // drifting clouds (always moving, never a perfectly static sky)
+    cloudPhase += dt;
+    clouds.forEach((cl, i) => { cl.position.x = -7 + i * 6 + Math.sin(cloudPhase * 0.12 + i) * 2.4; });
+
+    // sparks
+    sparks.forEach(s => {
+      if (!s.visible) return;
+      s.userData.life += dt;
+      s.position.x += s.userData.vx * dt; s.position.y += s.userData.vy * dt; s.position.z += s.userData.vz * dt;
+      s.userData.vy -= dt * 1.6;
+      s.material.opacity = Math.max(0, 1 - s.userData.life / 0.9);
+      if (s.userData.life > 0.9) s.visible = false;
+    });
+
+    // gentle panel glint even at rest
+    if (!reduced) panelMesh.material.emissiveIntensity = 0;
+
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(loop);
+  }
+  let raf = requestAnimationFrame(loop);
+
+  return { setHour, setTilt, spark, dispose() { cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); } };
+}
+
+/* ======================================================================
+   2D FALLBACK (no WebGL) — same controls, same three moments, a simple
+   CSS/SVG rendering instead of Three.js.
+   ====================================================================== */
+function build2DFallback(stageEl) {
+  stageEl.innerHTML = `<div style="position:absolute;inset:0;display:grid;place-items:center;color:#eaf6ff;font-family:var(--font-data);text-align:center;padding:1rem;">
+    <div><svg id="fb-sun" width="46" height="46" style="filter:drop-shadow(0 0 10px #f0b34c)"><circle cx="23" cy="23" r="16" fill="#f0b34c"/></svg>
+    <div style="margin-top:.6rem;"><svg id="fb-panel" width="140" height="90" style="transition:transform .3s"><rect width="140" height="90" fill="#0e2a4a" stroke="#c9ced4" stroke-width="3"/></svg></div>
+    <p style="font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.7;margin-top:.6rem;">${L("Simplified view — your device can't run the full 3D scene","Vista simplificada — tu dispositivo no puede ejecutar la escena 3D completa")}</p></div>
+  </div>`;
+  const panelEl = stageEl.querySelector("#fb-panel");
+  return {
+    setHour() {}, spark() {},
+    setTilt(deg) { panelEl.style.transform = `perspective(300px) rotateX(${deg}deg)`; },
+    dispose() {},
+  };
+}
+
+let threePromise = null;
+function loadThree() {
+  if (window.THREE) return Promise.resolve(window.THREE);
+  if (threePromise) return threePromise;
+  threePromise = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = THREE_URL;
+    s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("THREE missing"));
+    s.onerror = () => rej(new Error("three.min.js failed to load"));
+    document.head.appendChild(s);
+  });
+  return threePromise;
+}
+
+function burst(host, color) {
+  const layer = document.createElement("div"); layer.className = "dl-burst"; host.appendChild(layer);
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement("i"); p.style.background = color;
+    const ang = Math.random() * Math.PI * 2, dist = 40 + Math.random() * 70;
+    p.style.setProperty("--dx", Math.cos(ang) * dist + "px"); p.style.setProperty("--dy", Math.sin(ang) * dist + "px");
+    p.animate([{ transform: "translate(0,0)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px)`, opacity: 0 }],
+      { duration: 650, easing: "cubic-bezier(.2,.7,.3,1)" });
+    layer.appendChild(p);
+  }
+  setTimeout(() => layer.remove(), 700);
+}
+
+const HYPOTHESIS_TEXT = {
+  a: L("If sunlight hits a solar panel more directly, then power output will increase, because more sunlight energy lands on each square inch of the panel's surface.",
+    "Si la luz solar incide sobre un panel solar de forma más directa, entonces la potencia aumentará, porque más energía de luz solar llega a cada centímetro cuadrado de la superficie del panel."),
+  b: L("If sunlight hits a solar panel more directly, then power output will decrease, because a steeper angle blocks sunlight from reaching the panel.",
+    "Si la luz solar incide sobre un panel solar de forma más directa, entonces la potencia disminuirá, porque un ángulo más directo bloquea la luz solar."),
+  c: L("If sunlight hits a solar panel more directly, then power output will stay the same, because the panel's size never changes.",
+    "Si la luz solar incide sobre un panel solar de forma más directa, entonces la potencia se mantendrá igual, porque el tamaño del panel nunca cambia."),
+  d: L("If sunlight hits a solar panel more directly, then power output will become random, because solar panels only work reliably at midday.",
+    "Si la luz solar incide sobre un panel solar de forma más directa, entonces la potencia se volverá aleatoria, porque los paneles solares solo funcionan de forma fiable al mediodía."),
+};
+
+const simulation = {
+  observation(host, api) {
+    host.innerHTML = ""; sim = api;
+    sim.setScienceMethod({
+      observation: L(
+        "A real close-up photograph of a solar panel shows it isn't one smooth surface — it's a grid of individual photovoltaic cells, wired together, coated to avoid reflecting light away.",
+        "Una fotografía real de cerca de un panel solar muestra que no es una sola superficie lisa — es una rejilla de células fotovoltaicas individuales, conectadas entre sí y recubiertas para evitar reflejar la luz."),
+      question: L("Can the angle between sunlight and a panel's surface be tested and measured to find the most efficient tilt?",
+        "¿Se puede probar y medir el ángulo entre la luz solar y la superficie de un panel para encontrar la inclinación más eficiente?")
+    });
+
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Tap each glowing dot on this real close-up photograph to see what a solar panel is actually made of, before you build your own.",
+      "Toca cada punto brillante de esta fotografía real de cerca para ver de qué está hecho realmente un panel solar, antes de construir el tuyo.");
+    host.append(intro);
+
+    const wrap = document.createElement("div"); wrap.className = "hs-wrap";
+    const photoBox = document.createElement("div"); photoBox.className = "hs-photo";
+    photoBox.innerHTML = `<img src="${PHOTO_SRC}" width="960" height="1280" loading="lazy" alt="${L(
+      "A real close-up photograph of a photovoltaic solar panel showing its grid of dark blue silicon cells and thin silver wiring.",
+      "Una fotografía real de cerca de un panel solar fotovoltaico que muestra su rejilla de células de silicio azul oscuro y su fino cableado plateado."
+    )}">`;
+    const tray = document.createElement("div"); tray.className = "hs-tray";
+    const reveal = document.createElement("div"); reveal.className = "reveal-panel";
+    reveal.innerHTML = `<span class="reveal-panel__hint">${L("Tap a glowing dot on the photo, or a part below ↓","Toca un punto brillante en la foto, o una parte de abajo ↓")}</span>`;
+
+    const nodes = {};
+    SPOTS.forEach(s => {
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "hotspot";
+      btn.style.left = (s.fx * 100) + "%"; btn.style.top = (s.fy * 100) + "%";
+      btn.setAttribute("aria-label", L("Learn about ", "Aprende sobre ") + s.name);
+      btn.innerHTML = `<span class="hotspot__dot"></span>`;
+      const part = document.createElement("button"); part.type = "button"; part.className = "hs-part";
+      part.innerHTML = `<span>${s.name}</span><span class="hs-part__mark">•</span>`;
+      function show() {
+        btn.classList.add("is-done"); part.classList.add("is-done");
+        part.querySelector(".hs-part__mark").textContent = "✓";
+        reveal.innerHTML = `<b>${s.name}</b><br>${s.text}`;
+        if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(`${s.name}. ${s.text}`);
+      }
+      btn.addEventListener("click", show); part.addEventListener("click", show);
+      nodes[s.id] = { btn, part }; photoBox.append(btn); tray.append(part);
+    });
+
+    const credit = document.createElement("p"); credit.className = "hs-credit"; credit.innerHTML = PHOTO_CREDIT;
+    const left = document.createElement("div"); left.append(photoBox, credit);
+    const right = document.createElement("div"); right.append(tray, reveal);
+    wrap.append(left, right);
+    host.append(wrap);
+  },
+
+  investigate(host, api) {
+    sim = api; host.innerHTML = "";
+    const chosen = (api.state.predict != null) ? HYPOTHESIS_TEXT[api.state.predict] : null;
+    sim.setScienceMethod({
+      hypothesis: chosen || L("No hypothesis recorded before testing.", "No se registró ninguna hipótesis antes de la prueba."),
+      variables: {
+        independent: L("The panel's tilt angle and the time of day (which sets the sun's position in the sky).",
+          "El ángulo de inclinación del panel y la hora del día (que fija la posición del sol en el cielo)."),
+        dependent: L("The panel's power output, as a percentage of its maximum.",
+          "La potencia generada por el panel, como porcentaje de su máximo."),
+        controlled: L("The panel's size and materials stay the same across every reading, so only angle, time and sky condition can explain a change in power.",
+          "El tamaño y los materiales del panel se mantienen iguales en cada lectura, así que solo el ángulo, la hora y el cielo pueden explicar un cambio en la potencia.")
+      }
+    });
+
+    const note = document.createElement("p"); note.className = "q__hint";
+    note.innerHTML = L(
+      "<strong>Drag</strong> to orbit the station, <strong>scroll</strong> to zoom. Set the panel's <strong>tilt</strong>, choose the <strong>time of day</strong> and <strong>sky condition</strong>, watch the panel and sun actually move, then press <strong>Log Reading</strong> to save it to your Record. Once you've logged a few readings, try the <strong>Catch the Peak</strong> timing challenge below.",
+      "<strong>Arrastra</strong> para orbitar la estación, usa el <strong>scroll</strong> para hacer zoom. Ajusta la <strong>inclinación</strong> del panel, elige la <strong>hora del día</strong> y la <strong>condición del cielo</strong>, observa cómo se mueven de verdad el panel y el sol, y luego pulsa <strong>Registrar lectura</strong> para guardarla en tu Registro. Una vez registres algunas lecturas, prueba el reto de cronometraje <strong>Captura el Pico</strong> de abajo.");
+    host.append(note);
+
+    const station = document.createElement("div"); station.className = "station";
+
+    const stageWrap = document.createElement("div");
+    const stage = document.createElement("div"); stage.className = "stage3d";
+    const boot = document.createElement("div"); boot.className = "stage3d__boot";
+    boot.innerHTML = `<div><div class="boot-dot"></div><p>${L("Booting solar station…", "Iniciando central solar…")}</p></div>`;
+    stage.append(boot);
+    const hudPw = document.createElement("div"); hudPw.className = "hud hud--pw"; hudPw.textContent = "0%";
+    const hudHint = document.createElement("div"); hudHint.className = "hud hud--hint";
+    hudHint.textContent = L("drag to orbit · scroll to zoom", "arrastra para orbitar · rueda para acercar");
+    stage.append(hudPw, hudHint);
+    stageWrap.append(stage);
+
+    const ctrlBox = document.createElement("div"); ctrlBox.className = "stack";
+
+    const tiltCtrl = document.createElement("div"); tiltCtrl.className = "ctrl";
+    tiltCtrl.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Panel tilt", "Inclinación del panel")}</span><span class="ctrl__val" id="tiltVal">30°</span></div>
+      <input type="range" id="tiltSlider" min="0" max="90" step="1" value="30">`;
+
+    const hourCtrl = document.createElement("div"); hourCtrl.className = "ctrl";
+    hourCtrl.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Time of day", "Hora del día")}</span><span class="ctrl__val" id="hourVal">12:00</span></div>
+      <input type="range" id="hourSlider" min="6" max="18" step="0.25" value="12">`;
+
+    const skyCtrl = document.createElement("div"); skyCtrl.className = "ctrl";
+    skyCtrl.innerHTML = `<div class="ctrl__name">${L("Sky condition", "Condición del cielo")}</div>`;
+    const skyRow = document.createElement("div"); skyRow.className = "chip-row";
+    SKY.forEach(s => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip-btn"; b.textContent = s.label;
+      b.setAttribute("aria-pressed", s.id === game.sky ? "true" : "false");
+      b.addEventListener("click", () => { game.sky = s.id; skyRow.querySelectorAll(".chip-btn").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); repaint(); });
+      skyRow.append(b);
+    });
+    skyCtrl.append(skyRow);
+
+    const readout = document.createElement("div"); readout.className = "readout-row";
+    readout.innerHTML = `<div class="ro"><span class="ro__k">${L("Angle to sun", "Ángulo al sol")}</span><span class="ro__v" id="roAoi">–</span></div>
+      <div class="ro"><span class="ro__k">${L("Power output", "Potencia")}</span><span class="ro__v" id="roPow">–</span></div>`;
+
+    const logBtn = document.createElement("button"); logBtn.type = "button"; logBtn.className = "btn btn--primary log-btn";
+    logBtn.textContent = L("Log Reading", "Registrar lectura");
+
+    ctrlBox.append(tiltCtrl, hourCtrl, skyCtrl, readout, logBtn);
+    station.append(stageWrap, ctrlBox);
+    host.append(station);
+
+    // ---- Catch the Peak (moment 3: timing mini-game) ----
+    const catchBox = document.createElement("div"); catchBox.className = "catchbox";
+    catchBox.innerHTML = `<p class="ctrl__name">${L("Catch the Peak — find solar noon", "Captura el Pico — encuentra el mediodía solar")}</p>
+      <p class="q__hint" style="margin:.3em 0;">${L("The needle sweeps through a full day. Click Lock the instant you think power will peak for your current tilt — no penalty for missing, try as many times as you like.",
+        "La aguja recorre un día completo. Haz clic en Bloquear en el instante en que creas que la potencia alcanzará su pico para tu inclinación actual — sin penalización si fallas, prueba las veces que quieras.")}</p>
+      <div class="sweep"><div class="sweep__needle" id="sweepNeedle" style="left:0%"></div></div>
+      <div class="sweep__scale"><span>06:00</span><span>12:00</span><span>18:00</span></div>
+      <button type="button" class="btn btn--signal catch-btn" id="catchBtn">${L("Start Sweep", "Iniciar barrido")}</button>`;
+    ctrlBox.append(catchBox);
+    const sweepNeedle = catchBox.querySelector("#sweepNeedle");
+    const catchBtn = catchBox.querySelector("#catchBtn");
+    let sweeping = false, sweepStart = 0, sweepRaf = null;
+    function sweepLoop(now) {
+      if (!sweeping) return;
+      const t = ((now - sweepStart) / 6000) % 1;
+      sweepNeedle.style.left = (t * 100) + "%";
+      sweepRaf = requestAnimationFrame(sweepLoop);
+    }
+    catchBtn.addEventListener("click", () => {
+      if (!sweeping) {
+        sweeping = true; sweepStart = performance.now(); catchBtn.textContent = L("Lock Reading", "Bloquear lectura");
+        sweepRaf = requestAnimationFrame(sweepLoop);
+      } else {
+        sweeping = false; cancelAnimationFrame(sweepRaf);
+        const pct = parseFloat(sweepNeedle.style.left) / 100;
+        const caughtHour = 6 + pct * 12;
+        catchBtn.classList.remove("pop"); void catchBtn.offsetWidth; catchBtn.classList.add("pop");
+        const pw = powerPct(game.tilt, caughtHour, game.sky);
+        const aoi = Math.round(Math.abs(game.tilt - optimalTilt(caughtHour)));
+        sim.recordTrial({ hour: hourLabel(caughtHour) + " (caught)", tilt: game.tilt, incidence: aoi, sky: (SKY.find(s => s.id === game.sky) || SKY[0]).label, power: pw });
+        paintArcade();
+        if (scene3d) scene3d.spark();
+        burst(stage, pw >= 85 ? "#7bffb0" : "#4cc0db");
+        sim.toast(pw >= 85
+          ? L(`Great catch — locked ${hourLabel(caughtHour)} at ${pw}% power!`, `¡Gran captura — bloqueaste ${hourLabel(caughtHour)} con ${pw}% de potencia!`)
+          : L(`Logged ${hourLabel(caughtHour)} at ${pw}% power. Try again to get closer to the peak.`, `Registrado ${hourLabel(caughtHour)} con ${pw}% de potencia. Inténtalo de nuevo para acercarte al pico.`), "info");
+        catchBtn.textContent = L("Start Sweep", "Iniciar barrido");
+      }
+    });
+
+    function repaint() {
+      const aoi = Math.round(Math.abs(game.tilt - optimalTilt(game.hour)));
+      const pw = powerPct(game.tilt, game.hour, game.sky);
+      readout.querySelector("#roAoi").textContent = aoi + "°";
+      readout.querySelector("#roPow").textContent = pw + "%";
+      hudPw.textContent = pw + "%";
+      logBtn.classList.toggle("is-armed", aoi <= 5);
+      if (scene3d) { scene3d.setTilt(game.tilt); scene3d.setHour(game.hour); }
+    }
+
+    tiltCtrl.querySelector("#tiltSlider").addEventListener("input", e => {
+      game.tilt = Number(e.target.value); tiltCtrl.querySelector("#tiltVal").textContent = game.tilt + "°"; repaint();
+    });
+    hourCtrl.querySelector("#hourSlider").addEventListener("input", e => {
+      game.hour = Number(e.target.value); hourCtrl.querySelector("#hourVal").textContent = hourLabel(game.hour); repaint();
+    });
+
+    logBtn.addEventListener("click", () => {
+      const aoi = Math.round(Math.abs(game.tilt - optimalTilt(game.hour)));
+      const pw = powerPct(game.tilt, game.hour, game.sky);
+      sim.recordTrial({ hour: hourLabel(game.hour), tilt: game.tilt, incidence: aoi, sky: (SKY.find(s => s.id === game.sky) || SKY[0]).label, power: pw });
+      paintArcade();
+      if (aoi <= 5 && scene3d) scene3d.spark();
+      burst(stage, aoi <= 5 ? "#7bffb0" : "#4cc0db");
+      sim.toast(L(`Logged ${hourLabel(game.hour)}, tilt ${game.tilt}° → ${pw}% power.`, `Registrado ${hourLabel(game.hour)}, inclinación ${game.tilt}° → ${pw}% de potencia.`), "info");
+    });
+
+    let scene3d = null;
+    loadThree().then(THREE => {
+      if (!stage.isConnected) return;
+      boot.remove(); scene3d = build3D(THREE, stage); repaint();
+    }).catch(() => {
+      if (!stage.isConnected) return;
+      boot.remove(); scene3d = build2DFallback(stage); repaint();
+    });
+    repaint();
+
+    /* ---- BONUS ROUND — "Renewable Rush": sort real renewable-energy facts
+       into the correct source lane before they reach the ring. Purely a
+       bonus (no marks, no gating). This is the first simulation in the
+       Renewable Energy course, so this establishes the arcade genre here;
+       future simulations in this course should alternate toward
+       engine/quest3d.js or a fresh mechanic per CLAUDE.md §4. ---- */
+    const arcadeSection = document.createElement("div"); arcadeSection.style.marginTop = "var(--sp-5)";
+    host.append(arcadeSection);
+    const LANES = [
+      { id: "solar", label: L("Solar", "Solar"), color: "#d9a521" },
+      { id: "wind", label: L("Wind", "Eólica"), color: "#3f9e5c" },
+      { id: "hydro", label: L("Hydro", "Hídrica"), color: "#1f8fb3" },
+      { id: "nonrenew", label: L("Non-renewable", "No renovable"), color: "#8a6338" },
+    ];
+    const ITEMS = [
+      { id: "s1", label: L("Photovoltaic cells convert sunlight directly into electricity", "Las células fotovoltaicas convierten la luz solar directamente en electricidad"), laneId: "solar" },
+      { id: "s2", label: L("Panels generate the most power near solar noon", "Los paneles generan más potencia cerca del mediodía solar"), laneId: "solar" },
+      { id: "s3", label: L("Tracking panels tilt to follow the sun through the day", "Los paneles con seguimiento se inclinan para seguir al sol durante el día"), laneId: "solar" },
+      { id: "w1", label: L("Turbine blades spin a generator to make electricity", "Las aspas de la turbina giran un generador para producir electricidad"), laneId: "wind" },
+      { id: "w2", label: L("Wind farms work best in open, steady-wind locations", "Los parques eólicos funcionan mejor en lugares abiertos y con viento constante"), laneId: "wind" },
+      { id: "h1", label: L("Dams release falling water through turbines to generate power", "Las presas liberan agua que cae a través de turbinas para generar energía"), laneId: "hydro" },
+      { id: "h2", label: L("Hydropower can be stored and released on demand", "La energía hidráulica se puede almacenar y liberar bajo demanda"), laneId: "hydro" },
+      { id: "n1", label: L("Coal and natural gas release stored carbon when burned", "El carbón y el gas natural liberan carbono almacenado al quemarse"), laneId: "nonrenew" },
+      { id: "n2", label: L("Fossil fuels take millions of years to form, so supplies are limited", "Los combustibles fósiles tardan millones de años en formarse, así que su suministro es limitado"), laneId: "nonrenew" },
+    ];
+    function paintArcade() {
+      if (api.trials.length < 3) { arcadeSection.innerHTML = ""; arcadeSection.dataset.rendered = ""; return; }
+      if (arcadeSection.dataset.rendered) return;
+      arcadeSection.dataset.rendered = "1";
+      const launchWrap = document.createElement("div"); arcadeSection.append(launchWrap);
+      const bestLine = game.arcadeBest ? L(`Your best score so far: ${game.arcadeBest}.`, `Tu mejor puntaje hasta ahora: ${game.arcadeBest}.`) : "";
+      renderArcadeLaunch(launchWrap, {
+        strings: {
+          title: L("Bonus round — Renewable Rush", "Ronda bonus — Renewable Rush"),
+          instructions: L("Energy facts fly at you — tap the right source lane before each one reaches the ring.", "Datos de energía vuelan hacia ti — toca el carril de la fuente correcta antes de que cada uno llegue al anillo.") + (bestLine ? " " + bestLine : ""),
+          play: L("Play Renewable Rush", "Jugar Renewable Rush"), skip: L("Skip bonus round", "Omitir ronda bonus"),
+        },
+        onPlay() {
+          launchWrap.remove();
+          const gameHost = document.createElement("div"); arcadeSection.append(gameHost);
+          mountArcadeRush(gameHost, {
+            threeUrl: THREE_URL, rounds: 24, lanes: LANES, items: ITEMS,
+            strings: {
+              title: L("Renewable Rush", "Renewable Rush"),
+              instructions: L("Tap the source before the fact reaches the ring. A late or wrong answer just resets your streak — never a fail.", "Toca la fuente antes de que el dato llegue al anillo. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es una falla."),
+              score: L("Score", "Puntaje"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"), progress: L("Fact", "Dato"),
+              correct: L("Correct!", "¡Correcto!"), wrong: L("Not quite.", "No es así."), missed: L("Missed it.", "Lo perdiste."),
+              finishTitle: L("Round complete!", "¡Ronda completa!"), accuracy: L("Accuracy", "Precisión"), playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+            },
+            onExit(stats) {
+              game.arcadeBest = Math.max(game.arcadeBest || 0, stats.score);
+              api.saveState();
+              gameHost.innerHTML = ""; gameHost.remove();
+              arcadeSection.dataset.rendered = ""; paintArcade();
+              api.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntaje ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
+            }
+          });
+        },
+        onSkip() { arcadeSection.innerHTML = ""; arcadeSection.dataset.rendered = "skipped"; }
+      });
+    }
+    paintArcade();
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
