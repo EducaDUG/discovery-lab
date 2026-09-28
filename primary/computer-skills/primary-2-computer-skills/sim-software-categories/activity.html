@@ -180,9 +180,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../engine/i18n.js?v=9";
-import { mountArcadeRush, renderArcadeLaunch } from "../../../../engine/arcade.js?v=3";
 
-const THREE_URL = "../../../../engine/vendor/three.min.js";
 const L = (en, es) => getLang() === "es" ? es : en;
 
 /* ======================================================================
@@ -643,57 +641,170 @@ const simulation = {
     }
 
     /* ==================================================================
-       BONUS ROUND — Software Sort Blitz (arcade genre; no bonus round yet
-       exists elsewhere in this course, so either genre is a valid first
-       pick — arcade fits a fast sorting theme best)
+       BONUS ROUND — Category Conveyor (sorting-conveyor mechanic).
+       This activity previously used engine/arcade.js's tunnel-rush with
+       label-only items and no `img`, the exact blank/flat-tile bug
+       documented in CLAUDE.md §12.5/§12.6 — and tunnel-rush/rover-quest
+       were also the two mechanics the site had been defaulting to far
+       too often (§4's Bonus Game Mechanic Library / §12.5). Rebuilt as a
+       bespoke "sorting conveyor" mechanic instead (still-unused in this
+       course), which also fits classification content more naturally
+       than a tunnel-rush ever did.
        ================================================================== */
     const arcadeSection = document.createElement("div"); arcadeSection.style.marginTop = "var(--sp-6)"; host.append(arcadeSection);
-    const ARCADE_LANES = [
-      { id:"system",  label:CATS.system.name,  color:CATS.system.color },
-      { id:"app",     label:CATS.app.name,     color:CATS.app.color },
-      { id:"utility", label:CATS.utility.name, color:CATS.utility.color },
+
+    const BELT_ITEMS = [
+      { key:"windows",   name:"Windows",                                  glyph:"🪟", cat:"system"  },
+      { key:"macos",     name:"macOS",                                    glyph:"🍎", cat:"system"  },
+      { key:"linux",     name:"Linux",                                    glyph:"🐧", cat:"system"  },
+      { key:"android",   name:"Android",                                  glyph:"🤖", cat:"system"  },
+      { key:"ios",       name:"iOS",                                      glyph:"📱", cat:"system"  },
+      { key:"browser",   name:L("Web Browser","Navegador web"),           glyph:"🌐", cat:"app"     },
+      { key:"video",     name:L("Video Editor","Editor de vídeo"),        glyph:"🎬", cat:"app"     },
+      { key:"game",      name:L("Video Game","Videojuego"),               glyph:"🎮", cat:"app"     },
+      { key:"photo",     name:L("Photo Editor","Editor de fotos"),        glyph:"🖼️", cat:"app"    },
+      { key:"chat",      name:L("Messaging App","App de mensajería"),     glyph:"💬", cat:"app"     },
+      { key:"music",     name:L("Music Player","Reproductor de música"),  glyph:"🎵", cat:"app"     },
+      { key:"antivirus", name:L("Antivirus","Antivirus"),                 glyph:"🛡️", cat:"utility"},
+      { key:"cleaner",   name:L("Disk Cleaner","Limpiador de disco"),     glyph:"🧹", cat:"utility" },
+      { key:"backup",    name:L("Backup","Copia de seguridad"),           glyph:"☁️", cat:"utility" },
+      { key:"firewall",  name:L("Firewall","Cortafuegos"),                glyph:"🧱", cat:"utility" },
+      { key:"python",    name:"Python",                                   glyph:"🐍", cat:"utility" },
     ];
-    const ARCADE_ITEMS = [
-      { id:"a1", label:"Windows", laneId:"system" }, { id:"a2", label:"macOS", laneId:"system" },
-      { id:"a3", label:"Linux", laneId:"system" }, { id:"a4", label:"Android", laneId:"system" }, { id:"a5", label:"iOS", laneId:"system" },
-      { id:"a6", label:L("Browser","Navegador"), laneId:"app" }, { id:"a7", label:L("Game","Juego"), laneId:"app" },
-      { id:"a8", label:L("Word Processor","Procesador"), laneId:"app" }, { id:"a9", label:L("Music Player","Música"), laneId:"app" },
-      { id:"a10", label:L("Antivirus","Antivirus"), laneId:"utility" }, { id:"a11", label:L("Firewall","Cortafuegos"), laneId:"utility" },
-      { id:"a12", label:L("Disk Cleaner","Limpiador"), laneId:"utility" }, { id:"a13", label:"Python", laneId:"utility" },
-    ];
-    function paintArcade(){
+    const BELT_ROUNDS = 18;          // ~2 minutes of real play at the pacing below
+    const BELT_DUR_START = 7000, BELT_DUR_END = 5200; // ms; item's own flight time gates the next spawn, never sped up by fast answers
+
+    function paintBelt(){
       arcadeSection.innerHTML = "";
-      renderArcadeLaunch(arcadeSection, {
-        strings: {
-          title: L("Bonus round — Software Sort Blitz","Ronda bonus — Ráfaga de clasificación"),
-          instructions: L("Software flies at you — tap its category before it reaches the ring.","El software vuela hacia ti — toca su categoría antes de que llegue al aro."),
-          play: L("Play Software Sort Blitz","Jugar Ráfaga de clasificación"),
-          skip: L("Skip bonus round","Saltar ronda bonus"),
-        },
-        onPlay(){
-          arcadeSection.innerHTML = "";
-          const gameHost = document.createElement("div"); arcadeSection.append(gameHost);
-          mountArcadeRush(gameHost, {
-            threeUrl: THREE_URL, rounds: 24, lanes: ARCADE_LANES, items: ARCADE_ITEMS,
-            strings: {
-              title: L("Software Sort Blitz","Ráfaga de clasificación"),
-              instructions: L("Tap the category that matches the flying software. A late or wrong answer just resets your streak — never a fail.","Toca la categoría que corresponde al software que vuela. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
-              score: L("Score","Puntos"), streak: L("Streak","Racha"), best: L("Best streak","Mejor racha"),
-              progress: L("Software","Software"), correct: L("Correct!","¡Correcto!"), wrong: L("Not quite.","No exactamente."),
-              missed: L("Missed it.","Se te escapó."), finishTitle: L("Round complete!","¡Ronda completa!"),
-              accuracy: L("Accuracy","Precisión"), playAgain: L("Play again","Jugar de nuevo"), continueLabel: L("Continue","Continuar"),
-            },
-            onExit(stats){
-              gameHost.innerHTML = ""; arcadeSection.innerHTML = "";
-              sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${stats.score}, ${stats.accuracy}% de precisión.`), "info");
-              paintArcade();
-            }
-          });
-        },
-        onSkip(){ arcadeSection.innerHTML = ""; }
-      });
+      const card = document.createElement("div"); card.className = "card";
+      card.innerHTML = `<p class="eyebrow">${L("Bonus round","Ronda bonus")}</p>
+        <h3>${L("Category Conveyor","Cinta de Categorías")}</h3>
+        <p>${L("Software slides across the conveyor belt toward the drop-off. Tap its real category before it reaches the end. A late or wrong answer just resets your streak — never a fail.","El software se desliza por la cinta transportadora hacia el final. Toca su categoría real antes de que llegue. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo.")}</p>
+        <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-top:var(--sp-3)">
+          <button type="button" class="btn btn--signal" id="belt-play">${L("Play Category Conveyor","Jugar Cinta de Categorías")}</button>
+          <button type="button" class="btn" id="belt-skip">${L("Skip bonus round","Saltar ronda bonus")}</button>
+        </div>`;
+      arcadeSection.append(card);
+      card.querySelector("#belt-play").addEventListener("click", runBelt);
+      card.querySelector("#belt-skip").addEventListener("click", () => { arcadeSection.innerHTML = ""; });
     }
-    paintArcade();
+
+    function runBelt(){
+      arcadeSection.innerHTML = "";
+      let order = shuffled(BELT_ITEMS);
+      while (order.length < BELT_ROUNDS) order = order.concat(shuffled(BELT_ITEMS));
+      order = order.slice(0, BELT_ROUNDS);
+      const state = { i:0, score:0, streak:0, best:0, correctCount:0 };
+
+      const wrap = document.createElement("div"); arcadeSection.append(wrap);
+      const hud = document.createElement("p"); hud.className = "sort-progress belt-progress"; wrap.append(hud);
+      const stage = document.createElement("div"); stage.className = "sort-stage belt-stage"; stage.style.position = "relative"; wrap.append(stage);
+      const binRow = document.createElement("div"); binRow.className = "bin-row belt-bin-row"; binRow.style.marginTop = "var(--sp-3)"; wrap.append(binRow);
+
+      [CATS.system, CATS.app, CATS.utility].forEach((cat, idx) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "bin-btn belt-bin";
+        b.style.borderColor = "color-mix(in srgb, " + cat.color + " 45%, var(--line-strong))";
+        b.innerHTML = `${chip(cat.color, "📦")}<span>${cat.name}</span><span style="font-size:.68rem;color:var(--ink-3)">${L("Key","Tecla")} ${idx+1}</span>`;
+        b.dataset.cat = cat.key;
+        b.addEventListener("click", () => answer(cat.key, b));
+        binRow.append(b);
+      });
+
+      function keyHandler(e){
+        if (e.key === "1" || e.key === "2" || e.key === "3") {
+          const b = binRow.children[Number(e.key)-1]; if (b && !b.disabled) answer(b.dataset.cat, b);
+        }
+      }
+      document.addEventListener("keydown", keyHandler);
+
+      let missTimer = null, activeItemEl = null, current = null, answered = false;
+
+      function updateHud(){
+        hud.textContent = L(`Item ${state.i+1} / ${order.length}  ·  Score ${state.score}  ·  Streak ${state.streak}  ·  Best ${state.best}`,
+                             `Elemento ${state.i+1} / ${order.length}  ·  Puntos ${state.score}  ·  Racha ${state.streak}  ·  Mejor ${state.best}`);
+      }
+
+      function spawn(){
+        if (state.i >= order.length) { finish(); return; }
+        answered = false;
+        current = order[state.i];
+        updateHud();
+        stage.innerHTML = "";
+        const track = document.createElement("div");
+        track.style.cssText = "position:absolute;left:0;right:0;top:50%;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25) 20%,rgba(255,255,255,.25) 80%,transparent);";
+        stage.append(track);
+        const el = document.createElement("div"); el.className = "sort-item belt-item"; el.textContent = `${current.glyph} ${current.name}`;
+        el.style.position = "absolute"; el.style.top = "50%"; el.style.right = "-45%"; el.style.transform = "translateY(-50%)"; el.style.opacity = "1";
+        stage.append(el);
+        activeItemEl = el;
+        const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
+        const progress = state.i / Math.max(1, order.length - 1);
+        const duration = Math.round(BELT_DUR_START + (BELT_DUR_END - BELT_DUR_START) * progress);
+        requestAnimationFrame(() => {
+          el.style.transition = reduced ? "none" : `right ${duration}ms linear`;
+          el.style.right = "105%";
+        });
+        // deadline runs on a real setTimeout (elapsed wall-clock time), never on
+        // requestAnimationFrame alone — see CLAUDE.md's raf-throttling pitfall.
+        missTimer = setTimeout(miss, duration);
+      }
+
+      function clearDeadline(){ if (missTimer) { clearTimeout(missTimer); missTimer = null; } }
+
+      function answer(catKey, btnEl){
+        if (answered || !current) return;
+        answered = true; clearDeadline();
+        const correct = catKey === current.cat;
+        binRow.querySelectorAll("button").forEach(x => x.disabled = true);
+        btnEl.classList.add(correct ? "flash-correct" : "flash-wrong");
+        if (activeItemEl && !correct) { activeItemEl.style.transition = "none"; activeItemEl.classList.add("is-wrong"); }
+        burstAt(stage, correct ? [CATS[current.cat].color, "#eaf6ff"] : ["#c04b4b", "#eaf6ff"]);
+        if (correct) { state.score += 10 + state.streak; state.streak++; state.best = Math.max(state.best, state.streak); state.correctCount++; }
+        else { state.streak = 0; }
+        sim.recordTrial({ item: current.name, yourAnswer: CATS[catKey].name, correct: correct ? L("Yes","Sí") : L("No","No") });
+        sim.mark("belt_"+current.key+"_"+state.i, correct);
+        if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(correct ? L("Correct!","¡Correcto!") : L(`Not quite — that's ${CATS[current.cat].name}.`, `No exactamente — eso es ${CATS[current.cat].name}.`));
+        updateHud();
+        setTimeout(() => {
+          state.i++;
+          binRow.querySelectorAll("button").forEach(x => { x.disabled = false; x.classList.remove("flash-correct","flash-wrong"); });
+          spawn();
+        }, 650);
+      }
+
+      function miss(){
+        if (answered) return;
+        answered = true;
+        state.streak = 0;
+        if (activeItemEl) activeItemEl.classList.add("is-wrong");
+        sim.recordTrial({ item: current.name, yourAnswer: L("(missed)","(sin respuesta)"), correct: L("No","No") });
+        sim.mark("belt_"+current.key+"_"+state.i, false);
+        updateHud();
+        setTimeout(() => { state.i++; spawn(); }, 500);
+      }
+
+      function finish(){
+        document.removeEventListener("keydown", keyHandler);
+        clearDeadline();
+        wrap.innerHTML = "";
+        const accuracy = Math.round((state.correctCount / order.length) * 100);
+        const done = document.createElement("div"); done.className = "card sort-done";
+        done.innerHTML = `<p class="eyebrow">${L("Round complete!","¡Ronda completa!")}</p>
+          <p class="sort-done__n">${state.score}</p>
+          <p>${L(`Accuracy ${accuracy}% · Best streak ${state.best}`, `Precisión ${accuracy}% · Mejor racha ${state.best}`)}</p>
+          <div style="display:flex;gap:var(--sp-3);justify-content:center;margin-top:var(--sp-3)">
+            <button type="button" class="btn btn--signal" id="belt-again">${L("Play again","Jugar de nuevo")}</button>
+            <button type="button" class="btn" id="belt-continue">${L("Continue","Continuar")}</button>
+          </div>`;
+        wrap.append(done);
+        done.querySelector("#belt-again").addEventListener("click", runBelt);
+        done.querySelector("#belt-continue").addEventListener("click", () => { paintBelt(); });
+        sim.toast(L(`Bonus round complete — score ${state.score}, ${accuracy}% accuracy.`, `Ronda bonus completa — puntuación ${state.score}, ${accuracy}% de precisión.`), "info");
+      }
+
+      spawn();
+    }
+    paintBelt();
   }
 };
 
