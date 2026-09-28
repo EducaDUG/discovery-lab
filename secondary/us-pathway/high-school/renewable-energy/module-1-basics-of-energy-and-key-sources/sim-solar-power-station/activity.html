@@ -32,6 +32,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .hotspot.is-done .hotspot__dot{background:var(--positive);box-shadow:0 0 0 5px color-mix(in srgb, var(--positive) 22%, transparent);animation:none;}
 .hs-credit{font-size:.68rem;color:var(--ink-3);text-align:center;padding:.5em;}
 .hs-credit a{color:inherit;}
+.orient-photo{border-radius:var(--radius-lg);overflow:hidden;background:#0c1a26;border:1px solid var(--line-strong);}
+.orient-photo img{display:block;width:100%;height:auto;}
 .hs-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
 .hs-part{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);
   border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);font:inherit;color:var(--ink);
@@ -461,41 +463,29 @@ const simulation = {
     host.innerHTML = "";
     /* Observation/Question are rendered once, engine-side, from
        config.orient.scientificObservation/scientificQuestion — this is the
-       Orient stage's own teaching diagram, distinct from the Observation
-       stage's real-photo hotspot activity below. A simple angle-of-incidence
-       diagram: the same beam of sunlight striking two panels at different
-       tilts, so the core idea is visible before the student touches
-       anything. */
-    const wrap = document.createElement("div");
-    wrap.innerHTML = `<svg viewBox="0 0 320 220" width="100%" height="220" role="img" aria-label="${L(
-      'A diagram showing the same sunlight ray striking a steeply tilted panel almost straight-on, and a nearly flat panel at a glancing angle.',
-      'Un diagrama que muestra el mismo rayo de luz solar golpeando un panel muy inclinado casi de frente, y un panel casi plano en un ángulo rasante.'
-    )}">
-      <rect width="320" height="220" rx="12" fill="#0a2b3a"/>
-      <circle cx="270" cy="40" r="16" fill="#f6c869"/>
-      <g stroke="#f0d28a" stroke-width="2" stroke-linecap="round" opacity=".9">
-        <line x1="270" y1="40" x2="150" y2="120"/>
-        <line x1="270" y1="40" x2="255" y2="150"/>
-      </g>
-      <g transform="translate(90,150) rotate(-55)">
-        <rect x="-45" y="-6" width="90" height="12" rx="2" fill="#c9ced4"/>
-        <rect x="-41" y="-3" width="82" height="6" fill="#0e2a4a"/>
-      </g>
-      <g transform="translate(230,158) rotate(-12)">
-        <rect x="-45" y="-6" width="90" height="12" rx="2" fill="#c9ced4"/>
-        <rect x="-41" y="-3" width="82" height="6" fill="#0e2a4a"/>
-      </g>
-      <text x="55" y="205" font-family="sans-serif" font-size="12" fill="#7bffb0" font-weight="700">${L('Small angle → more power', 'Ángulo pequeño → más potencia')}</text>
-      <text x="185" y="205" font-family="sans-serif" font-size="12" fill="#ff9a7b" font-weight="700">${L('Large angle → less power', 'Ángulo grande → menos potencia')}</text>
-    </svg>`;
-    wrap.style.borderRadius = "var(--radius)";
-    wrap.style.overflow = "hidden";
+       Orient stage's own mission photo, distinct from the Observation
+       stage's real-photo hotspot activity below (a close-up of the cells
+       themselves). This one sets the scene: a real drone photograph of an
+       actual solar farm, showing whole rows of panels all tilted the same
+       way to face the sun — the scale of the job the student is about to
+       take on as a "new engineer at a community solar farm".
+       Photo: Wikideas1, "Blue Prairie Solar, Black River Falls, Wisconsin",
+       Wikimedia Commons, CC0 (resized). License verified on the file's own
+       page. */
+    const wrap = document.createElement("div"); wrap.className = "orient-photo";
+    wrap.innerHTML = `<img src="photos/orient-solar-farm.jpg" width="1200" height="900" alt="${L(
+      'An aerial drone photograph of a real solar farm: dozens of long rows of solar panels, all tilted at the same angle to face the sun, set in an open field bordered by trees.',
+      'Una fotografía aérea con dron de una granja solar real: docenas de largas filas de paneles solares, todos inclinados al mismo ángulo para encarar al sol, en un campo abierto bordeado de árboles.'
+    )}">`;
     host.append(wrap);
+    const credit = document.createElement("p"); credit.className = "hs-credit";
+    credit.innerHTML = 'Photo: Wikideas1 — Wikimedia Commons, <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0</a> (resized)';
+    host.append(credit);
     const cap = document.createElement("p"); cap.className = "q__hint";
     cap.style.marginTop = ".6em";
     cap.textContent = L(
-      "The steeper the panel faces the sun, the smaller the angle of incidence — and the more power it generates.",
-      "Cuanto más directamente encara el panel al sol, menor es el ángulo de incidencia — y más potencia genera.");
+      "Every row here is tilted at the same angle to face the sun — get that angle right, and each panel produces far more electricity.",
+      "Cada fila aquí está inclinada al mismo ángulo para encarar al sol — si el ángulo es el correcto, cada panel produce mucha más electricidad.");
     host.append(cap);
   },
 
