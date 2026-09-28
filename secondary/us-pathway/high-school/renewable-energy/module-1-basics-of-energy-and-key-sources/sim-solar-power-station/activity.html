@@ -457,6 +457,48 @@ const HYPOTHESIS_TEXT = {
 };
 
 const simulation = {
+  orient(host, api) {
+    host.innerHTML = "";
+    /* Observation/Question are rendered once, engine-side, from
+       config.orient.scientificObservation/scientificQuestion — this is the
+       Orient stage's own teaching diagram, distinct from the Observation
+       stage's real-photo hotspot activity below. A simple angle-of-incidence
+       diagram: the same beam of sunlight striking two panels at different
+       tilts, so the core idea is visible before the student touches
+       anything. */
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<svg viewBox="0 0 320 220" width="100%" height="220" role="img" aria-label="${L(
+      'A diagram showing the same sunlight ray striking a steeply tilted panel almost straight-on, and a nearly flat panel at a glancing angle.',
+      'Un diagrama que muestra el mismo rayo de luz solar golpeando un panel muy inclinado casi de frente, y un panel casi plano en un ángulo rasante.'
+    )}">
+      <rect width="320" height="220" rx="12" fill="#0a2b3a"/>
+      <circle cx="270" cy="40" r="16" fill="#f6c869"/>
+      <g stroke="#f0d28a" stroke-width="2" stroke-linecap="round" opacity=".9">
+        <line x1="270" y1="40" x2="150" y2="120"/>
+        <line x1="270" y1="40" x2="255" y2="150"/>
+      </g>
+      <g transform="translate(90,150) rotate(-55)">
+        <rect x="-45" y="-6" width="90" height="12" rx="2" fill="#c9ced4"/>
+        <rect x="-41" y="-3" width="82" height="6" fill="#0e2a4a"/>
+      </g>
+      <g transform="translate(230,158) rotate(-12)">
+        <rect x="-45" y="-6" width="90" height="12" rx="2" fill="#c9ced4"/>
+        <rect x="-41" y="-3" width="82" height="6" fill="#0e2a4a"/>
+      </g>
+      <text x="55" y="205" font-family="sans-serif" font-size="12" fill="#7bffb0" font-weight="700">${L('Small angle → more power', 'Ángulo pequeño → más potencia')}</text>
+      <text x="185" y="205" font-family="sans-serif" font-size="12" fill="#ff9a7b" font-weight="700">${L('Large angle → less power', 'Ángulo grande → menos potencia')}</text>
+    </svg>`;
+    wrap.style.borderRadius = "var(--radius)";
+    wrap.style.overflow = "hidden";
+    host.append(wrap);
+    const cap = document.createElement("p"); cap.className = "q__hint";
+    cap.style.marginTop = ".6em";
+    cap.textContent = L(
+      "The steeper the panel faces the sun, the smaller the angle of incidence — and the more power it generates.",
+      "Cuanto más directamente encara el panel al sol, menor es el ángulo de incidencia — y más potencia genera.");
+    host.append(cap);
+  },
+
   observation(host, api) {
     host.innerHTML = ""; sim = api;
     sim.setScienceMethod({
