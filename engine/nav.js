@@ -27,10 +27,15 @@ const el = (tag, cls, text) => {
    promise more than actually exists. */
 function liveCount(node) {
   if (node.type === "simulation") return node.status === "live" ? 1 : 0;
+  // A "guide" is always available, the same standing as a finished simulation
+  // (see tile()'s own live/walkable rules below) — it must count as live too,
+  // or a module holding only a finished revision hub reads as "coming soon".
+  if (node.type === "guide") return 1;
   return (node.children || []).reduce((n, c) => n + liveCount(c), 0);
 }
 function totalCount(node) {
   if (node.type === "simulation") return 1;
+  if (node.type === "guide") return 1;
   return (node.children || []).reduce((n, c) => n + totalCount(c), 0);
 }
 

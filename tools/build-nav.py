@@ -76,7 +76,7 @@ SHELL = """<!DOCTYPE html>
 </html>
 """
 
-ASSET_VERSION = "11"
+ASSET_VERSION = "12"
 STYLE_VERSION = "12"
 
 
