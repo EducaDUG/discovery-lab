@@ -267,20 +267,27 @@ const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 function fTemp(sp,T){if(T<=sp.tMin||T>=sp.tMax)return 0;if(T<sp.tLo)return (T-sp.tMin)/(sp.tLo-sp.tMin);if(T>sp.tHi)return (sp.tMax-T)/(sp.tMax-sp.tHi);return 1;}
 function fO2(sp,o2){if(o2<=sp.o2Min)return 0;return clamp((o2-sp.o2Min)/(sp.o2Sat-sp.o2Min),0,1);}
 function fLight(sp,L){if(sp.light==="neutral")return 1;if(sp.light==="required")return 0.12+0.88*clamp(L/4,0,1);return 1-0.55*clamp(L/12,0,1);}
-function outcome(sp,T,o2,L){
-  const ft=fTemp(sp,T),fo=fO2(sp,o2),fl=fLight(sp,L);
-  const germ=Math.round(100*sp.vigor*ft*fo*fl);
+/* water = % soil moisture. Every seed needs water to swell and activate its enzymes (0 below ~5%),
+   but a waterlogged medium fills the air gaps and starves the seed of oxygen (drops off above ~85%). */
+function fWater(W){if(W<=5)return 0;if(W<40)return (W-5)/35;if(W<=85)return 1;return 1-0.55*clamp((W-85)/15,0,1);}
+function outcome(sp,T,o2,L,W){
+  const ft=fTemp(sp,T),fo=fO2(sp,o2),fl=fLight(sp,L),fw=fWater(W);
+  const germ=Math.round(100*sp.vigor*ft*fo*fl*fw);
   let days=null;
-  if(germ>5){days=Math.round(clamp(sp.baseDays*(1+(1-ft)*1.8+(1-fo)*0.8),sp.baseDays,14));}
+  if(germ>5){days=Math.round(clamp(sp.baseDays*(1+(1-ft)*1.8+(1-fo)*0.8+(1-fw)*0.8),sp.baseDays,14));}
   let limit="ok";
-  if(fo===0)limit="oxygen0";
+  if(fw===0)limit="dry";
+  else if(fo===0)limit="oxygen0";
   else if(ft===0)limit=(T<=sp.tMin?"cold":"hot");
   else if(sp.light==="required"&&fl<0.45)limit="needlight";
-  else{const m=Math.min(ft,fo,fl);if(m>0.75)limit="ok";else if(m===ft)limit=(T<sp.tLo?"coolish":"warmish");else if(m===fo)limit="lowoxygen";else limit=(sp.light==="dark"?"toolight":"dim");}
-  return {germ,days,ft,fo,fl,limit};
+  else{const m=Math.min(ft,fo,fl,fw);if(m>0.75)limit="ok";else if(m===fw)limit=(W>50?"soggy":"lowwater");else if(m===ft)limit=(T<sp.tLo?"coolish":"warmish");else if(m===fo)limit="lowoxygen";else limit=(sp.light==="dark"?"toolight":"dim");}
+  return {germ,days,ft,fo,fl,fw,limit};
 }
 const FEEDBACK={
   ok:"Great conditions — water, warmth and oxygen. The embryo respired, split the seed coat and grew.",
+  dry:"No water, no germination. A dry seed cannot swell or switch on the enzymes that start growth, so it stayed dormant.",
+  lowwater:"A bit short of water. The seed took in too little to swell fully, so fewer seeds sprouted and more slowly.",
+  soggy:"Waterlogged! The soil was so wet that water filled the air gaps, so the seed was starved of oxygen and germination dropped.",
   oxygen0:"No oxygen, no germination. Without oxygen the seed cannot respire, so it has no energy to grow.",
   lowoxygen:"A bit short of oxygen. Respiration slowed, so fewer seeds sprouted and more slowly.",
   cold:"Too cold. The seed stayed dormant — reactions inside were far too slow to start growth.",
@@ -293,6 +300,9 @@ const FEEDBACK={
 };
 const NEXT_STEP={
   ok:"Next: try changing just one condition further to find the edge of what this seed can tolerate.",
+  dry:"Next: add water in small steps to find the least moisture that still wakes the seed.",
+  lowwater:"Next: compare this to a trial with moist soil (about 50%) using the same seed and temperature.",
+  soggy:"Next: drain some water and compare — why might too much be as bad as too little?",
   oxygen0:"Next: raise the oxygen a little at a time to see the smallest amount that still works.",
   lowoxygen:"Next: compare this to a trial with full air (21%) using the same seed and temperature.",
   cold:"Next: try warming it up in small steps to find where growth restarts.",
@@ -315,6 +325,10 @@ function finalProgress(germ){ return germ<=5?0.12:germ<25?0.45:germ<60?0.72:0.86
 const QUESTS=[
   {id:"sprout", title:"Green thumb", hint:"Get any seed to 90%+ germination.", xp:200,
    test:(sp,T,o2,L,r)=>r.germ>=90},
+  {id:"drought", title:"Bone dry", hint:"Prove a seed needs water — keep the soil dry and get 0%.", xp:250,
+   test:(sp,T,o2,L,r,g,W)=>W<=5&&r.germ===0},
+  {id:"soggy", title:"Drowned seed", hint:"Waterlog the soil (90%+) and watch germination drop below 60%.", xp:250,
+   test:(sp,T,o2,L,r,g,W)=>W>=90&&r.germ<60},
   {id:"suffocate", title:"Suffocation test", hint:"Prove a seed needs oxygen — seal the air and get 0%.", xp:250,
    test:(sp,T,o2,L,r)=>o2<=3&&r.germ===0},
   {id:"lettuce", title:"Let there be light", hint:"Wake lettuce to 70%+ by giving it light.", xp:250,
@@ -337,7 +351,7 @@ function seedIcon(sp){return `<svg width="24" height="24" viewBox="0 0 24 24" ar
    THE ACTIVITY
    ====================================================================== */
 let sim=null;
-const stats={temps:new Set(),o2s:new Set(),lights:new Set(),species:new Set(),lowO2Fail:false,bestGerm:0};
+const stats={waters:new Set(),lowWaterFail:false,temps:new Set(),o2s:new Set(),lights:new Set(),species:new Set(),lowO2Fail:false,bestGerm:0};
 
 const simulation={
   observation(host, api){
@@ -539,11 +553,8 @@ const simulation={
     const light=slider("4 · Light each day","h",0,24,1,12,[["Dark 0h",0],["Sill 12h",12],["Bright 24h",24]],()=>scene&&scene.setEnv());
     side.append(temp.node,oxy.node,light.node);
     // water
-    const waterBox=document.createElement("div");
-    waterBox.innerHTML=`<p class="ctrl__name" style="margin-bottom:var(--sp-2)">5 · Water</p>`;
-    const wc=document.createElement("span");wc.className="water-chip";
-    wc.innerHTML=`<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" fill="currentColor"/></svg> Provided — the control, kept the same`;
-    waterBox.append(wc);side.append(waterBox);
+    const water=slider("5 · Water (soil moisture)","%",0,100,5,50,[["Dry 0%",0],["Moist 50%",50],["Soaked 100%",100]],()=>scene&&scene.setEnv());
+    side.append(water.node);
     // incubate
     const runWrap=document.createElement("div");runWrap.className="incubate";
     const runBtn=document.createElement("button");runBtn.className="btn btn--lg btn--signal";runBtn.type="button";runBtn.textContent="▶  Incubate seed";
@@ -693,10 +704,10 @@ const simulation={
     (async()=>{
       try{
         const THREE=await loadThree();
-        scene=build3D(THREE,stage,()=>({sp:SPECIES[chosen],T:temp.value(),o2:oxy.value(),L:light.value()}));
+        scene=build3D(THREE,stage,()=>({sp:SPECIES[chosen],T:temp.value(),o2:oxy.value(),L:light.value(),W:water.value()}));
       }catch(e){
         console.warn("3D unavailable, using 2D fallback:",e);
-        scene=buildFallback(stage,()=>({sp:SPECIES[chosen],T:temp.value(),o2:oxy.value(),L:light.value()}));
+        scene=buildFallback(stage,()=>({sp:SPECIES[chosen],T:temp.value(),o2:oxy.value(),L:light.value(),W:water.value()}));
       }
       boot.remove();
       scene.setSpecies(SPECIES[chosen]);
@@ -708,15 +719,15 @@ const simulation={
     let running=false;
     runBtn.addEventListener("click",()=>{
       if(running||!scene||!hypothesisLocked)return;
-      const sp=SPECIES[chosen],T=temp.value(),o2=oxy.value(),L=light.value();
-      const res=outcome(sp,T,o2,L);
+      const sp=SPECIES[chosen],T=temp.value(),o2=oxy.value(),L=light.value(),W=water.value();
+      const res=outcome(sp,T,o2,L,W);
       const fp=finalProgress(res.germ), totalDays=res.days||10;
       running=true;runBtn.disabled=true;setControls(false);note.innerHTML="";$("stars").hidden=true;
       const reduced=document.documentElement.getAttribute("data-reduced-motion")==="on";
       let done=false;
       const finish=()=>{if(done)return;done=true;
         scene.setProgress(fp);$("dayflag").textContent="DAY "+totalDays;
-        finishTrial(sp,T,o2,L,res);running=false;runBtn.disabled=false;setControls(true);};
+        finishTrial(sp,T,o2,L,W,res);running=false;runBtn.disabled=false;setControls(true);};
       if(reduced){scene.setProgress(fp);$("dayflag").textContent="DAY "+totalDays;finish();return;}
       const dur=2200,t0=performance.now();
       (function step(now){const t=clamp((now-t0)/dur,0,1);
@@ -725,11 +736,11 @@ const simulation={
       setTimeout(finish,dur+600); // safety net if rAF is throttled
     });
 
-    function finishTrial(sp,T,o2,L,res){
+    function finishTrial(sp,T,o2,L,W,res){
       $("ro-germ").textContent=res.germ+"%";
       $("ro-days").textContent=res.days?res.days:"—";
       $("ro-stage").textContent=res.germ<=5?"Dormant":res.germ<25?"Root":res.germ<60?"Cotyledons":"First leaf";
-      sim.recordTrial({seed:sp.name,tempC:T,o2:o2,lightH:L,germPct:res.germ,days:res.days!=null?res.days:"—"});
+      sim.recordTrial({seed:sp.name,tempC:T,o2:o2,lightH:L,waterPct:W,germPct:res.germ,days:res.days!=null?res.days:"—"});
       if(reflBox.hidden&&sim.trials.length>=3)reflBox.hidden=false;
 
       const kind=res.germ>=70?"toast--correct":res.germ<=5?"toast--incorrect":"toast--info";
@@ -743,14 +754,17 @@ const simulation={
       if(nStars>0)showStars(nStars);
 
       // engine evidence
-      stats.temps.add(T);stats.o2s.add(o2);stats.lights.add(L);stats.species.add(sp.key);
+      stats.temps.add(T);stats.o2s.add(o2);stats.lights.add(L);stats.waters.add(W);stats.species.add(sp.key);
       stats.bestGerm=Math.max(stats.bestGerm,res.germ);
       if(o2<=3&&res.germ===0)stats.lowO2Fail=true;
+      if(W<=5&&res.germ===0)stats.lowWaterFail=true;
       sim.setResult("best_germination",stats.bestGerm);
       sim.setResult("species_tested",[...stats.species]);
       sim.mark("varied_temperature",stats.temps.size>=2);
       sim.mark("varied_oxygen",stats.o2s.size>=2);
       sim.mark("varied_light",stats.lights.size>=2);
+      sim.mark("varied_water",stats.waters.size>=2);
+      sim.mark("proved_water_needed",stats.lowWaterFail);
       sim.mark("proved_oxygen_needed",stats.lowO2Fail);
 
       // ---- GAME: XP, streak, mastery, quests, level ----
@@ -759,7 +773,7 @@ const simulation={
       game.best=Math.max(game.best,game.streak);
       let xpGain=Math.round(res.germ*(game.streak>1?1+0.15*(game.streak-1):1));
       const newlyDone=[];
-      QUESTS.forEach(q=>{if(!game.quests[q.id]&&q.test(sp,T,o2,L,res,game)){game.quests[q.id]=true;xpGain+=q.xp;newlyDone.push(q);}});
+      QUESTS.forEach(q=>{if(!game.quests[q.id]&&q.test(sp,T,o2,L,res,game,W)){game.quests[q.id]=true;xpGain+=q.xp;newlyDone.push(q);}});
       game.xp+=xpGain;
       let leveled=false;
       while(game.xp>=xpForLevel(game.level)){game.level++;leveled=true;}
@@ -783,7 +797,7 @@ const simulation={
       else if(nStars===3)fireBurst(["#ffd45c","#a6ff5c","#3fd08b"]);
     }
 
-    function setControls(on){[temp,oxy,light].forEach(s=>s.setEnabled(on));Object.values(cards).forEach(c=>c.disabled=!on);}
+    function setControls(on){[temp,oxy,light,water].forEach(s=>s.setEnabled(on));Object.values(cards).forEach(c=>c.disabled=!on);}
   }
 };
 
@@ -944,7 +958,7 @@ function build3D(THREE, stageEl, getState){
   const nightGround=new THREE.Color(0x0a1512), dayGround=new THREE.Color(0x1a2b22);
   const moonCol=new THREE.Color(0x9fb8e6), sunCol=new THREE.Color(0xfff2d0);
   function setEnv(){
-    const {T,o2,L}=getState();
+    const {T,o2,L,W}=getState();
     const day=clamp(L/24,0,1);envLightFactor=day;
     ambient.intensity=lerp(0.16,0.5,day);
     hemi.intensity=lerp(0.25,0.75,day);
@@ -956,6 +970,10 @@ function build3D(THREE, stageEl, getState){
     // temperature tint (cold bluish, hot warm)
     const warm=clamp((T-10)/28,0,1);
     ambient.color.setHSL(lerp(0.58,0.09,warm),0.25,0.9);
+    // soil darkens and turns glossy as it gets wetter
+    const wet=clamp(W/100,0,1);
+    soilMat.color.setHex(0x3a2a1c).lerp(new THREE.Color(0x1c130b),wet);soilMat.roughness=lerp(1,0.35,wet);
+    topSoil.material.color.setHex(0x4a3826).lerp(new THREE.Color(0x24180d),wet);topSoil.material.roughness=lerp(1,0.3,wet);
     // oxygen bubbles count
     o2count=Math.round(clamp(o2/25,0,1)*bubbles.length);
     bubbles.forEach((b,i)=>b.visible=i<o2count);
