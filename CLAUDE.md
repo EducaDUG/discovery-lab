@@ -1846,3 +1846,19 @@ about *how visually rich the execution is*, even for an already-correctly-chosen
   starfield dressing, continuous background motion, a dedicated juicy reaction per hit/miss, and HUD
   contrast against its actual background — before considering it finished, the same standing as the
   three-hands-on-moments and visual-manipulatives checks already required in §4.
+
+### 12.8 Lesson from `sim-seed-germination-lab` feedback — the bonus round shipped as a blank tile AGAIN (2026-09-30)
+
+Diego: "The videogame doesn't work, no images... This type of videogame never seems to work, it is
+embarrassing." The Seed Species Rush passed only text `label`s to `mountArcadeRush` (the §12.5/§12.6 bug a
+third time) and was the shared tunnel-rush again. Rebuilt as "Sowing Sorter", a **sorting-conveyor**
+round (`conveyor.js` in the activity folder, the first non-arcade/non-quest bonus mechanic in the library):
+real licence-checked photos ride a belt and are sorted into bins. Standing rules:
+
+- **Before wiring any bonus round, open it and look at a mid-play screenshot; a text-only card is a
+  defect.** Every card/item must be a real photo (vendored in `photos/`, credited via `photos/credits.json`).
+- **Do not reach for `arcade.js`/`quest3d.js` by default** — build from the mechanic library (§4). A local
+  `conveyor.js`-style module per activity is fine until a mechanic is proven enough to promote to `engine/`.
+- **Pattern to reuse:** wall-clock `setInterval` clock (rAF draws only), 1-3 keys + real `<button>` bins,
+  in-place feedback naming the right answer plus a one-line memory hook, no fail state, mute button,
+  end screen listing the cards to revisit.

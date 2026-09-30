@@ -225,7 +225,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 
 <script type="module">
 import { mountActivity } from "../../../../../../../engine/engine.js?v=19";
-import { mountArcadeRush, renderArcadeLaunch } from "../../../../../../../engine/arcade.js?v=3";
+import { renderArcadeLaunch } from "../../../../../../../engine/arcade.js?v=3";
+import { mountConveyor } from "./conveyor.js?v=1";
 
 const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
 
@@ -246,20 +247,26 @@ const SPECIES = {
              tMin:2,  tLo:10, tHi:22, tMax:30, o2Min:2, o2Sat:17, baseDays:5, vigor:0.90, color:"#5f8c7a",
              blurb:"Slow and cool, with a single seed-leaf. Germinates best in the dark." },
 };
-/* Bonus arcade round item pool — trait recall for the four species, using
-   the same SPECIES data the chamber itself is built from. See
-   engine/arcade.js and CLAUDE.md §4 (this course alternates the "realistic
-   3D" bonus round used in sim-vertebrate-sorting-lab with this faster
-   tunnel-rush arcade style, so the site doesn't repeat one game genre). */
-const ARCADE_CLUES=[
-  {id:"cress1",label:"Sprouts on damp cotton in just 2 warm days",laneId:"cress"},
-  {id:"cress2",label:"A fast, easy classroom favourite",laneId:"cress"},
-  {id:"lettuce1",label:"Needs a flash of light to wake up",laneId:"lettuce"},
-  {id:"lettuce2",label:"A cool-season salad seed",laneId:"lettuce"},
-  {id:"mung1",label:"Loves heat, up to about 42°C",laneId:"mung"},
-  {id:"mung2",label:"Big cotyledons that need plenty of air",laneId:"mung"},
-  {id:"onion1",label:"Only one seed-leaf, germinates best in the dark",laneId:"onion"},
-  {id:"onion2",label:"Slow grower — about 5 days to sprout",laneId:"onion"},
+/* Bonus round: "Sowing Sorter" — a sorting-conveyor mechanic (CLAUDE.md §4 Bonus Game Mechanic Library),
+   local to this activity (conveyor.js). Real, licence-checked photos ride a belt; the student sorts each
+   situation into Wakes up / Stays dormant / Depends on the seed. Credits live in photos/credits.json. */
+const SORT_BINS=[
+  {id:"wake",label:"Wakes up",sub:"water + warmth + air",color:"#3fd08b"},
+  {id:"dormant",label:"Stays dormant",sub:"a need is missing",color:"#6f9bff"},
+  {id:"depends",label:"Depends on the seed",sub:"species differ",color:"#ffb04a"},
+];
+const SORT_CARDS=[
+  {id:"cress",photo:"cress",caption:"Cress seeds on damp paper, warm windowsill",answer:"wake",hook:"Water, warmth and air — the recipe every seed needs."},
+  {id:"mung",photo:"mung",caption:"Mung beans soaking in a warm, wet bowl",answer:"wake",hook:"Warm and wet: the seed swells and the root bursts out."},
+  {id:"beans",photo:"beans",caption:"Bean seeds in warm, damp garden soil",answer:"wake",hook:"Buried in the dark is fine — most seeds don't need light."},
+  {id:"pot",photo:"pot",caption:"A bean in a pot of moist compost, indoors",answer:"wake",hook:"Moist compost holds both water and air pockets."},
+  {id:"radish",photo:"radish",caption:"Radish seeds in moist compost at room temperature",answer:"wake",hook:"Moist, warm and airy — a seed's perfect start."},
+  {id:"flood",photo:"flood",caption:"Seeds lying in a waterlogged field",answer:"dormant",hook:"Waterlogged soil has no air gaps, so the seed can't get oxygen to respire."},
+  {id:"snow",photo:"snow",caption:"Seeds in frozen, snow-covered ground",answer:"dormant",hook:"Too cold: reactions inside the seed are too slow to start growth."},
+  {id:"dry",photo:"dry",caption:"Seeds in cracked, bone-dry soil",answer:"dormant",hook:"No water, no germination — a dry seed can't swell or start its enzymes."},
+  {id:"bag",photo:"bag",caption:"Seeds sealed dry in a bag",answer:"dormant",hook:"Dry seeds can stay dormant for years until water arrives."},
+  {id:"packets",photo:"packets",caption:"Seed packets on a shop shelf",answer:"dormant",hook:"Dry and still: the seeds wait until they get wet, warm and airy."},
+  {id:"spring",photo:"spring",caption:"A vegetable bed sown under a layer of dark soil",answer:"depends",hook:"Most seeds germinate under dark soil, but lettuce needs a flash of light to wake up. It depends on the seed!"},
 ];
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -611,15 +618,12 @@ const simulation={
     wrap.append(side);
     host.append(wrap);
 
-    /* ---- BONUS ROUND — "Seed Species Rush": a fast arcade recall of the
-       four species' germination traits, once every mission above is
-       complete. Purely a bonus (no marks, no gating) — see engine/arcade.js.
-       This course alternates arcade rounds with the realistic 3D "Backbone
-       Quest" round in sim-vertebrate-sorting-lab (CLAUDE.md §4). ---- */
+    /* ---- BONUS ROUND — "Sowing Sorter" (sorting conveyor, conveyor.js). Purely a bonus:
+       no marks, skippable, ~2 min. Unlocks after six missions. ---- */
     const arcadeSection=document.createElement("div");arcadeSection.style.marginTop="var(--sp-5)";
     host.append(arcadeSection);
     function paintArcadeSection(){
-      const allDone=QUESTS.every(q=>game.quests[q.id]);
+      const allDone=QUESTS.filter(q=>game.quests[q.id]).length>=6; // unlocks after six missions (the bonus was gated on all six before water added two)
       if(!allDone){arcadeSection.innerHTML="";arcadeSection.dataset.rendered="";return;}
       if(arcadeSection.dataset.rendered)return;
       arcadeSection.dataset.rendered="1";
@@ -628,25 +632,19 @@ const simulation={
       const bestLine=game.arcadeBest?`Your best score so far: ${game.arcadeBest}.`:"";
       renderArcadeLaunch(launchWrap,{
         strings:{
-          title:"Bonus round — Seed Species Rush",
-          instructions:"Seed facts fly at you — tap the species they describe before each one reaches the ring."+(bestLine?" "+bestLine:""),
-          play:"Play Seed Species Rush", skip:"Skip bonus round",
+          title:"Bonus round — Sowing Sorter",
+          instructions:"Real photos ride the conveyor belt. Sort each situation — will the seeds wake up, stay dormant, or does it depend on the seed? — before it reaches the gate. About two minutes."+(bestLine?" "+bestLine:""),
+          play:"Play Sowing Sorter", skip:"Skip bonus round",
         },
         onPlay(){
           launchWrap.remove();
           const gameHost=document.createElement("div");
           arcadeSection.append(gameHost);
-          mountArcadeRush(gameHost,{
-            threeUrl:THREE_URL, rounds:24,
-            lanes:Object.values(SPECIES).map(sp=>({id:sp.key,label:sp.name,color:sp.color})),
-            items:ARCADE_CLUES,
-            strings:{
-              title:"Seed Species Rush",
-              instructions:"Tap the species before the fact reaches the ring. A late or wrong answer just resets your streak — never a fail.",
-              score:"Score", streak:"Streak", best:"Best streak", progress:"Clue",
-              correct:"Correct!", wrong:"Not quite.", missed:"Missed it.",
-              finishTitle:"Round complete!", accuracy:"Accuracy", playAgain:"Play again", continueLabel:"Continue",
-            },
+          fetch("photos/credits.json").then(r=>r.json()).catch(()=>({})).then(cr=>{
+          const cards=SORT_CARDS.map(c=>({...c,img:"photos/"+c.photo+".jpg",alt:c.caption}));
+          const credits=[...new Set(cards.map(c=>c.photo))].filter(k=>cr[k]).map(k=>({...cr[k],img:"photos/"+k+".jpg"}));
+          mountConveyor(gameHost,{
+            cards,bins:SORT_BINS,credits,durationMs:120000,travelMs:9500,spawnMs:4800,
             onExit(stats){
               game.arcadeBest=Math.max(game.arcadeBest||0,stats.score);
               sim.saveState();
@@ -655,6 +653,7 @@ const simulation={
               paintArcadeSection();
               sim.toast(`Bonus round complete — score ${stats.score}, ${stats.accuracy}% accuracy.`,"info");
             }
+          });
           });
         },
         onSkip(){arcadeSection.innerHTML="";arcadeSection.dataset.rendered="skipped";}
