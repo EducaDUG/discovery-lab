@@ -66,6 +66,10 @@
             box-shadow: 0 2px 8px rgba(29,33,28,.08);
         }
         .dl-download-btn:hover { background: #6d3f0d; }
+        .hero3d { max-width: 900px; height: 260px; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 16px rgba(29,33,28,.12); background: linear-gradient(160deg, #0e3a5c 0%, #061c2b 100%); cursor: grab; touch-action: none; }
+        .hero3d:active { cursor: grabbing; }
+        .hero3d canvas { display: block; width: 100%; height: 100%; }
+        .hero3d-caption { font-size: .75rem; color: #6b6154; margin-top: .4rem; }
         .dl-foot { text-align: center; padding: 2rem 1rem; border-top: 1px solid #E2DDD0; color: #6b6154; font-size: .85rem; background: #FAF8F3; }
         .dl-foot a { color: #2D5A27; }
     </style>
@@ -97,12 +101,6 @@
             <li>Revision Hub</li>
         </ol>
     </nav>
-    <div class="dl-download-row">
-        <a class="dl-download-btn" href="module-2-study-guide.pdf" download>
-            &#128190; Download the Comprehensive Study Guide for Module 2
-        </a>
-    </div>
-
     <header class="sticky top-0 z-50 bg-[#F2EFE6]/95 backdrop-blur border-b border-cardBorder shadow-sm mt-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-3">
@@ -130,6 +128,13 @@
                 <p class="text-lg text-stone-700 leading-relaxed">
                     Welcome to the Module 2 Assessment Hub. This interactive platform breaks down the physical mechanics, historical milestones, global demographics, and economic grid thresholds that govern modern renewable energy systems.
                 </p>
+                <div class="dl-download-row" style="margin:1.5rem 0 0; text-align:left;">
+                    <a class="dl-download-btn" href="module-2-study-guide.pdf" download>
+                        &#128190; Download the Comprehensive Study Guide for Module 2
+                    </a>
+                </div>
+                <div class="hero3d" id="hero3d-m2" aria-hidden="true" style="margin-top:1.5rem;"></div>
+                <p class="hero3d-caption">Drag to orbit — hydro turbine &amp; ocean current, live 3D</p>
             </div>
 
             <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-6 border-t border-cardBorder">
@@ -832,6 +837,113 @@
         Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a>. Your work stays in your browser. Nothing is uploaded or stored on a server.
     </div>
 
+    <script src="../../../../../../engine/vendor/three.min.js"></script>
+    <script>
+        (function () {
+            const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mount = document.getElementById('hero3d-m2');
+            if (!mount || typeof THREE === 'undefined') return;
+            const w = mount.clientWidth, h = mount.clientHeight || 260;
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x061c2b, 0.05);
+            const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            mount.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xbfe3ff, 0.6));
+            const key = new THREE.DirectionalLight(0xbfe3ff, 1);
+            key.position.set(4, 6, 5);
+            scene.add(key);
+
+            // Dam wall
+            const dam = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 8), new THREE.MeshStandardMaterial({ color: 0xcfd6d4, roughness: 0.8 }));
+            dam.position.set(-3.4, -0.6, 0);
+            scene.add(dam);
+
+            // Turbine wheel (rotates)
+            const wheel = new THREE.Group();
+            const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.4, 16), new THREE.MeshStandardMaterial({ color: 0xf2efe6, metalness: 0.5, roughness: 0.3 }));
+            hub.rotation.z = Math.PI / 2;
+            wheel.add(hub);
+            for (let i = 0; i < 6; i++) {
+                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.4, 0.5), new THREE.MeshStandardMaterial({ color: 0x8c5311, metalness: 0.3, roughness: 0.4 }));
+                blade.position.y = 0.8;
+                const holder = new THREE.Group();
+                holder.rotation.x = i * Math.PI / 3;
+                holder.add(blade);
+                wheel.add(holder);
+            }
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(-2.6, -0.6, 0);
+            scene.add(wheel);
+
+            // Ocean surface plane (gentle undulation)
+            const seaGeo = new THREE.PlaneGeometry(20, 14, 40, 28);
+          const seaMat = new THREE.MeshStandardMaterial({ color: 0x1a5c86, roughness: 0.35, metalness: 0.15, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
+            const sea = new THREE.Mesh(seaGeo, seaMat);
+            sea.rotation.x = -Math.PI / 2.4;
+            sea.position.set(1.5, -1.6, -1);
+            scene.add(sea);
+            const seaPos = seaGeo.attributes.position;
+            const basePos = seaPos.array.slice();
+
+            // Falling water particles (curtain in front of the dam)
+            const dropCount = 90;
+            const drops = new Float32Array(dropCount * 3);
+            const speeds = new Float32Array(dropCount);
+            for (let i = 0; i < dropCount; i++) {
+                drops[i * 3] = -2.9 + (Math.random() - 0.5) * 0.6;
+                drops[i * 3 + 1] = Math.random() * 4 - 1;
+                drops[i * 3 + 2] = (Math.random() - 0.5) * 7;
+                speeds[i] = 0.03 + Math.random() * 0.04;
+            }
+            const dropGeo = new THREE.BufferGeometry();
+            dropGeo.setAttribute('position', new THREE.BufferAttribute(drops, 3));
+            const dropPts = new THREE.Points(dropGeo, new THREE.PointsMaterial({ color: 0xbfe3ff, size: 0.06, transparent: true, opacity: 0.9 }));
+            scene.add(dropPts);
+
+            let dragging = false, lastX = 0, yaw = 0;
+            mount.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; mount.setPointerCapture(e.pointerId); });
+            mount.addEventListener('pointermove', e => { if (!dragging) return; yaw += (e.clientX - lastX) * 0.005; lastX = e.clientX; });
+            mount.addEventListener('pointerup', () => dragging = false);
+            mount.addEventListener('pointerleave', () => dragging = false);
+
+            function animate(t) {
+                requestAnimationFrame(animate);
+                if (!reduceMotion) {
+                    wheel.rotation.x += 0.06;
+                    const dp = dropGeo.attributes.position;
+                    for (let i = 0; i < dropCount; i++) {
+                        let y = dp.array[i * 3 + 1] - speeds[i];
+                        if (y < -1.6) y = 3;
+                        dp.array[i * 3 + 1] = y;
+                    }
+                    dp.needsUpdate = true;
+                    for (let i = 0; i < seaPos.count; i++) {
+                        const bx = basePos[i * 3], bz = basePos[i * 3 + 2];
+                        seaPos.array[i * 3 + 1] = Math.sin(bx * 0.4 + t * 0.0015) * 0.15 + Math.cos(bz * 0.3 + t * 0.0012) * 0.1;
+                    }
+                    seaPos.needsUpdate = true;
+                }
+                const auto = reduceMotion ? 0 : t * 0.00012;
+                camera.position.x = Math.sin(yaw + auto) * 9;
+                camera.position.z = Math.cos(yaw + auto) * 9 - 1;
+                camera.position.y = 1.6;
+                camera.lookAt(-1, 0, 0);
+                renderer.render(scene, camera);
+            }
+            requestAnimationFrame(animate);
+
+            window.addEventListener('resize', () => {
+                const w2 = mount.clientWidth, h2 = mount.clientHeight || 260;
+                camera.aspect = w2 / h2;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w2, h2);
+            });
+        })();
+    </script>
     <script>
         // --- SIMULATION 1: HYDROELECTRIC POWER LAB ---
         const headInput = document.getElementById('sim1-head');

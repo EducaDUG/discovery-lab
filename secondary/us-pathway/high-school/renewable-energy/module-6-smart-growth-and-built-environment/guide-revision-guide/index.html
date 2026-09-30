@@ -77,6 +77,10 @@
             box-shadow: 0 2px 8px rgba(29,33,28,.08);
         }
         .dl-download-btn:hover { background: #b25f1f; }
+        .hero3d { max-width: 900px; height: 260px; margin: 1.5rem auto 0; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 16px rgba(29,33,28,.12); background: linear-gradient(160deg, #12385c 0%, #050d17 100%); cursor: grab; touch-action: none; }
+        .hero3d:active { cursor: grabbing; }
+        .hero3d canvas { display: block; width: 100%; height: 100%; }
+        .hero3d-caption { font-size: .75rem; color: var(--inkLight); margin-top: .4rem; }
         .dl-foot { text-align: center; padding: 2rem 1rem; border-top: 1px solid var(--cardBorder); color: var(--inkLight); font-size: .85rem; background: var(--cardBg); }
         .dl-foot a { color: var(--brandGreen); }
 
@@ -533,6 +537,8 @@
                         &#128190; Download the Revision Guide
                     </a>
                 </div>
+                <div class="hero3d" id="hero3d-m6" aria-hidden="true"></div>
+                <p class="hero3d-caption">Drag to orbit — a smart-growth city skyline at night, live 3D</p>
             </div>
 
             <div class="summary-grid">
@@ -922,6 +928,92 @@
         Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a>. Your work stays in your browser. Nothing is uploaded or stored on a server.
     </div>
 
+    <script src="../../../../../../engine/vendor/three.min.js"></script>
+    <script>
+        (function () {
+            const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mount = document.getElementById('hero3d-m6');
+            if (!mount || typeof THREE === 'undefined') return;
+            const w = mount.clientWidth, h = mount.clientHeight || 260;
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050d17, 0.045);
+            const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            mount.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0x9fc6ff, 0.5));
+            const moon = new THREE.DirectionalLight(0xbfe0ff, 0.9);
+            moon.position.set(-4, 6, 5);
+            scene.add(moon);
+
+            // Ground
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0x0b1a2a, roughness: 1 }));
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -1.4;
+            scene.add(ground);
+
+            // City skyline — boxes of varying height with emissive "window" strips
+            const buildings = [];
+            const winMats = [];
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1b2c40, roughness: 0.8 });
+            for (let i = 0; i < 9; i++) {
+                const height = 1.2 + Math.random() * 3;
+                const bw = 0.55 + Math.random() * 0.25;
+                const body = new THREE.Mesh(new THREE.BoxGeometry(bw, height, bw), bodyMat);
+                body.position.set(-4 + i * 1, height / 2 - 1.4, (i % 2 === 0 ? -0.4 : 0.4));
+                scene.add(body);
+                buildings.push(body);
+
+                const winMat = new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.15 + Math.random() * 0.5 });
+                const windows = new THREE.Mesh(new THREE.BoxGeometry(bw * 0.7, height * 0.85, bw * 0.02), winMat);
+                windows.position.set(body.position.x, body.position.y, body.position.z + bw / 2 + 0.01);
+                windows.userData.phase = Math.random() * Math.PI * 2;
+                scene.add(windows);
+                winMats.push(windows);
+            }
+
+            // Transit line with a moving light (light-rail)
+            const rail = new THREE.Mesh(new THREE.TorusGeometry(4.4, 0.02, 8, 64), new THREE.MeshBasicMaterial({ color: 0x2d5a27 }));
+            rail.rotation.x = Math.PI / 2;
+            rail.position.y = -1.38;
+            scene.add(rail);
+            const train = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), new THREE.MeshBasicMaterial({ color: 0x7fd8ff }));
+            scene.add(train);
+
+            let dragging = false, lastX = 0, yaw = 0;
+            mount.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; mount.setPointerCapture(e.pointerId); });
+            mount.addEventListener('pointermove', e => { if (!dragging) return; yaw += (e.clientX - lastX) * 0.005; lastX = e.clientX; });
+            mount.addEventListener('pointerup', () => dragging = false);
+            mount.addEventListener('pointerleave', () => dragging = false);
+
+            function animate(t) {
+                requestAnimationFrame(animate);
+                if (!reduceMotion) {
+                    winMats.forEach(win => {
+                        win.material.opacity = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(t * 0.0015 + win.userData.phase));
+                    });
+                    const trainAngle = t * 0.0006;
+                    train.position.set(Math.cos(trainAngle) * 4.4, -1.3, Math.sin(trainAngle) * 4.4);
+                }
+                const auto = reduceMotion ? 0 : t * 0.00012;
+                camera.position.x = Math.sin(yaw + auto) * 9;
+                camera.position.z = Math.cos(yaw + auto) * 9;
+                camera.position.y = 1.8;
+                camera.lookAt(0, 0.2, 0);
+                renderer.render(scene, camera);
+            }
+            requestAnimationFrame(animate);
+
+            window.addEventListener('resize', () => {
+                const w2 = mount.clientWidth, h2 = mount.clientHeight || 260;
+                camera.aspect = w2 / h2;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w2, h2);
+            });
+        })();
+    </script>
     <script>
         /* ==========================================================================
            SIMULATION 1: Land Value Classification Lab

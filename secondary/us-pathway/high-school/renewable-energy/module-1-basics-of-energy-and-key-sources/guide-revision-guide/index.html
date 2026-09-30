@@ -150,6 +150,16 @@
       margin: 0 auto 1.5rem;
     }
 
+    .hero3d {
+      max-width: 900px; height: 260px; margin: .25rem auto 0;
+      border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md);
+      background: linear-gradient(160deg, #1E3A2B 0%, #0d1f16 100%);
+      cursor: grab; touch-action: none;
+    }
+    .hero3d:active { cursor: grabbing; }
+    .hero3d canvas { display: block; width: 100%; height: 100%; }
+    .hero3d-caption { font-size: .75rem; color: var(--text-muted); margin-top: .4rem; }
+
     /* Consolidated Nav Bar */
     nav {
       background-color: var(--card-cream);
@@ -736,18 +746,19 @@
       <li>Revision Hub</li>
     </ol>
   </nav>
-  <div class="dl-download-row">
-    <a class="dl-download-btn" href="module-1-study-guide.pdf" download>
-      &#128190; Download the Comprehensive Study Guide for Module 1
-    </a>
-  </div>
-
   <!-- Header -->
   <header>
     <div class="header-container">
       <span class="eyebrow eyebrow-green">Discovery Lab • Module 1 Master Revision</span>
       <h1>The Basics of Energy & Energy Sources</h1>
       <p class="subtitle">Interactive Revision & Exam Mastery Platform • Global Energy Pivot Paradigm</p>
+      <div class="dl-download-row" style="margin:0 0 1.5rem;">
+        <a class="dl-download-btn" href="module-1-study-guide.pdf" download>
+          &#128190; Download the Comprehensive Study Guide for Module 1
+        </a>
+      </div>
+      <div class="hero3d" id="hero3d-m1" aria-hidden="true"></div>
+      <p class="hero3d-caption">Drag to orbit — solar array &amp; wind turbine, live 3D</p>
     </div>
   </header>
 
@@ -1654,6 +1665,112 @@
     Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a>. Your work stays in your browser. Nothing is uploaded or stored on a server.
   </div>
 
+  <script src="../../../../../../engine/vendor/three.min.js"></script>
+  <script>
+    (function(){
+      const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const mount = document.getElementById('hero3d-m1');
+      if (!mount || typeof THREE === 'undefined') return;
+      const w = mount.clientWidth, h = mount.clientHeight || 260;
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x0d1f16, 0.05);
+      const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      mount.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+      const sun = new THREE.DirectionalLight(0xffe9b0, 1.1);
+      sun.position.set(5, 6, 4);
+      scene.add(sun);
+
+      const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(40, 40),
+        new THREE.MeshStandardMaterial({ color: 0x1b3324, roughness: 1 })
+      );
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -1.4;
+      scene.add(ground);
+
+      const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(0.9, 24, 24), new THREE.MeshBasicMaterial({ color: 0xffd166 }));
+      sunMesh.position.set(-3.6, 3, -4);
+      scene.add(sunMesh);
+      const sunGlow = new THREE.PointLight(0xffd166, 1.3, 20);
+      sunGlow.position.copy(sunMesh.position);
+      scene.add(sunGlow);
+
+      const panelGroup = new THREE.Group();
+      const panelMat = new THREE.MeshStandardMaterial({ color: 0x1c3a6b, metalness: 0.4, roughness: 0.35 });
+      panelGroup.add(new THREE.Mesh(new THREE.BoxGeometry(3, 0.1, 1.8), panelMat));
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.06, 1.9), new THREE.MeshStandardMaterial({ color: 0xd8d2c2 }));
+      frame.position.y = -0.08;
+      panelGroup.add(frame);
+      panelGroup.position.set(-2, -0.3, 1);
+      panelGroup.rotation.set(-0.5, 0.3, 0.15);
+      scene.add(panelGroup);
+
+      const turbine = new THREE.Group();
+      const towerMat = new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: 0.6 });
+      const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.14, 4, 12), towerMat);
+      tower.position.y = 0.6;
+      turbine.add(tower);
+      const hub = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), towerMat);
+      hub.position.y = 2.6;
+      turbine.add(hub);
+      const bladesGroup = new THREE.Group();
+      bladesGroup.position.y = 2.6;
+      for (let i = 0; i < 3; i++) {
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.6, 0.02), towerMat);
+        blade.position.y = 0.85;
+        const holder = new THREE.Group();
+        holder.rotation.z = i * Math.PI * 2 / 3;
+        holder.add(blade);
+        bladesGroup.add(holder);
+      }
+      turbine.add(bladesGroup);
+      turbine.position.set(2.6, -1.4, -1.5);
+      scene.add(turbine);
+
+      const particleCount = 60;
+      const positions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 14;
+        positions[i * 3 + 1] = Math.random() * 5 - 0.5;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+      }
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xffe9b0, size: 0.05, transparent: true, opacity: 0.85 }));
+      scene.add(particles);
+
+      let dragging = false, lastX = 0, yaw = 0;
+      mount.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; mount.setPointerCapture(e.pointerId); });
+      mount.addEventListener('pointermove', e => { if (!dragging) return; yaw += (e.clientX - lastX) * 0.005; lastX = e.clientX; });
+      mount.addEventListener('pointerup', () => dragging = false);
+      mount.addEventListener('pointerleave', () => dragging = false);
+
+      function animate(t) {
+        requestAnimationFrame(animate);
+        if (!reduceMotion) bladesGroup.rotation.z += 0.05;
+        const auto = reduceMotion ? 0 : t * 0.00015;
+        camera.position.x = Math.sin(yaw + auto) * 9;
+        camera.position.z = Math.cos(yaw + auto) * 9;
+        camera.position.y = 2.1;
+        camera.lookAt(0, 0.3, 0);
+        if (!reduceMotion) particles.rotation.y += 0.0006;
+        renderer.render(scene, camera);
+      }
+      requestAnimationFrame(animate);
+
+      window.addEventListener('resize', () => {
+        const w2 = mount.clientWidth, h2 = mount.clientHeight || 260;
+        camera.aspect = w2 / h2;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w2, h2);
+      });
+    })();
+  </script>
   <script>
     /* Accordion Toggle Helper */
     function toggleAnswer(id) {

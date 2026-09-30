@@ -77,6 +77,10 @@
             box-shadow: 0 2px 8px rgba(29,33,28,.08);
         }
         .dl-download-btn:hover { background: #b25f1f; }
+        .hero3d { max-width: 900px; height: 260px; margin: 1.5rem auto 0; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 16px rgba(29,33,28,.12); background: linear-gradient(160deg, #1E4D2B 0%, #0a2013 100%); cursor: grab; touch-action: none; }
+        .hero3d:active { cursor: grabbing; }
+        .hero3d canvas { display: block; width: 100%; height: 100%; }
+        .hero3d-caption { font-size: .75rem; color: var(--inkLight); margin-top: .4rem; }
         .dl-foot { text-align: center; padding: 2rem 1rem; border-top: 1px solid var(--cardBorder); color: var(--inkLight); font-size: .85rem; background: var(--cardBg); }
         .dl-foot a { color: var(--brandGreen); }
 
@@ -531,12 +535,6 @@
             <li>Revision Hub</li>
         </ol>
     </nav>
-    <div class="dl-download-row">
-        <a class="dl-download-btn" href="module-4-study-guide.pdf" download>
-            &#128190; Download the Revision Guide
-        </a>
-    </div>
-
     <nav>
         <div class="nav-container">
             <a href="#home" class="logo">Discovery Lab</a>
@@ -559,6 +557,13 @@
                 <span class="eyebrow">US Renewable Energy Curriculum / Grade 11-12</span>
                 <h1>Module 4: Sustainability, Environment & Resource Productivity</h1>
                 <p>Human population and industrial output are expanding against the finite reality of Earth's biosphere. Explore the critical thresholds, economic models, and resource recovery systems necessary to maintain balance on an interconnected planet.</p>
+                <div style="margin-top:1.5rem;">
+                    <a class="dl-download-btn" href="module-4-study-guide.pdf" download>
+                        &#128190; Download the Revision Guide
+                    </a>
+                </div>
+                <div class="hero3d" id="hero3d-m4" aria-hidden="true"></div>
+                <p class="hero3d-caption">Drag to orbit — the circular resource loop, live 3D</p>
             </div>
 
             <div class="summary-grid">
@@ -915,6 +920,89 @@
         Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a>. Your work stays in your browser. Nothing is uploaded or stored on a server.
     </div>
 
+    <script src="../../../../../../engine/vendor/three.min.js"></script>
+    <script>
+        (function () {
+            const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mount = document.getElementById('hero3d-m4');
+            if (!mount || typeof THREE === 'undefined') return;
+            const w = mount.clientWidth, h = mount.clientHeight || 260;
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0a2013, 0.05);
+            const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            mount.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const key = new THREE.DirectionalLight(0xbfe6c9, 1);
+            key.position.set(4, 6, 5);
+            scene.add(key);
+
+            // The circular resource loop
+            const loop = new THREE.Mesh(
+                new THREE.TorusGeometry(2.4, 0.12, 16, 64),
+                new THREE.MeshStandardMaterial({ color: 0x2d5a27, metalness: 0.3, roughness: 0.5 })
+            );
+            loop.rotation.x = Math.PI / 2.4;
+            scene.add(loop);
+
+            // Resource nodes orbiting the loop (raw material -> product -> recovery)
+            const nodeColors = [0xd97736, 0x3b5b78, 0x7fb08d, 0xe8c55c];
+            const nodes = nodeColors.map((c, i) => {
+                const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.28, 0), new THREE.MeshStandardMaterial({ color: c, metalness: 0.2, roughness: 0.4 }));
+                m.userData.offset = i / nodeColors.length;
+                scene.add(m);
+                return m;
+            });
+
+            // Slow ambient starfield-like dust for depth
+          const dustCount = 50;
+          const dustPos = new Float32Array(dustCount * 3);
+            for (let i = 0; i < dustCount; i++) {
+                dustPos[i * 3] = (Math.random() - 0.5) * 14;
+                dustPos[i * 3 + 1] = (Math.random() - 0.5) * 8;
+                dustPos[i * 3 + 2] = (Math.random() - 0.5) * 10 - 2;
+            }
+            const dustGeo = new THREE.BufferGeometry();
+            dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+            scene.add(new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0x9fe6b8, size: 0.04, transparent: true, opacity: 0.6 })));
+
+            let dragging = false, lastX = 0, yaw = 0;
+            mount.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; mount.setPointerCapture(e.pointerId); });
+            mount.addEventListener('pointermove', e => { if (!dragging) return; yaw += (e.clientX - lastX) * 0.005; lastX = e.clientX; });
+            mount.addEventListener('pointerup', () => dragging = false);
+            mount.addEventListener('pointerleave', () => dragging = false);
+
+            function animate(t) {
+                requestAnimationFrame(animate);
+                if (!reduceMotion) {
+                    loop.rotation.z += 0.003;
+                    nodes.forEach(n => {
+                        const a = (n.userData.offset + t * 0.00012) * Math.PI * 2;
+                        n.position.set(Math.cos(a) * 2.4, Math.sin(a) * 2.4 * Math.sin(loop.rotation.x), Math.sin(a) * 2.4 * Math.cos(loop.rotation.x) * -0.6);
+                        n.rotation.x += 0.02;
+                        n.rotation.y += 0.02;
+                    });
+                }
+                const auto = reduceMotion ? 0 : t * 0.00012;
+                camera.position.x = Math.sin(yaw + auto) * 8;
+                camera.position.z = Math.cos(yaw + auto) * 8;
+                camera.position.y = 1.6;
+                camera.lookAt(0, 0, 0);
+                renderer.render(scene, camera);
+            }
+            requestAnimationFrame(animate);
+
+            window.addEventListener('resize', () => {
+                const w2 = mount.clientWidth, h2 = mount.clientHeight || 260;
+                camera.aspect = w2 / h2;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w2, h2);
+            });
+        })();
+    </script>
     <script>
         /* ==========================================================================
            SIMULATION 1: The Five R's Sorting Lab (Enhanced with Educational Feedback)

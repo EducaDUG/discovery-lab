@@ -60,6 +60,10 @@
             box-shadow: 0 2px 8px rgba(29,33,28,.08);
         }
         .dl-download-btn:hover { background: #b25f04; }
+        .hero3d { max-width: 900px; height: 260px; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 16px rgba(29,33,28,.12); background: linear-gradient(160deg, #16223a 0%, #060a14 100%); cursor: grab; touch-action: none; }
+        .hero3d:active { cursor: grabbing; }
+        .hero3d canvas { display: block; width: 100%; height: 100%; }
+        .hero3d-caption { font-size: .75rem; color: #6b6154; margin-top: .4rem; }
         .dl-foot { text-align: center; padding: 2rem 1rem; border-top: 1px solid #E2DDD0; color: #6b6154; font-size: .85rem; background: #FAF8F5; }
         .dl-foot a { color: #1E4D2B; }
     </style>
@@ -91,12 +95,6 @@
             <li>Revision Hub</li>
         </ol>
     </nav>
-    <div class="dl-download-row">
-        <a class="dl-download-btn" href="module-3-study-guide.pdf" download>
-            &#128190; Download the revision guide by clicking here
-        </a>
-    </div>
-
     <header class="sticky top-0 z-50 bg-[#F2EFE6]/95 backdrop-blur border-b border-cardBorder shadow-sm mt-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-3">
@@ -124,6 +122,13 @@
                 <p class="text-lg text-stone-700 leading-relaxed">
                     Welcome to the Module 3 Assessment Hub. This platform breaks down economic feasibility models, environmental impacts, performance efficiency metrics, the Valley of Death commercialization gap, global carbon markets, and innovative energy solutions for developing nations.
                 </p>
+                <div class="dl-download-row" style="margin:1.5rem 0 0; text-align:left;">
+                    <a class="dl-download-btn" href="module-3-study-guide.pdf" download>
+                        &#128190; Download the revision guide by clicking here
+                    </a>
+                </div>
+                <div class="hero3d" id="hero3d-m3" aria-hidden="true" style="margin-top:1.5rem;"></div>
+                <p class="hero3d-caption">Drag to orbit — smart grid tower &amp; live power flow, 3D</p>
             </div>
 
             <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-6 border-t border-cardBorder">
@@ -551,6 +556,108 @@
         Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a>. Your work stays in your browser. Nothing is uploaded or stored on a server.
     </div>
 
+    <script src="../../../../../../engine/vendor/three.min.js"></script>
+    <script>
+        (function () {
+            const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mount = document.getElementById('hero3d-m3');
+            if (!mount || typeof THREE === 'undefined') return;
+            const w = mount.clientWidth, h = mount.clientHeight || 260;
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x060a14, 0.045);
+            const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            mount.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0x9fd6ff, 0.55));
+            const key = new THREE.DirectionalLight(0x9fd6ff, 1);
+            key.position.set(4, 6, 4);
+            scene.add(key);
+
+            const steelMat = new THREE.MeshStandardMaterial({ color: 0xdfe6ea, metalness: 0.6, roughness: 0.4 });
+            function buildPylon(x) {
+                const g = new THREE.Group();
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.16, 3.6, 8), steelMat);
+                trunk.position.y = 0.4;
+                g.add(trunk);
+                for (let i = 0; i < 2; i++) {
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 0.06), steelMat);
+                    arm.position.y = 1.4 - i * 0.9;
+                    g.add(arm);
+                }
+                g.position.x = x;
+                return g;
+            }
+            const pylonA = buildPylon(-3.2), pylonB = buildPylon(3.2);
+          scene.add(pylonA, pylonB);
+
+            // Sag wire between the two pylons (quadratic curve)
+          const curve = new THREE.QuadraticBezierCurve3(
+                new THREE.Vector3(-3.2, 1.3, 0), new THREE.Vector3(0, 0.4, 0), new THREE.Vector3(3.2, 1.3, 0)
+            );
+            const wireGeo = new THREE.TubeGeometry(curve, 20, 0.02, 6, false);
+            scene.add(new THREE.Mesh(wireGeo, new THREE.MeshStandardMaterial({ color: 0x333333 })));
+
+            // Pulsing energy particles traveling along the wire
+            const pulseCount = 14;
+            const pulses = [];
+            const pulseGeo = new THREE.SphereGeometry(0.05, 8, 8);
+            const pulseMat = new THREE.MeshBasicMaterial({ color: 0x7fd8ff });
+            for (let i = 0; i < pulseCount; i++) {
+                const m = new THREE.Mesh(pulseGeo, pulseMat);
+                m.userData.t = i / pulseCount;
+                scene.add(m);
+                pulses.push(m);
+            }
+
+            // Distant floating data-grid particles
+            const gridCount = 70;
+            const gridPos = new Float32Array(gridCount * 3);
+            for (let i = 0; i < gridCount; i++) {
+                gridPos[i * 3] = (Math.random() - 0.5) * 16;
+                gridPos[i * 3 + 1] = Math.random() * 5 - 1;
+                gridPos[i * 3 + 2] = (Math.random() - 0.5) * 12 - 3;
+            }
+            const gridGeo = new THREE.BufferGeometry();
+            gridGeo.setAttribute('position', new THREE.BufferAttribute(gridPos, 3));
+            const gridPts = new THREE.Points(gridGeo, new THREE.PointsMaterial({ color: 0x5aa7cc, size: 0.04, transparent: true, opacity: 0.7 }));
+            scene.add(gridPts);
+
+            let dragging = false, lastX = 0, yaw = 0;
+            mount.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; mount.setPointerCapture(e.pointerId); });
+            mount.addEventListener('pointermove', e => { if (!dragging) return; yaw += (e.clientX - lastX) * 0.005; lastX = e.clientX; });
+            mount.addEventListener('pointerup', () => dragging = false);
+            mount.addEventListener('pointerleave', () => dragging = false);
+
+            function animate(t) {
+                requestAnimationFrame(animate);
+                if (!reduceMotion) {
+                    pulses.forEach(p => {
+                        p.userData.t = (p.userData.t + 0.006) % 1;
+                        const pos = curve.getPoint(p.userData.t);
+                        p.position.copy(pos);
+                    });
+                    gridPts.rotation.y += 0.0005;
+                }
+                const auto = reduceMotion ? 0 : t * 0.00012;
+                camera.position.x = Math.sin(yaw + auto) * 9;
+                camera.position.z = Math.cos(yaw + auto) * 9;
+                camera.position.y = 1.4;
+                camera.lookAt(0, 0.7, 0);
+                renderer.render(scene, camera);
+            }
+            requestAnimationFrame(animate);
+
+            window.addEventListener('resize', () => {
+                const w2 = mount.clientWidth, h2 = mount.clientHeight || 260;
+                camera.aspect = w2 / h2;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w2, h2);
+            });
+        })();
+    </script>
     <script>
         // --- SIMULATION 1: VALLEY OF DEATH COMMERCIALIZATION LAB ---
         const rdInput = document.getElementById('sim1-rd');
