@@ -65,9 +65,10 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .obs-credit{font-size:.65rem;color:var(--ink-3);padding:0 var(--sp-4) var(--sp-3);}
 .obs-credit a{color:inherit;}
 
-/* ---- Investigate: Salinity & Buoyancy Station (real 3D) ---- */
+/* ---- Experiment: the Brine Lab (real 3D, live buoyancy physics) ---- */
 .station{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
-@media(min-width:58rem){.station{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start;}}
+@media(min-width:58rem){.station{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:start;}}
+.station__col{display:flex;flex-direction:column;gap:var(--sp-4);min-width:0;}
 .stage3d{position:relative;border-radius:var(--radius-lg);overflow:hidden;
   border:1px solid #062633;aspect-ratio:5/4;min-height:19rem;
   background:radial-gradient(120% 100% at 50% 10%, #0f4a63 0%, #0a3346 46%, #041824 100%);
@@ -87,35 +88,76 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   text-transform:uppercase;color:#8fd6ec;opacity:.85;}
 .hud--sal{top:var(--sp-3);right:var(--sp-3);left:auto;background:#04222dcc;border:1px solid #17607d;
   padding:.3em .8em;border-radius:999px;font-weight:700;font-size:var(--step--1);letter-spacing:.05em;}
+.hud--temp{top:var(--sp-3);left:var(--sp-3);background:#04222dcc;border:1px solid #17607d;
+  padding:.3em .8em;border-radius:999px;font-weight:700;font-size:var(--step--1);letter-spacing:.05em;}
+.hud--state{top:3.2rem;left:var(--sp-3);background:#04222dcc;border:1px solid #17607d;max-width:48%;
+  padding:.25em .7em;border-radius:12px;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:#bfe9f5;}
+.hud--state b{color:#ffd45c;}
 
 /* juicy DOM overlay bursts (positioned inside .stage3d, painted over the canvas) */
 .dl-burst{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
 .dl-burst i{position:absolute;width:7px;height:7px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+.dl-flash{position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;}
 
-/* ---- Moment 1: Mix the Brine — tap-to-add-salt mini-game ---- */
-.mixbox{border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--sp-3);background:var(--surface);}
-.mixbox__row{display:flex;align-items:center;gap:var(--sp-3);}
-.shaker-btn{flex:none;width:3.6rem;height:3.6rem;border-radius:50%;border:2px solid var(--line-strong);
-  background:var(--paper);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;
-  transition:transform var(--dur-fast) var(--ease-out-back),border-color var(--dur-fast) var(--ease);}
-.shaker-btn:hover{border-color:var(--accent);}
-.shaker-btn:active{transform:scale(.88) rotate(-14deg);}
-.shaker-btn svg{width:1.9rem;height:1.9rem;}
-.mixbox__meter{flex:1;min-width:0;}
-.mixbox__val{font-family:var(--font-data);font-weight:800;font-variant-numeric:tabular-nums;font-size:var(--step-1);}
-.mixbox__track{height:12px;border-radius:999px;background:var(--paper);border:1px solid var(--line-strong);overflow:hidden;margin-top:.3em;position:relative;}
-.mixbox__fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#1f8fb3,#5fe0ff);
-  box-shadow:0 0 10px #5fe0ff88;transition:width .35s var(--ease-out-back);}
-.mixbox__marks{position:absolute;inset:0;}
-.mixbox__marks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(0,0,0,.18);}
+/* ---- dark instrument console (the brine lab's control deck) ---- */
+.console{background:linear-gradient(180deg,#0d2230,#0a1b27);border:1px solid #17394b;border-radius:var(--radius-lg);
+  padding:var(--sp-4);color:#d6eef7;box-shadow:var(--shadow-2);}
+.console__head{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);
+  border-bottom:1px solid #17394b;padding-bottom:var(--sp-3);margin-bottom:var(--sp-3);}
+.console__title{font-family:var(--font-data);font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;color:#7fdcf5;margin:0;}
+.console__tools{display:flex;gap:var(--sp-2);}
+.ibtn{font-family:var(--font-data);font-size:.72rem;padding:.4em .8em;border-radius:10px;border:1px solid #27566e;
+  background:#0a1b27;color:#bfe9f5;cursor:pointer;display:inline-flex;align-items:center;gap:.4em;touch-action:manipulation;
+  transition:transform var(--dur-fast) var(--ease-out-back),border-color var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease);}
+.ibtn:hover{border-color:#5fe0ff;background:#10303f;}
+.ibtn:active{transform:scale(.93);}
+.ibtn[aria-pressed=true]{border-color:#5fe0ff;background:#0f4a63;color:#eafcff;}
+.ibtn svg{width:1.05em;height:1.05em;}
+.csec{margin-top:var(--sp-4);padding-top:var(--sp-3);border-top:1px solid #17394b;}
+.csec:first-of-type{margin-top:0;padding-top:0;border-top:none;}
+.csec__row{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-3);}
+.csec__name{font-family:var(--font-data);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:#9fd6e8;}
+.csec__val{font-family:var(--font-data);font-weight:800;font-variant-numeric:tabular-nums;font-size:var(--step-2);color:#5fe0ff;line-height:1.1;}
+.csec__val small{font-size:.5em;font-weight:600;color:#7fa8b8;margin-left:.35em;}
+.csec__val--t{color:#7ff0b4;font-size:var(--step-1);}
+.console input[type=range]{width:100%;height:1.7rem;accent-color:#5fe0ff;margin:.3rem 0 0;}
+.console input.temp{accent-color:#7ff0b4;}
+.console .chip-btn{background:#0a1b27;border-color:#27566e;color:#bfe9f5;}
+.console .chip-btn:hover{border-color:#5fe0ff;color:#eafcff;background:#10303f;}
+.console .chip-btn[aria-pressed=true]{background:#5fe0ff;color:#04222d;border-color:#5fe0ff;}
+.mixrow{display:flex;align-items:center;gap:var(--sp-3);margin-top:var(--sp-2);flex-wrap:wrap;}
+.shaker-btn{flex:none;display:inline-flex;align-items:center;gap:.5em;padding:.45em 1em .45em .55em;border-radius:999px;
+  border:2px solid #5fe0ff;background:#0f4a63;color:#eafcff;font-family:var(--font-data);font-weight:700;font-size:.8rem;
+  cursor:pointer;touch-action:manipulation;transition:transform var(--dur-fast) var(--ease-out-back),background var(--dur-fast) var(--ease);}
+.shaker-btn:hover{background:#15627f;}
+.shaker-btn:active{transform:scale(.9) rotate(-6deg);}
+.shaker-btn svg{width:1.9rem;height:1.9rem;background:#eafcff;border-radius:50%;padding:.2rem;}
+.steppers{display:flex;gap:.3rem;}
+.steppers .ibtn{padding:.35em .65em;font-weight:700;}
+.tempscale{display:flex;justify-content:space-between;font-family:var(--font-data);font-size:.6rem;color:#7fa8b8;}
+.spec-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-2);margin-top:var(--sp-2);}
+@media(min-width:34rem){.spec-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+.spec{display:flex;align-items:center;gap:.55rem;text-align:left;padding:.5rem .6rem;border-radius:12px;
+  border:1px solid #1e4358;background:#0a1b27;color:#9fc6d6;cursor:pointer;font:inherit;touch-action:manipulation;
+  transition:all var(--dur-fast) var(--ease);}
+.spec:hover{border-color:#5fe0ff;color:#eafcff;}
+.spec[aria-pressed=true]{border-color:#ffd45c;background:#2a2410;color:#ffe9a6;box-shadow:inset 0 0 0 1px #ffd45c66;}
+.spec svg{flex:none;width:1.9rem;height:1.9rem;}
+.spec__n{font-size:.74rem;font-weight:700;display:block;line-height:1.15;}
+.spec__d{font-family:var(--font-data);font-size:.6rem;color:#7fa8b8;display:block;margin-top:.15em;font-variant-numeric:tabular-nums;}
+.spec[aria-pressed=true] .spec__d{color:#d9c36a;}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2);margin-top:var(--sp-1);}
+.glowbox{display:flex;align-items:center;justify-content:space-between;gap:.6rem;border:1px solid #1e4358;border-radius:12px;
+  padding:.35rem .6rem;background:#0a1b27;font-family:var(--font-data);font-size:.68rem;color:#bfe9f5;}
+.glowbox input{width:4.5rem;margin:0;height:1.2rem;}
 
-/* ---- Moment 2: Drop Test button ---- */
+/* ---- Step 2: Drop the specimen ---- */
 .drop-btn{width:100%;font-size:var(--step-1);}
 .drop-btn.is-armed{animation:dropready 1.3s ease-in-out infinite;}
 @keyframes dropready{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--signal) 45%, transparent);}50%{box-shadow:0 0 0 10px color-mix(in srgb, var(--signal) 0%, transparent);}}
 [data-reduced-motion=on] .drop-btn.is-armed{animation:none;}
 
-/* ---- Moment 3: Catch the Reading — needle-sweep timing game ---- */
+/* ---- Step 3: Catch the Reading — needle-sweep timing game ---- */
 .catchbox{border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--sp-3);background:var(--surface);}
 .sweep{position:relative;height:2.4rem;border-radius:999px;background:var(--paper);border:1px solid var(--line-strong);
   overflow:hidden;margin:var(--sp-2) 0;}
@@ -128,21 +170,20 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .catch-btn.pop{animation:catchpop .3s var(--ease-out-back);}
 @keyframes catchpop{0%{transform:scale(1);}45%{transform:scale(1.06);}100%{transform:scale(1);}}
 
-.ctrl{display:flex;flex-direction:column;gap:var(--sp-2);}
-.ctrl__top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
 .ctrl__name{font-family:var(--font-data);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);}
-.ctrl__val{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);color:var(--ink);}
-.ctrl input[type=range]{width:100%;accent-color:var(--accent);height:1.6rem;}
 .chip-row{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
 .chip-btn{font-family:var(--font-data);font-size:.7rem;padding:.3em .75em;border-radius:999px;
-  border:1px solid var(--line-strong);color:var(--ink-2);background:var(--paper);cursor:pointer;}
+  border:1px solid var(--line-strong);color:var(--ink-2);background:var(--paper);cursor:pointer;touch-action:manipulation;}
 .chip-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash);}
 .chip-btn[aria-pressed=true]{border-color:var(--accent);color:var(--accent-ink);background:var(--accent);}
-.readout-row{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin-top:var(--sp-3);}
-.ro{display:flex;flex-direction:column;gap:1px;}
-.ro__k{font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
-.ro__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);color:var(--ink);}
-.log-btn{width:100%;}
+
+/* ---- live telemetry strip under the 3D stage ---- */
+.telemetry{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-2);}
+@media(min-width:40rem){.telemetry{grid-template-columns:repeat(6,minmax(0,1fr));}}
+.ro{display:flex;flex-direction:column;gap:1px;padding:.45rem .6rem;border-radius:10px;background:var(--paper);border:1px solid var(--line-strong);min-width:0;}
+.ro__k{font-family:var(--font-data);font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.ro__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step--1);color:var(--ink);overflow-wrap:anywhere;}
+.ro--up .ro__v{color:#1c8a4f;} .ro--down .ro__v{color:#c2412d;}
 </style>
 </head>
 <body>
@@ -200,26 +241,87 @@ const THREE_URL = "../../../../../../engine/vendor/three.min.js";
 const L = (en, es) => getLang() === "es" ? es : en;
 
 /* ======================================================================
-   SALINITY / DENSITY MODEL (deterministic; simplified linear approximation
-   validated against real reference points: fresh water 1.00 g/cm3, ocean
-   ~3.5% -> ~1.026, Great Salt Lake 5-27% -> ~1.04-1.20, Dead Sea ~34% ->
-   ~1.255. Egg density fixed at 1.08 g/cm3, the commonly used approximate
-   value for a raw hen's egg, so the floating threshold (~10.7% salinity)
-   lands realistically between the low and high end of the Great Salt Lake.
+   BRINE PHYSICS (deterministic; simplified from real seawater data).
+   Density of pure water depends on temperature (densest near 4 C); dissolved
+   salt adds roughly 0.00075 g/cm3 per ppt, slightly less when warm. Checked
+   against reference points: ocean 35 ppt @ 15 C -> ~1.026 g/cm3, Great Salt
+   Lake 50-270 ppt -> ~1.04-1.20, Dead Sea ~340 ppt -> ~1.25.
+   Salinity is stored and dialled in ppt (g of salt per kg of water, 0-350);
+   the Investigation Record logs it as a percentage (ppt / 10) so it still
+   matches the course's "3.5% ocean / 34% Dead Sea" vocabulary.
    ====================================================================== */
-const EGG_DENSITY = 1.08;
-function densityFor(salinityPct){ return 1.000 + salinityPct * 0.0075; }
-const PRESETS = [
-  { id:"tap",   label:L("Tap water — 0%","Agua del grifo — 0%"), pct:0 },
-  { id:"ocean", label:L("Ocean — 3.5%","Océano — 3.5%"), pct:3.5 },
-  { id:"gsl-lo",label:L("Great Salt Lake (calm) — 5%","Gran Lago Salado (bajo) — 5%"), pct:5 },
-  { id:"gsl-hi",label:L("Great Salt Lake (peak) — 27%","Gran Lago Salado (alto) — 27%"), pct:27 },
-  { id:"dead",  label:L("Dead Sea — 34%","Mar Muerto — 34%"), pct:34 },
-];
-function waterLabel(pct){
-  const hit = PRESETS.find(p => Math.abs(p.pct - pct) < 0.26);
-  return hit ? hit.label : L("Custom mix","Mezcla personalizada");
+const G = 9.81;
+const DEFAULT_TEMP = 15;
+function waterDensityAt(T){ return 0.999842 + 6.794e-5 * T - 9.095e-6 * T * T + 1.0017e-7 * T * T * T - 1.120e-9 * T * T * T * T; }
+function brineDensity(ppt, T){ return waterDensityAt(T) + ppt * (0.000770 - 0.0000011 * T); }
+/* buoyancy verdict for a specimen of density `rho` in brine of density `d` */
+function verdictFor(rho, d){
+  if (Math.abs(rho - d) <= 0.004) return "suspended";
+  return rho < d ? "floats" : "sinks";
 }
+/* Six specimens. Mass in grams; volume (cm3) = mass / density. */
+const SPECIMENS = [
+  { id:"egg",   name:L("Hen's egg","Huevo de gallina"),       density:1.080, mass:57 },
+  { id:"jelly", name:L("Moon jellyfish","Medusa luna"),      density:1.024, mass:40 },
+  { id:"cap",   name:L("Bottle cap","Tapón de botella"),    density:0.950, mass:3 },
+  { id:"ice",   name:L("Ice cube","Cubo de hielo"),         density:0.917, mass:18 },
+  { id:"cork",  name:L("Cork","Corcho"),                     density:0.240, mass:5 },
+  { id:"rock",  name:L("Beach pebble","Guijarro de playa"), density:2.650, mass:90 },
+];
+const PRESETS = [
+  { id:"tap",   label:L("Tap water — 0 ppt","Agua del grifo — 0 ppt"), ppt:0 },
+  { id:"ocean", label:L("Ocean — 35 ppt","Océano — 35 ppt"), ppt:35 },
+  { id:"gsl-lo",label:L("Great Salt Lake (calm) — 50 ppt","Gran Lago Salado (bajo) — 50 ppt"), ppt:50 },
+  { id:"gsl-hi",label:L("Great Salt Lake (peak) — 270 ppt","Gran Lago Salado (alto) — 270 ppt"), ppt:270 },
+  { id:"dead",  label:L("Dead Sea — 340 ppt","Mar Muerto — 340 ppt"), ppt:340 },
+];
+function waterLabel(ppt){
+  const hit = PRESETS.find(p => Math.abs(p.ppt - ppt) < 2.6);
+  return hit ? hit.label.replace(/ — .*$/, "") : L("Custom mix","Mezcla personalizada");
+}
+function specimenIconSVG(id){
+  const s = {
+    egg:`<ellipse cx="20" cy="22" rx="11" ry="14.5" fill="#fbf3dd" stroke="#c9a765" stroke-width="1.6"/><ellipse cx="16" cy="15" rx="3.4" ry="5" fill="#fff" opacity=".6"/>`,
+    jelly:`<path d="M6 22a14 14 0 0 1 28 0z" fill="#c9a7ff" fill-opacity=".75" stroke="#8f63d9" stroke-width="1.6"/><path d="M11 22q-2 7 1 13M17 22q-1 8 1 14M23 22q1 8-1 14M29 22q2 7-1 13" fill="none" stroke="#8f63d9" stroke-width="1.5" stroke-linecap="round"/>`,
+    cap:`<rect x="6" y="15" width="28" height="12" rx="3" fill="#d9534f" stroke="#8f2a27" stroke-width="1.6"/><path d="M10 15v12M14 15v12M18 15v12M22 15v12M26 15v12M30 15v12" stroke="#8f2a27" stroke-width="1" opacity=".5"/>`,
+    ice:`<rect x="8" y="8" width="24" height="24" rx="4" fill="#d9f2ff" fill-opacity=".85" stroke="#7cc3e6" stroke-width="1.6"/><path d="M12 12l6 4M26 26l-5-4" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8"/>`,
+    cork:`<rect x="10" y="6" width="20" height="28" rx="4" fill="#c79b63" stroke="#8b6536" stroke-width="1.6"/><circle cx="16" cy="14" r="1.2" fill="#8b6536"/><circle cx="24" cy="20" r="1.4" fill="#8b6536"/><circle cx="17" cy="27" r="1.1" fill="#8b6536"/>`,
+    rock:`<path d="M6 29l4-12 9-6 11 4 5 10-4 7H11z" fill="#8a8f98" stroke="#51565e" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 18l6-3" stroke="#c4c9d1" stroke-width="2" stroke-linecap="round"/>`,
+  }[id] || "";
+  return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${s}</svg>`;
+}
+
+/* ======================================================================
+   LAB SOUND FX — tiny WebAudio blips (no audio files). Everything here is
+   silenceable with the mute button in the control console (CLAUDE.md §6).
+   ====================================================================== */
+const sfx = (() => {
+  let ctx = null; const api = { on: true };
+  const ac = () => {
+    if (!api.on) return null;
+    try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); return ctx; } catch (e) { return null; }
+  };
+  function tone(f0, f1, dur, type, vol, delay){
+    const c = ac(); if (!c) return; const t0 = c.currentTime + (delay || 0);
+    const o = c.createOscillator(), g = c.createGain(); o.type = type;
+    o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur);
+  }
+  api.tick = () => tone(900, 700, 0.05, "sine", 0.04);
+  api.pinch = () => { tone(2200, 1200, 0.05, "square", 0.025); tone(1800, 900, 0.05, "square", 0.02, 0.05); };
+  api.miss = () => tone(240, 150, 0.2, "triangle", 0.06);
+  api.win = () => { tone(660, 880, 0.12, "sine", 0.07); tone(990, 1320, 0.18, "sine", 0.07, 0.11); };
+  api.splash = () => {
+    const c = ac(); if (!c) return;
+    const n = Math.floor(c.sampleRate * 0.35), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+    const s = c.createBufferSource(); s.buffer = buf;
+    const f = c.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 1400;
+    const g = c.createGain(); g.gain.value = 0.12; s.connect(f); f.connect(g); g.connect(c.destination); s.start();
+  };
+  return api;
+})();
 function eggIconSVG(){
   return `<svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <ellipse cx="20" cy="28" rx="17" ry="22" fill="#fbf3dd" stroke="#c9a765" stroke-width="1.5"/>
@@ -278,214 +380,344 @@ function burst(container, opts = {}){
 }
 
 /* ======================================================================
-   THE 3D SCENE — an orbitable "brine tank" on a lab bench. The egg lives on
-   a dock beside the tank until Drop Test sends it falling in (splash +
-   ripple + camera punch), then it bobs continuously at its buoyancy-correct
-   depth. Salt pinches fall as particles and dissolve at the surface. A slow
-   auto-orbit and constant bobbing keep the scene moving even at rest.
+   THE 3D SCENE — the orbitable "Brine Lab". A glass tank of brine on a lab
+   bench, a hovering salt shaker, a dock where the specimen waits. The
+   specimen obeys a small REAL buoyancy simulation (gravity vs. the upward
+   force of the displaced brine, plus drag), so it arcs in, splashes, and then
+   sinks, floats, bobs or hangs suspended depending on the salinity and
+   temperature you dialled — and keeps reacting live if you change them while
+   it is in the water. Optional force arrows show weight (down) against
+   buoyant force (up). Bioluminescent plankton twinkle in the water, bubbles
+   rise faster when it is warm, marine snow drifts past: nothing is ever still.
    ====================================================================== */
-function build3D(THREE, stageEl){
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+function makeGlowTexture(THREE){
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.35, "rgba(255,255,255,.45)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+function makeNoiseTexture(THREE, base, n){
+  const c = document.createElement("canvas"); c.width = c.height = 128;
+  const g = c.getContext("2d"); g.fillStyle = base; g.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < n; i++) {
+    g.fillStyle = Math.random() < .5 ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.12)";
+    g.fillRect(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 3, 1 + Math.random() * 3);
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(5, 5); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeSkyTexture(THREE){
+  const c = document.createElement("canvas"); c.width = 4; c.height = 256;
+  const g = c.getContext("2d"), gr = g.createLinearGradient(0, 0, 0, 256);
+  gr.addColorStop(0, "#0f4a63"); gr.addColorStop(.5, "#0a3346"); gr.addColorStop(1, "#03121b");
+  g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+
+function build3D(THREE, stageEl, hooks){
+  hooks = hooks || {};
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+  renderer.outputEncoding = THREE.sRGBEncoding;
   stageEl.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x041824, 8, 20);
+  scene.background = makeSkyTexture(THREE);
+  scene.fog = new THREE.Fog(0x041824, 9, 24);
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  const glowTex = makeGlowTexture(THREE);
 
-  scene.add(new THREE.HemisphereLight(0xbfe9f5, 0x0a1f2b, 0.7));
-  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-  const sun = new THREE.DirectionalLight(0xfff2d0, 1.1);
-  sun.position.set(4, 6, 3); sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
+  scene.add(new THREE.HemisphereLight(0xbfe9f5, 0x0a1f2b, 0.75));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  const sun = new THREE.DirectionalLight(0xfff2d0, 1.15);
+  sun.position.set(4, 6, 3); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -5; sun.shadow.camera.right = 5; sun.shadow.camera.top = 5; sun.shadow.camera.bottom = -5;
   scene.add(sun);
+  const rim = new THREE.PointLight(0x5fe0ff, 0.6, 14); rim.position.set(-3.5, 1.5, -3); scene.add(rim);
 
-  // bench
-  const bench = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.4, 40),
-    new THREE.MeshStandardMaterial({ color: 0x0d3a4f, roughness: 0.9 }));
+  // lab bench (textured) + a pale ring so the tank reads against it
+  const bench = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.4, 48),
+    new THREE.MeshStandardMaterial({ map: makeNoiseTexture(THREE, "#0d3a4f", 2600), roughness: 0.85 }));
   bench.position.y = -1.6; bench.receiveShadow = true; scene.add(bench);
+  const benchRing = new THREE.Mesh(new THREE.TorusGeometry(2.05, 0.03, 8, 64), new THREE.MeshBasicMaterial({ color: 0x27a6c9, transparent: true, opacity: 0.5 }));
+  benchRing.rotation.x = Math.PI / 2; benchRing.position.y = -1.39; scene.add(benchRing);
 
-  // glass tank (outer) + water (inner, color driven by salinity)
-  const glass = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 2.6, 40, 1, true),
-    new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.16, roughness: 0.05, side: THREE.DoubleSide }));
+  // glass tank + water
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 2.6, 48, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.15, roughness: 0.05, metalness: 0.1, side: THREE.DoubleSide }));
   glass.position.y = -0.2; scene.add(glass);
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.05, 12, 48),
-    new THREE.MeshStandardMaterial({ color: 0xeafcff, transparent: true, opacity: 0.4 }));
-  rim.rotation.x = Math.PI / 2; rim.position.y = 1.1; scene.add(rim);
-  const waterMat = new THREE.MeshStandardMaterial({ color: 0x3aa6c9, transparent: true, opacity: 0.72, roughness: 0.15 });
-  const water = new THREE.Mesh(new THREE.CylinderGeometry(1.62, 1.62, 1.9, 40), waterMat);
+  const tankRim = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.05, 12, 64), new THREE.MeshStandardMaterial({ color: 0xeafcff, transparent: true, opacity: 0.45 }));
+  tankRim.rotation.x = Math.PI / 2; tankRim.position.y = 1.1; scene.add(tankRim);
+  const waterMat = new THREE.MeshStandardMaterial({ color: 0x3aa6c9, transparent: true, opacity: 0.72, roughness: 0.12, metalness: 0.05 });
+  const water = new THREE.Mesh(new THREE.CylinderGeometry(1.62, 1.62, 1.9, 48), waterMat);
   water.position.y = -0.35; scene.add(water);
   const waterTopY = 0.6, waterBotY = -1.28;
+  const surfaceGlint = new THREE.Mesh(new THREE.CircleGeometry(1.6, 48), new THREE.MeshBasicMaterial({ map: glowTex, color: 0xbff4ff, transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending }));
+  surfaceGlint.rotation.x = -Math.PI / 2; surfaceGlint.position.y = waterTopY + 0.015; scene.add(surfaceGlint);
 
-  // dock ledge beside the tank, where the egg waits
-  const dock = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.14, 24),
-    new THREE.MeshStandardMaterial({ color: 0x134e6f, roughness: 0.7 }));
-  dock.position.set(2.35, -1.32, 0); dock.castShadow = true; dock.receiveShadow = true; scene.add(dock);
+  // dock where the specimen waits (an off-axis landmark, so orbiting is visibly rewarding)
+  const dock = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.16, 28), new THREE.MeshStandardMaterial({ color: 0x134e6f, roughness: 0.6, metalness: 0.2 }));
+  dock.position.set(2.55, -1.3, 0); dock.castShadow = true; dock.receiveShadow = true; scene.add(dock);
+  const dockRing = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.025, 8, 32), new THREE.MeshBasicMaterial({ color: 0xffd45c }));
+  dockRing.rotation.x = Math.PI / 2; dockRing.position.set(2.55, -1.21, 0); scene.add(dockRing);
 
-  // the egg
-  const egg = new THREE.Group();
-  const eggMesh = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 20), new THREE.MeshStandardMaterial({ color: 0xfbf3dd, roughness: 0.5 }));
-  eggMesh.scale.set(1, 1.28, 1); eggMesh.castShadow = true; egg.add(eggMesh);
-  const DOCK_POS = new THREE.Vector3(2.35, -1.1, 0);
-  egg.position.copy(DOCK_POS);
-  scene.add(egg);
+  // hovering salt shaker
+  const shaker = new THREE.Group();
+  const sBody = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.6, 20), new THREE.MeshStandardMaterial({ color: 0xe9f4f8, transparent: true, opacity: 0.85, roughness: 0.1 }));
+  const sSalt = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.36, 20), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
+  sSalt.position.y = -0.1;
+  const sCap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.14, 20), new THREE.MeshStandardMaterial({ color: 0xb8c4cb, metalness: 0.7, roughness: 0.3 }));
+  sCap.position.y = 0.37;
+  shaker.add(sBody, sSalt, sCap); shaker.position.set(-1.0, 2.35, 0.3); scene.add(shaker);
+  let shakeT = 2;
 
-  // salt particles (recycled pool)
-  const saltMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
-  const salts = []; const SALT_POOL = 16;
-  for (let i = 0; i < SALT_POOL; i++) {
-    const s = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), saltMat);
-    s.visible = false; scene.add(s); salts.push(s);
+  // ---- the specimen (rebuilt whenever the student picks another one) ----
+  let spec = SPECIMENS[0], specGroup = null, specH = 0.39, specMats = [];
+  function buildSpecimen(s){
+    if (specGroup) { scene.remove(specGroup); specGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); }
+    const g = new THREE.Group(); specMats = [];
+    const mat = (o) => { const m = new THREE.MeshStandardMaterial(o); specMats.push(m); return m; };
+    if (s.id === "egg") { const m = new THREE.Mesh(new THREE.SphereGeometry(0.3, 28, 22), mat({ color: 0xfbf3dd, roughness: 0.45 })); m.scale.set(1, 1.3, 1); g.add(m); specH = 0.39; }
+    else if (s.id === "jelly") {
+      const bell = new THREE.Mesh(new THREE.SphereGeometry(0.42, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), mat({ color: 0xc9a7ff, transparent: true, opacity: 0.78, roughness: 0.2, emissive: 0x6a3fd0, emissiveIntensity: 0.5 }));
+      bell.position.y = 0.05; g.add(bell);
+      for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; const t = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.012, 0.42, 6), mat({ color: 0xdcc8ff, transparent: true, opacity: 0.8, emissive: 0x6a3fd0, emissiveIntensity: 0.5 })); t.position.set(Math.cos(a) * 0.24, -0.17, Math.sin(a) * 0.24); t.userData.sway = a; g.add(t); }
+      specH = 0.4; }
+    else if (s.id === "cap") { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.2, 28), mat({ color: 0xd9534f, roughness: 0.4 })); g.add(m); const r = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.022, 8, 28), mat({ color: 0xa83a37 })); r.rotation.x = Math.PI / 2; r.position.y = 0.1; g.add(r); specH = 0.1; }
+    else if (s.id === "ice") { const m = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), mat({ color: 0xd9f2ff, transparent: true, opacity: 0.72, roughness: 0.08, emissive: 0x7cc3e6, emissiveIntensity: 0.25 })); g.add(m); specH = 0.3; }
+    else if (s.id === "cork") { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.56, 22), mat({ color: 0xc79b63, roughness: 0.95 })); g.add(m); specH = 0.28; }
+    else { const m = new THREE.Mesh(new THREE.DodecahedronGeometry(0.32, 0), mat({ color: 0x8a8f98, roughness: 0.85, flatShading: true })); g.add(m); specH = 0.3; }
+    g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    g.position.copy(DOCK); scene.add(g); specGroup = g; spec = s;
   }
-  function addSaltPinch(){
-    for (let i = 0; i < 5; i++) {
-      const s = salts.find(x => !x.visible); if (!s) continue;
-      s.visible = true;
-      s.position.set((Math.random() - 0.5) * 2, 1.6, (Math.random() - 0.5) * 2);
-      s.userData = { vy: -0.9 - Math.random() * 0.5, drift: (Math.random() - 0.5) * 0.6 };
-    }
-  }
+  const DOCK = new THREE.Vector3(2.55, -1.08, 0);
+  let phase = "dock", y = DOCK.y, vy = 0, fly = 0, sinceDrop = 0, sTop = 0;
+  buildSpecimen(SPECIMENS[0]); y = DOCK.y + 0;
 
-  // splash ripple ring (flat, scales up + fades)
-  const ripple = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.5, 32),
-    new THREE.MeshBasicMaterial({ color: 0xeafcff, transparent: true, opacity: 0, side: THREE.DoubleSide }));
+  // force arrows (weight down, buoyant force up)
+  const arrowW = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(), 1, 0xff5d5d, 0.2, 0.12);
+  const arrowB = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), 1, 0x5dff9e, 0.2, 0.12);
+  [arrowW, arrowB].forEach(a => { a.visible = false; a.renderOrder = 10; a.line.material.depthTest = false; a.cone.material.depthTest = false; scene.add(a); });
+  let showVectors = false;
+
+  // ---- particles: salt grains, splash droplets, bioluminescence, bubbles, marine snow ----
+  const grains = []; const grainGeo = new THREE.SphereGeometry(0.04, 6, 6), grainMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+  for (let i = 0; i < 60; i++) { const m = new THREE.Mesh(grainGeo, grainMat); m.visible = false; scene.add(m); grains.push(m); }
+  const drops = []; const dropMat = new THREE.MeshBasicMaterial({ color: 0xcff6ff, transparent: true, opacity: 0.85 }), dropGeo = new THREE.SphereGeometry(0.035, 6, 6);
+  for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(dropGeo, dropMat); m.visible = false; scene.add(m); drops.push(m); }
+
+  function pointsLayer(n, size, color, opacity, fn){
+    const pos = new Float32Array(n * 3); const seeds = [];
+    for (let i = 0; i < n; i++) { const p = fn(); pos[i * 3] = p[0]; pos[i * 3 + 1] = p[1]; pos[i * 3 + 2] = p[2]; seeds.push(Math.random() * 6.28); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ map: glowTex, size, color, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+    const pts = new THREE.Points(geo, mat); pts.frustumCulled = false; scene.add(pts);
+    return { pts, pos, seeds, n, mat, geo };
+  }
+  const inTank = () => { const a = Math.random() * 6.28, r = Math.sqrt(Math.random()) * 1.45; return [Math.cos(a) * r, waterBotY + 0.1 + Math.random() * (waterTopY - waterBotY - 0.2), Math.sin(a) * r]; };
+  const bio1 = pointsLayer(90, 0.16, 0x5fffd8, 0.0, inTank);
+  const bio2 = pointsLayer(90, 0.11, 0x8ab8ff, 0.0, inTank);
+  const bubbles = pointsLayer(46, 0.07, 0xeafcff, 0.55, inTank);
+  const snow = pointsLayer(140, 0.05, 0xbfe9f5, 0.35, () => { const a = Math.random() * 6.28, r = 2.4 + Math.random() * 6; return [Math.cos(a) * r, -1.2 + Math.random() * 6, Math.sin(a) * r]; });
+  let glow = 0.5, glowBoost = 0, conditionsT = 15;
+
+  // splash ripple
+  const ripple = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.5, 40), new THREE.MeshBasicMaterial({ color: 0xeafcff, transparent: true, opacity: 0, side: THREE.DoubleSide }));
   ripple.rotation.x = -Math.PI / 2; ripple.position.y = waterTopY + 0.02; scene.add(ripple);
   let rippleT = 2;
 
-  let restY = waterBotY, targetRestY = waterBotY, dropped = false, dropAnimT = 2;
-  const EGG_H = 0.5; // egg's own visual height, used to keep a floating egg near the surface
-  function setSalinity(pct){
-    const t = Math.min(1, pct / 40);
-    waterMat.color.setHSL(0.53 - t * 0.08, 0.55, 0.42 - t * 0.14);
-    waterMat.opacity = 0.72 + t * 0.14;
-    const d = densityFor(pct);
-    if (EGG_DENSITY < d) {
-      // Floats: only the egg's OWN height ever matters for how deep it sits — never
-      // the tank's full depth. A ratio near 1 (barely denser water than the egg) means
-      // the egg floats almost fully submerged, just its tip breaking the surface; a
-      // small ratio (much denser water, e.g. the Dead Sea) lifts more of it clear.
-      // Scaling this across the whole tank (the previous bug) dragged even a floating
-      // egg down near the bottom, visually indistinguishable from sinking.
-      const ratio = EGG_DENSITY / d; // 0..1, fraction of the egg submerged
-      targetRestY = waterTopY + EGG_H / 2 - ratio * EGG_H;
-    } else {
-      // Sinks: settles on the tank floor, regardless of exactly how much denser the egg is.
-      targetRestY = waterBotY + EGG_H / 2;
+  // ---- conditions ----
+  let ppt = 0, T = DEFAULT_TEMP, fluidD = brineDensity(0, DEFAULT_TEMP);
+  function setConditions(p, t){
+    ppt = p; T = t; fluidD = brineDensity(ppt, T); conditionsT = T;
+    const sal = Math.min(1, ppt / 350), warm = (T - 15) / 20;
+    waterMat.color.setHSL(0.545 - sal * 0.06 - warm * 0.03, 0.6 - Math.max(0, -warm) * 0.15, Math.max(0.2, 0.46 - sal * 0.2 + Math.max(0, -warm) * 0.06));
+    waterMat.opacity = 0.7 + sal * 0.18;
+  }
+  function setSpecimen(s){ buildSpecimen(s); phase = "dock"; vy = 0; }
+  function drop(){ phase = "flying"; fly = 0; sinceDrop = 0; vy = 0; }
+  function retrieve(){ phase = "dock"; vy = 0; }
+  function pinch(){
+    shakeT = 0;
+    for (let i = 0; i < 12; i++) {
+      const m = grains.find(x => !x.visible); if (!m) break;
+      m.visible = true;
+      m.position.set(-0.75 + (Math.random() - 0.5) * 0.3, 2.0, 0.3 + (Math.random() - 0.5) * 0.3);
+      m.userData = { vx: 0.45 + Math.random() * 0.25, vy: -0.4 - Math.random() * 0.6, vz: (Math.random() - 0.5) * 0.2 };
     }
   }
-  function dropEgg(){
-    dropped = true; dropAnimT = 0;
+  function splash(power){
+    rippleT = 0; camPunch = Math.min(1, 0.4 + power * 0.15); glowBoost = 1;
+    for (let i = 0; i < 18; i++) {
+      const m = drops.find(x => !x.visible); if (!m) break;
+      m.visible = true; const a = Math.random() * 6.28, r = Math.random() * 0.4;
+      m.position.set(Math.cos(a) * r, waterTopY + 0.05, Math.sin(a) * r);
+      m.userData = { vx: Math.cos(a) * (0.6 + Math.random() * 0.8), vy: 1.4 + Math.random() * 1.6 + power * 0.2, vz: Math.sin(a) * (0.6 + Math.random() * 0.8) };
+    }
+    if (hooks.onSplash) hooks.onSplash(power);
   }
-  function resetEggToDock(){
-    dropped = false; dropAnimT = 0;
-  }
-  function celebrate(){ camPunch = 1; }
 
   // ---- camera orbit ----
-  let az = 0.6, pol = 1.2, rad = 6.6, autoT = 0, dragging = false, lastX = 0, lastY = 0, camPunch = 0;
+  let az = 0.6, pol = 1.25, rad = 8.2, autoT = 0, dragging = false, lastX = 0, lastY = 0, camPunch = 0;
   function applyCam(){
-    const punch = camPunch > 0 ? rad - camPunch * 1.1 : rad;
-    const x = punch * Math.sin(pol) * Math.cos(az), z = punch * Math.sin(pol) * Math.sin(az), y = punch * Math.cos(pol);
-    camera.position.set(x, y - 0.2, z); camera.lookAt(0, -0.3, 0);
+    const r = camPunch > 0 ? rad - camPunch * 1.0 : rad;
+    camera.position.set(r * Math.sin(pol) * Math.cos(az), r * Math.cos(pol) - 0.1, r * Math.sin(pol) * Math.sin(az));
+    camera.lookAt(0.3, -0.2, 0);
   }
   const dom = renderer.domElement;
   dom.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; autoT = 0; dom.setPointerCapture(e.pointerId); });
   dom.addEventListener("pointermove", e => { if (!dragging) return; az -= (e.clientX - lastX) * 0.008; pol = Math.max(0.5, Math.min(1.5, pol - (e.clientY - lastY) * 0.006)); lastX = e.clientX; lastY = e.clientY; });
   dom.addEventListener("pointerup", () => { dragging = false; });
-  dom.addEventListener("wheel", e => { e.preventDefault(); rad = Math.max(4.5, Math.min(9, rad + e.deltaY * 0.003)); }, { passive: false });
-
+  dom.addEventListener("wheel", e => { e.preventDefault(); rad = Math.max(4.8, Math.min(10, rad + e.deltaY * 0.003)); }, { passive: false });
   function resize(){ const w = stageEl.clientWidth, h = stageEl.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
   const ro = new ResizeObserver(resize); ro.observe(stageEl); resize();
 
-  let bobPhase = 0, last = performance.now();
+  // ---- telemetry, shared with the control panel ----
+  function subFrac(){ return Math.max(0, Math.min(1, (waterTopY - (y - specH)) / (2 * specH))); }
+  function getState(){
+    return { phase, s: phase === "water" ? subFrac() : 0, settled: phase === "water" && Math.abs(vy) < 0.06 && sinceDrop > 0.8 };
+  }
+
+  let clock = 0, last = performance.now(), raf = 0, disposed = false;
   function loop(now){
-    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    if (disposed) return;
+    if (!stageEl.isConnected) { dispose(); return; }
+    const dt = Math.min((now - last) / 1000, 0.05); last = now; clock += dt;
     const reduced = document.documentElement.getAttribute("data-reduced-motion") === "on";
-    if (!dragging && !reduced) { autoT += dt; if (autoT > 1.5) az += dt * 0.1; }
+    if (!dragging && !reduced) { autoT += dt; if (autoT > 1.5) az += dt * 0.09; }
     applyCam();
     if (camPunch > 0) camPunch = Math.max(0, camPunch - dt * 2.2);
 
-    // egg motion: dock <-> water, with a splash on the way in
-    dropAnimT += dt;
-    if (dropped) {
-      const t = Math.min(1, dropAnimT / 0.55);
-      const fallY = THREE.MathUtils.lerp(DOCK_POS.y, targetRestY, t * t);
-      egg.position.x = THREE.MathUtils.lerp(DOCK_POS.x, 0, Math.min(1, t * 1.3));
-      egg.position.z = 0;
-      restY = targetRestY;
-      if (t >= 1) {
-        bobPhase += dt * 1.6;
-        egg.position.y = restY + (reduced ? 0 : Math.sin(bobPhase) * 0.05);
-        egg.rotation.z = reduced ? 0 : Math.sin(bobPhase * 0.7) * 0.12;
-      } else {
-        egg.position.y = fallY;
-        if (t > 0.75 && rippleT > 1.5) { rippleT = 0; }
-      }
+    // ---- specimen physics ----
+    const rho = spec.density;
+    if (phase === "dock") {
+      specGroup.position.x += (DOCK.x - specGroup.position.x) * (1 - Math.exp(-9 * dt));
+      y += (DOCK.y - y) * (1 - Math.exp(-9 * dt));
+      specGroup.position.y = y + (reduced ? 0 : Math.sin(clock * 1.6) * 0.03);
+      specGroup.position.z = 0; specGroup.rotation.set(0, clock * 0.4, 0);
+    } else if (phase === "flying") {
+      fly += dt / 0.5; const t = Math.min(1, fly);
+      specGroup.position.x = DOCK.x * (1 - t); y = DOCK.y + (1.75 - DOCK.y) * Math.sin(t * Math.PI / 2);
+      specGroup.position.y = y; specGroup.rotation.y += dt * 3;
+      if (t >= 1) { phase = "water"; vy = 0; specGroup.position.x = 0; }
     } else {
-      const t = Math.min(1, dropAnimT / 0.5);
-      egg.position.x = THREE.MathUtils.lerp(egg.position.x, DOCK_POS.x, t);
-      egg.position.y = THREE.MathUtils.lerp(egg.position.y, DOCK_POS.y, t);
-      bobPhase += dt * 0.8;
-      egg.position.y += reduced ? 0 : Math.sin(bobPhase) * 0.02;
+      sinceDrop += dt; sTop = subFrac();
+      const wasAbove = (y - specH) > waterTopY;
+      let a;
+      if (sTop <= 0) a = -7;
+      else {
+        const net = sTop * fluidD / rho - 1;
+        a = 21 * net;
+        vy *= Math.exp(-5 * sTop * dt);
+        if (net < -0.02 && sTop > 0.99 && vy > -0.7 && verdictFor(rho, fluidD) === "sinks") vy += (-0.7 - vy) * Math.min(1, dt * 3);
+      }
+      vy = Math.max(-6, Math.min(6, vy + a * dt)); y += vy * dt;
+      const floor = waterBotY + specH;
+      if (y < floor) { y = floor; vy = vy < -0.6 ? -vy * 0.18 : 0; }
+      if (wasAbove && (y - specH) <= waterTopY && vy < -0.3) splash(Math.abs(vy));
+      specGroup.position.x += (0 - specGroup.position.x) * (1 - Math.exp(-6 * dt));
+      specGroup.position.y = y;
+      const rolling = reduced ? 0 : Math.sin(clock * 1.9) * 0.1 * (Math.abs(vy) < 0.1 ? 1 : 0.4);
+      specGroup.rotation.x += (rolling - specGroup.rotation.x) * 0.1; specGroup.rotation.z = rolling * 0.8;
+    }
+    specGroup.children.forEach(c => { if (c.userData && c.userData.sway !== undefined) c.rotation.z = Math.sin(clock * 2 + c.userData.sway) * 0.15; });
+    specMats.forEach(m => { if (spec.id === "jelly") m.emissiveIntensity = 0.45 + glow * 0.9 + Math.sin(clock * 2.4) * 0.1; });
+
+    // ---- force arrows ----
+    const arrowsOn = showVectors && phase === "water";
+    arrowW.visible = arrowB.visible = arrowsOn;
+    if (arrowsOn) {
+      const Wn = spec.mass / 1000 * G, Fb = fluidD * subFrac() * (spec.mass / spec.density) * G / 1000;
+      const len = f => Math.max(0.12, Math.min(2.0, 0.22 + 1.05 * Math.sqrt(f / 0.9)));
+      arrowW.position.set(specGroup.position.x + 0.0, y, specGroup.position.z); arrowW.setLength(len(Wn), 0.34, 0.2);
+      arrowB.position.set(specGroup.position.x + 0.0, y, specGroup.position.z); arrowB.setLength(len(Fb), 0.34, 0.2);
     }
 
-    // ripple animation
-    if (rippleT < 1.5) {
-      rippleT += dt * 1.8;
-      ripple.scale.setScalar(1 + rippleT * 3.2);
-      ripple.material.opacity = Math.max(0, 0.6 - rippleT * 0.5);
-    }
-
-    // salt particles falling + dissolving
-    salts.forEach(s => {
-      if (!s.visible) return;
-      s.position.y += s.userData.vy * dt;
-      s.position.x += s.userData.drift * dt;
-      if (s.position.y <= waterTopY) { s.visible = false; }
+    // ---- particles ----
+    shaker.position.y = 2.35 + (reduced ? 0 : Math.sin(clock * 1.3) * 0.06);
+    if (shakeT < 1) { shakeT += dt * 2.2; const k = Math.sin(Math.min(1, shakeT) * Math.PI); shaker.rotation.z = -2.5 * k; } else shaker.rotation.z = 0;
+    grains.forEach(m => {
+      if (!m.visible) return;
+      m.position.x += m.userData.vx * dt * 0.4; m.position.y += m.userData.vy * dt; m.position.z += m.userData.vz * dt; m.userData.vy -= 2.2 * dt;
+      if (m.position.y <= waterTopY) { m.visible = false; rippleT = Math.min(rippleT, 0.9); }
     });
+    drops.forEach(m => {
+      if (!m.visible) return;
+      m.position.x += m.userData.vx * dt; m.position.y += m.userData.vy * dt; m.position.z += m.userData.vz * dt; m.userData.vy -= 7 * dt;
+      if (m.position.y <= waterTopY) m.visible = false;
+    });
+    if (rippleT < 1.5) { rippleT += dt * 1.8; ripple.scale.setScalar(1 + rippleT * 3.2); ripple.material.opacity = Math.max(0, 0.6 - rippleT * 0.5); }
+    glowBoost = Math.max(0, glowBoost - dt * 0.6);
+    const gl = Math.min(1, glow + glowBoost * 0.4);
+    bio1.mat.opacity = gl * (0.75 + 0.25 * Math.sin(clock * 2.1)); bio2.mat.opacity = gl * (0.75 + 0.25 * Math.sin(clock * 1.5 + 2));
+    [bio1, bio2].forEach((L_, li) => {
+      for (let i = 0; i < L_.n; i++) { const sd = L_.seeds[i]; L_.pos[i * 3] += Math.sin(clock * 0.6 + sd) * dt * 0.08; L_.pos[i * 3 + 1] += Math.cos(clock * 0.5 + sd) * dt * 0.05; L_.pos[i * 3 + 2] += Math.cos(clock * 0.45 + sd) * dt * 0.08; }
+      L_.geo.attributes.position.needsUpdate = true;
+    });
+    const rise = 0.25 + Math.max(0, conditionsT) / 35 * 0.9;
+    for (let i = 0; i < bubbles.n; i++) {
+      bubbles.pos[i * 3 + 1] += rise * dt * (0.6 + (bubbles.seeds[i] % 1));
+      bubbles.pos[i * 3] += Math.sin(clock * 2 + bubbles.seeds[i]) * dt * 0.05;
+      if (bubbles.pos[i * 3 + 1] > waterTopY) { const p = inTank(); bubbles.pos[i * 3] = p[0]; bubbles.pos[i * 3 + 1] = waterBotY + 0.05; bubbles.pos[i * 3 + 2] = p[2]; }
+    }
+    bubbles.geo.attributes.position.needsUpdate = true;
+    for (let i = 0; i < snow.n; i++) { snow.pos[i * 3 + 1] -= dt * 0.12; snow.pos[i * 3] += Math.sin(clock * 0.3 + snow.seeds[i]) * dt * 0.05; if (snow.pos[i * 3 + 1] < -1.3) snow.pos[i * 3 + 1] = 5; }
+    snow.geo.attributes.position.needsUpdate = true;
 
     renderer.render(scene, camera);
     raf = requestAnimationFrame(loop);
   }
-  let raf = requestAnimationFrame(loop);
+  raf = requestAnimationFrame(loop);
+  function dispose(){ disposed = true; cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); }
 
+  setConditions(0, DEFAULT_TEMP);
   return {
-    setSalinity, addSaltPinch, dropEgg, resetEggToDock, celebrate,
-    dispose(){ cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); },
+    setConditions, setSpecimen, pinch, drop, retrieve, getState, dispose,
+    punch(){ camPunch = 1; },
+    setVectors(v){ showVectors = v; },
+    setGlow(v){ glow = v; },
   };
 }
 
 /* ======================================================================
-   2D FALLBACK — for devices without WebGL. Same three moments, same state
-   machine, expressed as CSS transforms instead of a Three.js scene.
+   2D FALLBACK — for devices without WebGL. Same controls and state machine,
+   expressed as CSS transforms; the specimen jumps to its equilibrium depth.
    ====================================================================== */
 function build2DFallback(stageEl){
   stageEl.innerHTML = "";
   const tank = document.createElement("div");
-  tank.style.cssText = "position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:60%;height:70%;border-radius:0 0 14px 14px;border:3px solid #0d3a4f;border-top:none;overflow:hidden;transition:background .4s;";
-  const egg = document.createElement("div");
-  egg.style.cssText = "position:absolute;left:50%;width:2.4rem;height:3.1rem;transform:translate(-50%,-50%);transition:top .8s cubic-bezier(.4,1.4,.5,1);";
-  egg.innerHTML = eggIconSVG();
-  tank.append(egg); stageEl.append(tank);
-  let dropped = false, pct = 0;
-  function setSalinity(p){
-    pct = p;
-    const t = Math.min(1, p / 40);
-    tank.style.background = `linear-gradient(180deg,#eaf6fb 0%,#eaf6fb 18%,hsl(${195 - p * 1.1},70%,${48 - p * 0.5}%) 18%,hsl(${195 - p * 1.1},75%,${28 - p * 0.3}%) 100%)`;
+  tank.style.cssText = "position:absolute;left:38%;bottom:8%;transform:translateX(-50%);width:52%;height:70%;border-radius:0 0 14px 14px;border:3px solid #0d3a4f;border-top:none;overflow:hidden;transition:background .4s;";
+  const obj = document.createElement("div");
+  obj.style.cssText = "position:absolute;width:2.6rem;height:2.6rem;transform:translate(-50%,-50%);transition:top .9s cubic-bezier(.4,1.4,.5,1),left .5s;";
+  stageEl.append(tank);
+  const dockObj = document.createElement("div");
+  dockObj.style.cssText = "position:absolute;right:6%;bottom:12%;width:2.6rem;height:2.6rem;transition:opacity .3s;";
+  stageEl.append(dockObj);
+  obj.style.left = "50%"; obj.style.top = "-20%"; obj.style.opacity = "0"; tank.append(obj);
+  let ppt = 0, T = DEFAULT_TEMP, spec = SPECIMENS[0], dropped = false;
+  function place(){
+    const d = brineDensity(ppt, T), r = spec.density / d;
+    obj.style.opacity = "1";
+    obj.style.top = (r < 1 ? 22 + r * 18 : 86) + "%";
+    if (Math.abs(spec.density - d) <= 0.004) obj.style.top = "55%";
+  }
+  function paint(){
+    const sal = Math.min(1, ppt / 350);
+    tank.style.background = `linear-gradient(180deg,#eaf6fb 0%,#eaf6fb 18%,hsl(${195 - sal * 25},70%,${48 - sal * 18}%) 18%,hsl(${195 - sal * 25},75%,${30 - sal * 10}%) 100%)`;
     if (dropped) place();
   }
-  function place(){
-    const d = densityFor(pct);
-    // Same fix as the 3D scene: floating always keeps the egg near the surface (how
-    // much of it pokes out depends only on the egg's own buoyancy, never the tank's
-    // full depth); sinking always settles it on the tank floor.
-    const top = d > EGG_DENSITY ? 20 + (EGG_DENSITY / d) * 16 : 84;
-    egg.style.top = top + "%";
-  }
-  function dropEgg(){ dropped = true; place(); }
-  function resetEggToDock(){ dropped = false; egg.style.top = "6%"; }
-  return { setSalinity, addSaltPinch(){}, dropEgg, resetEggToDock, celebrate(){}, dispose(){} };
+  function setSpecimen(s){ spec = s; obj.innerHTML = specimenIconSVG(s.id); dockObj.innerHTML = specimenIconSVG(s.id); dropped = false; obj.style.opacity = "0"; dockObj.style.opacity = "1"; }
+  setSpecimen(SPECIMENS[0]); paint();
+  return {
+    setConditions(p, t){ ppt = p; T = t; paint(); },
+    setSpecimen, pinch(){}, punch(){}, setVectors(){}, setGlow(){},
+    drop(){ dropped = true; dockObj.style.opacity = "0"; place(); },
+    retrieve(){ dropped = false; obj.style.opacity = "0"; dockObj.style.opacity = "1"; },
+    getState(){ return { phase: dropped ? "water" : "dock", s: dropped ? Math.min(1, spec.density / brineDensity(ppt, T)) : 0, settled: dropped }; },
+    dispose(){},
+  };
 }
 
 /* ======================================================================
@@ -630,214 +862,284 @@ const simulation = {
     host.append(grid);
   },
 
-  /* ---- EXPERIMENT: the Salinity & Buoyancy Station (real 3D, 3 hands-on
-     moments: mix the brine, drop-test the egg, catch the hydrometer reading)
-     ---- */
+  /* ---- EXPERIMENT: the Brine Lab (real 3D, live buoyancy physics). Hands-on
+     moments: (1) mix the brine + set the temperature, (2) choose and drop a
+     specimen and watch the forces, (3) catch the hydrometer reading. Every
+     caught reading is logged to the Investigation Record. ---- */
   investigate(host, api){
     host.innerHTML = "";
     const game = api.state.game || (api.state.game = { badges: {} });
+    if (!game.badges) game.badges = {};
+    if (!game.tested) game.tested = {};
+    sfx.on = !game.muted;
 
     const wrap = document.createElement("div"); wrap.className = "station";
+    const left = document.createElement("div"); left.className = "station__col";
+    const right = document.createElement("div"); right.className = "station__col";
 
-    /* left: the 3D stage */
-    const left = document.createElement("div");
+    /* left: the 3D stage, live telemetry, Drop + Catch */
     const stage = document.createElement("div"); stage.className = "stage3d";
     const boot = document.createElement("div"); boot.className = "stage3d__boot";
-    boot.innerHTML = `<div><div class="boot-dot"></div><div style="margin-top:.8em">${L("Booting 3D station…","Iniciando estación 3D…")}</div></div>`;
+    boot.innerHTML = `<div><div class="boot-dot"></div><div style="margin-top:.8em">${L("Booting 3D lab…","Iniciando laboratorio 3D…")}</div></div>`;
     stage.append(boot);
-    const hudSal = document.createElement("div"); hudSal.className = "hud hud--sal"; hudSal.id = "hud-sal"; hudSal.textContent = "0.0%";
+    const hudSal = document.createElement("div"); hudSal.className = "hud hud--sal";
+    const hudTemp = document.createElement("div"); hudTemp.className = "hud hud--temp";
+    const hudState = document.createElement("div"); hudState.className = "hud hud--state";
     const hudHint = document.createElement("div"); hudHint.className = "hud hud--hint";
     hudHint.textContent = L("drag to orbit · scroll to zoom","arrastra para orbitar · rueda para acercar");
-    stage.append(hudSal, hudHint);
+    stage.append(hudSal, hudTemp, hudState, hudHint);
     left.append(stage);
 
-    const readouts = document.createElement("div"); readouts.className = "readout-row";
-    readouts.innerHTML = `
+    const tele = document.createElement("div"); tele.className = "telemetry";
+    tele.innerHTML = `
       <div class="ro"><span class="ro__k">${L("Water","Agua")}</span><span class="ro__v" id="ro-water">—</span></div>
       <div class="ro"><span class="ro__k">${L("Hydrometer reads","El densímetro marca")}</span><span class="ro__v" id="ro-density">—</span></div>
-      <div class="ro"><span class="ro__k">${L("Egg","Huevo")}</span><span class="ro__v" id="ro-egg">—</span></div>`;
-    left.append(readouts);
-    wrap.append(left);
+      <div class="ro"><span class="ro__k">${L("Result","Resultado")}</span><span class="ro__v" id="ro-egg">—</span></div>
+      <div class="ro ro--down"><span class="ro__k">${L("Weight ▼","Peso ▼")}</span><span class="ro__v" id="ro-w">—</span></div>
+      <div class="ro ro--up"><span class="ro__k">${L("Buoyant force ▲","Fuerza de flotación ▲")}</span><span class="ro__v" id="ro-fb">—</span></div>
+      <div class="ro"><span class="ro__k">${L("Net force","Fuerza neta")}</span><span class="ro__v" id="ro-net">—</span></div>`;
+    left.append(tele);
 
-    /* right: the three hands-on moments */
-    const side = document.createElement("div"); side.style.display = "flex"; side.style.flexDirection = "column"; side.style.gap = "var(--sp-4)";
-
-    // MOMENT 1 — Mix the Brine: tap the shaker to add salt, pinch by pinch
-    const mixbox = document.createElement("div"); mixbox.className = "mixbox";
-    mixbox.innerHTML = `<p class="ctrl__name" style="margin-bottom:.5em">${L("1 · Mix the brine","1 · Mezcla la salmuera")}</p>`;
-    const mixRow = document.createElement("div"); mixRow.className = "mixbox__row";
-    const shakerBtn = document.createElement("button"); shakerBtn.type = "button"; shakerBtn.className = "shaker-btn";
-    shakerBtn.setAttribute("aria-label", L("Add a pinch of salt","Añadir un pellizco de sal"));
-    shakerBtn.innerHTML = shakerIconSVG();
-    const meter = document.createElement("div"); meter.className = "mixbox__meter";
-    meter.innerHTML = `<span class="mixbox__val" id="salval">0.0%</span>
-      <div class="mixbox__track"><div class="mixbox__marks"></div><div class="mixbox__fill" id="mixfill" style="width:0%"></div></div>`;
-    mixRow.append(shakerBtn, meter);
-    mixbox.append(mixRow);
-    const chipRow = document.createElement("div"); chipRow.className = "chip-row"; chipRow.style.marginTop = "var(--sp-3)";
-    const chipBtns = {};
-    PRESETS.forEach(p => {
-      const c = document.createElement("button"); c.type = "button"; c.className = "chip-btn"; c.textContent = p.label;
-      c.addEventListener("click", () => setSalinity(p.pct));
-      chipBtns[p.id] = c; chipRow.append(c);
-    });
-    mixbox.append(chipRow);
-    const slider = document.createElement("input");
-    slider.type = "range"; slider.min = "0"; slider.max = "40"; slider.step = "0.5"; slider.value = "0";
-    slider.setAttribute("aria-label", L("Fine-tune salinity","Ajustar la salinidad con precisión"));
-    slider.style.marginTop = "var(--sp-2)";
-    slider.addEventListener("input", () => setSalinity(parseFloat(slider.value)));
-    mixbox.append(slider);
-    side.append(mixbox);
-
-    // MOMENT 2 — Drop Test: send the egg down into the brine
-    const dropWrap = document.createElement("div");
     const dropBtn = document.createElement("button"); dropBtn.type = "button"; dropBtn.className = "btn btn--signal drop-btn is-armed";
-    dropBtn.textContent = L("2 · Drop the test egg ▼","2 · Soltar el huevo de prueba ▼");
-    dropWrap.append(dropBtn);
-    side.append(dropWrap);
+    left.append(dropBtn);
 
-    // MOMENT 3 — Catch the Reading: time the sweeping needle to lock it in
     const catchbox = document.createElement("div"); catchbox.className = "catchbox";
-    catchbox.innerHTML = `<p class="ctrl__name" style="margin-bottom:.3em">${L("3 · Catch the hydrometer reading","3 · Atrapa la lectura del densímetro")}</p>
-      <p class="q__hint">${L("The needle drifts as the egg settles. Tap Catch! while it sits inside the green band.","La aguja se mueve mientras el huevo se asienta. Toca ¡Atrapar! mientras esté dentro de la banda verde.")}</p>
+    catchbox.innerHTML = `<p class="ctrl__name" style="margin-bottom:.3em">${L("Step 3 · Catch the hydrometer reading","Paso 3 · Atrapa la lectura del densímetro")}</p>
+      <p class="q__hint">${L("Once the specimen has settled, the needle drifts. Tap Catch! while it sits inside the green band to lock in your reading.","Cuando el espécimen se asienta, la aguja se mueve. Toca ¡Atrapar! mientras esté dentro de la banda verde para fijar tu lectura.")}</p>
       <div class="sweep"><div class="sweep__zone" id="sweepzone"></div><div class="sweep__needle" id="sweepneedle"></div></div>
       <div class="sweep__scale"><span>0.98</span><span>1.30 g/cm³</span></div>`;
     const catchBtn = document.createElement("button"); catchBtn.type = "button"; catchBtn.className = "btn catch-btn"; catchBtn.disabled = true;
     catchBtn.textContent = L("Catch!","¡Atrapar!");
     catchbox.append(catchBtn);
-    side.append(catchbox);
+    left.append(catchbox);
 
+    /* right: the control console */
+    const icoSound = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+    const icoMute = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>`;
+    const icoReset = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>`;
+    const icoEye = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    const consoleEl = document.createElement("div"); consoleEl.className = "console";
+    consoleEl.innerHTML = `
+      <div class="console__head">
+        <h3 class="console__title">${L("Brine concentration & lab controls","Concentración de salmuera y controles")}</h3>
+        <div class="console__tools">
+          <button type="button" class="ibtn" id="b-mute" aria-pressed="false" aria-label="${L("Mute lab sound effects","Silenciar los efectos de sonido")}"></button>
+          <button type="button" class="ibtn" id="b-fresh" title="${L("Back to fresh water at 15 °C","Volver a agua dulce a 15 °C")}">${icoReset}<span>${L("Fresh water","Agua dulce")}</span></button>
+        </div>
+      </div>
+
+      <div class="csec">
+        <div class="csec__row"><label class="csec__name" for="salslider">${L("Step 1 · Mix the brine — salinity","Paso 1 · Mezcla la salmuera — salinidad")}</label>
+          <span class="csec__val" id="salval">0.0<small>ppt</small></span></div>
+        <input id="salslider" type="range" min="0" max="350" step="1" value="0" aria-label="${L("Salinity in parts per thousand","Salinidad en partes por mil")}">
+        <div class="chip-row" id="presets" style="margin-top:.4rem"></div>
+        <div class="mixrow">
+          <button type="button" class="shaker-btn" id="b-shake" aria-label="${L("Drop salt: add 5 ppt","Echar sal: añadir 5 ppt")}">${shakerIconSVG()}<span>${L("Drop salt (+5 ppt)","Echar sal (+5 ppt)")}</span></button>
+          <div class="steppers" role="group" aria-label="${L("Fine salinity steps","Pasos finos de salinidad")}">
+            <button type="button" class="ibtn" data-step="-10">−10</button><button type="button" class="ibtn" data-step="-1">−1</button>
+            <button type="button" class="ibtn" data-step="1">+1</button><button type="button" class="ibtn" data-step="10">+10</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="csec">
+        <div class="csec__row"><label class="csec__name" for="tempslider">${L("Water temperature","Temperatura del agua")}</label>
+          <span class="csec__val csec__val--t" id="tempval">15.0<small>°C</small></span></div>
+        <input id="tempslider" class="temp" type="range" min="0" max="35" step="0.5" value="15" aria-label="${L("Water temperature in degrees Celsius","Temperatura del agua en grados Celsius")}">
+        <div class="tempscale"><span>${L("0 °C polar","0 °C polar")}</span><span>${L("15 °C temperate","15 °C templado")}</span><span>${L("35 °C tropical","35 °C tropical")}</span></div>
+      </div>
+
+      <div class="csec">
+        <div class="csec__row"><span class="csec__name">${L("Specimen to test","Espécimen a probar")}</span></div>
+        <div class="spec-grid" id="specgrid" role="group" aria-label="${L("Choose a specimen","Elige un espécimen")}"></div>
+      </div>
+
+      <div class="csec">
+        <div class="toggles">
+          <button type="button" class="ibtn" id="b-vec" aria-pressed="false">${icoEye}<span>${L("Force arrows","Flechas de fuerza")}</span><b id="vecstate" style="margin-left:auto">${L("OFF","NO")}</b></button>
+          <label class="glowbox"><span>${L("Plankton glow","Brillo del plancton")}</span><input id="glowslider" type="range" min="0" max="1" step="0.1" value="0.5" aria-label="${L("Bioluminescent glow","Brillo bioluminiscente")}"></label>
+        </div>
+      </div>`;
+    right.append(consoleEl);
     const hint = document.createElement("p"); hint.className = "q__hint";
     hint.textContent = L(
-      "Water volume, temperature and the egg itself never change — salinity is the only thing you are testing.",
-      "El volumen de agua, la temperatura y el huevo nunca cambian — la salinidad es lo único que estás probando."
+      "Fair test: change ONE thing at a time — salinity, temperature or specimen — and watch the forces. Every reading you catch is logged, with its temperature and specimen, in your Investigation Record.",
+      "Prueba justa: cambia UNA sola cosa a la vez — salinidad, temperatura o espécimen — y observa las fuerzas. Cada lectura que atrapes se registra, con su temperatura y espécimen, en tu Registro de Investigación."
     );
-    side.append(hint);
-    wrap.append(side);
-    host.append(wrap);
+    right.append(hint);
+    wrap.append(left, right); host.append(wrap);
+
+    const $ = (id) => consoleEl.querySelector("#" + id);
+    const presetsEl = $("presets"), specGrid = $("specgrid"), salSlider = $("salslider"), tempSlider = $("tempslider"), muteBtn = $("b-mute"), vecBtn = $("b-vec");
+    const presetBtns = {};
+    PRESETS.forEach(p => {
+      const c = document.createElement("button"); c.type = "button"; c.className = "chip-btn"; c.textContent = p.label;
+      c.addEventListener("click", () => { setPpt(p.ppt); sfx.tick(); });
+      presetBtns[p.id] = c; presetsEl.append(c);
+    });
+    const specBtns = {};
+    SPECIMENS.forEach(s => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "spec";
+      b.innerHTML = `${specimenIconSVG(s.id)}<span><span class="spec__n">${s.name}</span><span class="spec__d">${s.density.toFixed(3)} g/cm³ · ${s.mass} g</span></span>`;
+      b.addEventListener("click", () => pickSpecimen(s));
+      specBtns[s.id] = b; specGrid.append(b);
+    });
 
     /* ---- state + model ---- */
-    let salinityPct = 0, dropped = false, sawFloat = false, sawSink = false;
+    let ppt = 0, T = DEFAULT_TEMP, spec = SPECIMENS[0], dropped = false, vectors = false, sawFloat = false, sawSink = false, dropTime = 0, scene3d = null;
     const GMIN = 0.98, GMAX = 1.30;
-    const sweepZone = catchbox.querySelector("#sweepzone");
-    const sweepNeedle = catchbox.querySelector("#sweepneedle");
-
+    const sweepZone = catchbox.querySelector("#sweepzone"), sweepNeedle = catchbox.querySelector("#sweepneedle");
+    const resultLabel = v => v === "floats" ? L("Floats","Flota") : v === "sinks" ? L("Sinks","Se hunde") : L("Suspended (neutral)","Suspendido (neutro)");
     function currentReading(){
-      const d = densityFor(salinityPct);
-      const floats = EGG_DENSITY < d;
-      // Graded raw evidence, not just a floats/sinks reduction: how much of the egg's
-      // own height clears the surface (see setSalinity's ratio comment in the 3D scene).
-      const exposedPct = floats ? Math.round((1 - Math.min(1, EGG_DENSITY / d)) * 100) : 0;
-      return { pct: salinityPct, d, floats, exposedPct };
+      const d = brineDensity(ppt, T), v = verdictFor(spec.density, d);
+      const exposedPct = v === "floats" ? Math.round((1 - Math.min(1, spec.density / d)) * 100) : 0;
+      return { d, v, exposedPct };
     }
-    function paintReadouts(){
-      const { pct, d, floats } = currentReading();
-      document.getElementById("salval").textContent = pct.toFixed(1) + "%";
-      hudSal.textContent = pct.toFixed(1) + "%";
-      document.getElementById("mixfill").style.width = Math.min(100, (pct / 40) * 100) + "%";
-      document.getElementById("ro-water").textContent = waterLabel(pct);
-      document.getElementById("ro-density").textContent = dropped ? d.toFixed(3) + " g/cm³" : "—";
-      document.getElementById("ro-egg").textContent = dropped ? (floats ? L("Floats","Flota") : L("Sinks","Se hunde")) : L("Not dropped yet","Aún no soltado");
-      Object.entries(chipBtns).forEach(([id, btn]) => {
-        const p = PRESETS.find(x => x.id === id);
-        btn.setAttribute("aria-pressed", Math.abs(p.pct - pct) < 0.26 ? "true" : "false");
-      });
+    function buoyText(v, exposedPct){
+      return v === "floats" ? L(`${exposedPct}% of the specimen above the surface`, `${exposedPct}% del espécimen sobre la superficie`)
+        : v === "suspended" ? L("Hangs in the water — neither rises nor sinks", "Queda suspendido en el agua — ni sube ni se hunde")
+        : L("Fully submerged, resting on the tank floor", "Totalmente sumergido, posado en el fondo del tanque");
+    }
+    const $$ = (id) => tele.querySelector("#" + id);
+
+    function paintControls(){
+      const { d } = currentReading();
+      $("salval").innerHTML = `${ppt.toFixed(0)}<small>ppt · ${(ppt / 10).toFixed(1)}%</small>`;
+      salSlider.value = String(ppt);
+      $("tempval").innerHTML = `${T.toFixed(1)}<small>°C</small>`;
+      tempSlider.value = String(T);
+      hudSal.textContent = `${ppt.toFixed(0)} ppt`;
+      hudTemp.textContent = `${T.toFixed(1)} °C`;
+      $$("ro-water").textContent = waterLabel(ppt);
+      $$("ro-density").textContent = dropped ? d.toFixed(3) + " g/cm³" : "—";
+      PRESETS.forEach(p => presetBtns[p.id].setAttribute("aria-pressed", Math.abs(p.ppt - ppt) < 2.6 ? "true" : "false"));
+      SPECIMENS.forEach(s => specBtns[s.id].setAttribute("aria-pressed", s.id === spec.id ? "true" : "false"));
       const zonePct = Math.min(100, Math.max(0, ((d - GMIN) / (GMAX - GMIN)) * 100));
-      sweepZone.style.left = Math.max(0, zonePct - 9) + "%";
-      sweepZone.style.width = "18%";
+      sweepZone.style.left = Math.max(0, zonePct - 9) + "%"; sweepZone.style.width = "18%";
+      dropBtn.textContent = dropped ? L("Specimen in the water…","Espécimen en el agua…") : L(`Step 2 · Drop the ${spec.name.toLowerCase()} ▼`, `Paso 2 · Soltar: ${spec.name.toLowerCase()} ▼`);
+    }
+    function pushConditions(){ if (scene3d) scene3d.setConditions(ppt, T); paintControls(); }
+    function setPpt(v){ ppt = Math.max(0, Math.min(350, Math.round(v * 10) / 10)); pushConditions(); }
+    function setTemp(v){
+      T = Math.max(0, Math.min(35, v));
+      if (Math.abs(T - DEFAULT_TEMP) > 0.4 && !game.badges.heat) { game.badges.heat = true; api.award("heat", L("Temperature tester","Probador de temperatura")); }
+      pushConditions();
+    }
+    function pickSpecimen(s){
+      if (s.id === spec.id && !dropped) return;
+      spec = s; dropped = false; catchBtn.disabled = true; dropBtn.disabled = false; dropBtn.classList.add("is-armed");
+      if (scene3d) scene3d.setSpecimen(s);
+      sfx.tick(); burst(stage, { count: 8, colors: ["#ffd45c", "#5fe0ff"] });
+      paintControls();
     }
 
-    function setSalinity(pct){
-      salinityPct = Math.max(0, Math.min(40, pct));
-      slider.value = String(salinityPct);
-      paintReadouts();
-      if (scene3d) scene3d.setSalinity(salinityPct);
-      if (dropped) { dropped = false; catchBtn.disabled = true; if (scene3d) scene3d.resetEggToDock(); dropBtn.classList.add("is-armed"); dropBtn.disabled = false; }
-    }
-
-    shakerBtn.addEventListener("click", () => {
-      setSalinity(salinityPct + 1.5);
-      burst(stage, { count: 10, colors: ["#ffffff", "#cfe9f5"] });
-      if (scene3d) scene3d.addSaltPinch();
+    salSlider.addEventListener("input", () => setPpt(parseFloat(salSlider.value)));
+    tempSlider.addEventListener("input", () => setTemp(parseFloat(tempSlider.value)));
+    consoleEl.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => { setPpt(ppt + parseFloat(b.dataset.step)); sfx.tick(); burst(stage, { count: 4, colors: ["#5fe0ff"] }); }));
+    $("b-shake").addEventListener("click", () => {
+      setPpt(ppt + 5);
+      if (scene3d) scene3d.pinch();
+      burst(stage, { count: 10, colors: ["#ffffff", "#cfe9f5"] }); sfx.pinch();
       if (!game.badges.mixer) { game.badges.mixer = true; api.award("mixer", L("Brine mixed by hand","Salmuera mezclada a mano")); }
     });
+    $("b-fresh").addEventListener("click", () => {
+      ppt = 0; T = DEFAULT_TEMP; dropped = false; catchBtn.disabled = true; dropBtn.disabled = false; dropBtn.classList.add("is-armed");
+      if (scene3d) scene3d.retrieve();
+      pushConditions(); sfx.tick();
+    });
+    $("glowslider").addEventListener("input", e => { if (scene3d) scene3d.setGlow(parseFloat(e.target.value)); if (parseFloat(e.target.value) >= 0.9 && !game.badges.glow) { game.badges.glow = true; api.award("glow", L("Bioluminescence lover","Amante de la bioluminiscencia")); } });
+    function paintMute(){ muteBtn.innerHTML = sfx.on ? icoSound : icoMute; muteBtn.setAttribute("aria-pressed", sfx.on ? "false" : "true"); muteBtn.setAttribute("aria-label", sfx.on ? L("Mute lab sound effects","Silenciar los efectos de sonido") : L("Turn lab sound effects on","Activar los efectos de sonido")); }
+    muteBtn.addEventListener("click", () => { sfx.on = !sfx.on; game.muted = !sfx.on; api.saveState(); paintMute(); if (sfx.on) sfx.win(); });
+    paintMute();
+    vecBtn.addEventListener("click", () => {
+      vectors = !vectors; vecBtn.setAttribute("aria-pressed", vectors ? "true" : "false");
+      $("vecstate").textContent = vectors ? L("ON","SÍ") : L("OFF","NO");
+      if (scene3d) scene3d.setVectors(vectors);
+      if (vectors && !game.badges.forces) { game.badges.forces = true; api.award("forces", L("Force spotter","Observador de fuerzas")); }
+      sfx.tick();
+    });
 
+    /* ---- Step 2: drop the specimen ---- */
     dropBtn.addEventListener("click", () => {
       if (dropped) return;
-      dropped = true; dropBtn.disabled = true; dropBtn.classList.remove("is-armed");
-      dropBtn.textContent = L("Dropping…","Soltando…");
-      const { floats } = currentReading();
-      if (scene3d) scene3d.dropEgg(floats);
-      burst(stage, { count: 18, colors: ["#eafcff", "#5fe0ff", "#9fefff"] });
-      paintReadouts();
-      setTimeout(() => {
-        dropBtn.textContent = L("2 · Drop the test egg ▼","2 · Soltar el huevo de prueba ▼");
-        catchBtn.disabled = false;
-        if (!game.badges.dropper) { game.badges.dropper = true; api.award("dropper", L("First splash","Primer chapuzón")); }
-      }, 900);
+      dropped = true; dropTime = performance.now(); dropBtn.disabled = true; dropBtn.classList.remove("is-armed");
+      if (scene3d) scene3d.drop();
+      burst(stage, { count: 12, colors: ["#eafcff", "#5fe0ff", "#9fefff"] });
+      paintControls();
     });
 
+    /* ---- Step 3: catch the reading ---- */
     let sweepPhase = Math.random() * Math.PI * 2;
     catchBtn.addEventListener("click", () => {
-      const needleRect = sweepNeedle.getBoundingClientRect();
-      const zoneRect = sweepZone.getBoundingClientRect();
-      const hit = needleRect.left + needleRect.width / 2 >= zoneRect.left && needleRect.left + needleRect.width / 2 <= zoneRect.right;
+      const needleRect = sweepNeedle.getBoundingClientRect(), zoneRect = sweepZone.getBoundingClientRect();
+      const mid = needleRect.left + needleRect.width / 2;
+      const hit = mid >= zoneRect.left && mid <= zoneRect.right;
       catchBtn.classList.remove("pop"); void catchBtn.offsetWidth; catchBtn.classList.add("pop");
-      if (!hit) { api.toast(L("Almost — wait for the needle and try again!","¡Casi! Espera a la aguja e inténtalo de nuevo."), "info"); return; }
-      const { pct, d, floats, exposedPct } = currentReading();
+      if (!hit) { sfx.miss(); api.toast(L("Almost — wait for the needle and try again!","¡Casi! Espera a la aguja e inténtalo de nuevo."), "info"); return; }
+      const { d, v, exposedPct } = currentReading();
       api.recordTrial({
-        water: waterLabel(pct), salinity: pct.toFixed(1), density: d.toFixed(3),
-        egg: floats ? L("Floats","Flota") : L("Sinks","Se hunde"),
-        buoyancy: floats
-          ? L(`${exposedPct}% of the egg above the surface`, `${exposedPct}% del huevo sobre la superficie`)
-          : L("Fully submerged, resting on the tank floor", "Totalmente sumergido, posado en el fondo del tanque"),
+        water: waterLabel(ppt), salinity: (ppt / 10).toFixed(1), temperature: T.toFixed(1), specimen: spec.name,
+        density: d.toFixed(3), egg: resultLabel(v), buoyancy: buoyText(v, exposedPct),
       });
-      burst(stage, { count: 22, colors: ["#ffd45c", "#5fe0ff", "#a6ff5c"] });
-      if (scene3d) scene3d.celebrate();
-      if (floats) sawFloat = true; else sawSink = true;
+      sfx.win(); burst(stage, { count: 22, colors: ["#ffd45c", "#5fe0ff", "#a6ff5c"] });
+      if (scene3d) scene3d.punch();
+      if (v === "floats") sawFloat = true; else if (v === "sinks") sawSink = true;
+      game.tested[spec.id] = true;
       if (!game.badges.first) { game.badges.first = true; api.award("first-reading", L("First reading logged","Primera lectura registrada")); }
-      if (Math.abs(pct - 34) < 0.26 && floats && !game.badges.deadsea) { game.badges.deadsea = true; api.award("dead-sea", L("Dead Sea diver","Buzo del Mar Muerto")); }
-      if (Math.abs(pct - 3.5) < 0.26 && !game.badges.ocean) { game.badges.ocean = true; api.award("ocean-match", L("Open-ocean baseline","Referencia del océano abierto")); }
+      if (Math.abs(ppt - 340) < 2.6 && v === "floats" && !game.badges.deadsea) { game.badges.deadsea = true; api.award("dead-sea", L("Dead Sea diver","Buzo del Mar Muerto")); }
+      if (Math.abs(ppt - 35) < 2.6 && !game.badges.ocean) { game.badges.ocean = true; api.award("ocean-match", L("Open-ocean baseline","Referencia del océano abierto")); }
       if (sawFloat && sawSink && !game.badges.threshold) { game.badges.threshold = true; api.award("threshold", L("Found the floating point","Encontró el punto de flotación")); }
+      if (v === "suspended" && !game.badges.hover) { game.badges.hover = true; api.award("hover", L("Neutral buoyancy!","¡Flotabilidad neutra!")); }
+      if (Object.keys(game.tested).length >= 3 && !game.badges.collector) { game.badges.collector = true; api.award("collector", L("Specimen collector","Coleccionista de especímenes")); }
       api.saveState();
       api.toast(L("Reading locked in — logged to your Investigation Record.","¡Lectura atrapada! Registrada en tu Registro de Investigación."), "correct");
-      // egg returns to the dock, ready for the next trial
+      // specimen returns to the dock, ready for the next trial
       dropped = false; catchBtn.disabled = true; dropBtn.disabled = false; dropBtn.classList.add("is-armed");
-      if (scene3d) scene3d.resetEggToDock();
-      paintReadouts();
-      paintArcade();
+      if (scene3d) scene3d.retrieve();
+      paintControls(); paintArcade();
     });
 
-    /* ---- needle sweep animation loop (runs always; only meaningful once
-       dropped). Bails out and disposes the 3D scene the moment `stage` is no
-       longer in the document — which is exactly what happens when the
-       engine's Reset Investigation button clears and re-mounts this stage —
-       so resetting never leaks a second render loop or a detached renderer. */
+    /* ---- live loops. Both bail out (and dispose the 3D scene) the moment
+       `stage` leaves the document — which is what the engine's Reset
+       Investigation does — so a reset never leaks a render loop. ---- */
     let sweepRaf = requestAnimationFrame(function loop(){
       if (!stage.isConnected) { if (scene3d) scene3d.dispose(); return; }
       sweepPhase += 0.028;
       const wobble = dropped ? Math.sin(sweepPhase) * 6 : Math.sin(sweepPhase * 0.6) * 22;
-      const { d } = currentReading();
-      const basePct = Math.min(100, Math.max(0, ((d - GMIN) / (GMAX - GMIN)) * 100));
+      const basePct = Math.min(100, Math.max(0, ((currentReading().d - GMIN) / (GMAX - GMIN)) * 100));
       sweepNeedle.style.left = Math.min(97, Math.max(0, basePct + wobble)) + "%";
       sweepRaf = requestAnimationFrame(loop);
     });
+    const teleTimer = setInterval(() => {
+      if (!stage.isConnected) { clearInterval(teleTimer); return; }
+      const st = scene3d ? scene3d.getState() : { phase: "dock", s: 0, settled: false };
+      const { d, v } = currentReading();
+      const inWater = dropped && st.phase === "water";
+      const W = spec.mass / 1000 * G, Fb = d * (inWater ? st.s : 0) * (spec.mass / spec.density) * G / 1000, net = Fb - W;
+      $$("ro-w").textContent = dropped ? W.toFixed(3) + " N" : "—";
+      $$("ro-fb").textContent = dropped ? Fb.toFixed(3) + " N" : "—";
+      $$("ro-net").textContent = !dropped ? "—" : Math.abs(net) < 0.004 ? L("balanced","equilibrio") : (v === "sinks" && st.settled) ? L("floor supports it","el fondo lo sostiene") : (net > 0 ? "▲ " : "▼ ") + Math.abs(net).toFixed(3) + " N";
+      $$("ro-egg").textContent = dropped ? (st.settled ? resultLabel(v) : L("in motion…","en movimiento…")) : L("Not dropped yet","Aún no soltado");
+      $$("ro-density").textContent = dropped ? d.toFixed(3) + " g/cm³" : "—";
+      hudState.innerHTML = `<b>${spec.name}</b> · ${spec.density.toFixed(3)} g/cm³<br>${L("brine","salmuera")} · ${d.toFixed(3)} g/cm³`;
+      if (dropped && catchBtn.disabled && (st.settled || performance.now() - dropTime > 3500)) catchBtn.disabled = false;
+    }, 120);
 
     /* ---- boot the 3D scene (with a non-WebGL fallback) ---- */
-    let scene3d = null;
+    const hooks = { onSplash(){ sfx.splash(); burst(stage, { count: 14, colors: ["#eafcff", "#9fefff"] }); } };
+    function applyAll(){ scene3d.setConditions(ppt, T); scene3d.setSpecimen(spec); scene3d.setGlow(parseFloat($("glowslider").value)); scene3d.setVectors(vectors); }
     loadThree().then(THREE => {
       if (!stage.isConnected) return;
       boot.remove();
-      scene3d = build3D(THREE, stage);
-      scene3d.setSalinity(salinityPct);
+      try { scene3d = build3D(THREE, stage, hooks); } catch (e) { scene3d = build2DFallback(stage); }
+      applyAll();
     }).catch(() => {
       if (!stage.isConnected) return;
       boot.remove();
       scene3d = build2DFallback(stage);
-      scene3d.setSalinity(salinityPct);
+      applyAll();
     });
-    paintReadouts();
+    paintControls();
 
     /* ---- BONUS ROUND — "Ocean Command Rush": a fast arcade recall of the
        whole overview module's big ideas (salinity, climate, pollution,

@@ -1862,3 +1862,29 @@ real licence-checked photos ride a belt and are sorted into bins. Standing rules
 - **Pattern to reuse:** wall-clock `setInterval` clock (rAF draws only), 1-3 keys + real `<button>` bins,
   in-place feedback naming the right answer plus a one-line memory hook, no fail state, mute button,
   end screen listing the cards to revisit.
+
+### 12.9 Lesson from `sim-mission-blue-planet` feedback — a slider-plus-drop-button Experiment reads as "very basic" (2026-10-01)
+
+Diego: the Salinity & Buoyancy Station (one salinity dial, one egg, a hydrometer needle) "is very basic... I
+have generated another one which is much more in line with the way I want you to design simulations," and
+handed over the controls panel of a richer design (a React/Tailwind component, controls only — no scene or
+physics code). Rebuilt as the "Brine Lab" (activity v1.4). Reusable lessons:
+
+- **A partial component from another tool (React/Tailwind, controls only) is a design brief, not a file to
+  upload.** The §10 "upload Gemini's complete HTML verbatim" exception covers only a finished, self-contained
+  page. Anything that needs a build step or CDN (React, lucide-react, Tailwind) must be ported to plain JS/CSS
+  in the activity, keeping every control and feature the source shows — and the missing parts (3D scene, physics)
+  designed to the same level. Say so once; don't silently drop features.
+- **Prefer a live physical model over a scripted animation for the Experiment's core object.** Brine Lab's
+  specimen runs a real little buoyancy simulation (gravity vs. displaced-fluid force, drag), so it sinks, floats,
+  bobs or hangs suspended for the right reasons and keeps reacting if salinity/temperature change while it is in
+  the water. Show the forces (weight vs. buoyant force, optional 3D arrows) as live telemetry, not only the verdict.
+- **Let the student vary more than one thing, but keep the assessed fair-test path intact.** Extra variables
+  (temperature, six specimens) were added as extensions; the lede tells students to keep the egg at 15 °C for the
+  main trials so the existing Explain/Apply questions and `marking.json` still describe exactly what was tested.
+  New variables go into the Investigation Record as their own columns (temperature, specimen).
+- **Canvas-generated Three.js textures need `encoding = THREE.sRGBEncoding`** when the renderer outputs sRGB,
+  or they render washed-out/too bright. Also: the preview browser only advances `requestAnimationFrame` when a
+  screenshot is taken — to test physics, patch `requestAnimationFrame`/`performance.now` and step them manually.
+- Open item: the specimen picker uses small drawn SVG icons (the 3D scene shows the objects); swapping in real
+  licence-checked photos per §4/§12.4 is still to do if Diego wants it.
