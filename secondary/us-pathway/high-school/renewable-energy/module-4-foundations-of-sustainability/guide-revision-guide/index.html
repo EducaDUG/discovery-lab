@@ -337,6 +337,34 @@
             font-size: 0.9rem;
         }
 
+        /* ---- Sorting Game (Lab 1) ---- */
+        .landgame { background: linear-gradient(160deg, #1E4D2B 0%, #0a2013 100%); border-radius: 16px; padding: 1.75rem; color: #eafcef; text-align: left; }
+        .landgame__stats { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; font-weight: 700; margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem; }
+        .landgame__stats .streak { color: #ffd166; }
+        .landgame__progress { height: 8px; border-radius: 99px; background: rgba(255,255,255,.15); overflow: hidden; margin-bottom: 1.25rem; }
+        .landgame__progress-bar { height: 100%; background: linear-gradient(90deg, #4cc08c, #ffd166); border-radius: 99px; transition: width .4s ease; width: 0%; }
+        .landgame__scenario { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 1.5rem; display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem; transition: transform .25s ease, opacity .25s ease; }
+        .landgame__scenario.shake { animation: landShake .4s; }
+        .landgame__scenario.flyout { transform: translateX(60px) scale(.85); opacity: 0; }
+        .landgame__icon { flex: 0 0 auto; width: 52px; height: 52px; }
+        .landgame__scenario p { font-weight: 600; font-size: 1rem; line-height: 1.4; margin: 0; }
+        .landgame__bins { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+        @media (min-width: 640px) { .landgame__bins { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 900px) { .landgame__bins { grid-template-columns: repeat(5, 1fr); } }
+        .landgame__bin { background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.15); border-radius: 12px; padding: 1rem .5rem; cursor: pointer; transition: transform .15s ease, background .15s ease, border-color .15s ease; color: #eafcef; display: flex; flex-direction: column; align-items: center; gap: .4rem; font-size: .78rem; font-weight: 700; position: relative; overflow: visible; }
+        .landgame__bin svg { width: 28px; height: 28px; }
+        .landgame__bin:hover { transform: translateY(-3px); background: rgba(255,255,255,.16); }
+        .landgame__bin.correct { background: #2e7d32; border-color: #7fe6a0; animation: landPop .5s; }
+        .landgame__bin.incorrect { animation: landShake .4s; border-color: #ff6b6b; }
+        .landgame__feedback { margin-top: 1rem; min-height: 2.4rem; font-weight: 600; font-size: .88rem; color: #eafcef; }
+        .landgame__done { text-align: center; padding: 1.5rem; }
+        .landgame__done .score { font-size: 2.2rem; font-weight: 800; color: #ffd166; }
+        .landgame__replay { margin-top: 1rem; background: #4cc08c; color: #0a2013; border: none; font-weight: 700; padding: .7rem 1.4rem; border-radius: 99px; cursor: pointer; }
+        @keyframes landShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+        @keyframes landPop { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+        .landgame__particle { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; border-radius: 50%; background: #ffd166; pointer-events: none; animation: landBurst .6s ease-out forwards; }
+        @keyframes landBurst { to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
+
         /* Tipping Point Sim */
         .pasture-sim {
             margin-top: 1.5rem;
@@ -362,9 +390,14 @@
 
         .cow-icon {
             position: absolute;
-            font-size: 1.5rem;
-            transition: all 0.3s;
+            width: 34px; height: 34px;
+            transition: left 0.4s ease, top 0.4s ease;
+            animation: cowBob 1.6s ease-in-out infinite;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
         }
+        @keyframes cowBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        .pasture-sim.tipping { animation: pastureFlash .5s 2; }
+        @keyframes pastureFlash { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.4) saturate(1.6); } }
 
         .controls {
             margin-top: 1.5rem;
@@ -667,22 +700,45 @@
 
                 <!-- Sim 1: 5 Rs Sorting -->
                 <div class="sim-container" id="sim1-container">
-                    <h3>Lab 1: The Five R's Sorting Lab</h3>
-                    <p>Match the real-world scenario to the correct principle. Click a scenario, then click its matching category.</p>
+                    <h3>Lab 1: The Five R's Sorting Game</h3>
+                    <p>Sort the real-world scenario into its correct Five R's category before your streak breaks.</p>
 
-                    <div class="sorting-area">
-                        <div>
-                            <div class="scenario-card" id="active-scenario">
-                                Loading scenario...
-                            </div>
-                            <div class="sim-feedback" id="sim1-feedback">Select a category on the right.</div>
+                    <div class="landgame">
+                        <div class="landgame__stats">
+                            <span>Score: <span id="land-score">0</span></span>
+                            <span class="streak">🔥 Streak: <span id="land-streak">0</span></span>
+                            <span id="land-progress-label">Scenario 1 / 5</span>
                         </div>
-                        <div class="drop-zones">
-                            <button class="drop-zone" onclick="checkSorting('reduce')">Reduce</button>
-                            <button class="drop-zone" onclick="checkSorting('reuse')">Reuse</button>
-                            <button class="drop-zone" onclick="checkSorting('recycle')">Recycle</button>
-                            <button class="drop-zone" onclick="checkSorting('repair')">Repair</button>
-                            <button class="drop-zone" onclick="checkSorting('redistribute')">Redistribute</button>
+                        <div class="landgame__progress"><div class="landgame__progress-bar" id="land-progress-bar"></div></div>
+
+                        <div id="landgame-body">
+                            <div class="landgame__scenario" id="active-scenario">
+                                <div class="landgame__icon" id="scenario-icon"></div>
+                                <p id="scenario-text">Loading scenario...</p>
+                            </div>
+                            <div class="landgame__bins">
+                                <button class="landgame__bin" id="bin-reduce" onclick="checkSorting('reduce')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 13H5"/></svg>
+                                    Reduce
+                                </button>
+                                <button class="landgame__bin" id="bin-reuse" onclick="checkSorting('reuse')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                                    Reuse
+                                </button>
+                                <button class="landgame__bin" id="bin-recycle" onclick="checkSorting('recycle')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 19H4.815a1.83 1.83 0 01-1.57-.881 1.785 1.785 0 01-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 001.556-.89 1.784 1.784 0 000-1.775l-1.226-2.12"/><path d="M14.803 4.75l1.226 2.12"/></svg>
+                                    Recycle
+                                </button>
+                                <button class="landgame__bin" id="bin-repair" onclick="checkSorting('repair')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                                    Repair
+                                </button>
+                                <button class="landgame__bin" id="bin-redistribute" onclick="checkSorting('redistribute')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+                                    Redistribute
+                                </button>
+                            </div>
+                            <div class="sim-feedback landgame__feedback" id="sim1-feedback">Tap a category to sort the scenario above.</div>
                         </div>
                     </div>
                 </div>
@@ -1029,42 +1085,100 @@
             {
                 text: "Diana uses patches of fabric to cover up the holes in her couch.",
                 answer: "repair",
-                explanation: "Correct! This is 'Repair' because fixing a broken or worn-out item allows it to continue being used rather than discarded."
+                explanation: "Correct! This is 'Repair' — fixing a broken or worn-out item allows it to continue being used rather than discarded.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#ffd166" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>'
             },
             {
                 text: "Bruce donates his old books to a company that reprocesses paper.",
                 answer: "recycle",
-                explanation: "Correct! This is 'Recycle' because physical waste is sent to a facility to be converted into raw materials or energy (resource recovery)."
+                explanation: "Correct! This is 'Recycle' — physical waste is sent to a facility to be converted into raw materials or energy.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#9fc6ff" stroke-width="2"><path d="M7 19H4.815a1.83 1.83 0 01-1.57-.881 1.785 1.785 0 01-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 001.556-.89 1.784 1.784 0 000-1.775l-1.226-2.12"/><path d="M14.803 4.75l1.226 2.12"/></svg>'
             },
             {
                 text: "Clark moves excess rocks from the construction site to help repair a sea wall.",
                 answer: "redistribute",
-                explanation: "Correct! This is 'Redistribute' because surplus raw materials are relocated from a generation site to an area of functional need, which is distinct from simple personal reuse."
+                explanation: "Correct! This is 'Redistribute' — surplus raw materials are relocated from a generation site to an area of functional need, distinct from simple personal reuse.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#ff9fc0" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>'
             },
             {
                 text: "Turning off lights when leaving a room to minimize power usage.",
                 answer: "reduce",
-                explanation: "Correct! This is 'Reduce' because it minimizes material consumption and resource demand at the source."
+                explanation: "Correct! This is 'Reduce' — it minimizes material consumption and resource demand at the source.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#7fe6a0" stroke-width="2"><path d="M19 13H5"/></svg>'
             },
             {
                 text: "Washing and refilling a glass jar for food storage instead of throwing it away.",
                 answer: "reuse",
-                explanation: "Correct! This is 'Reuse' because physical items are utilized repeatedly in their existing form without reprocessing."
+                explanation: "Correct! This is 'Reuse' — physical items are utilized repeatedly in their existing form without reprocessing.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#e8c55c" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>'
             }
         ];
 
         let currentScenarioIndex = 0;
+        let landScore = 0;
+        let landStreak = 0;
+
+        function landBurst(originEl) {
+            const colors = ['#ffd166', '#4cc08c', '#9fc6ff', '#ff9fc0'];
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('span');
+                p.className = 'landgame__particle';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 30 + Math.random() * 30;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                p.style.background = colors[i % 4];
+                originEl.appendChild(p);
+                setTimeout(() => p.remove(), 650);
+            }
+        }
+
+        function updateLandStats() {
+            document.getElementById('land-score').textContent = landScore;
+            document.getElementById('land-streak').textContent = landStreak;
+            const shown = Math.min(currentScenarioIndex + 1, scenarios.length);
+            document.getElementById('land-progress-label').textContent = `Scenario ${shown} / ${scenarios.length}`;
+            document.getElementById('land-progress-bar').style.width = (currentScenarioIndex / scenarios.length * 100) + '%';
+        }
 
         function loadNextScenario() {
+            updateLandStats();
+            const feedbackEl = document.getElementById('sim1-feedback');
             if (currentScenarioIndex < scenarios.length) {
-                document.getElementById('active-scenario').innerText = `"${scenarios[currentScenarioIndex].text}"`;
-                document.getElementById('sim1-feedback').innerText = "Select a category on the right.";
-                document.getElementById('sim1-feedback').style.color = "var(--ink)";
-                document.getElementById('sim1-feedback').style.backgroundColor = "transparent";
+                const item = scenarios[currentScenarioIndex];
+                const card = document.getElementById('active-scenario');
+                card.classList.remove('flyout');
+                document.getElementById('scenario-icon').innerHTML = item.icon;
+                document.getElementById('scenario-text').textContent = `"${item.text}"`;
+                feedbackEl.textContent = "Tap a category to sort the scenario above.";
+                feedbackEl.style.color = "";
             } else {
-                document.getElementById('active-scenario').innerText = "All scenarios sorted! Excellent work mastering the Five R's.";
-                document.getElementById('sim1-feedback').innerText = "Lab completed successfully.";
+                document.getElementById('land-progress-bar').style.width = '100%';
+                document.getElementById('landgame-body').innerHTML = `
+                    <div class="landgame__done">
+                        <div class="score">${landScore} / ${scenarios.length}</div>
+                        <p>All scenarios sorted! Excellent work telling apart Reduce, Reuse, Recycle, Repair and Redistribute.</p>
+                        <button class="landgame__replay" onclick="resetFiveRsGame()">Play Again</button>
+                    </div>`;
             }
+        }
+
+        function resetFiveRsGame() {
+            currentScenarioIndex = 0; landScore = 0; landStreak = 0;
+            document.getElementById('landgame-body').innerHTML = `
+                <div class="landgame__scenario" id="active-scenario">
+                    <div class="landgame__icon" id="scenario-icon"></div>
+                    <p id="scenario-text">Loading scenario...</p>
+                </div>
+                <div class="landgame__bins">
+                    <button class="landgame__bin" id="bin-reduce" onclick="checkSorting('reduce')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 13H5"/></svg>Reduce</button>
+                    <button class="landgame__bin" id="bin-reuse" onclick="checkSorting('reuse')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>Reuse</button>
+                    <button class="landgame__bin" id="bin-recycle" onclick="checkSorting('recycle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 19H4.815a1.83 1.83 0 01-1.57-.881 1.785 1.785 0 01-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 001.556-.89 1.784 1.784 0 000-1.775l-1.226-2.12"/><path d="M14.803 4.75l1.226 2.12"/></svg>Recycle</button>
+                    <button class="landgame__bin" id="bin-repair" onclick="checkSorting('repair')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>Repair</button>
+                    <button class="landgame__bin" id="bin-redistribute" onclick="checkSorting('redistribute')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>Redistribute</button>
+                </div>
+                <div class="sim-feedback landgame__feedback" id="sim1-feedback">Tap a category to sort the scenario above.</div>`;
+            loadNextScenario();
         }
 
         function checkSorting(selectedCategory) {
@@ -1072,25 +1186,36 @@
 
             const currentItem = scenarios[currentScenarioIndex];
             const feedbackEl = document.getElementById('sim1-feedback');
+            const binEl = document.getElementById('bin-' + selectedCategory);
+            const card = document.getElementById('active-scenario');
 
             if (selectedCategory === currentItem.answer) {
-                feedbackEl.innerText = currentItem.explanation;
-                feedbackEl.style.color = "var(--correctGreen)";
-                feedbackEl.style.backgroundColor = "#e8f5e9";
+                feedbackEl.textContent = currentItem.explanation;
+                feedbackEl.style.color = "#7fe6a0";
+                binEl.classList.add('correct');
+                landBurst(binEl);
+                landScore++; landStreak++;
+                updateLandStats();
+                card.classList.add('flyout');
                 currentScenarioIndex++;
-                setTimeout(loadNextScenario, 2500);
+                setTimeout(() => binEl.classList.remove('correct'), 500);
+                setTimeout(loadNextScenario, 1400);
             } else {
                 let specificHint = "";
                 if (currentItem.answer === "redistribute") {
-                    specificHint = " Hint for Clark's rocks: Moving surplus materials from one site to serve a structural function elsewhere is 'Redistribute', not simple reuse.";
+                    specificHint = " Hint for Clark's rocks: moving surplus materials to serve a structural function elsewhere is 'Redistribute', not simple reuse.";
                 } else if (currentItem.answer === "repair") {
-                    specificHint = " Hint for couch patches: Fixing worn goods in-place is 'Repair'.";
+                    specificHint = " Hint: fixing worn goods in-place is 'Repair'.";
                 } else if (currentItem.answer === "recycle") {
-                    specificHint = " Hint for book donation: Sending materials to a reprocessing facility is 'Recycle'.";
+                    specificHint = " Hint: sending materials to a reprocessing facility is 'Recycle'.";
                 }
-                feedbackEl.innerText = `Not quite. '${selectedCategory}' does not fit this scenario.${specificHint} Try again.`;
-                feedbackEl.style.color = "var(--incorrectRed)";
-                feedbackEl.style.backgroundColor = "#ffebee";
+                feedbackEl.textContent = `Not quite.${specificHint} Try again.`;
+                feedbackEl.style.color = "#ff9b9b";
+                binEl.classList.add('incorrect');
+                card.classList.add('shake');
+                landStreak = 0;
+                updateLandStats();
+                setTimeout(() => { binEl.classList.remove('incorrect'); card.classList.remove('shake'); }, 450);
             }
         }
 
@@ -1109,15 +1234,18 @@
             const oldCows = pastureArea.querySelectorAll('.cow-icon');
             oldCows.forEach(cow => cow.remove());
 
-            // Add new cows
+            // Add new cows (real SVG cow silhouettes, staggered idle-bob animation)
+            const COW_SVG = '<svg viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="28" rx="20" ry="13" fill="#f2efe6" stroke="#3a2e22" stroke-width="2"/><ellipse cx="16" cy="24" rx="7" ry="6" fill="#f2efe6" stroke="#3a2e22" stroke-width="2"/><circle cx="10" cy="10" r="6" fill="#8d6e63"/><circle cx="30" cy="10" r="6" fill="#3a2e22"/><circle cx="42" cy="30" r="5" fill="#8d6e63"/><rect x="10" y="38" width="5" height="8" fill="#3a2e22"/><rect x="45" y="38" width="5" height="8" fill="#3a2e22"/></svg>';
             for(let i=0; i<count; i++) {
                 const cow = document.createElement('div');
                 cow.className = 'cow-icon';
-                cow.innerText = '🐄';
-                cow.style.left = Math.random() * 80 + 10 + '%';
-                cow.style.top = Math.random() * 60 + 20 + '%';
+                cow.innerHTML = COW_SVG;
+                cow.style.left = Math.random() * 78 + 8 + '%';
+                cow.style.top = Math.random() * 58 + 22 + '%';
+                cow.style.animationDelay = (Math.random() * 1.6) + 's';
                 pastureArea.appendChild(cow);
             }
+            pastureArea.classList.remove('tipping');
 
             // Logic for tipping point
             if (count <= 4) {
@@ -1135,6 +1263,8 @@
                 grassHealthEl.innerText = '0';
                 feedbackEl.innerText = 'TIPPING POINT REACHED! The commons is destroyed due to uncoordinated self-interest.';
                 feedbackEl.style.color = 'var(--incorrectRed)';
+                void pastureArea.offsetWidth;
+                pastureArea.classList.add('tipping');
             }
         }
 

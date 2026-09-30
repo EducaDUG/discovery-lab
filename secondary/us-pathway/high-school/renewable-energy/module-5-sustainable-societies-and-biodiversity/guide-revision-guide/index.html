@@ -343,6 +343,34 @@
             font-size: 0.9rem;
         }
 
+        /* ---- Sorting Game (Lab 1) ---- */
+        .landgame { background: linear-gradient(160deg, #0f3a2a 0%, #04160f 100%); border-radius: 16px; padding: 1.75rem; color: #eafcef; text-align: left; }
+        .landgame__stats { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; font-weight: 700; margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem; }
+        .landgame__stats .streak { color: #ffd166; }
+        .landgame__progress { height: 8px; border-radius: 99px; background: rgba(255,255,255,.15); overflow: hidden; margin-bottom: 1.25rem; }
+        .landgame__progress-bar { height: 100%; background: linear-gradient(90deg, #4cc08c, #ffd166); border-radius: 99px; transition: width .4s ease; width: 0%; }
+        .landgame__scenario { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 1.5rem; display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem; transition: transform .25s ease, opacity .25s ease; }
+        .landgame__scenario.shake { animation: landShake .4s; }
+        .landgame__scenario.flyout { transform: translateX(60px) scale(.85); opacity: 0; }
+        .landgame__icon { flex: 0 0 auto; width: 52px; height: 52px; }
+        .landgame__scenario p { font-weight: 600; font-size: 1rem; line-height: 1.4; margin: 0; }
+        .landgame__bins { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+        @media (min-width: 640px) { .landgame__bins { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 900px) { .landgame__bins { grid-template-columns: repeat(5, 1fr); } }
+        .landgame__bin { background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.15); border-radius: 12px; padding: 1rem .5rem; cursor: pointer; transition: transform .15s ease, background .15s ease, border-color .15s ease; color: #eafcef; display: flex; flex-direction: column; align-items: center; gap: .4rem; font-size: .76rem; font-weight: 700; position: relative; overflow: visible; }
+        .landgame__bin svg { width: 28px; height: 28px; }
+        .landgame__bin:hover { transform: translateY(-3px); background: rgba(255,255,255,.16); }
+        .landgame__bin.correct { background: #2e7d32; border-color: #7fe6a0; animation: landPop .5s; }
+        .landgame__bin.incorrect { animation: landShake .4s; border-color: #ff6b6b; }
+        .landgame__feedback { margin-top: 1rem; min-height: 2.4rem; font-weight: 600; font-size: .88rem; color: #eafcef; }
+        .landgame__done { text-align: center; padding: 1.5rem; }
+        .landgame__done .score { font-size: 2.2rem; font-weight: 800; color: #ffd166; }
+        .landgame__replay { margin-top: 1rem; background: #4cc08c; color: #04160f; border: none; font-weight: 700; padding: .7rem 1.4rem; border-radius: 99px; cursor: pointer; }
+        @keyframes landShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+        @keyframes landPop { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+        .landgame__particle { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; border-radius: 50%; background: #ffd166; pointer-events: none; animation: landBurst .6s ease-out forwards; }
+        @keyframes landBurst { to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; } }
+
         .malthus-sim {
             margin-top: 1.5rem;
             background: var(--parchment);
@@ -700,22 +728,45 @@
                 <p>Apply social and economic concepts dynamically through guided interactive simulations.</p>
 
                 <div class="sim-container" id="sim1-container">
-                    <h3>Lab 1: Sharing Economy & Economic Practice Lab</h3>
-                    <p>Classify real-world socio-economic scenarios into the correct economic practice category. Click a scenario, then click its matching category.</p>
+                    <h3>Lab 1: Sharing Economy Sorting Game</h3>
+                    <p>Sort real-world socio-economic scenarios into the correct economic practice category before your streak breaks.</p>
 
-                    <div class="sorting-area">
-                        <div>
-                            <div class="scenario-card" id="active-scenario">
-                                Loading scenario...
-                            </div>
-                            <div class="sim-feedback" id="sim1-feedback">Select a category on the right.</div>
+                    <div class="landgame">
+                        <div class="landgame__stats">
+                            <span>Score: <span id="land-score">0</span></span>
+                            <span class="streak">🔥 Streak: <span id="land-streak">0</span></span>
+                            <span id="land-progress-label">Scenario 1 / 5</span>
                         </div>
-                        <div class="drop-zones">
-                            <button class="drop-zone" onclick="checkSorting('social-capital')">Social Capital</button>
-                            <button class="drop-zone" onclick="checkSorting('time-banking')">Time Banking</button>
-                            <button class="drop-zone" onclick="checkSorting('product-service')">Product Service System</button>
-                            <button class="drop-zone" onclick="checkSorting('peer-market')">Peer-to-Peer Marketplace</button>
-                            <button class="drop-zone" onclick="checkSorting('redistribution')">Redistribution Markets</button>
+                        <div class="landgame__progress"><div class="landgame__progress-bar" id="land-progress-bar"></div></div>
+
+                        <div id="landgame-body">
+                            <div class="landgame__scenario" id="active-scenario">
+                                <div class="landgame__icon" id="scenario-icon"></div>
+                                <p id="scenario-text">Loading scenario...</p>
+                            </div>
+                            <div class="landgame__bins">
+                                <button class="landgame__bin" id="bin-social-capital" onclick="checkSorting('social-capital')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><path d="M17 3.13a4 4 0 010 7.75"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+                                    Social Capital
+                                </button>
+                                <button class="landgame__bin" id="bin-time-banking" onclick="checkSorting('time-banking')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                                    Time Banking
+                                </button>
+                                <button class="landgame__bin" id="bin-product-service" onclick="checkSorting('product-service')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12l8.73-5.04"/><path d="M12 22.08V12"/></svg>
+                                    Product Service
+                                </button>
+                                <button class="landgame__bin" id="bin-peer-market" onclick="checkSorting('peer-market')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                                    Peer-to-Peer
+                                </button>
+                                <button class="landgame__bin" id="bin-redistribution" onclick="checkSorting('redistribution')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+                                    Redistribution
+                                </button>
+                            </div>
+                            <div class="sim-feedback landgame__feedback" id="sim1-feedback">Tap a category to sort the scenario above.</div>
                         </div>
                     </div>
                 </div>
@@ -1087,37 +1138,100 @@
             {
                 text: "Judy allows her friend Tim to use her car whenever he's in town on business.",
                 answer: "social-capital",
-                explanation: "Correct! This is Social Capital because it relies on informal peer trust, personal relationships, and mutual favors rather than formal commercial transactions."
+                explanation: "Correct! This is Social Capital — it relies on informal peer trust, personal relationships, and mutual favors rather than formal commercial transactions.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#7fe6a0" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><path d="M17 3.13a4 4 0 010 7.75"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>'
             },
             {
                 text: "Martha offers three hours each week to babysit her cousin in exchange for her aunt housesitting when Martha travels.",
                 answer: "time-banking",
-                explanation: "Correct! This is Time Banking because it is an institutional system of exchanging reciprocal service hours instead of traditional monetary currency."
+                explanation: "Correct! This is Time Banking — an institutional system of exchanging reciprocal service hours instead of traditional monetary currency.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#e8c55c" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>'
             },
             {
-                text: "Mr. Collins decides to handle the sale of his mother’s house directly to the present tenants.",
+                text: "Mr. Collins decides to handle the sale of his mother's house directly to the present tenants.",
                 answer: "peer-market",
-                explanation: "Correct! This represents a Peer-to-Peer (P2P) Marketplace where individuals make direct transactions and sharing arrangements without corporate intermediary platforms."
+                explanation: "Correct! This represents a Peer-to-Peer (P2P) Marketplace — individuals make direct transactions and sharing arrangements without a corporate intermediary platform.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#ff9fc0" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>'
             },
             {
                 text: "A commercial car-sharing service owns a fleet of vehicles and charges users per hour to access them as a service without ownership.",
                 answer: "product-service",
-                explanation: "Correct! This is a Product Service System (PSS) because a formal commercial company retains ownership and sells utility access."
+                explanation: "Correct! This is a Product Service System (PSS) — a formal commercial company retains ownership and sells utility access.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#9fc6ff" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12l8.73-5.04"/><path d="M12 22.08V12"/></svg>'
+            },
+            {
+                text: "A city food bank collects a supermarket's unsold-but-edible produce each evening and distributes it free to shelters across town.",
+                answer: "redistribution",
+                explanation: "Correct! This is a Redistribution Market — surplus goods are relocated from where they exist in excess to where they are needed, without a peer-to-peer sale.",
+                icon: '<svg viewBox="0 0 24 24" fill="none" stroke="#c9a0ff" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>'
             }
         ];
 
         let currentScenarioIndex = 0;
+        let landScore = 0;
+        let landStreak = 0;
+
+        function landBurst(originEl) {
+            const colors = ['#ffd166', '#4cc08c', '#9fc6ff', '#ff9fc0'];
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('span');
+                p.className = 'landgame__particle';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 30 + Math.random() * 30;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                p.style.background = colors[i % 4];
+                originEl.appendChild(p);
+                setTimeout(() => p.remove(), 650);
+            }
+        }
+
+        function updateLandStats() {
+            document.getElementById('land-score').textContent = landScore;
+            document.getElementById('land-streak').textContent = landStreak;
+            const shown = Math.min(currentScenarioIndex + 1, scenarios.length);
+            document.getElementById('land-progress-label').textContent = `Scenario ${shown} / ${scenarios.length}`;
+            document.getElementById('land-progress-bar').style.width = (currentScenarioIndex / scenarios.length * 100) + '%';
+        }
 
         function loadNextScenario() {
+            updateLandStats();
+            const feedbackEl = document.getElementById('sim1-feedback');
             if (currentScenarioIndex < scenarios.length) {
-                document.getElementById('active-scenario').innerText = `"${scenarios[currentScenarioIndex].text}"`;
-                document.getElementById('sim1-feedback').innerText = "Select an economic category on the right.";
-                document.getElementById('sim1-feedback').style.color = "var(--ink)";
-                document.getElementById('sim1-feedback').style.backgroundColor = "transparent";
+                const item = scenarios[currentScenarioIndex];
+                const card = document.getElementById('active-scenario');
+                card.classList.remove('flyout');
+                document.getElementById('scenario-icon').innerHTML = item.icon;
+                document.getElementById('scenario-text').textContent = `"${item.text}"`;
+                feedbackEl.textContent = "Tap a category to sort the scenario above.";
+                feedbackEl.style.color = "";
             } else {
-                document.getElementById('active-scenario').innerText = "All scenarios sorted! Excellent work mastering sharing economy classifications.";
-                document.getElementById('sim1-feedback').innerText = "Lab completed successfully.";
+                document.getElementById('land-progress-bar').style.width = '100%';
+                document.getElementById('landgame-body').innerHTML = `
+                    <div class="landgame__done">
+                        <div class="score">${landScore} / ${scenarios.length}</div>
+                        <p>All scenarios sorted! Excellent work telling social capital, time banking, peer-to-peer markets, product-service systems and redistribution apart.</p>
+                        <button class="landgame__replay" onclick="resetSharingGame()">Play Again</button>
+                    </div>`;
             }
+        }
+
+        function resetSharingGame() {
+            currentScenarioIndex = 0; landScore = 0; landStreak = 0;
+            document.getElementById('landgame-body').innerHTML = `
+                <div class="landgame__scenario" id="active-scenario">
+                    <div class="landgame__icon" id="scenario-icon"></div>
+                    <p id="scenario-text">Loading scenario...</p>
+                </div>
+                <div class="landgame__bins">
+                    <button class="landgame__bin" id="bin-social-capital" onclick="checkSorting('social-capital')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><path d="M17 3.13a4 4 0 010 7.75"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>Social Capital</button>
+                    <button class="landgame__bin" id="bin-time-banking" onclick="checkSorting('time-banking')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Time Banking</button>
+                    <button class="landgame__bin" id="bin-product-service" onclick="checkSorting('product-service')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12l8.73-5.04"/><path d="M12 22.08V12"/></svg>Product Service</button>
+                    <button class="landgame__bin" id="bin-peer-market" onclick="checkSorting('peer-market')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>Peer-to-Peer</button>
+                    <button class="landgame__bin" id="bin-redistribution" onclick="checkSorting('redistribution')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>Redistribution</button>
+                </div>
+                <div class="sim-feedback landgame__feedback" id="sim1-feedback">Tap a category to sort the scenario above.</div>`;
+            loadNextScenario();
         }
 
         function checkSorting(selectedCategory) {
@@ -1125,17 +1239,28 @@
 
             const currentItem = scenarios[currentScenarioIndex];
             const feedbackEl = document.getElementById('sim1-feedback');
+            const binEl = document.getElementById('bin-' + selectedCategory);
+            const card = document.getElementById('active-scenario');
 
             if (selectedCategory === currentItem.answer) {
-                feedbackEl.innerText = currentItem.explanation;
-                feedbackEl.style.color = "var(--correctGreen)";
-                feedbackEl.style.backgroundColor = "#e8f5e9";
+                feedbackEl.textContent = currentItem.explanation;
+                feedbackEl.style.color = "#7fe6a0";
+                binEl.classList.add('correct');
+                landBurst(binEl);
+                landScore++; landStreak++;
+                updateLandStats();
+                card.classList.add('flyout');
                 currentScenarioIndex++;
-                setTimeout(loadNextScenario, 2500);
+                setTimeout(() => binEl.classList.remove('correct'), 500);
+                setTimeout(loadNextScenario, 1400);
             } else {
-                feedbackEl.innerText = `Not quite. Review the definition for '${selectedCategory}' and try again. Remember the distinction between informal favors (social capital) and structured exchanges.`;
-                feedbackEl.style.color = "var(--incorrectRed)";
-                feedbackEl.style.backgroundColor = "#ffebee";
+                feedbackEl.textContent = `Not quite — review the definition and try again. Remember the distinction between informal favors, timed exchanges, direct peer sales, commercial access-as-service, and surplus redistribution.`;
+                feedbackEl.style.color = "#ff9b9b";
+                binEl.classList.add('incorrect');
+                card.classList.add('shake');
+                landStreak = 0;
+                updateLandStats();
+                setTimeout(() => { binEl.classList.remove('incorrect'); card.classList.remove('shake'); }, 450);
             }
         }
 
