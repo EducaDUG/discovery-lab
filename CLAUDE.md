@@ -1888,3 +1888,26 @@ physics code). Rebuilt as the "Brine Lab" (activity v1.4). Reusable lessons:
   screenshot is taken — to test physics, patch `requestAnimationFrame`/`performance.now` and step them manually.
 - Open item: the specimen picker uses small drawn SVG icons (the 3D scene shows the objects); swapping in real
   licence-checked photos per §4/§12.4 is still to do if Diego wants it.
+
+### 12.10 Lesson from `sim-ocean-power-grid` v2.0 — porting an external simulator into the Experiment (2026-10-01)
+
+Diego supplied a React/TypeScript marine-energy simulator ("OceanCurrents", AI Studio export) and asked for it to
+**replace the central Experiment as-is**, with every section (Orient → Evidence) adapted to its metrics. This
+replaced v1.0's Energy Bench + Harbour Isle Grid city game (that game and its bonus-round slot are intentionally
+gone — the supplied simulator *is* the game; do not restore them). Standing rules for any future external-app port:
+
+- **Port, don't embed.** A framework/build-step app is a design brief, not a file to upload (§10's "verbatim" exception
+  covers only finished single HTML files). Re-implement in plain ES modules + vendored Three.js (here: `marine-data.js`,
+  `marine-engine.js`, `marine-scene.js`, `marine-ui.js`, `marine-sim.js`, `marine-sound.js`). Keep the source's numbers,
+  formulas, technologies and metrics exactly; replace lucide/Tailwind/confetti with local DOM/CSS/canvas.
+- **Bot-test the source's win conditions before shipping them.** Run bots in the browser (no Node here) against every
+  mission. This port found Mission 1 unwinnable on its stated budget, Mission 3's land target unreachable (a unit-scale
+  bug), solar that never slept at night, and a Cloudy preset that zeroed solar only in the display. Fix the minimum
+  number (funds, a scale factor) and document it in the engine header and to Diego — don't silently rewrite the physics.
+- **An external sim still must produce marker-grade evidence.** Add an in-sim "Log snapshot" (and a save-mission-result
+  button) that writes real rows via `api.recordTrial`; design Record columns for the sim's own variables, and keep column
+  labels to short words (the PDF table divides width equally across columns, so words over ~7 characters break).
+- **Game state on `setInterval`, never rAF** (30-minute tick loop and the service boat both do this); give the scene a
+  keyboard route (position slider + Place button, arrow/+/- camera keys) and a 2D fallback if WebGL is missing.
+- **Module URLs must be byte-identical** everywhere (`marine-data.js?v=2` in every importer) or the browser loads two
+  separate copies and state diverges.
