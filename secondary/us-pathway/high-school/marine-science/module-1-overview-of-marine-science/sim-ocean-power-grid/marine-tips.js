@@ -1,0 +1,122 @@
+/* OceanCurrents info-tooltips (the "❓" help layer). Port of InfoTooltip.tsx and every tooltip it is used in.
+   Each entry: [title EN, title ES, description EN, description ES, tip EN, tip ES] (tip optional).
+   Popovers are position:fixed and clamped to the viewport so they never clip inside panels or dialogs;
+   they open on hover, keyboard focus or click, and close on Esc, outside click or scroll. */
+import { getLang } from "../../../../../../engine/i18n.js?v=9";
+
+const D = {
+  bay: ["Pacifica Bay Simulation", "Simulación de Pacifica Bay", "100% ocean renewable energy & grid engineering challenge.", "Reto de ingeniería de red con 100% energía renovable oceánica.", "Click 'How to Play' for quick instructions.", "Pulsa 'Cómo jugar' para ver instrucciones rápidas."],
+  treasury: ["City Treasury", "Tesorería de la ciudad", "Municipal budget from power sales. Pays for building and maintenance.", "Presupuesto municipal de la venta de energía. Paga la construcción y el mantenimiento.", "Keep Revenue > Expenses.", "Mantén los ingresos por encima de los gastos."],
+  rate: ["Electricity Price", "Precio de la electricidad", "Rate charged per kWh. Prices above about $0.16 start to hurt citizen approval; above $0.22 it falls fast.", "Tarifa cobrada por kWh. Precios por encima de unos $0,16 empiezan a bajar la aprobación; sobre $0,22 cae rápido.", "Target $0.14–$0.16/kWh.", "Objetivo: $0,14–$0,16/kWh."],
+  approval: ["Citizen Approval", "Aprobación ciudadana", "Resident satisfaction based on reliable power and fair electric rates.", "Satisfacción de los residentes según el suministro fiable y las tarifas justas.", "Target > 75% approval.", "Objetivo: más de 75% de aprobación."],
+  guide: ["Field Guide & Quiz", "Guía de campo y cuestionario", "Ocean energy handbook with fluid formulas and a practice quiz.", "Manual de energía oceánica con fórmulas de fluidos y un cuestionario de práctica."],
+  reset: ["Reset Mission", "Reiniciar misión", "Resets the bay back to Day 1 of this mission.", "Devuelve la bahía al día 1 de esta misión."],
+  pause: ["Pause / Resume", "Pausa / Seguir", "Freezes simulation time so you can inspect, plan or log a snapshot.", "Congela el tiempo de la simulación para inspeccionar, planificar o registrar una instantánea."],
+  speed: ["Sim Speed", "Velocidad de simulación", "Speed up days (2x/4x) or slow down (0.5x). The physics is identical at every speed.", "Acelera los días (2x/4x) o los ralentiza (0,5x). La física es idéntica a cualquier velocidad."],
+  clock: ["Clock", "Reloj", "24-hour day/night cycle. Solar drops to zero at night; city demand peaks 17:00–22:00.", "Ciclo día/noche de 24 horas. La solar cae a cero de noche; la demanda de la ciudad llega al máximo de 17:00 a 22:00."],
+  weather: ["Test Weather", "Probar clima", "Test how your grid handles clouds, big waves, slack wind, a spring tide or a storm.", "Prueba cómo responde tu red a nubes, olas grandes, viento flojo, mareas vivas o una tormenta.", "Change ONE thing at a time for a fair test.", "Cambia UNA sola cosa a la vez para una prueba justa."],
+  thermo: ["Ocean Thermocline", "Termoclina oceánica", "Boundary between warm surface water (about 25°C) and cold deep water (4°C) that powers OTEC.", "Límite entre el agua cálida de la superficie (unos 25 °C) y el agua fría profunda (4 °C) que alimenta la OTEC."],
+  reefs: ["Artificial Reefs", "Arrecifes artificiales", "Shows the rocks and kelp that colonise submerged foundations.", "Muestra las rocas y algas que colonizan las cimentaciones sumergidas."],
+  audio: ["Audio", "Audio", "Sound effects for building, alerts, the tradie horn and fanfares. Mute any time.", "Efectos de sonido al construir, en las alertas, la bocina de los técnicos y las fanfarrias. Silénciala cuando quieras."],
+  grid: ["Grid Balance", "Equilibrio de la red", "City needs about 10 MW. Output above demand charges storage; output below demand drains it, and a big enough gap causes a blackout.", "La ciudad necesita unos 10 MW. Una salida mayor que la demanda carga el almacenamiento; menor lo descarga, y un déficit grande causa un apagón."],
+  demand: ["City Demand (MW)", "Demanda de la ciudad (MW)", "Real-time electricity use of 28,000 residents (about 6.7–13.5 MW depending on the hour).", "Uso de electricidad en tiempo real de 28.000 habitantes (unos 6,7–13,5 MW según la hora)."],
+  output: ["Ocean Output (MW)", "Producción oceánica (MW)", "Total clean electricity made by all offshore generators right now.", "Total de electricidad limpia producida ahora por todos los generadores marinos."],
+  baseload: ["24/7 Baseload", "Base constante 24/7", "Continuous power from OTEC, osmotic plants and tidal kites, day and night.", "Potencia continua de OTEC, plantas osmóticas y cometas de marea, de día y de noche."],
+  tidalrow: ["Tidal Stream", "Corriente de marea", "Turbines driven by the Moon's tides: predictable, but near zero at slack water.", "Turbinas movidas por las mareas de la Luna: predecibles, pero casi a cero en la pleamar y la bajamar."],
+  waverow: ["Wave Converters", "Convertidores de olas", "Harness wave motion; output follows wave energy flux 0.49 × Hs² × Te.", "Aprovechan el movimiento de las olas; la salida sigue el flujo de energía 0,49 × Hs² × Te."],
+  windrow: ["Offshore Wind", "Eólica marina", "Turbines in fast, steady open-ocean winds; output rises steeply with wind speed.", "Turbinas en vientos oceánicos rápidos y constantes; la salida sube mucho con la velocidad del viento."],
+  solarrow: ["Floating Marine Solar", "Solar marina flotante", "Photovoltaic panels on water pontoons cooled by seawater.", "Paneles fotovoltaicos sobre pontones enfriados por el agua de mar.", "Drops to 0 at night and under heavy overcast.", "Cae a 0 de noche y con cielo muy cubierto."],
+  store: ["Stored energy", "Energía almacenada", "Surplus charges subsea batteries and hydrogen hubs (88% round trip); they discharge when output is below demand.", "El excedente carga baterías e hidrógeno submarinos (88% de ida y vuelta); se descargan cuando la producción es menor que la demanda."],
+  funds: ["City Treasury", "Tesorería de la ciudad", "Municipal bank balance: earned by selling kWh, spent on building, maintenance and service boats.", "Saldo municipal: se gana vendiendo kWh y se gasta en construir, mantener y en barcos de servicio."],
+  tariff: ["Electricity Tariff", "Tarifa eléctrica", "Price per kWh. The sweet spot is about $0.14–$0.16/kWh: profit without hurting approval.", "Precio por kWh. El punto óptimo es de unos $0,14–$0,16/kWh: beneficio sin dañar la aprobación."],
+  bill: ["Family Electric Bill", "Factura eléctrica familiar", "A typical US home uses about 900 kWh a month (bill = 900 × price). Prices above $0.16/kWh (a $144 bill) start to reduce approval.", "Un hogar típico de EE. UU. usa unos 900 kWh al mes (factura = 900 × precio). Precios sobre $0,16/kWh (factura de $144) empiezan a bajar la aprobación."],
+  rev: ["Daily Revenue", "Ingreso diario", "Income from clean electricity sold (kWh delivered × price).", "Ingresos por la electricidad limpia vendida (kWh entregados × precio)."],
+  opex: ["Daily Opex", "Opex diario", "Routine inspection, lubrication and harbour operating costs of every device you own.", "Costes rutinarios de inspección, lubricación y operación del puerto de cada dispositivo que posees."],
+  lcoe: ["Fleet LCOE vs your price", "LCOE de la flota vs tu precio", "Levelised cost of energy (lifetime cost per kWh) of your fleet, weighted by rated power. A price above it leaves a margin; below it you sell at a loss.", "Coste nivelado de la energía (coste de vida por kWh) de tu flota, ponderado por potencia nominal. Un precio mayor deja margen; menor significa vender con pérdida."],
+  happy: ["Citizen Approval", "Aprobación ciudadana", "Public satisfaction: citizens want cheap bills, zero blackouts and spared forests.", "Satisfacción pública: los ciudadanos quieren facturas baratas, cero apagones y bosques a salvo."],
+  tradie: ["Pirate Tradies Crew", "Cuadrilla de técnicos piratas", "Barnacles and kelp build up on rotors over time. Dispatch the boat to scrub a facility back to full power.", "Percebes y algas se acumulan en los rotores con el tiempo. Envía el barco para limpiar una instalación y devolverla a plena potencia."],
+  dispatch: ["Dispatch Tradies", "Enviar técnicos", "Sends the workboat to your most barnacle-covered facility ($3,500).", "Envía el barco a la instalación con más percebes ($3.500)."],
+  land: ["Land Spared", "Tierra salvada", "Acres of land spared because this power is made offshore (game-scaled).", "Acres de tierra salvados porque esta energía se produce en el mar (a escala de juego)."],
+  blackout: ["Blackout hours", "Horas de apagón", "Total hours so far in which more than 15% of demand went unmet.", "Horas totales hasta ahora en las que más del 15% de la demanda quedó sin cubrir."],
+  build: ["Build Generators", "Construir generadores", "Open the catalog to build wind, wave, tidal, OTEC and other facilities across the three depth zones.", "Abre el catálogo para construir instalaciones eólicas, de olas, de mareas, OTEC y otras en las tres zonas de profundidad."],
+  missions: ["Missions", "Misiones", "Test your grid against curriculum missions; each one has directives to complete.", "Pon a prueba tu red con misiones del currículo; cada una tiene directrices que cumplir."],
+  compare: ["Land vs Ocean Lab", "Laboratorio tierra vs océano", "Compare the land clearing of terrestrial solar/wind with zero-land ocean arrays.", "Compara el despeje de tierra de la solar/eólica terrestre con los parques oceánicos sin uso de tierra."],
+  envwind: ["Wind speed", "Velocidad del viento", "Measured in knots (1 kt = 0.514 m/s). Turbines start at 3.5 kts, reach rated power at 24 kts and shut down above 52 kts.", "Se mide en nudos (1 nudo = 0,514 m/s). Las turbinas arrancan a 3,5 nudos, alcanzan la potencia nominal a 24 y se detienen sobre 52."],
+  envhs: ["Significant wave height Hs", "Altura significativa de ola Hs", "Average height of the highest third of waves, in metres. Wave power rises with Hs squared.", "Altura media del tercio más alto de las olas, en metros. La potencia de las olas crece con Hs al cuadrado."],
+  envflux: ["Wave energy flux", "Flujo de energía de ola", "Power carried by each metre of wave crest: P = 0.49 × Hs² × Te, in kW per metre.", "Potencia que lleva cada metro de cresta: P = 0,49 × Hs² × Te, en kW por metro."],
+  envtide: ["Tidal current", "Corriente de marea", "Flow speed of the tide in knots: zero at slack water, peaking mid-flood and mid-ebb, and larger at spring tides.", "Velocidad del flujo de la marea en nudos: cero en aguas muertas, máxima a mitad de la creciente y del reflujo, y mayor en mareas vivas."],
+  envtemp: ["Surface / deep temperature", "Temperatura superficie / fondo", "The surface-to-deep difference (ΔT) drives OTEC; about 22°C is the design reference.", "La diferencia superficie-fondo (ΔT) mueve la OTEC; unos 22 °C son la referencia de diseño."],
+  envsun: ["Sunlight", "Luz solar", "A daylight bell from 06:00 to 18:00; zero at night and under the Cloudy test.", "Una campana de luz diurna de 06:00 a 18:00; cero de noche y en la prueba de Nublado."],
+  lab: ["Experiment Tracker", "Seguimiento del experimento", "Counts your logged snapshots and the different conditions you tested.", "Cuenta tus instantáneas registradas y las distintas condiciones que probaste.", "Aim for at least 3 snapshots across at least 2 conditions.", "Apunta a al menos 3 instantáneas en al menos 2 condiciones."],
+  snap: ["Log snapshot", "Registrar instantánea", "Saves the current ocean conditions, output by technology, demand, price, treasury, approval and blackout hours into your Investigation Record.", "Guarda las condiciones oceánicas actuales, la producción por tecnología, la demanda, el precio, la tesorería, la aprobación y las horas de apagón en tu Registro de investigación."],
+  cam3d: ["3D Controls", "Controles 3D", "Drag to orbit in 3D, right-click to pan, scroll to zoom.", "Arrastra para orbitar en 3D, clic derecho para mover, rueda para acercar.", "Click any generator to inspect its telemetry.", "Haz clic en un generador para ver su telemetría."],
+  panor: ["Panoramic View", "Vista panorámica", "High-altitude view of the entire bay and energy fleet.", "Vista aérea de toda la bahía y la flota de energía."],
+  profile: ["Profile Cutaway", "Corte de perfil", "Side cutaway showing depths from the shallows to the deep trench.", "Corte lateral que muestra las profundidades desde las aguas someras hasta la fosa."],
+  cityv: ["City Harbor View", "Vista del puerto", "View toward the city skyline, docks and bridges.", "Vista hacia el perfil de la ciudad, los muelles y los puentes."],
+  deepv: ["Deep Ocean View", "Vista del océano profundo", "Focus on floating wind turbines, OTEC and the seabed.", "Enfoque en las turbinas flotantes, la OTEC y el fondo marino."],
+  track: ["Track Workboat", "Seguir el barco", "Locks the camera on the pirate tradies' boat as it sails out to clean turbines.", "Fija la cámara en el barco de los técnicos piratas mientras navega a limpiar turbinas."],
+  camreset: ["Reset Camera", "Restablecer cámara", "Snaps the camera back to the default angle.", "Devuelve la cámara al ángulo por defecto."],
+  mouse: ["Mouse & keyboard", "Ratón y teclado", "Drag to orbit, right-click to pan, scroll to zoom, arrow keys and +/− when the scene has focus, click a generator to inspect it.", "Arrastra para orbitar, clic derecho para mover, rueda para acercar, flechas y +/− con el foco en la escena, clic en un generador para inspeccionarlo."],
+  targeting: ["Constructing Marine Hardware", "Construcción de equipo marino", "Move over the 3D water and a translucent marker follows your cursor (green = allowed zone, red = not allowed). Click to build, or use the position slider.", "Mueve el ratón sobre el agua 3D y un marcador translúcido te sigue (verde = zona permitida, rojo = no permitida). Haz clic para construir o usa el control de posición.", "Shallows suit wave buoys, the shelf suits tidal turbines, deep water suits floating wind and OTEC.", "Las aguas someras van bien para boyas de olas, la plataforma para turbinas de marea y el agua profunda para eólica flotante y OTEC."],
+  catalog: ["Marine Energy Technology Catalog", "Catálogo de tecnología de energía marina", "Select any unlocked offshore generator, then click the 3D ocean (or use the position slider) to build it in Pacifica Bay.", "Elige un generador marino desbloqueado y haz clic en el océano 3D (o usa el control de posición) para construirlo en Pacifica Bay.", "A diversified mix of wind, wave, tidal and OTEC guarantees 24/7 power without weather blackouts.", "Una mezcla diversificada de eólica, olas, mareas y OTEC garantiza energía 24/7 sin apagones por el clima."],
+  capex: ["Capital Expenditure (Capex) Budget", "Presupuesto de capital (capex)", "Upfront money available to build new offshore facilities. Selling clean power restores your treasury over time.", "Dinero disponible para construir nuevas instalaciones marinas. Vender energía limpia repone tu tesorería con el tiempo."],
+  cats: ["Technology Categories", "Categorías de tecnología", "Filter generators by resource: Wind (aerodynamic), Wave (mechanical swell), Tidal (lunar gravity currents), Baseload (OTEC and osmotic gradients), Solar (surface PV) or Storage (subsea batteries and hydrogen).", "Filtra los generadores por recurso: Viento (aerodinámico), Olas (oleaje mecánico), Mareas (corrientes por la gravedad lunar), Base (gradientes OTEC y osmóticos), Solar (FV de superficie) o Almacenamiento (baterías e hidrógeno submarinos)."],
+  rated: ["Rated Power", "Potencia nominal", "Max power output under ideal ocean conditions.", "Máxima potencia en condiciones oceánicas ideales."],
+  capexv: ["Capex ($)", "Capex ($)", "Upfront manufacturing and installation cost.", "Coste inicial de fabricación e instalación."],
+  opexv: ["Daily Opex", "Opex diario", "Daily routine maintenance cost.", "Coste diario de mantenimiento rutinario."],
+  lcoev: ["LCOE", "LCOE", "Lifetime cost per kWh. Lower is cheaper.", "Coste de vida por kWh. Más bajo es más barato."],
+  formula: ["Formula", "Fórmula", "Mathematical relationship between power, velocity and fluid density.", "Relación matemática entre potencia, velocidad y densidad del fluido."],
+  casestudy: ["Case Study", "Caso de estudio", "Deep dive into the physics, ecology and real-world pilot projects.", "Análisis a fondo de la física, la ecología y los proyectos piloto reales."],
+  construct: ["Construct in Pacifica Bay", "Construir en Pacifica Bay", "Click this button to enter Targeting Mode, then click the ocean (or use the slider) to position and build this generator.", "Pulsa este botón para entrar en el modo de colocación y luego haz clic en el océano (o usa el control) para colocar y construir este generador."],
+  unlock: ["R&D Patent Unlock", "Desbloqueo de patente de I+D", "Spend municipal research funds to unlock advanced marine engineering technology for your city.", "Gasta fondos municipales de investigación para desbloquear tecnología avanzada de ingeniería marina."],
+  devout: ["Current Output", "Producción actual", "Real-time electrical power generated right now.", "Potencia eléctrica generada ahora mismo."],
+  devkwh: ["Cumulative Energy", "Energía acumulada", "Total clean electricity produced to date.", "Total de electricidad limpia producida hasta ahora."],
+  integrity: ["Integrity", "Integridad", "Physical condition of mooring lines, cables and bearings.", "Estado físico de las líneas de fondeo, los cables y los cojinetes.", "Overhaul before it drops under 25%.", "Haz una revisión antes de que baje del 25%."],
+  fouling: ["Biofouling", "Bioincrustación", "Barnacles and kelp attach to rotors, causing drag and power loss (up to 30%).", "Percebes y algas se pegan a los rotores y causan arrastre y pérdida de potencia (hasta 30%).", "Scrub to restore full output.", "Limpia para recuperar toda la producción."],
+  eff: ["Operating Efficiency", "Eficiencia operativa", "Current output multiplier factoring in wear and biofouling.", "Multiplicador de producción actual que tiene en cuenta el desgaste y la bioincrustación."],
+  reef: ["Artificial Reef", "Arrecife artificial", "Submerged foundations provide nursery shelter for fish.", "Las cimentaciones sumergidas dan refugio de cría a los peces."],
+  base: ["Baseload", "Base constante", "Continuous steady power day and night.", "Potencia continua y estable de día y de noche."],
+  boat: ["Dispatch Workboat", "Enviar el barco", "Sends the pirate tradies catamaran to service this facility.", "Envía el catamarán de los técnicos piratas a revisar esta instalación."],
+  scrub: ["Biofouling Scrub Maintenance", "Mantenimiento de limpieza", "A high-pressure seawater wash removes barnacles and algae from blades and buoys, restoring hydrodynamic efficiency (and +20% integrity).", "Un lavado a presión con agua de mar quita percebes y algas de palas y boyas y restaura la eficiencia hidrodinámica (y +20% de integridad).", "Costs $3,500 and takes a few seconds on screen.", "Cuesta $3.500 y tarda unos segundos en pantalla."],
+  overhaul: ["Complete Overhaul Maintenance", "Revisión completa", "Deep mechanical restoration replacing bearings, slip-rings, umbilicals and zinc anodes. Cuts biofouling by 40 points and restores integrity to 100%.", "Restauración mecánica profunda que cambia cojinetes, anillos colectores, cables y ánodos de zinc. Reduce la bioincrustación en 40 puntos y restaura la integridad al 100%.", "Do this when integrity drops under 30% to prevent failure.", "Hazlo cuando la integridad baje del 30% para evitar una avería."],
+  decom: ["Decommission & Salvage", "Desmantelar y recuperar", "Removes the facility and returns 40% of its construction capital to the treasury.", "Retira la instalación y devuelve el 40% de su capital de construcción a la tesorería.", "Use it to free space or replace old technology with higher-capacity devices.", "Úsalo para liberar espacio o sustituir tecnología antigua por dispositivos de mayor capacidad."],
+  citysc: ["Coastal City Scale", "Escala de la ciudad costera", "Adjust the city size from small towns (10,000) to large coastal metropolises (250,000 residents).", "Ajusta el tamaño de la ciudad desde pueblos pequeños (10.000) hasta grandes metrópolis costeras (250.000 habitantes)."],
+  fossil: ["Fossil Baseline", "Referencia fósil", "Emits high CO2 and consumes millions of gallons of freshwater.", "Emite mucho CO2 y consume millones de galones de agua dulce."],
+  landc: ["Land Conflict", "Conflicto por la tierra", "Requires large land acreage, competing with forests and agriculture.", "Requiere mucha superficie de tierra y compite con bosques y agricultura."],
+  oceane: ["Ocean Energy", "Energía oceánica", "Zero land clearing. Water is 832× denser than air.", "Cero despeje de tierra. El agua es 832× más densa que el aire."],
+};
+
+const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/* raw popover from explicit text */
+export function tipRaw(title, desc, tip) {
+  return `<span class="oc-tip"><button type="button" class="oc-tip__b" aria-expanded="false" aria-label="${esc((getLang() === "es" ? "Información: " : "Info: ") + title)}">?</button><span class="oc-tip__pop" role="tooltip" hidden><b>❓ ${esc(title)}</b><span>${esc(desc)}</span>${tip ? `<em>💡 ${getLang() === "es" ? "Consejo" : "Tip"}: ${esc(tip)}</em>` : ""}</span></span>`;
+}
+/* popover from the dictionary above */
+export function tip(key) {
+  const e = D[key]; if (!e) return "";
+  const es = getLang() === "es";
+  return tipRaw(es ? e[1] : e[0], es ? e[3] : e[2], e[4] ? (es ? e[5] : e[4]) : "");
+}
+
+/* One delegated wiring per root: hover / focus / click open a fixed-position popover clamped to the viewport. */
+export function wireTips(root) {
+  let open = null;
+  const hide = () => { if (open) { open.pop.hidden = true; open.btn.setAttribute("aria-expanded", "false"); open = null; } };
+  const popOf = btn => { const w = btn.parentElement; if (!w._pop) { w._pop = w.querySelector(".oc-tip__pop"); document.body.append(w._pop); } return w._pop; };
+  const place = (btn, pop) => {
+    const w = Math.min(272, innerWidth - 16); pop.style.width = w + "px"; pop.style.left = "8px"; pop.style.top = "0px";
+    const r = btn.getBoundingClientRect(); let left = r.left + r.width / 2 - w / 2; left = Math.max(8, Math.min(innerWidth - w - 8, left));
+    const h = pop.offsetHeight; let top = r.bottom + 8; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 8);
+    pop.style.left = left + "px"; pop.style.top = top + "px";
+  };
+  const show = btn => { const pop = popOf(btn); if (open && open.pop !== pop) hide(); pop.hidden = false; btn.setAttribute("aria-expanded", "true"); open = { btn, pop }; place(btn, pop); };
+  root.addEventListener("mouseover", e => { const b = e.target.closest && e.target.closest(".oc-tip__b"); if (b) show(b); });
+  root.addEventListener("mouseout", e => { const w = e.target.closest && e.target.closest(".oc-tip"); if (w && !w.contains(e.relatedTarget)) hide(); });
+  root.addEventListener("focusin", e => { const b = e.target.closest && e.target.closest(".oc-tip__b"); if (b) show(b); });
+  root.addEventListener("focusout", e => { const w = e.target.closest && e.target.closest(".oc-tip"); if (w && !w.contains(e.relatedTarget)) hide(); });
+  root.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".oc-tip__b"); if (!b) return; e.stopPropagation(); if (open && open.btn === b && !b.matches(":hover")) hide(); else show(b); });
+  document.addEventListener("mousedown", e => { if (open && !open.btn.parentElement.contains(e.target)) hide(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") hide(); }, true);
+  window.addEventListener("scroll", hide, true);
+}

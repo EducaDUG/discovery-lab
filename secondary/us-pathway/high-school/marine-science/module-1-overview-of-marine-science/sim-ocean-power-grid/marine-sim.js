@@ -4,11 +4,12 @@
    (30-minute ticks; the service boat on a 50 ms timer). requestAnimationFrame is
    used solely by the 3D scene to paint.
    ========================================================================== */
-import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, ZONES, CATEGORY, WAVE_IDS, scenarios, WEATHER_PRESETS } from "./marine-data.js?v=2";
-import { SIMULATION_TICK_HOURS, calculateOceanEnvironment, applyPreset, stepSimulation, calculateDeviceOutput, calculateCityDemand, newGrid, makeDevice, isEligible, zoneAt, householdBill, KTS_TO_MS } from "./marine-engine.js?v=2";
-import { createScene } from "./marine-scene.js?v=2";
-import { soundManager } from "./marine-sound.js?v=2";
-import { fmt, usd, openBuildDrawer, openDeviceDialog, openCodex, openMissions, openComparison, openDialog } from "./marine-ui.js?v=2";
+import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, ZONES, CATEGORY, WAVE_IDS, scenarios, WEATHER_PRESETS } from "./marine-data.js?v=3";
+import { SIMULATION_TICK_HOURS, calculateOceanEnvironment, applyPreset, stepSimulation, calculateDeviceOutput, calculateCityDemand, newGrid, makeDevice, isEligible, zoneAt, householdBill, KTS_TO_MS } from "./marine-engine.js?v=3";
+import { createScene } from "./marine-scene.js?v=3";
+import { soundManager } from "./marine-sound.js?v=3";
+import { tip, wireTips } from "./marine-tips.js?v=4";
+import { fmt, usd, openBuildDrawer, openDeviceDialog, openCodex, openMissions, openComparison, openDialog } from "./marine-ui.js?v=3";
 
 const WX = {
   breeze: () => L("Moderate Ocean Breeze", "Brisa oceánica moderada"), storm: () => L("Winter Swell Storm", "Tormenta con oleaje invernal"),
@@ -24,44 +25,45 @@ export function mountOceanSim(host, opts) {
   const root = document.createElement("div"); root.className = "oc"; host.append(root);
   root.innerHTML = `
   <div class="oc-top"><div class="oc-brand"><span class="oc-logo">🌊</span><div><b>OceanCurrents</b> <span class="oc-chip">${L("Marine Science Simulation", "Simulación de ciencias marinas")}</span><small>${L("Offshore Renewable Engineering & Coastal Grid Economics", "Ingeniería renovable marina y economía de redes costeras")}</small></div></div>
-    <div class="oc-stats"><div class="oc-stat"><span>💲 ${L("City Treasury", "Tesorería")}</span><b data-k="funds"></b></div><div class="oc-stat"><span>⚡ ${L("Rate", "Tarifa")}</span><b class="cy" data-k="rate"></b></div><div class="oc-stat"><span>🛡 ${L("Happiness", "Felicidad")}</span><b data-k="happyTop"></b></div></div>
-    <div class="oc-tools"><button type="button" class="oc-btn oc-btn--soft" data-a="guide">❓ ${L("Field Guide", "Guía de campo")}</button><button type="button" class="oc-btn oc-btn--ghost" data-a="reset" title="${L("Reset mission", "Reiniciar misión")}">↻</button></div></div>
-  <div class="oc-mission-bar"><div><span class="oc-badge" data-k="mbadge"></span> <b data-k="mtitle"></b>: <span class="oc-muted" data-k="mdesc"></span></div><button type="button" class="oc-link" data-a="missions">${L("View Mission Directives", "Ver directrices de la misión")} →</button></div>
+    <div class="oc-stats"><div class="oc-stat"><span>💲 ${L("Treasury", "Tesorería")} ${tip("treasury")}</span><b data-k="funds"></b></div><div class="oc-stat"><span>⚡ ${L("Rate", "Tarifa")} ${tip("rate")}</span><b class="cy" data-k="rate"></b></div><div class="oc-stat"><span>🛡 ${L("Approval", "Aprobación")} ${tip("approval")}</span><b data-k="happyTop"></b></div></div>
+    <div class="oc-tools"><button type="button" class="oc-btn oc-btn--amber" data-a="tutorial">🚀 ${L("Tutorial (5 Steps)", "Tutorial (5 pasos)")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="howto">❓ ${L("How to Play", "Cómo jugar")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="guide">❓ ${L("Field Guide", "Guía de campo")}</button><button type="button" class="oc-btn oc-btn--ghost" data-a="reset" title="${L("Reset mission", "Reiniciar misión")}">↻</button></div></div>
+  <div class="oc-mission-bar"><div><span class="oc-badge" data-k="mbadge"></span> <b data-k="mtitle"></b>: <span class="oc-muted" data-k="mdesc"></span></div><button type="button" class="oc-link" data-a="missions">${L("Directives", "Directrices")} →</button></div>
   <div class="oc-stage"><div class="oc-scene" data-k="scene" role="application"></div>
-    <div class="oc-camera" role="toolbar" aria-label="${L("Camera", "Cámara")}"><span class="oc-cam__t">🧭 3D ${L("Ocean", "Océano")}</span>
+    <div class="oc-camera" role="toolbar" aria-label="${L("Camera", "Cámara")}"><span class="oc-cam__t">🧭 3D ${L("Ocean", "Océano")} ${tip("cam3d")}</span>
       <button type="button" data-cam="orbit" class="is-on">🌐 ${L("Panoramic", "Panorámica")}</button><button type="button" data-cam="profile">📐 ${L("Profile", "Perfil")}</button><button type="button" data-cam="city">🏙 ${L("City Harbor", "Puerto")}</button><button type="button" data-cam="deep">🌊 ${L("Deep Ocean", "Océano profundo")}</button>
       <button type="button" data-a="track" class="oc-track">🚤 ${L("Track Tradies", "Seguir técnicos")} 🏴‍☠️</button><button type="button" data-cam="orbit" aria-label="${L("Reset camera", "Restablecer cámara")}">⟲</button></div>
-    <div class="oc-hint">🖱 ${L("Drag to orbit", "Arrastra para orbitar")} • ${L("Right-drag to pan", "Clic derecho: mover")} • ${L("Scroll to zoom", "Rueda: zoom")} • ${L("Arrow keys & +/− when focused", "Flechas y +/− con el foco")}</div>
+    <div class="oc-hint">${tip("mouse")} 🖱 ${L("Drag: Orbit", "Arrastrar: orbitar")} • ${L("Right-Click: Pan", "Clic derecho: mover")} • ${L("Scroll: Zoom", "Rueda: zoom")} • ${L("Arrow keys & +/− when focused", "Flechas y +/− con el foco")}</div>
     <div class="oc-bubble" data-k="bubble" hidden><span>🏴‍☠️</span><b data-k="quote"></b></div>
-    <div class="oc-target" data-k="target" hidden></div><div class="oc-flash" data-k="flash" role="status" aria-live="polite"></div></div>
+    <div class="oc-mentor" data-k="mentor" aria-live="polite"></div><div class="oc-target" data-k="target" hidden></div><div class="oc-flash" data-k="flash" role="status" aria-live="polite"></div></div>
   <section class="oc-panel">
     <div class="oc-bar"><div class="oc-bar__l"><button type="button" class="oc-btn oc-btn--amber" data-a="pause">⏸ ${L("Pause", "Pausa")}</button>
-      <div class="oc-seg" role="group" aria-label="${L("Speed", "Velocidad")}">${[0.5, 1, 2, 4].map(s => `<button type="button" data-sp="${s}" class="${s === 1 ? "is-on" : ""}">${s}x</button>`).join("")}</div>
-      <span class="oc-clock"><b class="cy" data-k="day"></b> · <span data-k="time"></span></span></div>
-      <div class="oc-weather"><span class="oc-k">${L("Test Weather", "Probar clima")}:</span>${WEATHER_PRESETS().concat([{ id: "storm", label: L("⛈ Storm", "⛈ Tormenta"), title: L("Winter storm: huge waves, fast wear, tests your maintenance!", "Tormenta invernal: ¡olas enormes, desgaste rápido, pone a prueba tu mantenimiento!") }]).map(w => `<button type="button" data-w="${w.id}" title="${w.title}" class="${w.id === "normal" ? "is-on" : ""}">${w.label}</button>`).join("")}</div>
+      ${tip("speed")}<div class="oc-seg" role="group" aria-label="${L("Speed", "Velocidad")}">${[0.5, 1, 2, 4].map(s => `<button type="button" data-sp="${s}" class="${s === 1 ? "is-on" : ""}">${s}x</button>`).join("")}</div>
+      <span class="oc-clock">${tip("clock")}<b class="cy" data-k="day"></b> · <span data-k="time"></span></span></div>
+      <div class="oc-weather"><span class="oc-k">${L("Test Weather", "Probar clima")} ${tip("weather")}:</span>${WEATHER_PRESETS().concat([{ id: "storm", label: L("⛈ Storm", "⛈ Tormenta"), title: L("Winter storm: huge waves, fast wear, tests your maintenance!", "Tormenta invernal: ¡olas enormes, desgaste rápido, pone a prueba tu mantenimiento!") }]).map(w => `<button type="button" data-w="${w.id}" title="${w.title}" class="${w.id === "normal" ? "is-on" : ""}">${w.label}</button>`).join("")}</div>
       <div class="oc-bar__r"><button type="button" class="oc-btn oc-btn--soft" data-a="thermo" aria-pressed="false">👁 ${L("Thermocline", "Termoclina")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="reefs" aria-pressed="true">🐠 ${L("Reefs", "Arrecifes")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="mute" aria-pressed="false" data-k="mute"></button></div></div>
     <div class="oc-dash">
-      <div class="oc-pane"><div class="oc-row"><b>⚡ ${L("Pacifica Bay Electrical Grid", "Red eléctrica de Pacifica Bay")}</b><span class="oc-pill" data-k="gridstat"></span></div>
-        <div class="oc-grid2"><div class="oc-tile"><span class="oc-k">${L("City Demand (Needs)", "Demanda de la ciudad (necesita)")}</span><b class="oc-big" data-k="demand"></b><small data-k="pop"></small></div><div class="oc-tile"><span class="oc-k">${L("Ocean Output (Making)", "Producción oceánica (genera)")}</span><b class="oc-big cy" data-k="output"></b><small data-k="balance"></small></div></div>
+      <div class="oc-pane"><div class="oc-row"><b>⚡ ${L("Pacifica Bay Electrical Grid", "Red eléctrica de Pacifica Bay")} ${tip("grid")}</b><span class="oc-pill" data-k="gridstat"></span></div>
+        <div class="oc-grid2"><div class="oc-tile"><span class="oc-k">${L("City Demand (Needs)", "Demanda de la ciudad (necesita)")} ${tip("demand")}</span><b class="oc-big" data-k="demand"></b><small data-k="pop"></small></div><div class="oc-tile"><span class="oc-k">${L("Ocean Output (Making)", "Producción oceánica (genera)")} ${tip("output")}</span><b class="oc-big cy" data-k="output"></b><small data-k="balance"></small></div></div>
         <div class="oc-mix" data-k="mix"></div>
-        <div class="oc-row oc-row--line"><span>🔋 ${L("Stored energy", "Energía almacenada")}</span><b data-k="store"></b></div><div class="oc-meter"><i class="vi" data-k="storeb"></i></div></div>
-      <div class="oc-pane"><div class="oc-row"><b>🌡 ${L("Ocean Conditions (live)", "Condiciones oceánicas (en vivo)")}</b><span class="oc-pill" data-k="wx"></span></div>
-        <div class="oc-env"><div><span class="oc-k">💨 ${L("Wind", "Viento")}</span><b data-k="wind"></b><small data-k="windms"></small></div><div><span class="oc-k">🌊 ${L("Wave height Hs", "Altura de ola Hs")}</span><b data-k="hs"></b><small data-k="te"></small></div><div><span class="oc-k">〰 ${L("Wave energy flux", "Flujo de energía de ola")}</span><b data-k="flux"></b><small>0.49·Hs²·Te</small></div><div><span class="oc-k">🌙 ${L("Tidal current", "Corriente de marea")}</span><b data-k="tide"></b><small data-k="tstage"></small></div><div><span class="oc-k">🌡 ${L("Surface / deep temp", "Temp. superficie / fondo")}</span><b data-k="temp"></b><small data-k="dt"></small></div><div><span class="oc-k">☀️ ${L("Sunlight", "Luz solar")}</span><b data-k="sun"></b><small data-k="sunsub"></small></div></div></div>
+        <div class="oc-row oc-row--line"><span>🔋 ${L("Stored energy", "Energía almacenada")} ${tip("store")}</span><b data-k="store"></b></div><div class="oc-meter"><i class="vi" data-k="storeb"></i></div></div>
+      <div class="oc-pane"><div class="oc-row"><b>🌡 ${L("Ocean Conditions (live)", "Condiciones oceánicas (en vivo)")} ${tip("envwind")}</b><span class="oc-pill" data-k="wx"></span></div>
+        <div class="oc-env"><div><span class="oc-k">💨 ${L("Wind", "Viento")}</span><b data-k="wind"></b><small data-k="windms"></small></div><div><span class="oc-k">🌊 ${L("Wave height Hs", "Altura de ola Hs")} ${tip("envhs")}</span><b data-k="hs"></b><small data-k="te"></small></div><div><span class="oc-k">〰 ${L("Wave energy flux", "Flujo de energía de ola")} ${tip("envflux")}</span><b data-k="flux"></b><small>0.49·Hs²·Te</small></div><div><span class="oc-k">🌙 ${L("Tidal current", "Corriente de marea")} ${tip("envtide")}</span><b data-k="tide"></b><small data-k="tstage"></small></div><div><span class="oc-k">🌡 ${L("Surface / deep temp", "Temp. superficie / fondo")} ${tip("envtemp")}</span><b data-k="temp"></b><small data-k="dt"></small></div><div><span class="oc-k">☀️ ${L("Sunlight", "Luz solar")} ${tip("envsun")}</span><b data-k="sun"></b><small data-k="sunsub"></small></div></div></div>
       <div class="oc-pane"><div class="oc-row"><b>💲 ${L("City Treasury & Power Prices", "Tesorería y precios de la energía")}</b><b class="gn" data-k="funds2"></b></div>
-        <div class="oc-tariff"><div class="oc-row"><span><b>${L("Electricity Price Charged to Families", "Precio de la electricidad para las familias")}</b></span><b class="oc-big cy" data-k="tariffv"></b></div>
+        <div class="oc-tariff"><div class="oc-row"><span><b>${L("Electricity Price Charged to Families", "Precio de la electricidad para las familias")}</b> ${tip("tariff")}</span><b class="oc-big cy" data-k="tariffv"></b></div>
           <input type="range" class="oc-range" min="0.06" max="0.30" step="0.005" value="0.15" data-k="tariff" aria-label="${L("Price per kWh", "Precio por kWh")}">
-          <div class="oc-row oc-muted"><span>${L("Cheap ($0.06)", "Barata ($0,06)")}</span><span class="am" data-k="bill"></span><span>${L("Expensive ($0.30)", "Cara ($0,30)")}</span></div></div>
-        <div class="oc-grid2"><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Revenue", "Ingreso diario")}</span><b class="gn" data-k="rev"></b></div><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Opex", "Opex diario")}</span><b class="rs" data-k="opex"></b></div></div>
-        <div class="oc-row oc-row--line"><span>${L("Fleet LCOE (est.) vs your price", "LCOE de la flota (est.) vs tu precio")}</span><b data-k="lcoe"></b></div></div>
-      <div class="oc-pane"><div class="oc-row"><span><b>${L("Citizen Happiness", "Felicidad ciudadana")}</b></span><b data-k="happy"></b></div><div class="oc-meter"><i data-k="happyb"></i></div>
-        <div class="oc-tradie"><div class="oc-row"><b>🔧 ${L("Cheeky Tradies Crew (Electricians & Plumbers)", "Cuadrilla de técnicos graciosos (electricistas y fontaneros)")}</b><span>🏴‍☠️⚡</span></div><div data-k="tradie"></div></div>
-        <div class="oc-eco"><div title="${L("Game-scaled: about 0.1 acre of land spared per MWh delivered by ocean power", "A escala de juego: unos 0,1 acres de tierra salvados por MWh entregado con energía oceánica")}"><span class="oc-k">🌳 ${L("Land spared", "Tierra salvada")}</span><b class="gn" data-k="land"></b></div><div><span class="oc-k">☁ CO₂ ${L("prevented", "evitado")}</span><b class="gn" data-k="co2"></b></div><div><span class="oc-k">🐟 ${L("Ecosystem health", "Salud del ecosistema")}</span><b class="cy" data-k="eco"></b></div><div><span class="oc-k">⏱ ${L("Blackout hours", "Horas de apagón")}</span><b data-k="blk"></b></div><div><span class="oc-k">⚡ ${L("Generated / delivered", "Generado / entregado")}</span><b data-k="kwhs"></b></div></div></div>
+          <div class="oc-row oc-muted"><span>${L("Cheap ($0.06)", "Barata ($0,06)")}</span><span class="am" data-k="bill"></span>${tip("bill")}<span>${L("Expensive ($0.30)", "Cara ($0,30)")}</span></div></div>
+        <div class="oc-grid2"><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Revenue", "Ingreso diario")} ${tip("rev")}</span><b class="gn" data-k="rev"></b></div><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Opex", "Opex diario")} ${tip("opex")}</span><b class="rs" data-k="opex"></b></div></div>
+        <div class="oc-row oc-row--line"><span>${L("Fleet LCOE (est.) vs your price", "LCOE de la flota (est.) vs tu precio")} ${tip("lcoe")}</span><b data-k="lcoe"></b></div></div>
+      <div class="oc-pane"><div class="oc-row"><span><b>${L("Citizen Approval", "Aprobación ciudadana")}</b> ${tip("happy")}</span><b data-k="happy"></b></div><div class="oc-meter"><i data-k="happyb"></i></div>
+        <div class="oc-tradie"><div class="oc-row"><b>🔧 ${L("Cheeky Tradies Crew (Electricians & Plumbers)", "Cuadrilla de técnicos graciosos (electricistas y fontaneros)")} ${tip("tradie")}</b><span>🏴‍☠️⚡</span></div><div data-k="tradie"></div></div>
+        <div class="oc-eco"><div title="${L("Game-scaled: about 0.1 acre of land spared per MWh delivered by ocean power", "A escala de juego: unos 0,1 acres de tierra salvados por MWh entregado con energía oceánica")}"><span class="oc-k">🌳 ${L("Land spared", "Tierra salvada")} ${tip("land")}</span><b class="gn" data-k="land"></b></div><div><span class="oc-k">☁ CO₂ ${L("prevented", "evitado")}</span><b class="gn" data-k="co2"></b></div><div><span class="oc-k">🐟 ${L("Ecosystem health", "Salud del ecosistema")}</span><b class="cy" data-k="eco"></b></div><div><span class="oc-k">⏱ ${L("Blackout hours", "Horas de apagón")} ${tip("blackout")}</span><b data-k="blk"></b></div><div><span class="oc-k">⚡ ${L("Generated / delivered", "Generado / entregado")}</span><b data-k="kwhs"></b></div></div></div>
     </div>
-    <div class="oc-lab"><div class="oc-lab__t"><b>🔬 ${L("Experiment Tracker", "Seguimiento del experimento")}</b><p>${L("Fair test: change ONE thing (a Test Weather button, the price or a build), let it run for a few ticks, then log a snapshot. Log at least 3 snapshots under at least 2 different conditions.", "Prueba justa: cambia UNA sola cosa (un botón de Probar clima, el precio o una construcción), déjalo correr unos ciclos y registra una instantánea. Registra al menos 3 instantáneas en al menos 2 condiciones distintas.")}</p></div>
-      <div class="oc-lab__s"><b data-k="snapn"></b><small data-k="snapc"></small></div><button type="button" class="oc-btn oc-btn--go" data-a="snap">📸 ${L("Log snapshot to my Investigation Record", "Registrar instantánea en mi Registro de investigación")}</button></div>
-    <div class="oc-actions"><button type="button" class="oc-btn oc-btn--big" data-a="build">⚡ ${L("Build Ocean Generators", "Construir generadores oceánicos")}</button>
+    <div class="oc-lab"><div class="oc-lab__t"><b>🔬 ${L("Experiment Tracker", "Seguimiento del experimento")} ${tip("lab")}</b><p>${L("Fair test: change ONE thing (a Test Weather button, the price or a build), let it run for a few ticks, then log a snapshot. Log at least 3 snapshots under at least 2 different conditions.", "Prueba justa: cambia UNA sola cosa (un botón de Probar clima, el precio o una construcción), déjalo correr unos ciclos y registra una instantánea. Registra al menos 3 instantáneas en al menos 2 condiciones distintas.")}</p></div>
+      <div class="oc-lab__s"><b data-k="snapn"></b><small data-k="snapc"></small></div><button type="button" class="oc-btn oc-btn--go" data-a="snap">📸 ${L("Log snapshot to my Investigation Record", "Registrar instantánea en mi Registro de investigación")}</button>${tip("snap")}</div>
+    <div class="oc-actions"><button type="button" class="oc-btn oc-btn--big" data-a="build">⚡ ${L("Build Ocean Generators", "Construir generadores oceánicos")}</button>${tip("build")}
       <div><button type="button" class="oc-btn oc-btn--soft" data-a="missions">🏅 ${L("Missions & Challenges", "Misiones y retos")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="compare">⚖ ${L("Land vs Ocean Lab", "Laboratorio tierra vs océano")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="guide">📖 ${L("Field Guide (Ages 15–18)", "Guía de campo (15–18 años)")}</button></div></div>
   </section>`;
+  wireTips(root);
   const $ = k => root.querySelector(`[data-k=${k}]`), $$ = s => root.querySelectorAll(s);
 
   /* ---------------- state ---------------- */
@@ -105,7 +107,7 @@ export function mountOceanSim(host, opts) {
     $("land").textContent = `${g.landSavedAcres.toFixed(1)} ${L("acres", "acres")}`; $("co2").textContent = `${fmt(g.co2PreventedTons, 1)} t`; $("eco").textContent = Math.round(g.marineEcosystemHealth) + "%"; $("blk").textContent = `${g.blackoutHours.toFixed(1)} h`; $("kwhs").textContent = `${fmt(g.totalKWhGenerated)} / ${fmt(g.totalKWhConsumed)} kWh`;
     const B = S.boat, td = $("tradie");
     if (B.active) { td.innerHTML = `<div class="oc-boatstat">🚤 ${B.state === "sailing_to" ? L("Tradies cruising out to facility! 🌊", "¡Los técnicos navegan hacia la instalación! 🌊") : B.state === "servicing" ? L("Ha ha ha! Fixing & scrubbing! 🔩", "¡Ja ja ja! ¡Reparando y limpiando! 🔩") : L("Tradies heading home for lunch! 🥧", "¡Los técnicos vuelven a comer! 🥧")}</div>`; }
-    else if (!td.dataset.idle || td.dataset.f !== String(g.funds >= 3500 && S.devices.length > 0)) { td.dataset.idle = "1"; td.dataset.f = String(g.funds >= 3500 && S.devices.length > 0); td.innerHTML = `<button type="button" class="oc-btn oc-btn--amber oc-wide" data-a="quick" ${g.funds >= 3500 && S.devices.length ? "" : "aria-disabled='true'"}>⚡ ${L("Send Pirate Tradies Crew! ($3,500)", "¡Enviar cuadrilla pirata! ($3.500)")}</button><small class="oc-muted">${L("Sends the boat to the most barnacle-covered facility.", "Envía el barco a la instalación con más percebes.")}</small>`; td.querySelector("[data-a=quick]").addEventListener("click", quickDispatch); }
+    else if (!td.dataset.idle || td.dataset.f !== String(g.funds >= 3500 && S.devices.length > 0)) { td.dataset.idle = "1"; td.dataset.f = String(g.funds >= 3500 && S.devices.length > 0); td.innerHTML = `<button type="button" class="oc-btn oc-btn--amber oc-wide" data-a="quick" ${g.funds >= 3500 && S.devices.length ? "" : "aria-disabled='true'"}>⚡ ${L("Send Pirate Tradies Crew! ($3,500)", "¡Enviar cuadrilla pirata! ($3.500)")}</button><small class="oc-muted">${L("Cleans biofouling across all generators.", "Limpia la bioincrustación de todos los generadores.")}</small>`; td.querySelector("[data-a=quick]").addEventListener("click", quickDispatch); }
     if (B.active) td.dataset.idle = "";
     const nd = new Set(S.snaps.map(s => s.cond)).size; $("snapn").textContent = `${S.snaps.length} ${L("snapshot(s) logged", "instantánea(s) registrada(s)")}`; $("snapc").textContent = `${L("Conditions tested", "Condiciones probadas")}: ${nd} ${S.snaps.length >= 3 && nd >= 2 ? "✅" : ""}`;
     const mt = $("mute"); mt.textContent = soundManager.getMuted() ? "🔇" : "🔊"; mt.setAttribute("aria-label", soundManager.getMuted() ? L("Sound off — click to unmute", "Sonido apagado — clic para activar") : L("Sound on — click to mute", "Sonido activado — clic para silenciar")); mt.setAttribute("aria-pressed", String(soundManager.getMuted()));
@@ -122,7 +124,7 @@ export function mountOceanSim(host, opts) {
     S.day = nd; S.hour = Number(nh.toFixed(2)); const env = ENV(); const wasBlackout = S.grid.isBlackout;
     const r = stepSimulation(S.devices, S.grid, env, nd, S.hour); S.devices = r.updatedDevices; S.grid = r.updatedGrid; S.env = env; S.blackout = S.grid.isBlackout;
     if (S.grid.isBlackout && !wasBlackout) { soundManager.playWarningAlert(); flash(L("⚠ Blackout! Demand is higher than supply + storage.", "⚠ ¡Apagón! La demanda supera la oferta más el almacenamiento."), "warn"); }
-    checkAwards(); refresh();
+    checkAwards(); mentor(); refresh();
     if (S.day > S.scenario.targetDurationDays && !S.debriefed) debrief();
   }
   function checkAwards() {
@@ -220,6 +222,8 @@ export function mountOceanSim(host, opts) {
       const k = a.dataset.a;
       if (k === "pause") { S.paused = !S.paused; soundManager.playClick(); refresh(); }
       else if (k === "build") { soundManager.playClick(); openBuildDrawer(root, ctx); }
+      else if (k === "tutorial") { soundManager.playClick(); openTutorial(); }
+      else if (k === "howto") { soundManager.playClick(); intro(); }
       else if (k === "guide") { soundManager.playClick(); openCodex(root, ctx); }
       else if (k === "missions") { soundManager.playClick(); openMissions(root, ctx); }
       else if (k === "compare") { soundManager.playClick(); openComparison(root, ctx); }
@@ -247,11 +251,72 @@ export function mountOceanSim(host, opts) {
     onSelect: id => { if (id) selectDevice(id); else S.selectedId = null; }, onPlace: (tid, xr) => tryPlace(tid, xr), onHoverX: xr => { if (S.pendingTech) { S.pendingX = xr; S.updTarget && S.updTarget(); } }, onBoatScreen: boatScreen, onUserCamera: () => { if (tracked) { tracked = false; const t = root.querySelector(".oc-track"); t && t.classList.remove("is-on"); } },
   }, threeUrl).then(api => { if (destroyed) { api.destroy(); return; } sceneApi = api; $("scene").dataset.kind = api.kind; });
 
-  /* mission briefing */
+  /* ---------------- mentor alerts (toast + history + chimes) ---------------- */
+  const mentorLog = [], mentorSeen = {};
+  function mentorSay(id, kind, title, body, cool = 40) {
+    const now = S.day * 24 + S.hour; if (mentorSeen[id] !== undefined && now - mentorSeen[id] < cool) return; mentorSeen[id] = now;
+    mentorLog.unshift({ kind, title, body, day: S.day }); if (mentorLog.length > 12) mentorLog.pop();
+    kind === "good" ? soundManager.playPraiseChime() : soundManager.playAlertChime();
+    const box = $("mentor"), t = document.createElement("div"); t.className = "oc-mentor__t is-" + kind; t.setAttribute("role", "status");
+    t.innerHTML = `<button type="button" aria-label="${L("Dismiss", "Cerrar")}">✕</button><b>${kind === "good" ? "🌟" : "🧭"} ${title}</b>${body}`; box.append(t);
+    const rm = () => t.remove(); t.querySelector("button").addEventListener("click", rm); setTimeout(rm, 9000); while (box.children.length > 2) box.firstChild.remove();
+  }
+  function mentor() {
+    const g = S.grid; if (S.day < 2 && S.hour < 12) return;
+    if (g.funds < 30000) mentorSay("funds", "warn", L("Treasury running low", "Tesorería baja"), L("Raise the price a little or build only what you can afford; you still need money for maintenance.", "Sube un poco el precio o construye solo lo que puedas pagar; aún necesitas dinero para mantenimiento."));
+    if (g.isBlackout) mentorSay("blk", "warn", L("Blackout!", "¡Apagón!"), L("Demand beat supply plus storage. Add baseload (OTEC, osmotic, kites) or storage for calm, dark hours.", "La demanda superó la oferta más el almacenamiento. Añade base constante (OTEC, osmótica, cometas) o almacenamiento para las horas calmas y oscuras."));
+    if (g.maxStorageCapacityKWh > 0 && g.storedEnergyKWh / g.maxStorageCapacityKWh < 0.1 && S.devices.length) mentorSay("store", "warn", L("Storage nearly empty", "Almacenamiento casi vacío"), L("Batteries only help if they were charged by a surplus first.", "Las baterías solo ayudan si antes se cargaron con un excedente."));
+    const worst = [...S.devices].sort((a, b) => b.biofouling - a.biofouling)[0];
+    if (worst && worst.biofouling > 50) mentorSay("foul", "warn", L("Biofouling building up", "Bioincrustación creciente"), L("Barnacles cut output by up to 30%. Send the tradies to scrub.", "Los percebes reducen la producción hasta un 30%. Envía a los técnicos a limpiar."));
+    if (S.devices.some(d => d.integrity < 30)) mentorSay("int", "warn", L("A generator is failing", "Un generador falla"), L("Integrity is under 30%. Order an overhaul before it breaks.", "La integridad es menor del 30%. Pide una revisión antes de que se averíe."));
+    if (g.tariffPerKWh > 0.22) mentorSay("price", "warn", L("Prices are too high", "Precios demasiado altos"), L("Families are struggling to pay. Approval will fall fast above $0.22.", "Las familias tienen problemas para pagar. La aprobación cae rápido sobre $0,22."));
+    if (g.citizenApproval < 45) mentorSay("appr", "warn", L("Citizens are unhappy", "Ciudadanos descontentos"), L("Check for blackouts and high bills.", "Revisa los apagones y las facturas altas."));
+    if (S.devices.length >= 1 && mentorSeen.first === undefined) mentorSay("first", "good", L("Nice start", "Buen comienzo"), L("Your first generator is online. Try a Test Weather button and watch what changes.", "Tu primer generador está en marcha. Prueba un botón de clima y mira qué cambia."), 9999);
+    if (S.day >= 3 && g.citizenApproval >= 75 && g.tariffPerKWh >= 0.12 && g.tariffPerKWh <= 0.17) mentorSay("fair", "good", L("Fair price, happy city", "Precio justo, ciudad feliz"), L("Approval is above 75% at a fair price. Log a snapshot as evidence.", "La aprobación supera el 75% con un precio justo. Registra una instantánea como evidencia."), 96);
+  }
+  function openMentorHistory() {
+    const dlg = openDialog(root, { title: L("Mentor alert history", "Historial de alertas del mentor") });
+    dlg.body.innerHTML = mentorLog.length ? mentorLog.map(m => `<div class="oc-obj"><span>${m.kind === "good" ? "🌟" : "🧭"} <b>${m.title}</b> (${L("Day", "Día")} ${m.day}) ${m.body}</span></div>`).join("") : `<p class="oc-muted">${L("No alerts yet.", "Aún no hay alertas.")}</p>`;
+  }
+
+  /* ---------------- Challenge Guide (4 tabs) ---------------- */
   function intro() {
-    const dlg = openDialog(root, { title: L("Welcome to Pacifica Bay", "Bienvenido a Pacifica Bay"), sub: S.scenario.title, wide: true });
-    dlg.body.innerHTML = `<p class="oc-box oc-box--info">${S.scenario.description}</p><ol class="oc-list oc-list--n"><li>${L("<b>Explore in 3D:</b> drag to orbit, scroll to zoom, and click any generator to inspect it.", "<b>Explora en 3D:</b> arrastra para orbitar, usa la rueda para acercar y haz clic en un generador para inspeccionarlo.")}</li><li>${L("<b>Run a fair test:</b> press a <i>Test Weather</i> button (one change at a time) and watch each technology's megawatts react. Tip: build a Floating Solar Island first, or the Cloudy Day test has nothing to switch off!", "<b>Haz una prueba justa:</b> pulsa un botón de <i>Probar clima</i> (un cambio cada vez) y mira cómo reacciona cada tecnología en megavatios. Consejo: ¡construye primero una isla solar flotante o la prueba del Día nublado no tendrá nada que apagar!")}</li><li>${L("<b>Log snapshots</b> of the ocean conditions, the output of each technology, demand, price, treasury and happiness. They become your evidence.", "<b>Registra instantáneas</b> de las condiciones oceánicas, la producción de cada tecnología, la demanda, el precio, la tesorería y la felicidad. Serán tu evidencia.")}</li><li>${L("<b>Balance the city:</b> build the right mix in the right depth zone, set a fair price, keep your fleet scrubbed and complete the mission directives.", "<b>Equilibra la ciudad:</b> construye la mezcla adecuada en la zona de profundidad correcta, fija un precio justo, mantén tu flota limpia y cumple las directrices de la misión.")}</li></ol><div class="oc-endbtn"><button type="button" class="oc-btn oc-btn--go" data-a="go">▶ ${L("Start the simulation", "Iniciar la simulación")}</button></div>`;
-    dlg.body.querySelector("[data-a=go]").addEventListener("click", () => { dlg.close(); S.paused = false; soundManager.playClick(); refresh(); });
+    const tabs = [
+      [L("Mission", "Misión"), `<p class="oc-box oc-box--info">${S.scenario.description}</p><p>${L("You run the ocean energy grid for Pacifica Bay (28,000 residents). Build offshore generators in the right depth zone, keep them clean and sound, and charge a fair price so the lights stay on, the treasury stays positive and citizens stay happy.", "Diriges la red de energía oceánica de Pacifica Bay (28.000 habitantes). Construye generadores marinos en la zona de profundidad correcta, mantenlos limpios y sanos, y cobra un precio justo para que no falte luz, la tesorería siga en positivo y los ciudadanos estén contentos.")}</p>`],
+      [L("Controls", "Controles"), `<ol class="oc-list oc-list--n"><li>${L("<b>Explore in 3D:</b> drag to orbit, right-click to pan, scroll to zoom, and click any generator to inspect it.", "<b>Explora en 3D:</b> arrastra para orbitar, clic derecho para mover, rueda para acercar y haz clic en un generador para inspeccionarlo.")}</li><li>${L("<b>Build:</b> press Build Ocean Generators, pick a technology, then click the ocean (or use the position slider).", "<b>Construir:</b> pulsa Construir generadores, elige una tecnología y haz clic en el océano (o usa el control de posición).")}</li><li>${L("<b>Pause, speed and price</b> are in the control bar; the ❓ buttons explain every number.", "<b>Pausa, velocidad y precio</b> están en la barra de control; los botones ❓ explican cada número.")}</li></ol>`],
+      [L("Fair test", "Prueba justa"), `<ol class="oc-list oc-list--n"><li>${L("Build a Floating Solar Island first, or the Cloudy Day test has nothing to switch off.", "Construye primero una isla solar flotante o la prueba de Día nublado no tendrá nada que apagar.")}</li><li>${L("Press ONE Test Weather button at a time and watch each technology's megawatts react.", "Pulsa UN botón de Probar clima cada vez y mira cómo reacciona cada tecnología en megavatios.")}</li><li>${L("<b>Log snapshots</b> of the conditions, each technology's output, demand, price, treasury and approval. They become your evidence (at least 3 snapshots across 2 conditions).", "<b>Registra instantáneas</b> de las condiciones, la producción de cada tecnología, la demanda, el precio, la tesorería y la aprobación. Serán tu evidencia (al menos 3 instantáneas en 2 condiciones).")}</li></ol>`],
+      [L("Pro tips", "Consejos"), `<ul class="oc-list"><li>${L("A mix of wind, wave, tidal and OTEC gives 24/7 power without weather blackouts.", "Una mezcla de eólica, olas, mareas y OTEC da energía 24/7 sin apagones por el clima.")}</li><li>${L("Aim for $0.14–$0.16/kWh and approval above 75%.", "Apunta a $0,14–$0,16/kWh y a más del 75% de aprobación.")}</li><li>${L("Scrub barnacles before they cost you output; overhaul before integrity drops under 30%.", "Limpia los percebes antes de que cuesten producción; haz una revisión antes de que la integridad baje del 30%.")}</li><li>${L("Open Missions for directives and the Field Guide for the formulas.", "Abre Misiones para ver las directrices y la Guía de campo para las fórmulas.")}</li></ul>`],
+    ];
+    const dlg = openDialog(root, { title: L("Challenge Guide", "Guía del reto") + ": " + L("Welcome to Pacifica Bay", "Bienvenido a Pacifica Bay"), sub: S.scenario.title, wide: true });
+    let cur = 0;
+    const paint = () => {
+      dlg.body.innerHTML = `<div class="oc-tabbar" role="tablist">${tabs.map((t, i) => `<button type="button" role="tab" aria-selected="${i === cur}" data-t="${i}" class="${i === cur ? "is-on" : ""}">${t[0]}</button>`).join("")}</div>${tabs[cur][1]}<div class="oc-endbtn"><button type="button" class="oc-btn oc-btn--soft" data-a="hist">${L("Mentor alert history", "Historial del mentor")}</button><button type="button" class="oc-btn oc-btn--go" data-a="go">▶ ${cur < tabs.length - 1 ? L("Next", "Siguiente") : L("Start the simulation", "Iniciar la simulación")}</button></div>`;
+      dlg.body.querySelectorAll("[data-t]").forEach(b => b.addEventListener("click", () => { cur = +b.dataset.t; paint(); }));
+      dlg.body.querySelector("[data-a=hist]").addEventListener("click", openMentorHistory);
+      dlg.body.querySelector("[data-a=go]").addEventListener("click", () => { soundManager.playClick(); if (cur < tabs.length - 1) { cur++; paint(); } else { dlg.close(); S.paused = false; refresh(); } });
+    };
+    paint();
+  }
+
+  /* ---------------- 5-step tutorial ---------------- */
+  function openTutorial() {
+    const steps = [
+      [L("1 · Read the dashboard", "1 · Lee el panel"), L("Treasury, price and approval sit at the top. Hover or tap any ❓ to learn what a number means.", "Tesorería, precio y aprobación están arriba. Pasa el ratón o toca un ❓ para saber qué significa cada número."), null],
+      [L("2 · Build a generator", "2 · Construye un generador"), L("Open the catalog and choose a technology for the right depth zone.", "Abre el catálogo y elige una tecnología para la zona de profundidad correcta."), [L("Open catalog", "Abrir catálogo"), () => openBuildDrawer(root, ctx)]],
+      [L("3 · Test the weather", "3 · Prueba el clima"), L("Press ONE Test Weather button and watch which technologies react. That is a fair test.", "Pulsa UN botón de Probar clima y mira qué tecnologías reaccionan. Eso es una prueba justa."), null],
+      [L("4 · Keep it maintained", "4 · Mantenimiento"), L("Barnacles cut output. Send the tradies boat to scrub your facilities.", "Los percebes reducen la producción. Envía el barco de los técnicos a limpiar tus instalaciones."), [L("Send the boat", "Enviar el barco"), () => quickDispatch()]],
+      [L("5 · Log your evidence", "5 · Registra tu evidencia"), L("Log a snapshot under each condition you test. They fill your Investigation Record.", "Registra una instantánea en cada condición que pruebes. Llenan tu Registro de investigación."), [L("Log snapshot", "Registrar instantánea"), () => logSnapshot()]],
+    ];
+    const dlg = openDialog(root, { title: L("Tutorial (5 steps)", "Tutorial (5 pasos)") });
+    let i = 0;
+    const paint = () => {
+      const st = steps[i];
+      dlg.body.innerHTML = `<p class="oc-muted">${L("Step", "Paso")} ${i + 1}/5</p><h4>${st[0]}</h4><p>${st[1]}</p><div class="oc-endbtn">${st[2] ? `<button type="button" class="oc-btn oc-btn--amber" data-a="do">${st[2][0]}</button>` : ""}${i > 0 ? `<button type="button" class="oc-btn oc-btn--ghost" data-a="prev">${L("Back", "Atrás")}</button>` : ""}<button type="button" class="oc-btn oc-btn--go" data-a="nx">${i < 4 ? L("Next", "Siguiente") : L("Finish", "Terminar")}</button></div>`;
+      const d = dlg.body.querySelector("[data-a=do]"); d && d.addEventListener("click", () => { dlg.close(); st[2][1](); });
+      const pv = dlg.body.querySelector("[data-a=prev]"); pv && pv.addEventListener("click", () => { i--; paint(); });
+      dlg.body.querySelector("[data-a=nx]").addEventListener("click", () => { if (i < 4) { i++; paint(); } else dlg.close(); });
+    };
+    paint();
   }
   intro(); startTick();
   function destroy() { if (destroyed) return; destroyed = true; clearInterval(tickTimer); clearInterval(boatTimer); sceneApi && sceneApi.destroy(); }

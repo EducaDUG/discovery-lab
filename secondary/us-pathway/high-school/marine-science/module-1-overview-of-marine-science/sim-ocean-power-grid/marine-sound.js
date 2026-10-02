@@ -21,6 +21,8 @@ class SoundManager {
   playClick() { this.tone("sine", [[800, 0], [400, 0.04, 1]], 0, 0.04, 0.08); }
   playWarningAlert() { this.tone("sawtooth", [[320, 0], [280, 0.1]], 0, 0.25, 0.15); }
   playBoatHorn() { [0, 0.22].forEach(d => { this.tone("sawtooth", [[220, 0]], d, 0.18, 0.12); this.tone("sine", [[277.18, 0]], d, 0.18, 0.1); }); }
+  playAlertChime() { [587.33, 440.0].forEach((f, i) => this.tone("sine", [[f, 0]], i * 0.15, 0.28, 0.15)); }
+  playPraiseChime() { [440, 554.37, 659.25].forEach((f, i) => this.tone("triangle", [[f, 0]], i * 0.08, 0.25, 0.14)); }
   playVictoryFanfare() { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone("sine", [[f, 0]], i * 0.12, 0.35, 0.2)); }
 }
 export const soundManager = new SoundManager();

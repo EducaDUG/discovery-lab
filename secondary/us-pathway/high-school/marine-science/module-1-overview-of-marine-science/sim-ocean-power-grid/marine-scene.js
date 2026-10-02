@@ -7,8 +7,8 @@
    and artificial-reef overlays, click-to-select and click-to-place devices.
    Falls back to a calm 2D cross-section if WebGL is unavailable.
    ========================================================================== */
-import { MARINE_TECHNOLOGIES, techOf, ZONES } from "./marine-data.js?v=2";
-import { isEligible, zoneAt } from "./marine-engine.js?v=2";
+import { MARINE_TECHNOLOGIES, techOf, ZONES } from "./marine-data.js?v=3";
+import { isEligible, zoneAt } from "./marine-engine.js?v=3";
 
 const WORLD_X0 = -240, WORLD_W = 520;
 export const xToWorld = xr => WORLD_X0 + xr * WORLD_W;

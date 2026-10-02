@@ -12,7 +12,7 @@
    land-spared metric is rescaled so Mission 3's 350-acre target is reachable; Mission 1's starting
    funds are $550k (the source's $350k could not reach zero blackouts by any build).
    ========================================================================== */
-import { MARINE_TECHNOLOGIES, techOf } from "./marine-data.js?v=2";
+import { MARINE_TECHNOLOGIES, techOf } from "./marine-data.js?v=3";
 
 export const SIMULATION_TICK_HOURS = 0.5;
 export const KTS_TO_MS = 0.514444;

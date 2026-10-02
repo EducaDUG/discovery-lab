@@ -1,8 +1,9 @@
 /* OceanCurrents UI components: tech illustrations, build drawer, device inspector, Field Guide + quiz,
    missions, land-vs-ocean lab. Plain DOM (no framework). Dialogs are real role="dialog" with Esc + focus return. */
-import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, CATEGORY, ZONES, codexTopics, quizQuestions, scenarios } from "./marine-data.js?v=2";
-import { compareLandOcean } from "./marine-engine.js?v=2";
-import { soundManager } from "./marine-sound.js?v=2";
+import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, CATEGORY, ZONES, codexTopics, quizQuestions, scenarios } from "./marine-data.js?v=3";
+import { compareLandOcean } from "./marine-engine.js?v=3";
+import { soundManager } from "./marine-sound.js?v=3";
+import { tip } from "./marine-tips.js?v=4";
 
 export const fmt = (n, d = 0) => Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
 export const usd = n => "$" + fmt(n);
@@ -44,7 +45,7 @@ export function openBuildDrawer(root, ctx) {
   const dlg = openDialog(root, { title: L("Build Ocean Generators", "Construir generadores oceánicos"), sub: `${L("Treasury", "Tesorería")}: ${usd(ctx.funds())} · ${L("Choose a technology, then click the ocean to construct it", "Elige una tecnología y luego haz clic en el océano para construirla")}`, side: true, wide: true });
   const paint = () => {
     const tabs = ["all", "wind", "wave", "tidal", "baseload", "solar", "storage"];
-    dlg.body.innerHTML = `<div class="oc-tabs" role="tablist">${tabs.map(t => `<button type="button" role="tab" data-c="${t}" aria-selected="${cat === t}" class="${cat === t ? "is-on" : ""}">${t === "all" ? L("All Technologies", "Todas") : CATEGORY[t].label()}</button>`).join("")}</div><div class="oc-cards"></div>`;
+    dlg.body.innerHTML = `<p class="oc-muted">${tip("catalog")} ${tip("targeting")} ${tip("capex")}</p><div class="oc-tabs" role="tablist">${tabs.map(t => `<button type="button" role="tab" data-c="${t}" aria-selected="${cat === t}" class="${cat === t ? "is-on" : ""}">${t === "all" ? L("All Technologies", "Todas") : CATEGORY[t].label()}</button>`).join("")}</div><div class="oc-cards"></div>`;
     dlg.body.querySelectorAll("[data-c]").forEach(b => b.addEventListener("click", () => { cat = b.dataset.c; soundManager.playClick(); paint(); }));
     const list = dlg.body.querySelector(".oc-cards");
     TECH_IDS.map(techOf).filter(t => cat === "all" || t.category === cat).forEach(t => {
@@ -83,8 +84,8 @@ export function openDeviceDialog(root, ctx, instanceId) {
   dlg.body.innerHTML = `<div class="oc-grid2"><div class="oc-tile"><span class="oc-k">${L("Current Power Generation", "Generación de potencia actual")}</span><b class="oc-big cy" data-k="out"></b><small data-k="rated"></small></div>
     <div class="oc-tile"><span class="oc-k">${L("Cumulative Energy Produced", "Energía acumulada producida")}</span><b class="oc-big gn" data-k="kwh"></b><small data-k="rev"></small></div></div>
     <div class="oc-box oc-stack">
-      <div><div class="oc-row"><span>🛡️ ${L("Structural Integrity & Corrosion", "Integridad estructural y corrosión")}</span><b data-k="intv"></b></div><div class="oc-meter"><i data-k="intb"></i></div></div>
-      <div><div class="oc-row"><span>✨ ${L("Marine Biofouling (Barnacles / Kelp)", "Bioincrustación marina (percebes / algas)")}</span><b class="am" data-k="foulv"></b></div><div class="oc-meter"><i class="am" data-k="foulb"></i></div></div>
+      <div><div class="oc-row"><span>🛡️ ${L("Structural Integrity & Corrosion", "Integridad estructural y corrosión")} ${tip("integrity")}</span><b data-k="intv"></b></div><div class="oc-meter"><i data-k="intb"></i></div></div>
+      <div><div class="oc-row"><span>✨ ${L("Marine Biofouling (Barnacles / Kelp)", "Bioincrustación marina (percebes / algas)")} ${tip("fouling")}</span><b class="am" data-k="foulv"></b></div><div class="oc-meter"><i class="am" data-k="foulb"></i></div></div>
       <div class="oc-row oc-row--line"><span>${L("Overall Hydrodynamic Efficiency", "Eficiencia hidrodinámica global")}</span><b class="cy" data-k="eff"></b></div></div>
     <div class="oc-box oc-box--good"><b>🐟 ${L("Marine Science Observation", "Observación de ciencias marinas")}</b><p data-k="obs"></p></div>
     <div class="oc-badges">
@@ -95,7 +96,7 @@ export function openDeviceDialog(root, ctx, instanceId) {
     <div class="oc-svc"><div class="oc-row"><b>${L("Send Offshore Technician Boat", "Enviar barco técnico mar adentro")}</b><small>${L("Watch the boat sail out to fix it!", "¡Mira cómo el barco navega a repararlo!")}</small></div>
       <div class="oc-grid2"><button type="button" class="oc-svcbtn" data-s="scrub"><b>🚤 ${L("Dispatch Tradies: Scrub", "Enviar técnicos: limpieza")}</b><small>${L("Cheeky tradies sail out to clean barnacles & restore flow!", "¡Técnicos graciosos limpian percebes y restauran el flujo!")}</small><span class="gn">${usd(scrub)}</span></button>
       <button type="button" class="oc-svcbtn oc-svcbtn--b" data-s="overhaul"><b>🚤 ${L("Dispatch Tradies: Overhaul", "Enviar técnicos: revisión")}</b><small>${L("Tradies replace zinc anodes, bearings & wiring!", "¡Cambian ánodos de zinc, cojinetes y cableado!")}</small><span class="gn">${usd(over)}</span></button></div>
-      <button type="button" class="oc-decom" data-d>🗑 ${L("Decommission Asset (Recover", "Desmantelar activo (recuperas")} ${usd(Math.round(t.capex * 0.4))})</button></div>`;
+      <span class="oc-decomtip">${tip("decom")}</span><button type="button" class="oc-decom" data-d>🗑 ${L("Decommission Asset (Recover", "Desmantelar activo (recuperas")} ${usd(Math.round(t.capex * 0.4))})</button></div>`;
   const q = k => dlg.body.querySelector(`[data-k=${k}]`);
   dlg.body.querySelectorAll("[data-s]").forEach(b => b.addEventListener("click", () => { if (ctx.dispatch(instanceId, b.dataset.s)) dlg.close(); }));
   dlg.body.querySelector("[data-d]").addEventListener("click", () => { if (window.confirm(L("Decommission and salvage this ocean generator for 40% scrap value?", "¿Desmantelar y recuperar este generador oceánico por el 40% de su valor de chatarra?"))) { ctx.decommission(instanceId); soundManager.playClick(); dlg.close(); } });
