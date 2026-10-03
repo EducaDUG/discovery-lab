@@ -143,6 +143,7 @@ export function mountOceanSim(host, opts) {
   function showBuilt(dev) {
     const t = techOf(dev.techId), box = $("built"), kw = t.ratedPowerKW >= 1000 ? (t.ratedPowerKW / 1000).toFixed(1) + " MW" : t.ratedPowerKW + " kW";
     box.hidden = false; box.innerHTML = `<div class="oc-built__img">${techVisual(t, photoBase)}<span class="oc-built__ok">✔ ${L("Installed in the bay", "Instalado en la bahía")}</span><b class="oc-built__kw">+${kw}</b></div><div class="oc-built__b"><b>${t.name}</b><p>${t.friendlyStudentSummary}</p><div class="oc-built__g"><span>${L("Location", "Ubicación")}<b>X ${Math.round(dev.xRatio * 100)}% · Z ${Math.round((dev.zRatio ?? 0.5) * 100)}%</b></span><span>${L("Daily upkeep", "Mantenimiento diario")}<b>${usd(t.dailyOpex)}/${L("day", "día")}</b></span></div><button type="button" class="oc-btn oc-btn--go" data-a="builtx">${L("Great!", "¡Genial!")}</button></div>`;
+    box.querySelectorAll("img").forEach(i => { i.loading = "eager"; });
     clearTimeout(showBuilt.t); showBuilt.t = setTimeout(() => { box.hidden = true; }, 6000);
   }
   function checkAwards() {
