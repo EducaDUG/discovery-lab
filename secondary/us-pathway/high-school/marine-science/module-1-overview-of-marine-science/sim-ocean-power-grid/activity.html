@@ -6,7 +6,7 @@
 <title>Ocean Power: Keep the Lights On — Discovery Lab</title>
 <meta name="description" content="Meet the ocean's wind, wave, tide, current and thermal energy technologies, measure their real kW and kWh, then run a city's power grid for six days without running out of money or electricity.">
 <link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
-<link rel="stylesheet" href="ocean-power.css?v=3">
+<link rel="stylesheet" href="ocean-power.css?v=4">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%230a2a44'/><path d='M8 38q8-8 16 0t16 0 16 0' fill='none' stroke='%235fe0ff' stroke-width='4' stroke-linecap='round'/><path d='M30 8l-9 18h8l-3 14 13-20h-9l4-12z' fill='%23ffd166'/></svg>">
 <script>
 (function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
@@ -66,8 +66,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../../../engine/i18n.js?v=9";
-import { mountOceanSim } from "./marine-sim.js?v=3";
-import { MARINE_TECHNOLOGIES, TECH_IDS, CATEGORY } from "./marine-data.js?v=3";
+import { mountOceanSim } from "./marine-sim.js?v=4";
+import { MARINE_TECHNOLOGIES, TECH_IDS, CATEGORY } from "./marine-data.js?v=4";
 
 const HOME_KWH_DAY = 30;
 const L = (en, es) => getLang() === "es" ? es : en;
@@ -85,13 +85,15 @@ const CREDITS = [
   ["osmotic-statkraft.jpg", L("Statkraft osmotic power prototype, Tofte (Norway)", "Prototipo de energía osmótica de Statkraft, Tofte (Noruega)"), "Bjoertvedt", "CC BY-SA 3.0", "https://creativecommons.org/licenses/by-sa/3.0/", "https://commons.wikimedia.org/wiki/File:Statkraft_osmosis_IMG_7158_tofte.JPG"],
   ["otec-hawaii.jpg", L("OTEC pilot plant, Hawaii", "Planta piloto OTEC, Hawái"), L("Unknown (US public domain)", "Desconocido (dominio público de EE. UU.)"), L("Public domain", "Dominio público"), "", "https://commons.wikimedia.org/wiki/File:OTEC_in_Hawaii.jpg"],
   ["solar-floating.jpg", L("Floating solar array on a pond", "Campo solar flotante en un estanque"), "SPG Solar", "CC BY-SA 3.0", "https://creativecommons.org/licenses/by-sa/3.0/", "https://commons.wikimedia.org/wiki/File:Floating_PV_system_Far_Niente_Winery_California_2018.jpg"],
+  ["owc-supplied.jpg", L("Oscillating water column plant on a rocky coast (illustration)", "Planta de columna de agua oscilante en una costa rocosa (ilustración)"), L("Image supplied with the OceanCurrents simulator — AI-generated illustration, not a photograph", "Imagen incluida con el simulador OceanCurrents — ilustración generada por IA, no una fotografía"), L("not licence-checked", "licencia no verificada"), "", ""],
+  ["kite-supplied.jpg", L("Tethered tidal kite flying a figure-8 (illustration)", "Cometa de marea anclada trazando un ocho (ilustración)"), L("Image supplied with the OceanCurrents simulator — AI-generated illustration, not a photograph", "Imagen incluida con el simulador OceanCurrents — ilustración generada por IA, no una fotografía"), L("not licence-checked", "licencia no verificada"), "", ""],
   ["battery-bess.jpg", L("Battery energy storage farm", "Granja de almacenamiento en baterías"), "Sig. Chiocciola", "CC0", "https://creativecommons.org/publicdomain/zero/1.0/", "https://commons.wikimedia.org/wiki/File:Reid_Gardner_BESS.jpg"],
 ];
 function creditsEl() {
   const d = document.createElement("details"); d.className = "og-credits";
-  d.innerHTML = `<summary>${L("Photo credits (all photos are real, from Wikimedia Commons)", "Créditos de las fotos (todas son reales, de Wikimedia Commons)")}</summary><ul>` +
-    CREDITS.map(c => `<li>${c[1]} — ${c[2]}, <a href="${c[5]}" target="_blank" rel="noopener">Wikimedia Commons</a>${c[4] ? `, <a href="${c[4]}" target="_blank" rel="noopener">${c[3]}</a>` : `, ${c[3]}`}</li>`).join("") + `</ul>
-    <p>${L("Where a photo shows a close relative of the technology (a pond instead of the sea, a river or lab prototype, a different turbine of the same type), the caption says so. The offshore oscillating water column, surge flap, tidal kite and hydrogen hub are shown as drawn cutaway diagrams because no suitably licensed photo exists.", "Cuando una foto muestra un pariente cercano de la tecnología (un estanque en vez del mar, un prototipo, otra turbina del mismo tipo), el pie lo dice. La columna de agua oscilante, la aleta de oleaje, la cometa de marea y el centro de hidrógeno se muestran como diagramas dibujados porque no existe una foto con licencia adecuada.")}</p>`;
+  d.innerHTML = `<summary>${L("Photo credits (real photos from Wikimedia Commons, plus two labelled illustrations)", "Créditos de las fotos (fotos reales de Wikimedia Commons y dos ilustraciones señaladas)")}</summary><ul>` +
+    CREDITS.map(c => !c[5] ? `<li>${c[1]} — ${c[2]} (${c[3]})</li>` : `<li>${c[1]} — ${c[2]}, <a href="${c[5]}" target="_blank" rel="noopener">Wikimedia Commons</a>${c[4] ? `, <a href="${c[4]}" target="_blank" rel="noopener">${c[3]}</a>` : `, ${c[3]}`}</li>`).join("") + `</ul>
+    <p>${L("Where a photo shows a close relative of the technology (a pond instead of the sea, a river or lab prototype, a different turbine of the same type), the caption says so. The oscillating water column and the tidal kite use the two illustrations supplied with the simulator, and the surge flap and hydrogen hub are drawn cutaway diagrams, because no suitably licensed photo exists for them.", "Cuando una foto muestra un pariente cercano de la tecnología (un estanque en vez del mar, un prototipo, otra turbina del mismo tipo), el pie lo dice. La columna de agua oscilante y la cometa de marea usan las dos ilustraciones incluidas con el simulador, y la aleta de oleaje y el centro de hidrógeno son diagramas dibujados, porque no existe una foto con licencia adecuada para ellos.")}</p>`;
   return d;
 }
 

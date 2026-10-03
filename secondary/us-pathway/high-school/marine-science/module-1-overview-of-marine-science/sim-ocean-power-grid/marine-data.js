@@ -27,11 +27,11 @@ const SPEC = {
   offshore_wind_fixed: { category: "wind", depthZone: ["shallow", "continental_shelf"], ratedPowerKW: 8000, capex: 180000, dailyOpex: 420, lcoeEstimate: 0.085, lifespanDays: 90, unlockedByDefault: true, visualDepth: "surface", worksInClouds: true, needsWaves: false, isConstantBaseload: false, photo: "wind-barrow.jpg" },
   offshore_wind_floating: { category: "wind", depthZone: ["deep_ocean"], ratedPowerKW: 14000, capex: 320000, dailyOpex: 780, lcoeEstimate: 0.115, lifespanDays: 90, unlockedByDefault: false, unlockCost: 75000, visualDepth: "surface", worksInClouds: true, needsWaves: false, isConstantBaseload: false, photo: "wind-floating-hywind.jpg" },
   point_absorber: { category: "wave", depthZone: ["shallow", "continental_shelf"], ratedPowerKW: 450, capex: 28000, dailyOpex: 85, lcoeEstimate: 0.165, lifespanDays: 75, unlockedByDefault: true, visualDepth: "surface", worksInClouds: true, needsWaves: true, isConstantBaseload: false, photo: "wave-wavegem.jpg" },
-  oscillating_water_column: { category: "wave", depthZone: ["shallow", "continental_shelf"], ratedPowerKW: 850, capex: 52000, dailyOpex: 130, lcoeEstimate: 0.145, lifespanDays: 80, unlockedByDefault: true, visualDepth: "surface", worksInClouds: true, needsWaves: true, isConstantBaseload: false, photo: null, diagram: "owc" },
+  oscillating_water_column: { category: "wave", depthZone: ["shallow", "continental_shelf"], ratedPowerKW: 850, capex: 52000, dailyOpex: 130, lcoeEstimate: 0.145, lifespanDays: 80, unlockedByDefault: true, visualDepth: "surface", worksInClouds: true, needsWaves: true, isConstantBaseload: false, photo: "owc-supplied.jpg", illustration: true, diagram: "owc" },
   wave_attenuator: { category: "wave", depthZone: ["continental_shelf", "deep_ocean"], ratedPowerKW: 1200, capex: 74000, dailyOpex: 195, lcoeEstimate: 0.155, lifespanDays: 75, unlockedByDefault: false, unlockCost: 40000, visualDepth: "surface", worksInClouds: true, needsWaves: true, isConstantBaseload: false, photo: "wave-pelamis.jpg" },
   wave_surge_converter: { category: "wave", depthZone: ["shallow"], ratedPowerKW: 600, capex: 38000, dailyOpex: 95, lcoeEstimate: 0.170, lifespanDays: 70, unlockedByDefault: true, visualDepth: "seabed", worksInClouds: true, needsWaves: true, isConstantBaseload: false, photo: null, diagram: "flap" },
   tidal_stream_turbine: { category: "tidal", depthZone: ["shallow", "continental_shelf"], ratedPowerKW: 2000, capex: 95000, dailyOpex: 240, lcoeEstimate: 0.125, lifespanDays: 85, unlockedByDefault: true, visualDepth: "midwater", worksInClouds: true, needsWaves: false, isConstantBaseload: false, photo: "tidal-seaflow.jpg" },
-  tidal_kite: { category: "tidal", depthZone: ["continental_shelf", "deep_ocean"], ratedPowerKW: 1200, capex: 78000, dailyOpex: 190, lcoeEstimate: 0.118, lifespanDays: 80, unlockedByDefault: false, unlockCost: 45000, visualDepth: "midwater", worksInClouds: true, needsWaves: false, isConstantBaseload: true, photo: null, diagram: "kite" },
+  tidal_kite: { category: "tidal", depthZone: ["continental_shelf", "deep_ocean"], ratedPowerKW: 1200, capex: 78000, dailyOpex: 190, lcoeEstimate: 0.118, lifespanDays: 80, unlockedByDefault: false, unlockCost: 45000, visualDepth: "midwater", worksInClouds: true, needsWaves: false, isConstantBaseload: true, photo: "kite-supplied.jpg", illustration: true, diagram: "kite" },
   salinity_gradient: { category: "baseload", depthZone: ["shallow"], ratedPowerKW: 4000, capex: 155000, dailyOpex: 360, lcoeEstimate: 0.128, lifespanDays: 95, unlockedByDefault: false, unlockCost: 60000, visualDepth: "surface", worksInClouds: true, needsWaves: false, isConstantBaseload: true, photo: "osmotic-statkraft.jpg" },
   floating_marine_solar: { category: "solar", depthZone: ["shallow", "continental_shelf"], ratedPowerKW: 5000, capex: 125000, dailyOpex: 220, lcoeEstimate: 0.092, lifespanDays: 85, unlockedByDefault: true, visualDepth: "surface", worksInClouds: false, needsWaves: false, isConstantBaseload: false, photo: "solar-floating.jpg" },
   otec_platform: { category: "baseload", depthZone: ["deep_ocean"], ratedPowerKW: 18000, capex: 480000, dailyOpex: 1100, lcoeEstimate: 0.135, lifespanDays: 100, unlockedByDefault: false, unlockCost: 120000, visualDepth: "surface", worksInClouds: true, needsWaves: false, isConstantBaseload: true, photo: "otec-hawaii.jpg" },
@@ -254,8 +254,8 @@ const WAVE_SET = WAVE_IDS;
 export const scenarios = () => [
   { id: "scenario_tutorial", badge: L("Beginner Cadet", "Cadete principiante"),
     title: L("Mission 1: The Blue Energy Frontier", "Misión 1: La frontera de la energía azul"),
-    description: L("Welcome to Pacifica Bay! The coastal city currently uses ~10 MW. Build your first ocean array, keep power bills under $150/month ($0.16/kWh), and dispatch your first service boat to clean barnacles!", "¡Bienvenido a Pacifica Bay! La ciudad costera usa ~10 MW. Construye tu primer parque oceánico, mantén las facturas bajo $150 al mes ($0,16/kWh) y envía tu primer barco de servicio a limpiar percebes."),
-    targetDurationDays: 14, startingFunds: 550000,
+    description: L("Welcome to Pacifica Bay! The coastal city currently uses ~10 MW. Build your first ocean array, keep power bills under $150/month ($0.16/kWh), and dispatch your first service boat to clean barnacles! The weather changes daily, so plan for calm, overcast days: a 24/7 baseload technology such as OTEC (unlock it in the catalog) keeps the lights on.", "¡Bienvenido a Pacifica Bay! La ciudad costera usa ~10 MW. Construye tu primer parque oceánico, mantén las facturas bajo $150 al mes ($0,16/kWh) y envía tu primer barco de servicio a limpiar percebes. El clima cambia cada día, así que prepárate para días nublados y en calma: una tecnología de base constante 24/7 como la OTEC (desbloquéala en el catálogo) mantiene la luz encendida."),
+    targetDurationDays: 14, startingFunds: 700000,
     startingTech: ["offshore_wind_fixed", "offshore_wind_floating", "point_absorber", "oscillating_water_column", "wave_surge_converter", "tidal_stream_turbine", "subsea_battery"],
     startingDevices: [{ techId: "point_absorber", xRatio: 0.22 }, { techId: "offshore_wind_fixed", xRatio: 0.36 }, { techId: "tidal_stream_turbine", xRatio: 0.54 }, { techId: "offshore_wind_floating", xRatio: 0.78 }],
     objectives: [
@@ -267,7 +267,7 @@ export const scenarios = () => [
   { id: "scenario_doldrums", badge: L("Weather Challenge", "Reto climático"),
     title: L("Mission 2: Cloudy Skies & Wind Doldrums", "Misión 2: Cielos nublados y calmas de viento"),
     description: L("A heavy overcast cloud bank and calm wind ridge have parked over the bay! Floating solar and wind drop. Rely on ocean swell wave buoys, subsea tidal turbines, and 24/7 constant baseload to keep the lights on!", "¡Un banco de nubes espeso y una cresta de calma de viento se han instalado sobre la bahía! La solar flotante y el viento caen. ¡Confía en las boyas de oleaje, las turbinas de marea y la base constante 24/7 para mantener las luces encendidas!"),
-    targetDurationDays: 10, startingFunds: 420000,
+    targetDurationDays: 10, startingFunds: 750000,
     startingTech: ["offshore_wind_fixed", "point_absorber", "oscillating_water_column", "wave_surge_converter", "tidal_stream_turbine", "tidal_kite", "subsea_battery", "wave_attenuator"],
     startingDevices: [{ techId: "point_absorber", xRatio: 0.22 }, { techId: "offshore_wind_fixed", xRatio: 0.38 }, { techId: "subsea_battery", xRatio: 0.50 }, { techId: "tidal_kite", xRatio: 0.72 }, { techId: "wave_attenuator", xRatio: 0.86 }],
     objectives: [
@@ -276,7 +276,7 @@ export const scenarios = () => [
       { text: L("Accumulate at least 120,000 kWh of total ocean energy delivered", "Acumula al menos 120.000 kWh de energía oceánica entregada"), completed: g => g.totalKWhGenerated >= 120000 },
     ],
     specialEventDescription: L("Winds are weak and clouds block solar. Harness dense moving ocean water!", "Los vientos son débiles y las nubes bloquean la solar. ¡Aprovecha el agua oceánica densa en movimiento!"),
-    presetOnStart: "cloudy",
+    startDay: 4,   /* the natural weather cycle is on Day 4 (Overcast & Calming) when this mission begins */
     learningPrompt: L("Why is energy diversification essential? Relying on only one source causes blackouts when weather changes.", "¿Por qué es esencial diversificar la energía? Depender de una sola fuente causa apagones cuando cambia el clima.") },
   { id: "scenario_metropolis", badge: L("Master Director", "Director maestro"),
     title: L("Mission 3: Zero-Land Metropolis 2030", "Misión 3: Metrópolis sin tierra 2030"),
@@ -292,10 +292,4 @@ export const scenarios = () => [
     learningPrompt: L("Deep ocean currents and OTEC provide steady 24/7 baseload electricity without burning a single piece of coal or clearing a single acre of forest on land.", "Las corrientes profundas y la OTEC dan electricidad base estable 24/7 sin quemar ni un trozo de carbón ni talar un acre de bosque en tierra.") },
 ];
 
-export const WEATHER_PRESETS = () => [
-  { id: "normal", label: L("☀️ Clear Normal", "☀️ Despejado normal"), title: L("Standard sunny ocean conditions", "Condiciones oceánicas soleadas normales") },
-  { id: "cloudy", label: L("☁️ Cloudy Day", "☁️ Día nublado"), title: L("Cloudy overcast: Solar drops to 0, wave & tide shine!", "Cubierto: ¡la solar cae a 0, las olas y mareas brillan!") },
-  { id: "big_waves", label: L("🌊 Big Wave Swell", "🌊 Gran oleaje"), title: L("Big waves: Wave buoys hit peak generation!", "Olas grandes: ¡las boyas llegan a su generación máxima!") },
-  { id: "calm_wind", label: L("🌬️ Slack Wind", "🌬️ Viento en calma"), title: L("Calm doldrums: Wind drops, tests 24/7 constant baseload!", "Calmas: ¡el viento cae y se prueba la base constante 24/7!") },
-  { id: "spring_tide", label: L("🌙 Spring Tide", "🌙 Marea viva"), title: L("Full Moon: Maximum tidal stream current!", "Luna llena: ¡máxima corriente de marea!") },
-];
+

@@ -1911,3 +1911,11 @@ gone — the supplied simulator *is* the game; do not restore them). Standing ru
   keyboard route (position slider + Place button, arrow/+/- camera keys) and a 2D fallback if WebGL is missing.
 - **Module URLs must be byte-identical** everywhere (`marine-data.js?v=2` in every importer) or the browser loads two
   separate copies and state diverges.
+
+### 12.11 Lesson from `sim-ocean-power-grid` v3.0 - a "version 3" of an ported external app can change the experiment design (2026-10-03)
+
+Diego sent a third OceanCurrents zip. Unlike the second (help layer only) it removed the Test Weather buttons in favour of a natural 10-day weather cycle, added real photos per technology, 2-D placement (x and z) and a built-generator card. Standing rules:
+
+- **Diff every new zip against the previous one before assuming it is cosmetic** (`diff -rq`, then the engine/data/types diffs). A changed *experiment control* (here: Test Weather -> natural weather) means the Hypothesis, Explain wording, marking.json examples, Record column labels, tutorial/guide copy and every "Test Weather" mention must change in the same pass; grep for the old control's name.
+- **Re-run the mission bot after any weather/physics change.** The harsher natural cycle made Mission 1/2 unwinnable at the old funds; they were re-tuned (700k/750k, Mission 2 starts on Day 4) and the in-sim hint now points to 24/7 baseload.
+- **Images supplied inside a zip are not licence-checked photos.** The two used (OWC, tidal kite) are visibly AI-generated, so they are labelled "illustration" in the dialog and the credits list, not presented as real photos; the other supplied images duplicated or mismatched technologies and were not used.

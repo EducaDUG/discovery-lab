@@ -7,8 +7,8 @@
    and artificial-reef overlays, click-to-select and click-to-place devices.
    Falls back to a calm 2D cross-section if WebGL is unavailable.
    ========================================================================== */
-import { MARINE_TECHNOLOGIES, techOf, ZONES } from "./marine-data.js?v=3";
-import { isEligible, zoneAt } from "./marine-engine.js?v=3";
+import { MARINE_TECHNOLOGIES, techOf, ZONES } from "./marine-data.js?v=4";
+import { isEligible, zoneAt } from "./marine-engine.js?v=4";
 
 const WORLD_X0 = -240, WORLD_W = 520;
 export const xToWorld = xr => WORLD_X0 + xr * WORLD_W;
@@ -193,7 +193,7 @@ export async function createScene(container, hooks, threeUrl) {
   const ghost = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 2, 24), new THREE.MeshBasicMaterial({ color: C(0x38bdf8), transparent: true, opacity: 0.55, wireframe: true })); ghost.visible = false; scene.add(ghost);
   const sMat = { white: M(0xf8fafc, { roughness: 0.3 }), orange: M(0xea580c, { roughness: 0.4 }), yellow: M(0xfacc15, { roughness: 0.3 }), blue: M(0x0284c7, { roughness: 0.25 }), pv: M(0x1e3a8a, { roughness: 0.15, metalness: 0.8 }), green: M(0x065f46, { roughness: 0.4 }), red: M(0xe23a54, { roughness: 0.4 }), grey: M(0x334155, { roughness: 0.6 }), purple: M(0x7c3aed, { roughness: 0.35 }), teal: M(0x0d9488, { roughness: 0.4 }) };
   const worldPos = (d, idx) => {
-    const x = xToWorld(d.xRatio), z = ((idx % 3) - 1) * 38, sb = seabedDepthAt(x), t = techOf(d.techId); let y = 0;
+    const x = xToWorld(d.xRatio), z = d.zRatio !== undefined ? -200 + d.zRatio * 400 : (((idx * 7) % 9) - 4) * 45, sb = seabedDepthAt(x), t = techOf(d.techId); let y = 0;
     if (t.visualDepth === "midwater") y = sb * 0.52; else if (t.visualDepth === "seabed") y = sb + 2.5;
     return new V3(x, y, z);
   };
@@ -265,7 +265,7 @@ export async function createScene(container, hooks, threeUrl) {
     const S = hooks.state(); if (!S.pendingTech) { ghost.visible = false; return; }
     setMouse(e); if (ray.ray.intersectPlane(plane, hit)) {
       const xr = Math.max(0.12, Math.min(0.94, (hit.x - WORLD_X0) / WORLD_W)); ghost.visible = true; ghost.position.set(xToWorld(xr), 1, hit.z);
-      ghost.material.color.copy(C(isEligible(S.pendingTech, xr) ? 0x22c55e : 0xef4444)); hooks.onHoverX && hooks.onHoverX(xr);
+      ghost.material.color.copy(C(isEligible(S.pendingTech, xr) ? 0x22c55e : 0xef4444)); hooks.onHoverX && hooks.onHoverX(xr, Math.max(0.06, Math.min(0.94, (hit.z + 200) / 400)));
     }
   }
   cv.addEventListener("click", e => {
@@ -334,7 +334,7 @@ export async function createScene(container, hooks, threeUrl) {
       const bcn = c.getObjectByName("beacon"); if (bcn) { const bad = dev.integrity < 35 || dev.biofouling > 70, warn = dev.integrity < 65 || dev.biofouling > 40; bcn.material.color.copy(C(bad ? 0xef4444 : warn ? 0xf59e0b : 0x22c55e)); const sc = 1 + (bad && !rm ? 0.35 * Math.sin(t * 8) : 0); bcn.scale.setScalar(sc); }
     });
     reefs.children.forEach(m => { if (m.userData.kelp) m.rotation.z = rm ? 0 : Math.sin(t * 1.6 + m.position.x) * 0.18; });
-    if (S.pendingTech && S.pendingX != null) { ghost.visible = true; ghost.position.set(xToWorld(S.pendingX), 1, 0); ghost.material.color.copy(C(isEligible(S.pendingTech, S.pendingX) ? 0x22c55e : 0xef4444)); } else if (!S.pendingTech) ghost.visible = false;
+    if (S.pendingTech && S.pendingX != null) { ghost.visible = true; ghost.position.set(xToWorld(S.pendingX), 1, ((S.pendingZ === undefined ? 0.5 : S.pendingZ) - 0.5) * 400); ghost.material.color.copy(C(isEligible(S.pendingTech, S.pendingX) ? 0x22c55e : 0xef4444)); } else if (!S.pendingTech) ghost.visible = false;
     thermo.visible = !!S.showThermocline; water.material.opacity = S.showThermocline ? 0.55 : 0.84;
     renderer.render(scene, camera);
   }

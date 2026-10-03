@@ -7,52 +7,46 @@
    - OTEC: delta-T of warm surface vs 4.2 C deep water against a 22 C reference
    - Grid: 30-minute ticks, storage with 88% round trip, blackout when > 15% unmet
    - Economics: tariff x kWh delivered, daily opex / 48 per tick, approval model
-   Source inconsistencies fixed (all found by bot-testing the three missions): solar now follows
-   daylight; the Cloudy preset removes solar from the grid itself (not just the display); the
-   land-spared metric is rescaled so Mission 3's 350-acre target is reachable; Mission 1's starting
-   funds are $550k (the source's $350k could not reach zero blackouts by any build).
+   v3 of the supplied simulator replaced the Test Weather buttons with a natural 10-day weather cycle
+   (marine-weather.js): each day sets wind, wave height/period, tidal strength and cloud cover, and floating solar
+   follows rated x 1.1 x daylight bell x cloud factor. Fixes kept from earlier ports (found by bot-testing the three
+   missions): the land-spared metric is rescaled so Mission 3's 350-acre target is reachable; mission starting funds
+   were re-tuned against the natural cycle (Mission 1 $700k, Mission 2 $750k and it starts on Day 4): the
+   Day-7 doldrums need 24/7 baseload, and OTEC (unlock + build about $600k) is the route that reaches zero blackouts.
    ========================================================================== */
-import { MARINE_TECHNOLOGIES, techOf } from "./marine-data.js?v=3";
+import { MARINE_TECHNOLOGIES, techOf } from "./marine-data.js?v=4";
+import { getWeatherForDay } from "./marine-weather.js?v=4";
 
 export const SIMULATION_TICK_HOURS = 0.5;
 export const KTS_TO_MS = 0.514444;
 
 export function calculateOceanEnvironment(day, hour, stormActive) {
+  const dw = getWeatherForDay(day), isStormNow = !!stormActive || dw.isStorm;
   const totalHours = day * 24 + hour, tidalPeriod = 12.42;
   const tideCycleProgress = (totalHours % tidalPeriod) / tidalPeriod;
   const springNeapCycle = (day % 14) / 14;
-  const isSpringTide = springNeapCycle < 0.25 || (springNeapCycle > 0.5 && springNeapCycle < 0.75);
-  const tideType = isSpringTide ? "spring" : (springNeapCycle > 0.35 && springNeapCycle < 0.45 ? "neap" : "normal");
-  const springMultiplier = isSpringTide ? 1.45 : (tideType === "neap" ? 0.65 : 1.0);
+  const isSpringTide = springNeapCycle < 0.25 || (springNeapCycle > 0.5 && springNeapCycle < 0.75) || dw.tidalMultiplier >= 1.3;
+  const tideType = isSpringTide ? "spring" : (dw.tidalMultiplier < 0.9 ? "neap" : "normal");
   const tideAngle = tideCycleProgress * Math.PI * 2, sinTide = Math.sin(tideAngle), cosTide = Math.cos(tideAngle);
   let tideStage = "flood_flow";
   if (cosTide > 0.7) tideStage = "high_stand"; else if (sinTide < -0.3) tideStage = "ebb_flow"; else if (cosTide < -0.7) tideStage = "low_stand";
-  const tidalCurrentSpeedKts = Math.max(0.2, Number((Math.abs(Math.sin(tideAngle)) * 4.2 * springMultiplier).toFixed(1)));
-  const afternoonBreeze = Math.sin(((hour - 8) / 24) * Math.PI * 2) * 4;
-  let baseWind = 14 + afternoonBreeze;
-  if (stormActive) baseWind = 32 + Math.sin(totalHours * 0.3) * 10;
+  const tidalCurrentSpeedKts = Math.max(0.3, Number((Math.abs(Math.sin(tideAngle)) * 3.8 * dw.tidalMultiplier).toFixed(1)));
+  const afternoonBreeze = Math.sin(((hour - 8) / 24) * Math.PI * 2) * 3.5;
+  let baseWind = dw.windSpeedKts + afternoonBreeze;
+  if (isStormNow) baseWind = Math.max(28, dw.windSpeedKts) + Math.sin(totalHours * 0.3) * 6;
   const windSpeedKts = Math.max(1.5, Number(baseWind.toFixed(1)));
-  let sig = 1.2 + (windSpeedKts / 20) * 1.8;
-  if (stormActive) sig = 4.2 + Math.sin(totalHours * 0.2) * 1.2;
+  let sig = dw.waveHeightM + (windSpeedKts > 20 ? (windSpeedKts - 20) * 0.08 : 0);
+  if (isStormNow) sig = Math.max(3.8, dw.waveHeightM + Math.sin(totalHours * 0.2) * 0.8);
   const significantWaveHeightM = Number(sig.toFixed(2));
-  const wavePeriodSec = Number((5.5 + Math.sqrt(significantWaveHeightM) * 3.2).toFixed(1));
+  const wavePeriodSec = Number(dw.wavePeriodSec.toFixed(1));
   const waveEnergyFluxKWM = Number((0.49 * significantWaveHeightM ** 2 * wavePeriodSec).toFixed(1));
   const surfaceWaterTempC = Number((25.5 + Math.sin((totalHours / 24) * Math.PI * 2) * 1.2).toFixed(1));
   let weatherCondition = "breeze";
-  if (stormActive) weatherCondition = "storm"; else if (windSpeedKts > 22) weatherCondition = "gale"; else if (windSpeedKts < 5) weatherCondition = "doldrums";
-  return { windSpeedKts, windDirectionDeg: 280, gustFactor: stormActive ? 1.4 : 1.15, significantWaveHeightM, wavePeriodSec, waveEnergyFluxKWM,
-    tidalCurrentSpeedKts, tideStage, tideType, tideCycleProgress, surfaceWaterTempC, deepWaterTempC: 4.2, weatherCondition, stormWarning: !!stormActive,
-    hourOfDay: hour % 24, cloudy: false };
-}
-
-/* "Test Weather" presets — same overrides as the source, plus a Storm switch (the source's engine already
-   supported stormActive but no control triggered it). */
-export function applyPreset(env, preset) {
-  if (preset === "cloudy") return { ...env, weatherCondition: "doldrums", cloudy: true };
-  if (preset === "big_waves") return { ...env, significantWaveHeightM: 3.8, wavePeriodSec: 9.0, waveEnergyFluxKWM: 65.0, weatherCondition: "storm" };
-  if (preset === "calm_wind") return { ...env, windSpeedKts: 1.5, weatherCondition: "doldrums" };
-  if (preset === "spring_tide") return { ...env, tidalCurrentSpeedKts: 4.8, tideType: "spring", tideStage: "flood_flow" };
-  return env;
+  if (isStormNow) weatherCondition = "storm"; else if (windSpeedKts > 22) weatherCondition = "gale"; else if (windSpeedKts < 5) weatherCondition = "doldrums";
+  return { windSpeedKts, windDirectionDeg: 280, gustFactor: isStormNow ? 1.4 : 1.15, significantWaveHeightM, wavePeriodSec, waveEnergyFluxKWM,
+    tidalCurrentSpeedKts, tideStage, tideType, tideCycleProgress, surfaceWaterTempC, deepWaterTempC: 4.2, weatherCondition, stormWarning: isStormNow,
+    weatherName: dw.name, weatherIcon: dw.icon, weatherSummary: dw.studentSummary, solarEfficiency: dw.solarEfficiency, weatherId: dw.id,
+    hourOfDay: hour % 24 };
 }
 
 export function calculateCityDemand(population, hour) {
@@ -86,7 +80,7 @@ export function calculateDeviceOutput(device, env) {
       else { if (c < 0.6) kw = tech.ratedPowerKW * 0.05; else if (c >= 4.2) kw = tech.ratedPowerKW; else kw = tech.ratedPowerKW * Math.pow(c / 4.2, 2.7); }
       break;
     }
-    case "solar": kw = env.cloudy ? 0 : tech.ratedPowerKW * 0.85 * solarFactor(env.hourOfDay); break;   // daylight bell; 0 when overcast
+    case "solar": kw = tech.ratedPowerKW * 1.1 * solarFactor(env.hourOfDay) * (env.solarEfficiency !== undefined ? env.solarEfficiency : 1); break;   // daylight bell (06-18h) x natural cloud cover x 1.1 seawater-cooling boost
     case "baseload": {
       if (device.techId === "salinity_gradient") kw = tech.ratedPowerKW * 0.95;
       else { const dT = env.surfaceWaterTempC - env.deepWaterTempC; kw = tech.ratedPowerKW * Math.max(0.7, Math.min(1.2, dT / 22.0)); }
@@ -142,8 +136,8 @@ export function newGrid(startingFunds) {
     landSavedAcres: 0, co2PreventedTons: 0, marineEcosystemHealth: 94 };
 }
 let _id = 1;
-export function makeDevice(techId, xRatio, day, biofouling = 5) {
-  return { instanceId: `dev-${_id++}-${Math.floor(Math.random() * 1000)}`, techId, xRatio, builtOnDay: day, integrity: 100, biofouling, active: true, currentOutputKW: 0, totalKWhGenerated: 0, lastMaintainedDay: day };
+export function makeDevice(techId, xRatio, day, biofouling = 5, zRatio = 0.5) {
+  return { zRatio, instanceId: `dev-${_id++}-${Math.floor(Math.random() * 1000)}`, techId, xRatio, builtOnDay: day, integrity: 100, biofouling, active: true, currentOutputKW: 0, totalKWhGenerated: 0, lastMaintainedDay: day };
 }
 export function zoneAt(xRatio) { return xRatio < 0.35 ? "shallow" : xRatio < 0.70 ? "continental_shelf" : "deep_ocean"; }
 export function isEligible(techId, xRatio) { return techOf(techId).depthZone.includes(zoneAt(xRatio)); }

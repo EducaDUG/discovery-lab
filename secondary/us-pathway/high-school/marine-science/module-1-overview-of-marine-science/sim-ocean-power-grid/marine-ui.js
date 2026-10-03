@@ -1,8 +1,8 @@
 /* OceanCurrents UI components: tech illustrations, build drawer, device inspector, Field Guide + quiz,
    missions, land-vs-ocean lab. Plain DOM (no framework). Dialogs are real role="dialog" with Esc + focus return. */
-import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, CATEGORY, ZONES, codexTopics, quizQuestions, scenarios } from "./marine-data.js?v=3";
-import { compareLandOcean } from "./marine-engine.js?v=3";
-import { soundManager } from "./marine-sound.js?v=3";
+import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, CATEGORY, ZONES, codexTopics, quizQuestions, scenarios } from "./marine-data.js?v=4";
+import { compareLandOcean } from "./marine-engine.js?v=4";
+import { soundManager } from "./marine-sound.js?v=4";
 import { tip } from "./marine-tips.js?v=4";
 
 export const fmt = (n, d = 0) => Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
@@ -81,7 +81,7 @@ export function openDeviceDialog(root, ctx, instanceId) {
   const t = techOf(dev0.techId);
   const dlg = openDialog(root, { title: t.name, sub: `${L("Asset", "Activo")} ${instanceId.slice(0, 8)} · ${L("Deployed day", "Desplegado el día")} ${dev0.builtOnDay}`, onClose: () => ctx.deselect() });
   const scrub = 3500, over = 12000;
-  dlg.body.innerHTML = `<div class="oc-grid2"><div class="oc-tile"><span class="oc-k">${L("Current Power Generation", "Generación de potencia actual")}</span><b class="oc-big cy" data-k="out"></b><small data-k="rated"></small></div>
+  dlg.body.innerHTML = `<div class="oc-devimg">${techVisual(t, ctx.photoBase)}<span>${L("Real world", "En el mundo real")}: ${t.realWorldExample}</span>${t.illustration ? `<em>${L("illustration", "ilustración")}</em>` : ""}</div><div class="oc-grid2"><div class="oc-tile"><span class="oc-k">${L("Current Power Generation", "Generación de potencia actual")}</span><b class="oc-big cy" data-k="out"></b><small data-k="rated"></small></div>
     <div class="oc-tile"><span class="oc-k">${L("Cumulative Energy Produced", "Energía acumulada producida")}</span><b class="oc-big gn" data-k="kwh"></b><small data-k="rev"></small></div></div>
     <div class="oc-box oc-stack">
       <div><div class="oc-row"><span>🛡️ ${L("Structural Integrity & Corrosion", "Integridad estructural y corrosión")} ${tip("integrity")}</span><b data-k="intv"></b></div><div class="oc-meter"><i data-k="intb"></i></div></div>
@@ -93,9 +93,9 @@ export function openDeviceDialog(root, ctx, instanceId) {
       <span class="oc-pill ${t.needsWaves ? "ok" : ""}">${t.needsWaves ? L("🌊 Peaks in Big Wave Swells", "🌊 Máximo con gran oleaje") : L("🌊 Wave Independent", "🌊 Independiente de las olas")}</span>
       ${t.isConstantBaseload ? `<span class="oc-pill base">${L("⚓ 24/7 Constant Baseload", "⚓ Base constante 24/7")}</span>` : ""}</div>
     <p class="oc-sum">${t.friendlyStudentSummary}</p>
-    <div class="oc-svc"><div class="oc-row"><b>${L("Send Offshore Technician Boat", "Enviar barco técnico mar adentro")}</b><small>${L("Watch the boat sail out to fix it!", "¡Mira cómo el barco navega a repararlo!")}</small></div>
-      <div class="oc-grid2"><button type="button" class="oc-svcbtn" data-s="scrub"><b>🚤 ${L("Dispatch Tradies: Scrub", "Enviar técnicos: limpieza")}</b><small>${L("Cheeky tradies sail out to clean barnacles & restore flow!", "¡Técnicos graciosos limpian percebes y restauran el flujo!")}</small><span class="gn">${usd(scrub)}</span></button>
-      <button type="button" class="oc-svcbtn oc-svcbtn--b" data-s="overhaul"><b>🚤 ${L("Dispatch Tradies: Overhaul", "Enviar técnicos: revisión")}</b><small>${L("Tradies replace zinc anodes, bearings & wiring!", "¡Cambian ánodos de zinc, cojinetes y cableado!")}</small><span class="gn">${usd(over)}</span></button></div>
+    <div class="oc-svc"><div class="oc-row"><b>${L("Workboat Dispatch", "Envío del barco de servicio")}</b><small>${L("Watch the boat sail out to fix it!", "¡Mira cómo el barco navega a repararlo!")}</small></div>
+      <div class="oc-grid2"><button type="button" class="oc-svcbtn" data-s="scrub"><b>🚤 ${L("Dispatch Workboat: Scrub", "Enviar barco: limpieza")}</b><small>${L("Cheeky tradies sail out to clean barnacles & restore flow!", "¡Técnicos graciosos limpian percebes y restauran el flujo!")}</small><span class="gn">${usd(scrub)}</span></button>
+      <button type="button" class="oc-svcbtn oc-svcbtn--b" data-s="overhaul"><b>🚤 ${L("Dispatch Workboat: Overhaul", "Enviar barco: revisión")}</b><small>${L("Tradies replace zinc anodes, bearings & wiring!", "¡Cambian ánodos de zinc, cojinetes y cableado!")}</small><span class="gn">${usd(over)}</span></button></div>
       <span class="oc-decomtip">${tip("decom")}</span><button type="button" class="oc-decom" data-d>🗑 ${L("Decommission Asset (Recover", "Desmantelar activo (recuperas")} ${usd(Math.round(t.capex * 0.4))})</button></div>`;
   const q = k => dlg.body.querySelector(`[data-k=${k}]`);
   dlg.body.querySelectorAll("[data-s]").forEach(b => b.addEventListener("click", () => { if (ctx.dispatch(instanceId, b.dataset.s)) dlg.close(); }));

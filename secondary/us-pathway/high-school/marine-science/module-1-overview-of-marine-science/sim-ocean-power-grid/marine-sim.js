@@ -4,12 +4,13 @@
    (30-minute ticks; the service boat on a 50 ms timer). requestAnimationFrame is
    used solely by the 3D scene to paint.
    ========================================================================== */
-import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, ZONES, CATEGORY, WAVE_IDS, scenarios, WEATHER_PRESETS } from "./marine-data.js?v=3";
-import { SIMULATION_TICK_HOURS, calculateOceanEnvironment, applyPreset, stepSimulation, calculateDeviceOutput, calculateCityDemand, newGrid, makeDevice, isEligible, zoneAt, householdBill, KTS_TO_MS } from "./marine-engine.js?v=3";
-import { createScene } from "./marine-scene.js?v=3";
-import { soundManager } from "./marine-sound.js?v=3";
+import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, ZONES, CATEGORY, WAVE_IDS, scenarios } from "./marine-data.js?v=4";
+import { SIMULATION_TICK_HOURS, calculateOceanEnvironment, stepSimulation, calculateDeviceOutput, calculateCityDemand, newGrid, makeDevice, isEligible, zoneAt, householdBill, KTS_TO_MS, solarFactor } from "./marine-engine.js?v=4";
+import { getUpcomingForecast, getWeatherForDay } from "./marine-weather.js?v=4";
+import { createScene } from "./marine-scene.js?v=4";
+import { soundManager } from "./marine-sound.js?v=4";
 import { tip, wireTips } from "./marine-tips.js?v=4";
-import { fmt, usd, openBuildDrawer, openDeviceDialog, openCodex, openMissions, openComparison, openDialog } from "./marine-ui.js?v=3";
+import { techVisual, fmt, usd, openBuildDrawer, openDeviceDialog, openCodex, openMissions, openComparison, openDialog } from "./marine-ui.js?v=4";
 
 const WX = {
   breeze: () => L("Moderate Ocean Breeze", "Brisa oceánica moderada"), storm: () => L("Winter Swell Storm", "Tormenta con oleaje invernal"),
@@ -30,16 +31,16 @@ export function mountOceanSim(host, opts) {
   <div class="oc-mission-bar"><div><span class="oc-badge" data-k="mbadge"></span> <b data-k="mtitle"></b>: <span class="oc-muted" data-k="mdesc"></span></div><button type="button" class="oc-link" data-a="missions">${L("Directives", "Directrices")} →</button></div>
   <div class="oc-stage"><div class="oc-scene" data-k="scene" role="application"></div>
     <div class="oc-camera" role="toolbar" aria-label="${L("Camera", "Cámara")}"><span class="oc-cam__t">🧭 3D ${L("Ocean", "Océano")} ${tip("cam3d")}</span>
-      <button type="button" data-cam="orbit" class="is-on">🌐 ${L("Panoramic", "Panorámica")}</button><button type="button" data-cam="profile">📐 ${L("Profile", "Perfil")}</button><button type="button" data-cam="city">🏙 ${L("City Harbor", "Puerto")}</button><button type="button" data-cam="deep">🌊 ${L("Deep Ocean", "Océano profundo")}</button>
-      <button type="button" data-a="track" class="oc-track">🚤 ${L("Track Tradies", "Seguir técnicos")} 🏴‍☠️</button><button type="button" data-cam="orbit" aria-label="${L("Reset camera", "Restablecer cámara")}">⟲</button></div>
+      <button type="button" data-cam="orbit" class="is-on">🌐 3D ${L("Bay", "Bahía")}</button><button type="button" data-cam="profile">📐 ${L("Depth Cutaway", "Corte de profundidad")}</button><button type="button" data-cam="city">🏙 ${L("City", "Ciudad")}</button><button type="button" data-cam="deep">🌊 ${L("Deep Water", "Aguas profundas")}</button>
+      <button type="button" data-a="track" class="oc-track">🚤 ${L("Track Workboat", "Seguir barco")}</button><button type="button" data-a="clean" title="${L("Clean ocean view: hide overlay menus", "Vista limpia: oculta los menús")}">👁 ${L("Clean view", "Vista limpia")}</button><button type="button" data-a="expand" aria-pressed="false" title="${L("Expand the ocean, hide the bottom panel", "Ampliar el océano y ocultar el panel inferior")}">⤢ ${L("Expand", "Ampliar")}</button><button type="button" data-cam="orbit" aria-label="${L("Reset camera", "Restablecer cámara")}">⟲</button></div>
     <div class="oc-hint">${tip("mouse")} 🖱 ${L("Drag: Orbit", "Arrastrar: orbitar")} • ${L("Right-Click: Pan", "Clic derecho: mover")} • ${L("Scroll: Zoom", "Rueda: zoom")} • ${L("Arrow keys & +/− when focused", "Flechas y +/− con el foco")}</div>
-    <div class="oc-bubble" data-k="bubble" hidden><span>🏴‍☠️</span><b data-k="quote"></b></div>
-    <div class="oc-mentor" data-k="mentor" aria-live="polite"></div><div class="oc-target" data-k="target" hidden></div><div class="oc-flash" data-k="flash" role="status" aria-live="polite"></div></div>
+    <div class="oc-bubble" data-k="bubble" hidden><span>🚤</span><b data-k="quote"></b></div>
+    <button type="button" class="oc-showopts" data-a="clean" hidden>👁 ${L("Show options", "Mostrar opciones")}</button><div class="oc-mentor" data-k="mentor" aria-live="polite"></div><div class="oc-built" data-k="built" hidden></div><div class="oc-target" data-k="target" hidden></div><div class="oc-flash" data-k="flash" role="status" aria-live="polite"></div></div>
   <section class="oc-panel">
     <div class="oc-bar"><div class="oc-bar__l"><button type="button" class="oc-btn oc-btn--amber" data-a="pause">⏸ ${L("Pause", "Pausa")}</button>
       ${tip("speed")}<div class="oc-seg" role="group" aria-label="${L("Speed", "Velocidad")}">${[0.5, 1, 2, 4].map(s => `<button type="button" data-sp="${s}" class="${s === 1 ? "is-on" : ""}">${s}x</button>`).join("")}</div>
       <span class="oc-clock">${tip("clock")}<b class="cy" data-k="day"></b> · <span data-k="time"></span></span></div>
-      <div class="oc-weather"><span class="oc-k">${L("Test Weather", "Probar clima")} ${tip("weather")}:</span>${WEATHER_PRESETS().concat([{ id: "storm", label: L("⛈ Storm", "⛈ Tormenta"), title: L("Winter storm: huge waves, fast wear, tests your maintenance!", "Tormenta invernal: ¡olas enormes, desgaste rápido, pone a prueba tu mantenimiento!") }]).map(w => `<button type="button" data-w="${w.id}" title="${w.title}" class="${w.id === "normal" ? "is-on" : ""}">${w.label}</button>`).join("")}</div>
+      <div class="oc-weather"><button type="button" class="oc-wxpill" data-a="forecast" data-k="wxpill" aria-haspopup="dialog"></button>${tip("weather")}</div>
       <div class="oc-bar__r"><button type="button" class="oc-btn oc-btn--soft" data-a="thermo" aria-pressed="false">👁 ${L("Thermocline", "Termoclina")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="reefs" aria-pressed="true">🐠 ${L("Reefs", "Arrecifes")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="mute" aria-pressed="false" data-k="mute"></button></div></div>
     <div class="oc-dash">
       <div class="oc-pane"><div class="oc-row"><b>⚡ ${L("Pacifica Bay Electrical Grid", "Red eléctrica de Pacifica Bay")} ${tip("grid")}</b><span class="oc-pill" data-k="gridstat"></span></div>
@@ -55,10 +56,10 @@ export function mountOceanSim(host, opts) {
         <div class="oc-grid2"><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Revenue", "Ingreso diario")} ${tip("rev")}</span><b class="gn" data-k="rev"></b></div><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Opex", "Opex diario")} ${tip("opex")}</span><b class="rs" data-k="opex"></b></div></div>
         <div class="oc-row oc-row--line"><span>${L("Fleet LCOE (est.) vs your price", "LCOE de la flota (est.) vs tu precio")} ${tip("lcoe")}</span><b data-k="lcoe"></b></div></div>
       <div class="oc-pane"><div class="oc-row"><span><b>${L("Citizen Approval", "Aprobación ciudadana")}</b> ${tip("happy")}</span><b data-k="happy"></b></div><div class="oc-meter"><i data-k="happyb"></i></div>
-        <div class="oc-tradie"><div class="oc-row"><b>🔧 ${L("Cheeky Tradies Crew (Electricians & Plumbers)", "Cuadrilla de técnicos graciosos (electricistas y fontaneros)")} ${tip("tradie")}</b><span>🏴‍☠️⚡</span></div><div data-k="tradie"></div></div>
+        <div class="oc-tradie"><div class="oc-row"><b>🔧 ${L("Maintenance Workboat", "Barco de mantenimiento")} ${tip("tradie")}</b><span>🚤</span></div><div data-k="tradie"></div></div>
         <div class="oc-eco"><div title="${L("Game-scaled: about 0.1 acre of land spared per MWh delivered by ocean power", "A escala de juego: unos 0,1 acres de tierra salvados por MWh entregado con energía oceánica")}"><span class="oc-k">🌳 ${L("Land spared", "Tierra salvada")} ${tip("land")}</span><b class="gn" data-k="land"></b></div><div><span class="oc-k">☁ CO₂ ${L("prevented", "evitado")}</span><b class="gn" data-k="co2"></b></div><div><span class="oc-k">🐟 ${L("Ecosystem health", "Salud del ecosistema")}</span><b class="cy" data-k="eco"></b></div><div><span class="oc-k">⏱ ${L("Blackout hours", "Horas de apagón")} ${tip("blackout")}</span><b data-k="blk"></b></div><div><span class="oc-k">⚡ ${L("Generated / delivered", "Generado / entregado")}</span><b data-k="kwhs"></b></div></div></div>
     </div>
-    <div class="oc-lab"><div class="oc-lab__t"><b>🔬 ${L("Experiment Tracker", "Seguimiento del experimento")} ${tip("lab")}</b><p>${L("Fair test: change ONE thing (a Test Weather button, the price or a build), let it run for a few ticks, then log a snapshot. Log at least 3 snapshots under at least 2 different conditions.", "Prueba justa: cambia UNA sola cosa (un botón de Probar clima, el precio o una construcción), déjalo correr unos ciclos y registra una instantánea. Registra al menos 3 instantáneas en al menos 2 condiciones distintas.")}</p></div>
+    <div class="oc-lab"><div class="oc-lab__t"><b>🔬 ${L("Experiment Tracker", "Seguimiento del experimento")} ${tip("lab")}</b><p>${L("Fair test: the weather changes by itself every day. Let time run (try 4x), then log a snapshot on different weather days at the SAME hour, keeping your build and price the same. Log at least 3 snapshots on at least 2 different weather days.", "Prueba justa: el clima cambia solo cada día. Deja correr el tiempo (prueba 4x) y registra instantáneas en distintos días de clima a la MISMA hora, sin cambiar tu construcción ni el precio. Registra al menos 3 instantáneas en al menos 2 días de clima distintos.")}</p></div>
       <div class="oc-lab__s"><b data-k="snapn"></b><small data-k="snapc"></small></div><button type="button" class="oc-btn oc-btn--go" data-a="snap">📸 ${L("Log snapshot to my Investigation Record", "Registrar instantánea en mi Registro de investigación")}</button>${tip("snap")}</div>
     <div class="oc-actions"><button type="button" class="oc-btn oc-btn--big" data-a="build">⚡ ${L("Build Ocean Generators", "Construir generadores oceánicos")}</button>${tip("build")}
       <div><button type="button" class="oc-btn oc-btn--soft" data-a="missions">🏅 ${L("Missions & Challenges", "Misiones y retos")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="compare">⚖ ${L("Land vs Ocean Lab", "Laboratorio tierra vs océano")}</button><button type="button" class="oc-btn oc-btn--soft" data-a="guide">📖 ${L("Field Guide (Ages 15–18)", "Guía de campo (15–18 años)")}</button></div></div>
@@ -67,13 +68,13 @@ export function mountOceanSim(host, opts) {
   const $ = k => root.querySelector(`[data-k=${k}]`), $$ = s => root.querySelectorAll(s);
 
   /* ---------------- state ---------------- */
-  const S = { scenario: scenarios()[0], day: 1, hour: 8.0, speed: 1, paused: true, preset: "normal", storm: false, boat: { active: false, xRatio: DOCK, targetXRatio: DOCK, targetDeviceId: "", state: "docked", serviceType: "scrub", cost: 3500, timer: 0 },
+  const S = { scenario: scenarios()[0], day: 1, startDay: 1, hour: 8.0, speed: 1, paused: true, weatherId: "", pendingZ: 0.5, boat: { active: false, xRatio: DOCK, targetXRatio: DOCK, targetDeviceId: "", state: "docked", serviceType: "scrub", cost: 3500, timer: 0 },
     env: null, grid: null, devices: [], unlocked: [], selectedId: null, pendingTech: null, pendingX: null, showThermocline: false, showReefs: true, blackout: false, snaps: [], debriefed: false, flags: {}, sceneRef: null, openDevice: null };
-  const ENV = () => { const e = applyPreset(calculateOceanEnvironment(S.day, S.hour, S.storm), S.preset); return e; };
+  const ENV = () => calculateOceanEnvironment(S.day, S.hour, false);
   function loadScenario(sc) {
-    S.scenario = sc; S.day = 1; S.hour = 8.0; S.preset = "normal"; S.storm = false; S.grid = newGrid(sc.startingFunds); S.unlocked = sc.startingTech.slice(); S.devices = sc.startingDevices.map(i => makeDevice(i.techId, i.xRatio, 1, 5));
+    S.scenario = sc; S.startDay = sc.startDay || 1; S.day = S.startDay; S.hour = 8.0; S.weatherId = ""; S.grid = newGrid(sc.startingFunds); S.unlocked = sc.startingTech.slice(); S.devices = sc.startingDevices.map((i, idx) => makeDevice(i.techId, i.xRatio, S.day, 5, 0.2 + ((idx * 0.35) % 0.6)));
     S.selectedId = null; S.pendingTech = null; S.pendingX = null; S.debriefed = false; S.boat = { active: false, xRatio: DOCK, targetXRatio: DOCK, targetDeviceId: "", state: "docked", serviceType: "scrub", cost: 3500, timer: 0 }; S.env = ENV(); S.blackout = false; previewOutputs();
-    $$("[data-w]").forEach(b => b.classList.toggle("is-on", b.dataset.w === "normal")); hideTarget(); refresh();
+    hideTarget(); refresh();
   }
   function previewOutputs() { S.env = ENV(); S.devices = S.devices.map(d => ({ ...d, currentOutputKW: calculateDeviceOutput(d, S.env) })); S.grid = { ...S.grid, currentDemandKW: calculateCityDemand(S.grid.population, S.hour) }; }
   const flash = (msg, kind = "info") => { const f = $("flash"); f.textContent = msg; f.className = "oc-flash is-on is-" + kind; clearTimeout(flash.t); flash.t = setTimeout(() => f.classList.remove("is-on"), 4200); };
@@ -96,20 +97,20 @@ export function mountOceanSim(host, opts) {
     const row = (ic, lab, v, c) => `<div class="oc-row"><span>${ic} ${lab}</span><b style="color:${c}">${(v / 1000).toFixed(1)} MW</b></div>`;
     $("mix").innerHTML = row("⚓", L("24/7 Constant Baseload (OTEC / Osmotic / Kites)", "Base constante 24/7 (OTEC / osmótica / cometas)"), base, "#a5b4fc") + row("🌙", L("Tidal Stream (Moon-driven)", "Corriente de marea (por la Luna)"), tidal, "#818cf8") + row("🌊", L("Wave Converters (Peaks in swell)", "Convertidores de olas (máx. con oleaje)"), wave, "#67e8f9") + row("💨", L("Offshore Wind (Day & Night)", "Eólica marina (día y noche)"), wind, "#7dd3fc") + row("☀️", L("Floating Solar (Sun Only)", "Solar flotante (solo con sol)"), solar, "#fcd34d");
     $("store").textContent = `${fmt(g.storedEnergyKWh)} / ${fmt(g.maxStorageCapacityKWh)} kWh`; $("storeb").style.width = (g.maxStorageCapacityKWh ? (g.storedEnergyKWh / g.maxStorageCapacityKWh) * 100 : 0) + "%";
-    $("wx").textContent = WX[env.weatherCondition]() + (S.storm ? " ⛈" : ""); $("wind").textContent = `${env.windSpeedKts.toFixed(1)} kts`; $("windms").textContent = `${(env.windSpeedKts * KTS_TO_MS).toFixed(1)} m/s`;
+    $("wx").textContent = `${env.weatherIcon} ${env.weatherName}`; const wp = $("wxpill"); wp.innerHTML = `<span class="oc-wxpill__i">${env.weatherIcon}</span><span class="oc-wxpill__t"><small>${L("Day", "Día")} ${S.day} ${L("Weather", "Clima")}</small><b>${env.weatherName}</b></span><span class="oc-wxpill__m">${env.significantWaveHeightM}m ${L("waves", "olas")} · ${L("Forecast", "Pronóstico")} ▸</span>`; $("wind").textContent = `${env.windSpeedKts.toFixed(1)} kts`; $("windms").textContent = `${(env.windSpeedKts * KTS_TO_MS).toFixed(1)} m/s`;
     $("hs").textContent = `${env.significantWaveHeightM.toFixed(2)} m`; $("te").textContent = `Te ${env.wavePeriodSec.toFixed(1)} s`; $("flux").textContent = `${env.waveEnergyFluxKWM.toFixed(1)} kW/m`;
     $("tide").textContent = `${env.tidalCurrentSpeedKts.toFixed(1)} kts`; $("tstage").textContent = `${STAGE[env.tideStage]()} · ${TIDE[env.tideType]()}`; $("temp").textContent = `${env.surfaceWaterTempC.toFixed(1)} / ${env.deepWaterTempC.toFixed(1)} °C`; $("dt").textContent = `ΔT ${(env.surfaceWaterTempC - env.deepWaterTempC).toFixed(1)} °C`;
-    const sun = env.cloudy ? 0 : Math.round(Math.max(0, Math.sin(Math.PI * ((env.hourOfDay - 6) / 12))) * 100) || 0; $("sun").textContent = sun + "%"; $("sunsub").textContent = env.cloudy ? L("overcast", "cubierto") : (sun > 0 ? L("daylight", "luz diurna") : L("night", "noche"));
+    const bell = solarFactor(env.hourOfDay), sun = Math.round(bell * env.solarEfficiency * 100); $("sun").textContent = sun + "%"; $("sunsub").textContent = bell === 0 ? L("night", "noche") : env.solarEfficiency < 0.5 ? L("overcast", "cubierto") : env.solarEfficiency < 0.9 ? L("partly cloudy", "parcialmente nublado") : L("daylight", "luz diurna");
     $("tariffv").innerHTML = `$${g.tariffPerKWh.toFixed(3)} <small>/ kWh</small>`; const tr = $("tariff"); if (document.activeElement !== tr) tr.value = g.tariffPerKWh; $("bill").innerHTML = `${L("Average Family Bill", "Factura media familiar")}: <b>${usd(householdBill(g.tariffPerKWh))} / ${L("month", "mes")}</b>`;
     $("rev").textContent = `+${usd(g.dailyRevenue)}/${L("day", "día")}`; $("opex").textContent = `-${usd(g.dailyExpenses)}/${L("day", "día")}`;
     const rated = S.devices.filter(d => techOf(d.techId).category !== "storage"), rw = rated.reduce((a, d) => a + techOf(d.techId).ratedPowerKW, 0), lc = rw ? rated.reduce((a, d) => a + techOf(d.techId).lcoeEstimate * techOf(d.techId).ratedPowerKW, 0) / rw : 0;
     $("lcoe").innerHTML = `$${lc.toFixed(3)} vs $${g.tariffPerKWh.toFixed(3)} <span class="${g.tariffPerKWh >= lc ? "gn" : "rs"}">${g.tariffPerKWh >= lc ? "▲ " + L("margin", "margen") : "▼ " + L("below cost", "bajo coste")}</span>`;
     $("land").textContent = `${g.landSavedAcres.toFixed(1)} ${L("acres", "acres")}`; $("co2").textContent = `${fmt(g.co2PreventedTons, 1)} t`; $("eco").textContent = Math.round(g.marineEcosystemHealth) + "%"; $("blk").textContent = `${g.blackoutHours.toFixed(1)} h`; $("kwhs").textContent = `${fmt(g.totalKWhGenerated)} / ${fmt(g.totalKWhConsumed)} kWh`;
     const B = S.boat, td = $("tradie");
-    if (B.active) { td.innerHTML = `<div class="oc-boatstat">🚤 ${B.state === "sailing_to" ? L("Tradies cruising out to facility! 🌊", "¡Los técnicos navegan hacia la instalación! 🌊") : B.state === "servicing" ? L("Ha ha ha! Fixing & scrubbing! 🔩", "¡Ja ja ja! ¡Reparando y limpiando! 🔩") : L("Tradies heading home for lunch! 🥧", "¡Los técnicos vuelven a comer! 🥧")}</div>`; }
-    else if (!td.dataset.idle || td.dataset.f !== String(g.funds >= 3500 && S.devices.length > 0)) { td.dataset.idle = "1"; td.dataset.f = String(g.funds >= 3500 && S.devices.length > 0); td.innerHTML = `<button type="button" class="oc-btn oc-btn--amber oc-wide" data-a="quick" ${g.funds >= 3500 && S.devices.length ? "" : "aria-disabled='true'"}>⚡ ${L("Send Pirate Tradies Crew! ($3,500)", "¡Enviar cuadrilla pirata! ($3.500)")}</button><small class="oc-muted">${L("Cleans biofouling across all generators.", "Limpia la bioincrustación de todos los generadores.")}</small>`; td.querySelector("[data-a=quick]").addEventListener("click", quickDispatch); }
+    if (B.active) { td.innerHTML = `<div class="oc-boatstat">🚤 ${B.state === "sailing_to" ? L("Workboat cruising to facility!", "¡El barco navega hacia la instalación!") : B.state === "servicing" ? L("Scrubbing barnacles & tuning!", "¡Limpiando percebes y ajustando!") : L("Returning to port!", "¡Volviendo a puerto!")}</div>`; }
+    else if (!td.dataset.idle || td.dataset.f !== String(g.funds >= 3500 && S.devices.length > 0)) { td.dataset.idle = "1"; td.dataset.f = String(g.funds >= 3500 && S.devices.length > 0); td.innerHTML = `<button type="button" class="oc-btn oc-btn--amber oc-wide" data-a="quick" ${g.funds >= 3500 && S.devices.length ? "" : "aria-disabled='true'"}>⚡ ${L("Send Workboat ($3,500)", "Enviar barco ($3.500)")}</button><small class="oc-muted">${L("Cleans biofouling across all generators.", "Limpia la bioincrustación de todos los generadores.")}</small>`; td.querySelector("[data-a=quick]").addEventListener("click", quickDispatch); }
     if (B.active) td.dataset.idle = "";
-    const nd = new Set(S.snaps.map(s => s.cond)).size; $("snapn").textContent = `${S.snaps.length} ${L("snapshot(s) logged", "instantánea(s) registrada(s)")}`; $("snapc").textContent = `${L("Conditions tested", "Condiciones probadas")}: ${nd} ${S.snaps.length >= 3 && nd >= 2 ? "✅" : ""}`;
+    const nd = new Set(S.snaps.map(s => s.cond)).size; $("snapn").textContent = `${S.snaps.length} ${L("snapshot(s) logged", "instantánea(s) registrada(s)")}`; $("snapc").textContent = `${L("Weather days logged", "Días de clima registrados")}: ${nd} ${S.snaps.length >= 3 && nd >= 2 ? "✅" : ""}`;
     const mt = $("mute"); mt.textContent = soundManager.getMuted() ? "🔇" : "🔊"; mt.setAttribute("aria-label", soundManager.getMuted() ? L("Sound off — click to unmute", "Sonido apagado — clic para activar") : L("Sound on — click to mute", "Sonido activado — clic para silenciar")); mt.setAttribute("aria-pressed", String(soundManager.getMuted()));
     const pb = root.querySelector("[data-a=pause]"); pb.innerHTML = S.paused ? `▶ ${L("Resume", "Seguir")}` : `⏸ ${L("Pause", "Pausa")}`; pb.classList.toggle("is-paused", S.paused);
     if (S.openDevice) S.openDevice.tick();
@@ -120,12 +121,29 @@ export function mountOceanSim(host, opts) {
   function startTick() { clearInterval(tickTimer); tickTimer = setInterval(tick, 850 / S.speed); }
   function tick() {
     if (S.paused || !root.isConnected) { if (!root.isConnected) destroy(); return; }
-    let nh = S.hour + SIMULATION_TICK_HOURS, nd = S.day; if (nh >= 24) { nh %= 24; nd++; }
+    const prevDay = S.day; let nh = S.hour + SIMULATION_TICK_HOURS, nd = S.day; if (nh >= 24) { nh %= 24; nd++; }
     S.day = nd; S.hour = Number(nh.toFixed(2)); const env = ENV(); const wasBlackout = S.grid.isBlackout;
     const r = stepSimulation(S.devices, S.grid, env, nd, S.hour); S.devices = r.updatedDevices; S.grid = r.updatedGrid; S.env = env; S.blackout = S.grid.isBlackout;
     if (S.grid.isBlackout && !wasBlackout) { soundManager.playWarningAlert(); flash(L("⚠ Blackout! Demand is higher than supply + storage.", "⚠ ¡Apagón! La demanda supera la oferta más el almacenamiento."), "warn"); }
-    checkAwards(); mentor(); refresh();
-    if (S.day > S.scenario.targetDurationDays && !S.debriefed) debrief();
+    if (S.hour === 0 || S.day !== prevDay) announceWeather(env); checkAwards(); mentor(); refresh();
+    if (S.day > S.startDay - 1 + S.scenario.targetDurationDays && !S.debriefed) debrief();
+  }
+  function announceWeather(env) {
+    if (S.weatherId === env.weatherId + S.day) return; S.weatherId = env.weatherId + S.day;
+    if (S.day === S.startDay) return; flash(`${env.weatherIcon} ${L("Day", "Día")} ${S.day}: ${env.weatherName} — ${env.weatherSummary}`, env.stormWarning ? "warn" : "info");
+  }
+  function openForecast() {
+    const dlg = openDialog(root, { title: L("Pacifica Bay Weather Pattern", "Patrón del clima de Pacifica Bay"), sub: L("Real coastal weather changes every day in natural cycles", "El clima costero real cambia cada día en ciclos naturales") });
+    const fc = getUpcomingForecast(S.day, 4);
+    dlg.body.innerHTML = `<p class="oc-box oc-box--info">${L("Weather is not fixed. Storm fronts bring high waves and wind but block the sun. Calmer days have lots of sunlight but low wind. <b>Tides and deep ocean heat (OTEC) never stop!</b> A great grid balances all three. The pattern repeats every 10 days.", "El clima no es fijo. Los frentes de tormenta traen olas y viento fuertes pero tapan el sol. Los días tranquilos tienen mucho sol pero poco viento. <b>¡Las mareas y el calor del océano profundo (OTEC) nunca paran!</b> Una gran red equilibra las tres cosas. El patrón se repite cada 10 días.")}</p>
+      <div class="oc-grid2">${fc.map((w, i) => `<div class="oc-tile oc-fc${i === 0 ? " is-today" : ""}"><span class="oc-k">${i === 0 ? `${L("Day", "Día")} ${w.day} (${L("Today", "Hoy")})` : `${L("Day", "Día")} ${w.day}`}</span><b>${w.icon} ${w.name}</b><small>${w.studentSummary}</small><small class="oc-fc__m">💨 ${w.windSpeedKts} kts · 🌊 ${w.waveHeightM} m · 🌙 ×${w.tidalMultiplier} · ☀️ ${Math.round(w.solarEfficiency * 100)}%</small></div>`).join("")}</div>
+      <p class="oc-muted">${L("Each card shows the day's base wind, wave height, tidal strength and sunshine. Advances automatically each 24-hour day.", "Cada tarjeta muestra el viento base, la altura de ola, la fuerza de la marea y el sol del día. Avanza automáticamente cada día de 24 horas.")}</p>`;
+    award("forecast", L("Weather watcher", "Observador del clima"));
+  }
+  function showBuilt(dev) {
+    const t = techOf(dev.techId), box = $("built"), kw = t.ratedPowerKW >= 1000 ? (t.ratedPowerKW / 1000).toFixed(1) + " MW" : t.ratedPowerKW + " kW";
+    box.hidden = false; box.innerHTML = `<div class="oc-built__img">${techVisual(t, photoBase)}<span class="oc-built__ok">✔ ${L("Installed in the bay", "Instalado en la bahía")}</span><b class="oc-built__kw">+${kw}</b></div><div class="oc-built__b"><b>${t.name}</b><p>${t.friendlyStudentSummary}</p><div class="oc-built__g"><span>${L("Location", "Ubicación")}<b>X ${Math.round(dev.xRatio * 100)}% · Z ${Math.round((dev.zRatio ?? 0.5) * 100)}%</b></span><span>${L("Daily upkeep", "Mantenimiento diario")}<b>${usd(t.dailyOpex)}/${L("day", "día")}</b></span></div><button type="button" class="oc-btn oc-btn--go" data-a="builtx">${L("Great!", "¡Genial!")}</button></div>`;
+    clearTimeout(showBuilt.t); showBuilt.t = setTimeout(() => { box.hidden = true; }, 6000);
   }
   function checkAwards() {
     const cats = new Set(S.devices.map(d => techOf(d.techId).category)); if (cats.size >= 4) award("diverse", L("Diversified fleet", "Flota diversificada"));
@@ -145,8 +163,8 @@ export function mountOceanSim(host, opts) {
   const QUOTES = [L("Ha ha ha! Ahoy mate! Electrician tradies to the rescue! ⚡🏴‍☠️", "¡Ja ja ja! ¡Ahoy, amigo! ¡Los electricistas al rescate! ⚡🏴‍☠️"), L("Hold on to your toolbelts, lads! Full tradie throttle! 🚤", "¡Agarrad los cinturones de herramientas! ¡A toda máquina! 🚤"), L("Who ordered the ocean plumbers? Pipe wrench ready! 🪠", "¿Quién pidió los fontaneros del océano? ¡Llave lista! 🪠"), L("Avast ye barnacles! Tradies incoming! 🦀", "¡Alerta, percebes! ¡Llegan los técnicos! 🦀")];
   let lastQuote = "";
   function boatScreen(x, y, visible, t) {
-    const b = $("bubble"), B = S.boat; b.hidden = !visible; if (!visible) return; b.style.left = x + "px"; b.style.top = y - 12 + "px";
-    const q = B.active && B.state === "servicing" ? L("Righto lads! Spanners out, scrubbing barnacles! 🧼", "¡Vamos, muchachos! ¡Llaves fuera, a limpiar percebes! 🧼") : B.state === "returning" ? L("Job done! Time for a meat pie at the harbor! 🥧", "¡Trabajo hecho! ¡A comer una empanada en el puerto! 🥧") : B.active ? QUOTES[Math.floor((t * 0.3) % QUOTES.length)] : L("Tradies docked at harbor! Send us out anytime! ☕🏴‍☠️", "¡Técnicos en el puerto! ¡Envíanos cuando quieras! ☕🏴‍☠️");
+    const b = $("bubble"), B = S.boat; b.hidden = !(visible && B.active); if (!visible || !B.active) return; b.style.left = x + "px"; b.style.top = y - 12 + "px";
+    const q = B.state === "servicing" ? L("Scrubbing Barnacles 🧼", "Limpiando percebes 🧼") : B.state === "returning" ? L("Heading to Port ⚓", "Rumbo a puerto ⚓") : L("En Route ⚡", "En camino ⚡");
     if (q !== lastQuote) { lastQuote = q; $("quote").textContent = q; }
   }
 
@@ -167,21 +185,21 @@ export function mountOceanSim(host, opts) {
     startScenario(id) { loadScenario(scenarios().find(s => s.id === id)); S.paused = false; refresh(); }, noteCompare() { award("compare", L("Land vs Ocean analyst", "Analista tierra vs océano")); },
   };
   function beginPlace(id) {
-    S.pendingTech = id; const t = techOf(id), z = t.depthZone[0], r = ZONES[z].range; S.pendingX = (r[0] + r[1]) / 2; const box = $("target"); box.hidden = false;
+    S.pendingTech = id; const t = techOf(id), z = t.depthZone[0], r = ZONES[z].range; S.pendingX = (r[0] + r[1]) / 2; S.pendingZ = 0.5; const box = $("target"); box.hidden = false;
     box.innerHTML = `<div class="oc-target__t">✨ <b>${L("Targeting Mode", "Modo de colocación")}:</b> ${L("click the ocean to construct", "haz clic en el océano para construir")} <b>${t.name}</b> <small>(${t.depthZone.map(z => ZONES[z].name() + " " + ZONES[z].depth).join(" · ")})</small></div>
-      <div class="oc-target__c"><label>${L("or choose the position (keyboard-friendly)", "o elige la posición (apto para teclado)")}: <small>${L("shore", "costa")}</small> <input type="range" min="0.12" max="0.94" step="0.01" value="${S.pendingX}" data-k="px"> <small>${L("deep", "profundo")}</small></label><span class="oc-pill" data-k="pv"></span><button type="button" class="oc-btn oc-btn--go" data-a="place">${L("Place here", "Colocar aquí")}</button><button type="button" class="oc-btn oc-btn--ghost" data-a="cancel">${L("Cancel", "Cancelar")}</button></div>`;
+      <div class="oc-target__c"><label>${L("or choose the position (keyboard-friendly)", "o elige la posición (apto para teclado)")}: <small>${L("shore", "costa")}</small> <input type="range" min="0.12" max="0.94" step="0.01" value="${S.pendingX}" data-k="px"> <small>${L("deep", "profundo")}</small></label><label>${L("across the bay", "a lo ancho de la bahía")}: <small>${L("left", "izq.")}</small> <input type="range" min="0.06" max="0.94" step="0.01" value="0.5" data-k="pz" aria-label="${L("Position across the bay", "Posición a lo ancho de la bahía")}"> <small>${L("right", "der.")}</small></label><span class="oc-pill" data-k="pv"></span><button type="button" class="oc-btn oc-btn--go" data-a="place">${L("Place here", "Colocar aquí")}</button><button type="button" class="oc-btn oc-btn--ghost" data-a="cancel">${L("Cancel", "Cancelar")}</button></div>`;
     const upd = () => { const ok = isEligible(id, S.pendingX), z = ZONES[zoneAt(S.pendingX)]; const p = box.querySelector("[data-k=pv]"); p.className = "oc-pill " + (ok ? "ok" : "bad"); p.textContent = `${ok ? "✔" : "✖"} ${z.name()}${ok ? "" : " — " + L("not suitable", "no apto")}`; };
-    const px = box.querySelector("[data-k=px]"); px.addEventListener("input", e => { S.pendingX = +e.target.value; upd(); soundManager.playClick(); }); S.updTarget = () => { px.value = S.pendingX; upd(); }; upd();
-    box.querySelector("[data-a=place]").addEventListener("click", () => tryPlace(id, S.pendingX)); box.querySelector("[data-a=cancel]").addEventListener("click", cancelPlace);
+    const px = box.querySelector("[data-k=px]"); px.addEventListener("input", e => { S.pendingX = +e.target.value; upd(); soundManager.playClick(); }); S.updTarget = () => { px.value = S.pendingX; pz.value = S.pendingZ; upd(); }; const pz = box.querySelector("[data-k=pz]"); pz.addEventListener("input", e => { S.pendingZ = +e.target.value; soundManager.playClick(); }); upd();
+    box.querySelector("[data-a=place]").addEventListener("click", () => tryPlace(id, S.pendingX, S.pendingZ)); box.querySelector("[data-a=cancel]").addEventListener("click", cancelPlace);
     flash(L("Targeting mode: pick a spot in the right depth zone.", "Modo de colocación: elige un punto en la zona de profundidad correcta."), "info");
   }
   function hideTarget() { S.pendingTech = null; S.pendingX = null; const b = $("target"); b.hidden = true; b.innerHTML = ""; }
   function cancelPlace() { hideTarget(); soundManager.playClick(); }
-  function tryPlace(id, xr) {
+  function tryPlace(id, xr, zr = 0.5) {
     const t = techOf(id);
     if (!isEligible(id, xr)) { soundManager.playWarningAlert(); flash(L(`${t.name} can only be built in: ${t.depthZone.map(z => ZONES[z].name()).join(" / ")}.`, `${t.name} solo se puede construir en: ${t.depthZone.map(z => ZONES[z].name()).join(" / ")}.`), "warn"); return; }
     if (S.grid.funds < t.capex) { soundManager.playWarningAlert(); flash(L(`Budget Warning: ${t.name} costs ${usd(t.capex)}. Your treasury has ${usd(S.grid.funds)}.`, `Aviso de presupuesto: ${t.name} cuesta ${usd(t.capex)}. Tu tesorería tiene ${usd(S.grid.funds)}.`), "warn"); return; }
-    S.grid = { ...S.grid, funds: S.grid.funds - t.capex }; S.devices = [...S.devices, makeDevice(id, xr, S.day, 0)]; hideTarget(); soundManager.playPlaceSound(); previewOutputs(); refresh();
+    S.grid = { ...S.grid, funds: S.grid.funds - t.capex }; const nd = makeDevice(id, xr, S.day, 0, zr); S.devices = [...S.devices, nd]; hideTarget(); soundManager.playPlaceSound(); previewOutputs(); refresh(); showBuilt(nd); confetti(root);
     flash(L(`Built ${t.name} for ${usd(t.capex)}.`, `Construido: ${t.name} por ${usd(t.capex)}.`), "info"); award("builder", L("Offshore builder", "Constructor marino"));
   }
   function selectDevice(id) {
@@ -190,14 +208,14 @@ export function mountOceanSim(host, opts) {
   }
   function logSnapshot(kind = "snapshot", extraCond = "") {
     const g = S.grid, e = S.env, hh = String(Math.floor(S.hour)).padStart(2, "0"), mm = String(Math.floor((S.hour % 1) * 60)).padStart(2, "0");
-    const pr = WEATHER_PRESETS().find(p => p.id === S.preset), label = S.storm ? L("Storm", "Tormenta") : pr.label.replace(/^[^\p{L}]+/u, "").trim();
+    const label = e.weatherName;
     const by = { wind: 0, wave: 0, tidal: 0, base: 0, solar: 0 }; S.devices.forEach(d => { const c = techOf(d.techId).category; if (c === "wind") by.wind += d.currentOutputKW; else if (c === "wave") by.wave += d.currentOutputKW; else if (c === "tidal" && d.techId !== "tidal_kite") by.tidal += d.currentOutputKW; else if (c === "baseload" || d.techId === "tidal_kite") by.base += d.currentOutputKW; else if (c === "solar") by.solar += d.currentOutputKW; });
     const gen = Object.values(by).reduce((a, b) => a + b, 0), m = v => (v / 1000).toFixed(1);
     const cond = (kind === "mission" ? extraCond : `${label} · ${L("Day", "Día")} ${S.day} ${hh}:${mm}`);
     const row = { cond, wind: +e.windSpeedKts.toFixed(1), hs: +e.significantWaveHeightM.toFixed(2), flux: +e.waveEnergyFluxKWM.toFixed(1), tide: +e.tidalCurrentSpeedKts.toFixed(1), gen: +(gen / 1000).toFixed(2), demand: +(g.currentDemandKW / 1000).toFixed(2),
       mix: `${L("wind", "eólica")} ${m(by.wind)} · ${L("wave", "olas")} ${m(by.wave)} · ${L("tidal", "marea")} ${m(by.tidal)} · ${L("base", "base")} ${m(by.base)} · ${L("solar", "solar")} ${m(by.solar)}`,
       tariff: +g.tariffPerKWh.toFixed(3), funds: Math.round(g.funds), approval: +g.citizenApproval.toFixed(1), blackout: +g.blackoutHours.toFixed(1) };
-    recordTrial(row); if (kind === "snapshot") { S.snaps.push({ cond: S.storm ? "storm" : S.preset }); soundManager.playPlaceSound(); flash(L(`Snapshot ${S.snaps.length} logged: ${label}, ${m(gen)} MW generated vs ${m(g.currentDemandKW)} MW demand.`, `Instantánea ${S.snaps.length} registrada: ${label}, ${m(gen)} MW generados vs ${m(g.currentDemandKW)} MW de demanda.`), "info");
+    recordTrial(row); if (kind === "snapshot") { S.snaps.push({ cond: e.weatherId }); soundManager.playPlaceSound(); flash(L(`Snapshot ${S.snaps.length} logged: ${label}, ${m(gen)} MW generated vs ${m(g.currentDemandKW)} MW demand.`, `Instantánea ${S.snaps.length} registrada: ${label}, ${m(gen)} MW generados vs ${m(g.currentDemandKW)} MW de demanda.`), "info");
       if (S.snaps.length === 1) award("first", L("First snapshot logged", "Primera instantánea registrada")); if (new Set(S.snaps.map(s => s.cond)).size >= 3) award("tester", L("Weather tester", "Probador de clima")); }
     refresh(); return row;
   }
@@ -222,6 +240,10 @@ export function mountOceanSim(host, opts) {
       const k = a.dataset.a;
       if (k === "pause") { S.paused = !S.paused; soundManager.playClick(); refresh(); }
       else if (k === "build") { soundManager.playClick(); openBuildDrawer(root, ctx); }
+      else if (k === "forecast") { soundManager.playClick(); openForecast(); }
+      else if (k === "builtx") { $("built").hidden = true; }
+      else if (k === "clean") { const on = !root.classList.contains("oc--clean"); root.classList.toggle("oc--clean", on); root.querySelector(".oc-showopts").hidden = !on; soundManager.playClick(); }
+      else if (k === "expand") { const on = !root.classList.contains("oc--expanded"); root.classList.toggle("oc--expanded", on); a.setAttribute("aria-pressed", String(on)); soundManager.playClick(); }
       else if (k === "tutorial") { soundManager.playClick(); openTutorial(); }
       else if (k === "howto") { soundManager.playClick(); intro(); }
       else if (k === "guide") { soundManager.playClick(); openCodex(root, ctx); }
@@ -236,10 +258,6 @@ export function mountOceanSim(host, opts) {
     }
     const c = e.target.closest("[data-cam]"); if (c && sceneApi) { sceneApi.preset(c.dataset.cam); tracked = false; root.querySelector(".oc-track").classList.remove("is-on"); $$("[data-cam]").forEach(b => b.classList.toggle("is-on", b === c && b.textContent.trim() !== "⟲")); soundManager.playClick(); }
     const sp = e.target.closest("[data-sp]"); if (sp) { S.speed = +sp.dataset.sp; $$("[data-sp]").forEach(b => b.classList.toggle("is-on", b === sp)); startTick(); soundManager.playClick(); }
-    const w = e.target.closest("[data-w]"); if (w) {
-      const id = w.dataset.w; S.storm = id === "storm"; S.preset = id === "storm" ? "normal" : id; $$("[data-w]").forEach(b => b.classList.toggle("is-on", b === w)); soundManager.playClick(); previewOutputs(); refresh();
-      const pr = WEATHER_PRESETS().find(p => p.id === id); flash((pr ? pr.title : L("Winter storm: huge waves, fast wear — inspect your fleet afterwards!", "Tormenta invernal: olas enormes, desgaste rápido — ¡inspecciona tu flota después!")), "info");
-    }
   });
   $("tariff").addEventListener("input", e => { S.grid = { ...S.grid, tariffPerKWh: Number(Number(e.target.value).toFixed(3)) }; soundManager.playClick(); refresh(); });
   let tracked = false, sceneApi = null, destroyed = false;
@@ -248,7 +266,7 @@ export function mountOceanSim(host, opts) {
   loadScenario(S.scenario); S.paused = true; refresh();
   createScene($("scene"), {
     state: () => S, reduced: () => { const a = document.documentElement.getAttribute("data-reduced-motion"); return a === "on" || (a !== "off" && !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)); }, label: L("Pacifica Bay 3D ocean. Use the Build button, then the position slider, to build with the keyboard.", "Océano 3D de Pacifica Bay. Usa el botón Construir y luego el control de posición para construir con el teclado."), fallbackNote: L("2D view (WebGL unavailable)", "Vista 2D (WebGL no disponible)"),
-    onSelect: id => { if (id) selectDevice(id); else S.selectedId = null; }, onPlace: (tid, xr) => tryPlace(tid, xr), onHoverX: xr => { if (S.pendingTech) { S.pendingX = xr; S.updTarget && S.updTarget(); } }, onBoatScreen: boatScreen, onUserCamera: () => { if (tracked) { tracked = false; const t = root.querySelector(".oc-track"); t && t.classList.remove("is-on"); } },
+    onSelect: id => { if (id) selectDevice(id); else S.selectedId = null; }, onPlace: (tid, xr, zw) => tryPlace(tid, xr, Math.max(0.06, Math.min(0.94, ((zw || 0) + 200) / 400))), onHoverX: (xr, zr) => { if (S.pendingTech) { S.pendingX = xr; if (zr !== undefined) S.pendingZ = zr; S.updTarget && S.updTarget(); } }, onBoatScreen: boatScreen, onUserCamera: () => { if (tracked) { tracked = false; const t = root.querySelector(".oc-track"); t && t.classList.remove("is-on"); } },
   }, threeUrl).then(api => { if (destroyed) { api.destroy(); return; } sceneApi = api; $("scene").dataset.kind = api.kind; });
 
   /* ---------------- mentor alerts (toast + history + chimes) ---------------- */
@@ -267,11 +285,11 @@ export function mountOceanSim(host, opts) {
     if (g.isBlackout) mentorSay("blk", "warn", L("Blackout!", "¡Apagón!"), L("Demand beat supply plus storage. Add baseload (OTEC, osmotic, kites) or storage for calm, dark hours.", "La demanda superó la oferta más el almacenamiento. Añade base constante (OTEC, osmótica, cometas) o almacenamiento para las horas calmas y oscuras."));
     if (g.maxStorageCapacityKWh > 0 && g.storedEnergyKWh / g.maxStorageCapacityKWh < 0.1 && S.devices.length) mentorSay("store", "warn", L("Storage nearly empty", "Almacenamiento casi vacío"), L("Batteries only help if they were charged by a surplus first.", "Las baterías solo ayudan si antes se cargaron con un excedente."));
     const worst = [...S.devices].sort((a, b) => b.biofouling - a.biofouling)[0];
-    if (worst && worst.biofouling > 50) mentorSay("foul", "warn", L("Biofouling building up", "Bioincrustación creciente"), L("Barnacles cut output by up to 30%. Send the tradies to scrub.", "Los percebes reducen la producción hasta un 30%. Envía a los técnicos a limpiar."));
+    if (worst && worst.biofouling > 50) mentorSay("foul", "warn", L("Biofouling building up", "Bioincrustación creciente"), L("Barnacles cut output by up to 30%. Send the workboat to scrub.", "Los percebes reducen la producción hasta un 30%. Envía el barco a limpiar."));
     if (S.devices.some(d => d.integrity < 30)) mentorSay("int", "warn", L("A generator is failing", "Un generador falla"), L("Integrity is under 30%. Order an overhaul before it breaks.", "La integridad es menor del 30%. Pide una revisión antes de que se averíe."));
     if (g.tariffPerKWh > 0.22) mentorSay("price", "warn", L("Prices are too high", "Precios demasiado altos"), L("Families are struggling to pay. Approval will fall fast above $0.22.", "Las familias tienen problemas para pagar. La aprobación cae rápido sobre $0,22."));
     if (g.citizenApproval < 45) mentorSay("appr", "warn", L("Citizens are unhappy", "Ciudadanos descontentos"), L("Check for blackouts and high bills.", "Revisa los apagones y las facturas altas."));
-    if (S.devices.length >= 1 && mentorSeen.first === undefined) mentorSay("first", "good", L("Nice start", "Buen comienzo"), L("Your first generator is online. Try a Test Weather button and watch what changes.", "Tu primer generador está en marcha. Prueba un botón de clima y mira qué cambia."), 9999);
+    if (S.devices.length >= 1 && mentorSeen.first === undefined) mentorSay("first", "good", L("Nice start", "Buen comienzo"), L("Your first generator is online. Open the weather forecast and watch what changes from day to day.", "Tu primer generador está en marcha. Abre el pronóstico y mira qué cambia de un día a otro."), 9999);
     if (S.day >= 3 && g.citizenApproval >= 75 && g.tariffPerKWh >= 0.12 && g.tariffPerKWh <= 0.17) mentorSay("fair", "good", L("Fair price, happy city", "Precio justo, ciudad feliz"), L("Approval is above 75% at a fair price. Log a snapshot as evidence.", "La aprobación supera el 75% con un precio justo. Registra una instantánea como evidencia."), 96);
   }
   function openMentorHistory() {
@@ -284,7 +302,7 @@ export function mountOceanSim(host, opts) {
     const tabs = [
       [L("Mission", "Misión"), `<p class="oc-box oc-box--info">${S.scenario.description}</p><p>${L("You run the ocean energy grid for Pacifica Bay (28,000 residents). Build offshore generators in the right depth zone, keep them clean and sound, and charge a fair price so the lights stay on, the treasury stays positive and citizens stay happy.", "Diriges la red de energía oceánica de Pacifica Bay (28.000 habitantes). Construye generadores marinos en la zona de profundidad correcta, mantenlos limpios y sanos, y cobra un precio justo para que no falte luz, la tesorería siga en positivo y los ciudadanos estén contentos.")}</p>`],
       [L("Controls", "Controles"), `<ol class="oc-list oc-list--n"><li>${L("<b>Explore in 3D:</b> drag to orbit, right-click to pan, scroll to zoom, and click any generator to inspect it.", "<b>Explora en 3D:</b> arrastra para orbitar, clic derecho para mover, rueda para acercar y haz clic en un generador para inspeccionarlo.")}</li><li>${L("<b>Build:</b> press Build Ocean Generators, pick a technology, then click the ocean (or use the position slider).", "<b>Construir:</b> pulsa Construir generadores, elige una tecnología y haz clic en el océano (o usa el control de posición).")}</li><li>${L("<b>Pause, speed and price</b> are in the control bar; the ❓ buttons explain every number.", "<b>Pausa, velocidad y precio</b> están en la barra de control; los botones ❓ explican cada número.")}</li></ol>`],
-      [L("Fair test", "Prueba justa"), `<ol class="oc-list oc-list--n"><li>${L("Build a Floating Solar Island first, or the Cloudy Day test has nothing to switch off.", "Construye primero una isla solar flotante o la prueba de Día nublado no tendrá nada que apagar.")}</li><li>${L("Press ONE Test Weather button at a time and watch each technology's megawatts react.", "Pulsa UN botón de Probar clima cada vez y mira cómo reacciona cada tecnología en megavatios.")}</li><li>${L("<b>Log snapshots</b> of the conditions, each technology's output, demand, price, treasury and approval. They become your evidence (at least 3 snapshots across 2 conditions).", "<b>Registra instantáneas</b> de las condiciones, la producción de cada tecnología, la demanda, el precio, la tesorería y la aprobación. Serán tu evidencia (al menos 3 instantáneas en 2 condiciones).")}</li></ol>`],
+      [L("Fair test", "Prueba justa"), `<ol class="oc-list oc-list--n"><li>${L("Build a Floating Solar Island first, so you can see what a cloudy day or a storm does to it.", "Construye primero una isla solar flotante para ver qué le hace un día nublado o una tormenta.")}</li><li>${L("The weather changes by itself every day (a 10-day cycle). Speed time up, and compare each technology's megawatts on different weather days at the SAME hour of the day.", "El clima cambia solo cada día (ciclo de 10 días). Acelera el tiempo y compara los megavatios de cada tecnología en distintos días de clima a la MISMA hora del día.")}</li><li>${L("<b>Log snapshots</b> of the conditions, each technology's output, demand, price, treasury and approval. They become your evidence (at least 3 snapshots on 2 different weather days).", "<b>Registra instantáneas</b> de las condiciones, la producción de cada tecnología, la demanda, el precio, la tesorería y la aprobación. Serán tu evidencia (al menos 3 instantáneas en 2 días de clima distintos).")}</li></ol>`],
       [L("Pro tips", "Consejos"), `<ul class="oc-list"><li>${L("A mix of wind, wave, tidal and OTEC gives 24/7 power without weather blackouts.", "Una mezcla de eólica, olas, mareas y OTEC da energía 24/7 sin apagones por el clima.")}</li><li>${L("Aim for $0.14–$0.16/kWh and approval above 75%.", "Apunta a $0,14–$0,16/kWh y a más del 75% de aprobación.")}</li><li>${L("Scrub barnacles before they cost you output; overhaul before integrity drops under 30%.", "Limpia los percebes antes de que cuesten producción; haz una revisión antes de que la integridad baje del 30%.")}</li><li>${L("Open Missions for directives and the Field Guide for the formulas.", "Abre Misiones para ver las directrices y la Guía de campo para las fórmulas.")}</li></ul>`],
     ];
     const dlg = openDialog(root, { title: L("Challenge Guide", "Guía del reto") + ": " + L("Welcome to Pacifica Bay", "Bienvenido a Pacifica Bay"), sub: S.scenario.title, wide: true });
@@ -303,9 +321,9 @@ export function mountOceanSim(host, opts) {
     const steps = [
       [L("1 · Read the dashboard", "1 · Lee el panel"), L("Treasury, price and approval sit at the top. Hover or tap any ❓ to learn what a number means.", "Tesorería, precio y aprobación están arriba. Pasa el ratón o toca un ❓ para saber qué significa cada número."), null],
       [L("2 · Build a generator", "2 · Construye un generador"), L("Open the catalog and choose a technology for the right depth zone.", "Abre el catálogo y elige una tecnología para la zona de profundidad correcta."), [L("Open catalog", "Abrir catálogo"), () => openBuildDrawer(root, ctx)]],
-      [L("3 · Test the weather", "3 · Prueba el clima"), L("Press ONE Test Weather button and watch which technologies react. That is a fair test.", "Pulsa UN botón de Probar clima y mira qué tecnologías reaccionan. Eso es una prueba justa."), null],
-      [L("4 · Keep it maintained", "4 · Mantenimiento"), L("Barnacles cut output. Send the tradies boat to scrub your facilities.", "Los percebes reducen la producción. Envía el barco de los técnicos a limpiar tus instalaciones."), [L("Send the boat", "Enviar el barco"), () => quickDispatch()]],
-      [L("5 · Log your evidence", "5 · Registra tu evidencia"), L("Log a snapshot under each condition you test. They fill your Investigation Record.", "Registra una instantánea en cada condición que pruebes. Llenan tu Registro de investigación."), [L("Log snapshot", "Registrar instantánea"), () => logSnapshot()]],
+      [L("3 · Watch the weather", "3 · Vigila el clima"), L("Open the weather forecast, then compare how each technology reacts on different weather days at the same hour. That is a fair test.", "Abre el pronóstico y compara cómo reacciona cada tecnología en días de clima distintos a la misma hora. Eso es una prueba justa."), [L("Open forecast", "Abrir pronóstico"), () => openForecast()]],
+      [L("4 · Keep it maintained", "4 · Mantenimiento"), L("Barnacles cut output. Send the workboat to scrub your facilities.", "Los percebes reducen la producción. Envía el barco a limpiar tus instalaciones."), [L("Send the boat", "Enviar el barco"), () => quickDispatch()]],
+      [L("5 · Log your evidence", "5 · Registra tu evidencia"), L("Log a snapshot on each weather day you compare. They fill your Investigation Record.", "Registra una instantánea en cada día de clima que compares. Llenan tu Registro de investigación."), [L("Log snapshot", "Registrar instantánea"), () => logSnapshot()]],
     ];
     const dlg = openDialog(root, { title: L("Tutorial (5 steps)", "Tutorial (5 pasos)") });
     let i = 0;
