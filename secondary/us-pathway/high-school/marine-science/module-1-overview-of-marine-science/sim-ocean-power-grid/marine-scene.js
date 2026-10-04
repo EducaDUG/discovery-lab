@@ -3,12 +3,12 @@
    Pacifica Bay in true 3D: orbit (drag), pan (right-drag / shift-drag / two fingers),
    zoom (wheel / pinch), keyboard (arrows + / -). Bathymetry, animated swell, day/night
    sky and sun, city skyline whose windows light up at night and go dark in a blackout,
-   fauna, research ship + ROV, lighthouse, the cheeky "tradie" service boat, thermocline
+   fauna, research ship + ROV, lighthouse, the maintenance workboat and the air-drop helicopter with its city heliport, thermocline
    and artificial-reef overlays, click-to-select and click-to-place devices.
    Falls back to a calm 2D cross-section if WebGL is unavailable.
    ========================================================================== */
-import { MARINE_TECHNOLOGIES, techOf, ZONES } from "./marine-data.js?v=4";
-import { isEligible, zoneAt } from "./marine-engine.js?v=4";
+import { MARINE_TECHNOLOGIES, techOf, ZONES } from "./marine-data.js?v=8";
+import { isEligible, zoneAt } from "./marine-engine.js?v=8";
 
 const WORLD_X0 = -240, WORLD_W = 520;
 export const xToWorld = xr => WORLD_X0 + xr * WORLD_W;
@@ -123,6 +123,7 @@ export async function createScene(container, hooks, threeUrl) {
   const deck = new THREE.Mesh(new THREE.BoxGeometry(280, 4, 16), M(0x334155)); deck.position.set(110, 40, 0); bridge.add(deck); city.add(bridge);
   const bCols = [0x1e293b, 0x0284c7, 0x334155, 0x0f766e, 0x1e1b4b, 0x475569], cityMats = [];
   for (let bx = -4; bx <= 1; bx++) for (let bz = -7; bz <= 7; bz++) {
+    if (bx === 0 && (bz === 0 || bz === 1)) continue;   // footprint reserved for the Central Heliport Tower
     const bh = 25 + rnd() * 85, bw = 14 + rnd() * 16, bd = 14 + rnd() * 16, col = bCols[Math.floor(rnd() * bCols.length)];
     const mat = rnd() > 0.4 ? M(col, { roughness: 0.4 }) : M(0x38bdf8, { roughness: 0.15, metalness: 0.85 });
     mat.emissive = C(0xffd98a); mat.emissiveIntensity = 0; cityMats.push(mat);
@@ -275,6 +276,8 @@ export async function createScene(container, hooks, threeUrl) {
       if (ray.ray.intersectPlane(plane, hit)) { const xr = Math.max(0.12, Math.min(0.94, (hit.x - WORLD_X0) / WORLD_W)); hooks.onPlace(S.pendingTech, xr, hit.z); }
       return;
     }
+    if (hooks.onBoatClick && ray.intersectObject(boat, true).length) { hooks.onBoatClick(); return; }
+    if (hooks.onHeliClick && ray.intersectObjects([heli, helipad], true).length) { hooks.onHeliClick(); return; }
     const hits = ray.intersectObjects(devGroup.children, true);
     if (hits.length) { let t = hits[0].object; while (t && t.parent !== devGroup) t = t.parent; if (t && t.name) { hooks.onSelect(t.name); return; } }
     hooks.onSelect(null);
@@ -282,6 +285,56 @@ export async function createScene(container, hooks, threeUrl) {
 
   /* ---- resize ---- */
   const ro = new ResizeObserver(() => { const w = container.clientWidth, h = container.clientHeight; if (w < 10 || h < 10) return; camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h); }); ro.observe(container);
+
+
+  /* ---- Central Metropolis heliport tower + air-drop maintenance helicopter (OceanCurrents v4) ---- */
+  const HELIPAD = { x: -320, z: 10 };
+  const MS = (col, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: col }, o));
+  const helipad = new THREE.Group(); helipad.position.set(HELIPAD.x, 0, HELIPAD.z); helipad.name = "helipad_target";
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(38, 38, 38), MS(0x1e293b, { roughness: 0.45, metalness: 0.3 })); tower.position.y = 19; helipad.add(tower);
+  const winMat = MS(0x38bdf8, { roughness: 0.2, metalness: 0.7 });
+  [-1, 1].forEach(sg => { const win = new THREE.Mesh(new THREE.BoxGeometry(38.4, 28, 6), winMat); win.position.set(0, 18, sg * 14); helipad.add(win); });
+  const atc = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 10), MS(0x0284c7, { roughness: 0.2, metalness: 0.6 })); atc.position.set(11, 42, -10); helipad.add(atc);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 12, 6), MS(0x94a3b8)); mast.position.set(11, 52, -10); helipad.add(mast);
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(1.2, 8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 })); beacon.position.set(11, 58, -10); helipad.add(beacon);
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(19, 20, 1.4, 32), MS(0x0f172a, { roughness: 0.85 })); pad.position.y = 38.6; helipad.add(pad);
+  const ringG = new THREE.RingGeometry(16.5, 18.5, 32); ringG.rotateX(-Math.PI / 2); const padRing = new THREE.Mesh(ringG, new THREE.MeshBasicMaterial({ color: 0xf8fafc, side: THREE.DoubleSide })); padRing.position.y = 39.35; helipad.add(padRing);
+  const hMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide });
+  [[-4.5, 0, 2.4, 12], [4.5, 0, 2.4, 12], [0, 0, 8, 2.4]].forEach(([x, z, w, h]) => { const bar = new THREE.Mesh(new THREE.PlaneGeometry(w, h), hMat); bar.rotateX(-Math.PI / 2); bar.position.set(x, 39.36, z); helipad.add(bar); });
+  for (let b = 0; b < 8; b++) { const an = (b / 8) * Math.PI * 2, bl = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 1.6, 8), new THREE.MeshBasicMaterial({ color: b % 2 === 0 ? 0x22c55e : 0xfacc15 })); bl.position.set(Math.cos(an) * 18.2, 39.8, Math.sin(an) * 18.2); helipad.add(bl); }
+  scene.add(helipad);
+
+  const heli = new THREE.Group(); heli.position.set(HELIPAD.x, 41.2, HELIPAD.z); heli.name = "helicopter_target";
+  const hYel = MS(0xfacc15, { roughness: 0.35, metalness: 0.2 }), hCy = MS(0x0284c7, { roughness: 0.4 }), hMet = MS(0x475569, { metalness: 0.7, roughness: 0.3 });
+  const hGlass = MS(0x38bdf8, { roughness: 0.1, transparent: true, opacity: 0.85, metalness: 0.4 });
+  const fus = new THREE.Mesh(new THREE.BoxGeometry(18, 9, 8), hYel); fus.position.y = 5; heli.add(fus);
+  const noseG = new THREE.SphereGeometry(4.4, 16, 16, 0, Math.PI); noseG.rotateY(-Math.PI / 2); const nose = new THREE.Mesh(noseG, hYel); nose.position.set(8.5, 5, 0); heli.add(nose);
+  const glG = new THREE.SphereGeometry(4.2, 16, 16, 0, Math.PI / 1.5); glG.rotateY(-Math.PI / 2); const gl = new THREE.Mesh(glG, hGlass); gl.position.set(8.8, 5.8, 0); heli.add(gl);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(18.2, 2.5, 8.2), hCy); stripe.position.y = 4.5; heli.add(stripe);
+  const tbG = new THREE.CylinderGeometry(0.9, 1.6, 22, 8); tbG.rotateZ(Math.PI / 2); const tb = new THREE.Mesh(tbG, hYel); tb.position.set(-18, 5.5, 0); heli.add(tb);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(3, 8, 0.6), hCy); fin.position.set(-28, 7.5, 0); fin.rotation.z = -0.25; heli.add(fin);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.4, 7), hMet); wing.position.set(-27, 6, 0); heli.add(wing);
+  const skG = new THREE.CylinderGeometry(0.4, 0.4, 20, 8); skG.rotateZ(Math.PI / 2);
+  [3.8, -3.8].forEach(z => { const sk = new THREE.Mesh(skG, hMet); sk.position.set(1, 0.5, z); heli.add(sk); });
+  [-4, 6].forEach(x => { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 3.8, 6), hMet); l.position.set(x, 2.2, 2.5); l.rotation.x = -0.35; heli.add(l); const r = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 3.8, 6), hMet); r.position.set(x, 2.2, -2.5); r.rotation.x = 0.35; heli.add(r); });
+  const rMast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 3, 8), hMet); rMast.position.set(2, 10.5, 0); heli.add(rMast);
+  const mainRotor = new THREE.Group(); mainRotor.position.set(2, 12, 0); mainRotor.add(new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.8, 12), hMet));
+  for (let b = 0; b < 4; b++) { const bl = new THREE.Mesh(new THREE.BoxGeometry(26, 0.25, 1.8), MS(0x1e293b, { roughness: 0.3 })); bl.position.x = 13; const tip = new THREE.Mesh(new THREE.BoxGeometry(4, 0.3, 1.85), hYel); tip.position.x = 11; bl.add(tip); const pv = new THREE.Group(); pv.rotation.y = (b * Math.PI) / 2; pv.add(bl); mainRotor.add(pv); }
+  heli.add(mainRotor);
+  const tailRotor = new THREE.Group(); tailRotor.position.set(-29.5, 9.5, 0.8);
+  tailRotor.add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 6, 0.8), hYel)); const tb2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 6, 0.8), hYel); tb2.rotation.x = Math.PI / 2; tailRotor.add(tb2); heli.add(tailRotor);
+  const winch = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 3), hMet); winch.position.set(2, 8, 4.8); heli.add(winch);
+  const cableG = new THREE.BufferGeometry(); cableG.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0, 0, 0, 0, -10, 0]), 3));
+  const cable = new THREE.Line(cableG, new THREE.LineBasicMaterial({ color: 0xd4d4d8 })); cable.visible = false; cable.frustumCulled = false; scene.add(cable);
+  const floaty = new THREE.Group(); floaty.position.set(HELIPAD.x, 38.6, HELIPAD.z);
+  const fRing = new THREE.Mesh(new THREE.TorusGeometry(3.6, 1.2, 16, 24), MS(0xea580c, { roughness: 0.35 })); fRing.rotateX(Math.PI / 2); floaty.add(fRing);
+  for (let r = 0; r < 4; r++) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.4, 2.6), new THREE.MeshBasicMaterial({ color: 0xffffff })); st.rotation.y = (r * Math.PI) / 2; st.position.set(Math.cos(r * Math.PI / 2) * 3.6, 0, Math.sin(r * Math.PI / 2) * 3.6); floaty.add(st); }
+  const pod = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.2, 2.8), MS(0xfacc15, { roughness: 0.4 })); pod.position.y = -0.5; floaty.add(pod);
+  const strobe = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), new THREE.MeshBasicMaterial({ color: 0x38bdf8 })); strobe.position.y = 1.2; floaty.add(strobe);
+  scene.add(floaty);
+  const splashG = new THREE.RingGeometry(2.5, 7, 24); splashG.rotateX(-Math.PI / 2);
+  const splash = new THREE.Mesh(splashG, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75, side: THREE.DoubleSide })); splash.visible = false; scene.add(splash);
+  scene.add(heli);
 
   /* ---- render loop (cosmetic only: all game state lives in setInterval timers elsewhere) ---- */
   let raf = 0, t = 0, frame = 0, last = performance.now(), destroyed = false;
@@ -291,7 +344,7 @@ export async function createScene(container, hooks, threeUrl) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt * 0.72; frame++;
     const S = hooks.state(), env = S.env, hour = S.hour, rm = reduced();
     // camera
-    if (tracking) goal.target.lerp(tmp.set(boat.position.x, 15, boat.position.z), 0.08);
+    if (tracking === "heli") goal.target.lerp(tmp.set(heli.position.x, heli.position.y, heli.position.z), 0.08); else if (tracking) goal.target.lerp(tmp.set(boat.position.x, 15, boat.position.z), 0.08);
     const k = 1 - Math.pow(0.0005, dt); cur.theta += (goal.theta - cur.theta) * k; cur.phi += (goal.phi - cur.phi) * k; cur.radius += (goal.radius - cur.radius) * k; cur.target.lerp(goal.target, k);
     camera.position.set(cur.target.x + cur.radius * Math.sin(cur.phi) * Math.sin(cur.theta), cur.target.y + cur.radius * Math.cos(cur.phi), cur.target.z + cur.radius * Math.sin(cur.phi) * Math.cos(cur.theta)); camera.lookAt(cur.target);
     syncDevices(S);
@@ -309,6 +362,24 @@ export async function createScene(container, hooks, threeUrl) {
     sparks.visible = servicing; if (servicing) { sparks.position.set(bx + 8, 12, 0); const pa = spGeom.attributes.position; for (let s = 0; s < SPARKS; s++) pa.setXYZ(s, (Math.random() - 0.5) * 12, Math.random() * 16, (Math.random() - 0.5) * 12); pa.needsUpdate = true; }
     tmp.copy(boat.position); tmp.y += 24; tmp.project(camera); const w = container.clientWidth, h = container.clientHeight;
     hooks.onBoatScreen && hooks.onBoatScreen(((tmp.x + 1) * w) / 2, ((-tmp.y + 1) * h) / 2, tmp.z < 1, t);
+
+    // air-drop helicopter (all state lives in marine-sim.js; this only draws it)
+    { const Hh = S.heli, on = !!(Hh && Hh.active && Hh.state !== "landed");
+      mainRotor.rotation.y += (on ? 39 : 1.2) * dt; if (on) tailRotor.rotation.x += 51 * dt;   /* beacons stay steady: CLAUDE.md bans flashing content */
+      if (on) {
+        const alt = Hh.state === "dropping" ? 44 + Math.sin(t * 3.5) * 0.8 : 54 + Math.sin(t * 4.2) * 1.5;
+        heli.position.set(Hh.x, alt, Hh.z);
+        if (Hh.state === "flying_to") { heli.rotation.z = -0.12; heli.rotation.y = 0; } else if (Hh.state === "returning") { heli.rotation.z = 0.12; heli.rotation.y = Math.PI; } else { heli.rotation.z = Math.sin(t * 3) * 0.03; heli.rotation.y = 0; }
+        const cp = Hh.cable, bob = Math.sin(t * 5) * 1.0, fy = alt - 6 - (alt - 6 - bob) * cp;
+        floaty.position.set(Hh.x, fy, Hh.z); floaty.visible = true;
+        const ca = cableG.attributes.position; ca.setXYZ(0, Hh.x + 2, alt + 8, Hh.z + 4.8); ca.setXYZ(1, Hh.x, fy + 2.5, Hh.z); ca.needsUpdate = true; cable.visible = cp > 0.03;
+        splash.visible = cp > 0.75; if (splash.visible) { splash.position.set(Hh.x, 0.4, Hh.z); splash.scale.setScalar(1 + Math.sin(t * 12) * 0.25); }
+        tmp.copy(heli.position); tmp.y += 18; tmp.project(camera); const hw = container.clientWidth, hh = container.clientHeight;
+        hooks.onHeliScreen && hooks.onHeliScreen(((tmp.x + 1) * hw) / 2, ((-tmp.y + 1) * hh) / 2, tmp.z < 1);
+      } else {
+        heli.position.set(HELIPAD.x, 41.2, HELIPAD.z); heli.rotation.set(0, 0, 0); floaty.position.set(HELIPAD.x, 38.6, HELIPAD.z); floaty.visible = true; cable.visible = false; splash.visible = false;
+        hooks.onHeliScreen && hooks.onHeliScreen(0, 0, false);
+      } }
     // beams, fauna
     const lhA = t * 1.4; lhSpot.target.position.set(55 + Math.cos(lhA) * 200, 0, 140 + Math.sin(lhA) * 200);
     if (!rm) { const dc = (t * 0.7) % (Math.PI * 2); dolphins.position.y = Math.max(-2, Math.sin(dc) * 16); dolphins.rotation.z = Math.sin(dc) * 0.4; whale.position.y = Math.sin((t * 0.25) % (Math.PI * 2)) * 12 - 4; }
@@ -340,7 +411,7 @@ export async function createScene(container, hooks, threeUrl) {
   }
   raf = requestAnimationFrame(animate);
   return {
-    kind: "webgl", preset, setTracking(v) { tracking = !!v; }, boatPos: () => boat.position.clone(),
+    kind: "webgl", preset, setTracking(v) { tracking = v === "heli" ? "heli" : v ? "boat" : false; }, boatPos: () => boat.position.clone(),
     destroy() { destroyed = true; cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); },
   };
 }

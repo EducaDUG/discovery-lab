@@ -1,9 +1,9 @@
 /* OceanCurrents UI components: tech illustrations, build drawer, device inspector, Field Guide + quiz,
    missions, land-vs-ocean lab. Plain DOM (no framework). Dialogs are real role="dialog" with Esc + focus return. */
-import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, CATEGORY, ZONES, codexTopics, quizQuestions, scenarios } from "./marine-data.js?v=4";
-import { compareLandOcean } from "./marine-engine.js?v=4";
-import { soundManager } from "./marine-sound.js?v=4";
-import { tip } from "./marine-tips.js?v=4";
+import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, CATEGORY, ZONES, codexTopics, quizQuestions, scenarios } from "./marine-data.js?v=8";
+import { compareLandOcean } from "./marine-engine.js?v=8";
+import { soundManager } from "./marine-sound.js?v=8";
+import { tip } from "./marine-tips.js?v=8";
 
 export const fmt = (n, d = 0) => Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
 export const usd = n => "$" + fmt(n);
@@ -93,12 +93,14 @@ export function openDeviceDialog(root, ctx, instanceId) {
       <span class="oc-pill ${t.needsWaves ? "ok" : ""}">${t.needsWaves ? L("🌊 Peaks in Big Wave Swells", "🌊 Máximo con gran oleaje") : L("🌊 Wave Independent", "🌊 Independiente de las olas")}</span>
       ${t.isConstantBaseload ? `<span class="oc-pill base">${L("⚓ 24/7 Constant Baseload", "⚓ Base constante 24/7")}</span>` : ""}</div>
     <p class="oc-sum">${t.friendlyStudentSummary}</p>
-    <div class="oc-svc"><div class="oc-row"><b>${L("Workboat Dispatch", "Envío del barco de servicio")}</b><small>${L("Watch the boat sail out to fix it!", "¡Mira cómo el barco navega a repararlo!")}</small></div>
-      <div class="oc-grid2"><button type="button" class="oc-svcbtn" data-s="scrub"><b>🚤 ${L("Dispatch Workboat: Scrub", "Enviar barco: limpieza")}</b><small>${L("Cheeky tradies sail out to clean barnacles & restore flow!", "¡Técnicos graciosos limpian percebes y restauran el flujo!")}</small><span class="gn">${usd(scrub)}</span></button>
-      <button type="button" class="oc-svcbtn oc-svcbtn--b" data-s="overhaul"><b>🚤 ${L("Dispatch Workboat: Overhaul", "Enviar barco: revisión")}</b><small>${L("Tradies replace zinc anodes, bearings & wiring!", "¡Cambian ánodos de zinc, cojinetes y cableado!")}</small><span class="gn">${usd(over)}</span></button></div>
+    <div class="oc-svc"><div class="oc-row"><b>${L("Workboat Dispatch", "Envío del barco de servicio")}</b><small>${L("Watch the crew sail out to fix it!", "¡Mira cómo el barco navega a repararlo!")}</small></div>
+      <div class="oc-grid2"><button type="button" class="oc-svcbtn" data-s="scrub"><b>🚤 ${L("Dispatch Workboat: Scrub", "Enviar barco: limpieza")}</b><small>${L("The workboat crew sails out to clean barnacles & restore flow!", "¡La cuadrilla del barco limpia los percebes y restaura el flujo!")}</small><span class="gn">${usd(scrub)}</span></button>
+      <button type="button" class="oc-svcbtn oc-svcbtn--b" data-s="overhaul"><b>🚤 ${L("Dispatch Workboat: Overhaul", "Enviar barco: revisión")}</b><small>${L("The crew replaces zinc anodes, bearings & wiring!", "¡Cambian ánodos de zinc, cojinetes y cableado!")}</small><span class="gn">${usd(over)}</span></button></div>
+      <button type="button" class="oc-svcbtn oc-svcbtn--heli" data-h><b>🚁 ${L("Air-Drop Helicopter Emergency Service", "Servicio de emergencia con helicóptero")}</b><small>${L("The chopper flies from the city heliport, winches down a rescue floaty and repair pack, and restores this unit to 100%!", "El helicóptero sale del helipuerto, baja un salvavidas con kit de reparación y deja esta unidad al 100%.")}</small><span class="gn">${usd(ctx.heliCost || 8000)}</span></button>
       <span class="oc-decomtip">${tip("decom")}</span><button type="button" class="oc-decom" data-d>🗑 ${L("Decommission Asset (Recover", "Desmantelar activo (recuperas")} ${usd(Math.round(t.capex * 0.4))})</button></div>`;
   const q = k => dlg.body.querySelector(`[data-k=${k}]`);
   dlg.body.querySelectorAll("[data-s]").forEach(b => b.addEventListener("click", () => { if (ctx.dispatch(instanceId, b.dataset.s)) dlg.close(); }));
+  dlg.body.querySelector("[data-h]").addEventListener("click", () => { if (ctx.dispatchHeli && ctx.dispatchHeli(instanceId)) dlg.close(); });
   dlg.body.querySelector("[data-d]").addEventListener("click", () => { if (window.confirm(L("Decommission and salvage this ocean generator for 40% scrap value?", "¿Desmantelar y recuperar este generador oceánico por el 40% de su valor de chatarra?"))) { ctx.decommission(instanceId); soundManager.playClick(); dlg.close(); } });
   const tick = () => {
     const d = ctx.device(instanceId); if (!d) return; const eff = Math.round((d.integrity / 100) * (1 - (d.biofouling / 100) * 0.30) * 100);
@@ -108,6 +110,7 @@ export function openDeviceDialog(root, ctx, instanceId) {
     q("foulv").textContent = `${d.biofouling.toFixed(0)}% (${Math.round(d.biofouling * 0.30)}% ${L("Drag Loss", "pérdida por arrastre")})`; q("foulb").style.width = d.biofouling + "%"; q("eff").textContent = eff + "%";
     q("obs").textContent = d.biofouling > 30 ? L("Extensive colonisation by blue mussels and laminaria kelp. A school of young cod is utilizing the submerged foundation as a predator-free refuge.", "Extensa colonización de mejillones azules y algas laminarias. Un banco de bacalaos jóvenes usa la cimentación sumergida como refugio sin depredadores.") : L("Scour protection rocks on the seabed have created crevice habitats for crabs and benthic invertebrates, enhancing local species richness.", "Las rocas de protección contra la socavación han creado grietas-hábitat para cangrejos e invertebrados bentónicos, aumentando la riqueza de especies local.");
     dlg.body.querySelectorAll("[data-s]").forEach(b => b.setAttribute("aria-disabled", String(ctx.funds() < (b.dataset.s === "scrub" ? scrub : over))));
+    dlg.body.querySelector("[data-h]").setAttribute("aria-disabled", String(ctx.funds() < (ctx.heliCost || 8000)));
   };
   tick(); return { tick, close: dlg.close };
 }

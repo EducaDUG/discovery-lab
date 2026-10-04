@@ -14,8 +14,8 @@
    were re-tuned against the natural cycle (Mission 1 $700k, Mission 2 $750k and it starts on Day 4): the
    Day-7 doldrums need 24/7 baseload, and OTEC (unlock + build about $600k) is the route that reaches zero blackouts.
    ========================================================================== */
-import { MARINE_TECHNOLOGIES, techOf } from "./marine-data.js?v=4";
-import { getWeatherForDay } from "./marine-weather.js?v=4";
+import { MARINE_TECHNOLOGIES, techOf } from "./marine-data.js?v=8";
+import { getWeatherForDay } from "./marine-weather.js?v=8";
 
 export const SIMULATION_TICK_HOURS = 0.5;
 export const KTS_TO_MS = 0.514444;

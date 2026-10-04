@@ -4,13 +4,13 @@
    (30-minute ticks; the service boat on a 50 ms timer). requestAnimationFrame is
    used solely by the 3D scene to paint.
    ========================================================================== */
-import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, ZONES, CATEGORY, WAVE_IDS, scenarios } from "./marine-data.js?v=4";
-import { SIMULATION_TICK_HOURS, calculateOceanEnvironment, stepSimulation, calculateDeviceOutput, calculateCityDemand, newGrid, makeDevice, isEligible, zoneAt, householdBill, KTS_TO_MS, solarFactor } from "./marine-engine.js?v=4";
-import { getUpcomingForecast, getWeatherForDay } from "./marine-weather.js?v=4";
-import { createScene } from "./marine-scene.js?v=4";
-import { soundManager } from "./marine-sound.js?v=4";
-import { tip, wireTips } from "./marine-tips.js?v=4";
-import { techVisual, fmt, usd, openBuildDrawer, openDeviceDialog, openCodex, openMissions, openComparison, openDialog } from "./marine-ui.js?v=4";
+import { L, MARINE_TECHNOLOGIES, techOf, TECH_IDS, ZONES, CATEGORY, WAVE_IDS, scenarios } from "./marine-data.js?v=8";
+import { SIMULATION_TICK_HOURS, calculateOceanEnvironment, stepSimulation, calculateDeviceOutput, calculateCityDemand, newGrid, makeDevice, isEligible, zoneAt, householdBill, KTS_TO_MS, solarFactor } from "./marine-engine.js?v=8";
+import { getUpcomingForecast, getWeatherForDay } from "./marine-weather.js?v=8";
+import { createScene, xToWorld } from "./marine-scene.js?v=8";
+import { soundManager } from "./marine-sound.js?v=8";
+import { tip, wireTips } from "./marine-tips.js?v=8";
+import { techVisual, fmt, usd, openBuildDrawer, openDeviceDialog, openCodex, openMissions, openComparison, openDialog } from "./marine-ui.js?v=8";
 
 const WX = {
   breeze: () => L("Moderate Ocean Breeze", "Brisa oceánica moderada"), storm: () => L("Winter Swell Storm", "Tormenta con oleaje invernal"),
@@ -19,6 +19,7 @@ const WX = {
 const STAGE = { high_stand: () => L("high stand", "pleamar"), ebb_flow: () => L("ebb flow", "reflujo"), low_stand: () => L("low stand", "bajamar"), flood_flow: () => L("flood flow", "flujo creciente") };
 const TIDE = { spring: () => L("spring", "viva"), neap: () => L("neap", "muerta"), normal: () => L("normal", "normal") };
 const DOCK = 0.11;
+const HELI_PAD = { x: -320, z: 10 }, HELI_COST = 8000, HELI_SPEED = 46;   // world units per second; the helicopter flies from the city heliport tower
 
 export function mountOceanSim(host, opts) {
   const { threeUrl, photoBase, reduced, award, recordTrial, toast, setResult } = opts;
@@ -36,6 +37,7 @@ export function mountOceanSim(host, opts) {
     <div class="oc-hint">${tip("mouse")} 🖱 ${L("Drag: Orbit", "Arrastrar: orbitar")} • ${L("Right-Click: Pan", "Clic derecho: mover")} • ${L("Scroll: Zoom", "Rueda: zoom")} • ${L("Arrow keys & +/− when focused", "Flechas y +/− con el foco")}</div>
     <button type="button" class="oc-restore oc-restore--top" data-a="showtop" hidden>▼ ${L("Show Top Menu", "Mostrar menú superior")}</button><button type="button" class="oc-restore oc-restore--bottom" data-a="showbottom" hidden>▲ ${L("Show Bottom Menus & Telemetry", "Mostrar menús y telemetría")}</button>
     <div class="oc-dock"><button type="button" class="oc-btn oc-btn--big" data-a="build">⚡ ${L("+ Build Generators", "+ Construir generadores")}</button>${tip("build")}</div>
+    <div class="oc-bubble oc-bubble--heli" data-k="hbubble" hidden><span>🚁</span><b data-k="hquote"></b></div>
     <div class="oc-bubble" data-k="bubble" hidden><span>🚤</span><b data-k="quote"></b></div>
     <button type="button" class="oc-showopts" data-a="clean" hidden>👁 ${L("Show options", "Mostrar opciones")}</button><div class="oc-mentor" data-k="mentor" aria-live="polite"></div><div class="oc-built" data-k="built" hidden></div><div class="oc-target" data-k="target" hidden></div><div class="oc-flash" data-k="flash" role="status" aria-live="polite"></div></div>
   <div class="oc-botbar"><span><i></i> 📊 ${L("Telemetry & Simulation Controls", "Telemetría y controles de la simulación")}</span><button type="button" class="oc-btn oc-btn--soft" data-a="hidebottom">▼ ${L("Hide Bottom Menus", "Ocultar menús inferiores")}</button></div>
@@ -59,7 +61,7 @@ export function mountOceanSim(host, opts) {
         <div class="oc-grid2"><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Revenue", "Ingreso diario")} ${tip("rev")}</span><b class="gn" data-k="rev"></b></div><div class="oc-tile oc-tile--row"><span class="oc-k">${L("Daily Opex", "Opex diario")} ${tip("opex")}</span><b class="rs" data-k="opex"></b></div></div>
         <div class="oc-row oc-row--line"><span>${L("Fleet LCOE (est.) vs your price", "LCOE de la flota (est.) vs tu precio")} ${tip("lcoe")}</span><b data-k="lcoe"></b></div></div>
       <div class="oc-pane"><div class="oc-row"><span><b>${L("Citizen Approval", "Aprobación ciudadana")}</b> ${tip("happy")}</span><b data-k="happy"></b></div><div class="oc-meter"><i data-k="happyb"></i></div>
-        <div class="oc-tradie"><div class="oc-row"><b>🔧 ${L("Maintenance Workboat", "Barco de mantenimiento")} ${tip("tradie")}</b><span>🚤</span></div><div data-k="tradie"></div></div>
+        <div class="oc-tradie"><div class="oc-row"><b>🔧 ${L("Fleet Maintenance Operations", "Operaciones de mantenimiento de la flota")} ${tip("tradie")}</b><span>🚤🚁</span></div><div data-k="tradie"></div></div>
         <div class="oc-eco"><div title="${L("Game-scaled: about 0.1 acre of land spared per MWh delivered by ocean power", "A escala de juego: unos 0,1 acres de tierra salvados por MWh entregado con energía oceánica")}"><span class="oc-k">🌳 ${L("Land spared", "Tierra salvada")} ${tip("land")}</span><b class="gn" data-k="land"></b></div><div><span class="oc-k">☁ CO₂ ${L("prevented", "evitado")}</span><b class="gn" data-k="co2"></b></div><div><span class="oc-k">🐟 ${L("Ecosystem health", "Salud del ecosistema")}</span><b class="cy" data-k="eco"></b></div><div><span class="oc-k">⏱ ${L("Blackout hours", "Horas de apagón")} ${tip("blackout")}</span><b data-k="blk"></b></div><div><span class="oc-k">⚡ ${L("Generated / delivered", "Generado / entregado")}</span><b data-k="kwhs"></b></div></div></div>
     </div>
   </section>`;
@@ -68,11 +70,12 @@ export function mountOceanSim(host, opts) {
 
   /* ---------------- state ---------------- */
   const S = { scenario: scenarios()[0], day: 1, startDay: 1, hour: 8.0, speed: 1, paused: true, weatherId: "", pendingZ: 0.5, boat: { active: false, xRatio: DOCK, targetXRatio: DOCK, targetDeviceId: "", state: "docked", serviceType: "scrub", cost: 3500, timer: 0 },
+    heli: { active: false, state: "landed", x: HELI_PAD.x, z: HELI_PAD.z, tx: 0, tz: 0, targetDeviceId: "", cable: 0, timer: 0 },
     env: null, grid: null, devices: [], unlocked: [], selectedId: null, pendingTech: null, pendingX: null, showThermocline: false, showReefs: true, blackout: false, snaps: [], debriefed: false, flags: {}, sceneRef: null, openDevice: null };
   const ENV = () => calculateOceanEnvironment(S.day, S.hour, false);
   function loadScenario(sc) {
     S.scenario = sc; S.startDay = sc.startDay || 1; S.day = S.startDay; S.hour = 8.0; S.weatherId = ""; S.grid = newGrid(sc.startingFunds); S.unlocked = sc.startingTech.slice(); S.devices = sc.startingDevices.map((i, idx) => makeDevice(i.techId, i.xRatio, S.day, 5, 0.2 + ((idx * 0.35) % 0.6)));
-    S.selectedId = null; S.pendingTech = null; S.pendingX = null; S.debriefed = false; S.boat = { active: false, xRatio: DOCK, targetXRatio: DOCK, targetDeviceId: "", state: "docked", serviceType: "scrub", cost: 3500, timer: 0 }; S.env = ENV(); S.blackout = false; previewOutputs();
+    S.selectedId = null; S.pendingTech = null; S.pendingX = null; S.debriefed = false; S.boat = { active: false, xRatio: DOCK, targetXRatio: DOCK, targetDeviceId: "", state: "docked", serviceType: "scrub", cost: 3500, timer: 0 }; S.heli = { active: false, state: "landed", x: HELI_PAD.x, z: HELI_PAD.z, tx: 0, tz: 0, targetDeviceId: "", cable: 0, timer: 0 }; soundManager.stopAll(); S.env = ENV(); S.blackout = false; previewOutputs();
     hideTarget(); refresh();
   }
   function previewOutputs() { S.env = ENV(); S.devices = S.devices.map(d => ({ ...d, currentOutputKW: calculateDeviceOutput(d, S.env) })); S.grid = { ...S.grid, currentDemandKW: calculateCityDemand(S.grid.population, S.hour) }; }
@@ -105,10 +108,16 @@ export function mountOceanSim(host, opts) {
     const rated = S.devices.filter(d => techOf(d.techId).category !== "storage"), rw = rated.reduce((a, d) => a + techOf(d.techId).ratedPowerKW, 0), lc = rw ? rated.reduce((a, d) => a + techOf(d.techId).lcoeEstimate * techOf(d.techId).ratedPowerKW, 0) / rw : 0;
     $("lcoe").innerHTML = `$${lc.toFixed(3)} vs $${g.tariffPerKWh.toFixed(3)} <span class="${g.tariffPerKWh >= lc ? "gn" : "rs"}">${g.tariffPerKWh >= lc ? "▲ " + L("margin", "margen") : "▼ " + L("below cost", "bajo coste")}</span>`;
     $("land").textContent = `${g.landSavedAcres.toFixed(1)} ${L("acres", "acres")}`; $("co2").textContent = `${fmt(g.co2PreventedTons, 1)} t`; $("eco").textContent = Math.round(g.marineEcosystemHealth) + "%"; $("blk").textContent = `${g.blackoutHours.toFixed(1)} h`; $("kwhs").textContent = `${fmt(g.totalKWhGenerated)} / ${fmt(g.totalKWhConsumed)} kWh`;
-    const B = S.boat, td = $("tradie");
-    if (B.active) { td.innerHTML = `<div class="oc-boatstat">🚤 ${B.state === "sailing_to" ? L("Workboat cruising to facility!", "¡El barco navega hacia la instalación!") : B.state === "servicing" ? L("Scrubbing barnacles & tuning!", "¡Limpiando percebes y ajustando!") : L("Returning to port!", "¡Volviendo a puerto!")}</div>`; }
-    else if (!td.dataset.idle || td.dataset.f !== String(g.funds >= 3500 && S.devices.length > 0)) { td.dataset.idle = "1"; td.dataset.f = String(g.funds >= 3500 && S.devices.length > 0); td.innerHTML = `<button type="button" class="oc-btn oc-btn--amber oc-wide" data-a="quick" ${g.funds >= 3500 && S.devices.length ? "" : "aria-disabled='true'"}>⚡ ${L("Send Workboat ($3,500)", "Enviar barco ($3.500)")}</button><small class="oc-muted">${L("Cleans biofouling across all generators.", "Limpia la bioincrustación de todos los generadores.")}</small>`; td.querySelector("[data-a=quick]").addEventListener("click", quickDispatch); }
-    if (B.active) td.dataset.idle = "";
+    const B = S.boat, H = S.heli, td = $("tradie"), canB = g.funds >= 3500 && S.devices.length > 0, canH = g.funds >= HELI_COST && S.devices.length > 0;
+    const fkey = [B.active, B.state, H.active, H.state, canB, canH].join("|");
+    if (td.dataset.key !== fkey) {
+      td.dataset.key = fkey;
+      const bstat = B.active ? `<div class="oc-boatstat">🚤 ${B.state === "sailing_to" ? L("Workboat cruising to facility!", "¡El barco navega hacia la instalación!") : B.state === "servicing" ? L("Scrubbing barnacles & tuning!", "¡Limpiando percebes y ajustando!") : L("Returning to port!", "¡Volviendo a puerto!")}</div>` : `<button type="button" class="oc-btn oc-btn--amber oc-wide" data-a="quick" ${canB && !H.active ? "" : "aria-disabled='true'"}>🚤 ${L("Send Workboat (Scrub) $3,500", "Enviar barco (limpieza) $3.500")}</button>`;
+      const hstat = H.active ? `<div class="oc-boatstat">🚁 ${H.state === "flying_to" ? L("Helicopter rushing across the bay!", "¡El helicóptero cruza la bahía a toda velocidad!") : H.state === "dropping" ? L("Winching the floaty & air-dropping supplies!", "¡Bajando el salvavidas y soltando suministros!") : L("Airlift complete! Returning to the helipad.", "¡Rescate completado! Volviendo al helipuerto.")}</div>` : `<button type="button" class="oc-btn oc-btn--soft oc-wide oc-heli" data-a="heli" ${canH && !B.active ? "" : "aria-disabled='true'"}>🚁 ${L("Air-Drop Helicopter (Floaty Drop) $8,000", "Helicóptero con salvavidas $8.000")}</button>`;
+      td.innerHTML = bstat + hstat + `<small class="oc-muted">${L("Workboat scrubs the most fouled generator; the helicopter flies from the city heliport, drops a floaty with a repair pack and restores 100% integrity.", "El barco limpia el generador más sucio; el helicóptero sale del helipuerto de la ciudad, baja un salvavidas con un kit de reparación y restaura el 100% de integridad.")}</small>`;
+      const qb = td.querySelector("[data-a=quick]"); if (qb) qb.addEventListener("click", quickDispatch); const hb = td.querySelector("[data-a=heli]"); if (hb) hb.addEventListener("click", () => dispatchHeli());
+    }
+    const trk = root.querySelector(".oc-track"); if (trk) trk.innerHTML = H.active ? `🚁 ${L("Track Heli", "Seguir helicóptero")}` : `🚤 ${L("Track Boat", "Seguir barco")}`;
     const nd = new Set(S.snaps.map(s => s.cond)).size; $("snapn").textContent = `${S.snaps.length} ${L("snapshot(s) logged", "instantánea(s) registrada(s)")}`; $("snapc").textContent = `${L("Weather days logged", "Días de clima registrados")}: ${nd} ${S.snaps.length >= 3 && nd >= 2 ? "✅" : ""}`;
     const mt = $("mute"); mt.textContent = soundManager.getMuted() ? "🔇" : "🔊"; mt.setAttribute("aria-label", soundManager.getMuted() ? L("Sound off — click to unmute", "Sonido apagado — clic para activar") : L("Sound on — click to mute", "Sonido activado — clic para silenciar")); mt.setAttribute("aria-pressed", String(soundManager.getMuted()));
     const pb = root.querySelector("[data-a=pause]"); pb.innerHTML = S.paused ? `▶ ${L("Resume", "Seguir")}` : `⏸ ${L("Pause", "Pausa")}`; pb.classList.toggle("is-paused", S.paused);
@@ -152,16 +161,32 @@ export function mountOceanSim(host, opts) {
   }
 
   /* ---------------- boat (setInterval 50 ms — time based, not frame based) ---------------- */
-  const boatTimer = setInterval(() => {
+  const boatStep = () => {
     const B = S.boat; if (!B.active || B.state === "docked") return; const dt = 0.05, sp = 0.07;
     if (B.state === "sailing_to") { const d = B.targetXRatio - B.xRatio; if (Math.abs(d) < 0.015) { B.state = "servicing"; B.timer = 2.7; soundManager.playRepairSound(); refresh(); } else B.xRatio += Math.sign(d) * Math.min(sp * dt, Math.abs(d)); }
     else if (B.state === "servicing") { B.timer -= dt; if (B.timer <= 0) {
       S.devices = S.devices.map(d => d.instanceId !== B.targetDeviceId ? d : { ...d, biofouling: B.serviceType === "scrub" ? 0 : Math.max(0, d.biofouling - 40), integrity: B.serviceType === "overhaul" ? 100 : Math.min(100, d.integrity + 20), lastMaintainedDay: S.day });
       B.state = "returning"; soundManager.playVictoryFanfare(); flash(L("✔ Service complete — the tradies head home.", "✔ Servicio terminado — los técnicos vuelven a casa."), "info"); award("svc", L("Maintenance crew chief", "Jefe de cuadrilla de mantenimiento")); previewOutputs(); refresh(); } }
-    else if (B.state === "returning") { const d = DOCK - B.xRatio; if (Math.abs(d) < 0.015) { B.state = "docked"; B.active = false; B.xRatio = DOCK; refresh(); } else B.xRatio += Math.sign(d) * Math.min(sp * dt, Math.abs(d)); }
-  }, 50);
+    else if (B.state === "returning") { const d = DOCK - B.xRatio; if (Math.abs(d) < 0.015) { B.state = "docked"; B.active = false; B.xRatio = DOCK; soundManager.stopBoatLoop(); refresh(); } else B.xRatio += Math.sign(d) * Math.min(sp * dt, Math.abs(d)); }
+  };
+  /* air-drop helicopter: flies from the heliport tower, winches a floaty down, repairs, flies home (setInterval, never rAF) */
+  function heliStep() {
+    const H = S.heli; if (!H.active || H.state === "landed") return; const dt = 0.05;
+    if (H.state === "flying_to") { const dx = H.tx - H.x, dz = H.tz - H.z, dist = Math.hypot(dx, dz); if (dist < 10) { H.state = "dropping"; H.timer = 3.2; H.cable = 0; soundManager.playRepairSound(); refresh(); } else { const st = Math.min(HELI_SPEED * dt, dist); H.x += (dx / dist) * st; H.z += (dz / dist) * st; } }
+    else if (H.state === "dropping") { H.cable = Math.min(1, H.cable + 1.5 * dt); H.timer -= dt; if (H.timer <= 0) {
+      S.devices = S.devices.map(d => d.instanceId !== H.targetDeviceId ? d : { ...d, biofouling: 0, integrity: 100, lastMaintainedDay: S.day });
+      H.state = "returning"; soundManager.playVictoryFanfare(); flash(L("✔ Air-drop repair complete — the helicopter heads back to the heliport.", "✔ Reparación aérea completada — el helicóptero vuelve al helipuerto."), "info"); award("heli", L("Air-drop rescuer", "Rescate aéreo")); previewOutputs(); refresh(); } }
+    else if (H.state === "returning") { if (H.cable > 0) H.cable = Math.max(0, H.cable - 1.8 * dt); const dx = HELI_PAD.x - H.x, dz = HELI_PAD.z - H.z, dist = Math.hypot(dx, dz);
+      if (dist < 6 && H.cable <= 0.05) { H.active = false; H.state = "landed"; H.x = HELI_PAD.x; H.z = HELI_PAD.z; H.cable = 0; soundManager.stopHelicopterLoop(); refresh(); } else if (dist >= 6) { const st = Math.min(HELI_SPEED * dt, dist); H.x += (dx / dist) * st; H.z += (dz / dist) * st; } }
+  }
+  const boatTimer = setInterval(() => { boatStep(); heliStep(); }, 50);
   const QUOTES = [L("Ha ha ha! Ahoy mate! Electrician tradies to the rescue! ⚡🏴‍☠️", "¡Ja ja ja! ¡Ahoy, amigo! ¡Los electricistas al rescate! ⚡🏴‍☠️"), L("Hold on to your toolbelts, lads! Full tradie throttle! 🚤", "¡Agarrad los cinturones de herramientas! ¡A toda máquina! 🚤"), L("Who ordered the ocean plumbers? Pipe wrench ready! 🪠", "¿Quién pidió los fontaneros del océano? ¡Llave lista! 🪠"), L("Avast ye barnacles! Tradies incoming! 🦀", "¡Alerta, percebes! ¡Llegan los técnicos! 🦀")];
   let lastQuote = "";
+  function heliScreen(x, y, visible) {
+    const b = $("hbubble"), H = S.heli; b.hidden = !(visible && H.active); if (!visible || !H.active) return; b.style.left = x + "px"; b.style.top = y - 16 + "px";
+    const q = H.state === "dropping" ? L("🛟 Floaty Dropped & Scrubbing! 🧼", "🛟 ¡Salvavidas bajado y limpiando! 🧼") : H.state === "returning" ? L("Returning to Helipad ⚓", "Volviendo al helipuerto ⚓") : L("Emergency Airlift En Route ⚡", "Rescate aéreo en camino ⚡");
+    if ($("hquote").textContent !== q) $("hquote").textContent = q;
+  }
   function boatScreen(x, y, visible, t) {
     const b = $("bubble"), B = S.boat; b.hidden = !(visible && B.active); if (!visible || !B.active) return; b.style.left = x + "px"; b.style.top = y - 12 + "px";
     const q = B.state === "servicing" ? L("Scrubbing Barnacles 🧼", "Limpiando percebes 🧼") : B.state === "returning" ? L("Heading to Port ⚓", "Rumbo a puerto ⚓") : L("En Route ⚡", "En camino ⚡");
@@ -171,15 +196,25 @@ export function mountOceanSim(host, opts) {
   /* ---------------- actions ---------------- */
   function dispatch(id, type) {
     const cost = type === "scrub" ? 3500 : 12000, target = S.devices.find(d => d.instanceId === id); if (!target) return false;
-    if (S.boat.active) { flash(L("The tradies are already out on a job.", "Los técnicos ya están en un trabajo."), "warn"); return false; }
-    if (S.grid.funds < cost) { soundManager.playWarningAlert(); flash(L(`The treasury can't afford the ${usd(cost)} service boat. Adjust the price to build savings.`, `La tesorería no puede pagar el barco de servicio de ${usd(cost)}. Ajusta el precio para ahorrar.`), "warn"); return false; }
+    if (S.boat.active) { flash(L("The workboat is already out on a job.", "El barco ya está en un trabajo."), "warn"); return false; }
+    if (S.heli.active) { flash(L("The helicopter is already out on a job.", "El helicóptero ya está en un trabajo."), "warn"); return false; }
+    if (S.grid.funds < cost) { soundManager.playWarningAlert(); mentorSay("budget-boat", "warn", L("City Treasury Budget Alert", "Alerta de presupuesto de la ciudad"), L(`The treasury cannot afford the ${usd(cost)} maintenance crew dispatch. Increase the tariff or let energy revenue build up first.`, `La tesorería no puede pagar los ${usd(cost)} del envío de la cuadrilla. Sube la tarifa o deja que los ingresos se acumulen primero.`), 0, true); return false; }
     S.grid = { ...S.grid, funds: S.grid.funds - cost }; S.boat = { active: true, xRatio: DOCK, targetXRatio: target.xRatio, targetDeviceId: id, state: "sailing_to", serviceType: type, cost, timer: 0 };
-    soundManager.playBoatHorn(); flash(L(`Tradies dispatched (${usd(cost)}).`, `Técnicos enviados (${usd(cost)}).`), "info"); if (sceneApi && !tracked) { sceneApi.setTracking(true); tracked = true; root.querySelector(".oc-track").classList.add("is-on"); } refresh(); return true;
+    soundManager.startBoatLoop(); flash(L(`Workboat dispatched (${usd(cost)}).`, `Barco enviado (${usd(cost)}).`), "info"); if (sceneApi) { sceneApi.setTracking(true); tracked = "boat"; root.querySelector(".oc-track").classList.add("is-on"); } refresh(); return true;
+  }
+  function dispatchHeli(id) {
+    if (S.heli.active) return false; if (S.boat.active) { flash(L("The workboat is already out on a job.", "El barco ya está en un trabajo."), "warn"); return false; } if (!S.devices.length) return false;
+    if (S.grid.funds < HELI_COST) { soundManager.playWarningAlert(); mentorSay("budget-heli", "warn", L("Helicopter Budget Alert", "Alerta de presupuesto del helicóptero"), L(`The treasury cannot afford the ${usd(HELI_COST)} air-drop helicopter. Adjust the tariff or wait for revenue to build reserves.`, `La tesorería no puede pagar los ${usd(HELI_COST)} del helicóptero. Ajusta la tarifa o espera a que los ingresos acumulen reservas.`), 0, true); return false; }
+    const target = (id && S.devices.find(d => d.instanceId === id)) || [...S.devices].sort((a, b) => b.biofouling - a.biofouling)[0]; if (!target) return false;
+    S.grid = { ...S.grid, funds: S.grid.funds - HELI_COST };
+    S.heli = { active: true, state: "flying_to", x: HELI_PAD.x, z: HELI_PAD.z, tx: xToWorld(target.xRatio), tz: -200 + (target.zRatio ?? 0.5) * 400, targetDeviceId: target.instanceId, cable: 0, timer: 0 };
+    soundManager.startHelicopterLoop(); flash(L(`Air-drop helicopter dispatched (${usd(HELI_COST)}).`, `Helicóptero enviado (${usd(HELI_COST)}).`), "info");
+    if (sceneApi) { sceneApi.setTracking("heli"); tracked = "heli"; root.querySelector(".oc-track").classList.add("is-on"); } refresh(); return true;
   }
   function quickDispatch() { const worst = [...S.devices].sort((a, b) => b.biofouling - a.biofouling)[0]; if (worst) dispatch(worst.instanceId, "scrub"); }
   const ctx = {
     photoBase, funds: () => S.grid.funds, unlocked: () => S.unlocked, tariff: () => S.grid.tariffPerKWh, device: id => S.devices.find(d => d.instanceId === id), toast: notify, confetti: () => confetti(root), award,
-    selectToPlace(id) { beginPlace(id); }, unlock(id, c) { S.grid = { ...S.grid, funds: S.grid.funds - c }; S.unlocked = [...S.unlocked, id]; refresh(); award("rnd", L("R&D pioneer", "Pionero de I+D")); },
+    selectToPlace(id) { beginPlace(id); }, dispatchHeli: id => dispatchHeli(id), heliCost: HELI_COST, unlock(id, c) { S.grid = { ...S.grid, funds: S.grid.funds - c }; S.unlocked = [...S.unlocked, id]; refresh(); award("rnd", L("R&D pioneer", "Pionero de I+D")); },
     dispatch, decommission(id) { const d = S.devices.find(x => x.instanceId === id); if (!d) return; S.grid = { ...S.grid, funds: S.grid.funds + Math.round(techOf(d.techId).capex * 0.4) }; S.devices = S.devices.filter(x => x.instanceId !== id); S.selectedId = null; previewOutputs(); refresh(); },
     deselect() { S.selectedId = null; S.openDevice = null; }, status: () => ({ scenarioId: S.scenario.id, grid: S.grid, devices: S.devices, day: S.day }),
     startScenario(id) { loadScenario(scenarios().find(s => s.id === id)); S.paused = false; refresh(); }, noteCompare() { award("compare", L("Land vs Ocean analyst", "Analista tierra vs océano")); },
@@ -199,7 +234,7 @@ export function mountOceanSim(host, opts) {
     const t = techOf(id);
     if (!isEligible(id, xr)) { soundManager.playWarningAlert(); flash(L(`${t.name} can only be built in: ${t.depthZone.map(z => ZONES[z].name()).join(" / ")}.`, `${t.name} solo se puede construir en: ${t.depthZone.map(z => ZONES[z].name()).join(" / ")}.`), "warn"); return; }
     if (S.grid.funds < t.capex) { soundManager.playWarningAlert(); flash(L(`Budget Warning: ${t.name} costs ${usd(t.capex)}. Your treasury has ${usd(S.grid.funds)}.`, `Aviso de presupuesto: ${t.name} cuesta ${usd(t.capex)}. Tu tesorería tiene ${usd(S.grid.funds)}.`), "warn"); return; }
-    S.grid = { ...S.grid, funds: S.grid.funds - t.capex }; const nd = makeDevice(id, xr, S.day, 0, zr); S.devices = [...S.devices, nd]; hideTarget(); soundManager.playPlaceSound(); previewOutputs(); refresh(); showBuilt(nd); confetti(root);
+    S.grid = { ...S.grid, funds: S.grid.funds - t.capex }; const nd = makeDevice(id, xr, S.day, 0, zr); S.devices = [...S.devices, nd]; hideTarget(); soundManager.playPlaceSound(); previewOutputs(); refresh(); showBuilt(nd); if (S.celebrated !== nd.instanceId) { S.celebrated = nd.instanceId; confetti(root); setTimeout(() => confetti(root), 500); setTimeout(() => confetti(root), 1000); }
     flash(L(`Built ${t.name} for ${usd(t.capex)}.`, `Construido: ${t.name} por ${usd(t.capex)}.`), "info"); award("builder", L("Offshore builder", "Constructor marino"));
   }
   function selectDevice(id) {
@@ -259,7 +294,7 @@ export function mountOceanSim(host, opts) {
       else if (k === "thermo") { S.showThermocline = !S.showThermocline; a.setAttribute("aria-pressed", String(S.showThermocline)); a.classList.toggle("is-on", S.showThermocline); soundManager.playClick(); if (S.showThermocline) award("thermo", L("Thermocline explorer", "Explorador de la termoclina")); }
       else if (k === "reefs") { S.showReefs = !S.showReefs; a.setAttribute("aria-pressed", String(S.showReefs)); a.classList.toggle("is-on", S.showReefs); soundManager.playClick(); }
       else if (k === "mute") { soundManager.toggleMute(); soundManager.playClick(); refresh(); }
-      else if (k === "track") { tracked = !tracked; sceneApi && sceneApi.setTracking(tracked); a.classList.toggle("is-on", tracked); soundManager.playClick(); }
+      else if (k === "track") { tracked = tracked ? false : (S.heli.active ? "heli" : "boat"); sceneApi && sceneApi.setTracking(tracked); a.classList.toggle("is-on", !!tracked); soundManager.playClick(); }
     }
     const c = e.target.closest("[data-cam]"); if (c && sceneApi) { sceneApi.preset(c.dataset.cam); tracked = false; root.querySelector(".oc-track").classList.remove("is-on"); $$("[data-cam]").forEach(b => b.classList.toggle("is-on", b === c && b.textContent.trim() !== "⟲")); soundManager.playClick(); }
     const sp = e.target.closest("[data-sp]"); if (sp) { S.speed = +sp.dataset.sp; $$("[data-sp]").forEach(b => b.classList.toggle("is-on", b === sp)); startTick(); soundManager.playClick(); }
@@ -277,18 +312,21 @@ export function mountOceanSim(host, opts) {
   loadScenario(S.scenario); S.paused = true; refresh();
   createScene($("scene"), {
     state: () => S, reduced: () => { const a = document.documentElement.getAttribute("data-reduced-motion"); return a === "on" || (a !== "off" && !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)); }, label: L("Pacifica Bay 3D ocean. Use the Build button, then the position slider, to build with the keyboard.", "Océano 3D de Pacifica Bay. Usa el botón Construir y luego el control de posición para construir con el teclado."), fallbackNote: L("2D view (WebGL unavailable)", "Vista 2D (WebGL no disponible)"),
-    onSelect: id => { if (id) selectDevice(id); else S.selectedId = null; }, onPlace: (tid, xr, zw) => tryPlace(tid, xr, Math.max(0.06, Math.min(0.94, ((zw || 0) + 200) / 400))), onHoverX: (xr, zr) => { if (S.pendingTech) { S.pendingX = xr; if (zr !== undefined) S.pendingZ = zr; S.updTarget && S.updTarget(); } }, onBoatScreen: boatScreen, onUserCamera: () => { if (tracked) { tracked = false; const t = root.querySelector(".oc-track"); t && t.classList.remove("is-on"); } },
+    onSelect: id => { if (id) selectDevice(id); else S.selectedId = null; }, onPlace: (tid, xr, zw) => tryPlace(tid, xr, Math.max(0.06, Math.min(0.94, ((zw || 0) + 200) / 400))), onHoverX: (xr, zr) => { if (S.pendingTech) { S.pendingX = xr; if (zr !== undefined) S.pendingZ = zr; S.updTarget && S.updTarget(); } }, onBoatScreen: boatScreen, onHeliScreen: heliScreen, onBoatClick: () => { if (!S.boat.active && !S.heli.active) quickDispatch(); }, onHeliClick: () => { if (!S.heli.active) dispatchHeli(); soundManager.playClick(); }, onUserCamera: () => { if (tracked) { tracked = false; const t = root.querySelector(".oc-track"); t && t.classList.remove("is-on"); } },
   }, threeUrl).then(api => { if (destroyed) { api.destroy(); return; } sceneApi = api; $("scene").dataset.kind = api.kind; });
 
   /* ---------------- mentor alerts (toast + history + chimes) ---------------- */
   const mentorLog = [], mentorSeen = {};
-  function mentorSay(id, kind, title, body, cool = 40) {
-    const now = S.day * 24 + S.hour; if (mentorSeen[id] !== undefined && now - mentorSeen[id] < cool) return; mentorSeen[id] = now;
+  let lastDismiss = 0;
+  function mentorSay(id, kind, title, body, cool = 30000, force = false) {
+    const box = $("mentor"), nowMs = Date.now();
+    if (!force) { if (box.children.length) return; if (nowMs - lastDismiss < 10000) return; if (mentorSeen[id] !== undefined && nowMs - mentorSeen[id] < cool) return; }   // never interrupt a visible alert; 10 s of peace between pop-ups
+    mentorSeen[id] = nowMs;
     mentorLog.unshift({ kind, title, body, day: S.day }); if (mentorLog.length > 12) mentorLog.pop();
     kind === "good" ? soundManager.playPraiseChime() : soundManager.playAlertChime();
-    const box = $("mentor"), t = document.createElement("div"); t.className = "oc-mentor__t is-" + kind; t.setAttribute("role", "status");
-    t.innerHTML = `<button type="button" aria-label="${L("Dismiss", "Cerrar")}">✕</button><b>${kind === "good" ? "🌟" : "🧭"} ${title}</b>${body}`; box.append(t);
-    const rm = () => t.remove(); t.querySelector("button").addEventListener("click", rm); setTimeout(rm, 9000); while (box.children.length > 2) box.firstChild.remove();
+    const t = document.createElement("div"); t.className = "oc-mentor__t is-" + kind; t.setAttribute("role", "status");
+    t.innerHTML = `<button type="button" aria-label="${L("Dismiss early", "Cerrar")}">✕</button><b>${kind === "good" ? "🌟" : "🧭"} ${title}</b><span class="oc-mentor__ctx">${L("Context", "Contexto")}:</span> ${body}`; if (force) box.innerHTML = ""; box.append(t);
+    const rm = () => { if (t.isConnected) { t.remove(); lastDismiss = Date.now(); } }; t.querySelector("button").addEventListener("click", rm); setTimeout(rm, 5000);
   }
   function mentor() {
     const g = S.grid; if (S.day < 2 && S.hour < 12) return;
@@ -296,12 +334,12 @@ export function mountOceanSim(host, opts) {
     if (g.isBlackout) mentorSay("blk", "warn", L("Blackout!", "¡Apagón!"), L("Demand beat supply plus storage. Add baseload (OTEC, osmotic, kites) or storage for calm, dark hours.", "La demanda superó la oferta más el almacenamiento. Añade base constante (OTEC, osmótica, cometas) o almacenamiento para las horas calmas y oscuras."));
     if (g.maxStorageCapacityKWh > 0 && g.storedEnergyKWh / g.maxStorageCapacityKWh < 0.1 && S.devices.length) mentorSay("store", "warn", L("Storage nearly empty", "Almacenamiento casi vacío"), L("Batteries only help if they were charged by a surplus first.", "Las baterías solo ayudan si antes se cargaron con un excedente."));
     const worst = [...S.devices].sort((a, b) => b.biofouling - a.biofouling)[0];
-    if (worst && worst.biofouling > 50) mentorSay("foul", "warn", L("Biofouling building up", "Bioincrustación creciente"), L("Barnacles cut output by up to 30%. Send the workboat to scrub.", "Los percebes reducen la producción hasta un 30%. Envía el barco a limpiar."));
+    if (worst && worst.biofouling > 50) mentorSay("foul", "warn", L("Biofouling building up", "Bioincrustación creciente"), L("Barnacles cut output by up to 30%. Send the workboat or the helicopter to clean them.", "Los percebes reducen la producción hasta un 30%. Envía el barco o el helicóptero a limpiarlos."));
     if (S.devices.some(d => d.integrity < 30)) mentorSay("int", "warn", L("A generator is failing", "Un generador falla"), L("Integrity is under 30%. Order an overhaul before it breaks.", "La integridad es menor del 30%. Pide una revisión antes de que se averíe."));
     if (g.tariffPerKWh > 0.22) mentorSay("price", "warn", L("Prices are too high", "Precios demasiado altos"), L("Families are struggling to pay. Approval will fall fast above $0.22.", "Las familias tienen problemas para pagar. La aprobación cae rápido sobre $0,22."));
     if (g.citizenApproval < 45) mentorSay("appr", "warn", L("Citizens are unhappy", "Ciudadanos descontentos"), L("Check for blackouts and high bills.", "Revisa los apagones y las facturas altas."));
-    if (S.devices.length >= 1 && mentorSeen.first === undefined) mentorSay("first", "good", L("Nice start", "Buen comienzo"), L("Your first generator is online. Open the weather forecast and watch what changes from day to day.", "Tu primer generador está en marcha. Abre el pronóstico y mira qué cambia de un día a otro."), 9999);
-    if (S.day >= 3 && g.citizenApproval >= 75 && g.tariffPerKWh >= 0.12 && g.tariffPerKWh <= 0.17) mentorSay("fair", "good", L("Fair price, happy city", "Precio justo, ciudad feliz"), L("Approval is above 75% at a fair price. Log a snapshot as evidence.", "La aprobación supera el 75% con un precio justo. Registra una instantánea como evidencia."), 96);
+    if (S.devices.length >= 1 && mentorSeen.first === undefined) mentorSay("first", "good", L("Nice start", "Buen comienzo"), L("Your first generator is online. Open the weather forecast and watch what changes from day to day.", "Tu primer generador está en marcha. Abre el pronóstico y mira qué cambia de un día a otro."), 1e12);
+    if (S.day >= 3 && g.citizenApproval >= 75 && g.tariffPerKWh >= 0.12 && g.tariffPerKWh <= 0.17) mentorSay("fair", "good", L("Fair price, happy city", "Precio justo, ciudad feliz"), L("Approval is above 75% at a fair price. Log a snapshot as evidence.", "La aprobación supera el 75% con un precio justo. Registra una instantánea como evidencia."), 120000);
   }
   function openMentorHistory() {
     const dlg = openDialog(root, { title: L("Mentor alert history", "Historial de alertas del mentor") });
@@ -333,7 +371,7 @@ export function mountOceanSim(host, opts) {
       [L("1 · Read the dashboard", "1 · Lee el panel"), L("Treasury, price and approval sit at the top. Hover or tap any ❓ to learn what a number means.", "Tesorería, precio y aprobación están arriba. Pasa el ratón o toca un ❓ para saber qué significa cada número."), null],
       [L("2 · Build a generator", "2 · Construye un generador"), L("Open the catalog and choose a technology for the right depth zone.", "Abre el catálogo y elige una tecnología para la zona de profundidad correcta."), [L("Open catalog", "Abrir catálogo"), () => openBuildDrawer(root, ctx)]],
       [L("3 · Watch the weather", "3 · Vigila el clima"), L("Open the weather forecast, then compare how each technology reacts on different weather days at the same hour. That is a fair test.", "Abre el pronóstico y compara cómo reacciona cada tecnología en días de clima distintos a la misma hora. Eso es una prueba justa."), [L("Open forecast", "Abrir pronóstico"), () => openForecast()]],
-      [L("4 · Keep it maintained", "4 · Mantenimiento"), L("Barnacles cut output. Send the workboat to scrub your facilities.", "Los percebes reducen la producción. Envía el barco a limpiar tus instalaciones."), [L("Send the boat", "Enviar el barco"), () => quickDispatch()]],
+      [L("4 · Keep it maintained", "4 · Mantenimiento"), L("Barnacles cut output. Send the workboat ($3,500) or the air-drop helicopter ($8,000) to restore your facilities.", "Los percebes reducen la producción. Envía el barco ($3.500) o el helicóptero ($8.000) para restaurar tus instalaciones."), [L("Send the workboat", "Enviar el barco"), () => quickDispatch()]],
       [L("5 · Log your evidence", "5 · Registra tu evidencia"), L("Log a snapshot on each weather day you compare. They fill your Investigation Record.", "Registra una instantánea en cada día de clima que compares. Llenan tu Registro de investigación."), [L("Log snapshot", "Registrar instantánea"), () => logSnapshot()]],
     ];
     const dlg = openDialog(root, { title: L("Tutorial (5 steps)", "Tutorial (5 pasos)") });
@@ -348,7 +386,7 @@ export function mountOceanSim(host, opts) {
     paint();
   }
   intro(); startTick();
-  function destroy() { if (destroyed) return; destroyed = true; clearInterval(tickTimer); clearInterval(boatTimer); sceneApi && sceneApi.destroy(); }
+  function destroy() { if (destroyed) return; destroyed = true; soundManager.stopAll(); clearInterval(tickTimer); clearInterval(boatTimer); sceneApi && sceneApi.destroy(); }
   return { destroy, state: () => S, select: selectDevice };
 }
 
