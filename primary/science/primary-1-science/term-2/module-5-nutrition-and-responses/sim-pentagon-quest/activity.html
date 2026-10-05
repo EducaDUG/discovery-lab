@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pentagon Quest — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Pentagon Quest ---- */
+.pq-card{padding:var(--sp-4);border-radius:var(--radius-lg);border:1px solid var(--line);background:var(--surface);}
+.pq-hint{font-size:var(--step--1);color:var(--ink-3);}
+.pq-actions{display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-top:var(--sp-3);}
+.pq-say{margin:0 0 var(--sp-3);padding:.6em .9em;border-radius:var(--radius);background:linear-gradient(90deg,#fff3d6,#ffe7f1);border:2px solid #ffd58a;color:#3a2a14;font-weight:700;font-size:var(--step-0);}
+.pq-say:empty{display:none}
+.pq-say--warn{background:#ffe4e0;border-color:#f0988f}
+.pq-chip{display:inline-block;padding:.2em .7em;border-radius:99px;color:#fff;font-weight:800;font-size:var(--step--1);margin:.15em .2em .15em 0;}
+.pq-shake{animation:pqShake .38s ease}
+.pq-pop{animation:pqPop .5s var(--ease-out-back)}
+@keyframes pqShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes pqPop{0%{transform:scale(.85)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+[data-reduced-motion=on] .pq-shake,[data-reduced-motion=on] .pq-pop{animation:none}
+
+/* hub layout */
+.pq-hub{display:grid;gap:var(--sp-4)}
+.pq-top{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:linear-gradient(#5fb7ff,#ffe9c9);border:3px solid #ffd58a;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.pq-top{scroll-margin-top:72px}
+.pq-3d{width:100%;aspect-ratio:16/9;max-height:46vh;min-height:230px}
+.pq-no3d{padding:var(--sp-4);text-align:center;background:#eef7ff}
+.pq-hud{position:absolute;left:10px;top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;pointer-events:none}
+.pq-hud__pill{background:rgba(255,255,255,.92);border-radius:99px;padding:.25em .8em;font-weight:900;font-size:var(--step--1);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.pq-dots{display:inline-flex;gap:4px}.pq-dot{width:11px;height:11px;border-radius:50%;background:#d6d2c8;border:2px solid #fff}.pq-dot.is-on{background:#3bb58a}.pq-dot.is-now{background:#f0a024}
+.pq-balance{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.92);border-radius:14px;padding:.3em .8em;font-weight:900;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.15);pointer-events:none}
+.pq-balance b{display:block;font-size:1.5rem;line-height:1}
+.pq-mid{display:grid;grid-template-columns:minmax(0,17rem) minmax(0,1fr);gap:var(--sp-4);align-items:start}
+@media(max-width:760px){.pq-mid{grid-template-columns:1fr}.pq-radar{max-width:13rem;margin:0 auto}.pq-rush__btns{gap:4px}.pq-rushbtn__l{font-size:.55rem}.pq-slot{width:4.2rem;height:3.6rem}}
+.pq-radar{background:#fff;border:2px solid var(--line);border-radius:var(--radius-lg);padding:var(--sp-2)}
+.pq-radar svg{width:100%;height:auto;display:block}
+.pq-main{min-height:18rem}
+.pq-daygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(13rem,1fr));gap:var(--sp-3)}
+.pq-day{text-align:left;border:3px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);padding:var(--sp-3);cursor:pointer;touch-action:manipulation;transition:transform .15s}
+.pq-day:hover{transform:translateY(-3px)}
+.pq-day.is-next{border-color:#f0a024;box-shadow:0 0 0 4px #ffe2a8}
+.pq-day.is-done{border-color:#3bb58a}
+.pq-day__ico{font-size:2rem}.pq-day b{display:block;font-size:var(--step-0)}.pq-day span.s{font-size:var(--step--1);color:var(--ink-3)}
+.pq-stations{display:grid;grid-template-columns:repeat(auto-fit,minmax(7.2rem,1fr));gap:var(--sp-2)}
+.pq-st{position:relative;border:3px solid var(--c,#ccc);border-radius:var(--radius-lg);overflow:hidden;background:#fff;cursor:pointer;padding:0;touch-action:manipulation;transition:transform .15s}
+.pq-st:hover:not(:disabled){transform:translateY(-3px)}
+.pq-st img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.pq-st span{display:block;padding:.35em .2em;font-weight:900;font-size:var(--step--1);background:var(--c);color:#fff}
+.pq-st:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.7)}
+.pq-st.is-sel{outline:4px solid #f0a024}
+.pq-res{display:grid;gap:var(--sp-2)}
+.pq-bar{display:grid;grid-template-columns:7.5rem 1fr 2.4rem;gap:8px;align-items:center;font-weight:800;font-size:var(--step--1)}
+.pq-bar i{display:block;height:16px;border-radius:99px;background:var(--c);transition:width .8s var(--ease-out-back)}
+.pq-bar div{background:#eee;border-radius:99px;overflow:hidden}
+.pq-link{font-size:var(--step--1);padding:.35em .7em;border-left:5px solid var(--c);background:#fff;border-radius:6px;margin:.2em 0}
+.pq-link--bad{background:#fff0ee}
+.pq-credit{font-size:.68rem;color:var(--ink-3);margin-top:var(--sp-2)}
+.pq-credit a{color:inherit}
+
+/* quests */
+.pq-quest{display:grid;gap:var(--sp-3)}
+.pq-grid{display:grid;gap:var(--sp-2);grid-template-columns:repeat(auto-fit,minmax(9rem,1fr))}
+.pq-grid--photo{grid-template-columns:repeat(auto-fit,minmax(5.4rem,1fr))}
+.pq-photo{border:3px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:#fff;padding:0;cursor:pointer;touch-action:manipulation;transition:transform .12s}
+.pq-photo:hover:not(:disabled){transform:translateY(-3px)}
+.pq-photo img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.pq-photo span{display:block;padding:.3em;font-weight:800;font-size:var(--step--1)}
+.pq-slots{display:flex;gap:var(--sp-2);flex-wrap:wrap}
+.pq-slot{width:5.2rem;height:4.2rem;border:3px dashed var(--line);border-radius:14px;background:#fffdf6;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden;cursor:pointer;touch-action:manipulation}
+.pq-slot.is-full{border-style:solid}.pq-slot img{width:100%;height:100%;object-fit:cover}.pq-slot__n{font-weight:900;color:#c9c3b3;font-size:1.4rem}
+.pq-lunch{display:grid;gap:var(--sp-2);padding:var(--sp-3);border-radius:var(--radius-lg);background:#fff3d6;border:3px solid #f0c36a}
+.pq-helpers{min-height:2.2rem}
+.pq-opt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25em;text-align:center;border:3px solid var(--line);border-radius:var(--radius-lg);background:#fff;padding:.7em .5em;font-weight:800;font-size:var(--step--1);cursor:pointer;touch-action:manipulation;min-height:5.4rem;transition:transform .12s}
+.pq-opt:hover:not(:disabled){transform:translateY(-3px);border-color:#f0a024}
+.pq-opt__ico{font-size:1.9rem;line-height:1}
+.pq-opt.is-hit{border-color:#3bb58a;background:#e6f8ef}
+.pq-opt.is-miss{border-color:#e0463d;background:#ffecea}
+.pq-opt:disabled{cursor:default}
+.pq-opt--stop{border-color:#e0463d}.pq-opt--wide{min-height:4rem;flex-direction:row;justify-content:center;gap:.7em;font-size:var(--step-0)}
+.pq-stage{display:flex;align-items:flex-end;justify-content:center;gap:var(--sp-5);padding:var(--sp-3);border-radius:var(--radius-lg);background:linear-gradient(#bfe6ff,#d8f2c8);min-height:9rem;border:3px solid #cfe8f5}
+.pq-stage--play{background:linear-gradient(#ffe8c2,#e7f5cf)}
+.pq-hearts{position:absolute;font-size:1.6rem;font-weight:900}
+.pq-stage--play{position:relative}.pq-hearts{left:50%;top:6px;transform:translateX(-50%)}
+.pq-friendwrap[hidden]{display:none}
+.pq-pipwrap.pq-a-run{animation:pqRun .5s ease-in-out infinite}.pq-pipwrap.pq-a-dance{animation:pqDance .7s ease-in-out infinite}
+.pq-pipwrap.pq-a-swim{animation:pqSwim 1s ease-in-out infinite}.pq-pipwrap.pq-a-climb{animation:pqClimb .9s ease-in-out infinite}.pq-pipwrap.pq-a-stretch{animation:pqStretch 1.2s ease-in-out infinite;transform-origin:bottom}
+@keyframes pqRun{0%,100%{transform:translateX(-12px) rotate(-6deg)}50%{transform:translateX(12px) translateY(-14px) rotate(6deg)}}
+@keyframes pqDance{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg) translateY(-12px)}}
+@keyframes pqSwim{0%,100%{transform:translateX(-14px) translateY(0)}50%{transform:translateX(14px) translateY(6px)}}
+@keyframes pqClimb{0%,100%{transform:translateY(8px)}50%{transform:translateY(-22px)}}
+@keyframes pqStretch{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.22) scaleX(.9)}}
+[data-reduced-motion=on] .pq-pipwrap{animation:none!important}
+.pq-room{position:relative;border-radius:var(--radius-lg);overflow:hidden;border:3px solid #6a5ad6}
+.pq-room__svg{display:block;width:100%;height:auto}
+.pq-room__dark{position:absolute;inset:0;background:#0d0a2e;opacity:0;transition:opacity .8s;z-index:1;pointer-events:none}
+.pq-room.is-bright::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.35);z-index:2;pointer-events:none}
+.pq-room__pip{position:absolute;right:16%;bottom:12%;z-index:3}.pq-room__zz{position:absolute;right:12%;top:14%;font-size:1.4rem;z-index:3}
+.pq-cove .pq-feel{margin:0;font-weight:700;color:#116b7a}
+.pq-covescene{position:relative;display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3);border-radius:var(--radius-lg);background:linear-gradient(#ffe0d6,#ffd1c4);border:3px solid #f0988f;transition:background .8s}
+.pq-covescene.is-warn{background:linear-gradient(#ff9d90,#ff7b6b)}
+.pq-covescene.is-away,.pq-covescene.is-cheer{background:linear-gradient(#d0f4ee,#b8ecdf);border-color:#6fd0b8}
+.pq-scn{flex:1}.pq-scn__ico{font-size:2rem}.pq-scn p{margin:.2em 0 0;font-weight:800}
+.pq-meter{position:relative;width:34px;height:110px;border-radius:99px;background:#fff;border:3px solid #2b2140;overflow:hidden;flex:none}
+.pq-meter__fill{position:absolute;left:0;right:0;bottom:0;height:35%;transition:height .6s,background .6s}
+.pq-meter span{position:absolute;left:0;right:0;bottom:-1px;text-align:center;font-size:.5rem;font-weight:900;color:#2b2140;mix-blend-mode:difference}
+.pq-stepbar{display:flex;flex-wrap:wrap;gap:6px}
+.pq-stepbar__s{padding:.15em .6em;border-radius:99px;background:#eee;font-size:var(--step--2);font-weight:800;color:#777}
+.pq-stepbar__s.is-done{background:#c9f0dd;color:#146b46}.pq-stepbar__s.is-now{background:#ffd58a;color:#5a3a00}
+.pq-breath{position:relative;height:11rem;display:flex;align-items:center;justify-content:center}
+.pq-breath__guide{position:absolute;width:9rem;height:9rem;border:4px dashed #8ad9c8;border-radius:50%}
+.pq-breath__ball{width:5rem;height:5rem;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9fff6,#3bb58a);transition:transform .12s linear;box-shadow:0 0 24px rgba(59,181,138,.5)}
+.pq-breath__txt{position:absolute;bottom:0;font-weight:900;color:#116b7a}
+.pq-breathbtn{touch-action:none;user-select:none;min-height:3.2rem}
+.pq-rush{display:grid;gap:var(--sp-2)}
+.pq-rush__time{height:10px;border-radius:99px;background:#e6e1d6;overflow:hidden}
+.pq-rush__bar{display:block;height:100%;width:0;background:linear-gradient(90deg,#3bb58a,#f0a024)}
+.pq-rush__stat{margin:.3em 0 0;font-weight:800;font-size:var(--step--1)}
+.pq-rush__btns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--sp-2)}
+.pq-rushbtn{position:relative;border:4px solid var(--c);border-radius:var(--radius-lg);overflow:hidden;padding:0;background:#fff;cursor:pointer;touch-action:manipulation;aspect-ratio:1/1.05}
+.pq-rushbtn img{width:100%;height:100%;object-fit:cover;display:block}
+.pq-rushbtn__k{position:absolute;left:4px;top:4px;background:var(--c);color:#fff;border-radius:50%;width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem}
+.pq-rushbtn__l{position:absolute;left:0;right:0;bottom:0;background:var(--c);color:#fff;font-weight:900;font-size:.7rem;padding:.2em}
+.pq-rushbtn.is-tap{animation:pqPop .35s var(--ease-out-back)}
+.pq-rushbtn.is-need{box-shadow:0 0 0 5px #ffd34d,0 0 18px #ffb300;transform:scale(1.06)}
+[data-reduced-motion=on] .pq-rushbtn.is-tap{animation:none}
+.pq-bonuscard{background:linear-gradient(135deg,#fff3d6,#ffe7f1);border:3px solid #f0c36a}
+/* orient + observe */
+.pq-orient{display:grid;gap:var(--sp-3)}
+.pq-orient svg{width:100%;max-width:22rem;margin:0 auto;display:block}
+.pq-node{cursor:pointer}.pq-node:focus-visible circle{stroke:#000;stroke-width:4}
+.pq-detail{display:grid;grid-template-columns:7rem 1fr;gap:var(--sp-3);align-items:center;padding:var(--sp-3);border-radius:var(--radius-lg);background:#fff;border:3px solid var(--c,#ddd)}
+.pq-detail img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
+.pq-obs{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:var(--sp-3)}
+.pq-obsc{border:3px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:#fff}
+.pq-obsc img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.pq-obsc .pq-lab{display:flex;flex-wrap:wrap;gap:4px;padding:6px}
+.pq-obsc button.pq-pill{border:0;border-radius:99px;color:#fff;font-weight:800;font-size:.72rem;padding:.3em .6em;cursor:pointer;touch-action:manipulation;background:var(--c)}
+.pq-obsc.is-ok{border-color:#3bb58a;box-shadow:0 0 0 3px #c9f0dd}
+.pq-obsc .pq-yes{padding:6px 8px;font-weight:800;font-size:var(--step--1);color:#146b46}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=19";
+import { L, PILLARS, IDS, P, pname, LINKS, KNOCK, newDay, applyMoment, balance, weakest, strongest, mood, planText } from "./model.js?v=1";
+import { createScene } from "./scene3d.js?v=1";
+import { QUESTS, charSVG, PIP } from "./quests.js?v=1";
+import { renderLaunch, playBalanceRush } from "./bonus.js?v=1";
+
+const CREDITS = await fetch("photos/credits.json").then(r => r.json()).catch(() => ({}));
+const PHOTO = { food: "food-veg", move: "move-run", sleep: "sleep", calm: "calm", friends: "friends" };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const rm = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; };
+
+const DESC = {
+  food: ["Lots of different foods give your body lots of different helpers.", "Muchos alimentos distintos dan a tu cuerpo muchos ayudantes distintos."],
+  move: ["Running, dancing, climbing, stretching... every kind of moving counts, and so does resting.", "Correr, bailar, trepar, estirarse... todo movimiento cuenta, y descansar también."],
+  sleep: ["Sleep lets your body and brain recharge.", "Dormir deja que tu cuerpo y tu cerebro se recarguen."],
+  calm: ["Big feelings are OK. Stop, breathe and ask for help.", "Las emociones fuertes están bien. Para, respira y pide ayuda."],
+  friends: ["Kindness, sharing, listening and asking for help.", "Amabilidad, compartir, escuchar y pedir ayuda."],
+};
+
+/* ---------- 2D pentagon chart (always on: also the fallback if WebGL is missing) ---------- */
+function radarSVG(v, size = 240) {
+  const cx = 120, cy = 118, R = 78, pt = (i, r) => { const a = -Math.PI / 2 + i * Math.PI * 2 / 5; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; };
+  const ring = f => IDS.map((_, i) => pt(i, R * f).join(",")).join(" ");
+  const poly = IDS.map((id, i) => pt(i, R * (0.12 + 0.88 * v[id] / 100)).join(",")).join(" ");
+  const nodes = IDS.map((id, i) => { const [x, y] = pt(i, R + 22), [vx, vy] = pt(i, R * (0.12 + 0.88 * v[id] / 100)); return `<circle cx="${vx}" cy="${vy}" r="6" fill="${P(id).color}" stroke="#fff" stroke-width="2"/><circle cx="${x}" cy="${y}" r="13" fill="${P(id).color}"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="900" fill="#fff">${Math.round(v[id])}</text>`; }).join("");
+  const sum = IDS.map(id => `${pname(id)} ${Math.round(v[id])}`).join(", ");
+  return `<svg viewBox="0 0 240 236" role="img" aria-label="${L("Pentagon chart", "Gráfico del pentágono")}: ${sum}">
+    ${[.33, .66, 1].map(f => `<polygon points="${ring(f)}" fill="none" stroke="#d8d2c2" stroke-width="1.5"/>`).join("")}
+    <polygon points="${poly}" fill="rgba(240,138,36,.28)" stroke="#f08a24" stroke-width="3" stroke-linejoin="round"/>${nodes}</svg>`;
+}
+
+const credEl = ids => el(credit(ids) || '<span></span>');
+function credit(ids) {
+  const items = [...new Set(ids)].filter(k => CREDITS[k]).map(k => `<a href="${CREDITS[k][1]}" target="_blank" rel="noopener">${CREDITS[k][0]}</a>`);
+  return items.length ? `<p class="pq-credit">${L("Photos", "Fotos")} (Wikimedia Commons): ${items.join(" · ")}</p>` : "";
+}
+
+/* ============================================================== ORIENT */
+function drawOrient(host, sim) {
+  host.innerHTML = "";
+  /* The method write-up for the PDF: variables and question are fixed by the design of the experiment;
+     the hypothesis is the student's own pick, written out as words (the engine only stores its id). */
+  sim.setScienceMethod({
+    question: L("What happens to Pip's Pentagon of Health when Pip looks after only one part, compared with looking after all five?", "¿Qué pasa con el Pentágono de la Salud de Pip cuando Pip cuida solo una parte, comparado con cuidar las cinco?"),
+    variables: L("Independent variable (what I change): which parts of the Pentagon Pip looks after (one part, all five, or one skipped). Dependent variable (what I measure): the level of each part and the Balance of the Pentagon at the end of the day. Controlled variables (kept the same): Pip starts every day at the same level, and every day has 5 moments.", "Variable independiente (lo que cambio): qué partes del Pentágono cuida Pip (una, las cinco, o una omitida). Variable dependiente (lo que mido): el nivel de cada parte y el Equilibrio del Pentágono al final del día. Variables controladas (iguales): Pip empieza cada día al mismo nivel y cada día tiene 5 momentos."),
+  });
+  if (!window.__pqHypo) {
+    window.__pqHypo = true;
+    document.addEventListener("change", e => {
+      const inp = e.target; if (!inp || !inp.closest || !inp.closest("#stage-predict")) return;
+      const picked = [...document.querySelectorAll("#stage-predict input:checked")].map(i => (i.closest("label")?.textContent || "").trim()).filter(Boolean);
+      if (picked.length) sim.setScienceMethod({ hypothesis: L("If Pip spends the whole day on only ONE part, the Pentagon will: ", "Si Pip pasa todo el día en UNA sola parte, el Pentágono: ") + picked.join("; ") });
+    });
+  }
+  const wrap = el(`<div class="pq-orient"></div>`); host.append(wrap);
+  const cx = 150, cy = 140, R = 105;
+  const pts = IDS.map((_, i) => { const a = -Math.PI / 2 + i * Math.PI * 2 / 5; return [cx + Math.cos(a) * R, cy + Math.sin(a) * R]; });
+  const vals = { food: 70, move: 70, sleep: 70, calm: 70, friends: 70 };
+  const lines = pts.map((p, i) => pts.map((q, j) => j > i ? `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#f0c36a" stroke-width="2" stroke-dasharray="4 5" opacity=".6"/>` : "").join("")).join("");
+  const nodeSVG = IDS.map(id => `<g class="pq-node" data-id="${id}" tabindex="0" role="button" aria-label="${pname(id)}"><circle r="27" fill="${P(id).color}" stroke="#fff" stroke-width="3"/><text y="4" text-anchor="middle" font-size="9" font-weight="900" fill="#fff">${pname(id)}</text></g>`).join("");
+  const holder = el(`<div></div>`);
+  holder.innerHTML = `<svg viewBox="0 0 300 275" role="group" aria-label="${L("The Pentagon of Health: tap a part", "El Pentágono de la Salud: toca una parte")}"><polygon fill="#fff3d6" stroke="#f0c36a" stroke-width="3" stroke-linejoin="round"/>${lines}${nodeSVG}</svg>`;
+  const svg = holder.firstChild, poly = svg.querySelector("polygon"), nodes = {};
+  IDS.forEach(id => nodes[id] = svg.querySelector(`.pq-node[data-id="${id}"]`));
+  const detail = el(`<div class="pq-detail" style="--c:#f0c36a"><div></div><p><b>${L("Tap a part of the Pentagon.", "Toca una parte del Pentágono.")}</b></p></div>`);
+  const draw = () => { poly.setAttribute("points", IDS.map((id, i) => { const k = .25 + .75 * vals[id] / 100; return `${cx + (pts[i][0] - cx) * k},${cy + (pts[i][1] - cy) * k}`; }).join(" ")); IDS.forEach((id, i) => { const k = .25 + .75 * vals[id] / 100, x = cx + (pts[i][0] - cx) * k, y = cy + (pts[i][1] - cy) * k; nodes[id].setAttribute("transform", `translate(${x},${y})`); }); };
+  IDS.forEach(id => {
+    const g = nodes[id];
+    const show = () => {
+      detail.style.setProperty("--c", P(id).color);
+      const helps = (LINKS[id] || []).map(l => `<span class="pq-chip" style="background:${P(l.to).color}">${pname(l.to)}</span>`).join("");
+      detail.innerHTML = `<img src="photos/${PHOTO[id]}.jpg" alt="${pname(id)}"><div><b>${pname(id)}</b><br>${L(...DESC[id])}<br><span class="pq-hint">${L("It also helps:", "También ayuda a:")}</span> ${helps}</div>`;
+      sim.mark("orient_part_" + id);
+    };
+    g.addEventListener("click", show); g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(); } });
+  });
+  draw(); wrap.append(svg);
+  /* Wobble test: tween between a lopsided and a balanced pentagon */
+  const row = el(`<div class="pq-actions" style="justify-content:center"></div>`);
+  const b1 = el(`<button type="button" class="btn btn--signal">${L("Only ONE part grows", "Solo crece UNA parte")}</button>`);
+  const b2 = el(`<button type="button" class="btn btn--ghost">${L("All parts grow together", "Todas las partes crecen juntas")}</button>`);
+  row.append(b1, b2); wrap.append(row, detail);
+  const say = el(`<p class="pq-say" role="status" aria-live="polite"></p>`); wrap.prepend(say);
+  const tween = (target, msg) => { const from = { ...vals }; let s = 0; const iv = setInterval(() => { s++; const u = rm() ? 1 : Math.min(1, s / 18); IDS.forEach(id => vals[id] = from[id] + (target[id] - from[id]) * u); draw(); if (u >= 1) clearInterval(iv); }, 30); say.textContent = msg; sim.mark("orient_wobble_tested"); };
+  b1.addEventListener("click", () => tween({ food: 100, move: 35, sleep: 35, calm: 35, friends: 35 }, L("One part is tall but the others shrink: the Pentagon is lopsided and wobbly!", "Una parte es alta pero las demás se encogen: ¡el Pentágono queda torcido y tambaleante!")));
+  b2.addEventListener("click", () => tween({ food: 75, move: 75, sleep: 75, calm: 75, friends: 75 }, L("All five grow together: the Pentagon is strong and balanced!", "Las cinco crecen juntas: ¡el Pentágono es fuerte y equilibrado!")));
+  wrap.append(credEl(Object.values(PHOTO)));
+}
+
+/* ============================================================== OBSERVATION */
+function drawObservation(host, sim) {
+  host.innerHTML = "";
+  const grid = el(`<div class="pq-obs"></div>`); const say = el(`<p class="pq-say" role="status" aria-live="polite">${L("Look at each real photo. Which part of the Pentagon does it show? Tap a coloured label.", "Mira cada foto real. ¿Qué parte del Pentágono muestra? Toca una etiqueta de color.")}</p>`);
+  host.append(say, grid);
+  const items = [
+    { key: "food-veg", ans: ["food"] }, { key: "sleep", ans: ["sleep"] }, { key: "move-cycle", ans: ["move"] },
+    { key: "calm", ans: ["calm"] }, { key: "friends", ans: ["friends"] },
+  ];
+  const done = new Set(); let wrongTaps = 0;
+  const check = () => { if (done.size === items.length + 1) { say.textContent = L("Great noticing! Real life mixes several parts together.", "¡Buena observación! La vida real mezcla varias partes."); sim.setScienceMethod({ observation: L(`I looked at 6 real photos and matched them to the five parts of the Pentagon of Health (wrong guesses: ${wrongTaps}). I noticed one photo shows two parts at once, so the parts are connected.`, `Miré 6 fotos reales y las relacioné con las cinco partes del Pentágono de la Salud (intentos incorrectos: ${wrongTaps}). Noté que una foto muestra dos partes a la vez, así que las partes están conectadas.`) }); } };
+  items.forEach(it => {
+    const card = el(`<div class="pq-obsc"><img src="photos/${it.key}.jpg" alt=""><div class="pq-lab"></div></div>`); grid.append(card);
+    const lab = card.querySelector(".pq-lab");
+    IDS.forEach(id => { const b = el(`<button type="button" class="pq-pill" style="--c:${P(id).color}">${pname(id)}</button>`); lab.append(b);
+      b.addEventListener("click", () => { if (done.has(it.key)) return; if (it.ans.includes(id)) { done.add(it.key); card.classList.add("is-ok"); lab.innerHTML = `<span class="pq-yes">✓ ${pname(id)}</span>`; card.classList.add("pq-pop"); sim.toast(L("Yes!", "¡Sí!"), "success"); check(); } else { wrongTaps++; b.classList.add("pq-shake"); b.disabled = true; sim.toast(L("Not that one - look again!", "Esa no - ¡mira otra vez!"), "warn"); } }); });
+  });
+  /* two-parts-at-once photo */
+  const two = el(`<div class="pq-obsc"><img src="photos/move-dance.jpg" alt=""><div class="pq-lab"></div><p class="pq-hint" style="padding:0 8px">${L("This photo shows TWO parts at once. Pick both!", "Esta foto muestra DOS partes a la vez. ¡Elige las dos!")}</p></div>`); grid.append(two);
+  const picked = new Set(), lab2 = two.querySelector(".pq-lab");
+  IDS.forEach(id => { const b = el(`<button type="button" class="pq-pill" style="--c:${P(id).color}">${pname(id)}</button>`); lab2.append(b);
+    b.addEventListener("click", () => { if (done.has("two")) return; if (id === "move" || id === "friends") { picked.add(id); b.disabled = true; b.textContent = "✓ " + pname(id); if (picked.size === 2) { done.add("two"); two.classList.add("is-ok", "pq-pop"); sim.toast(L("Moving AND friends together!", "¡Moverse Y amigos a la vez!"), "success"); sim.mark("observation_two_parts_at_once"); check(); } } else { wrongTaps++; b.classList.add("pq-shake"); b.disabled = true; sim.toast(L("Not that one - look again!", "Esa no - ¡mira otra vez!"), "warn"); } }); });
+  host.append(credEl([...items.map(i => i.key), "move-dance"]));
+}
+
+/* ============================================================== INVESTIGATE */
+let hubScene = null;
+const DAYS = [
+  { kind: "solo", ico: "☝️", en: "Day 1 · Only One Thing", es: "Día 1 · Solo una cosa", sub: ["Pip picks ONE favourite part and does it all day.", "Pip elige UNA parte favorita y la hace todo el día."] },
+  { kind: "all", ico: "🌟", en: "Day 2 · All Five", es: "Día 2 · Las cinco", sub: ["Pip looks after every part of the Pentagon.", "Pip cuida todas las partes del Pentágono."] },
+  { kind: "skip", ico: "⏭️", en: "Day 3 · Skip One", es: "Día 3 · Saltar una", sub: ["Pip skips one part. What happens to the others?", "Pip salta una parte. ¿Qué pasa con las demás?"] },
+  { kind: "free", ico: "🎨", en: "My Own Day", es: "Mi propio día", sub: ["Plan any day you like and see what happens!", "¡Planea el día que quieras y mira qué pasa!"] },
+];
+
+async function drawInvestigate(host, sim) {
+  if (hubScene) { try { hubScene.dispose(); } catch (e) {} hubScene = null; }
+  host.innerHTML = "";
+  const st = sim.state; st.quests = st.quests || []; st.dayKinds = st.dayKinds || {};
+  if (!sim.trials.length) { st.quests = []; st.dayKinds = {}; sim.setScienceMethod({ results: "", analysis: "" }); }   /* after Reset, no stale results in the PDF */
+  const root = el(`<div class="pq-hub">
+    <div class="pq-top"><div class="pq-scenehost"></div>
+      <div class="pq-hud"><span class="pq-hud__pill pq-hud__day"></span><span class="pq-hud__pill"><span class="pq-dots"></span></span></div>
+      <div class="pq-balance" aria-live="polite"><span>${L("Balance", "Equilibrio")}</span><b>50%</b></div></div>
+    <div class="pq-mid"><div class="pq-radar"></div><div class="pq-main"></div></div></div>`);
+  host.append(root);
+  const sceneHost = root.querySelector(".pq-scenehost"), dotsEl = root.querySelector(".pq-dots"), dayPill = root.querySelector(".pq-hud__day"), balEl = root.querySelector(".pq-balance b"), radarEl = root.querySelector(".pq-radar"), main = root.querySelector(".pq-main");
+  let scene = null;
+  try { scene = await createScene(sceneHost); hubScene = scene; }
+  catch (e) { sceneHost.innerHTML = `<div class="pq-no3d"><p>${L("The 3D park is not available on this device. The Pentagon chart shows the same story!", "El parque 3D no está disponible en este dispositivo. ¡El gráfico del Pentágono cuenta lo mismo!")}</p></div>`; }
+  const view = {
+    setValues(v, inst) { scene && scene.setValues(v, inst); radarEl.innerHTML = radarSVG(v); balEl.textContent = balance(v) + "%"; },
+    setMood(m) { scene && scene.setMood(m); },
+    pulse(id) { scene && scene.pulse(id); }, ripple(a, b) { scene && scene.ripple(a, b); }, setStorm(id) { scene && scene.setStorm(id); },
+  };
+  const base = {}; IDS.forEach(i => base[i] = 50); view.setValues(base, true); view.setMood("okay");
+  const setDots = (n, total = 5) => { dotsEl.innerHTML = Array.from({ length: total }, (_, i) => `<i class="pq-dot ${i < n ? "is-on" : i === n ? "is-now" : ""}"></i>`).join(""); };
+  setDots(0); dayPill.textContent = L("Pip's Pentagon", "El Pentágono de Pip");
+
+  const showTop = () => { try { root.querySelector(".pq-top").scrollIntoView({ block: "start", behavior: rm() ? "auto" : "smooth" }); } catch (e) {} };
+  const stationBtn = (id, onPick, disabled) => { const b = el(`<button type="button" class="pq-st" style="--c:${P(id).color}"${disabled ? " disabled" : ""}><img src="photos/${PHOTO[id]}.jpg" alt=""><span>${pname(id)}</span></button>`); b.addEventListener("click", () => onPick(id, b)); return b; };
+
+  /* ---------- menu ---------- */
+  function menu() {
+    main.innerHTML = ""; view.setStorm(null); setDots(0); dayPill.textContent = L("Pip's Pentagon", "El Pentágono de Pip");
+    const nextIdx = DAYS.findIndex(d => !st.dayKinds[d.kind]);
+    main.append(el(`<p class="pq-say">${L("Pick a day to run. Each day Pip has 5 moments. Watch the Pentagon!", "Elige un día. Cada día Pip tiene 5 momentos. ¡Mira el Pentágono!")}</p>`));
+    const g = el(`<div class="pq-daygrid"></div>`);
+    DAYS.forEach((d, i) => { const b = el(`<button type="button" class="pq-day ${i === nextIdx ? "is-next" : ""} ${st.dayKinds[d.kind] ? "is-done" : ""}"><span class="pq-day__ico">${d.ico}</span><b>${L(d.en, d.es)}${st.dayKinds[d.kind] ? " ✓" : ""}</b><span class="s">${L(...d.sub)}</span></button>`); b.addEventListener("click", () => startDay(d)); g.append(b); });
+    main.append(g);
+    const bonus = el(`<div style="margin-top:var(--sp-4)"></div>`); main.append(bonus);
+    renderLaunch(bonus, async () => {
+      const keep = {}; IDS.forEach(i => keep[i] = 50);
+      const res = await playBalanceRush(main, view);
+      sim.setResult("balance_rush_balanced_seconds", res.balancedSeconds); sim.setResult("balance_rush_storms_saved", res.stormsSaved);
+      IDS.forEach(i => keep[i] = 50); view.setValues(keep, true); view.setMood("okay"); st.rush = res; sim.award("balance-rush", L("Balance Rush", "Carrera del equilibrio")); sim.saveState(); sim.mark("bonus_round_played"); menu();
+    }, () => { sim.mark("bonus_round_skipped"); sim.toast(L("Skipped. You can play it any time.", "Saltada. Puedes jugarla cuando quieras."), "info"); });
+  }
+
+  /* ---------- a day ---------- */
+  function startDay(d) {
+    const day = newDay(); const D = { d, day, area: null, quality: {}, notes: [], nHeld: 0 };
+    view.setValues(day.v); view.setMood("okay"); setDots(0); dayPill.textContent = L(d.en, d.es);
+    if (d.kind === "solo" || d.kind === "skip") {
+      main.innerHTML = ""; main.append(el(`<p class="pq-say">${d.kind === "solo" ? L("Which ONE part will Pip do all day?", "¿Qué UNA parte hará Pip todo el día?") : L("Which part will Pip SKIP today?", "¿Qué parte SALTARÁ Pip hoy?")}</p>`));
+      const g = el(`<div class="pq-stations"></div>`); main.append(g);
+      IDS.forEach(id => g.append(stationBtn(id, (pid) => { D.area = pid; sim.mark(d.kind === "solo" ? "day1_favourite_" + pid : "day3_skipped_" + pid); chooseMoment(D); })));
+      main.append(el(`<div class="pq-actions"><button type="button" class="btn btn--ghost" data-back>${L("Back", "Atrás")}</button></div>`)); main.querySelector("[data-back]").addEventListener("click", menu);
+    } else chooseMoment(D);
+  }
+
+  function chooseMoment(D) {
+    const { d, day } = D; setDots(day.moment); main.innerHTML = "";
+    if (day.moment >= 5) return summary(D);
+    if (d.kind === "solo") return runQuest(D, D.area);   // first moment is a real quest; the rest fast-forward
+    main.append(el(`<p class="pq-say">${L(`Moment ${day.moment + 1} of 5: where does Pip spend this moment?`, `Momento ${day.moment + 1} de 5: ¿dónde pasa Pip este momento?`)}</p>`));
+    const g = el(`<div class="pq-stations"></div>`); main.append(g);
+    IDS.forEach(id => g.append(stationBtn(id, (pid) => runQuest(D, pid), d.kind === "skip" && pid0(D, id))));
+  }
+  const pid0 = (D, id) => D.d.kind === "skip" && D.area === id;
+
+  async function runQuest(D, area) {
+    const { d, day } = D; main.innerHTML = ""; const qh = el(`<div class="pq-card"></div>`); main.append(qh);
+    qh.append(el(`<p class="eyebrow" style="color:${P(area).color}">${pname(area)}</p>`));
+    const qb = el(`<div></div>`); qh.append(qb);
+    const res = await QUESTS[area](qb);
+    if (!qb.isConnected) return;
+    const m = applyMoment(day, area, res.q, mergeShock(res));
+    D.quality[area] = res.q; st.quests.push({ area, q: Math.round(res.q * 100) / 100, ...res.detail }); sim.saveState();
+    const lines = []; if (res.detail.aggression) sim.mark("hurtful_choice_tried_" + area, res.detail.aggression);
+    sim.mark("quest_" + area + "_plays", (st.quests.filter(x => x.area === area)).length);
+    if (area === "calm") sim.mark("calm_cove_steps_completed", true);
+    if (res.q >= .99) { sim.award("perfect-" + area, L("Perfect " + P(area).en, "Perfecto: " + P(area).es)); }
+    afterMoment(D, area, m, res);
+  }
+  const mergeShock = res => { const s = { ...(res.shock || {}) }; if (res.bonus) Object.keys(res.bonus).forEach(k => s[k] = (s[k] || 0) + res.bonus[k]); return Object.keys(s).length ? s : null; };
+
+  async function afterMoment(D, area, m, res) {
+    const { d, day } = D; view.setValues(day.v); view.setMood(mood(day.v)); view.pulse(area);
+    m.links.forEach((l, i) => setTimeout(() => view.ripple(area, l.to), 350 + i * 450));
+    m.shocks.forEach(sh => setTimeout(() => view.pulse(sh.to), 300));
+    setDots(day.moment); showTop();
+    main.innerHTML = ""; const card = el(`<div class="pq-card pq-res"></div>`); main.append(card);
+    card.append(el(`<p class="eyebrow">${L("What happened to the Pentagon", "Qué pasó con el Pentágono")}</p>`));
+    card.append(el(`<div class="pq-link" style="--c:${P(area).color}"><b>${pname(area)} +${Math.round(m.gain)}</b>${m.rep < 1 ? " · " + L("doing the same thing again helps a bit less", "repetir lo mismo ayuda un poco menos") : ""}</div>`));
+    m.links.filter(l => l.amt >= 1).forEach(l => card.append(el(`<div class="pq-link" style="--c:${P(l.to).color}"><b>${pname(l.to)} +${Math.round(l.amt)}</b> · ${L(l.en, l.es)}</div>`)));
+    if (m.knocked) card.append(el(`<div class="pq-link pq-link--bad" style="--c:#e0463d">⚠ ${L(m.knock.en, m.knock.es)}</div>`));
+    m.shocks.filter(s => s.amt < 0).forEach(s => card.append(el(`<div class="pq-link pq-link--bad" style="--c:#e0463d"><b>${pname(s.to)} ${Math.round(s.amt)}</b> · ${L("a hurtful choice made things worse", "una decisión que lastimó empeoró las cosas")}</div>`)));
+    m.shocks.filter(s => s.amt > 0).forEach(s => card.append(el(`<div class="pq-link" style="--c:${P(s.to).color}"><b>${pname(s.to)} +${Math.round(s.amt)}</b> · ${L("playing with a friend", "jugar con un amigo")}</div>`)));
+    const faded = IDS.filter(i => i !== area && !m.links.find(l => l.to === i));
+    if (faded.length && day.moment < 5) card.append(el(`<p class="pq-hint">${L("Time passes: parts Pip didn't look after fade a little.", "El tiempo pasa: las partes que Pip no cuidó se debilitan un poco.")}</p>`));
+    const actions = el(`<div class="pq-actions"></div>`); card.append(actions);
+    if (D.d.kind === "solo" && day.moment < 5) {
+      const b = el(`<button type="button" class="btn btn--signal">${L("Pip does it again ▶▶", "Pip lo repite ▶▶")}</button>`); actions.append(b);
+      b.addEventListener("click", () => fastForward(D, area, res.q));
+    } else {
+      const b = el(`<button type="button" class="btn btn--signal">${day.moment >= 5 ? L("See the whole day", "Ver todo el día") : L("Next moment →", "Siguiente momento →")}</button>`); actions.append(b);
+      b.addEventListener("click", () => chooseMoment(D));
+    }
+  }
+
+  async function fastForward(D, area, q) {
+    const { day } = D; main.innerHTML = ""; const card = el(`<div class="pq-card"><p class="pq-say" role="status" aria-live="polite"></p></div>`); main.append(card); const say = card.querySelector(".pq-say");
+    while (day.moment < 5) {
+      say.textContent = L(`Pip does ${pname(area)} again (moment ${day.moment + 1} of 5)... other parts fade.`, `Pip repite ${pname(area)} (momento ${day.moment + 1} de 5)... las otras partes se debilitan.`);
+      const m = applyMoment(day, area, q); view.setValues(day.v); view.setMood(mood(day.v)); view.pulse(area); setDots(day.moment);
+      await wait(rm() ? 150 : 1100); if (!card.isConnected) return;
+    }
+    summary(D);
+  }
+
+  /* ---------- end of day ---------- */
+  function summary(D) {
+    const { d, day } = D; const v = day.v, bal = balance(v), weak = weakest(v), strong = strongest(v), md = mood(v);
+    view.setValues(v); view.setMood(md); setDots(5); showTop();
+    st.dayKinds[d.kind] = true; const dayNo = sim.trials.length + 1;
+    const row = { day: `${dayNo}: ${L(d.en.split("·")[1]?.trim() || d.en, d.es.split("·")[1]?.trim() || d.es)}`, plan: planText(day) + (d.kind === "skip" ? ` (${L("skipped", "saltó")} ${pname(D.area)})` : ""), balance: bal + "%" };
+    IDS.forEach(i => row[i] = Math.round(v[i]));
+    sim.recordTrial(row);
+    main.innerHTML = ""; const card = el(`<div class="pq-card pq-res"></div>`); main.append(card);
+    card.append(el(`<p class="eyebrow">${L("The day is over!", "¡El día terminó!")}</p>`));
+    const moodTxt = { happy: L("Pip is happy and level!", "¡Pip está feliz y nivelado!"), okay: L("Pip's floor is a bit wobbly.", "El piso de Pip está un poco tambaleante."), tired: L("Pip's floor is very tilted. Pip is worn out.", "El piso de Pip está muy inclinado. Pip está agotado.") }[md];
+    card.append(el(`<p class="pq-say">${moodTxt} ${L("Balance", "Equilibrio")}: ${bal}%</p>`));
+    IDS.forEach(i => card.append(el(`<div class="pq-bar" style="--c:${P(i).color}"><span>${pname(i)}</span><div><i style="width:${Math.max(4, v[i])}%"></i></div><b>${Math.round(v[i])}</b></div>`)));
+    /* insight, built from what actually happened */
+    let ins;
+    if (d.kind === "solo") ins = L(`Pip only looked after ${pname(D.area)}. It grew tall (${Math.round(v[D.area])}) but the other parts sank, so the floor tilted toward ${pname(weak)} (${Math.round(v[weak])}). Balance: ${bal}%.`, `Pip solo cuidó ${pname(D.area)}. Creció mucho (${Math.round(v[D.area])}) pero las otras partes se hundieron y el piso se inclinó hacia ${pname(weak)} (${Math.round(v[weak])}). Equilibrio: ${bal}%.`);
+    else if (d.kind === "skip") ins = L(`Pip skipped ${pname(D.area)}, which ended at ${Math.round(v[D.area])}. Because the parts are linked, skipping one also changed the others. Balance: ${bal}%.`, `Pip saltó ${pname(D.area)}, que terminó en ${Math.round(v[D.area])}. Como las partes están conectadas, saltar una también cambió las otras. Equilibrio: ${bal}%.`);
+    else ins = bal >= 80 ? L(`Pip looked after many parts and the floor stayed close to level. Balance: ${bal}%.`, `Pip cuidó muchas partes y el piso se mantuvo casi nivelado. Equilibrio: ${bal}%.`) : L(`Some parts were looked after much more than others, so the floor tilted toward ${pname(weak)}. Balance: ${bal}%.`, `Algunas partes se cuidaron mucho más que otras, así que el piso se inclinó hacia ${pname(weak)}. Equilibrio: ${bal}%.`);
+    card.append(el(`<p>${ins}</p>`));
+    if (d.kind === "all" && bal >= 80) sim.award("balanced-day", L("Balanced Day", "Día equilibrado"));
+    sim.award("first-day", L("First Pentagon Day", "Primer día del Pentágono"));
+    updateScienceMethod(sim);
+    /* a quick check on what the student noticed */
+    const qBox = el(`<div class="pq-card" style="background:#fffdf6"><p><b>${L("What do you notice? Which part is the LOWEST at the end of the day?", "¿Qué notas? ¿Qué parte quedó MÁS BAJA al final del día?")}</b></p><div class="pq-stations" style="margin-top:8px"></div><p class="pq-say" role="status" aria-live="polite" style="margin-top:8px"></p></div>`); card.append(qBox);
+    const optsIds = [weak, ...IDS.filter(i => i !== weak).sort(() => Math.random() - .5).slice(0, 2)].sort(() => Math.random() - .5);
+    let answered = false;
+    optsIds.forEach(id => qBox.querySelector(".pq-stations").append(stationBtn(id, (pid, b) => {
+      if (answered) return; const ok = pid === weak; if (ok) answered = true; const msg = qBox.querySelector(".pq-say");
+      if (ok) { b.classList.add("is-sel", "pq-pop"); msg.textContent = L("Yes! Spotting the lowest part is how we find what needs care.", "¡Sí! Encontrar la parte más baja nos dice qué necesita cuidado."); sim.mark("day" + dayNo + "_noticed_lowest_correct", true); }
+      else { b.disabled = true; b.classList.add("pq-shake"); msg.textContent = L("Look at the bars again - which one is shortest?", "Mira otra vez las barras - ¿cuál es la más corta?"); sim.mark("day" + dayNo + "_noticed_lowest_correct", false); }
+    })));
+    const actions = el(`<div class="pq-actions"><button type="button" class="btn btn--signal">${L("Back to the days", "Volver a los días")}</button></div>`); card.append(actions);
+    actions.firstChild.addEventListener("click", menu);
+    if (sim.trials.length >= 2) card.append(el(`<p class="pq-hint">${L("Look in the Record stage to compare your days!", "¡Mira la etapa Registro para comparar tus días!")}</p>`));
+  }
+
+  menu();
+  host.append(credEl((Object.values(PHOTO).concat(["food-bread", "food-beans", "food-avocado", "food-orange", "food-milk", "food-water", "food-veg", "move-run", "move-dance", "move-swim", "move-cycle", "move-climb", "move-stretch"]))));
+}
+
+/* The PDF's scientific-method block, built from the student's own days and quests. */
+function updateScienceMethod(sim) {
+  const tr = sim.trials, st = sim.state, q = st.quests || [];
+  const results = tr.map(r => `${r.day} (${r.plan}): Food ${r.food}, Move ${r.move}, Sleep ${r.sleep}, Calm ${r.calm}, Friends ${r.friends}; balance ${r.balance}.`).join("  ");
+  const solo = [...tr].reverse().find(r => /One Thing|Solo/i.test(r.day)), all = [...tr].reverse().find(r => /All Five|Las cinco/i.test(r.day));
+  let analysis = "";
+  if (solo && all) analysis = `Only one part: balance ${solo.balance}. All five parts: balance ${all.balance}. ` + (parseInt(all.balance) > parseInt(solo.balance) ? "Looking after all five parts gave a more balanced Pentagon." : "The balanced day did not beat the one-part day - check the choices made.");
+  const calm = q.filter(x => x.area === "calm"), fr = q.filter(x => x.area === "friends");
+  const bits = [];
+  if (calm.length) bits.push(`Calm Cove played ${calm.length}x (wrong tries: ${calm.map(c => c.wrong).join(",")}; hurtful choices tried: ${calm.reduce((a, c) => a + (c.aggression || 0), 0)}).`);
+  if (fr.length) bits.push(`Playground Moment played ${fr.length}x (wrong tries: ${fr.map(c => c.wrong).join(",")}; hurtful choices tried: ${fr.reduce((a, c) => a + (c.aggression || 0), 0)}).`);
+  const food = q.filter(x => x.area === "food"), mv = q.filter(x => x.area === "move");
+  if (food.length) bits.push(`Lunchbox variety: ${food.map(f => f.distinct).join(",")} different foods of 4.`);
+  if (mv.length) bits.push(`Movement variety: ${mv.map(f => f.kinds).join(",")} kinds of 3.`);
+  sim.setScienceMethod({ results: results + (bits.length ? "  Quests: " + bits.join(" ") : ""), analysis });
+}
+
+const simulation = { orient: drawOrient, observation: drawObservation, investigate: drawInvestigate };
+
+mountActivity({ simulation }).then(sim => {
+  /* constant parts of the method write-up */
+}).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
