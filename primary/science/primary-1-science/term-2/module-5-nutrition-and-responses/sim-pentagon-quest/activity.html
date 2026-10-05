@@ -32,7 +32,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .pq-hub{display:grid;gap:var(--sp-4)}
 .pq-top{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:linear-gradient(#5fb7ff,#ffe9c9);border:3px solid #ffd58a;box-shadow:0 8px 24px rgba(0,0,0,.12)}
 .pq-top{scroll-margin-top:72px}
-.pq-3d{width:100%;aspect-ratio:16/9;max-height:46vh;min-height:230px}
+.pq-3d{width:100%;aspect-ratio:16/9;max-height:34vh;min-height:200px}
 .pq-no3d{padding:var(--sp-4);text-align:center;background:#eef7ff}
 .pq-hud{position:absolute;left:10px;top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;pointer-events:none}
 .pq-hud__pill{background:rgba(255,255,255,.92);border-radius:99px;padding:.25em .8em;font-weight:900;font-size:var(--step--1);box-shadow:0 2px 6px rgba(0,0,0,.15)}
@@ -43,6 +43,13 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 @media(max-width:760px){.pq-mid{grid-template-columns:1fr}.pq-radar{max-width:13rem;margin:0 auto}.pq-rush__btns{gap:4px}.pq-rushbtn__l{font-size:.55rem}.pq-slot{width:4.2rem;height:3.6rem}}
 .pq-radar{background:#fff;border:2px solid var(--line);border-radius:var(--radius-lg);padding:var(--sp-2)}
 .pq-radar svg{width:100%;height:auto;display:block}
+.pq-mid.is-3d{grid-template-columns:1fr}.pq-mid.is-3d .pq-radar{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);padding:0;border:0}
+.pq-start{display:grid;grid-template-columns:auto 1fr;gap:var(--sp-4);align-items:center;padding:var(--sp-4);border-radius:var(--radius-lg);background:linear-gradient(135deg,#fff3d6,#ffe7f1);border:3px solid #f0c36a}
+.pq-start__ico{font-size:3rem}.pq-start h3{margin:0 0 .2em}.pq-start .btn{font-size:var(--step-1);padding:.7em 1.4em}
+.pq-path{display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-3)}
+.pq-pathi{padding:.3em .9em;border-radius:99px;font-weight:900;font-size:var(--step--1);background:#eee;border:2px solid transparent;cursor:pointer}
+.pq-pathi.is-done{background:#c9f0dd;color:#146b46}.pq-pathi.is-next{background:#ffd58a;border-color:#f0a024}
+.pq-st .pq-tick{position:absolute;right:6px;top:6px;background:#3bb58a;color:#fff;border-radius:50%;width:1.6rem;height:1.6rem;display:flex;align-items:center;justify-content:center;font-weight:900}
 .pq-main{min-height:18rem}
 .pq-daygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(13rem,1fr));gap:var(--sp-3)}
 .pq-day{text-align:left;border:3px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);padding:var(--sp-3);cursor:pointer;touch-action:manipulation;transition:transform .15s}
@@ -266,7 +273,7 @@ function drawOrient(host, sim) {
   const b1 = el(`<button type="button" class="btn btn--signal">${L("Only ONE part grows", "Solo crece UNA parte")}</button>`);
   const b2 = el(`<button type="button" class="btn btn--ghost">${L("All parts grow together", "Todas las partes crecen juntas")}</button>`);
   row.append(b1, b2); wrap.append(row, detail);
-  const say = el(`<p class="pq-say" role="status" aria-live="polite"></p>`); wrap.prepend(say);
+  const say = el(`<p class="pq-say" role="status" aria-live="polite">${L("1) Tap each coloured circle to meet it. 2) Then press the two buttons to see what happens.", "1) Toca cada círculo de color para conocerlo. 2) Luego pulsa los dos botones para ver qué pasa.")}</p>`); wrap.prepend(say);
   const tween = (target, msg) => { const from = { ...vals }; let s = 0; const iv = setInterval(() => { s++; const u = rm() ? 1 : Math.min(1, s / 18); IDS.forEach(id => vals[id] = from[id] + (target[id] - from[id]) * u); draw(); if (u >= 1) clearInterval(iv); }, 30); say.textContent = msg; sim.mark("orient_wobble_tested"); };
   b1.addEventListener("click", () => tween({ food: 100, move: 35, sleep: 35, calm: 35, friends: 35 }, L("One part is tall but the others shrink: the Pentagon is lopsided and wobbly!", "Una parte es alta pero las demás se encogen: ¡el Pentágono queda torcido y tambaleante!")));
   b2.addEventListener("click", () => tween({ food: 75, move: 75, sleep: 75, calm: 75, friends: 75 }, L("All five grow together: the Pentagon is strong and balanced!", "Las cinco crecen juntas: ¡el Pentágono es fuerte y equilibrado!")));
@@ -322,6 +329,7 @@ async function drawInvestigate(host, sim) {
   let scene = null;
   try { scene = await createScene(sceneHost); hubScene = scene; }
   catch (e) { sceneHost.innerHTML = `<div class="pq-no3d"><p>${L("The 3D park is not available on this device. The Pentagon chart shows the same story!", "El parque 3D no está disponible en este dispositivo. ¡El gráfico del Pentágono cuenta lo mismo!")}</p></div>`; }
+  if (scene) root.querySelector(".pq-mid").classList.add("is-3d");
   const view = {
     setValues(v, inst) { scene && scene.setValues(v, inst); radarEl.innerHTML = radarSVG(v); balEl.textContent = balance(v) + "%"; },
     setMood(m) { scene && scene.setMood(m); },
@@ -332,23 +340,35 @@ async function drawInvestigate(host, sim) {
   setDots(0); dayPill.textContent = L("Pip's Pentagon", "El Pentágono de Pip");
 
   const showTop = () => { try { root.querySelector(".pq-top").scrollIntoView({ block: "start", behavior: rm() ? "auto" : "smooth" }); } catch (e) {} };
-  const stationBtn = (id, onPick, disabled) => { const b = el(`<button type="button" class="pq-st" style="--c:${P(id).color}"${disabled ? " disabled" : ""}><img src="photos/${PHOTO[id]}.jpg" alt=""><span>${pname(id)}</span></button>`); b.addEventListener("click", () => onPick(id, b)); return b; };
+  const stationBtn = (id, onPick, disabled, visited) => { const b = el(`<button type="button" class="pq-st" style="--c:${P(id).color}"${disabled ? " disabled" : ""}><img src="photos/${PHOTO[id]}.jpg" alt="">${visited ? `<i class="pq-tick" aria-hidden="true">✓</i>` : ""}<span>${pname(id)}${visited ? " (" + L("done", "hecho") + ")" : ""}</span></button>`); b.addEventListener("click", () => onPick(id, b)); return b; };
 
   /* ---------- menu ---------- */
   function menu() {
     main.innerHTML = ""; view.setStorm(null); setDots(0); dayPill.textContent = L("Pip's Pentagon", "El Pentágono de Pip");
-    const nextIdx = DAYS.findIndex(d => !st.dayKinds[d.kind]);
-    main.append(el(`<p class="pq-say">${L("Pick a day to run. Each day Pip has 5 moments. Watch the Pentagon!", "Elige un día. Cada día Pip tiene 5 momentos. ¡Mira el Pentágono!")}</p>`));
-    const g = el(`<div class="pq-daygrid"></div>`);
-    DAYS.forEach((d, i) => { const b = el(`<button type="button" class="pq-day ${i === nextIdx ? "is-next" : ""} ${st.dayKinds[d.kind] ? "is-done" : ""}"><span class="pq-day__ico">${d.ico}</span><b>${L(d.en, d.es)}${st.dayKinds[d.kind] ? " ✓" : ""}</b><span class="s">${L(...d.sub)}</span></button>`); b.addEventListener("click", () => startDay(d)); g.append(b); });
-    main.append(g);
-    const bonus = el(`<div style="margin-top:var(--sp-4)"></div>`); main.append(bonus);
-    renderLaunch(bonus, async () => {
-      const keep = {}; IDS.forEach(i => keep[i] = 50);
-      const res = await playBalanceRush(main, view);
-      sim.setResult("balance_rush_balanced_seconds", res.balancedSeconds); sim.setResult("balance_rush_storms_saved", res.stormsSaved);
-      IDS.forEach(i => keep[i] = 50); view.setValues(keep, true); view.setMood("okay"); st.rush = res; sim.award("balance-rush", L("Balance Rush", "Carrera del equilibrio")); sim.saveState(); sim.mark("bonus_round_played"); menu();
-    }, () => { sim.mark("bonus_round_skipped"); sim.toast(L("Skipped. You can play it any time.", "Saltada. Puedes jugarla cuando quieras."), "info"); });
+    const core = DAYS.slice(0, 3), nextI = core.findIndex(d => !st.dayKinds[d.kind]);
+    const short = ["Only One", "All Five", "Skip One"], shortEs = ["Solo una", "Las cinco", "Saltar una"];
+    const path = el(`<div class="pq-path" role="group" aria-label="${L("Pip's three days", "Los tres días de Pip")}"></div>`);
+    core.forEach((d, i) => { const b = el(`<button type="button" class="pq-pathi ${st.dayKinds[d.kind] ? "is-done" : ""} ${i === nextI ? "is-next" : ""}">${st.dayKinds[d.kind] ? "✓ " : ""}${L("Day", "Día")} ${i + 1}: ${L(short[i], shortEs[i])}</button>`); b.addEventListener("click", () => startDay(d)); path.append(b); });
+    main.append(path);
+    if (nextI >= 0) {
+      const d = core[nextI];
+      const card = el(`<div class="pq-start"><span class="pq-start__ico" aria-hidden="true">${d.ico}</span><div><h3>${L(d.en, d.es)}</h3><p>${L(...d.sub)}</p><button type="button" class="btn btn--signal">${L("Start Day", "Empezar el día")} ${nextI + 1} ▶</button></div></div>`);
+      card.querySelector("button").addEventListener("click", () => startDay(d)); main.append(card);
+      main.append(el(`<p class="pq-hint" style="margin-top:8px">${L("Each day Pip has 5 moments. Watch the Pentagon change!", "Cada día Pip tiene 5 momentos. ¡Mira cómo cambia el Pentágono!")}</p>`));
+    } else {
+      main.append(el(`<p class="pq-say">${L("All 3 days done! Now press Next → at the bottom to see your Record and compare your days.", "¡Los 3 días listos! Ahora pulsa Siguiente → abajo para ver tu Registro y comparar tus días.")}</p>`));
+    }
+    if (st.dayKinds.solo && st.dayKinds.all) {
+      const more = el(`<div class="pq-actions"><button type="button" class="btn btn--ghost">${L("🎨 Plan My Own Day", "🎨 Planear mi propio día")}</button></div>`);
+      more.querySelector("button").addEventListener("click", () => startDay(DAYS[3])); main.append(more);
+      const bonus = el(`<div style="margin-top:var(--sp-4)"></div>`); main.append(bonus);
+      renderLaunch(bonus, async () => {
+        const keep = {};
+        const res = await playBalanceRush(main, view);
+        sim.setResult("balance_rush_balanced_seconds", res.balancedSeconds); sim.setResult("balance_rush_storms_saved", res.stormsSaved);
+        IDS.forEach(i => keep[i] = 50); view.setValues(keep, true); view.setMood("okay"); st.rush = res; sim.award("balance-rush", L("Balance Rush", "Carrera del equilibrio")); sim.saveState(); sim.mark("bonus_round_played"); menu();
+      }, () => { sim.mark("bonus_round_skipped"); sim.toast(L("Skipped. You can play it any time.", "Saltada. Puedes jugarla cuando quieras."), "info"); });
+    }
   }
 
   /* ---------- a day ---------- */
@@ -369,7 +389,7 @@ async function drawInvestigate(host, sim) {
     if (d.kind === "solo") return runQuest(D, D.area);   // first moment is a real quest; the rest fast-forward
     main.append(el(`<p class="pq-say">${L(`Moment ${day.moment + 1} of 5: where does Pip spend this moment?`, `Momento ${day.moment + 1} de 5: ¿dónde pasa Pip este momento?`)}</p>`));
     const g = el(`<div class="pq-stations"></div>`); main.append(g);
-    IDS.forEach(id => g.append(stationBtn(id, (pid) => runQuest(D, pid), d.kind === "skip" && pid0(D, id))));
+    IDS.forEach(id => g.append(stationBtn(id, (pid) => runQuest(D, pid), d.kind === "skip" && pid0(D, id), !!day.visits[id])));
   }
   const pid0 = (D, id) => D.d.kind === "skip" && D.area === id;
 
@@ -454,8 +474,9 @@ async function drawInvestigate(host, sim) {
       if (ok) { b.classList.add("is-sel", "pq-pop"); msg.textContent = L("Yes! Spotting the lowest part is how we find what needs care.", "¡Sí! Encontrar la parte más baja nos dice qué necesita cuidado."); sim.mark("day" + dayNo + "_noticed_lowest_correct", true); }
       else { b.disabled = true; b.classList.add("pq-shake"); msg.textContent = L("Look at the bars again - which one is shortest?", "Mira otra vez las barras - ¿cuál es la más corta?"); sim.mark("day" + dayNo + "_noticed_lowest_correct", false); }
     })));
-    const actions = el(`<div class="pq-actions"><button type="button" class="btn btn--signal">${L("Back to the days", "Volver a los días")}</button></div>`); card.append(actions);
-    actions.firstChild.addEventListener("click", menu);
+    const core = DAYS.slice(0, 3), nxt = core.find(x => !st.dayKinds[x.kind]);
+    const actions = el(`<div class="pq-actions"><button type="button" class="btn btn--signal">${nxt ? L("Next: ", "Siguiente: ") + L(nxt.en, nxt.es) + " ▶" : L("Back", "Atrás")}</button></div>`); card.append(actions);
+    actions.firstChild.addEventListener("click", () => nxt ? startDay(nxt) : menu());
     if (sim.trials.length >= 2) card.append(el(`<p class="pq-hint">${L("Look in the Record stage to compare your days!", "¡Mira la etapa Registro para comparar tus días!")}</p>`));
   }
 
