@@ -14,7 +14,7 @@ function styles() {
 .fc__hud b{display:block;font-size:1.2rem;letter-spacing:0;font-family:var(--font-ui)}
 .fc__card{position:absolute;left:50%;top:2.6rem;transform:translateX(-50%);background:#fff;color:#12304d;border-radius:var(--radius);padding:.45rem .9rem;display:flex;align-items:center;gap:.7rem;box-shadow:0 6px 16px rgba(0,0,0,.35);pointer-events:none}
 .fc__card img{width:6.5rem}.fc__card strong{font-size:1.7rem;line-height:1}
-.fc__msg{position:absolute;left:0;right:0;bottom:4.6rem;text-align:center;font-weight:800;text-shadow:0 2px 6px #000;padding:0 1rem;pointer-events:none}
+.fc__msg{position:absolute;left:50%;transform:translateX(-50%);top:6.7rem;width:max-content;max-width:94%;text-align:center;font-weight:800;font-size:.9rem;text-shadow:0 2px 6px #000;padding:.35rem .9rem;border-radius:var(--radius);background:rgba(10,26,43,.55);pointer-events:none}.fc__msg:empty{display:none}
 .fc__msg small{display:block;font-weight:600}
 .fc__bar{display:flex;flex-direction:column;gap:.5rem;padding:.7rem 1rem 1rem;background:#12304d}
 .fc__meter{position:relative;height:1.1rem;border-radius:99px;background:#0a1a2b;overflow:hidden;border:2px solid #ffffff55}
@@ -22,6 +22,16 @@ function styles() {
 .fc__m{position:absolute;top:0;bottom:0;width:2px;background:#fff9}
 .fc__go{font:inherit;font-weight:900;font-size:1.15rem;padding:.7em 1em;border-radius:99px;border:0;background:#ffd34d;color:#3a2600;cursor:pointer;box-shadow:0 5px 0 #b8861a;touch-action:none;user-select:none}
 .fc__go:disabled{opacity:.5}.fc__go.is-held{transform:translateY(3px);box-shadow:0 2px 0 #b8861a}
+.fc__row2{display:flex;align-items:center;gap:.6rem;font-size:.75rem;font-weight:800;letter-spacing:.06em}
+.fc__row2 .fc__meter{flex:1;height:.9rem}
+.fc__fuse{height:100%;width:75%;background:linear-gradient(90deg,#ff5a3c,#ffb23c 60%,#7dffb4);transition:width .4s}
+.fc__legend{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;font-size:.72rem}
+.fc__legend span{background:#ffffff1f;border-radius:99px;padding:.15rem .6rem}
+.fc__alarm .fc__fuse{animation:fc-pulse .9s ease-in-out infinite}
+@keyframes fc-pulse{50%{opacity:.55}}
+:root[data-reduced-motion="on"] .fc__alarm .fc__fuse{animation:none}
+.fc__boom{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-6deg);font-size:3rem;font-weight:900;color:#ffd34d;text-shadow:0 4px 0 #b32d12,0 0 18px #ff7a1c;pointer-events:none;animation:fc-boom 1.8s ease-out forwards}
+@keyframes fc-boom{0%{transform:translate(-50%,-50%) scale(.3) rotate(-6deg);opacity:0}15%{transform:translate(-50%,-50%) scale(1.15) rotate(-6deg);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(1) rotate(-6deg);opacity:0}}
 .fc__end{text-align:center;padding:var(--sp-5);background:#12304d}.fc__end h3{margin:0 0 .5rem;font-size:1.6rem}
 .fc__row{display:flex;gap:.6rem;justify-content:center;margin-top:var(--sp-4);flex-wrap:wrap}
 `;
@@ -52,7 +62,9 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
     <div class="fc__card"><img id="fc-i" alt=""><strong id="fc-f"></strong></div>
     <p class="fc__msg" id="fc-m" aria-live="polite"></p>
     <div class="fc__bar"><div style="font-size:.85rem;text-align:center">${S.instructions}</div>
-      <div class="fc__meter"><div class="fc__fill" id="fc-fill"></div><i class="fc__m" style="left:0"></i><i class="fc__m" style="left:50%"></i><i class="fc__m" style="right:0"></i></div>
+      <div class="fc__row2" id="fc-fr"><span>${S.fuse}</span><div class="fc__meter" aria-label="${S.fuse}"><div class="fc__fuse" id="fc-fuse"></div></div></div>
+      <div class="fc__row2"><span>${S.power}</span><div class="fc__meter"><div class="fc__fill" id="fc-fill"></div><i class="fc__m" style="left:0"></i><i class="fc__m" style="left:50%"></i><i class="fc__m" style="right:0"></i></div></div>
+      <div class="fc__legend"><span>${S.legend3}</span><span>${S.legend2}</span><span>${S.legend1}</span><span>${S.legendStreak}</span></div>
       <button type="button" class="fc__go" id="fc-go">${S.hold}</button></div></div>`;
   const $ = id => host.querySelector("#" + id);
   const canvas = $("fc-c");
@@ -96,6 +108,29 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
   barrel.rotation.z = -(Math.PI / 2 - ANG); barrel.position.set(0.6, 0.5, 0); barrel.castShadow = true; cannon.add(barrel);
   const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.5, 20), new THREE.MeshStandardMaterial({ color: 0x7a4a22 }));
   wheel.rotation.x = Math.PI / 2; wheel.castShadow = true; cannon.add(wheel); scene.add(cannon);
+  // googly eyes (they bulge when the fuse is nearly gone)
+  const eyes = [], pupils = [];
+  [-0.22, 0.22].forEach(dx => {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })); e.position.set(dx, 0.15, 0.36);
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), new THREE.MeshBasicMaterial({ color: 0x111111 })); pu.position.set(dx, 0.15, 0.54);
+    cannon.add(e, pu); eyes.push(e); pupils.push(pu);
+  });
+  // the wick: a cord rising from the breech with a glowing spark at the tip
+  const FUSE_MAX = 2.4, fuseG = new THREE.Group(); fuseG.position.set(-0.5, -0.05, 0); fuseG.rotation.z = 0.55; cannon.add(fuseG);
+  const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1, 8), new THREE.MeshStandardMaterial({ color: 0xd9c08a, roughness: 1 })); fuseG.add(cord);
+  const gcv = document.createElement("canvas"); gcv.width = gcv.height = 64; const gx2 = gcv.getContext("2d");
+  const grd = gx2.createRadialGradient(32, 32, 0, 32, 32, 32); grd.addColorStop(0, "#fff"); grd.addColorStop(.25, "#ffe27a"); grd.addColorStop(.6, "rgba(255,120,30,.55)"); grd.addColorStop(1, "rgba(255,80,0,0)");
+  gx2.fillStyle = grd; gx2.fillRect(0, 0, 64, 64);
+  const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(gcv), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); spark.scale.set(0.9, 0.9, 1); fuseG.add(spark);
+  const sparkLight = new THREE.PointLight(0xff9a3c, 1.2, 6); fuseG.add(sparkLight);
+  const debris = []; const fireball = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshBasicMaterial({ color: 0xff8a1c, transparent: true, opacity: 0 })); scene.add(fireball);
+  let fireT = 0, popT = 0;
+  function setFuseVisual(f, now) {
+    const h = Math.max(0.05, f * FUSE_MAX); cord.scale.y = h; cord.position.y = h / 2; spark.position.y = h;
+    const k = 0.85 + Math.sin(now / 90) * 0.12 + (f < 0.3 ? Math.sin(now / 37) * 0.1 : 0); spark.scale.set(k, k, 1); sparkLight.position.y = h; sparkLight.intensity = 1 + k;
+    const w = f < 0.3 ? 1.5 + Math.sin(now / 60) * 0.25 : 1; eyes.forEach(e => e.scale.setScalar(w));
+    pupils.forEach((pu, i) => { pu.position.x = (i ? 0.22 : -0.22) + (f < 0.3 ? Math.sin(now / 45 + i) * 0.06 : 0); });
+  }
 
   // ball, pin, ring
   const ball = new THREE.Mesh(new THREE.SphereGeometry(0.4, 24, 16), new THREE.MeshStandardMaterial({ color: 0xffc83d, emissive: 0xf08a1c, emissiveIntensity: 0.6, metalness: 0.3, roughness: 0.3 }));
@@ -117,14 +152,14 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
   pg.setAttribute("position", new THREE.BufferAttribute(pp, 3));
   const pm = new THREE.PointsMaterial({ color: 0xffe08a, size: 0.35, transparent: true, opacity: 0, depthWrite: false });
   scene.add(new THREE.Points(pg, pm)); let pLife = 0;
-  function burst(x, col) {
-    pm.color.set(col); pm.opacity = 1; pLife = 1;
-    for (let i = 0; i < NP; i++) { pp.set([x, 0.3, 0], i * 3); const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 4; pv.set([Math.cos(a) * s, 3 + Math.random() * 5, Math.sin(a) * s], i * 3); }
+  function burst(x, col, size = 0.35, y = 0.3, speed = 1) {
+    pm.color.set(col); pm.size = size; pm.opacity = 1; pLife = 1;
+    for (let i = 0; i < NP; i++) { pp.set([x, y, 0], i * 3); const a = Math.random() * Math.PI * 2, s = (2 + Math.random() * 4) * speed; pv.set([Math.cos(a) * s, (3 + Math.random() * 5) * speed, Math.sin(a) * s], i * 3); }
   }
 
   // game state
   let score = 0, streak = 0, best = 0, hits = 0, played = 0, cur = null, order = [];
-  let charging = false, chargeStart = 0, power = 0, flying = null, locked = true, ended = false, shake = 0, ringT = 0;
+  let fuse = 0.75, lastTick = performance.now(), booms = 0, exploded = false; let charging = false, chargeStart = 0, power = 0, flying = null, locked = true, ended = false, shake = 0, ringT = 0;
   const t0 = performance.now(); let raf = 0, timer = 0;
   const powerAt = now => { const p = ((now - chargeStart) % 1900) / 1900; return p < 0.5 ? p * 2 : 2 - p * 2; };
 
@@ -137,22 +172,52 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
   function startCharge(e) { if (locked || charging || ended) return; if (e && e.preventDefault) e.preventDefault(); charging = true; chargeStart = performance.now(); $("fc-go").classList.add("is-held"); }
   function fire() {
     if (!charging) return; charging = false; $("fc-go").classList.remove("is-held");
-    const pw = Math.max(0.03, power); locked = true; $("fc-go").disabled = true;
+    power = powerAt(performance.now()); const pw = Math.max(0.03, power); locked = true; $("fc-go").disabled = true;
     const R = pw * LEN, v = Math.sqrt(G * R / Math.sin(2 * ANG)), T = 2 * v * Math.sin(ANG) / G;
     flying = { v, T, R, pw, start: performance.now() }; ball.visible = true;
     shake = reduced ? 0 : 0.35;
     setTimeout(() => land(pw), T * 1000);
   }
+  const FUSE_GAIN = { 3: 0.3, 2: 0.18, 1: 0.07 }, MISS_BURN = 0.28;
+  function setFuseUI() { $("fc-fuse").style.width = Math.max(0, fuse) * 100 + "%"; $("fc-fr").classList.toggle("fc__alarm", fuse < 0.3); }
   function land(pw) {
     flying = null; if (ended) return;
-    const v = cur.num / cur.den, z = ZONES.find(zz => Math.abs(pw - v) <= zz[0]);
-    if (z) { score += z[1] * 10 + Math.min(streak, 5) * 2; streak++; best = Math.max(best, streak); hits++; } else streak = 0;
+    const v = cur.num / cur.den, off = Math.abs(pw - v), z = ZONES.find(zz => off <= zz[0]);
+    let pts = 0, bonus = 0;
+    if (z) { bonus = Math.min(streak, 5) * 2; pts = z[1] * 10 + bonus; score += pts; streak++; best = Math.max(best, streak); hits++; fuse = Math.min(1, fuse + FUSE_GAIN[z[1]]); }
+    else { streak = 0; fuse -= MISS_BURN; }
     ball.position.set(pw * LEN, 0.4, 0); ball.visible = true;
     ring.position.x = pw * LEN; ringT = 1; ring.material.color.set(z ? 0x7dffb4 : 0xff8a7a);
     pin.position.set(v * LEN, 3, 0); pin.visible = true;
     burst(pw * LEN, z ? 0x7dffb4 : 0xffb199); if (!reduced) shake = z ? 0.5 : 0.25;
-    $("fc-m").innerHTML = (z ? "✓ " + z[2] + " +" + z[1] * 10 : S.off) + `<small>${cur.label} ${S.sitsNear} <b>${cur.near}</b>. ${cur.hook}</small>`;
-    setTimeout(() => { if (!ended) next(); }, 2200);
+    const away = Math.round(off * 100);
+    $("fc-m").innerHTML = (z
+      ? `${z[2]} <span style="color:#ffd34d">+${z[1] * 10}</span>${bonus ? ` <span style="color:#7dffb4">+${bonus} ${S.streakWord}</span>` : ""} = <b>+${pts}</b> · ${S.fuseWord} +${Math.round(FUSE_GAIN[z[1]] * 100)}%`
+      : `${S.off} <span style="color:#ff9a8a">${S.fuseWord} −${Math.round(MISS_BURN * 100)}%</span>`)
+      + `<small>${S.away.replace("{n}", away)} · ${cur.label} ${S.sitsNear} <b>${cur.near}</b>. ${cur.hook}</small>`;
+    setFuseUI(); $("fc-s").textContent = streak; $("fc-p").textContent = score;
+    if (fuse <= 0) { setTimeout(explode, 900); return; }
+    setTimeout(() => { if (!ended) next(); }, 2400);
+  }
+  const JOKES = S.jokes || ["KABOOM!"];
+  function explode() {
+    if (ended) return; exploded = true; booms++; streak = 0; locked = true; charging = false; $("fc-go").classList.remove("is-held");
+    cannon.visible = false; fireball.position.set(cannon.position.x + 0.5, 1.4, 0); fireT = 1;
+    burst(cannon.position.x + 0.5, 0xff8a1c, 0.9, 1.2, 1.6); shake = reduced ? 0 : 1.1;
+    const cols = [0x2a3b4d, 0x7a4a22, 0xffffff, 0x111111, 0xd9c08a];
+    for (let i = 0; i < 9; i++) {
+      const m = new THREE.Mesh(i < 2 ? new THREE.SphereGeometry(0.2, 10, 8) : new THREE.BoxGeometry(0.4, 0.3, 0.3), new THREE.MeshStandardMaterial({ color: cols[i % cols.length] }));
+      m.position.set(cannon.position.x + 0.3, 1.2, 0); m.userData.v = new THREE.Vector3((Math.random() - 0.3) * 9, 6 + Math.random() * 7, (Math.random() - 0.5) * 8);
+      m.userData.r = new THREE.Vector3(Math.random() * 8, Math.random() * 8, Math.random() * 8); scene.add(m); debris.push(m);
+    }
+    const boom = document.createElement("div"); boom.className = "fc__boom"; boom.textContent = S.kaboom; $(  "fc-m").parentElement.append(boom); setTimeout(() => boom.remove(), 1900);
+    $("fc-m").innerHTML = JOKES[(booms - 1) % JOKES.length] + `<small>${S.rebuild}</small>`;
+    $("fc-fill").style.width = "0"; setFuseUI();
+    setTimeout(() => {
+      if (ended) return; debris.splice(0).forEach(m => scene.remove(m));
+      exploded = false; fuse = 0.6; setFuseUI(); cannon.visible = true; cannon.scale.setScalar(0.01); popT = 1; barrel.material.color.set(0x15202c);
+      lastTick = performance.now(); next();
+    }, 3000);
   }
 
   function resize() { const w = canvas.clientWidth || 600, h = canvas.clientHeight || 336; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
@@ -167,6 +232,10 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
       ball.position.set(-0.2 + flying.v * Math.cos(ANG) * t * (flying.R / (flying.v * Math.cos(ANG) * flying.T)), 1.2 + flying.v * Math.sin(ANG) * t - 0.5 * G * t * t, 0);
       ball.position.y = Math.max(0.4, ball.position.y); fx = LEN / 2 + (ball.position.x - LEN / 2) * 0.35;
     }
+    setFuseVisual(Math.max(0, fuse), now);
+    if (fireT > 0) { fireT -= dt * 1.3; fireball.material.opacity = Math.max(0, fireT) * 0.8; fireball.scale.setScalar(0.5 + (1 - fireT) * 3.2); }
+    for (const m of debris) { m.userData.v.y -= 16 * dt; m.position.addScaledVector(m.userData.v, dt); m.rotation.x += m.userData.r.x * dt; m.rotation.y += m.userData.r.y * dt; if (m.position.y < 0.2) { m.position.y = 0.2; m.userData.v.set(0, 0, 0); m.userData.r.set(0, 0, 0); } }
+    if (popT > 0) { popT = Math.max(0, popT - dt * 1.6); const k = 1 - popT, sc = 1 + Math.sin(k * Math.PI * 1.5) * 0.25 * (1 - k); cannon.scale.setScalar(Math.max(0.01, k < 1 ? k * sc * 1.05 : 1)); }
     for (const c of clouds) { c.position.x += dt * (reduced ? 0 : 0.6); if (c.position.x > 55) c.position.x = -20; }
     if (pLife > 0) { pLife -= dt * 0.9; pm.opacity = Math.max(0, pLife); for (let i = 0; i < NP; i++) { pv[i * 3 + 1] -= 14 * dt; for (let k = 0; k < 3; k++) pp[i * 3 + k] += pv[i * 3 + k] * dt; if (pp[i * 3 + 1] < 0.1) pp[i * 3 + 1] = 0.1; } pg.attributes.position.needsUpdate = true; }
     if (ringT > 0) { ringT -= dt * 0.9; ring.material.opacity = Math.max(0, ringT); ring.scale.setScalar(1 + (1 - ringT) * 2.5); }
@@ -180,6 +249,8 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
     const left = Math.max(0, durationMs - (performance.now() - t0));
     $("fc-t").textContent = Math.floor(left / 60000) + ":" + String(Math.ceil(left / 1000) % 60).padStart(2, "0");
     $("fc-s").textContent = streak; $("fc-p").textContent = score;
+    const nowT = performance.now(), dts = (nowT - lastTick) / 1000; lastTick = nowT;
+    if (!exploded && !ended && cur) { fuse -= dts / 70; setFuseUI(); if (fuse <= 0 && !flying && locked === false) explode(); }
     if (left <= 0) finish();
   }
   function cleanup() {
@@ -190,7 +261,7 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
     if (ended) return; ended = true; cleanup();
     const acc = played ? Math.round(hits / played * 100) : 0;
     host.innerHTML = `<div class="fc"><div class="fc__end"><h3>${S.finishTitle}</h3>
-      <p>${S.score}: <b>${score}</b> · ${S.accuracy}: <b>${acc}%</b> · ${S.best}: <b>${best}</b></p>
+      <p>${S.score}: <b>${score}</b> · ${S.accuracy}: <b>${acc}%</b> · ${S.best}: <b>${best}</b></p><p>${S.boomsWord}: <b>${booms}</b></p>
       <div class="fc__row"><button class="btn" id="fc-again">${S.playAgain}</button><button class="btn btn--ghost" id="fc-done">${S.continueLabel}</button></div></div></div>`;
     host.querySelector("#fc-again").onclick = () => mountFractionCannon(host, { THREE, items, durationMs, strings: S, onExit });
     host.querySelector("#fc-done").onclick = () => onExit && onExit({ score, accuracy: acc, bestStreak: best });
@@ -200,5 +271,5 @@ export function mountFractionCannon(host, { THREE, items, durationMs = 120000, s
   $("fc-go").addEventListener("pointerdown", startCharge);
   addEventListener("pointerup", fire);
   addEventListener("keydown", kd); addEventListener("keyup", ku); addEventListener("resize", resize);
-  resize(); next(); timer = setInterval(tick, 100); frame();
+  resize(); next(); setFuseUI(); timer = setInterval(tick, 100); frame();
 }
