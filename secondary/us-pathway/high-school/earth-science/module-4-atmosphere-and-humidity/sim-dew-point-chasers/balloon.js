@@ -2,8 +2,11 @@
    Dew Point Chasers — BONUS ROUND: "Balloon Ascent"
 
    A steer-through-the-answer ascent (CLAUDE.md s4, Bonus Game Mechanic
-   Library): a real weather balloon rises through all five layers of the
-   atmosphere in a fixed two minutes of wall-clock time. Every 12 seconds a
+   Library): a hot-air weather balloon climbs through the five layers of the
+   atmosphere in a fixed two minutes of wall-clock time. The burner is lit
+   while it climbs, and every right answer speeds the climb up (burner x1.2,
+   x1.4 ...). A wrong answer snuffs the burner and the balloon sinks back down
+   before the burner relights and it starts climbing again at normal speed. Every 12 seconds a
    question appears and three glowing portals rise toward the balloon, each
    labelled with one answer; the student steers the balloon into a lane (tap
    a lane button, press 1/2/3, or use the arrow keys) and whichever portal the
@@ -31,10 +34,14 @@ function lerpHex(a, b, t) {
   const ar = a >> 16, ag = (a >> 8) & 255, ab = a & 255, br = b >> 16, bg = (b >> 8) & 255, bb = b & 255;
   return ((ar + (br - ar) * t) << 16) | ((ag + (bg - ag) * t) << 8) | (ab + (bb - ab) * t) | 0;
 }
-function altitudeAt(sec) {
-  const layer = Math.min(4, Math.floor(sec / 24)), f = Math.min(1, (sec - layer * 24) / 24);
-  return { layer, km: LAYER_START[layer] + (LAYER_END[layer] - LAYER_START[layer]) * f };
+function altitudeAt(p) {            // p = 0..1 climb progress; each layer is a fifth of it
+  p = Math.max(0, Math.min(1, p));
+  const layer = Math.min(4, Math.floor(p * 5)), f = Math.min(1, p * 5 - layer);
+  return { layer, f, km: LAYER_START[layer] + (LAYER_END[layer] - LAYER_START[layer]) * f };
 }
+const BASE_CLIMB = 1 / 180;        // progress per second at burner x1 (perfect play tops out at about 95 s)
+const DROP_P = 0.12, DROP_RATE = 0.045;   // a wrong answer: sink 12% of the climb, over about 2.7 s
+const multOf = streak => 1 + 0.2 * Math.min(streak, 10);
 function seedRand(seed) { let s = seed; return () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }; }
 
 function glowTex() {
@@ -85,8 +92,8 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
           <p class="eyebrow">${L("Bonus round - optional", "Ronda extra - opcional")}</p>
           <h3 class="bl-launch__title">${L("Balloon Ascent", "Ascenso en Globo")}</h3>
           <p class="q__hint" style="margin:.2rem 0 .7rem">${L(
-            "Ride a weather balloon up through all five layers of the atmosphere in two minutes. Steer into the portal with the right answer - the balloon never stops climbing, and nothing here is marked.",
-            "Sube en un globo meteorológico por las cinco capas de la atmósfera en dos minutos. Dirige el globo al portal con la respuesta correcta - el globo nunca deja de subir y nada de esto se califica.")}</p>
+            "Ride a weather balloon up through all five layers of the atmosphere in two minutes. Steer into the portal with the right answer: every right answer fires the burner harder and speeds the climb, a wrong one snuffs the flame and the balloon sinks. Nothing here is marked.",
+            "Sube en un globo meteorológico por las cinco capas de la atmósfera en dos minutos. Dirige el globo al portal con la respuesta correcta: cada acierto aviva el quemador y acelera la subida; un fallo apaga la llama y el globo desciende. Nada de esto se califica.")}</p>
           <div class="cluster">
             <button type="button" class="btn btn--signal" data-act="play">${L("Launch the balloon", "Lanzar el globo")}</button>
             <button type="button" class="btn btn--ghost" data-act="skip">${L("Skip", "Omitir")}</button>
@@ -101,10 +108,15 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
   function play() {
     const rnd = seedRand((Date.now() & 0xffff) + 7);
     // each gate: shuffled option order, remembering which lane is right
-    const gates = questions.slice(0, GATES).map((q) => {
+    const gates = [];
+    const pool = questions.map((q, i) => ({ q, layer: Math.floor(i / 2), asked: 0 }));
+    function makeGate(layer) {
+      // a question about the layer the balloon is actually in; least-asked first
+      const cand = pool.filter(x => x.layer === layer).sort((a, b) => a.asked - b.asked || rnd() - 0.5)[0];
+      cand.asked++;
       const order = [0, 1, 2].sort(() => rnd() - 0.5);
-      return { q, order, correctLane: order.indexOf(0), selected: null, done: false, result: null };
-    });
+      return { q: cand.q, order, correctLane: order.indexOf(0), selected: null, done: false, result: null };
+    }
 
     card.innerHTML = `
       <div class="bl-stage" id="bl-stage">
@@ -112,6 +124,7 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
           <div class="bl-hud__row">
             <span class="bl-pill" id="bl-layer"></span>
             <span class="bl-pill bl-pill--alt" id="bl-alt">0 km</span>
+            <span class="bl-pill bl-pill--burn" id="bl-burn">Burner x1.0</span>
             <span class="bl-pill bl-pill--right" id="bl-time">2:00</span>
             <span class="bl-pill bl-pill--right" id="bl-score">0</span>
           </div>
@@ -132,6 +145,7 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
     });
 
     let start = performance.now(), cur = -1, score = 0, streak = 0, best = 0, finished = false, laneNow = 1, balloonX = 0;
+    let p = 0, pv = 0, descend = 0, burner = true, peak = 0, drops = 0, lastTick = start;
     const log = [];
     let r3 = null; try { r3 = build3D(stage); } catch (e) { r3 = null; }
     const r2 = r3 ? null : build2D(stage);
@@ -163,12 +177,12 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
       const right = g.selected === g.correctLane;
       g.result = right;
       if (right) { score += 10 + Math.min(streak, 5) * 2; streak++; best = Math.max(best, streak); }
-      else streak = 0;
+      else { streak = 0; descend = Math.min(DROP_P, p); drops++; burner = false; }
       const rightText = L(g.q.opts[0].en, g.q.opts[0].es);
       toast(right
-        ? `<b>${L("Through!", "¡Dentro!")}</b> ${L(g.q.hook.en, g.q.hook.es)}`
-        : `<b>${L("Answer:", "Respuesta:")}</b> ${rightText}. ${L(g.q.hook.en, g.q.hook.es)}`, right);
-      popup(right ? "+" + (10 + Math.min(streak - 1, 5) * 2) : L("Not this time", "Esta vez no"), right);
+        ? `<b>${L("Through! Burner up - faster!", "¡Dentro! Quemador al máximo - ¡más rápido!")}</b> ${L(g.q.hook.en, g.q.hook.es)}`
+        : `<b>${L("Burner out - sinking! Answer:", "Quemador apagado - ¡descendiendo! Respuesta:")}</b> ${rightText}. ${L(g.q.hook.en, g.q.hook.es)}`, right);
+      popup(right ? "+" + (10 + Math.min(streak - 1, 5) * 2) : L("Burner out!", "¡Quemador apagado!"), right);
       if (r3) r3.burst(LANE_X[g.correctLane], right ? 0x7dff9a : 0xffc857); else if (r2) r2.flash(right);
       if (!right) log.push({ prompt: L(g.q.prompt.en, g.q.prompt.es), answer: rightText });
       $("bl-score").textContent = score + (streak > 1 ? "  x" + streak : "");
@@ -177,7 +191,7 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
       setTimeout(() => laneBtns.forEach(b => b.classList.remove("bl-lane--right")), 1500);
     }
     function showGate(k) {
-      cur = k; const g = gates[k];
+      cur = k; const g = gates[k] = makeGate(altitudeAt(p).layer);
       $("bl-q").textContent = L(g.q.prompt.en, g.q.prompt.es);
       $("bl-q").classList.remove("bl-q--in"); void $("bl-q").offsetWidth; $("bl-q").classList.add("bl-q--in");
       g.order.forEach((optIdx, lane) => {
@@ -197,7 +211,14 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
       if (cur >= 0 && !gates[cur].done && el - cur * GATE_EVERY >= LEAD_MS) resolve(cur);
       const left = Math.max(0, Math.ceil((ROUND_MS - el) / 1000));
       $("bl-time").textContent = Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
-      const a = altitudeAt(el / 1000);
+      // the climb itself: integrated from real elapsed time, sped up by the streak, reversed by a wrong answer
+      const now2 = performance.now(), dt = Math.min(0.25, (now2 - lastTick) / 1000); lastTick = now2;
+      const mult = multOf(streak);
+      if (descend > 0) { const d = Math.min(descend, DROP_RATE * dt); p -= d; descend -= d; burner = false; }
+      else { burner = true; p = Math.min(1, p + BASE_CLIMB * mult * dt); }
+      p = Math.max(0, p); peak = Math.max(peak, p);
+      const a = altitudeAt(p);
+      const bp = $("bl-burn"); bp.textContent = burner ? L("Burner x", "Quemador x") + mult.toFixed(1) : L("Burner out!", "¡Quemador apagado!"); bp.dataset.off = burner ? "false" : "true";
       $("bl-layer").textContent = L(LAYERS[a.layer].en, LAYERS[a.layer].es);
       $("bl-alt").textContent = Math.round(a.km).toLocaleString() + " km";
       if (cur >= 0) { const f = Math.min(1, (el - cur * GATE_EVERY) / LEAD_MS); $("bl-bar").style.width = (100 - f * 100) + "%"; }
@@ -208,7 +229,9 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
       requestAnimationFrame(render);
       const el = performance.now() - start;
       balloonX += (LANE_X[laneNow] - balloonX) * 0.12;
-      if (r3) r3.frame(el / 1000, balloonX, cur, gates, el); else r2.frame(el / 1000, balloonX, cur >= 0 && !gates[cur].done ? gates[cur] : null, el - Math.max(0, cur) * GATE_EVERY);
+      pv += (p - pv) * 0.2;
+      const mult = multOf(streak);
+      if (r3) r3.frame(el / 1000, balloonX, cur, gates, el, pv, burner, mult, descend > 0); else r2.frame(el / 1000, balloonX, cur >= 0 && !gates[cur].done ? gates[cur] : null, el - Math.max(0, cur) * GATE_EVERY, pv);
     }
     requestAnimationFrame(render);
 
@@ -217,14 +240,15 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
       if (finished) return;
       if (cur >= 0 && !gates[cur].done) resolve(cur);
       stopAll();
-      const right = gates.filter(g => g.result).length;
-      onFinish && onFinish({ score, right, total: GATES, best });
+      const right = gates.filter(g => g && g.result).length;
+      const pk = altitudeAt(peak);
+      onFinish && onFinish({ score, right, total: GATES, best, peakKm: Math.round(pk.km) });
       card.innerHTML = `
         <div class="bl-end">
           <p class="eyebrow">${L("Ascent complete", "Ascenso completado")}</p>
-          <h3 class="bl-launch__title">${L("You reached space - 1,000 km up!", "¡Llegaste al espacio - a 1.000 km de altura!")}</h3>
-          <div class="bl-stats"><div><b>${right}/${GATES}</b><span>${L("portals correct", "portales correctos")}</span></div><div><b>${score}</b><span>${L("points", "puntos")}</span></div><div><b>${best}</b><span>${L("best streak", "mejor racha")}</span></div></div>
-          ${log.length ? `<p class="eyebrow" style="margin-top:.8rem">${L("Worth another look", "Vale la pena repasar")}</p><ul class="bl-miss">${log.map(m => `<li><b>${m.prompt}</b> ${L("Answer:", "Respuesta:")} ${m.answer}</li>`).join("")}</ul>` : `<p class="q__hint">${L("A perfect climb - every layer answered correctly.", "Un ascenso perfecto - todas las capas respondidas correctamente.")}</p>`}
+          <h3 class="bl-launch__title">${peak >= 0.999 ? L("You reached space - 1,000 km up!", "¡Llegaste al espacio - a 1.000 km de altura!") : L("Highest point: ", "Punto más alto: ") + Math.round(pk.km).toLocaleString() + " km - " + L(LAYERS[pk.layer].en, LAYERS[pk.layer].es)}</h3>
+          <div class="bl-stats"><div><b>${right}/${GATES}</b><span>${L("portals correct", "portales correctos")}</span></div><div><b>${score}</b><span>${L("points", "puntos")}</span></div><div><b>${best}</b><span>${L("best streak", "mejor racha")}</span></div><div><b>${drops}</b><span>${L("burner-outs", "quemadores apagados")}</span></div></div>
+          ${log.length ? `<p class="eyebrow" style="margin-top:.8rem">${L("Worth another look", "Vale la pena repasar")}</p><ul class="bl-miss">${log.map(m => `<li><b>${m.prompt}</b> ${L("Answer:", "Respuesta:")} ${m.answer}</li>`).join("")}</ul>` : `<p class="q__hint">${L("A perfect climb - every gate answered correctly.", "Un ascenso perfecto - todas las puertas respondidas correctamente.")}</p>`}
           <p class="q__hint">${L("Fun fact: a real weather balloon swells as it climbs because the air around it gets thinner - until it bursts around 30-35 km up.", "Dato curioso: un globo meteorológico real se hincha al subir porque el aire a su alrededor se vuelve más fino - hasta que revienta a unos 30-35 km de altura.")}</p>
           <div class="cluster"><button type="button" class="btn btn--signal" data-act="again">${L("Fly again", "Volar otra vez")}</button></div>
         </div>`;
@@ -260,6 +284,14 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
     });
     const basket = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.4, 0.55), new THREE.MeshStandardMaterial({ color: 0x8a5a2b, roughness: 0.8 })); basket.position.y = 0.05; bal.add(basket);
     const sonde = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.16, 0.3), new THREE.MeshStandardMaterial({ color: 0xffffff })); sonde.position.y = 0.34; bal.add(sonde);
+    const flameMat = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false });
+    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1, 14), flameMat); flame.position.set(0, 1.0, 0); bal.add(flame);
+    const flameCore = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.7, 12), new THREE.MeshBasicMaterial({ color: 0xfff3a8, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })); flameCore.position.set(0, 0.92, 0); bal.add(flameCore);
+    const flameGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: 0xffa040, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); flameGlow.scale.set(2.4, 2.4, 1); flameGlow.position.set(0, 1.2, 0); bal.add(flameGlow);
+    const flameLight = new THREE.PointLight(0xff9a40, 1.2, 9); flameLight.position.set(0, 0.8, 0); bal.add(flameLight);
+    const SMK = 24, smkP = new Float32Array(SMK * 3), smkL = new Float32Array(SMK).fill(-1);
+    const smkG = new THREE.BufferGeometry(); smkG.setAttribute("position", new THREE.BufferAttribute(smkP, 3));
+    const smoke = new THREE.Points(smkG, new THREE.PointsMaterial({ size: 1.1, map: glow, color: 0x8a949c, transparent: true, opacity: 0.6, depthWrite: false })); smoke.frustumCulled = false; scene.add(smoke);
     const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.4, 6), new THREE.MeshBasicMaterial({ color: 0x222222 })); ant.position.set(0, 0.55, 0); bal.add(ant);
 
     // earth far below
@@ -323,30 +355,42 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
         for (let i = 0; i < BN; i++) { bp[i * 3] = x; bp[i * 3 + 1] = gateGroup.position.y; bp[i * 3 + 2] = 0; const a = Math.random() * 6.28, s = 2 + Math.random() * 5; bv[i * 3] = Math.cos(a) * s; bv[i * 3 + 1] = Math.sin(a) * s; bv[i * 3 + 2] = (Math.random() - 0.5) * 3; }
         shake = reduced() ? 0 : 0.5;
       },
-      frame(sec, bx, cur, gates, elMs) {
-        const y = sec * VS, a = altitudeAt(sec);
+      frame(sec, bx, cur, gates, elMs, pv, burner, mult, sinking) {
+        const y = pv * 264, a = altitudeAt(pv);
         // sky colour follows altitude
-        const lf = Math.min(1, (sec - a.layer * 24) / 24), c0 = SKY[a.layer], c1 = SKY[Math.min(4, a.layer + 1)];
+        const lf = a.f, c0 = SKY[a.layer], c1 = SKY[Math.min(4, a.layer + 1)];
         const col = lerpHex(c0, c1, a.layer < 4 ? lf : 0); scene.background.setHex(col); scene.fog.color.setHex(col);
-        scene.fog.near = 40 + sec * 1.5; scene.fog.far = 120 + sec * 4;
-        stars.material.opacity = Math.max(0, Math.min(1, (sec - 20) / 40)); stars.position.set(0, y * 0.9, 0);
-        halo.material.opacity = 0.16 * Math.max(0, 1 - sec / 110);
+        scene.fog.near = 40 + pv * 180; scene.fog.far = 120 + pv * 480;
+        stars.material.opacity = Math.max(0, Math.min(1, (pv - 0.17) / 0.33)); stars.position.set(0, y * 0.9, 0);
+        halo.material.opacity = 0.16 * Math.max(0, 1 - pv * 1.1);
         // balloon swells as air thins
-        const sw = 1 + Math.min(0.8, sec / 120 * 0.8);
+        const sw = 1 + 0.8 * pv;
         bal.position.set(bx, y, 0); env.scale.set(sw, 1.2 * sw, sw); env.position.y = 1.0 + 1.25 * 1.2 * sw;
         if (!reduced()) { bal.rotation.z = Math.sin(sec * 1.6) * 0.04 - bx * 0.01; bal.position.y += Math.sin(sec * 2) * 0.08; }
         shake = Math.max(0, shake - 0.03);
         const sh = reduced() ? 0 : shake * (Math.random() - 0.5) * 0.5;
+        const wantFov = 52 + (burner ? (mult - 1) * 4 : 0); if (Math.abs(camera.fov - wantFov) > 0.05) { camera.fov += (wantFov - camera.fov) * 0.1; camera.updateProjectionMatrix(); }
         camera.position.set(bx * 0.35 + sh, y + 3.4, 13); camera.lookAt(bx * 0.25, y + 5, 0);
         clouds.forEach((s, i) => { s.position.x += Math.sin(sec * 0.2 + i) * 0.004; });
         ozone.forEach((m, i) => { m.material.opacity = 0.1 + 0.07 * Math.sin(sec * 0.9 + i); });
         meteors.forEach((m) => { const u = (sec * 0.5 + m.userData.ph) % 3; m.position.set(m.userData.x + u * 5 - 8, m.userData.y - u * 5, -6); m.material.opacity = u < 1.6 ? 0.9 : 0; });
         auroras.forEach((m, i) => { const pos = m.geometry.attributes.position.array, base = m.userData.base; for (let v = 0; v < pos.length; v += 3) { pos[v + 1] = base[v + 1] + Math.sin(base[v] * 0.25 + sec * 1.1 + i) * 1.4; } m.geometry.attributes.position.needsUpdate = true; });
+        // burner: lit and roaring while climbing (bigger at higher speed); snuffed with a puff of smoke while sinking
+        flame.visible = flameCore.visible = flameGlow.visible = burner;
+        if (burner) {
+          const k = 0.8 + (mult - 1) * 0.35, fk = (reduced() ? 1 : 0.85 + Math.random() * 0.3) * k;
+          flame.scale.set(fk * 1.6, fk * 1.3, fk * 1.6); flame.position.y = 0.55 + 0.65 * fk; flameCore.scale.set(fk * 1.5, fk * 1.2, fk * 1.5); flameCore.position.y = 0.55 + 0.35 * fk * 1.0; flameGlow.position.y = 0.95; flameGlow.scale.setScalar(2.2 + k * 1.2); flameLight.intensity = 1 + k;
+        } else flameLight.intensity = 0;
+        if (!burner && !reduced()) for (let i = 0; i < SMK; i++) if (smkL[i] < 0 && Math.random() < 0.3) { smkL[i] = 1; smkP[i * 3] = bal.position.x + (Math.random() - 0.5) * 0.3; smkP[i * 3 + 1] = bal.position.y + 1; smkP[i * 3 + 2] = 0; break; }
+        for (let i = 0; i < SMK; i++) { if (smkL[i] < 0) { smkP[i * 3 + 1] = -9999; continue; } smkL[i] -= 0.02; smkP[i * 3 + 1] += 0.05; }
+        smkG.attributes.position.needsUpdate = true;
+        if (sinking && !reduced()) bal.rotation.z += Math.sin(sec * 9) * 0.02;
         // gate: a platform of three portals rising toward the balloon
         if (gateK >= 0) {
           const g = gates[gateK];
           const remaining = Math.max(0, LEAD_MS - (elMs - gateK * GATE_EVERY)) / 1000;
-          gateGroup.position.y = g && g.done ? gateY + 2.6 : y + 2.6 + remaining * 0.9;
+          if (g && g.done) { if (g.fy == null) g.fy = gateGroup.position.y; gateGroup.position.y = g.fy; }
+          else gateGroup.position.y = y + 2.6 + remaining * 0.9;
           rings.forEach((r, i) => { r.g.rotation.z = sec * (i + 1) * 0.3; if (g && g.done) { const right = i === g.correctLane; r.g.scale.setScalar(right ? 1.25 + Math.sin(sec * 8) * 0.06 : 0.8); r.ring.material.emissiveIntensity = right ? 1.6 : 0.2; } else if (g && g.selected === i) { r.ring.material.emissiveIntensity = 1.3; } else r.ring.material.emissiveIntensity = 0.7; });
         }
         if (bLife > 0) { bLife -= 0.02; bm.opacity = Math.max(0, bLife); for (let i = 0; i < BN; i++) { bp[i * 3] += bv[i * 3] * 0.016; bp[i * 3 + 1] += bv[i * 3 + 1] * 0.016; bp[i * 3 + 2] += bv[i * 3 + 2] * 0.016; } bg.attributes.position.needsUpdate = true; }
@@ -362,12 +406,12 @@ export function mountBalloonBonus(host, { L, questions, onFinish }) {
     const ctx = canvas.getContext("2d"); let flashT = 0, flashGood = true;
     return {
       flash(good) { flashT = 1; flashGood = good; },
-      frame(sec, bx, g, sinceGate) {
+      frame(sec, bx, g, sinceGate, pv) {
         const w = stage.clientWidth, h = stage.clientHeight; if (canvas.width !== w) { canvas.width = w; canvas.height = h; }
-        const a = altitudeAt(sec), lf = Math.min(1, (sec - a.layer * 24) / 24);
+        const a = altitudeAt(pv), lf = a.f;
         const c = lerpHex(SKY[a.layer], SKY[Math.min(4, a.layer + 1)], a.layer < 4 ? lf : 0);
         ctx.fillStyle = "#" + c.toString(16).padStart(6, "0"); ctx.fillRect(0, 0, w, h);
-        if (sec > 20) { ctx.fillStyle = "#fff"; for (let i = 0; i < 60; i++) ctx.fillRect((i * 97) % w, (i * 53) % (h * 0.8), 2, 2); }
+        if (pv > 0.17) { ctx.fillStyle = "#fff"; for (let i = 0; i < 60; i++) ctx.fillRect((i * 97) % w, (i * 53) % (h * 0.8), 2, 2); }
         const lane = (i) => w * (0.25 + i * 0.25);
         if (g && !g.done) { const f = Math.min(1, sinceGate / LEAD_MS), gy = h * (0.05 + (1 - f) * 0.6); [0, 1, 2].forEach(i => { ctx.strokeStyle = LANE_COLORS[i]; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(lane(i), gy + 20, 34, 0, 7); ctx.stroke(); ctx.fillStyle = "#fff"; ctx.font = "700 22px sans-serif"; ctx.textAlign = "center"; ctx.fillText(String(i + 1), lane(i), gy + 28); }); }
         const x = w * 0.5 + (bx / 3.2) * w * 0.25;
@@ -427,6 +471,7 @@ export const BALLOON_CSS = `
 .bl-hud__row{display:flex;flex-wrap:wrap;gap:6px}
 .bl-pill{background:#06142acc;border:1px solid #5aa9ff88;color:#eaf4ff;border-radius:999px;padding:.25rem .7rem;font-size:.78rem;letter-spacing:.03em;text-transform:uppercase}
 .bl-pill--alt{background:#ffd23fee;color:#2a1c00;border-color:#ffd23f}
+.bl-pill--burn{background:#ff7a2aee;color:#2a1000;border-color:#ff7a2a}.bl-pill--burn[data-off="true"]{background:#555e66ee;color:#fff;border-color:#9aa4ac}
 .bl-pill--right{margin-left:auto}.bl-pill--right+.bl-pill--right{margin-left:0}
 .bl-q{align-self:center;max-width:min(560px,92%);text-align:center;background:#06142ae0;border:1px solid #5aa9ff;color:#fff;border-radius:12px;padding:.55rem .9rem;font-size:.98rem;font-family:var(--font-body,inherit)}
 .bl-q--in{animation:bl-in .35s ease}
