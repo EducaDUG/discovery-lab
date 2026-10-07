@@ -53,6 +53,7 @@ import { mountActivity } from "../../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../../engine/i18n.js?v=9";
 import { renderArcadeLaunch } from "../../../../../engine/arcade.js?v=3";
 import { mountBenchmarkCatch } from "./catch.js?v=1";
+import { mountFractionCannon, webglOK } from "./cannon.js?v=2";
 
 const THREE_URL = "../../../../../engine/vendor/three.min.js";
 const L = (en, es) => (getLang() === "es" ? es : en);
@@ -429,6 +430,46 @@ function drawInvestigate(host, sim) {
     });
   }
   paintArcade();
+
+  /* ---------- Second bonus round: Fraction Cannon (realistic 3D launch-and-land) ---------- */
+  const cannonSection = document.createElement("div");
+  cannonSection.style.marginTop = "var(--sp-5)";
+  host.append(cannonSection);
+  function loadThreeOnce() {
+    if (window.THREE) return Promise.resolve(window.THREE);
+    return new Promise((res, rej) => { const s = document.createElement("script"); s.src = THREE_URL; s.onload = () => res(window.THREE); s.onerror = rej; document.head.append(s); });
+  }
+  function paintCannon() {
+    cannonSection.innerHTML = "";
+    if (!webglOK()) return;
+    renderArcadeLaunch(cannonSection, {
+      strings: {
+        title: L("Bonus round 2 — Fraction Cannon (3D)", "Ronda bonus 2 — Cañón de fracciones (3D)"),
+        instructions: L("Charge the cannon and fire a ball along the 3D number-line runway. Land it exactly where the fraction sits!", "Carga el cañón y dispara una bola por la pista 3D de la recta numérica. ¡Que caiga justo donde está la fracción!"),
+        play: L("Play Fraction Cannon", "Jugar Cañón de fracciones"),
+        skip: L("Skip", "Saltar"),
+      },
+      onPlay() {
+        cannonSection.innerHTML = "";
+        const gameHost = document.createElement("div");
+        cannonSection.append(gameHost);
+        loadThreeOnce().then(THREE => mountFractionCannon(gameHost, {
+          THREE, items: BLITZ_ITEMS, durationMs: 120000,
+          strings: {
+            title: L("Fraction Cannon", "Cañón de fracciones"),
+            instructions: L("Hold the button (or Space) to charge, let go to fire. The far end of the runway is 1. No lives, just points!", "Mantén el botón (o Espacio) para cargar y suelta para disparar. El final de la pista es 1. ¡Sin vidas, solo puntos!"),
+            time: L("Time", "Tiempo"), score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
+            hold: L("HOLD to charge — release to fire", "MANTÉN para cargar — suelta para disparar"), off: L("Not quite.", "No exactamente."),
+            sitsNear: L("sits near", "está cerca de"), finishTitle: L("Round complete!", "¡Ronda completa!"),
+            accuracy: L("Accuracy", "Precisión"), playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+          },
+          onExit() { paintCannon(); }
+        })).catch(() => { cannonSection.innerHTML = ""; });
+      },
+      onSkip() { cannonSection.innerHTML = ""; }
+    });
+  }
+  paintCannon();
 }
 
 const simulation = { orient: drawOrient, investigate: drawInvestigate };
