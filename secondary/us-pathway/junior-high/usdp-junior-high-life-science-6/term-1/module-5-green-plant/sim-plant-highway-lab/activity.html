@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plant Highway Control — Discovery Lab</title>
+<meta name="description" content="Run a plant's two highways in 3D: lift water up the xylem, aim the sun, open the stomata, and send sugar down the phloem. Discover what limits photosynthesis.">
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='none' stroke='%2316744F' stroke-width='4'/><circle cx='45' cy='22' r='7' fill='%239A6E05'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ===== Activity-specific styling (lives with the activity) ===== */
+/* This activity uses the in-game Missions panel instead of the engine's badge shelf. */
+#badge-shelf{display:none !important;}
+:root{--water:#1f9fd6;--sugar:#e8553a;--sun:#d9a400;}
+
+.lab3d{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:60rem){.lab3d{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}}
+
+/* --- The 3D control-room viewport --- */
+.stage3d{position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  border:1px solid #0b2a33;aspect-ratio:4/3;min-height:22rem;
+  background:radial-gradient(120% 100% at 50% 20%, #1b5a66 0%, #0f3a45 42%, #061c24 100%);
+  box-shadow:inset 0 0 120px rgba(0,0,0,.55), var(--shadow-2);}
+.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:grab;}
+.stage3d canvas:active{cursor:grabbing;}
+.stage3d::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px rgba(0,0,0,.6);border-radius:inherit;}
+.stage3d__boot{position:absolute;inset:0;display:grid;place-items:center;color:#bfeaf2;
+  font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.1em;text-transform:uppercase;gap:var(--sp-3);}
+.boot-dot{width:44px;height:44px;border-radius:50%;border:3px solid #2f6b7a;border-top-color:#7be0ff;animation:spin 1s linear infinite;margin-inline:auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+[data-reduced-motion=on] .boot-dot{animation-duration:2s;}
+.hud{position:absolute;pointer-events:none;color:#eafcff;font-family:var(--font-data);z-index:2;}
+.hud--tl{top:var(--sp-3);left:var(--sp-3);right:var(--sp-3);}
+.hud--day{top:var(--sp-3);right:var(--sp-3);left:auto;background:#04141acc;border:1px solid #2f6b7a;padding:.25em .7em;border-radius:999px;font-weight:700;font-size:var(--step--1);letter-spacing:.08em;}
+.hud--hint{bottom:var(--sp-3);left:0;right:0;text-align:center;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#8fcbd8;opacity:.9;}
+.hud--legend{bottom:var(--sp-6,2rem);left:var(--sp-3);display:flex;flex-direction:column;gap:.3rem;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;}
+.hud--legend span{display:inline-flex;align-items:center;gap:.4em;background:#04141acc;border:1px solid #2f6b7a;border-radius:999px;padding:.15em .6em;}
+.hud--legend i{width:.7rem;height:.7rem;border-radius:50%;display:inline-block;}
+.rankbar{display:flex;align-items:center;gap:var(--sp-3);}
+.rankbar__badge{flex:none;width:2.6rem;height:2.6rem;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#1f8aa8,#0c4d5e);border:1px solid #3fc8e8;box-shadow:0 4px 14px rgba(0,0,0,.4);line-height:1;text-align:center;}
+.rankbar__badge b{font-size:1.15rem;font-weight:800;color:#eafcff;}
+.rankbar__badge span{display:block;font-size:.5rem;letter-spacing:.14em;color:#a9e6f2;}
+.rankbar__body{flex:1;min-width:0;}
+.rankbar__row{display:flex;justify-content:space-between;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:#a9e6f2;margin-bottom:3px;}
+.rankbar__track{height:9px;border-radius:999px;background:#04141a;border:1px solid #2f6b7a;overflow:hidden;}
+.rankbar__fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#3fc8ff,#ffd45c);box-shadow:0 0 12px #3fc8ffaa;transition:width var(--dur-slow) var(--ease);}
+.streak-chip{display:inline-flex;align-items:center;gap:.25em;margin-top:var(--sp-2);font-size:.72rem;font-weight:700;color:#ffd27a;letter-spacing:.06em;}
+.streak-chip.hot{animation:flamepulse 1.1s ease-in-out infinite;}
+@keyframes flamepulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+[data-reduced-motion=on] .streak-chip.hot{animation:none;}
+.stars{display:inline-flex;gap:.35em;}
+.star{width:26px;height:26px;color:#3a5c6a;transition:transform var(--dur-mid) var(--ease-out-back),color var(--dur-mid) var(--ease);}
+.star.on{color:#ffd45c;filter:drop-shadow(0 0 6px #ffd45c99);}
+.star.pop{transform:scale(1.5);}
+.hud--stars{bottom:var(--sp-5);right:var(--sp-3);}
+
+.readouts{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin-top:var(--sp-3);}
+.ro{display:flex;flex-direction:column;gap:1px;}
+.ro__k{font-family:var(--font-data);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.ro__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-2);color:var(--ink);}
+.result-note{margin-top:var(--sp-3);}
+
+.side{display:flex;flex-direction:column;gap:var(--sp-5);}
+.ctrl{display:flex;flex-direction:column;gap:var(--sp-2);}
+.ctrl__top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
+.ctrl__name{font-family:var(--font-data);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);}
+.ctrl__val{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);color:var(--ink);}
+.ctrl__val small{font-size:.55em;color:var(--ink-3);font-weight:600;margin-left:.15em;}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);height:1.6rem;}
+.ctrl__presets{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.ctrl--sun input[type=range]{accent-color:var(--sun);}
+.ctrl--water input[type=range]{accent-color:var(--water);}
+.ctrl--stoma input[type=range]{accent-color:var(--positive);}
+.chip-btn{font-family:var(--font-data);font-size:.7rem;padding:.25em .7em;border-radius:999px;border:1px solid var(--line-strong);color:var(--ink-2);background:var(--paper);}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash);}
+.chip-btn[aria-pressed=true]{border-color:var(--accent);color:var(--accent-ink);background:var(--accent);}
+.incubate{width:100%;}
+.incubate .btn{width:100%;font-size:var(--step-1);}
+
+.bank{border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-4);background:var(--surface);}
+.bank__row{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
+.bank__sugar{font-family:var(--font-data);font-weight:800;font-size:var(--step-2);color:var(--sugar);}
+.meter{height:10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;margin:.25em 0 .6em;}
+.meter i{display:block;height:100%;width:0;border-radius:999px;transition:width var(--dur-slow) var(--ease);}
+.meter--root i{background:linear-gradient(90deg,#c9b38a,#8a6a4f);}
+.meter--leaf i{background:linear-gradient(90deg,#7bd96a,#2f8f3a);}
+
+.quests{display:flex;flex-direction:column;gap:var(--sp-2);}
+.quest{display:flex;align-items:flex-start;gap:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);transition:border-color var(--dur-mid) var(--ease),background-color var(--dur-mid) var(--ease);}
+.quest__box{flex:none;width:1.4rem;height:1.4rem;border-radius:6px;border:2px solid var(--line-strong);display:grid;place-items:center;font-size:.85rem;color:transparent;margin-top:1px;transition:all var(--dur-mid) var(--ease-out-back);}
+.quest__t{font-weight:700;font-size:var(--step-0);}
+.quest__h{font-size:.74rem;color:var(--ink-3);}
+.quest.is-done{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 8%,transparent);}
+.quest.is-done .quest__box{background:var(--positive);border-color:var(--positive);color:#fff;}
+.quest.just-done{animation:questpop var(--dur-slow) var(--ease-out-back);}
+@keyframes questpop{0%{transform:scale(1);}40%{transform:scale(1.03);}100%{transform:scale(1);}}
+[data-reduced-motion=on] .quest.just-done{animation:none;}
+
+.levelup{position:absolute;inset:0;z-index:5;display:grid;place-items:center;pointer-events:none;background:radial-gradient(circle at 50% 45%, rgba(4,20,26,.55), rgba(4,20,26,.85));opacity:0;transition:opacity var(--dur-mid) var(--ease);}
+.levelup.show{opacity:1;}
+.levelup__card{text-align:center;color:#eafcff;transform:scale(.7);transition:transform var(--dur-slow) var(--ease-out-back);}
+.levelup.show .levelup__card{transform:scale(1);}
+.levelup__k{font-family:var(--font-data);letter-spacing:.3em;font-size:.8rem;color:#ffd45c;}
+.levelup__n{font-family:var(--font-display);font-size:4rem;line-height:1;font-weight:800;margin:.1em 0;text-shadow:0 0 24px #3fc8ff88;}
+.levelup__s{font-family:var(--font-data);font-size:.8rem;color:#bfeaf2;}
+.burst{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;}
+.burst i{position:absolute;width:8px;height:8px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+.flash{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;}
+
+/* Orient map */
+.anat-grid{display:grid;gap:var(--sp-4);grid-template-columns:1fr;}
+@media(min-width:40rem){.anat-grid{grid-template-columns:1.1fr .9fr;align-items:start;}}
+.anat-svg{width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);}
+.def-list{display:flex;flex-direction:column;gap:var(--sp-2);}
+.def{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);padding:var(--sp-3);background:var(--surface);transition:box-shadow var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease);cursor:pointer;}
+.def.is-active{border-left-color:var(--signal);box-shadow:var(--shadow-1);}
+.def__row{display:flex;align-items:center;gap:var(--sp-2);}
+.def__dot{width:.9rem;height:.9rem;border-radius:50%;flex:none;border:2px solid var(--paper);box-shadow:0 0 0 1px var(--line-strong);}
+.def__term{font-weight:700;}
+.def__body{font-size:var(--step--1);color:var(--ink-2);margin-top:var(--sp-1);}
+.eqn{display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:center;justify-content:center;margin-top:var(--sp-4);font-family:var(--font-display);font-weight:800;font-size:var(--step-1);}
+.eqn b{border-radius:12px;padding:.15em .6em;color:#fff;}
+.eqn span{color:var(--ink-3);}
+.seq{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2);margin-top:var(--sp-4);}
+.seq__step{text-align:center;font-size:var(--step--1);color:var(--ink-2);}
+.seq__step svg{width:100%;height:auto;max-height:64px;}
+.seq__n{font-family:var(--font-data);color:var(--signal);font-weight:700;}
+@keyframes flowup{to{stroke-dashoffset:-24;}}
+@keyframes flowdown{to{stroke-dashoffset:24;}}
+.flow-up{animation:flowup 1.1s linear infinite;}
+.flow-down{animation:flowdown 1.1s linear infinite;}
+[data-reduced-motion=on] .flow-up,[data-reduced-motion=on] .flow-down{animation:none;}
+
+/* Observation */
+.obs-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-4);margin-top:var(--sp-4);}
+@media(min-width:42rem){.obs-grid{grid-template-columns:repeat(2,1fr);}}
+.obs-card{border:1px solid var(--line-strong);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);}
+.obs-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.obs-card__name{font-weight:800;padding:.6em .8em 0;}
+.obs-card .chip-tray{padding:.6em .8em .4em;}
+.obs-card .chip-tray__btn.is-done{opacity:1;pointer-events:none;border-color:var(--positive);background:var(--paper);}
+.obs-card .chip-tray__btn.is-done .tray-mark{display:none;}
+.credit{font-size:.66rem;color:var(--ink-3);padding:0 .8em .7em;}
+.credit a{color:inherit;}
+.label-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;margin-top:var(--sp-4);}
+@media(min-width:48rem){.label-wrap{grid-template-columns:minmax(0,.9fr) minmax(0,1fr);align-items:start;}}
+.photo-frame{position:relative;width:100%;max-width:26rem;margin-inline:auto;border-radius:var(--radius-lg);overflow:hidden;border:2px solid #0f3a45;background:#fff;box-shadow:var(--shadow-2);}
+.photo-frame img{width:100%;height:auto;display:block;}
+.spot{position:absolute;transform:translate(-50%,-50%);width:2.4rem;height:2.4rem;border-radius:50%;z-index:4;
+  border:2px dashed #fff;background:rgba(6,32,40,.62);color:#fff;font-weight:800;font-family:var(--font-data);
+  display:grid;place-items:center;cursor:pointer;touch-action:manipulation;transition:all var(--dur-fast) var(--ease);font-size:.85rem;box-shadow:0 0 0 2px rgba(6,32,40,.5);}
+.spot:hover{border-color:var(--signal);}
+.spot.is-armed{border-color:#ffd45c;background:rgba(255,212,92,.35);transform:translate(-50%,-50%) scale(1.15);}
+.spot.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+@keyframes spotshake{0%,100%{transform:translate(-50%,-50%);}30%{transform:translate(calc(-50% - 5px),-50%);}60%{transform:translate(calc(-50% + 5px),-50%);}}
+.spot.is-correct{border-style:solid;border-color:transparent;color:#fff;font-size:.56rem;padding:2px;text-align:center;line-height:1.05;background:var(--positive);width:3.3rem;height:2rem;border-radius:999px;animation:spotpop .4s var(--ease-out-back);}
+@keyframes spotpop{0%{transform:translate(-50%,-50%) scale(.5);}60%{transform:translate(-50%,-50%) scale(1.25);}100%{transform:translate(-50%,-50%) scale(1);}}
+.spot.is-nudge{animation:spotnudge .9s ease 2;}
+@keyframes spotnudge{0%,100%{box-shadow:0 0 0 2px rgba(6,32,40,.5);}50%{box-shadow:0 0 0 8px rgba(255,212,92,.7);}}
+[data-reduced-motion=on] .spot.is-correct,[data-reduced-motion=on] .spot.is-nudge,[data-reduced-motion=on] .spot.is-wrong{animation:none;}
+.chip-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.chip-tray__btn{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer;transition:all var(--dur-fast) var(--ease);touch-action:manipulation;}
+.chip-tray__btn:hover{border-color:var(--accent);}
+.chip-tray__btn.is-armed{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.chip-tray__btn.is-done{opacity:.55;pointer-events:none;}
+.chip-tray__btn.is-nudge{animation:spotnudge .9s ease 2;}
+.chip-tray__btn.is-wrong{animation:chipshake .32s ease;border-color:var(--negative);}
+@keyframes chipshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-5px);}60%{transform:translateX(5px);}}
+.chip-tray .tray-mark{margin-left:auto;}
+.label-progress{font-family:var(--font-data);font-size:var(--step--1);color:var(--ink-3);margin-bottom:var(--sp-2);}
+.labnote{margin-top:var(--sp-3);min-height:2.6rem;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <g stroke="currentColor" stroke-width="1.5" opacity=".45"><path d="M32 2v7M32 55v7M2 32h7M55 32h7"/></g>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../">Secondary</a></li>
+      <li><a href="../../../../../">US Pathway</a></li>
+      <li><a href="../../../../">Junior High</a></li>
+      <li><a href="../../../">Life Science 6</a></li>
+      <li><a href="../../">Term 1</a></li>
+      <li><a href="../">Green Plant</a></li>
+      <li><span aria-current="page">Plant Highway Control</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../">Secundaria</a></li>
+      <li><a href="../../../../../">Itinerario EE. UU.</a></li>
+      <li><a href="../../../../">Junior High</a></li>
+      <li><a href="../../../">Ciencias de la Vida 6</a></li>
+      <li><a href="../../">Trimestre 1</a></li>
+      <li><a href="../">La planta verde</a></li>
+      <li><span aria-current="page">Control de la Autopista Vegetal</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=19";
+import { renderArcadeLaunch } from "../../../../../../../engine/arcade.js?v=5";
+import { getLang } from "../../../../../../../engine/i18n.js?v=9";
+import { mountHighwayDash } from "./highway-dash.js?v=1";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const reducedMotion = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ======================================================================
+   PLANT MODEL  (deterministic)
+   light, water, stomata are percentages 0-100. Sugar made is units per day.
+   Each ingredient sets a ceiling on photosynthesis. The scarcest one limits the leaf.
+   Open stomata also let water escape. If the water supply cannot keep up with that
+   loss, the plant wilts and its stomata are forced mostly shut.
+   ====================================================================== */
+function plant(light, water, stomata) {
+  const Li = light / 100, Wa = water / 100, St = stomata / 100;
+  const loss = St * (0.35 + 0.65 * Li);
+  const need = loss * 0.6;
+  const wilting = St > 0.2 && Wa < need * 0.999;
+  const effOpen = wilting ? St * 0.45 : St;
+  const fLight = Math.pow(Li, 0.8), fWater = clamp(Wa / 0.6, 0, 1), fCO2 = Math.pow(effOpen, 0.8);
+  const m = Math.min(fLight, fWater, fCO2);
+  const sugar = Math.round(100 * m);
+  let limit = "none";
+  if (m < 0.9) {
+    if (wilting && fCO2 <= m + 1e-9) limit = "wilt";
+    else if (fLight <= m + 1e-9) limit = "light";
+    else if (fWater <= m + 1e-9) limit = "water";
+    else limit = "co2";
+  }
+  return { sugar, limit, wilting, loss: Math.round(loss * 100), fLight, fWater, fCO2, effOpen };
+}
+const LIMIT_NAME = () => ({
+  none: L("Nothing, full speed", "Nada, a toda velocidad"),
+  light: L("Light", "Luz"), water: L("Water", "Agua"),
+  co2: L("Carbon dioxide", "Dióxido de carbono"), wilt: L("Wilting", "Marchitamiento")
+});
+const FEEDBACK = () => ({
+  none: L("Full power. Light, water and carbon dioxide all arrived, so the leaf made sugar at top speed.", "A toda potencia. Llegaron luz, agua y dióxido de carbono, así que la hoja fabricó azúcar a máxima velocidad."),
+  light: L("Not enough light. The chloroplasts had too little energy to run photosynthesis, so sugar-making slowed down.", "Poca luz. Los cloroplastos tuvieron muy poca energía para hacer la fotosíntesis, así que la fabricación de azúcar se frenó."),
+  water: L("Not enough water. The xylem could not deliver the water photosynthesis needs, so sugar-making slowed down.", "Poca agua. El xilema no pudo entregar el agua que necesita la fotosíntesis, así que la fabricación de azúcar se frenó."),
+  co2: L("Not enough carbon dioxide. With the stomata nearly closed, little gas could get in, so sugar-making slowed down.", "Poco dióxido de carbono. Con los estomas casi cerrados entró poco gas, así que la fabricación de azúcar se frenó."),
+  wilt: L("Wilting! The stomata were wide open on a dry day, so the leaf lost water faster than the xylem could deliver it. The plant shut its stomata to survive and made less sugar.", "¡Marchitamiento! Los estomas estaban muy abiertos en un día seco, así que la hoja perdió agua más rápido de lo que el xilema podía entregarla. La planta cerró sus estomas para sobrevivir y fabricó menos azúcar.")
+});
+const NEXT_STEP = () => ({
+  none: L("Next: turn ONE setting down and keep the other two at 100 to see which one matters.", "Siguiente: baja UN ajuste y mantén los otros dos en 100 para ver cuál importa."),
+  light: L("Next: raise the light a little at a time and watch the sugar climb.", "Siguiente: sube la luz poco a poco y mira cómo sube el azúcar."),
+  water: L("Next: raise the water supply and see where the sugar stops climbing.", "Siguiente: sube el suministro de agua y mira dónde deja de subir el azúcar."),
+  co2: L("Next: open the stomata wider and compare. What is the cost of opening them?", "Siguiente: abre más los estomas y compara. ¿Cuál es el costo de abrirlos?"),
+  wilt: L("Next: raise the water supply while the stomata stay open. How much water does the leaf need?", "Siguiente: sube el suministro de agua con los estomas abiertos. ¿Cuánta agua necesita la hoja?")
+});
+
+/* ======================================================================
+   MISSIONS (the game spine)
+   ====================================================================== */
+const hi = v => v >= 90;
+const QUESTS = () => [
+  { id: "full", title: L("Full power", "A toda potencia"), hint: L("Run a day with light, water and stomata all at 100 and make 95+ sugar.", "Haz un día con luz, agua y estomas al 100 y fabrica 95+ de azúcar."), xp: 150,
+    test: (s, r) => r.sugar >= 95 },
+  { id: "dark", title: L("Lights out", "Luces apagadas"), hint: L("Turn the light to 10 or less, keep water and stomata high, and see the sugar crash.", "Baja la luz a 10 o menos, mantén agua y estomas altos y mira cómo se desploma el azúcar."), xp: 200,
+    test: (s, r) => s.light <= 10 && hi(s.water) && hi(s.stomata) && r.sugar <= 20 },
+  { id: "dry", title: L("Dry roots", "Raíces secas"), hint: L("Turn the water supply to 10 or less with light and stomata high.", "Baja el suministro de agua a 10 o menos con luz y estomas altos."), xp: 200,
+    test: (s, r) => s.water <= 10 && hi(s.light) && hi(s.stomata) && r.sugar <= 20 },
+  { id: "gasp", title: L("Gasping leaf", "Hoja sin aire"), hint: L("Close the stomata to 10 or less with light and water high.", "Cierra los estomas a 10 o menos con luz y agua altas."), xp: 200,
+    test: (s, r) => s.stomata <= 10 && hi(s.light) && hi(s.water) && r.sugar <= 20 },
+  { id: "wilt", title: L("Wilt alert", "Alerta de marchitamiento"), hint: L("Open the stomata wide on a dry day and make the plant wilt. That is the trade-off.", "Abre mucho los estomas en un día seco y haz que la planta se marchite. Ese es el equilibrio."), xp: 250,
+    test: (s, r) => r.wilting },
+  { id: "deliver", title: L("First delivery", "Primera entrega"), hint: L("Send your sugar trucks down the phloem.", "Envía tus camiones de azúcar hacia abajo por el floema."), xp: 150,
+    test: (s, r, g) => g.deliveries >= 1 },
+  { id: "leaf", title: L("Grow a new leaf", "Haz crecer una hoja nueva"), hint: L("Dispatch enough sugar to the new leaf bud to grow a third leaf.", "Envía suficiente azúcar al brote para que crezca una tercera hoja."), xp: 300,
+    test: (s, r, g) => g.leafG >= 100 },
+  { id: "master", title: L("Highway master", "Maestro de la autopista"), hint: L("Find the limiter for light, water AND stomata. All three tests done.", "Encuentra el limitante de luz, agua Y estomas. Las tres pruebas hechas."), xp: 400,
+    test: (s, r, g) => g.quests.dark && g.quests.dry && g.quests.gasp }
+];
+const xpForLevel = lvl => lvl * 350;
+
+/* ======================================================================
+   OBSERVATION + LABELLING DATA (real photos, credits in photos/credits.json)
+   ====================================================================== */
+const OBS_CARDS = () => [
+  { key: "xylem", name: L("Inside celery: xylem tubes", "Dentro del apio: tubos de xilema"),
+    notices: [L("The tube walls are wound like a spring. That makes them strong, so they do not collapse.", "Las paredes del tubo están enrolladas como un resorte. Eso las hace fuertes y no se aplastan."),
+              L("These are long hollow tubes laid end to end, like straws.", "Son tubos largos y huecos puestos uno tras otro, como pajillas.")] },
+  { key: "stomata", name: L("A leaf surface, magnified", "La superficie de una hoja, aumentada"),
+    notices: [L("Dozens of tiny slits are packed into this small patch. Each slit is a stoma.", "Decenas de pequeñas rendijas están apretadas en este pedacito. Cada rendija es un estoma."),
+              L("Tall hairs stick up from the surface, but the stomata stay clear between them.", "Pelos altos sobresalen de la superficie, pero los estomas quedan libres entre ellos.")] },
+  { key: "veins", name: L("A leaf with light shining through", "Una hoja con luz que la atraviesa"),
+    notices: [L("One thick vein runs down the middle. Thinner veins branch from it, then thinner ones still.", "Una vena gruesa va por el medio. De ella salen venas más finas, y de estas otras aún más finas."),
+              L("The network reaches every part of the leaf, so water can arrive and sugar can leave from anywhere.", "La red llega a todas partes de la hoja, así que el agua llega y el azúcar sale desde cualquier punto.")] },
+  { key: "leafsection", name: L("A slice through a leaf vein", "Un corte a través de la vena de una hoja"),
+    notices: [L("The purple-stained ring of wide tubes in the middle is xylem. Phloem tubes sit right beside it.", "El anillo de tubos anchos teñido de morado en el centro es el xilema. Los tubos del floema están justo al lado."),
+              L("The top layer has tall cells packed close together. They sit where the most light arrives.", "La capa superior tiene células altas muy juntas. Están donde llega más luz.")] },
+  { key: "girdle", name: L("A ring cut through the bark of a tree", "Un anillo cortado en la corteza de un árbol"),
+    notices: [L("A ring of bark has been cut away all the way around the trunk.", "Se quitó un anillo de corteza alrededor de todo el tronco."),
+              L("The living tubes that carry sugar down sit in the inner bark, so this cut has removed them from that ring.", "Los tubos vivos que llevan el azúcar hacia abajo están en la corteza interna, así que este corte los quitó de ese anillo.")] }
+];
+const LEAF_PARTS = () => [
+  { id: "apex", name: L("Apex", "Ápice"), x: 0.435, y: 0.035, info: L("The tip of the leaf.", "La punta de la hoja."), hint: L("It is the very end, opposite the stalk.", "Es el extremo, opuesto al tallo.") },
+  { id: "margin", name: L("Margin", "Margen"), x: 0.128, y: 0.42, info: L("The edge of the leaf. This one has tiny teeth.", "El borde de la hoja. Esta tiene dientecitos."), hint: L("It is the outline all the way round.", "Es el contorno de toda la hoja.") },
+  { id: "blade", name: L("Blade", "Limbo"), x: 0.72, y: 0.52, info: L("The wide, flat green part. Most photosynthesis happens here.", "La parte verde, ancha y plana. Aquí ocurre casi toda la fotosíntesis."), hint: L("It is the big flat area between the veins.", "Es la gran zona plana entre los nervios.") },
+  { id: "midrib", name: L("Midrib", "Nervio central"), x: 0.478, y: 0.40, info: L("The thick middle vein. Xylem and phloem run inside it.", "El nervio grueso del medio. El xilema y el floema van dentro."), hint: L("It runs from the stalk up to the tip, right down the middle.", "Va desde el tallo hasta la punta, justo por el medio.") },
+  { id: "veins", name: L("Veins", "Nervios"), x: 0.372, y: 0.50, info: L("Thinner veins that branch off the midrib. They carry water in and sugar out.", "Nervios más finos que salen del central. Llevan agua adentro y azúcar afuera."), hint: L("Look for the thinner lines branching off the middle one.", "Busca las líneas más finas que salen de la del medio.") },
+  { id: "base", name: L("Base", "Base"), x: 0.505, y: 0.695, info: L("Where the blade meets the stalk.", "Donde el limbo se une al tallo."), hint: L("It is the bottom of the flat part, where the veins start.", "Es la parte baja de lo plano, donde empiezan los nervios.") },
+  { id: "petiole", name: L("Petiole", "Pecíolo"), x: 0.513, y: 0.865, info: L("The leaf stalk. It joins the leaf to the stem.", "El tallo de la hoja. Une la hoja con el tallo principal."), hint: L("The thin stalk below the flat part.", "El tallito delgado debajo de lo plano.") }
+];
+let credits = {};
+const creditHTML = k => { const c = credits[k]; if (!c) return ""; return `<p class="credit">${L("Photo", "Foto")}: ${esc(c.author)}, <a href="${esc(c.licenseUrl || c.page)}" target="_blank" rel="noopener">${esc(c.license)}</a> (<a href="${esc(c.page)}" target="_blank" rel="noopener">${L("source", "fuente")}</a>)</p>`; };
+fetch("photos/credits.json").then(r => r.json()).then(c => { credits = c; document.querySelectorAll("[data-credit]").forEach(el => { el.innerHTML = creditHTML(el.dataset.credit); }); }).catch(() => {});
+
+let sim = null;
+const stats = { lights: new Set(), waters: new Set(), stomata: new Set(), best: 0 };
+
+const simulation = {
+  /* ------------------------------------------------------------------ OBSERVATION */
+  observation(host, api) {
+    host.innerHTML = "";
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("Five real photos from the lab bench. Tap each one to notice details for yourself, then label a real leaf.", "Cinco fotos reales del banco de laboratorio. Toca cada una para notar detalles por ti mismo y luego etiqueta una hoja real.");
+    host.append(intro);
+    const grid = document.createElement("div"); grid.className = "obs-grid";
+    OBS_CARDS().forEach(card => {
+      const el = document.createElement("div"); el.className = "obs-card";
+      el.innerHTML = `<img src="photos/${card.key}.jpg" alt="${esc(card.name)}" loading="lazy"><p class="obs-card__name">${esc(card.name)}</p><div class="chip-tray"></div><div data-credit="${card.key}">${creditHTML(card.key)}</div>`;
+      const tray = el.querySelector(".chip-tray");
+      card.notices.forEach((note, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn";
+        b.innerHTML = `<span>${L("Notice something", "Nota algo")} #${i + 1}</span><span class="tray-mark">👁</span>`;
+        b.addEventListener("click", () => {
+          if (b.classList.contains("is-done")) return;
+          b.classList.add("is-done"); b.querySelector("span").textContent = note;
+          if (api && api.ttsEnabled && api.ttsEnabled()) api.speak(note);
+        });
+        tray.append(b);
+      });
+      grid.append(el);
+    });
+    host.append(grid);
+
+    /* ---- real-photo labelling activity ---- */
+    const parts = LEAF_PARTS();
+    const done = (api.state.labelled = api.state.labelled || {});
+    const head = document.createElement("h3"); head.style.marginTop = "var(--sp-6,2rem)";
+    head.textContent = L("Label a real leaf", "Etiqueta una hoja real"); host.append(head);
+    const how = document.createElement("p"); how.className = "q__hint";
+    how.textContent = L("Tap a numbered circle on the leaf, then tap its name. Or pick the name first.", "Toca un círculo numerado de la hoja y luego su nombre. O elige primero el nombre."); host.append(how);
+    const wrap = document.createElement("div"); wrap.className = "label-wrap";
+    const frameBox = document.createElement("div");
+    frameBox.innerHTML = `<div class="photo-frame"><img src="photos/leaf.jpg" alt="${L("A real linden leaf on a white background", "Una hoja real de tilo sobre fondo blanco")}"></div><div data-credit="leaf">${creditHTML("leaf")}</div>`;
+    const frame = frameBox.querySelector(".photo-frame");
+    const side = document.createElement("div");
+    const prog = document.createElement("p"); prog.className = "label-progress";
+    const tray = document.createElement("div"); tray.className = "chip-tray"; tray.setAttribute("role", "group"); tray.setAttribute("aria-label", L("Leaf part names", "Nombres de las partes de la hoja"));
+    const note = document.createElement("div"); note.className = "labnote";
+    side.append(prog, tray, note);
+    wrap.append(frameBox, side); host.append(wrap);
+    let armedSpot = null, armedChip = null;
+    const spots = {}, chips = {};
+    const order = [3, 0, 5, 1, 6, 2, 4].map(i => parts[i]);
+    parts.forEach((p, i) => {
+      const s = document.createElement("button"); s.type = "button"; s.className = "spot"; s.textContent = i + 1;
+      s.style.left = (p.x * 100) + "%"; s.style.top = (p.y * 100) + "%";
+      s.setAttribute("aria-label", L("Leaf spot ", "Punto de la hoja ") + (i + 1));
+      frame.append(s); spots[p.id] = s;
+      s.addEventListener("click", () => pick("spot", p.id));
+    });
+    order.forEach(p => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip-tray__btn"; b.innerHTML = `<span>${esc(p.name)}</span><span class="tray-mark"></span>`;
+      tray.append(b); chips[p.id] = b; b.addEventListener("click", () => pick("chip", p.id));
+    });
+    function paint() {
+      const n = parts.filter(p => done[p.id]).length;
+      prog.textContent = L("Labelled ", "Etiquetadas ") + n + " / " + parts.length;
+      parts.forEach(p => {
+        const ok = !!done[p.id];
+        spots[p.id].classList.toggle("is-correct", ok); if (ok) spots[p.id].textContent = p.name;
+        spots[p.id].classList.toggle("is-armed", armedSpot === p.id && !ok);
+        chips[p.id].classList.toggle("is-done", ok); chips[p.id].classList.toggle("is-armed", armedChip === p.id && !ok);
+        if (ok) chips[p.id].querySelector(".tray-mark").textContent = "✓";
+      });
+    }
+    function nudge(els) { els.forEach(e => { e.classList.remove("is-nudge"); void e.offsetWidth; e.classList.add("is-nudge"); setTimeout(() => e.classList.remove("is-nudge"), 1900); }); }
+    function pick(kind, id) {
+      if (done[id]) return;
+      if (kind === "spot") { armedSpot = id; if (!armedChip) { note.textContent = L("Now tap the name that matches circle ", "Ahora toca el nombre que corresponde al círculo ") + (parts.findIndex(p => p.id === id) + 1) + "."; nudge(Object.values(chips).filter(c => !c.classList.contains("is-done"))); } }
+      else { armedChip = id; if (!armedSpot) { note.textContent = L("Now tap the numbered circle on the leaf that shows ", "Ahora toca el círculo numerado de la hoja que muestra ") + parts.find(p => p.id === id).name.toLowerCase() + "."; nudge(Object.values(spots).filter(s => !s.classList.contains("is-correct"))); } }
+      paint();
+      if (armedSpot && armedChip) {
+        const a = armedSpot, c = armedChip; armedSpot = armedChip = null;
+        if (a === c) {
+          done[a] = true; api.saveState();
+          const p = parts.find(x => x.id === a); note.innerHTML = `<div class="toast toast--correct anim-pop"><b>${esc(p.name)}.</b> ${esc(p.info)}</div>`;
+          if (api.ttsEnabled && api.ttsEnabled()) api.speak(p.name + ". " + p.info);
+          api.mark("leaf_parts_labelled", parts.filter(x => done[x.id]).length);
+          if (parts.every(x => done[x.id])) { api.mark("leaf_labelling_complete", true); api.toast(L("Every part labelled. Real leaf mastered.", "Todas las partes etiquetadas. Hoja real dominada."), "correct"); }
+        } else {
+          const p = parts.find(x => x.id === a); const sp = spots[a], ch = chips[c];
+          sp.classList.add("is-wrong"); ch.classList.add("is-wrong"); setTimeout(() => { sp.classList.remove("is-wrong"); ch.classList.remove("is-wrong"); }, 380);
+          note.innerHTML = `<div class="toast toast--incorrect anim-pop">${L("Not quite. Hint for that circle:", "Casi. Pista para ese círculo:")} ${esc(p.hint)}</div>`;
+          api.mark("leaf_label_errors", (api.state.labelErrors = (api.state.labelErrors || 0) + 1)); api.saveState();
+        }
+        paint();
+      }
+    }
+    paint();
+  },
+
+  /* ------------------------------------------------------------------ ORIENT */
+  orient(host, api) {
+    host.innerHTML = "";
+    const intro = document.createElement("p"); intro.className = "q__hint";
+    intro.textContent = L("A plant is a tiny town with two highways. Tap any part of the plant, or its card, to see what it does.", "Una planta es un pueblo diminuto con dos autopistas. Toca cualquier parte de la planta, o su tarjeta, para ver qué hace.");
+    host.append(intro);
+    const grid = document.createElement("div"); grid.className = "anat-grid";
+    const svgWrap = document.createElement("div"); svgWrap.innerHTML = mapSVG(); grid.append(svgWrap);
+    const defs = document.createElement("div"); defs.className = "def-list";
+    const DEF = [
+      ["light", L("Sunlight", "Luz solar"), "#d9a400", L("The energy that powers photosynthesis. Chloroplasts catch it.", "La energía que impulsa la fotosíntesis. Los cloroplastos la atrapan.")],
+      ["roots", L("Roots", "Raíces"), "#8a6a4f", L("Soak up water and minerals from the soil. Roots cannot make sugar, so they wait for deliveries.", "Absorben agua y minerales del suelo. Las raíces no fabrican azúcar, así que esperan entregas.")],
+      ["xylem", L("Xylem (the straw)", "Xilema (la pajilla)"), "#1f9fd6", L("Tubes that lift water and minerals UP from the roots. From the Greek xylon, wood.", "Tubos que suben agua y minerales desde las raíces. Del griego xylon, madera.")],
+      ["phloem", L("Phloem (the delivery truck)", "Floema (el camión de reparto)"), "#e8553a", L("Tubes that carry sugar food DOWN from the leaves to every part. From the Greek phloios, bark.", "Tubos que llevan el azúcar HACIA ABAJO desde las hojas a todas las partes. Del griego phloios, corteza.")],
+      ["leaf", L("Leaf, the sugar factory", "Hoja, la fábrica de azúcar"), "#2f7d2a", L("Light, water and carbon dioxide arrive. Sugar and oxygen leave.", "Llegan luz, agua y dióxido de carbono. Salen azúcar y oxígeno.")],
+      ["stoma", L("Stomata, the leaf doors", "Estomas, las puertas de la hoja"), "#3f7a34", L("Tiny holes with two guard cells. Carbon dioxide comes in. Oxygen and water vapour go out.", "Pequeños agujeros con dos células guardianas. Entra dióxido de carbono. Salen oxígeno y vapor de agua.")],
+      ["chloroplast", L("Chloroplast, the solar panel", "Cloroplasto, el panel solar"), "#1E8C60", L("Tiny green parts inside leaf cells. They catch light to make glucose.", "Pequeñas partes verdes dentro de las células de la hoja. Atrapan luz para fabricar glucosa.")]
+    ];
+    const nodes = {};
+    DEF.forEach(([id, term, color, body]) => {
+      const d = document.createElement("div"); d.className = "def"; d.dataset.part = id; d.tabIndex = 0; d.setAttribute("role", "button");
+      const row = document.createElement("div"); row.className = "def__row";
+      const dot = document.createElement("span"); dot.className = "def__dot"; dot.style.background = color;
+      const t = document.createElement("span"); t.className = "def__term"; t.textContent = term; row.append(dot, t);
+      if (api && api.ttsEnabled && api.ttsEnabled()) row.append(api.speaker(() => `${term}. ${body}`));
+      const b = document.createElement("p"); b.className = "def__body"; b.textContent = body; d.append(row, b);
+      const focus = () => setPart(id);
+      d.addEventListener("mouseenter", focus); d.addEventListener("focus", focus); d.addEventListener("click", focus);
+      defs.append(d); nodes[id] = d;
+    });
+    grid.append(defs); host.append(grid);
+    const eqn = document.createElement("div"); eqn.className = "eqn"; eqn.setAttribute("aria-label", "6 CO2 + 6 H2O + light makes C6H12O6 + 6 O2");
+    eqn.innerHTML = `<b style="background:#6b7a80">6CO<sub>2</sub></b><span>+</span><b style="background:#1f9fd6">6H<sub>2</sub>O</b><span>+</span><b style="background:#d9a400">${L("light", "luz")}</b><span>→</span><b style="background:#e8553a">C<sub>6</sub>H<sub>12</sub>O<sub>6</sub></b><span>+</span><b style="background:#2f8f3a">6O<sub>2</sub></b>`;
+    host.append(eqn);
+    const seq = document.createElement("div"); seq.className = "seq";
+    [["1", L("Roots drink", "Las raíces beben"), "#1f9fd6"], ["2", L("Xylem lifts", "El xilema sube"), "#1f9fd6"], ["3", L("Leaf makes sugar", "La hoja fabrica azúcar"), "#2f8f3a"], ["4", L("Phloem delivers", "El floema entrega"), "#e8553a"]]
+      .forEach(([n, label, c]) => { const s = document.createElement("div"); s.className = "seq__step"; s.innerHTML = `<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="${c}" opacity=".18"/><circle cx="30" cy="30" r="24" fill="none" stroke="${c}" stroke-width="3"/><text x="30" y="38" text-anchor="middle" font-size="24" font-weight="800" fill="${c}" font-family="sans-serif">${n}</text></svg><div>${label}</div>`; seq.append(s); });
+    host.append(seq);
+    function setPart(id) {
+      Object.values(nodes).forEach(n => n.classList.remove("is-active")); if (nodes[id]) nodes[id].classList.add("is-active");
+      svgWrap.querySelectorAll("[data-hl]").forEach(h => h.setAttribute("opacity", h.getAttribute("data-part") === id ? "1" : "0"));
+    }
+    svgWrap.querySelectorAll("[data-part]:not([data-hl])").forEach(el => { el.style.cursor = "pointer"; el.addEventListener("mouseenter", () => setPart(el.getAttribute("data-part"))); el.addEventListener("click", () => setPart(el.getAttribute("data-part"))); });
+    setPart("xylem");
+  },
+
+  /* ------------------------------------------------------------------ EXPERIMENT */
+  investigate(host, api) {
+    sim = api; host.innerHTML = "";
+    const game = sim.state.game || (sim.state.game = { xp: 0, level: 1, streak: 0, best: 0, quests: {}, bank: 0, rootG: 0, leafG: 0, deliveries: 0, last: null });
+    ["bank", "rootG", "leafG", "deliveries"].forEach(k => { if (game[k] == null) game[k] = 0; });
+    let scene = null, running = false;
+    const wrap = document.createElement("div"); wrap.className = "lab3d";
+    const left = document.createElement("div");
+    const stage = document.createElement("div"); stage.className = "stage3d";
+    const boot = document.createElement("div"); boot.className = "stage3d__boot";
+    boot.innerHTML = `<div><div class="boot-dot"></div><div style="margin-top:.8em">${L("Booting the Control Room…", "Encendiendo la Sala de Control…")}</div></div>`;
+    stage.append(boot);
+    const hudTL = document.createElement("div"); hudTL.className = "hud hud--tl";
+    hudTL.innerHTML = `<div class="rankbar"><div class="rankbar__badge"><span>${L("RANK", "RANGO")}</span><b id="lvl">1</b></div><div class="rankbar__body"><div class="rankbar__row"><span>${L("Operator rank", "Rango de operador")}</span><span id="xptext">0 XP</span></div><div class="rankbar__track"><div class="rankbar__fill" id="xpfill"></div></div><div class="streak-chip" id="streak" hidden></div></div></div>`;
+    const hudDay = document.createElement("div"); hudDay.className = "hud hud--day"; hudDay.id = "dayflag"; hudDay.textContent = L("DAY READY", "DÍA LISTO");
+    const hudHint = document.createElement("div"); hudHint.className = "hud hud--hint"; hudHint.textContent = L("drag to orbit · scroll to zoom", "arrastra para girar · rueda para acercar");
+    const hudLegend = document.createElement("div"); hudLegend.className = "hud hud--legend";
+    hudLegend.innerHTML = `<span><i style="background:#3fc8ff"></i>${L("Water up", "Agua arriba")}</span><span><i style="background:#ff7c5c"></i>${L("Sugar down", "Azúcar abajo")}</span><span><i style="background:#eafcff"></i>CO₂</span><span><i style="background:#7bffb0"></i>O₂</span>`;
+    const hudStars = document.createElement("div"); hudStars.className = "hud hud--stars";
+    hudStars.innerHTML = `<span class="stars" id="stars" hidden>${'<svg class="star" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z" fill="currentColor"/></svg>'.repeat(3)}</span>`;
+    const levelup = document.createElement("div"); levelup.className = "levelup"; levelup.id = "levelup";
+    levelup.innerHTML = `<div class="levelup__card"><div class="levelup__k">${L("RANK UP", "SUBES DE RANGO")}</div><div class="levelup__n" id="lu-n">2</div><div class="levelup__s">${L("New operator rank reached!", "¡Nuevo rango de operador!")}</div></div>`;
+    const burst = document.createElement("div"); burst.className = "burst"; burst.id = "burst";
+    stage.append(hudTL, hudDay, hudHint, hudLegend, hudStars, burst, levelup);
+    left.append(stage);
+    const ro = document.createElement("div"); ro.className = "readouts";
+    ro.innerHTML = `<div class="ro"><span class="ro__k">${L("Sugar made", "Azúcar fabricada")}</span><span class="ro__v" id="ro-sugar">—</span></div>
+      <div class="ro"><span class="ro__k">${L("Held back by", "Limitada por")}</span><span class="ro__v" id="ro-limit" style="font-size:var(--step-1)">—</span></div>
+      <div class="ro"><span class="ro__k">${L("Water lost", "Agua perdida")}</span><span class="ro__v" id="ro-loss" style="font-size:var(--step-1)">—</span></div>
+      <div class="ro"><span class="ro__k">${L("Plant", "Planta")}</span><span class="ro__v" id="ro-plant" style="font-size:var(--step-1)">—</span></div>`;
+    left.append(ro);
+    const note = document.createElement("div"); note.className = "result-note"; note.id = "sim-note"; left.append(note);
+    wrap.append(left);
+
+    const side = document.createElement("div"); side.className = "side";
+    const smCfg = (api.config && api.config.scientificMethod) || {};
+    if (smCfg.variables) {
+      const vCard = document.createElement("div"); vCard.className = "card";
+      vCard.innerHTML = `<p class="eyebrow">${L("Fair test: your variables", "Prueba justa: tus variables")}</p>
+        <p style="margin-top:.3em"><b>${L("Independent", "Independiente")}</b> (${L("you change it", "tú lo cambias")}): ${esc(smCfg.variables.independent)}</p>
+        <p style="margin-top:.3em"><b>${L("Dependent", "Dependiente")}</b> (${L("you measure it", "tú lo mides")}): ${esc(smCfg.variables.dependent)}</p>
+        <p style="margin-top:.3em"><b>${L("Controlled", "Controlada")}</b> (${L("kept the same", "se mantiene igual")}): ${esc(smCfg.variables.controlled)}</p>`;
+      side.append(vCard);
+    }
+    /* hypothesis gate */
+    let hypothesisLocked = false;
+    const hypoCard = document.createElement("div"); hypoCard.className = "card"; hypoCard.style.borderLeft = "3px solid var(--signal)";
+    hypoCard.innerHTML = `<p class="eyebrow">${L("Before you begin: your hypothesis", "Antes de empezar: tu hipótesis")}</p>
+      <p class="q__hint" style="margin-bottom:var(--sp-2)">${L("A hypothesis is an educated guess. Choose the three parts of your If, then, because sentence, then lock it in.", "Una hipótesis es una suposición informada. Elige las tres partes de tu frase Si, entonces, porque, y luego fíjala.")}</p>`;
+    const mkSelect = (label, opts) => {
+      const wr = document.createElement("label"); wr.style.display = "block"; wr.style.marginBottom = "var(--sp-2)";
+      wr.innerHTML = `<span class="ctrl__name" style="display:block;margin-bottom:.2em">${label}</span>`;
+      const sel = document.createElement("select"); sel.className = "select";
+      const ph = document.createElement("option"); ph.value = ""; ph.textContent = L("Choose one…", "Elige una…"); ph.disabled = true; ph.selected = true; sel.append(ph);
+      opts.forEach(o => { const op = document.createElement("option"); op.value = o.id; op.textContent = o.label; sel.append(op); });
+      wr.append(sel); return { wr, sel };
+    };
+    const hIf = mkSelect(L("If…", "Si…"), smCfg.hypothesisOptions?.condition || []);
+    const hThen = mkSelect(L("then…", "entonces…"), smCfg.hypothesisOptions?.outcome || []);
+    const hBecause = mkSelect(L("because…", "porque…"), smCfg.hypothesisOptions?.reason || []);
+    hypoCard.append(hIf.wr, hThen.wr, hBecause.wr);
+    const hypoRow = document.createElement("div"); hypoRow.className = "cluster";
+    const hypoBtn = document.createElement("button"); hypoBtn.type = "button"; hypoBtn.className = "btn"; hypoBtn.textContent = L("Lock in my hypothesis", "Fijar mi hipótesis");
+    const hypoStatus = document.createElement("span"); hypoStatus.className = "q__hint";
+    hypoRow.append(hypoBtn, hypoStatus); hypoCard.append(hypoRow); side.append(hypoCard);
+    const lockHypo = (payload, fromSaved) => {
+      hypothesisLocked = true; [hIf.sel, hThen.sel, hBecause.sel, hypoBtn].forEach(x => x.disabled = true);
+      hypoStatus.textContent = L("Hypothesis locked in. You can run your first day.", "Hipótesis fijada. Ya puedes hacer tu primer día."); hypoStatus.style.color = "var(--positive)";
+      if (!fromSaved) { sim.state.hypo = payload; sim.setResult("hypothesis", payload); sim.mark("hypothesis_recorded_before_testing", true); sim.saveState(); }
+      updateRunGate();
+    };
+    hypoBtn.addEventListener("click", () => {
+      if (!hIf.sel.value || !hThen.sel.value || !hBecause.sel.value) { hypoStatus.textContent = L("Choose all three parts first.", "Elige primero las tres partes."); hypoStatus.style.color = "var(--caution)"; hIf.sel.classList.add("anim-shake"); return; }
+      const t = s => s.options[s.selectedIndex].textContent;
+      lockHypo({ if: t(hIf.sel), then: t(hThen.sel), because: t(hBecause.sel) }, false);
+    });
+
+    /* the three control-room dials */
+    const light = slider(L("1 · Sun", "1 · Sol"), "%", 0, 100, 5, 100, [[L("Dark 0", "Oscuro 0"), 0], [L("Dim 10", "Tenue 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Full 100", "Pleno 100"), 100]], () => scene && scene.setEnv(), "ctrl--sun");
+    const water = slider(L("2 · Water supply (xylem)", "2 · Suministro de agua (xilema)"), "%", 0, 100, 5, 100, [[L("Dry 0", "Seco 0"), 0], [L("Low 10", "Bajo 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Full 100", "Pleno 100"), 100]], () => scene && scene.setEnv(), "ctrl--water");
+    const stoma = slider(L("3 · Stomata open", "3 · Estomas abiertos"), "%", 0, 100, 5, 100, [[L("Shut 0", "Cerrados 0"), 0], [L("Slit 10", "Rendija 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Wide 100", "Abiertos 100"), 100]], () => scene && scene.setEnv(), "ctrl--stoma");
+    side.append(light.node, water.node, stoma.node);
+    const runWrap = document.createElement("div"); runWrap.className = "incubate";
+    const runBtn = document.createElement("button"); runBtn.className = "btn btn--lg btn--signal"; runBtn.type = "button"; runBtn.textContent = L("▶  Run the day", "▶  Hacer funcionar el día"); runBtn.disabled = true;
+    const runGate = document.createElement("p"); runGate.className = "q__hint"; runGate.style.marginTop = "var(--sp-2)"; runGate.textContent = L("Lock in your hypothesis above before your first day.", "Fija tu hipótesis arriba antes de tu primer día.");
+    runWrap.append(runBtn, runGate); side.append(runWrap);
+    function updateRunGate() { if (hypothesisLocked) { runBtn.disabled = running; runGate.hidden = true; } }
+    if (sim.state.hypo) {
+      const h = sim.state.hypo;
+      [[hIf.sel, h.if], [hThen.sel, h.then], [hBecause.sel, h.because]].forEach(([s, txt]) => { const o = Array.from(s.options).find(x => x.textContent === txt); if (o) s.value = o.value; });
+      lockHypo(h, true);
+    }
+
+    /* sugar bank and dispatch (the phloem delivery moment) */
+    const bankBox = document.createElement("div"); bankBox.className = "bank";
+    bankBox.innerHTML = `<div class="bank__row"><span class="ctrl__name">${L("Sugar bank", "Banco de azúcar")}</span><span class="bank__sugar" id="bank-n">0</span></div>
+      <p class="q__hint" style="margin:.2em 0 var(--sp-2)">${L("Roots cannot make sugar. Choose where the phloem trucks go.", "Las raíces no fabrican azúcar. Elige a dónde van los camiones del floema.")}</p>
+      <div class="ctrl__top"><span class="ctrl__name">${L("Send to roots", "Enviar a las raíces")}</span><span class="ctrl__name" id="split-v"></span></div>
+      <input type="range" id="split" min="0" max="100" step="10" value="50" style="width:100%;accent-color:var(--sugar)" aria-label="${L("Share of sugar sent to the roots", "Parte del azúcar enviada a las raíces")}">
+      <div class="ctrl__top" style="margin-top:var(--sp-2)"><span class="ctrl__name">${L("Roots", "Raíces")}</span></div><div class="meter meter--root"><i id="m-root"></i></div>
+      <div class="ctrl__top"><span class="ctrl__name">${L("New leaf bud", "Brote de hoja nueva")}</span></div><div class="meter meter--leaf"><i id="m-leaf"></i></div>`;
+    const dispBtn = document.createElement("button"); dispBtn.type = "button"; dispBtn.className = "btn"; dispBtn.textContent = L("🚚  Dispatch sugar trucks", "🚚  Enviar camiones de azúcar");
+    dispBtn.style.width = "100%"; dispBtn.disabled = true; bankBox.append(dispBtn); side.append(bankBox);
+
+    /* reflection */
+    const reflBox = document.createElement("div"); reflBox.className = "card"; reflBox.hidden = true; reflBox.style.borderLeft = "3px solid var(--positive)";
+    const rOpts = smCfg.reflection || {};
+    reflBox.innerHTML = `<p class="eyebrow">${L("Lab reflection", "Reflexión de laboratorio")}</p>
+      <p class="q__hint" style="margin-bottom:var(--sp-2)">${L("You have run several days. Before you move on to Explain, reflect on your own investigation.", "Has hecho varios días. Antes de pasar a Explicar, reflexiona sobre tu propia investigación.")}</p>
+      <p class="ctrl__name" style="margin-bottom:.3em">${L("How confident are you in your conclusion?", "¿Qué tan seguro estás de tu conclusión?")}</p>`;
+    const confRow = document.createElement("div"); confRow.className = "cluster"; confRow.style.marginBottom = "var(--sp-3)";
+    let confVal = null, improveVal = null, nextVal = null; const confBtns = [];
+    [L("Not sure", "No estoy seguro"), L("Somewhat", "Algo"), L("Confident", "Seguro"), L("Very confident", "Muy seguro")].forEach((lbl, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip-btn"; b.textContent = lbl; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", () => { confVal = i + 1; confBtns.forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); saveReflection(); });
+      confBtns.push(b); confRow.append(b);
+    });
+    reflBox.append(confRow);
+    const mkChipSelect = (label, opts, onPick) => {
+      const box = document.createElement("div"); box.style.marginBottom = "var(--sp-3)";
+      box.append(Object.assign(document.createElement("p"), { className: "ctrl__name", style: "margin-bottom:.3em", textContent: label }));
+      const row = document.createElement("div"); row.className = "cluster"; const btns = [];
+      (opts || []).forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "chip-btn"; b.textContent = o.label; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", () => { btns.forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); onPick(o); }); btns.push(b); row.append(b); });
+      box.append(row); return box;
+    };
+    reflBox.append(mkChipSelect(L("What would make your investigation more reliable?", "¿Qué haría tu investigación más confiable?"), rOpts.improveOptions, o => { improveVal = o; saveReflection(); }));
+    reflBox.append(mkChipSelect(L("What would you investigate next?", "¿Qué investigarías después?"), rOpts.nextOptions, o => { nextVal = o; saveReflection(); }));
+    function saveReflection() { sim.setResult("reflection", { confidence: confVal, more_reliable: improveVal && improveVal.label, next_investigation: nextVal && nextVal.label }); sim.mark("reflection_recorded", !!(confVal && improveVal && nextVal)); }
+    side.append(reflBox);
+
+    /* missions */
+    const qBox = document.createElement("div");
+    qBox.innerHTML = `<p class="ctrl__name" style="margin-bottom:var(--sp-2)">${L("Missions", "Misiones")}</p>`;
+    const qList = document.createElement("div"); qList.className = "quests";
+    const QS = QUESTS(); const qNodes = {};
+    QS.forEach(q => { const el = document.createElement("div"); el.className = "quest"; el.dataset.q = q.id;
+      el.innerHTML = `<span class="quest__box">✓</span><span><span class="quest__t">${esc(q.title)}</span><br><span class="quest__h">${esc(q.hint)}</span></span>`; qNodes[q.id] = el; qList.append(el); });
+    qBox.append(qList); side.append(qBox);
+    wrap.append(side); host.append(wrap);
+
+    /* ---- bonus round: Highway Dash ---- */
+    const bonusSection = document.createElement("div"); bonusSection.style.marginTop = "var(--sp-5)"; host.append(bonusSection);
+    const BONUS_NEEDED = 5;
+    function paintBonus() {
+      const n = QS.filter(q => game.quests[q.id]).length;
+      if (n < BONUS_NEEDED) { bonusSection.innerHTML = `<p class="q__hint">${L("Bonus round locked: complete " + BONUS_NEEDED + " missions to unlock Highway Dash. You have " + n + ".", "Ronda extra bloqueada: completa " + BONUS_NEEDED + " misiones para desbloquear Carrera por la Autopista. Llevas " + n + ".")}</p>`; bonusSection.dataset.rendered = ""; return; }
+      if (bonusSection.dataset.rendered) return;
+      bonusSection.dataset.rendered = "1"; bonusSection.innerHTML = "";
+      const launchWrap = document.createElement("div"); bonusSection.append(launchWrap);
+      const bestLine = game.arcadeBest ? L(" Your best score so far: " + game.arcadeBest + ".", " Tu mejor puntaje hasta ahora: " + game.arcadeBest + ".") : "";
+      renderArcadeLaunch(launchWrap, {
+        strings: { title: L("Bonus round: Highway Dash", "Ronda extra: Carrera por la Autopista"),
+          instructions: L("Drive a sugar truck up the stem. Steer into the gate with the right answer. About two minutes.", "Conduce un camión de azúcar por el tallo. Entra en la puerta con la respuesta correcta. Unos dos minutos.") + bestLine,
+          play: L("Play Highway Dash", "Jugar Carrera por la Autopista"), skip: L("Skip bonus round", "Saltar ronda extra") },
+        onPlay() {
+          launchWrap.remove();
+          const gameHost = document.createElement("div"); bonusSection.append(gameHost);
+          mountHighwayDash(gameHost, {
+            questions: DASH_QUESTIONS(), credits: ["leaf", "stomata", "girdle"].filter(k => credits[k]).map(k => ({ ...credits[k], img: "photos/" + k + ".jpg" })),
+            durationMs: 120000, travelMs: 6500, cycleMs: 8200,
+            strings: dashStrings(),
+            onExit(st) {
+              game.arcadeBest = Math.max(game.arcadeBest || 0, st.score); sim.saveState();
+              gameHost.innerHTML = ""; gameHost.remove(); bonusSection.dataset.rendered = ""; paintBonus();
+              sim.toast(L("Bonus round complete. Score " + st.score + ", " + st.accuracy + "% accuracy.", "Ronda extra completa. Puntaje " + st.score + ", " + st.accuracy + "% de acierto."), "info");
+            }
+          });
+        },
+        onSkip() { bonusSection.innerHTML = ""; bonusSection.dataset.rendered = "skipped"; }
+      });
+    }
+
+    /* ---- HUD helpers ---- */
+    const $ = id => document.getElementById(id);
+    function paintGame(animate) {
+      $("lvl").textContent = game.level;
+      const base = xpForLevel(game.level - 1), need = xpForLevel(game.level) - base;
+      const fill = $("xpfill"); if (!animate) fill.style.transition = "none"; fill.style.width = clamp((game.xp - base) / need, 0, 1) * 100 + "%"; if (!animate) requestAnimationFrame(() => fill.style.transition = "");
+      $("xptext").textContent = game.xp + " XP";
+      const s = $("streak"); if (game.streak >= 2) { s.hidden = false; s.classList.add("hot"); s.innerHTML = `🔥 ${L("fair-test streak", "racha de prueba justa")} x${game.streak}`; } else { s.hidden = true; s.classList.remove("hot"); }
+      QS.forEach(q => qNodes[q.id].classList.toggle("is-done", !!game.quests[q.id]));
+      $("bank-n").textContent = Math.floor(game.bank);
+      $("m-root").style.width = clamp(game.rootG, 0, 100) + "%"; $("m-leaf").style.width = clamp(game.leafG, 0, 100) + "%";
+      dispBtn.disabled = running || game.bank < 10 || (game.rootG >= 100 && game.leafG >= 100);
+      const sp = +$("split").value; $("split-v").textContent = sp + "% / " + (100 - sp) + "%";
+    }
+    function showStars(n) { const box = $("stars"); box.hidden = false; [...box.children].forEach((st, i) => { st.classList.remove("on", "pop"); if (i < n) setTimeout(() => { st.classList.add("on", "pop"); setTimeout(() => st.classList.remove("pop"), 240); }, 180 + i * 160); }); }
+    function fireBurst(colors) {
+      if (reducedMotion()) return;
+      const h = $("burst");
+      for (let i = 0; i < 26; i++) { const p = document.createElement("i"); const ang = Math.random() * Math.PI * 2, dist = 60 + Math.random() * 140; p.style.background = colors[i % colors.length]; h.append(p);
+        const x = Math.cos(ang) * dist, y = Math.sin(ang) * dist - 40;
+        p.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${x}px,${y}px) rotate(${Math.random() * 540}deg) scale(.3)`, opacity: 0 }], { duration: 900 + Math.random() * 500, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove(); }
+    }
+    function levelUpTo(n) { $("lu-n").textContent = n; const lu = $("levelup"); lu.classList.add("show"); fireBurst(["#ffd45c", "#3fc8ff", "#ff7c5c", "#7bffb0"]); if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L("Rank up! Rank " + n, "¡Subes de rango! Rango " + n)); setTimeout(() => lu.classList.remove("show"), 1700); }
+    function resetReadouts() { if (running) return; ["ro-sugar", "ro-limit", "ro-loss", "ro-plant"].forEach(id => $(id).textContent = "—"); note.innerHTML = ""; $("stars").hidden = true; $("dayflag").textContent = L("DAY READY", "DÍA LISTO"); }
+    $("split").addEventListener("input", () => paintGame(false));
+
+    /* ---- the 3D (or fallback) scene ---- */
+    const getState = () => ({ light: light.value(), water: water.value(), stomata: stoma.value() });
+    (async () => {
+      try { const THREE = await loadThree(); scene = build3D(THREE, stage, getState); }
+      catch (e) { console.warn("3D unavailable, using 2D fallback:", e); scene = buildFallback(stage, getState); }
+      boot.remove(); scene.setGrowth(game.rootG, game.leafG); scene.setEnv();
+      if (/[?&]capture=1/.test(location.search)) window.__plantScene = scene;
+      paintBonus();
+    })();
+    paintGame(false);
+    [light, water, stoma].forEach(s => s.input.addEventListener("input", resetReadouts));
+
+    /* ---- run a day ---- */
+    runBtn.addEventListener("click", () => {
+      if (running || !scene || !hypothesisLocked) return;
+      const s = getState(), res = plant(s.light, s.water, s.stomata);
+      running = true; runBtn.disabled = true; dispBtn.disabled = true; setControls(false); note.innerHTML = ""; $("stars").hidden = true;
+      let done = false;
+      const finish = () => { if (done) return; done = true; scene.endDay(); finishDay(s, res); running = false; runBtn.disabled = false; setControls(true); paintGame(false); };
+      if (reducedMotion()) { $("dayflag").textContent = "18:00"; finish(); return; }
+      const dur = 5200, t0 = performance.now(); scene.startDay();
+      $("ro-sugar").textContent = "0";
+      (function step(now) { const t = clamp((now - t0) / dur, 0, 1); scene.setDayProgress(t);
+        const h = 6 + 12 * t; $("dayflag").textContent = String(Math.floor(h)).padStart(2, "0") + ":" + String(Math.floor((h % 1) * 60)).padStart(2, "0");
+        $("ro-sugar").textContent = Math.round(res.sugar * smooth(0.05, 0.95, t));
+        if (t < 1 && !done) requestAnimationFrame(step); else finish(); })(t0);
+      setTimeout(finish, dur + 700);
+    });
+    function setControls(on) { [light, water, stoma].forEach(s => s.setEnabled(on)); $("split").disabled = !on; }
+
+    function finishDay(s, res) {
+      const names = LIMIT_NAME(), fb = FEEDBACK(), nx = NEXT_STEP();
+      $("ro-sugar").textContent = res.sugar; $("ro-limit").textContent = names[res.limit]; $("ro-loss").textContent = res.loss + "%";
+      $("ro-plant").textContent = res.wilting ? L("Wilting", "Marchitada") : L("Healthy", "Sana");
+      sim.recordTrial({ light: s.light, water: s.water, stomata: s.stomata, sugar: res.sugar, limit: names[res.limit] });
+      if (reflBox.hidden && sim.trials.length >= 4) reflBox.hidden = false;
+      const kind = res.sugar >= 70 ? "toast--correct" : res.sugar <= 20 ? "toast--incorrect" : "toast--info";
+      const box = document.createElement("div"); box.className = "toast " + kind + " anim-pop";
+      box.textContent = (res.sugar >= 70 ? L("Success! ", "¡Éxito! ") : res.sugar <= 20 ? L("Almost no sugar. ", "Casi nada de azúcar. ") : L("Partial. ", "Parcial. ")) + fb[res.limit] + " " + nx[res.limit];
+      note.innerHTML = ""; note.append(box); if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(box.textContent);
+      const nStars = res.sugar >= 90 ? 3 : res.sugar >= 60 ? 2 : res.sugar >= 25 ? 1 : 0; if (nStars > 0) showStars(nStars);
+
+      stats.lights.add(s.light); stats.waters.add(s.water); stats.stomata.add(s.stomata); stats.best = Math.max(stats.best, res.sugar);
+      sim.setResult("best_sugar", stats.best);
+      sim.mark("varied_light", stats.lights.size >= 2); sim.mark("varied_water", stats.waters.size >= 2); sim.mark("varied_stomata", stats.stomata.size >= 2);
+      /* fair test streak: exactly one setting differs from the previous day */
+      let diff = 0; if (game.last) { ["light", "water", "stomata"].forEach(k => { if (game.last[k] !== s[k]) diff++; }); }
+      const fair = game.last ? diff === 1 : false;
+      game.streak = fair ? game.streak + 1 : 0; game.best = Math.max(game.best, game.streak);
+      game.last = { light: s.light, water: s.water, stomata: s.stomata };
+      sim.mark("fair_test_days", (sim.state.fairDays = (sim.state.fairDays || 0) + (fair ? 1 : 0)));
+      let xpGain = 20 + Math.round(res.sugar / 2) + (fair ? 15 * Math.min(game.streak, 6) : 0);
+      game.bank += res.sugar; sim.mark("sugar_banked", Math.round(game.bank));
+      const newly = [];
+      QS.forEach(q => { if (!game.quests[q.id] && q.test(s, res, game)) { game.quests[q.id] = true; newly.push(q); xpGain += q.xp; } });
+      game.xp += xpGain; let leveled = false; while (game.xp >= xpForLevel(game.level)) { game.level++; leveled = true; }
+      sim.mark("operator_rank", game.level); sim.mark("xp", game.xp); sim.mark("best_fair_streak", game.best);
+      sim.mark("missions_completed", QS.filter(q => game.quests[q.id]).map(q => q.title)); sim.saveState();
+      paintGame(true); paintBonus();
+      newly.forEach((q, i) => setTimeout(() => { const el = qNodes[q.id]; el.classList.add("just-done"); setTimeout(() => el.classList.remove("just-done"), 700); fireBurst(["#3fc8ff", "#ffd45c", "#7bffb0"]); sim.toast(L("Mission complete: ", "Misión completa: ") + q.title + "  +" + q.xp + " XP", "correct"); }, i * 650));
+      if (leveled) setTimeout(() => levelUpTo(game.level), newly.length ? 400 : 0); else if (nStars === 3) fireBurst(["#ffd45c", "#3fc8ff", "#7bffb0"]);
+    }
+
+    /* ---- dispatch sugar trucks down the phloem ---- */
+    dispBtn.addEventListener("click", () => {
+      if (running || !scene || game.bank < 10) return;
+      const amount = Math.floor(game.bank), share = +$("split").value / 100;
+      const toRoots = amount * share, toLeaf = amount - toRoots;
+      running = true; runBtn.disabled = true; dispBtn.disabled = true; setControls(false);
+      scene.dispatch(share, () => {
+        game.bank = 0; game.rootG = clamp(game.rootG + toRoots * 0.5, 0, 100); game.leafG = clamp(game.leafG + toLeaf * 0.5, 0, 100);
+        game.deliveries++; scene.setGrowth(game.rootG, game.leafG);
+        const newly = []; let xpGain = 30;
+        QS.forEach(q => { if (!game.quests[q.id] && q.test(getState(), { sugar: 0, wilting: false }, game)) { game.quests[q.id] = true; newly.push(q); xpGain += q.xp; } });
+        game.xp += xpGain; let leveled = false; while (game.xp >= xpForLevel(game.level)) { game.level++; leveled = true; }
+        sim.mark("deliveries", game.deliveries); sim.mark("xp", game.xp); sim.mark("missions_completed", QS.filter(q => game.quests[q.id]).map(q => q.title)); sim.saveState();
+        running = false; runBtn.disabled = !hypothesisLocked; setControls(true); paintGame(true); paintBonus(); fireBurst(["#ff7c5c", "#ffd45c"]);
+        note.innerHTML = `<div class="toast toast--info anim-pop">${L("Delivered " + amount + " sugar down the phloem: " + Math.round(toRoots) + " to the roots and " + Math.round(toLeaf) + " to the new leaf bud. Roots cannot make their own sugar, so they depend on these trucks.", "Entregaste " + amount + " de azúcar por el floema: " + Math.round(toRoots) + " a las raíces y " + Math.round(toLeaf) + " al brote de hoja. Las raíces no fabrican su propio azúcar, así que dependen de estos camiones.")}</div>`;
+        newly.forEach((q, i) => setTimeout(() => { const el = qNodes[q.id]; el.classList.add("just-done"); sim.toast(L("Mission complete: ", "Misión completa: ") + q.title + "  +" + q.xp + " XP", "correct"); }, i * 650));
+        if (leveled) setTimeout(() => levelUpTo(game.level), 300);
+      });
+    });
+  }
+};
+
+/* ======================================================================
+   BONUS ROUND CONTENT
+   ====================================================================== */
+function dashStrings() {
+  return {
+    title: L("Highway Dash", "Carrera por la Autopista"), score: L("Score", "Puntaje"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"), answered: L("Answered", "Respondidas"),
+    timeLeft: L("Time left", "Tiempo restante"), finishTitle: L("Delivery complete!", "¡Entrega completa!"), accuracy: L("Accuracy", "Acierto"), playAgain: L("Play again", "Jugar otra vez"),
+    continueLabel: L("Continue", "Continuar"), revisit: L("Worth another look", "Vale la pena repasar"), soundOn: L("Sound on", "Sonido activado"), soundOff: L("Sound off", "Sonido desactivado"),
+    credits: L("Photo credits", "Créditos de las fotos"),
+    hint: L("Steer your sugar truck into a lane with the arrow keys, keys 1 to 3, or the lane buttons. The lane you are in when the gates arrive is your answer. A wrong gate never ends the run.", "Dirige tu camión de azúcar a un carril con las flechas, las teclas 1 a 3 o los botones de carril. El carril en el que estás cuando llegan las puertas es tu respuesta. Una puerta incorrecta nunca termina la partida."),
+    right: L("Correct!", "¡Correcto!"), wrong: L("Not quite.", "Casi."), rightAnswer: L("The answer is", "La respuesta es"), lane: L("Lane", "Carril"), waiting: L("Get ready, the first question is coming up…", "Prepárate, viene la primera pregunta…")
+  };
+}
+function DASH_QUESTIONS() {
+  const q = (id, en, es, options, answer, hookEn, hookEs, img, altEn, altEs) => ({ id, q: L(en, es), options: options.map(o => L(o[0], o[1])), answer, hook: L(hookEn, hookEs), img: img ? "photos/" + img + ".jpg" : null, alt: img ? L(altEn, altEs) : "" });
+  return [
+    q("x1", "Which tubes lift WATER up the stem?", "¿Qué tubos suben el AGUA por el tallo?", [["Xylem", "Xilema"], ["Phloem", "Floema"], ["Stomata", "Estomas"]], 0, "Xylem is the straw.", "El xilema es la pajilla."),
+    q("p1", "Which tubes carry SUGAR down to the roots?", "¿Qué tubos llevan el AZÚCAR hacia las raíces?", [["Phloem", "Floema"], ["Xylem", "Xilema"], ["Midrib", "Nervio central"]], 0, "Phloem is the delivery truck.", "El floema es el camión de reparto."),
+    q("s1", "Where does carbon dioxide ENTER a leaf?", "¿Por dónde ENTRA el dióxido de carbono a una hoja?", [["Stomata", "Estomas"], ["Petiole", "Pecíolo"], ["Roots", "Raíces"]], 0, "Stomata are the leaf doors.", "Los estomas son las puertas de la hoja.", "stomata", "A magnified leaf surface with many tiny slits", "La superficie de una hoja aumentada con muchas rendijas"),
+    q("c1", "What do chloroplasts catch?", "¿Qué atrapan los cloroplastos?", [["Light", "Luz"], ["Water", "Agua"], ["Oxygen", "Oxígeno"]], 0, "Chloroplasts are the solar panels.", "Los cloroplastos son los paneles solares."),
+    q("o1", "Which gas does a leaf RELEASE during photosynthesis?", "¿Qué gas LIBERA una hoja durante la fotosíntesis?", [["Oxygen", "Oxígeno"], ["Carbon dioxide", "Dióxido de carbono"], ["Nitrogen", "Nitrógeno"]], 0, "6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂", "6CO₂ + 6H₂O + luz → C₆H₁₂O₆ + 6O₂"),
+    q("g1", "What is the sugar a plant makes called?", "¿Cómo se llama el azúcar que fabrica una planta?", [["Glucose", "Glucosa"], ["Chlorophyll", "Clorofila"], ["Minerals", "Minerales"]], 0, "Glucose is C₆H₁₂O₆.", "La glucosa es C₆H₁₂O₆."),
+    q("r1", "A ring of bark is cut off a trunk. Which tubes are blocked?", "Se corta un anillo de corteza de un tronco. ¿Qué tubos se bloquean?", [["Phloem", "Floema"], ["Xylem", "Xilema"], ["Stomata", "Estomas"]], 0, "Phloem lives in the bark, so sugar cannot get past.", "El floema vive en la corteza, así que el azúcar no puede pasar.", "girdle", "A tree trunk with a ring of bark cut away", "Un tronco de árbol con un anillo de corteza cortado"),
+    q("m1", "What is the thick middle vein of a leaf called?", "¿Cómo se llama el nervio grueso del medio de una hoja?", [["Midrib", "Nervio central"], ["Apex", "Ápice"], ["Margin", "Margen"]], 0, "The midrib holds xylem and phloem.", "El nervio central guarda xilema y floema.", "leaf", "A real leaf with a thick middle vein", "Una hoja real con un nervio grueso en el medio"),
+    q("d1", "A plant sits in a dark cupboard. What is missing for photosynthesis?", "Una planta está en un armario oscuro. ¿Qué le falta para la fotosíntesis?", [["Light", "Luz"], ["Soil", "Tierra"], ["Sugar", "Azúcar"]], 0, "No light, no energy, no sugar.", "Sin luz no hay energía y no hay azúcar."),
+    q("w1", "Why do guard cells close the stomata on a hot, dry day?", "¿Por qué las células guardianas cierran los estomas en un día caluroso y seco?", [["To save water", "Para ahorrar agua"], ["To catch more light", "Para atrapar más luz"], ["To make more sugar", "Para fabricar más azúcar"]], 0, "Closed doors save water but block carbon dioxide.", "Las puertas cerradas ahorran agua pero bloquean el dióxido de carbono.", "stomata", "A magnified leaf surface with many tiny slits", "La superficie de una hoja aumentada con muchas rendijas"),
+    q("r2", "Where do roots get the sugar they need?", "¿De dónde sacan las raíces el azúcar que necesitan?", [["Delivered by the phloem", "Lo entrega el floema"], ["They make it themselves", "Lo fabrican ellas mismas"], ["From the soil", "Del suelo"]], 0, "Roots have no chloroplasts and sit in the dark.", "Las raíces no tienen cloroplastos y están en la oscuridad."),
+    q("n1", "How many carbon dioxide molecules make ONE glucose?", "¿Cuántas moléculas de dióxido de carbono hacen UNA glucosa?", [["6", "6"], ["1", "1"], ["12", "12"]], 0, "Glucose has 6 carbon atoms, so it needs 6 CO₂.", "La glucosa tiene 6 átomos de carbono, así que necesita 6 CO₂."),
+    q("p2", "Which part is the stalk that joins a leaf to the stem?", "¿Qué parte es el tallito que une una hoja al tallo?", [["Petiole", "Pecíolo"], ["Apex", "Ápice"], ["Blade", "Limbo"]], 0, "Petiole means leaf stalk.", "Pecíolo significa tallo de la hoja.", "leaf", "A real leaf with a long stalk", "Una hoja real con un tallito largo"),
+    q("x2", "Besides water, what else does xylem carry up?", "Además de agua, ¿qué más sube el xilema?", [["Dissolved minerals", "Minerales disueltos"], ["Sugar", "Azúcar"], ["Oxygen", "Oxígeno"]], 0, "Roots take in minerals with the water.", "Las raíces absorben minerales junto con el agua.")
+  ];
+}
+
+/* ======================================================================
+   CONTROL BUILDERS
+   ====================================================================== */
+function mkChip(label, pressed) { const b = document.createElement("button"); b.type = "button"; b.className = "chip-btn"; b.textContent = label; b.setAttribute("aria-pressed", pressed ? "true" : "false"); return b; }
+function slider(name, unit, min, max, step, def, presets, onchange, cls) {
+  const node = document.createElement("div"); node.className = "ctrl " + (cls || "");
+  const top = document.createElement("div"); top.className = "ctrl__top";
+  const nm = document.createElement("span"); nm.className = "ctrl__name"; nm.textContent = name;
+  const val = document.createElement("span"); val.className = "ctrl__val"; val.innerHTML = `${def}<small>${unit}</small>`;
+  top.append(nm, val);
+  const input = document.createElement("input"); input.type = "range"; input.min = min; input.max = max; input.step = step; input.value = def; input.setAttribute("aria-label", name + " (" + unit + ")");
+  const pre = document.createElement("div"); pre.className = "ctrl__presets"; const preBtns = [];
+  (presets || []).forEach(([lbl, v]) => { const b = mkChip(lbl, Number(v) === def); b.addEventListener("click", () => { input.value = v; input.dispatchEvent(new Event("input")); }); pre.append(b); preBtns.push([b, v]); });
+  const sync = () => preBtns.forEach(([b, v]) => b.setAttribute("aria-pressed", Number(input.value) === Number(v) ? "true" : "false"));
+  input.addEventListener("input", () => { val.innerHTML = `${input.value}<small>${unit}</small>`; sync(); onchange && onchange(); });
+  node.append(top, input, pre);
+  return { node, input, value: () => Number(input.value), setEnabled: on => { input.disabled = !on; preBtns.forEach(([b]) => b.disabled = !on); } };
+}
+
+/* ======================================================================
+   THREE.JS LOADER
+   ====================================================================== */
+let threePromise = null;
+function loadThree() {
+  if (window.THREE) return Promise.resolve(window.THREE);
+  if (threePromise) return threePromise;
+  threePromise = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = THREE_URL;
+    s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("THREE missing"));
+    s.onerror = () => rej(new Error("three.min.js failed to load"));
+    document.head.appendChild(s);
+  });
+  return threePromise;
+}
+
+/* ======================================================================
+   THE 3D CONTROL ROOM
+   ====================================================================== */
+function build3D(THREE, stageEl, getState) {
+  const probe = document.createElement("canvas");
+  if (!(probe.getContext("webgl2") || probe.getContext("webgl"))) throw new Error("WebGL unavailable");
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .9;
+  stageEl.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x0a3140, 10, 26);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+
+  /* ---- procedural textures ---- */
+  const noiseTex = (base, speck, n, size = 256) => {
+    const c = document.createElement("canvas"); c.width = c.height = size; const x = c.getContext("2d");
+    x.fillStyle = base; x.fillRect(0, 0, size, size);
+    for (let i = 0; i < n; i++) { x.fillStyle = speck[(Math.random() * speck.length) | 0]; const r = Math.random() * 2.6 + .4; x.beginPath(); x.arc(Math.random() * size, Math.random() * size, r, 0, 7); x.fill(); }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; return t;
+  };
+  const glowTex = (stops) => {
+    const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d");
+    const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+  };
+  const dotTex = glowTex([[0, "rgba(255,255,255,1)"], [0.45, "rgba(255,255,255,.85)"], [1, "rgba(255,255,255,0)"]]);
+  const sunTex = glowTex([[0, "rgba(255,250,210,1)"], [0.25, "rgba(255,225,120,.85)"], [1, "rgba(255,200,60,0)"]]);
+  const leafTex = (() => {
+    const c = document.createElement("canvas"); c.width = 256; c.height = 128; const x = c.getContext("2d");
+    const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, "#3f9d3a"); g.addColorStop(.5, "#56b848"); g.addColorStop(1, "#3a8f35"); x.fillStyle = g; x.fillRect(0, 0, 256, 128);
+    x.strokeStyle = "rgba(220,255,190,.85)"; x.lineWidth = 4; x.beginPath(); x.moveTo(0, 64); x.lineTo(240, 64); x.stroke();
+    x.lineWidth = 2; for (let i = 1; i < 9; i++) { const px = i * 26; x.beginPath(); x.moveTo(px, 64); x.quadraticCurveTo(px + 24, 40, px + 52, 8); x.moveTo(px, 64); x.quadraticCurveTo(px + 24, 88, px + 52, 120); x.stroke(); }
+    for (let i = 0; i < 260; i++) { x.fillStyle = "rgba(20,70,20,.18)"; x.fillRect(Math.random() * 256, Math.random() * 128, 2, 2); }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+  })();
+  const labelSprite = (text, color, w = 1.5) => {
+    const c = document.createElement("canvas"); c.width = 320; c.height = 96; const x = c.getContext("2d");
+    x.fillStyle = "rgba(4,20,26,.78)"; const r = 22; x.beginPath(); x.moveTo(r, 4); x.arcTo(316, 4, 316, 92, r); x.arcTo(316, 92, 4, 92, r); x.arcTo(4, 92, 4, 4, r); x.arcTo(4, 4, 316, 4, r); x.fill();
+    x.strokeStyle = color; x.lineWidth = 5; x.stroke(); x.fillStyle = "#fff"; x.font = "800 38px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(text, 160, 50);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false })); s.scale.set(w, w * 0.3, 1); s.renderOrder = 10; return s;
+  };
+
+  /* ---- lights ---- */
+  const hemi = new THREE.HemisphereLight(0xbfeaf5, 0x1a2b30, 0.6); scene.add(hemi);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.35); scene.add(ambient);
+  const sun = new THREE.DirectionalLight(0xfff2d0, 1.2); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 30; ["left", "bottom"].forEach(k => sun.shadow.camera[k] = -7); ["right", "top"].forEach(k => sun.shadow.camera[k] = 7); scene.add(sun);
+  const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sunSprite.scale.set(2.4, 2.4, 1); scene.add(sunSprite);
+  const sunCore = new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 20), new THREE.MeshBasicMaterial({ color: 0xfff3c0 })); scene.add(sunCore);
+  const beams = []; for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.ConeGeometry(0.9 + i * .35, 1, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xffe28a, transparent: true, opacity: .06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); scene.add(b); beams.push(b); }
+
+  /* ---- soil block (translucent so roots show) ---- */
+  const soilTexture = noiseTex("#4a3524", ["#2b1f15", "#5c4430", "#6b5340", "#1f160e"], 1400); soilTexture.repeat.set(3, 1);
+  const soilMat = new THREE.MeshStandardMaterial({ map: soilTexture, roughness: 1, transparent: true, opacity: 0.72 });
+  const soil = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.3, 1.8, 48), soilMat); soil.position.y = -0.9; soil.receiveShadow = true; scene.add(soil);
+  const topTex = noiseTex("#5a4331", ["#3a2a1c", "#6f553d", "#2a1d12"], 900); topTex.repeat.set(2, 2);
+  const topSoil = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.3, 0.08, 48), new THREE.MeshStandardMaterial({ map: topTex, roughness: 1 })); topSoil.position.y = 0; topSoil.receiveShadow = true; scene.add(topSoil);
+  const waterTable = new THREE.Mesh(new THREE.CylinderGeometry(2.25, 2.25, 1, 48), new THREE.MeshStandardMaterial({ color: 0x2aa8e8, transparent: true, opacity: 0.35, roughness: 0.15, emissive: 0x0a4a70, emissiveIntensity: .4 })); waterTable.position.y = -1.7; scene.add(waterTable);
+  for (let i = 0; i < 16; i++) { const r = 1.8 * Math.sqrt(Math.random()), a = Math.random() * Math.PI * 2; const peb = new THREE.Mesh(new THREE.SphereGeometry(0.05 + Math.random() * 0.07, 6, 6), new THREE.MeshStandardMaterial({ color: 0x3a2d22, roughness: 1 })); peb.position.set(Math.cos(a) * r, 0.05, Math.sin(a) * r); peb.castShadow = true; scene.add(peb); }
+  const shadowGround = new THREE.Mesh(new THREE.CircleGeometry(7, 48), new THREE.ShadowMaterial({ opacity: .3 })); shadowGround.rotation.x = -Math.PI / 2; shadowGround.position.y = -1.82; shadowGround.receiveShadow = true; scene.add(shadowGround);
+  const pad = new THREE.Mesh(new THREE.CircleGeometry(3.4, 64), new THREE.MeshBasicMaterial({ color: 0x0b4050, transparent: true, opacity: .6 })); pad.rotation.x = -Math.PI / 2; pad.position.y = -1.815; scene.add(pad);
+
+  /* ---- plant ---- */
+  const plantG = new THREE.Group(); scene.add(plantG);
+  const rootG = new THREE.Group(); plantG.add(rootG);
+  const rootMat = new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: .85 });
+  const ROOTS = [[0, -1.4, 0, .5], [-.5, -1.2, .2, .45], [.55, -1.25, -.15, .5], [-.25, -1.5, -.4, .4], [.3, -1.5, .4, .4]];
+  ROOTS.forEach(([x, y, z, r]) => { const pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(x * .4, y * .4, z * .4), new THREE.Vector3(x, y, z)]; const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 14, 0.04 + r * .06, 8), rootMat); m.castShadow = false; rootG.add(m);
+    const sub = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(x * .6, y * .6, z * .6), new THREE.Vector3(x * .6 + .3, y * .6 - .15, z * .6 + .1), new THREE.Vector3(x * .6 + .5, y * .6 - .35, z * .6 + .1)]), 8, .02, 6), rootMat); rootG.add(sub); });
+  const STEM_H = 3.1;
+  const stemMat = new THREE.MeshPhysicalMaterial({ color: 0x9be28a, transparent: true, opacity: .2, roughness: .15, side: THREE.DoubleSide, depthWrite: false });
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(.26, .3, STEM_H, 24, 1, true), stemMat); stem.position.y = STEM_H / 2; plantG.add(stem);
+  const xylemTube = new THREE.Mesh(new THREE.CylinderGeometry(.075, .075, STEM_H, 14), new THREE.MeshBasicMaterial({ color: 0x1fa8ee })); xylemTube.position.set(-.1, STEM_H / 2, 0); plantG.add(xylemTube);
+  const phloemTube = new THREE.Mesh(new THREE.CylinderGeometry(.075, .075, STEM_H, 14), new THREE.MeshBasicMaterial({ color: 0xf0563a })); phloemTube.position.set(.1, STEM_H / 2, 0); plantG.add(phloemTube);
+  const wallRing = (y) => { const m = new THREE.Mesh(new THREE.TorusGeometry(.3, .012, 8, 28), new THREE.MeshBasicMaterial({ color: 0xbff5b0, transparent: true, opacity: .5 })); m.rotation.x = Math.PI / 2; m.position.y = y; plantG.add(m); };
+  [.4, 1.1, 1.8, 2.5, 3.05].forEach(wallRing);
+
+  /* leaves */
+  const leafShape = new THREE.Shape(); leafShape.moveTo(0, 0); leafShape.bezierCurveTo(.35, .55, 1.35, .6, 1.9, 0); leafShape.bezierCurveTo(1.35, -.6, .35, -.55, 0, 0);
+  const leafGeo = new THREE.ShapeGeometry(leafShape, 16);
+  { const uv = leafGeo.attributes.uv, pos = leafGeo.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, pos.getX(i) / 1.9, (pos.getY(i) + .6) / 1.2); }
+  const mkLeafMat = () => new THREE.MeshStandardMaterial({ map: leafTex, side: THREE.DoubleSide, roughness: .5, emissive: 0x3fff9f, emissiveIntensity: 0 });
+  const LEAVES = [
+    { y: 2.55, ang: Math.PI * 0.95, tilt: .22, roll: -.55, size: 1.2, g: new THREE.Group(), mat: mkLeafMat() },
+    { y: 2.95, ang: Math.PI * 0.05, tilt: .2, roll: .55, size: 1.05, g: new THREE.Group(), mat: mkLeafMat() },
+    { y: 3.15, ang: Math.PI * 0.55, tilt: .3, roll: .4, size: .1, g: new THREE.Group(), mat: mkLeafMat() }
+  ];
+  LEAVES.forEach((lf, i) => {
+    const mesh = new THREE.Mesh(leafGeo, lf.mat); mesh.rotation.x = -Math.PI / 2; mesh.castShadow = true; mesh.receiveShadow = true;
+    const pet = new THREE.Mesh(new THREE.CylinderGeometry(.025, .035, .5, 8), new THREE.MeshStandardMaterial({ color: 0x6fbf55 })); pet.rotation.z = Math.PI / 2; pet.position.x = .22;
+    lf.pivot = new THREE.Group(); lf.pivot.add(mesh); lf.g.add(lf.pivot); lf.g.position.set(0, lf.y, 0); lf.g.rotation.y = lf.ang; if (i < 2) lf.g.scale.setScalar(lf.size); plantG.add(lf.g);
+    mesh.position.x = .12; lf.mesh = mesh; lf.pet = pet;
+  });
+  LEAVES[2].g.visible = false;
+
+  /* magnified stoma (zoom-in) */
+  const stomaG = new THREE.Group(); stomaG.position.set(2.7, 3.0, -1.1); stomaG.scale.setScalar(.8); scene.add(stomaG);
+  const stomaRing = new THREE.Mesh(new THREE.TorusGeometry(.85, .03, 10, 40), new THREE.MeshBasicMaterial({ color: 0xbff5ff, transparent: true, opacity: .55 })); stomaG.add(stomaRing);
+  const stomaBg = new THREE.Mesh(new THREE.CircleGeometry(.85, 40), new THREE.MeshBasicMaterial({ color: 0x083844, transparent: true, opacity: .75 })); stomaBg.position.z = -.02; stomaG.add(stomaBg);
+  const gcMat = new THREE.MeshStandardMaterial({ color: 0x4fc84a, roughness: .4, emissive: 0x1e7a24, emissiveIntensity: .5 });
+  const gcL = new THREE.Mesh(new THREE.SphereGeometry(.34, 20, 16), gcMat), gcR = new THREE.Mesh(new THREE.SphereGeometry(.34, 20, 16), gcMat);
+  [gcL, gcR].forEach(g => { g.scale.set(.55, 1.15, .5); stomaG.add(g); });
+  const stomaLabel = labelSprite(L("Stoma (zoom-in)", "Estoma (zoom)"), "#7bffb0", 1.8); stomaLabel.position.set(0, 1.3, 0); stomaLabel.scale.set(1.7, .51, 1); stomaG.add(stomaLabel);
+  const link = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(1.9, 2.9, -.3), new THREE.Vector3(2.1, 3.0, -.9)]), new THREE.LineBasicMaterial({ color: 0xbff5ff, transparent: true, opacity: .5 })); scene.add(link);
+
+  /* labels on the plant */
+  const lblX = labelSprite(L("XYLEM up", "XILEMA arriba"), "#3fc8ff", 1.5); lblX.position.set(-1.1, 1.3, .2); plantG.add(lblX);
+  const lblP = labelSprite(L("PHLOEM down", "FLOEMA abajo"), "#ff7c5c", 1.6); lblP.position.set(1.15, 1.7, .2); plantG.add(lblP);
+  const lblR = labelSprite(L("ROOTS", "RAÍCES"), "#e8dcc0", 1.1); lblR.position.set(-1.5, -.5, 1.4); scene.add(lblR);
+
+  /* ---- particles ---- */
+  const mkPoints = (n, color, size) => {
+    const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    const m = new THREE.Points(geo, new THREE.PointsMaterial({ color, size, map: dotTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+    m.frustumCulled = false; scene.add(m); return m;
+  };
+  const V = THREE.Vector3;
+  const along = (pts, t, out) => { const n = pts.length - 1, s = clamp(t, 0, .9999) * n, i = Math.floor(s), f = s - i; out.copy(pts[i]).lerp(pts[i + 1], f); return out; };
+  const leafTip = i => { const lf = LEAVES[i]; const l = 1.6 * lf.size; return new V(Math.cos(lf.ang) * l, lf.y + .1 + lf.tilt * .3, -Math.sin(lf.ang) * l); };
+  const WATER_N = 90, SUGAR_N = 70, CO2_N = 44, O2_N = 36, VAP_N = 40;
+  const waterP = mkPoints(WATER_N, 0x3fc8ff, .17), sugarP = mkPoints(SUGAR_N, 0xff7c5c, .19), co2P = mkPoints(CO2_N, 0xeafcff, .15), o2P = mkPoints(O2_N, 0x7bffb0, .16), vapP = mkPoints(VAP_N, 0xbfefff, .13);
+  const dust = mkPoints(120, 0xbfe8f2, .05);
+  { const p = dust.geometry.attributes.position; for (let i = 0; i < 120; i++) p.setXYZ(i, (Math.random() - .5) * 12, Math.random() * 6 - .5, (Math.random() - .5) * 12); }
+  const waterS = Array.from({ length: WATER_N }, () => ({ t: Math.random(), sp: .12 + Math.random() * .1, rx: (Math.random() - .5) * 3.2, rz: (Math.random() - .5) * 3.2, leaf: Math.random() < .5 ? 0 : 1 }));
+  const sugarS = Array.from({ length: SUGAR_N }, () => ({ t: Math.random(), sp: .1 + Math.random() * .1, leaf: Math.random() < .5 ? 0 : 1, rt: ROOTS[(Math.random() * ROOTS.length) | 0] }));
+  const co2S = Array.from({ length: CO2_N }, () => ({ t: Math.random(), sp: .25 + Math.random() * .2, a: Math.random() * 6.28, r: 1.2 + Math.random() * 1.2, h: (Math.random() - .5) * 1.6 }));
+  const o2S = Array.from({ length: O2_N }, () => ({ t: Math.random(), sp: .22 + Math.random() * .15, a: Math.random() * 6.28 }));
+  const vapS = Array.from({ length: VAP_N }, () => ({ t: Math.random(), sp: .2 + Math.random() * .15, a: Math.random() * 6.28 }));
+  const tmp = new V(), tmp2 = new V();
+
+  /* trucks for the dispatch moment */
+  const trucks = []; const truckMat = new THREE.MeshStandardMaterial({ color: 0xff9a3a, emissive: 0xc2561c, emissiveIntensity: .6, roughness: .4 });
+  for (let i = 0; i < 10; i++) { const g = new THREE.Group(); const b = new THREE.Mesh(new THREE.BoxGeometry(.2, .16, .26), truckMat); const c = new THREE.Mesh(new THREE.BoxGeometry(.18, .12, .1), new THREE.MeshStandardMaterial({ color: 0xffe08a })); c.position.set(0, .02, .17);
+    g.add(b, c); g.visible = false; scene.add(g); trucks.push({ g, t: 0, delay: i * .12, path: [], dest: 0, live: false }); }
+
+  /* ---- state ---- */
+  let envWater = 1, envLight = 1, envStoma = 1, envSugar = 1, envLoss = 1, envWilt = 0, wiltTarget = 0;
+  let dayT = -1, rootGrow = 0, leafGrow = 0, dispatching = null, flashAmt = 0;
+  const dayColor = { sky: new THREE.Color(0xbfeaf5), night: new THREE.Color(0x0a2230) };
+  function setEnv() {
+    const s = getState(), p = plant(s.light, s.water, s.stomata);
+    envLight = s.light / 100; envWater = s.water / 100; envStoma = s.stomata / 100; envSugar = p.sugar / 100; envLoss = p.loss / 100; wiltTarget = p.wilting ? 1 : 0;
+    ambient.intensity = lerp(.12, .28, envLight); hemi.intensity = lerp(.2, .5, envLight);
+    sun.intensity = lerp(.08, .85, envLight); sunSprite.material.opacity = lerp(.25, 1, envLight); sunSprite.scale.setScalar(lerp(1.3, 2.8, envLight));
+    soilMat.color.setHex(0xffffff).lerp(new THREE.Color(0x9a8a80), 1 - envWater); waterTable.scale.y = Math.max(.02, envWater); waterTable.position.y = -1.8 + envWater * .5; waterTable.material.opacity = .12 + envWater * .3;
+    beams.forEach(b => b.material.opacity = .01 + envLight * .045);
+    xylemTube.material.color.setRGB(.06 + .06 * envWater, .45 + .2 * envWater, .8 + .12 * envWater);
+    wallRingUpdate();
+  }
+  function wallRingUpdate() { /* hook for future detail */ }
+  function setGrowth(r, l) {
+    rootGrow = r; leafGrow = l; const rs = 1 + r / 100 * .35; rootG.scale.set(rs, 1 + r / 100 * .3, rs);
+    LEAVES[2].g.visible = l > 8; LEAVES[2].size = .1 + (l / 100) * .9; LEAVES[2].g.scale.setScalar(Math.max(.05, LEAVES[2].size));
+  }
+  function startDay() { dayT = 0; }
+  function endDay() { dayT = -1; flashAmt = 1; }
+  function setDayProgress(t) { dayT = t; }
+  function dispatch(share, done) {
+    const roots = Math.round(trucks.length * share), leaf = trucks.length - roots;
+    trucks.forEach((tr, i) => {
+      tr.live = true; tr.t = -tr.delay; tr.dest = i < roots ? 0 : 1; tr.leaf = i % 2;
+      const s0 = leafTip(tr.leaf).clone(); const top = new V(.1, 2.9, 0), base = new V(.1, 0, 0);
+      const end = tr.dest === 0 ? new V((Math.random() - .5) * 1.4, -1.1 - Math.random() * .6, (Math.random() - .5) * 1.0) : new V(0, 3.3, .4);
+      tr.path = tr.dest === 0 ? [s0, top, base, new V(.1, -.5, 0), end] : [s0, new V(.1, 3.0, 0), new V(.05, 3.2, .25), end];
+      tr.g.visible = true;
+    });
+    dispatching = { done, t: 0 };
+    /* game-state deadline on a timer, never rAF alone (rAF is cosmetic and can stall when the tab is hidden) */
+    const token = dispatching; setTimeout(() => { if (dispatching === token) { trucks.forEach(tr => { tr.live = false; tr.g.visible = false; }); dispatching = null; done && done(); } }, 6500);
+  }
+
+  /* ---- camera orbit ---- */
+  let az = .55, pol = 1.0, rad = 8.3, autoT = 0, dragging = false, lastX = 0, lastY = 0, travel = 0;
+  const target = new V(.4, 2.1, 0);
+  function applyCam() { const x = rad * Math.sin(pol) * Math.cos(az), z = rad * Math.sin(pol) * Math.sin(az), y = rad * Math.cos(pol); camera.position.set(x + target.x, y + target.y, z + target.z); camera.lookAt(target); }
+  const dom = renderer.domElement; dom.style.touchAction = "none";
+  dom.addEventListener("pointerdown", e => { dragging = true; travel = 0; lastX = e.clientX; lastY = e.clientY; autoT = 0; dom.setPointerCapture(e.pointerId); });
+  dom.addEventListener("pointermove", e => { if (!dragging) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; travel += Math.abs(dx) + Math.abs(dy); az -= dx * .008; pol = clamp(pol - dy * .006, .45, 1.55); lastX = e.clientX; lastY = e.clientY; });
+  dom.addEventListener("pointerup", () => { dragging = false; });
+  dom.addEventListener("pointercancel", () => { dragging = false; });
+  dom.addEventListener("wheel", e => { e.preventDefault(); rad = clamp(rad + e.deltaY * .004, 4.5, 11); }, { passive: false });
+
+  function resize() { const w = stageEl.clientWidth, h = stageEl.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  const ro = new ResizeObserver(resize); ro.observe(stageEl); resize();
+
+  /* ---- render loop ---- */
+  let last = performance.now(), time = 0, raf = 0;
+  const flashEl = document.createElement("div"); flashEl.className = "flash"; flashEl.style.background = "radial-gradient(circle at 50% 40%, rgba(255,240,170,.55), transparent 65%)"; stageEl.append(flashEl);
+  let capturing = false;
+  function update(dt) {
+    time += dt;
+    const reduced = reducedMotion();
+    if (!dragging && !reduced && !capturing) { autoT += dt; if (autoT > 2) az += dt * .1; }
+    applyCam();
+    /* sun on its arc */
+    let a;
+    if (dayT >= 0) a = lerp(.12, Math.PI - .12, dayT); else a = lerp(.35, 1.25, envLight);
+    const sx = -Math.cos(a) * 6.2, sy = Math.sin(a) * 4.6 + 1.2;
+    sun.position.set(sx, Math.max(.8, sy), 3); sunSprite.position.set(sx, sy + .8, -1.5); sunCore.position.copy(sunSprite.position);
+    sunCore.material.color.setHex(0xfff3c0).multiplyScalar(lerp(.45, 1, envLight));
+    beams.forEach((b, i) => { const from = sunSprite.position, to = new V(0, 2.9 + i * .1, 0); const d = from.distanceTo(to); b.scale.set(1, d, 1); b.position.copy(from).lerp(to, .5); b.lookAt(to); b.rotateX(-Math.PI / 2); b.visible = envLight > .04; });
+    /* wilt and leaf life */
+    const sunPulse = dayT >= 0 ? Math.sin(Math.PI * dayT) : 0;
+    envWilt += (wiltTarget - envWilt) * Math.min(1, dt * 2.5);
+    LEAVES.forEach((lf, i) => {
+      const sway = reduced ? 0 : Math.sin(time * .9 + i * 1.7) * .05;
+      lf.pivot.rotation.z = lf.tilt - envWilt * .75 + sway; lf.pivot.rotation.x = lf.roll * (1 - envWilt * .5);
+      lf.mat.color.setRGB(.78, .88, .78).lerp(new THREE.Color(0xc2a040), envWilt * .6);
+      lf.mat.emissiveIntensity = envSugar * (.015 + .1 * (dayT >= 0 ? .6 + sunPulse * .6 : .5));
+    });
+    /* stoma */
+    const open = envWilt > .5 ? envStoma * .45 : envStoma; const gap = .06 + .3 * open;
+    gcL.position.x += (-(.1 + gap) - gcL.position.x) * Math.min(1, dt * 8); gcR.position.x += ((.1 + gap) - gcR.position.x) * Math.min(1, dt * 8);
+    stomaBg.material.color.setRGB(.03, .22 + open * .2, .27 + open * .2);
+    if (!reduced) { stomaG.rotation.y = Math.sin(time * .5) * .35; stomaG.rotation.x = Math.sin(time * .37) * .12; }
+    stomaG.lookAt(camera.position); stomaG.rotation.z = 0;
+    /* particles */
+    const sp = reduced ? .3 : 1;
+    { const pos = waterP.geometry.attributes.position; const active = Math.round(WATER_N * envWater); const speed = (.25 + .75 * Math.max(.2, envLoss)) * sp;
+      for (let i = 0; i < WATER_N; i++) { const s = waterS[i];
+        if (i >= active) { pos.setXYZ(i, 0, -50, 0); continue; }
+        s.t += s.sp * speed * dt; if (s.t > 1) { s.t = 0; s.rx = (Math.random() - .5) * 3.2; s.rz = (Math.random() - .5) * 3.2; }
+        const pts = [new V(s.rx, -1.5, s.rz), new V(s.rx * .2, -.5, s.rz * .2), new V(-.1, 0, 0), new V(-.1, 2.9, 0), leafTip(s.leaf)];
+        along(pts, s.t, tmp); pos.setXYZ(i, tmp.x, tmp.y, tmp.z); }
+      pos.needsUpdate = true; }
+    { const pos = sugarP.geometry.attributes.position; const rate = dayT >= 0 ? envSugar * (.4 + .6 * smooth(0, .2, dayT)) : envSugar * .55; const active = Math.round(SUGAR_N * rate);
+      for (let i = 0; i < SUGAR_N; i++) { const s = sugarS[i];
+        if (i >= active) { pos.setXYZ(i, 0, -50, 0); continue; }
+        s.t += s.sp * (.5 + rate) * sp * dt; if (s.t > 1) s.t = 0;
+        const pts = [leafTip(s.leaf), new V(.1, 2.9, 0), new V(.1, 0, 0), new V(s.rt[0] * .5, s.rt[1] * .5, s.rt[2] * .5), new V(s.rt[0], s.rt[1], s.rt[2])];
+        along(pts, s.t, tmp); pos.setXYZ(i, tmp.x, tmp.y, tmp.z); }
+      pos.needsUpdate = true; }
+    { const pos = co2P.geometry.attributes.position; const eo = envWilt > .5 ? envStoma * .45 : envStoma; const active = Math.round(CO2_N * eo);
+      for (let i = 0; i < CO2_N; i++) { const s = co2S[i];
+        if (i >= active) { pos.setXYZ(i, 0, -50, 0); continue; }
+        s.t += s.sp * sp * dt; if (s.t > 1) { s.t = 0; s.a = Math.random() * 6.28; }
+        const sx0 = stomaG.position.x + Math.cos(s.a) * s.r * 1.2, sy0 = stomaG.position.y + 1.2 + s.h, sz0 = stomaG.position.z + Math.sin(s.a) * s.r;
+        tmp.set(sx0, sy0, sz0); tmp2.copy(stomaG.position); tmp.lerp(tmp2, smooth(0, 1, s.t)); pos.setXYZ(i, tmp.x, tmp.y, tmp.z); }
+      pos.needsUpdate = true; }
+    { const pos = o2P.geometry.attributes.position; const active = Math.round(O2_N * envSugar * (envWilt > .5 ? .6 : 1));
+      for (let i = 0; i < O2_N; i++) { const s = o2S[i];
+        if (i >= active) { pos.setXYZ(i, 0, -50, 0); continue; }
+        s.t += s.sp * sp * dt; if (s.t > 1) { s.t = 0; s.a = Math.random() * 6.28; }
+        tmp.copy(stomaG.position); tmp.x += Math.cos(s.a) * s.t * 1.6; tmp.y += s.t * 2.2; tmp.z += Math.sin(s.a) * s.t * 1.6; pos.setXYZ(i, tmp.x, tmp.y, tmp.z); }
+      pos.needsUpdate = true; }
+    { const pos = vapP.geometry.attributes.position; const eo = envWilt > .5 ? envStoma * .45 : envStoma; const active = Math.round(VAP_N * envLoss * eo * 1.3);
+      for (let i = 0; i < VAP_N; i++) { const s = vapS[i];
+        if (i >= active) { pos.setXYZ(i, 0, -50, 0); continue; }
+        s.t += s.sp * sp * dt; if (s.t > 1) { s.t = 0; s.a = Math.random() * 6.28; }
+        tmp.copy(stomaG.position); tmp.x += Math.cos(s.a) * s.t * .9 + .3; tmp.y += -s.t * 1.1; tmp.z += Math.sin(s.a) * s.t * .9; pos.setXYZ(i, tmp.x, tmp.y, tmp.z); }
+      pos.needsUpdate = true; }
+    { const pos = dust.geometry.attributes.position; if (!reduced) for (let i = 0; i < 120; i++) { let y = pos.getY(i) + dt * (.05 + (i % 5) * .02); if (y > 5.5) y = -.5; pos.setY(i, y); pos.setX(i, pos.getX(i) + Math.sin(time * .3 + i) * .002); } pos.needsUpdate = true; }
+    /* trucks */
+    if (dispatching) {
+      let alive = 0;
+      trucks.forEach(tr => { if (!tr.live) return; tr.t += dt * (reduced ? 1.2 : .38);
+        if (tr.t < 0) { alive++; tr.g.visible = false; return; }
+        tr.g.visible = true; if (tr.t >= 1) { tr.live = false; tr.g.visible = false; return; } alive++;
+        along(tr.path, tr.t, tmp); tr.g.position.copy(tmp); tmp2.copy(tr.path[Math.min(tr.path.length - 1, Math.floor(tr.t * (tr.path.length - 1)) + 1)]); tr.g.lookAt(tmp2); });
+      if (!alive) { const d = dispatching.done; dispatching = null; d && d(); }
+    }
+    if (flashAmt > 0) { flashAmt = Math.max(0, flashAmt - dt * 1.6); flashEl.style.opacity = flashAmt * .8; }
+    renderer.render(scene, camera);
+  }
+  function loop(now) { const dt = Math.min((now - last) / 1000, .05); last = now; update(dt); raf = requestAnimationFrame(loop); }
+  raf = requestAnimationFrame(loop);
+  /* used only by tools/make-thumbnail.py capture runs (?capture=1): render one frame at a fixed azimuth and return it */
+  function capture(a, dayProgress, w, h) { capturing = true; if (w) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); } az = a; dayT = dayProgress; update(1 / 30); return renderer.domElement; }
+  return { capture, setEnv, setGrowth, startDay, endDay, setDayProgress, dispatch, dispose() { cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); } };
+}
+
+/* ======================================================================
+   2D FALLBACK SCENE (no WebGL). Still fully playable.
+   ====================================================================== */
+function buildFallback(stageEl, getState) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 400 300"); svg.style.cssText = "width:100%;height:100%;position:absolute;inset:0";
+  svg.innerHTML = `<defs><style>.fl-up{animation:flowup .9s linear infinite}.fl-dn{animation:flowdown .9s linear infinite}</style></defs>
+    <rect width="400" height="300" fill="#0f3a45"/>
+    <circle id="fb-sun" cx="320" cy="50" r="26" fill="#ffd45c"/>
+    <rect x="60" y="230" width="280" height="70" rx="8" fill="#4a3524"/><rect id="fb-water" x="60" y="268" width="280" height="32" fill="#2aa8e8" opacity=".4"/>
+    <rect x="186" y="90" width="28" height="145" rx="8" fill="#9be28a" opacity=".5"/>
+    <line class="fl-up" x1="195" y1="230" x2="195" y2="95" stroke="#3fc8ff" stroke-width="7" stroke-dasharray="6 6"/>
+    <line class="fl-dn" x1="205" y1="230" x2="205" y2="95" stroke="#ff7c5c" stroke-width="7" stroke-dasharray="6 6"/>
+    <path id="fb-l1" d="M190 120 C150 140 90 120 60 70 C120 55 175 80 190 120Z" fill="#56b848" stroke="#2f7d2a" stroke-width="3"/>
+    <path id="fb-l2" d="M210 105 C250 120 305 100 335 55 C275 40 220 65 210 105Z" fill="#56b848" stroke="#2f7d2a" stroke-width="3"/>
+    <ellipse id="fb-gc1" cx="150" cy="270" rx="6" ry="14" fill="#4fc84a" transform="translate(-12 -130)"/><ellipse id="fb-gc2" cx="170" cy="270" rx="6" ry="14" fill="#4fc84a" transform="translate(12 -130)"/>
+    <text x="200" y="28" text-anchor="middle" font-size="12" fill="#bfeaf2" font-family="sans-serif">${L("Simple view (3D unavailable)", "Vista simple (3D no disponible)")}</text>`;
+  stageEl.appendChild(svg);
+  const q = id => svg.querySelector("#" + id); let dayTimer = null;
+  function setEnv() { const s = getState(), p = plant(s.light, s.water, s.stomata); q("fb-sun").setAttribute("opacity", .25 + s.light / 100 * .75); q("fb-water").setAttribute("y", 300 - 32 * s.water / 100); q("fb-water").setAttribute("height", 32 * s.water / 100 + .1);
+    const g = (s.stomata / 100) * (p.wilting ? .45 : 1) * 10; q("fb-gc1").setAttribute("transform", `translate(${-12 - g} -130)`); q("fb-gc2").setAttribute("transform", `translate(${12 + g} -130)`);
+    const tint = p.wilting ? "#b89a3a" : "#56b848"; q("fb-l1").setAttribute("fill", tint); q("fb-l2").setAttribute("fill", tint); }
+  return { setEnv, setGrowth() {}, startDay() {}, endDay() {}, setDayProgress() {}, dispatch(share, done) { setTimeout(done, 1200); } };
+}
+
+/* ======================================================================
+   ORIENT MAP (SVG teaching diagram)
+   ====================================================================== */
+function mapSVG() {
+  const T = (x, y, s, fill, size = 11, anchor = "middle") => `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="800" fill="${fill}" font-family="sans-serif">${s}</text>`;
+  return `<svg class="anat-svg" viewBox="0 0 340 440" role="img" aria-label="${L("A plant with xylem carrying water up and phloem carrying sugar down", "Una planta con xilema subiendo agua y floema bajando azúcar")}">
+  <rect width="340" height="440" fill="#eaf6f1"/>
+  <g data-hl data-part="light" opacity="0"><circle cx="58" cy="52" r="34" fill="#d9a400" opacity=".35"/></g>
+  <g data-part="light"><circle cx="58" cy="52" r="22" fill="#ffd45c" stroke="#c9a000" stroke-width="3"/><g stroke="#c9a000" stroke-width="3" stroke-linecap="round"><path d="M58 18v8M58 78v8M24 52h8M84 52h8M34 28l6 6M82 76l6 6M34 76l6-6M82 28l6-6"/></g></g>
+  <rect x="0" y="330" width="340" height="110" fill="#8a6a4f"/><rect x="0" y="330" width="340" height="12" fill="#6b4a2b"/>
+  <g data-hl data-part="roots" opacity="0"><rect x="90" y="332" width="160" height="100" fill="#c9a000" opacity=".28"/></g>
+  <g data-part="roots" fill="none" stroke="#f0e2c0" stroke-width="4" stroke-linecap="round"><path d="M170 335 Q150 370 118 400"/><path d="M170 335 Q172 385 168 425"/><path d="M170 335 Q196 372 226 396"/><path d="M168 360 Q140 372 128 372"/><path d="M172 365 Q200 370 214 380"/></g>
+  <g data-hl data-part="xylem" opacity="0"><rect x="154" y="140" width="14" height="192" fill="#1f9fd6" opacity=".45"/></g>
+  <g data-hl data-part="phloem" opacity="0"><rect x="172" y="140" width="14" height="192" fill="#e8553a" opacity=".45"/></g>
+  <rect x="150" y="140" width="40" height="192" rx="10" fill="#9be28a" stroke="#3f7a34" stroke-width="3"/>
+  <g data-part="xylem"><rect x="156" y="140" width="10" height="192" fill="#3fc8ff" stroke="#1f7aa8" stroke-width="2"/><line class="flow-up" x1="161" y1="330" x2="161" y2="142" stroke="#fff" stroke-width="3" stroke-dasharray="6 18" stroke-linecap="round"/></g>
+  <g data-part="phloem"><rect x="174" y="140" width="10" height="192" fill="#ff7c5c" stroke="#a83a20" stroke-width="2"/><line class="flow-down" x1="179" y1="142" x2="179" y2="330" stroke="#fff" stroke-width="3" stroke-dasharray="6 18" stroke-linecap="round"/></g>
+  <g data-hl data-part="leaf" opacity="0"><path d="M168 190 C118 210 40 180 20 100 C100 80 160 120 168 190Z" fill="#c9a000" opacity=".3"/><path d="M174 165 C224 175 295 150 322 80 C250 60 184 100 174 165Z" fill="#c9a000" opacity=".3"/></g>
+  <g data-part="leaf"><path d="M168 190 C118 210 40 180 20 100 C100 80 160 120 168 190Z" fill="#5fbf4a" stroke="#2f7d2a" stroke-width="3"/><path d="M174 165 C224 175 295 150 322 80 C250 60 184 100 174 165Z" fill="#6fcf55" stroke="#2f7d2a" stroke-width="3"/>
+    <path d="M166 186 Q100 160 36 108 M176 162 Q250 135 310 90" fill="none" stroke="#2f7d2a" stroke-width="2"/></g>
+  <g data-part="stoma"><circle cx="82" cy="150" r="6" fill="#fff" stroke="#2f7d2a" stroke-width="2"/></g>
+  <path d="M82 156 L82 232" stroke="#2f7d2a" stroke-width="2" stroke-dasharray="3 3"/>
+  <g data-hl data-part="stoma" opacity="0"><circle cx="82" cy="276" r="48" fill="#c9a000" opacity=".3"/></g>
+  <g data-part="stoma"><circle cx="82" cy="276" r="40" fill="#fff" stroke="#2f7d2a" stroke-width="3"/>
+    <ellipse cx="68" cy="276" rx="9" ry="22" fill="#4fc84a" stroke="#2f7d2a" stroke-width="2"/><ellipse cx="96" cy="276" rx="9" ry="22" fill="#4fc84a" stroke="#2f7d2a" stroke-width="2"/>
+    <path d="M56 246 l12 12" stroke="#6b7a80" stroke-width="3" marker-end="none"/><text x="38" y="244" font-size="10" font-weight="800" fill="#6b7a80" font-family="sans-serif">CO₂</text>
+    <text x="108" y="246" font-size="10" font-weight="800" fill="#2f8f3a" font-family="sans-serif">O₂</text></g>
+  <path d="M262 112 L262 232" stroke="#2f7d2a" stroke-width="2" stroke-dasharray="3 3"/>
+  <g data-hl data-part="chloroplast" opacity="0"><circle cx="262" cy="276" r="48" fill="#c9a000" opacity=".3"/></g>
+  <g data-part="chloroplast"><circle cx="262" cy="276" r="40" fill="#f5fff0" stroke="#2f7d2a" stroke-width="3"/>
+    ${[[245, 266], [268, 258], [276, 284], [250, 290], [262, 276]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="9" ry="5.5" fill="#1E8C60" stroke="#0b5a3b" stroke-width="1.5"/>`).join("")}</g>
+  ${T(262, 330, L("chloroplasts", "cloroplastos"), "#2f7d2a", 10)}${T(82, 330, L("stoma", "estoma"), "#2f7d2a", 10)}
+  ${T(122, 180, L("UP", "ARRIBA"), "#1f7aa8", 10)}${T(220, 180, L("DOWN", "ABAJO"), "#a83a20", 10)}
+  </svg>`;
+}
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
