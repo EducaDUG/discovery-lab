@@ -284,18 +284,18 @@ const LIMIT_NAME = () => ({
   co2: L("Carbon dioxide", "Dióxido de carbono"), wilt: L("Wilting", "Marchitamiento")
 });
 const FEEDBACK = () => ({
-  none: L("Full power. Light, water and carbon dioxide all arrived, so the leaf made sugar at top speed.", "A toda potencia. Llegaron luz, agua y dióxido de carbono, así que la hoja fabricó azúcar a máxima velocidad."),
-  light: L("Not enough light. The chloroplasts had too little energy to run photosynthesis, so sugar-making slowed down.", "Poca luz. Los cloroplastos tuvieron muy poca energía para hacer la fotosíntesis, así que la fabricación de azúcar se frenó."),
-  water: L("Not enough water. The xylem could not deliver the water photosynthesis needs, so sugar-making slowed down.", "Poca agua. El xilema no pudo entregar el agua que necesita la fotosíntesis, así que la fabricación de azúcar se frenó."),
-  co2: L("Not enough carbon dioxide. With the stomata nearly closed, little gas could get in, so sugar-making slowed down.", "Poco dióxido de carbono. Con los estomas casi cerrados entró poco gas, así que la fabricación de azúcar se frenó."),
-  wilt: L("Wilting! The stomata were wide open on a dry day, so the leaf lost water faster than the xylem could deliver it. The plant shut its stomata to survive and made less sugar.", "¡Marchitamiento! Los estomas estaban muy abiertos en un día seco, así que la hoja perdió agua más rápido de lo que el xilema podía entregarla. La planta cerró sus estomas para sobrevivir y fabricó menos azúcar.")
+  none: L("Full power! Light, water and carbon dioxide all arrived, so the leaf made lots of sugar.", "¡A toda potencia! Llegaron luz, agua y dióxido de carbono, así que la hoja fabricó mucha azúcar."),
+  light: L("Not enough light. The leaf had too little energy, so it made less sugar.", "Poca luz. La hoja tuvo muy poca energía, así que fabricó menos azúcar."),
+  water: L("Not enough water. The xylem could not bring enough water up, so the leaf made less sugar.", "Poca agua. El xilema no pudo subir suficiente agua, así que la hoja fabricó menos azúcar."),
+  co2: L("Not enough carbon dioxide. The stomata were almost shut, so little gas got in and the leaf made less sugar.", "Poco dióxido de carbono. Los estomas estaban casi cerrados, entró poco gas y la hoja fabricó menos azúcar."),
+  wilt: L("Wilting! The stomata were wide open on a dry day. The leaf lost water faster than the xylem could bring it. The plant shut its stomata to stay alive, so it made less sugar.", "¡Marchitamiento! Los estomas estaban muy abiertos en un día seco. La hoja perdió agua más rápido de lo que el xilema la traía. La planta cerró sus estomas para sobrevivir, así que fabricó menos azúcar.")
 });
 const NEXT_STEP = () => ({
-  none: L("Next: turn ONE setting down and keep the other two at 100 to see which one matters.", "Siguiente: baja UN ajuste y mantén los otros dos en 100 para ver cuál importa."),
-  light: L("Next: raise the light a little at a time and watch the sugar climb.", "Siguiente: sube la luz poco a poco y mira cómo sube el azúcar."),
-  water: L("Next: raise the water supply and see where the sugar stops climbing.", "Siguiente: sube el suministro de agua y mira dónde deja de subir el azúcar."),
-  co2: L("Next: open the stomata wider and compare. What is the cost of opening them?", "Siguiente: abre más los estomas y compara. ¿Cuál es el costo de abrirlos?"),
-  wilt: L("Next: raise the water supply while the stomata stay open. How much water does the leaf need?", "Siguiente: sube el suministro de agua con los estomas abiertos. ¿Cuánta agua necesita la hoja?")
+  none: L("Next: turn ONE setting down. Keep the other two at 100. Which one matters?", "Siguiente: baja UN ajuste y deja los otros dos en 100. ¿Cuál importa?"),
+  light: L("Next: raise the light a little at a time. Watch the sugar go up.", "Siguiente: sube la luz poco a poco. Mira cómo sube el azúcar."),
+  water: L("Next: add more water. Where does the sugar stop going up?", "Siguiente: añade más agua. ¿Dónde deja de subir el azúcar?"),
+  co2: L("Next: open the stomata wider. What is the cost of opening them?", "Siguiente: abre más los estomas. ¿Qué cuesta abrirlos?"),
+  wilt: L("Next: add more water while the stomata stay open. How much water does the leaf need?", "Siguiente: añade más agua con los estomas abiertos. ¿Cuánta agua necesita la hoja?")
 });
 
 /* ======================================================================
@@ -303,21 +303,21 @@ const NEXT_STEP = () => ({
    ====================================================================== */
 const hi = v => v >= 90;
 const QUESTS = () => [
-  { id: "full", title: L("Full power", "A toda potencia"), hint: L("Run a day with light, water and stomata all at 100 and make 95+ sugar.", "Haz un día con luz, agua y estomas al 100 y fabrica 95+ de azúcar."), xp: 150,
+  { id: "full", title: L("Full power", "A toda potencia"), hint: L("Run a day with everything at 100 and make 95 or more sugar.", "Haz un día con todo al 100 y fabrica 95 o más de azúcar."), xp: 150,
     test: (s, r) => r.sugar >= 95 },
-  { id: "dark", title: L("Lights out", "Luces apagadas"), hint: L("Turn the light to 10 or less, keep water and stomata high, and see the sugar crash.", "Baja la luz a 10 o menos, mantén agua y estomas altos y mira cómo se desploma el azúcar."), xp: 200,
+  { id: "dark", title: L("Lights out", "Luces apagadas"), hint: L("Turn the light down to 10 or less. Keep water and stomata high. Watch the sugar crash.", "Baja la luz a 10 o menos. Mantén agua y estomas altos. Mira cómo se desploma el azúcar."), xp: 200,
     test: (s, r) => s.light <= 10 && hi(s.water) && hi(s.stomata) && r.sugar <= 20 },
-  { id: "dry", title: L("Dry roots", "Raíces secas"), hint: L("Turn the water supply to 10 or less with light and stomata high.", "Baja el suministro de agua a 10 o menos con luz y estomas altos."), xp: 200,
+  { id: "dry", title: L("Dry roots", "Raíces secas"), hint: L("Turn the water down to 10 or less. Keep light and stomata high.", "Baja el agua a 10 o menos. Mantén luz y estomas altos."), xp: 200,
     test: (s, r) => s.water <= 10 && hi(s.light) && hi(s.stomata) && r.sugar <= 20 },
-  { id: "gasp", title: L("Gasping leaf", "Hoja sin aire"), hint: L("Close the stomata to 10 or less with light and water high.", "Cierra los estomas a 10 o menos con luz y agua altas."), xp: 200,
+  { id: "gasp", title: L("Gasping leaf", "Hoja sin aire"), hint: L("Close the stomata to 10 or less. Keep light and water high.", "Cierra los estomas a 10 o menos. Mantén luz y agua altas."), xp: 200,
     test: (s, r) => s.stomata <= 10 && hi(s.light) && hi(s.water) && r.sugar <= 20 },
-  { id: "wilt", title: L("Wilt alert", "Alerta de marchitamiento"), hint: L("Open the stomata wide on a dry day and make the plant wilt. That is the trade-off.", "Abre mucho los estomas en un día seco y haz que la planta se marchite. Ese es el equilibrio."), xp: 250,
+  { id: "wilt", title: L("Wilt alert", "Alerta de marchitamiento"), hint: L("Open the stomata wide when there is little water. Make the plant wilt.", "Abre mucho los estomas cuando hay poca agua. Haz que la planta se marchite."), xp: 250,
     test: (s, r) => r.wilting },
   { id: "deliver", title: L("First delivery", "Primera entrega"), hint: L("Send your sugar trucks down the phloem.", "Envía tus camiones de azúcar hacia abajo por el floema."), xp: 150,
     test: (s, r, g) => g.deliveries >= 1 },
-  { id: "leaf", title: L("Grow a new leaf", "Haz crecer una hoja nueva"), hint: L("Dispatch enough sugar to the new leaf bud to grow a third leaf.", "Envía suficiente azúcar al brote para que crezca una tercera hoja."), xp: 300,
+  { id: "leaf", title: L("Grow a new leaf", "Haz crecer una hoja nueva"), hint: L("Send enough sugar to the new leaf bud to grow a third leaf.", "Envía suficiente azúcar al brote para que crezca una tercera hoja."), xp: 300,
     test: (s, r, g) => g.leafG >= 100 },
-  { id: "master", title: L("Highway master", "Maestro de la autopista"), hint: L("Find the limiter for light, water AND stomata. All three tests done.", "Encuentra el limitante de luz, agua Y estomas. Las tres pruebas hechas."), xp: 400,
+  { id: "master", title: L("Highway master", "Maestro de la autopista"), hint: L("Finish all three tests: dark, dry and stomata shut.", "Termina las tres pruebas: oscuro, seco y estomas cerrados."), xp: 400,
     test: (s, r, g) => g.quests.dark && g.quests.dry && g.quests.gasp }
 ];
 const xpForLevel = lvl => lvl * 350;
@@ -327,27 +327,27 @@ const xpForLevel = lvl => lvl * 350;
    ====================================================================== */
 const OBS_CARDS = () => [
   { key: "xylem", name: L("Inside celery: xylem tubes", "Dentro del apio: tubos de xilema"),
-    notices: [L("The tube walls are wound like a spring. That makes them strong, so they do not collapse.", "Las paredes del tubo están enrolladas como un resorte. Eso las hace fuertes y no se aplastan."),
-              L("These are long hollow tubes laid end to end, like straws.", "Son tubos largos y huecos puestos uno tras otro, como pajillas.")] },
+    notices: [L("The tube walls are wound like a spring. This makes them strong.", "Las paredes del tubo están enrolladas como un resorte. Eso las hace fuertes."),
+              L("These are long hollow tubes joined end to end, like straws.", "Son tubos largos y huecos unidos uno tras otro, como pajillas.")] },
   { key: "stomata", name: L("A leaf surface, magnified", "La superficie de una hoja, aumentada"),
-    notices: [L("Dozens of tiny slits are packed into this small patch. Each slit is a stoma.", "Decenas de pequeñas rendijas están apretadas en este pedacito. Cada rendija es un estoma."),
-              L("Tall hairs stick up from the surface, but the stomata stay clear between them.", "Pelos altos sobresalen de la superficie, pero los estomas quedan libres entre ellos.")] },
+    notices: [L("Look at all the tiny slits. Each slit is a stoma.", "Mira todas las rendijas diminutas. Cada rendija es un estoma."),
+              L("Tall hairs stick up, but the stomata stay clear between them.", "Hay pelos altos, pero los estomas quedan libres entre ellos.")] },
   { key: "veins", name: L("A leaf with light shining through", "Una hoja con luz que la atraviesa"),
-    notices: [L("One thick vein runs down the middle. Thinner veins branch from it, then thinner ones still.", "Una vena gruesa va por el medio. De ella salen venas más finas, y de estas otras aún más finas."),
-              L("The network reaches every part of the leaf, so water can arrive and sugar can leave from anywhere.", "La red llega a todas partes de la hoja, así que el agua llega y el azúcar sale desde cualquier punto.")] },
+    notices: [L("One thick vein runs down the middle. Thinner veins branch off it.", "Una vena gruesa va por el medio. De ella salen venas más finas."),
+              L("The veins reach every part of the leaf. Water can arrive and sugar can leave from anywhere.", "Las venas llegan a toda la hoja. El agua llega y el azúcar sale desde cualquier lugar.")] },
   { key: "leafsection", name: L("A slice through a leaf vein", "Un corte a través de la vena de una hoja"),
-    notices: [L("The purple-stained ring of wide tubes in the middle is xylem. Phloem tubes sit right beside it.", "El anillo de tubos anchos teñido de morado en el centro es el xilema. Los tubos del floema están justo al lado."),
-              L("The top layer has tall cells packed close together. They sit where the most light arrives.", "La capa superior tiene células altas muy juntas. Están donde llega más luz.")] },
+    notices: [L("The purple tubes in the middle are xylem. Phloem tubes sit right next to them.", "Los tubos morados del centro son xilema. Los tubos del floema están justo al lado."),
+              L("The top layer has tall cells packed close together. That is where most light arrives.", "La capa de arriba tiene células altas muy juntas. Ahí llega más luz.")] },
   { key: "girdle", name: L("A ring cut through the bark of a tree", "Un anillo cortado en la corteza de un árbol"),
-    notices: [L("A ring of bark has been cut away all the way around the trunk.", "Se quitó un anillo de corteza alrededor de todo el tronco."),
-              L("The living tubes that carry sugar down sit in the inner bark, so this cut has removed them from that ring.", "Los tubos vivos que llevan el azúcar hacia abajo están en la corteza interna, así que este corte los quitó de ese anillo.")] }
+    notices: [L("A ring of bark has been cut off all the way around the trunk.", "Se quitó un anillo de corteza alrededor de todo el tronco."),
+              L("The tubes that carry sugar down live in the inner bark. This cut removed them.", "Los tubos que llevan el azúcar hacia abajo están en la corteza interna. Este corte los quitó.")] }
 ];
 const LEAF_PARTS = () => [
   { id: "apex", name: L("Apex", "Ápice"), x: 0.435, y: 0.035, info: L("The tip of the leaf.", "La punta de la hoja."), hint: L("It is the very end, opposite the stalk.", "Es el extremo, opuesto al tallo.") },
   { id: "margin", name: L("Margin", "Margen"), x: 0.128, y: 0.42, info: L("The edge of the leaf. This one has tiny teeth.", "El borde de la hoja. Esta tiene dientecitos."), hint: L("It is the outline all the way round.", "Es el contorno de toda la hoja.") },
-  { id: "blade", name: L("Blade", "Limbo"), x: 0.72, y: 0.52, info: L("The wide, flat green part. Most photosynthesis happens here.", "La parte verde, ancha y plana. Aquí ocurre casi toda la fotosíntesis."), hint: L("It is the big flat area between the veins.", "Es la gran zona plana entre los nervios.") },
-  { id: "midrib", name: L("Midrib", "Nervio central"), x: 0.478, y: 0.40, info: L("The thick middle vein. Xylem and phloem run inside it.", "El nervio grueso del medio. El xilema y el floema van dentro."), hint: L("It runs from the stalk up to the tip, right down the middle.", "Va desde el tallo hasta la punta, justo por el medio.") },
-  { id: "veins", name: L("Veins", "Nervios"), x: 0.372, y: 0.50, info: L("Thinner veins that branch off the midrib. They carry water in and sugar out.", "Nervios más finos que salen del central. Llevan agua adentro y azúcar afuera."), hint: L("Look for the thinner lines branching off the middle one.", "Busca las líneas más finas que salen de la del medio.") },
+  { id: "blade", name: L("Blade", "Limbo"), x: 0.72, y: 0.52, info: L("The wide, flat green part. Most sugar-making happens here.", "La parte verde, ancha y plana. Aquí se fabrica casi toda el azúcar."), hint: L("It is the big flat area between the veins.", "Es la gran zona plana entre los nervios.") },
+  { id: "midrib", name: L("Midrib", "Nervio central"), x: 0.478, y: 0.40, info: L("The thick middle vein. Xylem and phloem run inside it.", "El nervio grueso del medio. El xilema y el floema van dentro."), hint: L("It runs from the stalk to the tip, down the middle.", "Va del tallo a la punta, por el medio.") },
+  { id: "veins", name: L("Veins", "Nervios"), x: 0.372, y: 0.50, info: L("Thinner veins that branch off the midrib. They bring water in and take sugar out.", "Nervios más finos que salen del central. Traen agua y sacan azúcar."), hint: L("Find the thinner lines that branch off the middle one.", "Busca las líneas más finas que salen de la del medio.") },
   { id: "base", name: L("Base", "Base"), x: 0.505, y: 0.695, info: L("Where the blade meets the stalk.", "Donde el limbo se une al tallo."), hint: L("It is the bottom of the flat part, where the veins start.", "Es la parte baja de lo plano, donde empiezan los nervios.") },
   { id: "petiole", name: L("Petiole", "Pecíolo"), x: 0.513, y: 0.865, info: L("The leaf stalk. It joins the leaf to the stem.", "El tallo de la hoja. Une la hoja con el tallo principal."), hint: L("The thin stalk below the flat part.", "El tallito delgado debajo de lo plano.") }
 ];
@@ -363,7 +363,7 @@ const simulation = {
   observation(host, api) {
     host.innerHTML = "";
     const intro = document.createElement("p"); intro.className = "q__hint";
-    intro.textContent = L("Five real photos from the lab bench. Tap each one to notice details for yourself, then label a real leaf.", "Cinco fotos reales del banco de laboratorio. Toca cada una para notar detalles por ti mismo y luego etiqueta una hoja real.");
+    intro.textContent = L("Here are five real photos. Tap each one and notice details. Then label a real leaf.", "Aquí hay cinco fotos reales. Toca cada una y fíjate en los detalles. Luego etiqueta una hoja real.");
     host.append(intro);
     const grid = document.createElement("div"); grid.className = "obs-grid";
     OBS_CARDS().forEach(card => {
@@ -390,7 +390,7 @@ const simulation = {
     const head = document.createElement("h3"); head.style.marginTop = "var(--sp-6,2rem)";
     head.textContent = L("Label a real leaf", "Etiqueta una hoja real"); host.append(head);
     const how = document.createElement("p"); how.className = "q__hint";
-    how.textContent = L("Tap a numbered circle on the leaf, then tap its name. Or pick the name first.", "Toca un círculo numerado de la hoja y luego su nombre. O elige primero el nombre."); host.append(how);
+    how.textContent = L("Tap a numbered circle on the leaf, then tap its name. Or tap the name first.", "Toca un círculo numerado de la hoja y luego su nombre. O toca primero el nombre."); host.append(how);
     const wrap = document.createElement("div"); wrap.className = "label-wrap";
     const frameBox = document.createElement("div");
     frameBox.innerHTML = `<div class="photo-frame"><img src="photos/leaf.jpg" alt="${L("A real linden leaf on a white background", "Una hoja real de tilo sobre fondo blanco")}"></div><div data-credit="leaf">${creditHTML("leaf")}</div>`;
@@ -456,19 +456,19 @@ const simulation = {
   orient(host, api) {
     host.innerHTML = "";
     const intro = document.createElement("p"); intro.className = "q__hint";
-    intro.textContent = L("A plant is a tiny town with two highways. Tap any part of the plant, or its card, to see what it does.", "Una planta es un pueblo diminuto con dos autopistas. Toca cualquier parte de la planta, o su tarjeta, para ver qué hace.");
+    intro.textContent = L("A plant is like a tiny town with two highways. Tap any part to see what it does.", "Una planta es como un pueblo diminuto con dos autopistas. Toca cualquier parte para ver qué hace.");
     host.append(intro);
     const grid = document.createElement("div"); grid.className = "anat-grid";
     const svgWrap = document.createElement("div"); svgWrap.innerHTML = mapSVG(); grid.append(svgWrap);
     const defs = document.createElement("div"); defs.className = "def-list";
     const DEF = [
-      ["light", L("Sunlight", "Luz solar"), "#d9a400", L("The energy that powers photosynthesis. Chloroplasts catch it.", "La energía que impulsa la fotosíntesis. Los cloroplastos la atrapan.")],
-      ["roots", L("Roots", "Raíces"), "#8a6a4f", L("Soak up water and minerals from the soil. Roots cannot make sugar, so they wait for deliveries.", "Absorben agua y minerales del suelo. Las raíces no fabrican azúcar, así que esperan entregas.")],
-      ["xylem", L("Xylem (the straw)", "Xilema (la pajilla)"), "#1f9fd6", L("Tubes that lift water and minerals UP from the roots. From the Greek xylon, wood.", "Tubos que suben agua y minerales desde las raíces. Del griego xylon, madera.")],
-      ["phloem", L("Phloem (the delivery truck)", "Floema (el camión de reparto)"), "#e8553a", L("Tubes that carry sugar food DOWN from the leaves to every part. From the Greek phloios, bark.", "Tubos que llevan el azúcar HACIA ABAJO desde las hojas a todas las partes. Del griego phloios, corteza.")],
-      ["leaf", L("Leaf, the sugar factory", "Hoja, la fábrica de azúcar"), "#2f7d2a", L("Light, water and carbon dioxide arrive. Sugar and oxygen leave.", "Llegan luz, agua y dióxido de carbono. Salen azúcar y oxígeno.")],
-      ["stoma", L("Stomata, the leaf doors", "Estomas, las puertas de la hoja"), "#3f7a34", L("Tiny holes with two guard cells. Carbon dioxide comes in. Oxygen and water vapour go out.", "Pequeños agujeros con dos células guardianas. Entra dióxido de carbono. Salen oxígeno y vapor de agua.")],
-      ["chloroplast", L("Chloroplast, the solar panel", "Cloroplasto, el panel solar"), "#1E8C60", L("Tiny green parts inside leaf cells. They catch light to make glucose.", "Pequeñas partes verdes dentro de las células de la hoja. Atrapan luz para fabricar glucosa.")]
+      ["light", L("Sunlight", "Luz solar"), "#d9a400", L("The energy plants use to make sugar. Chloroplasts catch it.", "La energía que usan las plantas para fabricar azúcar. Los cloroplastos la atrapan.")],
+      ["roots", L("Roots", "Raíces"), "#8a6a4f", L("Roots soak up water from the soil. They cannot make sugar, so they wait for deliveries.", "Las raíces absorben agua del suelo. No fabrican azúcar, así que esperan entregas.")],
+      ["xylem", L("Xylem (the straw)", "Xilema (la pajilla)"), "#1f9fd6", L("Tubes that lift water UP from the roots. Like a straw! (Greek xylon means wood.)", "Tubos que suben el agua desde las raíces. ¡Como una pajilla! (Del griego xylon, madera.)")],
+      ["phloem", L("Phloem (the delivery truck)", "Floema (el camión de reparto)"), "#e8553a", L("Tubes that carry sugar DOWN from the leaves. Like a delivery truck! (Greek phloios means bark.)", "Tubos que bajan el azúcar desde las hojas. ¡Como un camión de reparto! (Del griego phloios, corteza.)")],
+      ["leaf", L("Leaf, the sugar factory", "Hoja, la fábrica de azúcar"), "#2f7d2a", L("Light, water and carbon dioxide go in. Sugar and oxygen come out.", "Entran luz, agua y dióxido de carbono. Salen azúcar y oxígeno.")],
+      ["stoma", L("Stomata, the leaf doors", "Estomas, las puertas de la hoja"), "#3f7a34", L("Tiny doors in the leaf. Carbon dioxide goes in. Oxygen and water vapour go out.", "Puertas diminutas en la hoja. Entra dióxido de carbono. Salen oxígeno y vapor de agua.")],
+      ["chloroplast", L("Chloroplast, the solar panel", "Cloroplasto, el panel solar"), "#1E8C60", L("Tiny green parts inside leaf cells. They catch light to make sugar.", "Partes verdes diminutas dentro de las células de la hoja. Atrapan luz para fabricar azúcar.")]
     ];
     const nodes = {};
     DEF.forEach(([id, term, color, body]) => {
@@ -546,7 +546,7 @@ const simulation = {
     let hypothesisLocked = false;
     const hypoCard = document.createElement("div"); hypoCard.className = "card"; hypoCard.style.borderLeft = "3px solid var(--signal)";
     hypoCard.innerHTML = `<p class="eyebrow">${L("Before you begin: your hypothesis", "Antes de empezar: tu hipótesis")}</p>
-      <p class="q__hint" style="margin-bottom:var(--sp-2)">${L("A hypothesis is an educated guess. Choose the three parts of your If, then, because sentence, then lock it in.", "Una hipótesis es una suposición informada. Elige las tres partes de tu frase Si, entonces, porque, y luego fíjala.")}</p>`;
+      <p class="q__hint" style="margin-bottom:var(--sp-2)">${L("A hypothesis is a smart guess. Pick the three parts of your If, then, because sentence. Then lock it in.", "Una hipótesis es una suposición inteligente. Elige las tres partes de tu frase Si, entonces, porque. Luego fíjala.")}</p>`;
     const mkSelect = (label, opts) => {
       const wr = document.createElement("label"); wr.style.display = "block"; wr.style.marginBottom = "var(--sp-2)";
       wr.innerHTML = `<span class="ctrl__name" style="display:block;margin-bottom:.2em">${label}</span>`;
@@ -577,12 +577,12 @@ const simulation = {
 
     /* the three control-room dials */
     const light = slider(L("1 · Sun", "1 · Sol"), "%", 0, 100, 5, 100, [[L("Dark 0", "Oscuro 0"), 0], [L("Dim 10", "Tenue 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Full 100", "Pleno 100"), 100]], () => scene && scene.setEnv(), "ctrl--sun");
-    const water = slider(L("2 · Water supply (xylem)", "2 · Suministro de agua (xilema)"), "%", 0, 100, 5, 100, [[L("Dry 0", "Seco 0"), 0], [L("Low 10", "Bajo 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Full 100", "Pleno 100"), 100]], () => scene && scene.setEnv(), "ctrl--water");
-    const stoma = slider(L("3 · Stomata open", "3 · Estomas abiertos"), "%", 0, 100, 5, 100, [[L("Shut 0", "Cerrados 0"), 0], [L("Slit 10", "Rendija 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Wide 100", "Abiertos 100"), 100]], () => scene && scene.setEnv(), "ctrl--stoma");
+    const water = slider(L("2 · Water (xylem)", "2 · Agua (xilema)"), "%", 0, 100, 5, 100, [[L("Dry 0", "Seco 0"), 0], [L("Low 10", "Bajo 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Full 100", "Pleno 100"), 100]], () => scene && scene.setEnv(), "ctrl--water");
+    const stoma = slider(L("3 · Stomata open (leaf doors)", "3 · Estomas abiertos (puertas de la hoja)"), "%", 0, 100, 5, 100, [[L("Shut 0", "Cerrados 0"), 0], [L("Slit 10", "Rendija 10"), 10], [L("Half 50", "Mitad 50"), 50], [L("Wide 100", "Abiertos 100"), 100]], () => scene && scene.setEnv(), "ctrl--stoma");
     side.append(light.node, water.node, stoma.node);
     const runWrap = document.createElement("div"); runWrap.className = "incubate";
     const runBtn = document.createElement("button"); runBtn.className = "btn btn--lg btn--signal"; runBtn.type = "button"; runBtn.textContent = L("▶  Run the day", "▶  Hacer funcionar el día"); runBtn.disabled = true;
-    const runGate = document.createElement("p"); runGate.className = "q__hint"; runGate.style.marginTop = "var(--sp-2)"; runGate.textContent = L("Lock in your hypothesis above before your first day.", "Fija tu hipótesis arriba antes de tu primer día.");
+    const runGate = document.createElement("p"); runGate.className = "q__hint"; runGate.style.marginTop = "var(--sp-2)"; runGate.textContent = L("Lock in your hypothesis first.", "Primero fija tu hipótesis.");
     runWrap.append(runBtn, runGate); side.append(runWrap);
     function updateRunGate() { if (hypothesisLocked) { runBtn.disabled = running; runGate.hidden = true; } }
     if (sim.state.hypo) {
@@ -594,7 +594,7 @@ const simulation = {
     /* sugar bank and dispatch (the phloem delivery moment) */
     const bankBox = document.createElement("div"); bankBox.className = "bank";
     bankBox.innerHTML = `<div class="bank__row"><span class="ctrl__name">${L("Sugar bank", "Banco de azúcar")}</span><span class="bank__sugar" id="bank-n">0</span></div>
-      <p class="q__hint" style="margin:.2em 0 var(--sp-2)">${L("Roots cannot make sugar. Choose where the phloem trucks go.", "Las raíces no fabrican azúcar. Elige a dónde van los camiones del floema.")}</p>
+      <p class="q__hint" style="margin:.2em 0 var(--sp-2)">${L("Roots cannot make sugar. Choose where the sugar trucks go.", "Las raíces no fabrican azúcar. Elige a dónde van los camiones de azúcar.")}</p>
       <div class="ctrl__top"><span class="ctrl__name">${L("Send to roots", "Enviar a las raíces")}</span><span class="ctrl__name" id="split-v"></span></div>
       <input type="range" id="split" min="0" max="100" step="10" value="50" style="width:100%;accent-color:var(--sugar)" aria-label="${L("Share of sugar sent to the roots", "Parte del azúcar enviada a las raíces")}">
       <div class="ctrl__top" style="margin-top:var(--sp-2)"><span class="ctrl__name">${L("Roots", "Raíces")}</span></div><div class="meter meter--root"><i id="m-root"></i></div>
@@ -606,7 +606,7 @@ const simulation = {
     const reflBox = document.createElement("div"); reflBox.className = "card"; reflBox.hidden = true; reflBox.style.borderLeft = "3px solid var(--positive)";
     const rOpts = smCfg.reflection || {};
     reflBox.innerHTML = `<p class="eyebrow">${L("Lab reflection", "Reflexión de laboratorio")}</p>
-      <p class="q__hint" style="margin-bottom:var(--sp-2)">${L("You have run several days. Before you move on to Explain, reflect on your own investigation.", "Has hecho varios días. Antes de pasar a Explicar, reflexiona sobre tu propia investigación.")}</p>
+      <p class="q__hint" style="margin-bottom:var(--sp-2)">${L("You have run a few days. Before you go on, think about your investigation.", "Ya hiciste unos días. Antes de seguir, piensa en tu investigación.")}</p>
       <p class="ctrl__name" style="margin-bottom:.3em">${L("How confident are you in your conclusion?", "¿Qué tan seguro estás de tu conclusión?")}</p>`;
     const confRow = document.createElement("div"); confRow.className = "cluster"; confRow.style.marginBottom = "var(--sp-3)";
     let confVal = null, improveVal = null, nextVal = null; const confBtns = [];
@@ -651,7 +651,7 @@ const simulation = {
       const bestLine = game.arcadeBest ? L(" Your best score so far: " + game.arcadeBest + ".", " Tu mejor puntaje hasta ahora: " + game.arcadeBest + ".") : "";
       renderArcadeLaunch(launchWrap, {
         strings: { title: L("Bonus round: Highway Dash", "Ronda extra: Carrera por la Autopista"),
-          instructions: L("Drive a sugar truck up the stem. Steer into the gate with the right answer. About two minutes.", "Conduce un camión de azúcar por el tallo. Entra en la puerta con la respuesta correcta. Unos dos minutos.") + bestLine,
+          instructions: L("Drive a sugar truck up the stem. Steer into the gate with the right answer. It takes about two minutes.", "Conduce un camión de azúcar por el tallo. Entra en la puerta con la respuesta correcta. Dura unos dos minutos.") + bestLine,
           play: L("Play Highway Dash", "Jugar Carrera por la Autopista"), skip: L("Skip bonus round", "Saltar ronda extra") },
         onPlay() {
           launchWrap.remove();
@@ -791,7 +791,7 @@ function dashStrings() {
     timeLeft: L("Time left", "Tiempo restante"), finishTitle: L("Delivery complete!", "¡Entrega completa!"), accuracy: L("Accuracy", "Acierto"), playAgain: L("Play again", "Jugar otra vez"),
     continueLabel: L("Continue", "Continuar"), revisit: L("Worth another look", "Vale la pena repasar"), soundOn: L("Sound on", "Sonido activado"), soundOff: L("Sound off", "Sonido desactivado"),
     credits: L("Photo credits", "Créditos de las fotos"),
-    hint: L("Steer your sugar truck into a lane with the arrow keys, keys 1 to 3, or the lane buttons. The lane you are in when the gates arrive is your answer. A wrong gate never ends the run.", "Dirige tu camión de azúcar a un carril con las flechas, las teclas 1 a 3 o los botones de carril. El carril en el que estás cuando llegan las puertas es tu respuesta. Una puerta incorrecta nunca termina la partida."),
+    hint: L("Move your truck into a lane with the arrow keys, the keys 1 to 3, or the buttons. The lane you are in when the gates arrive is your answer. A wrong answer never ends the game.", "Mueve tu camión a un carril con las flechas, las teclas 1 a 3 o los botones. El carril en el que estás cuando llegan las puertas es tu respuesta. Una respuesta incorrecta nunca termina el juego."),
     right: L("Correct!", "¡Correcto!"), wrong: L("Not quite.", "Casi."), rightAnswer: L("The answer is", "La respuesta es"), lane: L("Lane", "Carril"), waiting: L("Get ready, the first question is coming up…", "Prepárate, viene la primera pregunta…")
   };
 }
@@ -802,16 +802,16 @@ function DASH_QUESTIONS() {
     q("p1", "Which tubes carry SUGAR down to the roots?", "¿Qué tubos llevan el AZÚCAR hacia las raíces?", [["Phloem", "Floema"], ["Xylem", "Xilema"], ["Midrib", "Nervio central"]], 0, "Phloem is the delivery truck.", "El floema es el camión de reparto."),
     q("s1", "Where does carbon dioxide ENTER a leaf?", "¿Por dónde ENTRA el dióxido de carbono a una hoja?", [["Stomata", "Estomas"], ["Petiole", "Pecíolo"], ["Roots", "Raíces"]], 0, "Stomata are the leaf doors.", "Los estomas son las puertas de la hoja.", "stomata", "A magnified leaf surface with many tiny slits", "La superficie de una hoja aumentada con muchas rendijas"),
     q("c1", "What do chloroplasts catch?", "¿Qué atrapan los cloroplastos?", [["Light", "Luz"], ["Water", "Agua"], ["Oxygen", "Oxígeno"]], 0, "Chloroplasts are the solar panels.", "Los cloroplastos son los paneles solares."),
-    q("o1", "Which gas does a leaf RELEASE during photosynthesis?", "¿Qué gas LIBERA una hoja durante la fotosíntesis?", [["Oxygen", "Oxígeno"], ["Carbon dioxide", "Dióxido de carbono"], ["Nitrogen", "Nitrógeno"]], 0, "6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂", "6CO₂ + 6H₂O + luz → C₆H₁₂O₆ + 6O₂"),
+    q("o1", "Which gas does a leaf let out when it makes sugar?", "¿Qué gas deja salir una hoja cuando fabrica azúcar?", [["Oxygen", "Oxígeno"], ["Carbon dioxide", "Dióxido de carbono"], ["Nitrogen", "Nitrógeno"]], 0, "Sugar and oxygen come out.", "Salen azúcar y oxígeno."),
     q("g1", "What is the sugar a plant makes called?", "¿Cómo se llama el azúcar que fabrica una planta?", [["Glucose", "Glucosa"], ["Chlorophyll", "Clorofila"], ["Minerals", "Minerales"]], 0, "Glucose is C₆H₁₂O₆.", "La glucosa es C₆H₁₂O₆."),
     q("r1", "A ring of bark is cut off a trunk. Which tubes are blocked?", "Se corta un anillo de corteza de un tronco. ¿Qué tubos se bloquean?", [["Phloem", "Floema"], ["Xylem", "Xilema"], ["Stomata", "Estomas"]], 0, "Phloem lives in the bark, so sugar cannot get past.", "El floema vive en la corteza, así que el azúcar no puede pasar.", "girdle", "A tree trunk with a ring of bark cut away", "Un tronco de árbol con un anillo de corteza cortado"),
     q("m1", "What is the thick middle vein of a leaf called?", "¿Cómo se llama el nervio grueso del medio de una hoja?", [["Midrib", "Nervio central"], ["Apex", "Ápice"], ["Margin", "Margen"]], 0, "The midrib holds xylem and phloem.", "El nervio central guarda xilema y floema.", "leaf", "A real leaf with a thick middle vein", "Una hoja real con un nervio grueso en el medio"),
     q("d1", "A plant sits in a dark cupboard. What is missing for photosynthesis?", "Una planta está en un armario oscuro. ¿Qué le falta para la fotosíntesis?", [["Light", "Luz"], ["Soil", "Tierra"], ["Sugar", "Azúcar"]], 0, "No light, no energy, no sugar.", "Sin luz no hay energía y no hay azúcar."),
-    q("w1", "Why do guard cells close the stomata on a hot, dry day?", "¿Por qué las células guardianas cierran los estomas en un día caluroso y seco?", [["To save water", "Para ahorrar agua"], ["To catch more light", "Para atrapar más luz"], ["To make more sugar", "Para fabricar más azúcar"]], 0, "Closed doors save water but block carbon dioxide.", "Las puertas cerradas ahorran agua pero bloquean el dióxido de carbono.", "stomata", "A magnified leaf surface with many tiny slits", "La superficie de una hoja aumentada con muchas rendijas"),
+    q("w1", "Why does a plant shut its stomata on a hot, dry day?", "¿Por qué una planta cierra sus estomas en un día caluroso y seco?", [["To save water", "Para ahorrar agua"], ["To catch more light", "Para atrapar más luz"], ["To make more sugar", "Para fabricar más azúcar"]], 0, "Shut doors save water but keep carbon dioxide out.", "Las puertas cerradas ahorran agua pero dejan fuera el dióxido de carbono.", "stomata", "A magnified leaf surface with many tiny slits", "La superficie de una hoja aumentada con muchas rendijas"),
     q("r2", "Where do roots get the sugar they need?", "¿De dónde sacan las raíces el azúcar que necesitan?", [["Delivered by the phloem", "Lo entrega el floema"], ["They make it themselves", "Lo fabrican ellas mismas"], ["From the soil", "Del suelo"]], 0, "Roots have no chloroplasts and sit in the dark.", "Las raíces no tienen cloroplastos y están en la oscuridad."),
-    q("n1", "How many carbon dioxide molecules make ONE glucose?", "¿Cuántas moléculas de dióxido de carbono hacen UNA glucosa?", [["6", "6"], ["1", "1"], ["12", "12"]], 0, "Glucose has 6 carbon atoms, so it needs 6 CO₂.", "La glucosa tiene 6 átomos de carbono, así que necesita 6 CO₂."),
+    q("n1", "In 6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂, how many CO₂ go in?", "En 6CO₂ + 6H₂O + luz → C₆H₁₂O₆ + 6O₂, ¿cuántos CO₂ entran?", [["6", "6"], ["1", "1"], ["12", "12"]], 0, "Read the number in front of CO₂.", "Lee el número delante de CO₂."),
     q("p2", "Which part is the stalk that joins a leaf to the stem?", "¿Qué parte es el tallito que une una hoja al tallo?", [["Petiole", "Pecíolo"], ["Apex", "Ápice"], ["Blade", "Limbo"]], 0, "Petiole means leaf stalk.", "Pecíolo significa tallo de la hoja.", "leaf", "A real leaf with a long stalk", "Una hoja real con un tallito largo"),
-    q("x2", "Besides water, what else does xylem carry up?", "Además de agua, ¿qué más sube el xilema?", [["Dissolved minerals", "Minerales disueltos"], ["Sugar", "Azúcar"], ["Oxygen", "Oxígeno"]], 0, "Roots take in minerals with the water.", "Las raíces absorben minerales junto con el agua.")
+    q("x2", "What do roots take in from the soil?", "¿Qué absorben las raíces del suelo?", [["Water", "Agua"], ["Sugar", "Azúcar"], ["Light", "Luz"]], 0, "Roots drink water, and the xylem lifts it.", "Las raíces beben agua y el xilema la sube."),
   ];
 }
 
