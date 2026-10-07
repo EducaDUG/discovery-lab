@@ -51,7 +51,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../engine/engine.js?v=19";
 import { getLang } from "../../../../../engine/i18n.js?v=9";
-import { mountArcadeRush, renderArcadeLaunch } from "../../../../../engine/arcade.js?v=3";
+import { renderArcadeLaunch } from "../../../../../engine/arcade.js?v=3";
+import { mountBenchmarkCatch } from "./catch.js?v=1";
 
 const THREE_URL = "../../../../../engine/vendor/three.min.js";
 const L = (en, es) => (getLang() === "es" ? es : en);
@@ -375,7 +376,7 @@ function drawInvestigate(host, sim) {
 
   host.append(wrap);
 
-  /* ---------- Bonus round: Benchmark Blitz (arcade genre) ----------
+  /* ---------- Bonus round: Benchmark Catch (timing-catch mechanic, local catch.js; replaced the arcade tunnel-rush that rendered blank) ----------
      This course's second bonus round — the first (sim-fraction-bakery)
      used the realistic-3D quest genre, so this one alternates back to
      the fast arcade tunnel-rush genre (CLAUDE.md §4's genre-alternation
@@ -387,44 +388,33 @@ function drawInvestigate(host, sim) {
   arcadeSection.style.marginTop = "var(--sp-5)";
   host.append(arcadeSection);
 
-  const BLITZ_ITEMS = [
-    { id: "b1", num: 1, den: 10, laneId: "z0" }, { id: "b2", num: 1, den: 8, laneId: "z0" },
-    { id: "b3", num: 2, den: 9, laneId: "z0" },
-    { id: "b4", num: 4, den: 9, laneId: "z05" }, { id: "b5", num: 5, den: 9, laneId: "z05" },
-    { id: "b6", num: 3, den: 7, laneId: "z05" },
-    { id: "b7", num: 7, den: 8, laneId: "z1" }, { id: "b8", num: 8, den: 9, laneId: "z1" },
-    { id: "b9", num: 9, den: 10, laneId: "z1" },
-  ].map(it => ({ id: it.id, label: `${it.num}/${it.den}`, laneId: it.laneId, img: barIconDataURI(it.num, it.den, "#3a6ea5") }));
-  const BLITZ_LANES = [
-    { id: "z0", label: "0", color: "#a24f7a" },
-    { id: "z05", label: "1/2", color: "#3f8f6b" },
-    { id: "z1", label: "1", color: "#e0b64c" },
-  ];
+  const NEAR = { z0: "0", z05: "1/2", z1: "1" };
+  const HOOKS = { z0: L("The top number is tiny next to the bottom, so it sits near 0.", "El numerador es muy pequeño junto al denominador, así que está cerca de 0."), z05: L("The top is about half the bottom, so it sits near 1/2.", "El numerador es casi la mitad del denominador, así que está cerca de 1/2."), z1: L("The top is almost the whole bottom, so it sits near 1.", "El numerador casi iguala al denominador, así que está cerca de 1.") };
+  const BLITZ_ITEMS = [[1,10,"z0"],[1,8,"z0"],[2,9,"z0"],[4,9,"z05"],[5,9,"z05"],[3,7,"z05"],[4,8,"z05"],[7,8,"z1"],[8,9,"z1"],[9,10,"z1"],[5,6,"z1"],[1,6,"z0"]]
+    .map(([num, den, z], i) => ({ id: "b" + i, num, den, label: `${num}/${den}`, near: NEAR[z], hook: HOOKS[z], img: barIconDataURI(num, den, "#3a6ea5") }));
 
   function paintArcade() {
     arcadeSection.innerHTML = "";
     renderArcadeLaunch(arcadeSection, {
       strings: {
-        title: L("Bonus round — Benchmark Blitz", "Ronda bonus — Ráfaga de referencia"),
-        instructions: L("Fractions fly at you — tap the benchmark it's closest to before it reaches the ring.", "Las fracciones vuelan hacia ti — toca la fracción de referencia más cercana antes de que llegue al aro."),
-        play: L("Play Benchmark Blitz", "Jugar Ráfaga de referencia"),
+        title: L("Bonus round — Benchmark Catch", "Ronda bonus — Atrapa la referencia"),
+        instructions: L("Time your catch as a glowing ball sweeps the number line to where each fraction sits.", "Atrapa la bola brillante justo donde está cada fracción en la recta numérica."),
+        play: L("Play Benchmark Catch", "Jugar Atrapa la referencia"),
         skip: L("Skip bonus round", "Saltar ronda bonus"),
       },
       onPlay() {
         arcadeSection.innerHTML = "";
         const gameHost = document.createElement("div");
         arcadeSection.append(gameHost);
-        mountArcadeRush(gameHost, {
-          threeUrl: THREE_URL,
-          rounds: 24,
-          lanes: BLITZ_LANES,
+        mountBenchmarkCatch(gameHost, {
           items: BLITZ_ITEMS,
+          durationMs: 120000,
           strings: {
-            title: L("Benchmark Blitz", "Ráfaga de referencia"),
-            instructions: L("Tap the benchmark (0, 1/2 or 1) the flying fraction is closest to. A late or wrong answer just resets your streak — never a fail.", "Toca la fracción de referencia (0, 1/2 o 1) más cercana a la fracción que vuela. Una respuesta tardía o incorrecta solo reinicia tu racha — nunca es un fallo."),
-            score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
-            progress: L("Fraction", "Fracción"), correct: L("Correct!", "¡Correcto!"), wrong: L("Not quite.", "No exactamente."),
-            missed: L("Missed it.", "Se te escapó."), finishTitle: L("Round complete!", "¡Ronda completa!"),
+            title: L("Benchmark Catch", "Atrapa la referencia"),
+            instructions: L("The glowing ball sweeps along the number line. Press CATCH when it is over where the fraction sits. No lives, just points!", "La bola brillante recorre la recta numérica. Pulsa ATRAPAR cuando esté sobre donde está la fracción. ¡Sin vidas, solo puntos!"),
+            time: L("Time", "Tiempo"), score: L("Score", "Puntos"), streak: L("Streak", "Racha"), best: L("Best streak", "Mejor racha"),
+            catchLabel: L("CATCH! (Space)", "¡ATRAPAR! (Espacio)"), missed: L("Time ran out.", "Se acabó el tiempo."), off: L("Not quite.", "No exactamente."),
+            sitsNear: L("sits near", "está cerca de"), finishTitle: L("Round complete!", "¡Ronda completa!"),
             accuracy: L("Accuracy", "Precisión"), playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
           },
           onExit(stats) {
