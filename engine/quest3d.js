@@ -75,6 +75,24 @@ function webglAvailable() {
   catch (e) { return false; }
 }
 
+
+/* Rasterise any image (incl. SVG data-URIs that have no intrinsic width/height, which
+   WebGL uploads as black) onto a canvas texture. Shared fix for blank/black item cards. */
+function imgTexture(THREE, url, aspect) {
+  const W = 320, H = Math.round(W / aspect), c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+  const tex = new THREE.CanvasTexture(c);
+  if ("encoding" in tex) tex.encoding = THREE.sRGBEncoding; if ("colorSpace" in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+  const im = new Image(); im.crossOrigin = "anonymous";
+  im.onload = () => {
+    const nw = im.naturalWidth || 72, nh = im.naturalHeight || 30, svg = /^data:image\/svg/.test(url);
+    const k = svg ? Math.min((W - 24) / nw, (H - 24) / nh) : Math.max(W / nw, H / nh);
+    x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+    x.drawImage(im, (W - nw * k) / 2, (H - nh * k) / 2, nw * k, nh * k); tex.needsUpdate = true;
+  };
+  im.src = url; return tex;
+}
+
 let threePromise = null;
 function loadThree(url) {
   if (window.THREE) return Promise.resolve(window.THREE);
@@ -493,8 +511,7 @@ function build3DBackend(THREE, stageEl, groups, placed, getInput, handleContact,
     const cardGeo = new THREE.BoxGeometry(1.3, 1.0, 0.08);
     let mat;
     if (it.img) {
-      const tex = loader.load(it.img);
-      if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+      const tex = imgTexture(THREE, it.img, 1.3);
       mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55, metalness: 0.05 });
     } else {
       mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(group.color || "#7bffb0"), roughness: 0.5 });

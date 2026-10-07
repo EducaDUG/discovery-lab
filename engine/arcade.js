@@ -35,6 +35,23 @@
 
 import { ttsEnabled, setTTS } from "./accessibility.js?v=6";
 
+/* Rasterise any image (incl. SVG data-URIs that have no intrinsic width/height, which
+   WebGL uploads as black) onto a canvas texture. Shared fix for blank/black item cards. */
+function imgTexture(THREE, url, aspect) {
+  const W = 320, H = Math.round(W / aspect), c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+  const tex = new THREE.CanvasTexture(c);
+  if ("encoding" in tex) tex.encoding = THREE.sRGBEncoding; if ("colorSpace" in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+  const im = new Image(); im.crossOrigin = "anonymous";
+  im.onload = () => {
+    const nw = im.naturalWidth || 72, nh = im.naturalHeight || 30, svg = /^data:image\/svg/.test(url);
+    const k = svg ? Math.min((W - 24) / nw, (H - 24) / nh) : Math.max(W / nw, H / nh);
+    x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+    x.drawImage(im, (W - nw * k) / 2, (H - nh * k) / 2, nw * k, nh * k); tex.needsUpdate = true;
+  };
+  im.src = url; return tex;
+}
+
 export const DEFAULT_STRINGS = {
   title: "Bonus round",
   instructions: "Tap the correct answer before each specimen reaches the ring.",
@@ -415,7 +432,7 @@ function build3DBackend(THREE, stageEl, lanes) {
     const geo = new THREE.PlaneGeometry(1.5, 1.1);
     let mat;
     if (item.img) {
-      const tex = new THREE.TextureLoader().load(item.img);
+      const tex = imgTexture(THREE, item.img, 1.5 / 1.1);
       mat = new THREE.MeshStandardMaterial({ map: tex, emissive: 0x111111, side: THREE.DoubleSide });
     } else {
       mat = new THREE.MeshStandardMaterial({ color: 0x7bffb0, emissive: 0x1a5c3f, side: THREE.DoubleSide });
