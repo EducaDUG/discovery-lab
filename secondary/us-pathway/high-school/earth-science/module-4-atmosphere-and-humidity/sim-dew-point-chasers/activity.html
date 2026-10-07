@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<!-- Earth Science · Module 4: The Atmosphere and Humidity · Dew Point Chasers. Content lives here + config.json + marking.json only. -->
+<html lang="en" data-theme="earth" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dew Point Chasers — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Dew Point Chasers — scoped "storm-chaser dashboard" skin: vivid, high-energy, local to this activity. */
+  .dc-board { display:grid; gap:.7rem; background:linear-gradient(120deg,#062a4a 0%,#0b5d9e 55%,#18a6c9 100%); color:#fff; border-radius:16px; padding:.9rem 1.1rem; }
+  .dc-board__top { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; }
+  .dc-rank { font:800 1.25rem var(--font-display,inherit); background:linear-gradient(90deg,#ffe36e,#ff9d4d); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .dc-pill { border-radius:999px; padding:.22rem .75rem; font:700 .78rem var(--font-data); background:#ffffff26; border:1px solid #ffffff55; color:#fff; }
+  .dc-pill--xp { background:#ffd23f; color:#2a1c00; border-color:#ffd23f; }
+  .dc-tasks { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.5rem; }
+  .dc-task { display:flex; gap:.5rem; align-items:flex-start; background:#00000033; border:1px solid #ffffff33; border-radius:10px; padding:.45rem .6rem; font-size:.85rem; }
+  .dc-task i { flex:none; width:1.35rem; height:1.35rem; border-radius:50%; border:2px solid #ffffffaa; display:grid; place-items:center; font-style:normal; font-weight:800; font-size:.8rem; }
+  .dc-task[data-done="true"] { background:#1b8f4a66; border-color:#7dff9a; }
+  .dc-task[data-done="true"] i { background:#7dff9a; border-color:#7dff9a; color:#06311a; }
+  .dc-station { margin-top:var(--sp-4); }
+  .dc-station__tag { display:inline-block; font:800 .72rem var(--font-data); letter-spacing:.06em; text-transform:uppercase; background:var(--signal); color:#101820; border-radius:6px; padding:.15rem .5rem; margin-right:.4rem; }
+  .dc-stage { position:relative; border-radius:14px; overflow:hidden; background:radial-gradient(120% 140% at 30% 10%,#0d4660,#07202b 70%); border:1px solid #1e5a76; aspect-ratio:16/9; min-height:320px; margin-top:.5rem; }
+  .dc-stage canvas { display:block; width:100%; height:100%; cursor:grab; }
+  .dc-stage canvas:active { cursor:grabbing; }
+  .dc-hud { position:absolute; inset:0; pointer-events:none; padding:10px 12px; display:flex; justify-content:space-between; align-items:flex-start; font-family:var(--font-data); color:#eaf8ff; }
+  .dc-hud__box { background:#041a24cc; border:1px solid #3fb6df88; border-radius:10px; padding:.45rem .7rem; font-size:.82rem; line-height:1.55; }
+  .dc-hud__box b { color:#ffe36e; font-size:1.05rem; }
+  .dc-badge { align-self:flex-start; padding:.35rem .8rem; border-radius:999px; font:800 .8rem var(--font-data); letter-spacing:.05em; text-transform:uppercase; border:2px solid; background:#041a24dd; }
+  .dc-badge[data-s="clear"] { color:#7dffd0; border-color:#7dffd0; }
+  .dc-badge[data-s="near"] { color:#ffe36e; border-color:#ffe36e; }
+  .dc-badge[data-s="fog"] { color:#fff; border-color:#fff; background:#5f8fa8dd; }
+  .dc-hint { position:absolute; left:12px; bottom:8px; font:.72rem var(--font-data); color:#bfe8f7; background:#041a2488; padding:.15rem .5rem; border-radius:6px; pointer-events:none; }
+  .dc-controls { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-top:.7rem; }
+  .dc-btn { border:2px solid var(--line); background:var(--surface); color:var(--ink-1); border-radius:12px; padding:.5rem .9rem; font:700 .9rem var(--font-data); cursor:pointer; transition:transform .12s; }
+  .dc-btn:hover { transform:translateY(-1px); border-color:var(--accent); }
+  .dc-btn:active { transform:scale(.96); }
+  .dc-btn:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  .dc-btn--heat { background:#ff7a3d; border-color:#ff7a3d; color:#201000; }
+  .dc-btn--cold { background:#6fe0ff; border-color:#6fe0ff; color:#021a24; }
+  .dc-btn--moist { background:#3b82f6; border-color:#3b82f6; color:#fff; }
+  .dc-btn--dry { background:#e9d8a6; border-color:#e9d8a6; color:#2a2210; }
+  .dc-btn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+  .dc-slider { display:flex; align-items:center; gap:.7rem; flex:1 1 280px; min-width:240px; }
+  .dc-slider input { flex:1; accent-color:var(--accent); }
+  .dc-slider output { font:800 1.05rem var(--font-data); min-width:5.2ch; text-align:right; }
+  .dc-grid { display:grid; gap:var(--sp-4); grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); margin-top:var(--sp-4); }
+  .dc-read { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.5rem; }
+  .dc-read__c { background:var(--accent-wash); border-radius:10px; padding:.45rem .6rem; }
+  .dc-read__c span { display:block; font-size:.72rem; color:var(--ink-2); }
+  .dc-read__c b { font:800 1.15rem var(--font-data); color:var(--accent); }
+  .dc-read__c small { display:block; font-size:.7rem; color:var(--ink-3); line-height:1.25; }
+  .dc-chart { width:100%; height:auto; border-radius:10px; background:#08222e; border:1px solid #1e5a76; }
+  .dc-calc { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.6rem; }
+  .dc-calc input[type=number] { width:6.5rem; padding:.45rem .5rem; border-radius:8px; border:2px solid var(--line); font:700 1rem var(--font-data); background:var(--surface); color:var(--ink-1); }
+  .dc-fb { margin-top:.5rem; padding:.5rem .75rem; border-radius:8px; font-size:.88rem; display:none; }
+  .dc-fb[data-show="true"] { display:block; }
+  .dc-fb[data-k="good"] { background:#d9f7e4; color:#06311a; border:1px solid #7dd9a1; }
+  .dc-fb[data-k="warn"] { background:#fff1cc; color:#3a2a00; border:1px solid #f0c15a; }
+  .dc-fb[data-k="info"] { background:var(--accent-wash); color:var(--ink-1); }
+  .dc-table { display:grid; grid-template-columns:repeat(auto-fill,minmax(66px,1fr)); gap:3px; font:.72rem var(--font-data); margin-top:.5rem; }
+  .dc-table span { background:var(--surface-2,#eef); padding:.15rem .3rem; border-radius:4px; text-align:center; }
+  .dc-table b { color:var(--accent); }
+  .dc-mirror { width:100%; height:auto; border-radius:12px; background:#0a2230; display:block; }
+  .dc-forecast { position:relative; }
+  .dc-fview { position:relative; border-radius:12px; overflow:hidden; aspect-ratio:16/6; background:#bcd7e8 center/cover no-repeat; border:1px solid var(--line); }
+  .dc-fview__fog { position:absolute; inset:0; background:linear-gradient(0deg,#fff 0%,#f2f7fa 45%,#ffffff00 100%); opacity:0; transition:opacity 1.6s ease; }
+  .dc-fview__tag { position:absolute; left:8px; top:8px; background:#041a24cc; color:#fff; border-radius:8px; font:700 .75rem var(--font-data); padding:.2rem .55rem; }
+  .dc-cups { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin:.4rem 0; }
+  .dc-cup { text-align:center; font:.75rem var(--font-data); color:var(--ink-2); }
+  .dc-pills { display:flex; flex-wrap:wrap; gap:.4rem; margin:.5rem 0; }
+  .dc-pills span { background:var(--accent-wash); color:var(--accent); border-radius:999px; padding:.2rem .65rem; font:700 .8rem var(--font-data); }
+  .dc-opts { display:grid; gap:.45rem; margin-top:.4rem; }
+  .dc-opt { text-align:left; border:2px solid var(--line); background:var(--surface); color:var(--ink-1); border-radius:10px; padding:.55rem .8rem; font:inherit; cursor:pointer; }
+  .dc-opt:hover { border-color:var(--accent); }
+  .dc-opt:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  .dc-opt[data-r="right"] { background:#d9f7e4; border-color:#2fa862; color:#06311a; }
+  .dc-opt[data-r="wrong"] { background:#ffe3df; border-color:#e0563f; color:#4a0f06; animation:dc-shake .35s; }
+  .dc-opt:disabled { cursor:default; }
+  .dc-dots { display:flex; gap:.35rem; margin:.3rem 0 .1rem; }
+  .dc-dots i { width:.7rem; height:.7rem; border-radius:50%; background:var(--line); }
+  .dc-dots i[data-s="right"] { background:#2fa862; } .dc-dots i[data-s="wrong"] { background:#e0563f; } .dc-dots i[data-s="now"] { background:var(--accent); }
+  .dc-done { margin-top:var(--sp-4); border-radius:16px; padding:1.1rem 1.3rem; background:linear-gradient(120deg,#0b5d9e,#18a6c9 60%,#7dffd0); color:#02202c; }
+  .dc-done h3 { margin:.1rem 0 .3rem; font-size:1.5rem; }
+  .dc-done__stats { display:flex; gap:.8rem; flex-wrap:wrap; margin-top:.6rem; }
+  .dc-done__stats div { background:#ffffffcc; border-radius:12px; padding:.45rem .9rem; text-align:center; }
+  .dc-done__stats b { display:block; font:800 1.4rem var(--font-data); }
+  .dc-photo { position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:#000; }
+  .dc-photo img { display:block; width:100%; height:auto; }
+  .dc-spot { position:absolute; width:32px; height:32px; margin:-16px 0 0 -16px; border-radius:50%; border:2px solid #fff; background:#ffffff33; color:#fff; font:700 .85rem var(--font-data); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 3px #00000066; }
+  .dc-spot:hover,.dc-spot:focus-visible { background:var(--signal); border-color:var(--signal); color:#101820; outline:none; }
+  .dc-spot[data-open="true"] { background:var(--accent); border-color:#fff; }
+  .dc-spot[data-seen="true"]::after { content:""; position:absolute; right:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:#7dff9a; border:2px solid #04210f; }
+  .dc-spot--pulse { animation:dc-pulse .4s ease; }
+  .dc-reveal { margin-top:.5rem; padding:.55rem .8rem; border-radius:8px; background:var(--accent-wash); color:var(--ink-1); font-size:.88rem; display:none; }
+  .dc-reveal[data-show="true"] { display:block; }
+  .dc-credit { font-size:.72rem; color:var(--ink-3); margin-top:.35rem; }
+  .dc-notice { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+  .dc-bar { height:9px; border-radius:99px; background:var(--line); overflow:hidden; flex:1 1 140px; } .dc-bar i { display:block; height:100%; width:0; background:linear-gradient(90deg,#3fe0c5,#ffd23f); transition:width .4s; }
+  .dc-air { display:grid; grid-template-columns:minmax(0,260px) 1fr; gap:1rem; align-items:center; }
+  .dc-dotgrid { display:grid; grid-template-columns:repeat(10,1fr); gap:3px; padding:8px; border-radius:12px; background:#061c2a; }
+  .dc-dotgrid i { aspect-ratio:1; border-radius:50%; background:#3fa9f5; transition:background .25s, transform .25s; }
+  .dc-dotgrid[data-win="true"] i { animation:dc-hop .6s ease both; animation-delay:calc(var(--n)*8ms); }
+  .dc-airctl { display:grid; gap:.5rem; }
+  .dc-airctl label { display:flex; align-items:center; gap:.6rem; font-size:.88rem; }
+  .dc-airctl input[type=range] { flex:1; }
+  .dc-legend { display:flex; gap:.7rem; flex-wrap:wrap; font:700 .8rem var(--font-data); }
+  .dc-legend span::before { content:""; display:inline-block; width:.7rem; height:.7rem; border-radius:50%; background:var(--c); margin-right:.3rem; vertical-align:-1px; }
+  .dc-flip { border:1px dashed var(--line); background:var(--surface); border-radius:10px; padding:.6rem .85rem; cursor:pointer; text-align:left; font:inherit; color:var(--ink-1); width:100%; margin-top:.5rem; }
+  .dc-flip__a { display:none; margin-top:.4rem; color:var(--ink-2); font-size:.88rem; }
+  .dc-flip[data-open="true"] .dc-flip__a { display:block; } .dc-flip[data-open="true"] { border-style:solid; border-color:var(--accent); }
+  .dc-quick { margin-top:.7rem; border-left:5px solid var(--signal); background:var(--accent-wash); border-radius:8px; padding:.6rem .85rem; }
+  .dc-quick__row { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.4rem; }
+  .dc-fly { position:absolute; width:8px; height:8px; border-radius:50%; pointer-events:none; z-index:5; }
+  @keyframes dc-pulse { 0%{transform:scale(1)} 45%{transform:scale(1.4)} 100%{transform:scale(1)} }
+  @keyframes dc-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  @keyframes dc-hop { 0%{transform:scale(1)} 40%{transform:scale(1.6)} 100%{transform:scale(1)} }
+  [data-reduced-motion="on"] .dc-spot--pulse,[data-reduced-motion="on"] .dc-opt[data-r="wrong"],[data-reduced-motion="on"] .dc-dotgrid[data-win="true"] i { animation:none; }
+  [data-reduced-motion="on"] .dc-fview__fog { transition:none; }
+  @media (max-width:700px){ .dc-air{grid-template-columns:1fr} .dc-stage{min-height:280px} }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { jarState, capacity, capacityTable, rhFromTable, dewPointOf, W_MIN, W_MAX, T_MIN, T_MAX } from "./humidity-model.js?v=1";
+import { mountJar3D } from "./jar3d.js?v=1";
+import { mountBalloonBonus, BALLOON_QUESTIONS, BALLOON_CSS } from "./balloon.js?v=1";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+const reducedMotion = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+{ const st = document.createElement("style"); st.textContent = BALLOON_CSS; document.head.append(st); }
+
+/* A little confetti of droplets over any position:relative container. */
+function burst(container, x, y, colors, n = 16) {
+  if (reducedMotion()) n = 4;
+  for (let i = 0; i < n; i++) {
+    const d = el("span", "dc-fly"); d.style.left = x + "px"; d.style.top = y + "px"; d.style.background = colors[i % colors.length];
+    container.append(d);
+    const a = Math.random() * Math.PI * 2, r = 30 + Math.random() * 60;
+    const anim = d.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(a) * r}px,${Math.sin(a) * r - 20}px) scale(.3)`, opacity: 0 }], { duration: 700 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    anim.onfinish = () => d.remove();
+  }
+}
+
+/* ============================================================
+   Small cup picture: the cup's SIZE is how much vapour the air can
+   hold at that temperature (its capacity); the water level is how
+   much it actually holds. A visual manipulative for relative humidity.
+   ============================================================ */
+function cupSVG(T, a, label) {
+  const cap = capacity(T), maxC = capacity(40), H = 20 + (cap / maxC) * 84, W = 54;
+  const fill = clamp(a / cap, 0, 1) * (H - 6), top = 112 - H;
+  const pct = Math.round(100 * a / cap);
+  return `<div class="dc-cup"><svg viewBox="0 0 90 140" width="86" height="130" role="img" aria-label="${label}">
+    <path d="M18 ${top} L${18 + 2} 112 Q45 120 ${W + 16} 112 L${W + 16 + 2} ${top}" fill="#e6f7ff22" stroke="#6fe0ff" stroke-width="3"/>
+    <rect x="21" y="${112 - fill - 2}" width="${W + 12}" height="${fill}" rx="3" fill="#3b82f6" opacity=".9"/>
+    <text x="45" y="132" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">${pct}% RH</text></svg>${label}</div>`;
+}
+
+/* ============================================================
+   ORIENT — "Mix the Air": set the real recipe of dry air.
+   ============================================================ */
+function orient(host, sim) {
+  const wrap = el("div");
+  const card = el("div", "card");
+  card.innerHTML = `<p class="eyebrow">${L("Mix the air", "Mezcla el aire")}</p>
+    <p class="q__hint" style="margin:0 0 8px">${L("Every dot is 1 of 100 air molecules. Set how many are nitrogen and how many are oxygen - the rest are trace gases. Then compare your recipe with real air.", "Cada punto es 1 de 100 moléculas de aire. Ajusta cuántas son de nitrógeno y cuántas de oxígeno - el resto son gases traza. Luego compara tu receta con el aire real.")}</p>`;
+  const row = el("div", "dc-air");
+  const grid = el("div", "dc-dotgrid"); grid.setAttribute("role", "img");
+  const dots = []; for (let i = 0; i < 100; i++) { const d = el("i"); d.style.setProperty("--n", i); dots.push(d); grid.append(d); }
+  const ctl = el("div", "dc-airctl");
+  const mk = (id, label, v) => `<label for="${id}"><span style="min-width:7.5rem">${label}</span><input type="range" id="${id}" min="0" max="100" value="${v}"><output id="${id}-o" style="min-width:3.2ch;font:800 .95rem var(--font-data)">${v}</output></label>`;
+  ctl.innerHTML = mk("air-n", L("Nitrogen (N₂)", "Nitrógeno (N₂)"), 40) + mk("air-o", L("Oxygen (O₂)", "Oxígeno (O₂)"), 40) +
+    `<div class="dc-legend"><span style="--c:#3fa9f5">${L("Nitrogen", "Nitrógeno")} <b id="lg-n"></b>%</span><span style="--c:#ff6b6b">${L("Oxygen", "Oxígeno")} <b id="lg-o"></b>%</span><span style="--c:#ffd23f">${L("Argon & trace", "Argón y traza")} <b id="lg-t"></b>%</span></div>
+     <div class="cluster"><button type="button" class="btn btn--signal" id="air-check">${L("Check against real air", "Comparar con el aire real")}</button></div>
+     <p class="dc-fb" id="air-fb" aria-live="polite"></p>`;
+  row.append(grid, ctl); card.append(row); wrap.append(card);
+  host.append(wrap);
+  const $ = id => ctl.querySelector("#" + id);
+  function draw() {
+    let n = Number($("air-n").value), o = Number($("air-o").value);
+    if (n + o > 100) { o = 100 - n; $("air-o").value = o; }
+    const t = 100 - n - o;
+    $("air-n-o").textContent = n; $("air-o-o").textContent = o;
+    $("lg-n").textContent = n; $("lg-o").textContent = o; $("lg-t").textContent = t;
+    dots.forEach((d, i) => { d.style.background = i < n ? "#3fa9f5" : i < n + o ? "#ff6b6b" : "#ffd23f"; });
+    grid.setAttribute("aria-label", L(`${n} nitrogen, ${o} oxygen, ${t} other`, `${n} de nitrógeno, ${o} de oxígeno, ${t} de otros`));
+    return { n, o, t };
+  }
+  ["air-n", "air-o"].forEach(id => $(id).addEventListener("input", draw)); draw();
+  $("air-check").addEventListener("click", () => {
+    const { n, o, t } = draw(); const fb = $("air-fb"); fb.dataset.show = "true";
+    grid.dataset.win = "false";
+    if (Math.abs(n - 78) <= 3 && Math.abs(o - 21) <= 2) {
+      fb.dataset.k = "good"; void grid.offsetWidth; grid.dataset.win = "true";
+      fb.innerHTML = L("<b>That is real air.</b> Dry air is about 78% nitrogen, 21% oxygen and about 1% argon and other trace gases (carbon dioxide, neon...). Water vapour is extra - it varies from almost 0 to about 4% of the air, which is what the rest of this activity is about.", "<b>Eso es aire real.</b> El aire seco es aproximadamente 78% nitrógeno, 21% oxígeno y cerca de 1% argón y otros gases traza (dióxido de carbono, neón...). El vapor de agua es adicional - varía desde casi 0 hasta cerca del 4% del aire, y de eso trata el resto de esta actividad.");
+      sim.mark("air_recipe_correct", true);
+    } else {
+      fb.dataset.k = "warn";
+      const hint = n < 75 ? L("Nitrogen is by far the biggest share - raise it.", "El nitrógeno es, con diferencia, la mayor parte - súbelo.") : n > 81 ? L("That is too much nitrogen - lower it a little.", "Es demasiado nitrógeno - bájalo un poco.") : o < 19 ? L("Oxygen is a bit higher than that - about one fifth of the air.", "El oxígeno es un poco más - cerca de una quinta parte del aire.") : L("Oxygen is a bit lower than that - about one fifth of the air.", "El oxígeno es un poco menos - cerca de una quinta parte del aire.");
+      fb.textContent = L("Not quite. ", "Todavía no. ") + hint + " " + L("Hint: the trace gases together are only about 1%.", "Pista: los gases traza juntos son solo cerca del 1%.");
+      grid.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "translateX(0)" }], { duration: 280 });
+    }
+  });
+}
+
+/* ============================================================
+   OBSERVATION — real photographs, tap-to-reveal. Never graded.
+   ============================================================ */
+function observation(host, sim) {
+  sim.setScienceMethod({
+    observation: L(
+      "A real astronaut photograph shows the atmosphere as thin coloured layers; fog hugs a cold harbour while the towers above stay clear; dew beads a spider web on a night when it never rained; and a real hygrometer reads about 50% relative humidity.",
+      "Una fotografía real de un astronauta muestra la atmósfera como finas capas de colores; la niebla abraza un puerto frío mientras las torres de arriba quedan despejadas; el rocío cubre una telaraña en una noche sin lluvia; y un higrómetro real marca cerca de 50% de humedad relativa."),
+    question: L("When the amount of water vapour in the air stays the same, how does changing the temperature affect relative humidity and dew point?",
+      "Cuando la cantidad de vapor de agua en el aire se mantiene igual, ¿cómo afecta el cambio de temperatura a la humedad relativa y al punto de rocío?")
+  });
+  const seen = new Set();
+  const PHOTOS = [
+    { id: "iss", src: "photos/iss-limb.jpg", w: 1100, h: 731,
+      alt: L("The edge of Earth's atmosphere photographed from the International Space Station at sunset: bands of orange, white and blue above the dark planet", "El borde de la atmósfera terrestre fotografiado desde la Estación Espacial Internacional al atardecer: bandas naranja, blanca y azul sobre el planeta oscuro"),
+      title: L("1 - The layers, seen from space", "1 - Las capas, vistas desde el espacio"),
+      lede: L("Tap each numbered spot. This real astronaut photo shows the edge of Earth's atmosphere at sunset.", "Toca cada punto numerado. Esta foto real de un astronauta muestra el borde de la atmósfera terrestre al atardecer."),
+      credit: L('Photo: NASA / ISS Expedition 23 crew, "Sunset from the ISS", public domain (Wikimedia Commons).', 'Foto: NASA / tripulación de la Expedición 23 de la EEI, "Sunset from the ISS", dominio público (Wikimedia Commons).'),
+      spots: [
+        { x: .42, y: .675, n: L("Troposphere", "Troposfera"), t: L("The glowing orange layer hugging the ground is the troposphere - the thinnest-looking layer but it holds about 75% of all the air and almost all the water vapour. Weather happens here.", "La capa naranja brillante pegada al suelo es la troposfera - parece la más delgada pero contiene cerca del 75% de todo el aire y casi todo el vapor de agua. Aquí ocurre el clima.") },
+        { x: .8, y: .722, n: L("Stratosphere", "Estratosfera"), t: L("The thin whitish band above is the stratosphere, where the ozone layer absorbs harmful UV radiation. Jets cruise at its base.", "La fina banda blanquecina de arriba es la estratosfera, donde la capa de ozono absorbe la radiación UV dañina. Los aviones cruzan en su base.") },
+        { x: .5, y: .53, n: L("Mesosphere", "Mesosfera"), t: L("The bright blue glow is the upper stratosphere fading into the mesosphere, where meteors burn up as shooting stars.", "El brillo azul es la estratosfera alta desvaneciéndose en la mesosfera, donde los meteoros se queman como estrellas fugaces.") },
+        { x: .5, y: .2, n: L("Thermosphere and beyond", "Termosfera y más allá"), t: L("Above the blue the sky is black: this is the thin thermosphere and the exosphere, which gradually fades into space. The ISS itself orbits in the thermosphere.", "Sobre el azul el cielo es negro: es la fina termosfera y la exosfera, que se desvanece gradualmente en el espacio. La propia EEI orbita en la termosfera.") }
+      ] },
+    { id: "fog", src: "photos/fog-city.jpg", w: 1280, h: 853,
+      alt: L("Morning fog lying over a harbour with a sailboat, tall apartment towers rising above it in sunlight", "Niebla matinal sobre un puerto con un velero, con altos edificios elevándose sobre ella bajo el sol"),
+      title: L("2 - Fog on a harbour", "2 - Niebla en un puerto"),
+      lede: L("Fog is a cloud that touches the ground. Where is it - and where is it not?", "La niebla es una nube que toca el suelo. ¿Dónde está - y dónde no?"),
+      credit: L('Photo: Thomas Quine, "Morning fog", CC BY 2.0 (Wikimedia Commons).', 'Foto: Thomas Quine, "Morning fog", CC BY 2.0 (Wikimedia Commons).'),
+      spots: [
+        { x: .52, y: .68, n: L("The fog bank", "El banco de niebla"), t: L("The fog sits right on the cold water: the air touching it cooled down to its dew point, became full of water vapour, and the extra condensed into millions of tiny floating droplets.", "La niebla está justo sobre el agua fría: el aire en contacto con ella se enfrió hasta su punto de rocío, se llenó de vapor de agua y el exceso se condensó en millones de diminutas gotas flotantes.") },
+        { x: .45, y: .14, n: L("Clear air above", "Aire despejado arriba"), t: L("Higher up the air is warmer, so it is still comfortably below saturation - no fog. Same water vapour, higher temperature, lower relative humidity.", "Más arriba el aire es más cálido, así que sigue por debajo de la saturación - sin niebla. El mismo vapor de agua, mayor temperatura, menor humedad relativa.") },
+        { x: .64, y: .52, n: L("Why it will vanish", "Por qué desaparecerá"), t: L("The low sun is already lighting the towers. As the morning warms the air, it can hold more water vapour, the droplets evaporate, and the fog 'burns off' - you will explain exactly why later.", "El sol bajo ya ilumina los edificios. Cuando la mañana caliente el aire, podrá contener más vapor de agua, las gotas se evaporarán y la niebla se 'disipará' - más adelante explicarás exactamente por qué.") }
+      ] },
+    { id: "dew", src: "photos/dew-web.jpg", w: 1000, h: 751,
+      alt: L("Close-up of a spider web strung with hundreds of dew droplets on green grass", "Primer plano de una telaraña cubierta de cientos de gotas de rocío sobre hierba verde"),
+      title: L("3 - Dew on a spider web", "3 - Rocío en una telaraña"),
+      lede: L("It did not rain, yet the web is soaked. Where did this water come from?", "No llovió, pero la telaraña está empapada. ¿De dónde salió esta agua?"),
+      credit: L('Photo: WKA Zisan, "Dew drops on spider web macro photography Bangladesh", CC BY-SA 4.0 (Wikimedia Commons).', 'Foto: WKA Zisan, "Dew drops on spider web macro photography Bangladesh", CC BY-SA 4.0 (Wikimedia Commons).'),
+      spots: [
+        { x: .515, y: .47, n: L("A single droplet", "Una sola gota"), t: L("This droplet was invisible water vapour in the air an hour ago. The web cooled overnight, the air touching it dropped below its dew point, and the vapour condensed onto the cold strand.", "Esta gota era vapor de agua invisible en el aire hace una hora. La telaraña se enfrió durante la noche, el aire en contacto con ella bajó de su punto de rocío y el vapor se condensó sobre el hilo frío.") },
+        { x: .76, y: .27, n: L("Cold surface", "Superficie fría"), t: L("Dew forms ON cold surfaces - webs, grass, car roofs - because they cool faster than the air. That is why a cold glass of water 'sweats' on a warm day.", "El rocío se forma SOBRE superficies frías - telarañas, hierba, techos de autos - porque se enfrían más rápido que el aire. Por eso un vaso de agua fría 'suda' en un día cálido.") },
+        { x: .22, y: .56, n: L("A string of pearls", "Un collar de perlas"), t: L("Water pulls itself into round beads (surface tension). The evenly spaced pearls show the whole web cooled to the same temperature at the same moment.", "El agua se junta en gotas redondas (tensión superficial). Las perlas espaciadas por igual muestran que toda la telaraña se enfrió a la misma temperatura al mismo tiempo.") }
+      ] },
+    { id: "hyg", src: "photos/hygrometer.jpg", w: 800, h: 842,
+      alt: L("A real round dial hygrometer with a needle pointing to about 47 on a 0 to 100 scale", "Un higrómetro de esfera real con una aguja que apunta a cerca de 47 en una escala de 0 a 100"),
+      title: L("4 - A real hygrometer", "4 - Un higrómetro real"),
+      lede: L("This instrument measures relative humidity. Read it.", "Este instrumento mide la humedad relativa. Léelo."),
+      credit: L('Photo: Schekinov Alexey Victorovich, "Hygrometer USSR 1987", public domain (Wikimedia Commons).', 'Foto: Schekinov Alexey Victorovich, "Hygrometer USSR 1987", dominio público (Wikimedia Commons).'),
+      spots: [
+        { x: .66, y: .24, n: L("The needle", "La aguja"), t: L("The needle points to about 47: the air holds about 47% of the water vapour it could hold at this temperature - nearly half full.", "La aguja marca cerca de 47: el aire contiene cerca del 47% del vapor de agua que podría contener a esta temperatura - casi medio lleno.") },
+        { x: .67, y: .73, n: L("The 100 mark", "La marca 100"), t: L("100% means the air is completely full (saturated) - any extra water vapour condenses as dew, fog or cloud.", "100% significa que el aire está completamente lleno (saturado) - cualquier vapor extra se condensa como rocío, niebla o nube.") },
+        { x: .52, y: .82, n: L("The units", "Las unidades"), t: L("The writing says 'relative humidity of air, %' - relative to what the air could hold, not an amount of water. That is why the same water can read 40% in a warm room and 100% on a cold night.", "El texto dice 'humedad relativa del aire, %' - relativa a lo que el aire podría contener, no una cantidad de agua. Por eso la misma agua puede marcar 40% en una habitación cálida y 100% en una noche fría.") }
+      ] }
+  ];
+  const total = PHOTOS.reduce((s, p) => s + p.spots.length, 0);
+  const wrap = el("div", "stack");
+  const prog = el("div", "dc-notice");
+  prog.innerHTML = `<b id="ob-count">0 / ${total}</b><div class="dc-bar" aria-hidden="true"><i id="ob-bar"></i></div><span class="q__hint" style="margin:0">${L("things you have noticed", "cosas que has notado")}</span>`;
+  wrap.append(prog);
+  PHOTOS.forEach(p => {
+    const card = el("div", "card");
+    card.innerHTML = `<p class="eyebrow">${p.title}</p><p class="q__hint" style="margin:0 0 8px">${p.lede}</p>`;
+    const ph = el("div", "dc-photo"); ph.innerHTML = `<img src="${p.src}" width="${p.w}" height="${p.h}" alt="${p.alt}">`;
+    const reveal = el("p", "dc-reveal"); reveal.setAttribute("aria-live", "polite");
+    p.spots.forEach((s, i) => {
+      const b = el("button", "dc-spot", String(i + 1)); b.type = "button";
+      b.style.left = (s.x * 100) + "%"; b.style.top = (s.y * 100) + "%"; b.setAttribute("aria-label", s.n);
+      b.addEventListener("click", () => {
+        b.classList.remove("dc-spot--pulse"); void b.offsetWidth; b.classList.add("dc-spot--pulse");
+        const open = b.dataset.open === "true";
+        ph.querySelectorAll(".dc-spot").forEach(x => x.dataset.open = "false");
+        if (open) { reveal.dataset.show = "false"; return; }
+        b.dataset.open = "true"; b.dataset.seen = "true"; reveal.dataset.show = "true";
+        reveal.innerHTML = `<b>${s.n}</b> - ${s.t}`;
+        seen.add(p.id + i);
+        const c = card.parentNode.querySelector("#ob-count"); c.textContent = seen.size + " / " + total;
+        card.parentNode.querySelector("#ob-bar").style.width = (100 * seen.size / total) + "%";
+        sim.mark("observations_noticed", seen.size);
+      });
+      ph.append(b);
+    });
+    card.append(ph, reveal, el("p", "dc-credit", p.credit)); wrap.append(card);
+  });
+  host.append(wrap);
+}
+
+/* ============================================================
+   INVESTIGATE — Sealed Jar · Chilled Mirror · Forecast Desk · Bonus
+   ============================================================ */
+let cleanup = null;
+
+const RANKS = [
+  { xp: 0, en: "Cloud Cadet", es: "Cadete de Nubes" }, { xp: 40, en: "Dew Detective", es: "Detective del Rocío" },
+  { xp: 90, en: "Fog Forecaster", es: "Pronosticador de Niebla" }, { xp: 150, en: "Sky Meteorologist", es: "Meteorólogo del Cielo" }];
+const rankOf = xp => { let r = RANKS[0]; RANKS.forEach(k => { if (xp >= k.xp) r = k; }); return r; };
+
+const SCENARIOS = [
+  { id: "s1", view: .0, tag: L("Tonight's forecast", "Pronóstico de esta noche"),
+    q: L("Evening: the air is 20 °C with a dew point of 8 °C. The night low is forecast to fall to 14 °C. What will you find at dawn?", "Atardecer: el aire está a 20 °C con un punto de rocío de 8 °C. Se pronostica que la mínima nocturna bajará a 14 °C. ¿Qué encontrarás al amanecer?"),
+    data: [["Air", "20 °C"], [L("Dew point", "Punto de rocío"), "8 °C"], [L("Night low", "Mínima nocturna"), "14 °C"]],
+    opts: [L("No dew or fog - the air never cools down to its dew point", "Ni rocío ni niebla - el aire nunca se enfría hasta su punto de rocío"), L("Thick fog - cold nights always make fog", "Niebla espesa - las noches frías siempre producen niebla"), L("Dew on the grass - 14 °C is cold enough", "Rocío en el césped - 14 °C es suficientemente frío")], right: 0,
+    hook: L("Dew and fog need the air to cool to its dew point. 14 °C is still 6 °C above 8 °C, so the air is never full.", "El rocío y la niebla necesitan que el aire se enfríe hasta su punto de rocío. 14 °C sigue 6 °C por encima de 8 °C, así que el aire nunca se llena.") },
+  { id: "s2", view: .9, tag: L("Harbour dawn", "Amanecer en el puerto"),
+    q: L("Evening: the air is 18 °C with a dew point of 12 °C, over a calm harbour. The night low is forecast at 9 °C. What will the harbour look like at dawn?", "Atardecer: el aire está a 18 °C con un punto de rocío de 12 °C, sobre un puerto en calma. La mínima nocturna se pronostica en 9 °C. ¿Cómo se verá el puerto al amanecer?"),
+    data: [["Air", "18 °C"], [L("Dew point", "Punto de rocío"), "12 °C"], [L("Night low", "Mínima nocturna"), "9 °C"]],
+    opts: [L("Fog - the air cools below its 12 °C dew point and the extra vapour condenses", "Niebla - el aire se enfría por debajo de su punto de rocío de 12 °C y el exceso de vapor se condensa"), L("Clear - dew point is lower than the temperature", "Despejado - el punto de rocío es menor que la temperatura"), L("Fog only if more water is added to the air", "Niebla solo si se añade más agua al aire")], right: 0,
+    hook: L("At 12 °C the air hits 100% relative humidity; by 9 °C there is 3 °C of 'too much' vapour, and it condenses.", "A 12 °C el aire llega al 100% de humedad relativa; a 9 °C sobra vapor y se condensa.") },
+  { id: "s3", view: -1, tag: L("Feels like...", "Se siente..."),
+    q: L("Which air feels stickier and holds more water vapour? A: 33 °C with dew point 10 °C. B: 24 °C with dew point 22 °C.", "¿Qué aire se siente más bochornoso y contiene más vapor de agua? A: 33 °C con punto de rocío de 10 °C. B: 24 °C con punto de rocío de 22 °C."),
+    data: [["A", "33 °C / 10 °C"], ["B", "24 °C / 22 °C"]], cups: [[33, "A"], [24, "B"]],
+    opts: [L("A - hotter air holds more water", "A - el aire más caliente contiene más agua"), L("B - its dew point is far higher", "B - su punto de rocío es mucho más alto"), L("Both are the same - the difference is only 9 °C", "Los dos iguales - la diferencia es de solo 9 °C")], right: 1,
+    hook: L("Dew point measures how much vapour is really in the air. Above about 18 °C it feels sticky; B holds about twice the water of A.", "El punto de rocío mide cuánto vapor hay realmente en el aire. Por encima de unos 18 °C se siente bochornoso; B contiene casi el doble de agua que A.") },
+  { id: "s4", view: .0, from: .9, tag: L("Fog burn-off", "Disipación de la niebla"),
+    q: L("At 7 am the harbour is thick with fog: air 9 °C, dew point 8.5 °C. By noon the sun has warmed the air to 17 °C and no water has been added. What happens to the fog?", "A las 7 am el puerto está cubierto de niebla: aire a 9 °C, punto de rocío de 8,5 °C. Al mediodía el sol ha calentado el aire a 17 °C y no se ha añadido agua. ¿Qué pasa con la niebla?"),
+    data: [["7 am", "9 °C / 8.5 °C"], [L("Noon", "Mediodía"), "17 °C"]],
+    opts: [L("It lifts - warmer air holds more vapour, so the droplets evaporate", "Se disipa - el aire más cálido contiene más vapor, así que las gotas se evaporan"), L("It gets thicker - heat makes more droplets", "Se espesa - el calor hace más gotas"), L("It stays - the dew point has not changed", "Se mantiene - el punto de rocío no ha cambiado")], right: 0,
+    hook: L("The dew point stays at 8.5 °C, but at 17 °C the relative humidity drops to about 56% - the air is no longer full, so droplets turn back into vapour.", "El punto de rocío sigue en 8,5 °C, pero a 17 °C la humedad relativa baja a cerca de 56% - el aire ya no está lleno, así que las gotas vuelven a ser vapor.") },
+  { id: "s5", view: -1, tag: L("Tricky one", "Una difícil"),
+    q: L("Which air holds MORE water vapour per cubic metre? A: 35 °C with 20% relative humidity. B: 10 °C with 90% relative humidity.", "¿Qué aire contiene MÁS vapor de agua por metro cúbico? A: 35 °C con 20% de humedad relativa. B: 10 °C con 90% de humedad relativa."),
+    data: [["A", "35 °C / 20%"], ["B", "10 °C / 90%"]], cups: [[35, "A", .2], [10, "B", .9]],
+    opts: [L("A - it is much hotter", "A - está mucho más caliente"), L("B - 90% of a small cup beats 20% of a big one... just", "B - el 90% de un vaso pequeño supera al 20% de uno grande... por poco"), L("They are exactly equal", "Son exactamente iguales")], right: 1,
+    hook: L("Relative humidity is a percentage of capacity, not an amount. B holds about 8.4 g/m³; A holds about 7.9 g/m³.", "La humedad relativa es un porcentaje de la capacidad, no una cantidad. B contiene cerca de 8,4 g/m³; A contiene cerca de 7,9 g/m³.") }
+];
+
+function investigate(host, sim) {
+  if (cleanup) { cleanup(); cleanup = null; }
+  sim.setScienceMethod({
+    variables: L(
+      "Independent: the temperature of the sealed jar of air. Dependent: the relative humidity, the dew point, and whether the air fogs up. Controlled: the amount of water in the jar (never added or removed during the fair test), the jar's volume, and the same instruments for every reading.",
+      "Independiente: la temperatura del frasco sellado de aire. Dependiente: la humedad relativa, el punto de rocío y si el aire se empaña. Controladas: la cantidad de agua en el frasco (nunca se añade ni se quita durante la prueba justa), el volumen del frasco y los mismos instrumentos en cada lectura.")
+  });
+  host.innerHTML = "";
+  const S = sim.state;
+  S.xp = S.xp || 0; S.mirrorWins = S.mirrorWins || 0; S.forecast = S.forecast || {}; S.bestStreak = S.bestStreak || 0; S.balloon = S.balloon || null;
+  const timers = [];
+  let alive = true;
+  const root = el("div", "stack"); host.append(root);
+  const addXP = (n, why) => { S.xp += n; sim.saveState(); refreshBoard(); if (why) sim.toast("+" + n + " XP - " + why, "correct"); };
+
+  /* ---------------- mission board ---------------- */
+  const board = el("div", "dc-board"); root.append(board);
+  const top = el("div", "dc-board__top"); board.append(top);
+  const tasks = el("div", "dc-tasks"); board.append(tasks);
+  const TASKS = [
+    { id: "log", en: "Log 3+ readings at different temperatures", es: "Registra 3+ lecturas a temperaturas distintas" },
+    { id: "dew", en: "Catch the dew point with the chilled mirror", es: "Atrapa el punto de rocío con el espejo enfriado" },
+    { id: "fc", en: "Forecast all 5 mornings at the Forecast Desk", es: "Pronostica las 5 mañanas en la Mesa de Pronósticos" }
+  ];
+  const taskEls = {};
+  TASKS.forEach((t, i) => { const d = el("div", "dc-task", `<i>${i + 1}</i><span>${L(t.en, t.es)}</span>`); taskEls[t.id] = d; tasks.append(d); });
+  let doneCard = null;
+  function taskState() {
+    const temps = new Set(sim.trials.map(r => Math.round(Number(r.temp))));
+    return { log: temps.size >= 3, dew: S.mirrorWins >= 1, fc: Object.keys(S.forecast).length >= SCENARIOS.length };
+  }
+  function refreshBoard() {
+    if (!alive) return;
+    const rk = rankOf(S.xp), nxt = RANKS.find(r => r.xp > S.xp);
+    top.innerHTML = `<span class="dc-rank">${L(rk.en, rk.es)}</span><span class="dc-pill dc-pill--xp">${S.xp} XP</span>` +
+      (nxt ? `<span class="dc-pill">${L("Next rank in", "Siguiente rango en")} ${nxt.xp - S.xp} XP</span>` : `<span class="dc-pill">${L("Top rank!", "¡Rango máximo!")}</span>`) +
+      `<span class="dc-pill">${L("Best streak", "Mejor racha")} ${S.bestStreak}</span>`;
+    const st = taskState();
+    TASKS.forEach(t => { taskEls[t.id].dataset.done = st[t.id] ? "true" : "false"; taskEls[t.id].querySelector("i").textContent = st[t.id] ? "✓" : String(TASKS.indexOf(t) + 1); });
+    if (st.log && st.dew && st.fc && !doneCard) showDone(st);
+  }
+  function showDone() {
+    const rk = rankOf(S.xp);
+    doneCard = el("div", "dc-done");
+    const right = Object.values(S.forecast).filter(v => v).length;
+    doneCard.innerHTML = `<p class="eyebrow" style="color:#02202c">${L("Investigation complete!", "¡Investigación completada!")}</p>
+      <h3>${L("You are a ", "Eres ")}${L(rk.en, rk.es)}${getLang() === "es" ? "" : "!"}</h3>
+      <p style="margin:0">${L("You logged real readings, caught a dew point and forecast five mornings. Head on to Record, then Explain - your readings are the evidence. (The bonus balloon ascent below is optional.)", "Registraste lecturas reales, atrapaste un punto de rocío y pronosticaste cinco mañanas. Pasa a Registro y luego a Explicar - tus lecturas son la evidencia. (El ascenso en globo de abajo es opcional.)")}</p>
+      <div class="dc-done__stats"><div><b>${S.xp}</b>${L("XP", "XP")}</div><div><b>${sim.trials.length}</b>${L("readings", "lecturas")}</div><div><b>${right}/5</b>${L("forecasts right", "pronósticos bien")}</div><div><b>${S.bestStreak}</b>${L("best streak", "mejor racha")}</div></div>
+      <p style="margin:.7rem 0 0;font-size:.9rem">${L("Did you know? The highest relative humidity ever recorded was 95% in Dhahran, Saudi Arabia, on 8 July 2003 - on a day hot enough that the air could hold huge amounts of water.", "¿Sabías que? La humedad relativa más alta registrada fue de 95% en Dhahran, Arabia Saudita, el 8 de julio de 2003 - un día tan caluroso que el aire podía contener enormes cantidades de agua.")}</p>`;
+    board.after(doneCard);
+    burst(doneCard, 60, 40, ["#ffd23f", "#ffffff", "#ff7a59", "#3fe0c5"], 30);
+    sim.mark("investigation_complete", true);
+  }
+
+  /* ============ STATION 1 — SEALED JAR ============ */
+  let T = 22, targetT = 22, W = 9, heating = false, chilling = false, wasFog = false, fogCount = 0, settled = true, lastSt = jarState(T, W);
+  const jarCard = el("div", "card dc-station");
+  jarCard.innerHTML = `<p class="eyebrow"><span class="dc-station__tag">${L("Station 1", "Estación 1")}</span>${L("The Sealed Jar", "El Frasco Sellado")}</p>
+    <p class="q__hint" style="margin:0">${L("Warm air can hold more water vapour than cold air. Heat it, chill it, add moisture - and watch the air fill up and fog.", "El aire cálido puede contener más vapor de agua que el frío. Caliéntalo, enfríalo, añade humedad - y observa cómo el aire se llena y se empaña.")}</p>`;
+  const stage = el("div", "dc-stage"); jarCard.append(stage);
+  const hud = el("div", "dc-hud");
+  hud.innerHTML = `<div class="dc-hud__box"><div>${L("Air", "Aire")} <b id="h-t">22.0</b> °C</div><div>${L("Humidity", "Humedad")} <b id="h-rh">49</b> %</div><div>${L("Dew point", "P. rocío")} <b id="h-dp">10.2</b> °C</div></div><span class="dc-badge" id="h-badge" data-s="clear">${L("Clear", "Despejado")}</span>`;
+  stage.append(hud, el("div", "dc-hint", L("Drag to orbit - scroll to zoom - arrow keys work too", "Arrastra para orbitar - rueda para acercar - también las flechas")));
+  const jar3d = mountJar3D(stage, { label: L("3D sealed jar of air on a lab bench", "Frasco sellado de aire en 3D sobre una mesa de laboratorio") });
+  if (!jar3d) stage.prepend(el("p", "nav-empty", L("3D is not available on this device - the chart and readouts below show everything.", "El 3D no está disponible en este dispositivo - el gráfico y las lecturas de abajo muestran todo.")));
+
+  const controls = el("div", "dc-controls");
+  controls.innerHTML = `<div class="dc-slider"><label class="field__label" for="dc-temp">${L("Temperature", "Temperatura")}</label><input type="range" id="dc-temp" min="${T_MIN}" max="${T_MAX}" step="1" value="22"><output id="dc-temp-o">22 °C</output></div>
+    <button type="button" class="dc-btn dc-btn--cold" id="b-chill">❄ ${L("Chill -2 °C", "Enfriar -2 °C")}</button>
+    <button type="button" class="dc-btn dc-btn--heat" id="b-heat">☀ ${L("Warm +2 °C", "Calentar +2 °C")}</button>
+    <button type="button" class="dc-btn dc-btn--moist" id="b-moist">☕ ${L("Kettle: add water", "Hervidor: añadir agua")}</button>
+    <button type="button" class="dc-btn dc-btn--dry" id="b-dry">${L("Silica gel: dry it", "Gel de sílice: secar")}</button>
+    <button type="button" class="dc-btn" id="b-reset">${L("Reset jar", "Reiniciar frasco")}</button>`;
+  jarCard.append(controls);
+  const $j = id => jarCard.querySelector("#" + id);
+
+  /* readouts + the three humidity measures from class */
+  const read = el("div", "dc-read", ""); read.style.marginTop = ".7rem";
+  const cells = [
+    ["r-t", L("Temperature", "Temperatura"), "°C", ""],
+    ["r-a", L("Absolute humidity", "Humedad absoluta"), "g/m³", L("grams of vapour in each m³ of air", "gramos de vapor en cada m³ de aire")],
+    ["r-c", L("Air can hold up to", "El aire puede contener hasta"), "g/m³", L("its capacity at this temperature", "su capacidad a esta temperatura")],
+    ["r-rh", L("Relative humidity", "Humedad relativa"), "%", L("how full the air is: vapour ÷ capacity", "qué tan lleno está el aire: vapor ÷ capacidad")],
+    ["r-dp", L("Dew point", "Punto de rocío"), "°C", L("temperature where the air becomes full", "temperatura a la que el aire se llena")],
+    ["r-sh", L("Specific humidity", "Humedad específica"), "g/kg", L("grams of vapour per kg of air", "gramos de vapor por kg de aire")]
+  ];
+  read.innerHTML = cells.map(c => `<div class="dc-read__c"><span>${c[1]}</span><b id="${c[0]}">-</b> ${c[2]}<small>${c[3]}</small></div>`).join("");
+  jarCard.append(read);
+
+  /* chart + log panel */
+  const grid = el("div", "dc-grid"); jarCard.append(grid);
+  const chartCard = el("div"); chartCard.innerHTML = `<p class="eyebrow">${L("How much can the air hold?", "¿Cuánto puede contener el aire?")}</p><p class="q__hint" style="margin:0 0 6px">${L("The curve is the most vapour the air can hold. Your jar is the coral dot - when it touches the curve, the air is full.", "La curva es el máximo de vapor que el aire puede contener. Tu frasco es el punto coral - cuando toca la curva, el aire está lleno.")}</p>`;
+  const chartHost = el("div"); chartCard.append(chartHost); grid.append(chartCard);
+  const logCard = el("div"); grid.append(logCard);
+  logCard.innerHTML = `<p class="eyebrow">${L("Calculate it, then log it", "Calcúlalo y luego regístralo")}</p>
+    <p class="q__hint" style="margin:0 0 6px">${L("Use the table: <b>RH = (grams the air holds at its dew point) ÷ (grams it can hold at the air temperature) × 100</b>. Round both temperatures to the nearest degree.", "Usa la tabla: <b>HR = (gramos que el aire contiene a su punto de rocío) ÷ (gramos que puede contener a la temperatura del aire) × 100</b>. Redondea ambas temperaturas al grado más cercano.")}</p>
+    <details><summary style="cursor:pointer;font-weight:700">${L("Saturation table (g of vapour per m³ of air)", "Tabla de saturación (g de vapor por m³ de aire)")}</summary><div class="dc-table" id="dc-table">${capacityTable().map(r => `<span>${r.T} °C <b>${r.g.toFixed(1)}</b></span>`).join("")}</div></details>
+    <div class="dc-calc"><label class="field__label" for="my-rh">${L("My RH", "Mi HR")}</label><input type="number" id="my-rh" min="0" max="100" step="1" inputmode="numeric"> %
+      <button type="button" class="btn btn--ghost" id="b-check">${L("Check my RH", "Revisar mi HR")}</button>
+      <button type="button" class="btn btn--signal" id="b-log">${L("Log reading", "Registrar lectura")}</button></div>
+    <p class="dc-fb" id="calc-fb" aria-live="polite"></p>
+    <p class="q__hint" id="log-count" style="margin:.4rem 0 0"></p>`;
+  const quickHost = el("div"); jarCard.append(quickHost);
+  root.append(jarCard);
+
+  /* chart rendering */
+  const CW = 420, CH = 250, PX = 42, PY = 20;
+  const cx = t => PX + (t - T_MIN) / (T_MAX - T_MIN) * (CW - PX - 14);
+  const cy = g => CH - 34 - (g / 55) * (CH - 34 - PY);
+  const curve = []; for (let t = T_MIN; t <= T_MAX; t += 1) curve.push([cx(t), cy(capacity(t))]);
+  function drawChart(st) {
+    const path = "M" + curve.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L");
+    const pins = sim.trials.map(r => `<circle cx="${cx(Number(r.temp)).toFixed(1)}" cy="${cy(Number(r.vapour)).toFixed(1)}" r="3.5" fill="none" stroke="#ffe36e" stroke-width="1.6"/>`).join("");
+    const dx = cx(st.T), dy = cy(st.vapour), px = cx(st.dew);
+    const sat = st.saturated;
+    chartHost.innerHTML = `<svg class="dc-chart" viewBox="0 0 ${CW} ${CH}" role="img" aria-label="${L("Chart of how much water vapour air can hold at each temperature, with the jar's current state", "Gráfico de cuánto vapor de agua puede contener el aire a cada temperatura, con el estado actual del frasco")}">
+      <path d="${path} L${cx(T_MAX)},${cy(0)} L${cx(T_MIN)},${cy(0)}Z" fill="#3fa9f533"/><path d="${path}" fill="none" stroke="#6fe0ff" stroke-width="3"/>
+      <text x="${cx(8)}" y="${cy(capacity(8)) - 18}" font-size="10" fill="#9fdcf2" transform="rotate(-22 ${cx(8)} ${cy(capacity(8)) - 18})">${L("air is full here (saturated)", "el aire está lleno aquí (saturado)")}</text>
+      <text x="${cx(22)}" y="${cy(2)}" font-size="10" fill="#9fdcf2">${L("room for more vapour", "cabe más vapor")}</text>
+      ${[0, 10, 20, 30, 40].map(t => `<text x="${cx(t)}" y="${CH - 16}" font-size="10" text-anchor="middle" fill="#9fb8c4">${t}</text>`).join("")}
+      ${[0, 20, 40].map(g => `<text x="${PX - 6}" y="${cy(g) + 3}" font-size="10" text-anchor="end" fill="#9fb8c4">${g}</text>`).join("")}
+      <text x="${CW / 2}" y="${CH - 3}" font-size="10" text-anchor="middle" fill="#9fb8c4">${L("Temperature (°C)", "Temperatura (°C)")}</text>
+      <text x="10" y="${CH / 2 - 10}" font-size="10" text-anchor="middle" fill="#9fb8c4" transform="rotate(-90 10 ${CH / 2 - 10})">${L("Vapour (g per m³)", "Vapor (g por m³)")}</text>
+      ${pins}
+      <line x1="${dx.toFixed(1)}" y1="${dy.toFixed(1)}" x2="${px.toFixed(1)}" y2="${dy.toFixed(1)}" stroke="#ffe36e" stroke-width="2" stroke-dasharray="5 4"/>
+      <circle cx="${px.toFixed(1)}" cy="${dy.toFixed(1)}" r="5" fill="#ffe36e"/>
+      <text x="${px.toFixed(1)}" y="${(dy + 18).toFixed(1)}" font-size="10" font-weight="700" text-anchor="middle" fill="#ffe36e">${L("dew point", "punto de rocío")} ${st.dew.toFixed(1)}°</text>
+      <circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="8" fill="${sat ? "#ffffff" : "#ff7a59"}" stroke="#fff" stroke-width="2"/>
+      ${sat ? `<text x="${dx.toFixed(1)}" y="${(dy - 14).toFixed(1)}" font-size="11" font-weight="700" text-anchor="middle" fill="#fff">${L("condensing!", "¡condensando!")}</text>` : ""}
+    </svg>`;
+  }
+
+  function onFog(st) {
+    fogCount++;
+    const rect = stage.getBoundingClientRect();
+    burst(stage, rect.width / 2, rect.height / 2, ["#ffffff", "#bfe8f7", "#6fe0ff"], 26);
+    sim.toast(L(`Fog! The jar reached its dew point at ${st.T.toFixed(1)} °C - the extra vapour has condensed.`, `¡Niebla! El frasco llegó a su punto de rocío a ${st.T.toFixed(1)} °C - el exceso de vapor se condensó.`), "correct");
+    if (fogCount <= 3) addXP(8);
+  }
+
+  function refreshJar() {
+    const st = jarState(T, W); lastSt = st;
+    const q = id => jarCard.querySelector("#" + id);
+    q("h-t").textContent = st.T.toFixed(1); q("h-rh").textContent = Math.round(st.rh); q("h-dp").textContent = st.dew.toFixed(1);
+    const badge = q("h-badge");
+    const s = st.liquid > 0.05 ? "fog" : st.rh >= 85 ? "near" : "clear"; badge.dataset.s = s;
+    badge.textContent = s === "fog" ? L("Saturated - fog!", "¡Saturado - niebla!") : s === "near" ? L("Nearly full", "Casi lleno") : L("Clear", "Despejado");
+    q("r-t").textContent = st.T.toFixed(1); q("r-a").textContent = st.vapour.toFixed(1); q("r-c").textContent = st.cap.toFixed(1);
+    q("r-rh").textContent = Math.round(st.rh); q("r-dp").textContent = st.dew.toFixed(1); q("r-sh").textContent = st.spec.toFixed(1);
+    if (jar3d) jar3d.setState({ T: st.T, vapour: st.vapour, liquid: st.liquid, rh: st.rh });
+    const isFog = st.liquid > 0.05;
+    if (isFog && !wasFog) onFog(st); wasFog = isFog;
+    drawChart(st);
+  }
+
+  timers.push(setInterval(() => {
+    if (!jarCard.isConnected) { stopAll(); return; }
+    const d = targetT - T;
+    if (Math.abs(d) > 0.01) {
+      T += Math.sign(d) * Math.min(Math.abs(d), 8 * 0.04); heating = d > 0; chilling = d < 0; settled = false;
+      if (jar3d) { jar3d.heat(heating); jar3d.chill(chilling); }
+    } else { T = targetT; heating = chilling = false; if (!settled) { settled = true; if (jar3d) { jar3d.heat(false); jar3d.chill(false); } } }
+    if (!mirTouched && !mirDone) mirT = Math.round(T * 2) / 2;
+    refreshJar();
+    const lb = $j("b-log"), cb = $j("b-check");
+    lb.disabled = cb.disabled = !settled;
+  }, 40));
+
+  const slider = $j("dc-temp"), sliderOut = $j("dc-temp-o");
+  function setTarget(v) { targetT = clamp(Math.round(v), T_MIN, T_MAX); slider.value = targetT; sliderOut.textContent = targetT + " °C"; }
+  slider.addEventListener("input", () => setTarget(Number(slider.value)));
+  $j("b-chill").addEventListener("click", () => setTarget(targetT - 2));
+  $j("b-heat").addEventListener("click", () => setTarget(targetT + 2));
+  $j("b-moist").addEventListener("click", () => {
+    const before = W; W = Math.min(W_MAX, W + 1.5);
+    if (jar3d) jar3d.puff();
+    const r = $j("b-moist").getBoundingClientRect(), c = stage.getBoundingClientRect();
+    burst(stage, clamp(r.left - c.left + r.width / 2, 20, c.width - 20), c.height - 30, ["#6fe0ff", "#ffffff", "#3b82f6"], 14);
+    sim.toast(W === before ? L("The jar can't take any more water.", "El frasco no admite más agua.") : L("+1.5 g of water vapour added - the dew point just rose.", "+1,5 g de vapor de agua añadidos - el punto de rocío acaba de subir."), W === before ? "info" : "correct");
+  });
+  $j("b-dry").addEventListener("click", () => { W = Math.max(W_MIN, W - 1.5); sim.toast(L("Silica gel soaked up 1.5 g of water vapour - the dew point just fell.", "El gel de sílice absorbió 1,5 g de vapor - el punto de rocío acaba de bajar."), "info"); });
+  $j("b-reset").addEventListener("click", () => { W = 9; setTarget(22); T = 22; wasFog = false; calcFb.dataset.show = "false"; sim.toast(L("Jar reset: 22 °C, 9 g/m³ of water. Now change ONLY the temperature.", "Frasco reiniciado: 22 °C, 9 g/m³ de agua. Ahora cambia SOLO la temperatura."), "info"); });
+
+  const calcFb = $j("calc-fb"); const myIn = $j("my-rh");
+  function fb(kind, html) { calcFb.dataset.show = "true"; calcFb.dataset.k = kind; calcFb.innerHTML = html; }
+  function doCheck(silent) {
+    const st = lastSt; const my = myIn.value === "" ? null : Number(myIn.value);
+    if (my == null) { if (!silent) fb("warn", L("Type your calculated RH first - or log without one.", "Escribe primero tu HR calculada - o registra sin ella.")); return null; }
+    const tabRH = st.saturated ? 100 : rhFromTable(st.T, st.dew);
+    const ok = Math.abs(my - st.rh) <= 5;
+    if (!silent) {
+      if (ok) fb("good", L(`<b>Match!</b> The hygrometer reads ${Math.round(st.rh)}% and you calculated ${my}%. The table gives ${st.saturated ? "100" : Math.round(tabRH)}% (capacity at the dew point ÷ capacity at ${Math.round(st.T)} °C).`, `<b>¡Coincide!</b> El higrómetro marca ${Math.round(st.rh)}% y calculaste ${my}%. La tabla da ${st.saturated ? "100" : Math.round(tabRH)}% (capacidad en el punto de rocío ÷ capacidad a ${Math.round(st.T)} °C).`));
+      else fb("warn", L(`The hygrometer reads ${Math.round(st.rh)}% but you got ${my}%. Look up the table value at the dew point (${Math.round(st.dew)} °C) and at the air temperature (${Math.round(st.T)} °C), divide the first by the second and multiply by 100.`, `El higrómetro marca ${Math.round(st.rh)}% pero obtuviste ${my}%. Busca en la tabla el valor en el punto de rocío (${Math.round(st.dew)} °C) y a la temperatura del aire (${Math.round(st.T)} °C), divide el primero entre el segundo y multiplica por 100.`));
+    }
+    return ok;
+  }
+  $j("b-check").addEventListener("click", () => doCheck(false));
+  $j("b-log").addEventListener("click", () => {
+    const st = lastSt; const my = myIn.value === "" ? null : Number(myIn.value);
+    const ok = my == null ? null : doCheck(true);
+    sim.recordTrial({ temp: st.T.toFixed(1), dew: st.dew.toFixed(1), vapour: st.vapour.toFixed(1), spec: st.spec.toFixed(1), rh: String(Math.round(st.rh)),
+      myrh: my == null ? "-" : String(my), check: my == null ? L("Skipped", "Omitido") : ok ? L("Match", "Coincide") : L("Off", "Difiere"),
+      state: st.liquid > 0.05 ? L("Fog/dew", "Niebla/rocío") : L("Clear", "Despejado") });
+    sim.mark("readings_logged", sim.trials.length);
+    myIn.value = "";
+    const rect = stage.getBoundingClientRect(); burst(stage, 70, rect.height - 40, ["#ffe36e", "#ffffff"], 10);
+    if (ok) { addXP(10, L("RH calculated correctly", "HR calculada correctamente")); } else addXP(5);
+    fb("info", ok === false ? L("Logged. Your RH was off - check the table method above before the next reading.", "Registrado. Tu HR difería - revisa el método de la tabla antes de la siguiente lectura.") : L("Logged to your Investigation Record.", "Registrado en tu Registro de investigación."));
+    const n = sim.trials.length; $j("log-count").textContent = L(`${n} reading${n === 1 ? "" : "s"} logged - aim for 3+ at different temperatures with the water kept the same.`, `${n} lectura${n === 1 ? "" : "s"} registrada${n === 1 ? "" : "s"} - busca 3+ a temperaturas distintas manteniendo el agua igual.`);
+    refreshBoard();
+    if (n === 2) quickCheck();
+  });
+  $j("log-count").textContent = L("No readings logged yet.", "Aún no hay lecturas registradas.");
+
+  let quickDone = false;
+  function quickCheck() {
+    if (quickDone) return; quickDone = true;
+    const q = el("div", "dc-quick");
+    q.innerHTML = `<b>${L("Quick check (not marked)", "Comprobación rápida (no se califica)")}</b><p style="margin:.3rem 0 0">${L("You changed the temperature but added no water. Did the grams of water vapour in the jar change?", "Cambiaste la temperatura pero no añadiste agua. ¿Cambiaron los gramos de vapor de agua del frasco?")}</p><div class="dc-quick__row"></div><p class="dc-fb" aria-live="polite"></p>`;
+    const row = q.querySelector(".dc-quick__row"), f = q.querySelector(".dc-fb");
+    [[L("No - same water, just a different % of what the air can hold", "No - la misma agua, solo un % distinto de lo que el aire puede contener"), true], [L("Yes - cold air has less water in it", "Sí - el aire frío tiene menos agua"), false]].forEach(([t, good]) => {
+      const b = el("button", "dc-opt", t); b.type = "button";
+      b.addEventListener("click", () => { row.querySelectorAll("button").forEach(x => x.disabled = true); b.dataset.r = good ? "right" : "wrong"; f.dataset.show = "true"; f.dataset.k = good ? "good" : "warn";
+        f.innerHTML = good ? L("<b>Right.</b> The vapour (absolute and specific humidity) stays the same in a sealed jar; only the capacity - and so the relative humidity - changes. Watch the dew point column.", "<b>Correcto.</b> El vapor (humedad absoluta y específica) se mantiene igual en un frasco sellado; solo cambia la capacidad - y por tanto la humedad relativa. Mira la columna del punto de rocío.") : L("<b>Not quite.</b> The jar is sealed - no water went in or out. Cooling only changes how much the air can hold, so the same vapour is a bigger share of it.", "<b>No exactamente.</b> El frasco está sellado - no entró ni salió agua. Enfriar solo cambia cuánto puede contener el aire, así que el mismo vapor es una parte mayor.");
+        if (good) addXP(5); });
+      row.append(b);
+    });
+    quickHost.append(q);
+  }
+
+  /* ============ STATION 2 — CHILLED MIRROR ============ */
+  const mirCard = el("div", "card dc-station");
+  mirCard.innerHTML = `<p class="eyebrow"><span class="dc-station__tag">${L("Station 2", "Estación 2")}</span>${L("Catch the Dew Point - chilled mirror", "Atrapa el Punto de Rocío - espejo enfriado")}</p>
+    <p class="q__hint" style="margin:0 0 6px">${L("Real weather stations find the dew point by cooling a polished mirror until the first mist appears. Cool the mirror, and press <b>I see dew!</b> the moment it first fogs. The air is whatever is in your jar right now.", "Las estaciones meteorológicas reales encuentran el punto de rocío enfriando un espejo pulido hasta que aparece la primera bruma. Enfría el espejo y pulsa <b>¡Veo rocío!</b> en el instante en que se empaña. El aire es el que hay ahora en tu frasco.")}</p>
+    <canvas class="dc-mirror" id="mir" width="520" height="230" role="img" aria-label="${L("A polished mirror being cooled, with a thermometer showing its temperature", "Un espejo pulido enfriándose, con un termómetro que muestra su temperatura")}"></canvas>
+    <div class="dc-controls">
+      <button type="button" class="dc-btn dc-btn--cold" id="m-cool">❄ ${L("Cool mirror (hold)", "Enfriar espejo (mantén)")}</button>
+      <button type="button" class="dc-btn dc-btn--heat" id="m-warm">${L("Warm +0.5", "Calentar +0,5")}</button>
+      <button type="button" class="dc-btn dc-btn--moist" id="m-mark">${L("I see dew!", "¡Veo rocío!")}</button>
+      <button type="button" class="dc-btn" id="m-new">${L("New attempt", "Nuevo intento")}</button>
+    </div>
+    <p class="dc-fb" id="m-fb" aria-live="polite"></p>`;
+  root.append(mirCard);
+  const mc = mirCard.querySelector("#mir"), mctx = mc.getContext("2d"), mfb = mirCard.querySelector("#m-fb");
+  let mirT = T, mirDone = false, mirStreak = 0, mirTouched = false;
+  const mdrops = Array.from({ length: 70 }, () => ({ x: 70 + Math.random() * 270, y: 40 + Math.random() * 150, r: 1 + Math.random() * 3.5, at: Math.random() }));
+  function trueDew() { return jarState(T, W).dew; }
+  function newAttempt() { mirTouched = false; mirT = Math.round(T * 2) / 2; mirDone = false; mfb.dataset.show = "false"; }
+  function drawMirror(now) {
+    if (!alive || !mc.isConnected) return; requestAnimationFrame(drawMirror);
+    const w = mc.width, h = mc.height, td = trueDew(); const g = mctx;
+    g.clearRect(0, 0, w, h);
+    const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#0e3347"); bg.addColorStop(1, "#071c28"); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    // the mirror: bright polished metal that dulls as mist forms
+    const haze = clamp((td - mirT + 0.05) / 1.1, 0, 1);
+    g.save(); g.translate(60, 26);
+    const mg = g.createLinearGradient(0, 0, 300, 180); mg.addColorStop(0, "#f2fbff"); mg.addColorStop(.5, "#9fd3ea"); mg.addColorStop(1, "#d8f3ff");
+    g.fillStyle = "#2d4350"; roundRect(g, -8, -8, 316, 196, 14); g.fill();
+    g.fillStyle = mg; roundRect(g, 0, 0, 300, 180, 8); g.fill();
+    g.strokeStyle = "#ffffffaa"; g.lineWidth = 3; g.beginPath(); g.moveTo(24, 150); g.lineTo(110, 24); g.stroke();
+    g.fillStyle = `rgba(235,246,252,${0.78 * haze})`; roundRect(g, 0, 0, 300, 180, 8); g.fill();
+    mdrops.forEach(d => { if (haze > d.at) { g.fillStyle = `rgba(255,255,255,${0.35 + 0.5 * haze})`; g.beginPath(); g.arc(d.x - 60, d.y - 26, d.r * (0.5 + haze), 0, 7); g.fill(); g.strokeStyle = "#9fdcf2"; g.lineWidth = 1; g.stroke(); } });
+    g.restore();
+    // thermometer
+    const tx = 430; g.fillStyle = "#cfe9f5"; roundRect(g, tx - 7, 24, 14, 170, 7); g.fill();
+    const frac = clamp((mirT + 20) / 60, 0, 1); g.fillStyle = "#ff4d4d"; roundRect(g, tx - 4, 190 - frac * 160, 8, frac * 160 + 4, 4); g.fill(); g.beginPath(); g.arc(tx, 200, 12, 0, 7); g.fill();
+    g.fillStyle = "#fff"; g.font = "700 22px sans-serif"; g.textAlign = "left"; g.fillText(mirT.toFixed(1) + " °C", tx + 24, 112);
+    g.font = "12px sans-serif"; g.fillStyle = "#9fdcf2"; g.fillText(L("mirror", "espejo"), tx + 24, 132);
+    g.fillText(L("air: ", "aire: ") + T.toFixed(1) + " °C", tx + 24, 152);
+  }
+  function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  requestAnimationFrame(drawMirror);
+  let coolTimer = null;
+  const coolStep = () => { if (mirDone) return; mirTouched = true; mirT = Math.max(-20, Math.round((mirT - 0.5) * 2) / 2); };
+  const coolBtn = mirCard.querySelector("#m-cool");
+  const startCool = e => { if (coolTimer) return; coolStep(); coolTimer = setInterval(coolStep, 130); };
+  const stopCool = () => { if (coolTimer) { clearInterval(coolTimer); coolTimer = null; } };
+  coolBtn.addEventListener("pointerdown", startCool); window.addEventListener("pointerup", stopCool); coolBtn.addEventListener("pointerleave", stopCool);
+  coolBtn.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); coolStep(); } });
+  mirCard.querySelector("#m-warm").addEventListener("click", () => { if (!mirDone) { mirTouched = true; mirT = Math.min(T, mirT + 0.5); } });
+  mirCard.querySelector("#m-new").addEventListener("click", newAttempt);
+  mirCard.querySelector("#m-mark").addEventListener("click", () => {
+    if (mirDone) { return; }
+    const td = trueDew(); const err = Math.abs(mirT - td);
+    mfb.dataset.show = "true";
+    if (mirT > td + 0.4) { mfb.dataset.k = "warn"; mc.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 250 }); mfb.innerHTML = L("<b>No mist yet.</b> The mirror is still warmer than the air's dew point, so nothing has condensed. Keep cooling.", "<b>Aún no hay bruma.</b> El espejo sigue más cálido que el punto de rocío del aire, así que nada se ha condensado. Sigue enfriando."); mirStreak = 0; return; }
+    mirDone = true;
+    const rating = err <= 0.6 ? L("Excellent", "Excelente") : err <= 1.2 ? L("Good", "Bien") : L("Overshot", "Te pasaste");
+    const win = err <= 1.2;
+    mfb.dataset.k = win ? "good" : "warn";
+    mfb.innerHTML = `<b>${rating}!</b> ` + L(`You called it with the mirror at ${mirT.toFixed(1)} °C. The true dew point of this air is ${td.toFixed(1)} °C - an error of ${err.toFixed(1)} °C. ${win ? "That is precisely how a chilled-mirror hygrometer measures dew point." : "The mist appeared a little earlier - cool in smaller steps and mark it the instant the mirror dulls."}`, `Lo marcaste con el espejo a ${mirT.toFixed(1)} °C. El punto de rocío real de este aire es ${td.toFixed(1)} °C - un error de ${err.toFixed(1)} °C. ${win ? "Así es exactamente como un higrómetro de espejo enfriado mide el punto de rocío." : "La bruma apareció un poco antes - enfría en pasos más pequeños y márcala en el instante en que el espejo se empaña."}`);
+    if (win) { S.mirrorWins++; mirStreak++; S.bestStreak = Math.max(S.bestStreak, mirStreak); addXP(err <= 0.6 ? 25 : 15, L("dew point caught", "punto de rocío atrapado")); const r = mc.getBoundingClientRect(); burst(mirCard, 200, 120, ["#ffe36e", "#ffffff", "#6fe0ff"], 22); sim.mark("dew_point_caught", S.mirrorWins); sim.saveState(); }
+    else mirStreak = 0;
+    refreshBoard();
+  });
+  mirCard.style.position = "relative";
+
+  /* ============ STATION 3 — FORECAST DESK ============ */
+  const fcCard = el("div", "card dc-station dc-forecast");
+  fcCard.innerHTML = `<p class="eyebrow"><span class="dc-station__tag">${L("Station 3", "Estación 3")}</span>${L("The Forecast Desk", "La Mesa de Pronósticos")}</p>`;
+  const fcBody = el("div"); fcCard.append(fcBody); root.append(fcCard);
+  let fcIdx = Object.keys(S.forecast).length;
+  function renderForecast() {
+    fcBody.innerHTML = "";
+    if (fcIdx >= SCENARIOS.length) {
+      const right = Object.values(S.forecast).filter(v => v).length;
+      fcBody.innerHTML = `<p style="margin:.2rem 0"><b>${L("Forecast Desk cleared!", "¡Mesa de Pronósticos completada!")}</b> ${L(`You called ${right} of 5 mornings correctly.`, `Acertaste ${right} de 5 mañanas.`)}</p><button type="button" class="btn btn--ghost" id="fc-redo">${L("Run the desk again", "Repetir la mesa")}</button>`;
+      fcBody.querySelector("#fc-redo").addEventListener("click", () => { fcIdx = 0; renderForecast(); });
+      return;
+    }
+    const sc = SCENARIOS[fcIdx];
+    const dots = el("div", "dc-dots"); SCENARIOS.forEach((s, i) => { const d = el("i"); d.dataset.s = i < fcIdx ? (S.forecast[s.id] ? "right" : "wrong") : i === fcIdx ? "now" : ""; dots.append(d); });
+    fcBody.append(dots);
+    fcBody.append(el("p", "q__hint", `<b>${sc.tag}</b> - ${fcIdx + 1}/${SCENARIOS.length}`));
+    let viewer = null, fogEl = null;
+    if (sc.view >= 0) {
+      viewer = el("div", "dc-fview"); viewer.style.backgroundImage = "url(photos/fog-city.jpg)";
+      fogEl = el("div", "dc-fview__fog"); fogEl.style.opacity = sc.from != null ? sc.from : 0.0;
+      viewer.append(fogEl, el("div", "dc-fview__tag", L("Forecast view - the answer decides what you will see", "Vista del pronóstico - tu respuesta decide lo que verás")));
+      fcBody.append(viewer);
+    }
+    fcBody.append(el("p", null, sc.q));
+    fcBody.append(el("div", "dc-pills", sc.data.map(d => `<span>${d[0]}: ${d[1]}</span>`).join("")));
+    const cupHost = el("div"); fcBody.append(cupHost);
+    const opts = el("div", "dc-opts"); fcBody.append(opts);
+    const result = el("p", "dc-fb"); result.setAttribute("aria-live", "polite"); fcBody.append(result);
+    const nextBtn = el("button", "btn btn--signal", L(fcIdx === SCENARIOS.length - 1 ? "Finish the desk" : "Next morning", fcIdx === SCENARIOS.length - 1 ? "Terminar la mesa" : "Siguiente mañana")); nextBtn.type = "button"; nextBtn.style.display = "none"; nextBtn.style.marginTop = ".6rem";
+    fcBody.append(nextBtn);
+    let streak = 0; Object.keys(S.forecast).forEach(() => {});
+    sc.opts.forEach((t, i) => {
+      const b = el("button", "dc-opt", t); b.type = "button";
+      b.addEventListener("click", () => {
+        opts.querySelectorAll("button").forEach(x => x.disabled = true);
+        const right = i === sc.right; S.forecast[sc.id] = right;
+        b.dataset.r = right ? "right" : "wrong"; if (!right) opts.children[sc.right].dataset.r = "right";
+        result.dataset.show = "true"; result.dataset.k = right ? "good" : "warn";
+        result.innerHTML = `<b>${right ? L("Correct!", "¡Correcto!") : L("Not this time.", "Esta vez no.")}</b> ${sc.hook}`;
+        if (fogEl) fogEl.style.opacity = sc.view;
+        if (sc.cups) cupHost.innerHTML = `<div class="dc-cups">${sc.cups.map(c => { const Tc = c[0], a = c[2] != null ? capacity(Tc) * c[2] : capacity(c[0] === 33 ? 10 : 22); return cupSVG(Tc, a, `${c[1]}: ${Tc} °C`); }).join("")}</div><p class="q__hint" style="text-align:center;margin:0">${L("Bigger cup = more the air can hold. Blue = what it actually holds.", "Vaso más grande = más puede contener el aire. Azul = lo que realmente contiene.")}</p>`;
+        if (right) { addXP(10, L("good forecast", "buen pronóstico")); burst(fcCard, 120, 80, ["#7dff9a", "#ffe36e", "#ffffff"], 18); let run = 0; for (let k = SCENARIOS.indexOf(sc); k >= 0 && S.forecast[SCENARIOS[k].id]; k--) run++; S.bestStreak = Math.max(S.bestStreak, run); }
+        sim.mark("forecasts_correct", Object.values(S.forecast).filter(v => v).length); sim.saveState();
+        nextBtn.style.display = ""; nextBtn.focus(); refreshBoard();
+      });
+      opts.append(b);
+    });
+    nextBtn.addEventListener("click", () => { fcIdx++; renderForecast(); refreshBoard(); });
+  }
+  renderForecast();
+
+  /* ============ BONUS — BALLOON ASCENT ============ */
+  const bonusHost = el("div", "dc-station"); root.append(bonusHost);
+  mountBalloonBonus(bonusHost, { L, questions: BALLOON_QUESTIONS, onFinish: res => { S.balloon = res; sim.setResult("balloon_ascent", res); sim.mark("bonus_balloon_correct", res.right); if (res.right >= 7) addXP(15, L("balloon pilot", "piloto de globo")); sim.saveState(); } });
+
+  function stopAll() { alive = false; timers.forEach(clearInterval); stopCool(); if (jar3d) jar3d.dispose(); }
+  cleanup = stopAll;
+  refreshJar(); refreshBoard();
+}
+
+mountActivity({ simulation: { orient, observation, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
