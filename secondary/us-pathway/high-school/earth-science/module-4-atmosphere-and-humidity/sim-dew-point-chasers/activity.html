@@ -216,7 +216,7 @@ function orient(host, sim) {
   const grid = el("div", "dc-dotgrid"); grid.setAttribute("role", "img");
   const dots = []; for (let i = 0; i < 100; i++) { const d = el("i"); d.style.setProperty("--n", i); dots.push(d); grid.append(d); }
   const ctl = el("div", "dc-airctl");
-  const mk = (id, label, v) => `<label for="${id}"><span style="min-width:7.5rem">${label}</span><input type="range" id="${id}" min="0" max="100" value="${v}"><output id="${id}-o" style="min-width:3.2ch;font:800 .95rem var(--font-data)">${v}</output></label>`;
+  const mk = (id, label, v) => `<label for="${id}"><span style="min-width:7.5rem">${label}</span><input type="range" id="${id}" min="0" max="99" value="${v}"><output id="${id}-o" style="min-width:3.2ch;font:800 .95rem var(--font-data)">${v}</output></label>`;
   ctl.innerHTML = mk("air-n", L("Nitrogen (N₂)", "Nitrógeno (N₂)"), 40) + mk("air-o", L("Oxygen (O₂)", "Oxígeno (O₂)"), 40) +
     `<div class="dc-legend"><span style="--c:#3fa9f5">${L("Nitrogen", "Nitrógeno")} <b id="lg-n"></b>%</span><span style="--c:#ff6b6b">${L("Oxygen", "Oxígeno")} <b id="lg-o"></b>%</span><span style="--c:#ffd23f">${L("Argon & trace", "Argón y traza")} <b id="lg-t"></b>%</span></div>
      <div class="cluster"><button type="button" class="btn btn--signal" id="air-check">${L("Check against real air", "Comparar con el aire real")}</button></div>
@@ -226,7 +226,7 @@ function orient(host, sim) {
   const $ = id => ctl.querySelector("#" + id);
   function draw() {
     let n = Number($("air-n").value), o = Number($("air-o").value);
-    if (n + o > 100) { o = 100 - n; $("air-o").value = o; }
+    if (n + o > 99) { o = 99 - n; $("air-o").value = o; }   // always leave at least one trace-gas molecule
     const t = 100 - n - o;
     $("air-n-o").textContent = n; $("air-o-o").textContent = o;
     $("lg-n").textContent = n; $("lg-o").textContent = o; $("lg-t").textContent = t;
