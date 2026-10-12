@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lung Command: The Oxygen Exchange — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Lung Command — activity-local styles only ---- */
+.lc-diagram{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;display:block;}
+.lc-note{margin-top:var(--sp-3);padding:var(--sp-3);border-left:3px solid var(--accent);background:var(--accent-wash);
+  color:var(--ink);border-radius:0 6px 6px 0;font-size:var(--step--1);}
+
+/* breathing animation for orient/observation svg */
+.lc-breathe .lc-lung{transform-box:fill-box;transform-origin:center bottom;animation:lc-lung 4.2s ease-in-out infinite;}
+.lc-breathe .lc-dia{animation:lc-dia 4.2s ease-in-out infinite;}
+.lc-breathe .lc-ribs{transform-box:fill-box;transform-origin:center;animation:lc-ribs 4.2s ease-in-out infinite;}
+[data-reduced-motion="on"] .lc-breathe *{animation:none !important;}
+@keyframes lc-lung{0%,100%{transform:scaleY(.82) scaleX(.94);}50%{transform:scaleY(1.06) scaleX(1.04);}}
+@keyframes lc-dia{0%,100%{transform:translateY(0);}50%{transform:translateY(10px);}}
+@keyframes lc-ribs{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+
+.lc-obs-fig{display:grid;grid-template-columns:1fr;gap:var(--sp-3);}
+@media(min-width:48rem){.lc-obs-fig{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;}}
+.lc-chips{display:flex;flex-direction:column;gap:var(--sp-2);}
+.lc-chip{text-align:left;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);
+  border-radius:10px;padding:.6em .8em;cursor:pointer;font:inherit;font-size:var(--step--1);transition:all var(--dur-fast,.15s) ease;}
+.lc-chip:hover{border-color:var(--accent);background:var(--accent-wash);}
+.lc-chip.is-open{border-color:var(--accent);background:var(--accent-wash);}
+.lc-chip__reveal{display:block;margin-top:.4em;color:var(--ink-2);font-size:.95em;}
+
+/* station scaffolding */
+.lc-stations{display:flex;flex-direction:column;gap:var(--sp-5);}
+.lc-station{position:relative;}
+.lc-steps-track{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-4);}
+.lc-step-pill{display:inline-flex;align-items:center;gap:.4em;font-family:var(--font-data);font-size:.72rem;font-weight:700;
+  border:1px solid var(--line-strong);border-radius:999px;padding:.35em .8em;color:var(--ink-2);background:var(--surface);}
+.lc-step-pill.done{border-color:var(--positive);color:var(--positive);background:color-mix(in srgb,var(--positive) 10%,transparent);}
+.lc-step-pill__dot{width:.55rem;height:.55rem;border-radius:50%;background:var(--line-strong);}
+.lc-step-pill.done .lc-step-pill__dot{background:var(--positive);}
+
+/* X-ray labelling */
+.lc-xray{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);max-width:34rem;background:#05070a;}
+.lc-xray img{display:block;width:100%;height:auto;}
+.lc-pin{position:absolute;transform:translate(-50%,-50%);width:2.2rem;height:2.2rem;border:none;background:transparent;padding:0;cursor:pointer;display:grid;place-items:center;}
+.lc-pin__dot{width:1.05rem;height:1.05rem;border-radius:50%;background:var(--signal);border:2px solid #fff;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--signal) 28%,transparent);animation:lc-pulse 1.4s ease-in-out infinite;}
+[data-reduced-motion="on"] .lc-pin__dot{animation:none;}
+@keyframes lc-pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.22);}}
+.lc-pin.is-correct .lc-pin__dot{background:var(--positive);box-shadow:0 0 0 4px color-mix(in srgb,var(--positive) 28%,transparent);animation:none;}
+.lc-pin.is-revealed .lc-pin__dot{background:var(--caution);box-shadow:0 0 0 4px color-mix(in srgb,var(--caution) 28%,transparent);animation:none;}
+.lc-pin.is-shake{animation:lc-shake .4s;}
+@keyframes lc-shake{0%,100%{transform:translate(-50%,-50%);}25%{transform:translate(calc(-50% - 5px),-50%);}75%{transform:translate(calc(-50% + 5px),-50%);}}
+.lc-pick{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-3);}
+.lc-term{font-family:var(--font-data);font-size:var(--step--1);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:999px;padding:.4em .9em;cursor:pointer;}
+.lc-term:hover{border-color:var(--accent);color:var(--accent);}
+.lc-credit{font-size:.7rem;color:var(--ink-3);margin-top:var(--sp-2);}
+.lc-credit a{color:var(--ink-3);}
+
+/* 3D canvas wraps */
+.lc-canvas-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(ellipse at 50% 30%,#13263a 0%,#0a1622 60%,#070d16 100%);aspect-ratio:16/10;touch-action:none;}
+.lc-canvas-wrap canvas{display:block;width:100%!important;height:100%!important;}
+.lc-hud{position:absolute;left:10px;top:10px;font-family:var(--font-data);font-size:.66rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:#eaf4ff;background:rgba(8,16,26,.6);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:.3em .8em;pointer-events:none;}
+.lc-canvas-wrap.is-shaking{animation:lc-cshake .32s;}
+@keyframes lc-cshake{0%,100%{transform:translate(0,0);}25%{transform:translate(-5px,2px);}50%{transform:translate(4px,-3px);}75%{transform:translate(-3px,2px);}}
+
+/* gauges + controls */
+.lc-breath-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-3);margin-top:var(--sp-3);}
+@media(min-width:46rem){.lc-breath-grid{grid-template-columns:minmax(0,1fr) 13rem;align-items:start;}}
+.lc-gauge{display:flex;flex-direction:column;align-items:center;gap:.4em;padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);}
+.lc-readout{font-family:var(--font-data);font-weight:800;font-size:var(--step-1);color:var(--accent);}
+.lc-readout small{font-weight:700;font-size:.6em;color:var(--ink-3);}
+.lc-ctrls{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.lc-btn-in{background:var(--positive);color:#fff;border:none;}
+.lc-btn-out{background:var(--signal);color:#fff;border:none;}
+.lc-slider-row{margin-top:var(--sp-3);}
+.lc-slider-row input[type=range]{width:100%;accent-color:var(--accent);}
+
+/* gas exchange */
+.lc-gas-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/9;background:#0b1a24;touch-action:none;}
+.lc-gas-wrap canvas{display:block;width:100%;height:100%;}
+.lc-gas-legend{display:flex;flex-wrap:wrap;gap:var(--sp-3);margin-top:var(--sp-3);font-size:var(--step--1);color:var(--ink-2);}
+.lc-swatch{display:inline-flex;align-items:center;gap:.4em;}
+.lc-swatch i{width:.9rem;height:.9rem;border-radius:50%;display:inline-block;}
+.lc-gas-progress{font-family:var(--font-data);font-size:var(--step--1);color:var(--ink-3);margin-top:var(--sp-2);}
+
+/* sort */
+.lc-sort-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-3);}
+.lc-sort-card{border:1px solid var(--line-strong);border-radius:12px;padding:var(--sp-3);background:var(--surface);display:flex;flex-direction:column;gap:var(--sp-2);}
+.lc-sort-card.is-placed{opacity:.55;}
+.lc-sort-card__txt{font-size:var(--step-0);color:var(--ink);}
+.lc-sort-bins{display:flex;gap:var(--sp-2);}
+.lc-bin-btn{flex:1;border:1px solid var(--line-strong);border-radius:10px;padding:.55em;cursor:pointer;font:inherit;font-size:var(--step--1);font-weight:700;background:var(--surface-2);color:var(--ink);}
+.lc-bin-btn.bre:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash);}
+.lc-bin-btn.res:hover{border-color:var(--signal);color:var(--signal);}
+.lc-sort-card.is-shake{animation:lc-shakecard .4s;}
+@keyframes lc-shakecard{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+.lc-sort-card__tag{font-family:var(--font-data);font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+.lc-sort-card__tag.bre{color:var(--accent);}
+.lc-sort-card__tag.res{color:var(--signal);}
+.lc-sort-progress{font-family:var(--font-data);font-size:var(--step--1);color:var(--ink-3);margin-top:var(--sp-2);}
+
+/* investigation-complete finish card */
+.lc-invdone{display:flex;gap:var(--sp-3);align-items:center;margin-top:var(--sp-4);padding:var(--sp-4);border-radius:14px;
+  background:linear-gradient(135deg,#0d3b66,#0a7f8c);color:#eafaff;animation:lc-pop .5s cubic-bezier(.2,1.4,.4,1);}
+[data-reduced-motion="on"] .lc-invdone{animation:none;}
+@keyframes lc-pop{0%{transform:scale(.92);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.lc-invdone__badge{flex:none;font-size:2rem;line-height:1;}
+.lc-invdone__title{font-family:var(--font-display);font-weight:800;font-size:var(--step-0);margin:0 0 .2em;}
+.lc-invdone__line{margin:0;color:#c7edf4;font-size:var(--step--1);}
+
+/* bonus round */
+.lc-bonus{margin-top:var(--sp-5);}
+.lc-launch{border:1.5px dashed var(--accent);border-radius:14px;padding:var(--sp-4);background:var(--accent-wash);display:flex;flex-direction:column;gap:var(--sp-2);}
+.lc-launch__title{font-family:var(--font-display);font-weight:800;font-size:var(--step-1);color:var(--accent);margin:0;}
+.lc-launch__row{display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-top:var(--sp-2);}
+.lc-game{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);}
+.lc-game-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--sp-2);padding:var(--sp-3);border-top:1px solid var(--line);font-size:.72rem;color:var(--ink-3);}
+.lc-mute{display:inline-flex;align-items:center;gap:.4em;border:1px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink-2);padding:.3em .8em;cursor:pointer;font:inherit;font-size:.72rem;}
+.lc-mute svg{width:1em;height:1em;}
+.lc-conduct{display:grid;grid-template-columns:1fr;gap:var(--sp-3);padding:var(--sp-3);}
+.lc-conduct__hud{display:flex;justify-content:space-between;gap:var(--sp-2);font-family:var(--font-data);font-size:.74rem;font-weight:700;color:var(--ink-2);}
+.lc-conduct__hud b{color:var(--accent);}
+.lc-breath-btns{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);}
+.lc-bbtn{padding:1em .6em;border-radius:12px;border:2px solid var(--line-strong);background:var(--surface-2);color:var(--ink);font:inherit;font-weight:800;font-size:var(--step-0);cursor:pointer;transition:transform .08s ease,box-shadow .12s ease;display:flex;flex-direction:column;align-items:center;gap:.2em;}
+.lc-bbtn small{font-weight:700;font-size:.62em;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;}
+.lc-bbtn.in.is-open{border-color:var(--positive);box-shadow:0 0 0 4px color-mix(in srgb,var(--positive) 22%,transparent);background:color-mix(in srgb,var(--positive) 12%,var(--surface));}
+.lc-bbtn.out.is-open{border-color:var(--signal);box-shadow:0 0 0 4px color-mix(in srgb,var(--signal) 22%,transparent);background:color-mix(in srgb,var(--signal) 12%,var(--surface));}
+.lc-bbtn:active{transform:scale(.97);}
+.lc-quiz{padding:var(--sp-3);border:1px solid var(--accent);border-radius:12px;background:var(--accent-wash);}
+.lc-quiz__q{font-weight:700;margin:0 0 var(--sp-2);color:var(--ink);}
+.lc-quiz__opts{display:flex;flex-direction:column;gap:var(--sp-2);}
+.lc-quiz__opt{text-align:left;border:1px solid var(--line-strong);border-radius:10px;padding:.55em .8em;cursor:pointer;font:inherit;background:var(--surface);color:var(--ink);}
+.lc-quiz__opt:hover{border-color:var(--accent);}
+.lc-conduct__toast{min-height:1.4em;font-size:var(--step--1);font-weight:700;text-align:center;}
+.lc-recap{padding:var(--sp-4);text-align:center;}
+.lc-recap h4{font-family:var(--font-display);font-size:var(--step-1);margin:0 0 var(--sp-2);color:var(--accent);}
+.lc-recap__stats{display:flex;justify-content:center;gap:var(--sp-4);flex-wrap:wrap;margin:var(--sp-3) 0;}
+.lc-recap__stat{font-family:var(--font-data);}
+.lc-recap__stat b{display:block;font-size:var(--step-2);color:var(--ink);}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secondary</a></li>
+      <li><a href="../../../../../../">A-Level Pathway</a></li>
+      <li><a href="../../../../../">Lower Secondary</a></li>
+      <li><a href="../../../../">Science</a></li>
+      <li><a href="../../../">Stage 1</a></li>
+      <li><a href="../../">Biology</a></li>
+      <li><a href="../">Module 3: Heart, Lungs, and Circulation</a></li>
+      <li><span aria-current="page">Lung Command: The Oxygen Exchange</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secundaria</a></li>
+      <li><a href="../../../../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../../../../">Lower Secondary</a></li>
+      <li><a href="../../../../">Ciencias</a></li>
+      <li><a href="../../../">Etapa 1</a></li>
+      <li><a href="../../">Biología</a></li>
+      <li><a href="../">Módulo 3: Corazón, pulmones y circulación</a></li>
+      <li><span aria-current="page">Mando Pulmonar: el intercambio de oxígeno</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../../../../engine/i18n.js?v=9";
+import { setTTS, ttsEnabled } from "../../../../../../../../engine/accessibility.js?v=6";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+function palette() {
+  const s = getComputedStyle(document.documentElement);
+  const v = (n, f) => (s.getPropertyValue(n) || "").trim() || f;
+  return {
+    accent: v("--accent", "#16744F"), accentHi: v("--accent-hi", "#1E8C60"),
+    signal: v("--signal", "#9A6E05"), negative: v("--negative", "#A32C1E"),
+    positive: v("--positive", "#16744F"), ink: v("--ink", "#10201A"),
+    surface: v("--surface", "#F8FBF7"),
+  };
+}
+
+/* ======================================================================
+   ORIENT — a clear, standalone breathing diagram (inhale state), with the
+   key breathing-vs-respiration idea in words underneath.
+   ====================================================================== */
+function breathingSVG(animated) {
+  return `
+  <svg class="lc-diagram ${animated ? "lc-breathe" : ""}" viewBox="0 0 340 220" role="img"
+       aria-label="${L("Diagram of the lungs, diaphragm and ribs during a breath","Diagrama de los pulmones, el diafragma y las costillas durante una respiración")}">
+    <defs>
+      <linearGradient id="lc-lg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ff9db0"/><stop offset="100%" stop-color="#d4596e"/>
+      </linearGradient>
+    </defs>
+    <!-- trachea + bronchi -->
+    <path d="M170,22 L170,78" stroke="#8aa0b4" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <path d="M170,74 L140,96 M170,74 L200,96" stroke="#8aa0b4" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <text x="178" y="34" font-family="var(--font-data)" font-size="10" fill="var(--ink-3)">${L("windpipe","tráquea")}</text>
+    <!-- ribs (left + right arcs) -->
+    <g class="lc-ribs" fill="none" stroke="#e7eef5" stroke-width="4" opacity=".8">
+      <path d="M112,96 A70,66 0 0 0 96,176"/>
+      <path d="M120,112 A58,54 0 0 0 108,176"/>
+      <path d="M228,96 A70,66 0 0 1 244,176"/>
+      <path d="M220,112 A58,54 0 0 1 232,176"/>
+    </g>
+    <!-- lungs -->
+    <path class="lc-lung" d="M150,88 C120,92 104,120 104,150 C104,176 120,186 138,182 C150,179 152,160 152,140 L152,92 Z" fill="url(#lc-lg)"/>
+    <path class="lc-lung" d="M190,88 C220,92 236,120 236,150 C236,176 220,186 202,182 C190,179 188,160 188,140 L188,92 Z" fill="url(#lc-lg)"/>
+    <!-- diaphragm -->
+    <path class="lc-dia" d="M96,182 Q170,206 244,182" stroke="#2f8f6b" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <text x="250" y="200" font-family="var(--font-data)" font-size="10" fill="var(--ink-3)">${L("diaphragm","diafragma")}</text>
+    <!-- air arrows -->
+    <g stroke="var(--accent)" stroke-width="3" fill="none" stroke-linecap="round">
+      <path d="M170,8 L170,20" marker-end="url(#lc-ar)"/>
+    </g>
+    <defs><marker id="lc-ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)"/></marker></defs>
+    <text x="118" y="150" font-family="var(--font-data)" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">${L("lung","pulmón")}</text>
+  </svg>`;
+}
+
+const simulation = {
+  orient(host) {
+    host.innerHTML = `
+      <p class="q__hint">${L("Here is your Breathing Machine. Air is pulled down the windpipe into two lungs. A sheet of muscle — the <b>diaphragm</b> — and the <b>ribs</b> change the size of your chest to move the air.",
+        "Esta es tu Máquina de Respirar. El aire baja por la tráquea hasta dos pulmones. Una lámina de músculo — el <b>diafragma</b> — y las <b>costillas</b> cambian el tamaño del tórax para mover el aire.")}</p>
+      ${breathingSVG(true)}
+      <div class="lc-note">
+        <b>${L("Breathing is NOT the same as respiration.","Respirar NO es lo mismo que la respiración celular.")}</b><br>
+        ${L("<b>Breathing (ventilation)</b> is the <i>physical</i> movement of air in and out of the lungs. <b>Respiration</b> is a <i>chemical</i> reaction inside every cell that uses oxygen to release energy from food. Breathing delivers the oxygen that respiration needs.",
+          "La <b>ventilación (respiración pulmonar)</b> es el movimiento <i>físico</i> del aire que entra y sale de los pulmones. La <b>respiración celular</b> es una reacción <i>química</i> dentro de cada célula que usa oxígeno para liberar energía de los alimentos. Respirar entrega el oxígeno que necesita la respiración celular.")}
+      </div>`;
+  },
+
+  /* ============================ OBSERVATION ============================ */
+  observation(host, sim) {
+    host.innerHTML = "";
+    const card = document.createElement("div"); card.className = "card";
+    card.innerHTML = `<p class="eyebrow">${L("Notice something","Observa algo")}</p>
+      <p class="q__hint">${L("Put a hand on your chest and breathe in slowly, then out. Then tap each clue to check what you noticed.",
+        "Pon una mano en el pecho y respira despacio, luego suelta el aire. Después toca cada pista para comprobar lo que notaste.")}</p>`;
+    const grid = document.createElement("div"); grid.className = "lc-obs-fig";
+    const fig = document.createElement("div"); fig.innerHTML = breathingSVG(true);
+    const chips = document.createElement("div"); chips.className = "lc-chips";
+    const NOTICES = [
+      { q: L("What happens to your chest when you breathe IN?","¿Qué le pasa a tu pecho cuando inhalas?"),
+        a: L("It gets bigger — the ribs swing up and out, making more space inside.","Se agranda — las costillas se elevan y se abren, dejando más espacio dentro.") },
+      { q: L("What is the diaphragm doing?","¿Qué está haciendo el diafragma?"),
+        a: L("The dome-shaped diaphragm muscle contracts and flattens downwards, pulling the chest open.","El músculo del diafragma, con forma de cúpula, se contrae y se aplana hacia abajo, abriendo el tórax.") },
+      { q: L("Where does the air actually end up?","¿A dónde llega el aire en realidad?"),
+        a: L("Down the windpipe and into two lungs, filling millions of tiny air sacs called alveoli.","Baja por la tráquea hasta dos pulmones, llenando millones de diminutos sacos de aire llamados alvéolos.") },
+    ];
+    NOTICES.forEach((n, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "lc-chip";
+      b.innerHTML = `<b>${i + 1}. ${n.q}</b>`;
+      let open = false;
+      b.addEventListener("click", () => {
+        if (open) return;
+        open = true; b.classList.add("is-open");
+        const r = document.createElement("span"); r.className = "lc-chip__reveal"; r.textContent = n.a;
+        b.append(r);
+        if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(n.a);
+      });
+      chips.append(b);
+    });
+    grid.append(fig, chips);
+    card.append(grid);
+    host.append(card);
+  },
+
+  /* ============================ INVESTIGATE ============================ */
+  investigate(host, sim) {
+    host.innerHTML = "";
+    const PAL = palette();
+    sim.state.done = sim.state.done || {};   // persisted completion flags
+    const done = sim.state.done;
+
+    const tracker = document.createElement("div"); tracker.className = "lc-steps-track";
+    const STEP_LABELS = [
+      L("1 · Label the X-ray","1 · Etiqueta la radiografía"),
+      L("2 · Breathe the lungs","2 · Respira con los pulmones"),
+      L("3 · Gas exchange","3 · Intercambio de gases"),
+      L("4 · Breathing vs respiration","4 · Ventilación vs respiración"),
+    ];
+    const pills = STEP_LABELS.map(lbl => {
+      const p = document.createElement("span"); p.className = "lc-step-pill";
+      p.innerHTML = `<span class="lc-step-pill__dot"></span>${lbl}`; tracker.append(p); return p;
+    });
+    host.append(tracker);
+
+    const stations = document.createElement("div"); stations.className = "lc-stations";
+    host.append(stations);
+    const bonusHost = document.createElement("div"); bonusHost.className = "lc-bonus";
+    host.append(bonusHost);
+
+    function markDone(key, idx) {
+      done[key] = true; sim.saveState && sim.saveState();
+      pills[idx].classList.add("done");
+      checkAllDone();
+    }
+    function refreshPills() {
+      ["xray", "breathe", "gas", "sort"].forEach((k, i) => { if (done[k]) pills[i].classList.add("done"); });
+    }
+
+    let finishShown = false;
+    function checkAllDone() {
+      const all = done.xray && done.breathe && done.gas && done.sort;
+      if (all && !finishShown) {
+        finishShown = true;
+        sim.setScienceMethod({
+          observation: L("When you breathe in, the chest gets bigger as the ribs rise and the diaphragm flattens; when you breathe out it falls back.",
+            "Al inhalar, el pecho se agranda porque las costillas suben y el diafragma se aplana; al exhalar, vuelve a bajar."),
+          question: L("How does the body move air into the lungs, and how is the oxygen in that air exchanged into the blood at the alveoli?",
+            "¿Cómo mete el cuerpo el aire en los pulmones y cómo se intercambia a la sangre el oxígeno de ese aire en los alvéolos?"),
+          hypothesis: L("If the diaphragm contracts and flattens, then the chest gets bigger and the pressure inside drops, because a bigger space holds the same air at lower pressure — so air is pushed IN from outside.",
+            "Si el diafragma se contrae y se aplana, entonces el tórax se agranda y la presión interior baja, porque un espacio mayor contiene el mismo aire a menor presión — por eso el aire entra desde fuera."),
+          variables: L("Independent: how far the diaphragm is pulled down. Dependent: chest volume and lung pressure (and whether air flows in or out). Controlled: same lungs, same ribcage model each trial.",
+            "Independiente: cuánto baja el diafragma. Dependiente: el volumen del tórax y la presión pulmonar (y si el aire entra o sale). Controlada: los mismos pulmones y la misma caja torácica en cada prueba."),
+          results: L("Across the breathing trials, pulling the diaphragm down raised chest volume toward ~95% and dropped lung pressure (air flowed IN); letting it up dropped volume toward ~25% and raised pressure (air flowed OUT). At the alveoli, oxygen moved into the blood and carbon dioxide moved out.",
+            "En las pruebas de respiración, bajar el diafragma subió el volumen del tórax hasta ~95% y bajó la presión pulmonar (el aire entró); dejarlo subir bajó el volumen hasta ~25% y subió la presión (el aire salió). En los alvéolos, el oxígeno pasó a la sangre y el dióxido de carbono salió."),
+          analysis: L("Bigger chest volume always went with lower lung pressure and air flowing in, and smaller volume with higher pressure and air flowing out — because air moves from high pressure to low pressure. Breathing simply changes the pressure; it is a physical process, unlike respiration, which is a chemical reaction in the cells that uses the oxygen delivered.",
+            "Un mayor volumen del tórax siempre coincidió con menor presión pulmonar y la entrada de aire, y un menor volumen con mayor presión y la salida de aire — porque el aire va de alta a baja presión. Respirar solo cambia la presión; es un proceso físico, a diferencia de la respiración celular, que es una reacción química en las células que usa el oxígeno entregado."),
+          conclusion: L("Moving the diaphragm changes chest volume, which changes lung pressure, which drives air in or out — that is breathing. The oxygen breathed in is exchanged into the blood at the alveoli and then used by cells in respiration to release energy. Breathing and respiration are different but linked.",
+            "Mover el diafragma cambia el volumen del tórax, que cambia la presión pulmonar, que mueve el aire hacia dentro o hacia fuera — eso es la ventilación. El oxígeno inhalado se intercambia a la sangre en los alvéolos y luego las células lo usan en la respiración celular para liberar energía. Respirar y la respiración celular son distintas pero están conectadas."),
+          reflection: L("The clearest evidence was watching the pressure gauge move the instant the diaphragm changed the chest size. The alveoli station made it obvious why thin walls and a big surface area matter — the gases crossed much faster when I could see them diffuse.",
+            "La prueba más clara fue ver moverse el manómetro justo cuando el diafragma cambiaba el tamaño del tórax. La estación de los alvéolos dejó claro por qué importan las paredes finas y la gran superficie — los gases cruzaban mucho más rápido cuando podía verlos difundirse."),
+        });
+        showFinish();
+      }
+      paintBonus();
+    }
+
+    function showFinish() {
+      if (stations.querySelector(".lc-invdone")) return;
+      const card = document.createElement("div"); card.className = "lc-invdone";
+      card.innerHTML = `<div class="lc-invdone__badge">🫁</div>
+        <div><p class="lc-invdone__title">${L("Breathing Machine mastered!","¡Máquina de Respirar dominada!")}</p>
+        <p class="lc-invdone__line">${L("All four stations complete. Your readings are saved in the Record. Try the bonus round below, then move on to Explain.",
+          "Las cuatro estaciones completas. Tus lecturas están guardadas en el Registro. Prueba la ronda bonus de abajo y continúa a Explicar.")}</p></div>`;
+      stations.append(card);
+      sim.award("lc-machine-master", L("Breathing Machine Master","Maestro de la Máquina de Respirar"));
+    }
+
+    buildXrayStation(stations, sim, () => markDone("xray", 0), PAL);
+    buildBreatheStation(stations, sim, () => markDone("breathe", 1), PAL);
+    buildGasStation(stations, sim, () => markDone("gas", 2), PAL);
+    buildSortStation(stations, sim, () => markDone("sort", 3), PAL);
+    refreshPills();
+
+    /* -------- bonus round placement -------- */
+    function paintBonus() {
+      const all = done.xray && done.breathe && done.gas && done.sort;
+      if (!all) { bonusHost.innerHTML = ""; bonusHost.dataset.rendered = ""; return; }
+      if (bonusHost.dataset.rendered) return;
+      bonusHost.dataset.rendered = "1";
+      mountBreathConductorLaunch(bonusHost, sim, PAL);
+    }
+    paintBonus();
+    // if returning with everything already done, re-run completion to show finish+bonus
+    if (done.xray && done.breathe && done.gas && done.sort) { finishShown = false; checkAllDone(); }
+  },
+};
+
+/* ======================================================================
+   STATION 1 — LABEL THE REAL CHEST X-RAY (choose term BEFORE feedback)
+   ====================================================================== */
+function buildXrayStation(root, sim, onDone, PAL) {
+  const card = document.createElement("div"); card.className = "card lc-station";
+  card.innerHTML = `<p class="eyebrow">${L("Station 1 · Label the real X-ray","Estación 1 · Etiqueta la radiografía real")}</p>
+    <p class="q__hint">${L("This is a real chest X-ray of a healthy person. Tap each glowing pin and choose what it shows — nothing is labelled for you. (On an X-ray we face the patient, so their RIGHT lung is on YOUR left.)",
+      "Esta es una radiografía de tórax real de una persona sana. Toca cada pin brillante y elige qué muestra — nada está etiquetado. (En una radiografía miramos al paciente de frente, así que su pulmón DERECHO está a TU izquierda.)")}</p>`;
+  const xr = document.createElement("div"); xr.className = "lc-xray";
+  const img = document.createElement("img");
+  img.src = "photos/chest-xray.jpg";
+  img.alt = L("A frontal chest X-ray showing the ribs, both lungs and the diaphragm","Radiografía frontal de tórax que muestra las costillas, ambos pulmones y el diafragma");
+  xr.append(img); card.append(xr);
+  const credit = document.createElement("p"); credit.className = "lc-credit";
+  credit.innerHTML = L(
+    `Chest X-ray: radiology by Dr Johan Verbeken, scan by Vincent Mia Edie Verheyen (Institute of Tropical Medicine, Antwerp), <a href="https://commons.wikimedia.org/wiki/File:X-ray_of_healthy_lungs_taken_at_the_Institute_of_Tropical_Medicine_in_Antwerp,_on_9_December_2016_(1).tif" target="_blank" rel="noopener">Wikimedia Commons</a>, public domain.`,
+    `Radiografía de tórax: radiología del Dr. Johan Verbeken, escaneo de Vincent Mia Edie Verheyen (Instituto de Medicina Tropical, Amberes), <a href="https://commons.wikimedia.org/wiki/File:X-ray_of_healthy_lungs_taken_at_the_Institute_of_Tropical_Medicine_in_Antwerp,_on_9_December_2016_(1).tif" target="_blank" rel="noopener">Wikimedia Commons</a>, dominio público.`);
+  card.append(credit);
+  const progress = document.createElement("p"); progress.className = "lc-gas-progress"; card.append(progress);
+  const pickHost = document.createElement("div"); card.append(pickHost);
+  const capHost = document.createElement("div"); card.append(capHost);
+  root.append(card);
+
+  const PINS = [
+    { id: "ribs", x: 0.165, y: 0.33, term: L("Ribs","Costillas"),
+      cap: L("Ribs — the curved bones making a cage around the lungs. They swing up and out when you breathe in to help enlarge the chest.","Costillas — los huesos curvos que forman una caja alrededor de los pulmones. Se elevan y se abren al inhalar para ayudar a agrandar el tórax.") },
+    { id: "rlung", x: 0.26, y: 0.47, term: L("Right lung","Pulmón derecho"),
+      cap: L("The patient's RIGHT lung (on your left) — the dark area is air inside the lung. X-rays pass easily through air, so air looks black.","El pulmón DERECHO del paciente (a tu izquierda) — la zona oscura es aire dentro del pulmón. Los rayos X atraviesan el aire fácilmente, por eso el aire se ve negro.") },
+    { id: "llung", x: 0.72, y: 0.45, term: L("Left lung","Pulmón izquierdo"),
+      cap: L("The patient's LEFT lung (on your right) — slightly smaller because the heart sits on this side. Both lungs fill with air when you breathe in.","El pulmón IZQUIERDO del paciente (a tu derecha) — un poco más pequeño porque el corazón está de este lado. Ambos pulmones se llenan de aire al inhalar.") },
+    { id: "dia", x: 0.33, y: 0.775, term: L("Diaphragm","Diafragma"),
+      cap: L("The diaphragm — the dome-shaped muscle under the lungs. It flattens downwards when you breathe in and curves back up when you breathe out.","El diafragma — el músculo con forma de cúpula bajo los pulmones. Se aplana hacia abajo al inhalar y vuelve a curvarse hacia arriba al exhalar.") },
+  ];
+  const TERMS = PINS.map(p => p.term);
+  const st = {}; PINS.forEach(p => st[p.id] = { done: false, tries: 0, correct: false });
+
+  function update() {
+    const d = Object.values(st).filter(s => s.done).length;
+    progress.textContent = L(`Labelled ${d} of 4.`, `Etiquetado ${d} de 4.`);
+    if (d === PINS.length) {
+      if (Object.values(st).every(s => s.correct)) sim.award("lc-radiographer", L("Junior Radiographer","Radiógrafo Junior"));
+      onDone();
+    }
+  }
+  function reveal(text, kind) {
+    const b = document.createElement("p"); b.className = "lc-note";
+    if (kind === "bad") b.style.borderColor = "var(--caution)";
+    b.textContent = text; capHost.append(b);
+    if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(text);
+  }
+
+  PINS.forEach((p, i) => {
+    const pin = document.createElement("button"); pin.type = "button"; pin.className = "lc-pin";
+    pin.style.left = (p.x * 100) + "%"; pin.style.top = (p.y * 100) + "%";
+    pin.setAttribute("aria-label", L(`Unlabelled point ${i + 1}`, `Punto sin etiquetar ${i + 1}`));
+    pin.innerHTML = `<span class="lc-pin__dot"></span>`;
+    xr.append(pin);
+    let open = false;
+    pin.addEventListener("click", () => {
+      if (st[p.id].done) return;
+      if (open) { pickHost.innerHTML = ""; open = false; return; }
+      pickHost.innerHTML = "";
+      const pick = document.createElement("div"); pick.className = "lc-pick";
+      const lab = document.createElement("p"); lab.className = "q__hint"; lab.style.width = "100%";
+      lab.textContent = L(`What does point ${i + 1} show?`, `¿Qué muestra el punto ${i + 1}?`);
+      pick.append(lab);
+      TERMS.forEach(term => {
+        const t = document.createElement("button"); t.type = "button"; t.className = "lc-term"; t.textContent = term;
+        t.addEventListener("click", () => {
+          st[p.id].tries++;
+          if (term === p.term) {
+            st[p.id].done = true; st[p.id].correct = true; pin.classList.add("is-correct");
+            reveal(p.cap, "ok");
+            sim.recordTrial({ station: L("Label X-ray","Etiquetar radiografía"), action: L("Identified a part","Identificó una parte"), reading: term, result: L("Correct","Correcto") });
+            pickHost.innerHTML = ""; open = false; update();
+          } else if (st[p.id].tries >= 3) {
+            st[p.id].done = true; st[p.id].correct = false; pin.classList.add("is-revealed");
+            reveal(L(`Not quite — this one is the ${p.term}. `, `No exactamente — esto es el/la ${p.term}. `) + p.cap, "bad");
+            sim.recordTrial({ station: L("Label X-ray","Etiquetar radiografía"), action: L("Identified a part","Identificó una parte"), reading: term, result: L("Revealed after 3 tries","Revelado tras 3 intentos") });
+            pickHost.innerHTML = ""; open = false; update();
+          } else {
+            pin.classList.remove("is-shake"); void pin.offsetWidth; pin.classList.add("is-shake");
+            sim.toast(L("Not that one — look again and try again.", "Ese no — mira otra vez e inténtalo de nuevo."), "info");
+          }
+        });
+        pick.append(t);
+      });
+      pickHost.append(pick); open = true;
+    });
+  });
+  update();
+}
+
+/* ======================================================================
+   STATION 2 — BREATHE THE LUNGS (3D Three.js bellows; orbit to inspect)
+   ====================================================================== */
+function buildBreatheStation(root, sim, onDone, PAL) {
+  const card = document.createElement("div"); card.className = "card lc-station";
+  card.innerHTML = `<p class="eyebrow">${L("Station 2 · Breathe the lungs","Estación 2 · Respira con los pulmones")}</p>
+    <p class="q__hint">${L("Pull the diaphragm down to breathe IN, let it up to breathe OUT. Watch the chest volume, the pressure gauge and the air flow. Drag the scene to look around. Log at least one IN and one OUT breath.",
+      "Baja el diafragma para inhalar, déjalo subir para exhalar. Observa el volumen del tórax, el manómetro y el flujo de aire. Arrastra la escena para mirar alrededor. Registra al menos una inhalación y una exhalación.")}</p>`;
+  const wrap = document.createElement("div"); wrap.className = "lc-canvas-wrap";
+  wrap.innerHTML = `<span class="lc-hud">${L("Breathing Machine · 3D","Máquina de Respirar · 3D")}</span>`;
+  card.append(wrap);
+
+  const grid = document.createElement("div"); grid.className = "lc-breath-grid";
+  const ctrlCol = document.createElement("div");
+  ctrlCol.innerHTML = `
+    <div class="lc-ctrls">
+      <button type="button" class="btn lc-btn-in" id="lc-in">${L("Breathe IN ⬇ diaphragm","Inhalar ⬇ diafragma")}</button>
+      <button type="button" class="btn lc-btn-out" id="lc-out">${L("Breathe OUT ⬆ diaphragm","Exhalar ⬆ diafragma")}</button>
+    </div>
+    <div class="lc-slider-row">
+      <label class="field__label" for="lc-dia-range">${L("Or set the diaphragm by hand (how far it pulls down)","O ajusta el diafragma a mano (cuánto baja)")}</label>
+      <input id="lc-dia-range" type="range" min="0" max="100" value="25">
+      <button type="button" class="btn btn--ghost" id="lc-lock" style="margin-top:var(--sp-2)">${L("Lock this reading →","Fijar esta lectura →")}</button>
+    </div>`;
+  const gaugeCol = document.createElement("div"); gaugeCol.className = "lc-gauge";
+  gaugeCol.innerHTML = `
+    <svg viewBox="0 0 120 70" style="width:100%;max-width:150px" aria-hidden="true">
+      <path d="M10,62 A50,50 0 0 1 110,62" fill="none" stroke="var(--line-strong)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M10,62 A50,50 0 0 1 60,12" fill="none" stroke="var(--positive)" stroke-width="8" stroke-linecap="round" opacity=".5"/>
+      <path d="M60,12 A50,50 0 0 1 110,62" fill="none" stroke="var(--signal)" stroke-width="8" stroke-linecap="round" opacity=".5"/>
+      <line id="lc-needle" x1="60" y1="62" x2="60" y2="18" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="60" cy="62" r="4" fill="var(--ink)"/>
+    </svg>
+    <p style="margin:0;font-size:.7rem;color:var(--ink-3);font-family:var(--font-data)">${L("LUNG PRESSURE","PRESIÓN PULMONAR")}</p>
+    <p class="lc-readout"><span id="lc-vol">25</span><small>% ${L("volume","volumen")}</small></p>
+    <p style="margin:0;font-size:.74rem;color:var(--ink-2);text-align:center" id="lc-air">—</p>`;
+  grid.append(ctrlCol, gaugeCol);
+  card.append(grid);
+  root.append(card);
+
+  /* ---- Three.js scene ---- */
+  let vol = 0.25, targetVol = 0.25, prevVol = 0.25, breaths = { in: false, out: false };
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x0a1622, 7, 22);
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  wrap.appendChild(renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0xbfe0ff, 0x10202c, 1.0));
+  const key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(4, 7, 6); scene.add(key);
+
+  const pivot = new THREE.Group(); scene.add(pivot);
+
+  // starfield-style floating dust so the scene is never empty/still
+  const dust = new THREE.Group(); pivot.add(dust);
+  const dustMat = new THREE.MeshBasicMaterial({ color: 0x9fc7e8 });
+  for (let i = 0; i < 60; i++) {
+    const d = new THREE.Mesh(new THREE.SphereGeometry(0.03 + Math.random() * 0.03, 6, 6), dustMat);
+    d.position.set((Math.random() - 0.5) * 14, (Math.random() - 0.5) * 9, (Math.random() - 0.5) * 10 - 3);
+    d.userData.sp = 0.2 + Math.random() * 0.5; dust.add(d);
+  }
+
+  // trachea + bronchi (off-axis vertical landmark so orbit is rewarding)
+  const airMat = new THREE.MeshStandardMaterial({ color: 0x8fb0c8, roughness: 0.6 });
+  const trachea = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 2.4, 16), airMat);
+  trachea.position.set(0, 2.0, 0); pivot.add(trachea);
+  [-1, 1].forEach(s => {
+    const br = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 1.5, 12), airMat);
+    br.position.set(s * 0.5, 1.0, 0); br.rotation.z = s * 0.7; pivot.add(br);
+  });
+
+  // lungs — two ellipsoids
+  const lungMat = new THREE.MeshStandardMaterial({ color: 0xe06a80, roughness: 0.5, emissive: 0x3a0f16, emissiveIntensity: 0.4 });
+  const lungGeo = new THREE.SphereGeometry(1, 24, 20);
+  const lungs = [-1, 1].map(s => {
+    const m = new THREE.Mesh(lungGeo, lungMat);
+    m.position.set(s * 1.05, 0.0, 0); pivot.add(m); return { mesh: m, side: s };
+  });
+
+  // ribs — partial torus arcs on each side
+  const ribMat = new THREE.MeshStandardMaterial({ color: 0xeef3f8, roughness: 0.4 });
+  const ribGroup = new THREE.Group(); pivot.add(ribGroup);
+  for (let i = 0; i < 4; i++) {
+    const r = 1.5 + i * 0.28;
+    const torus = new THREE.Mesh(new THREE.TorusGeometry(r, 0.055, 8, 40, Math.PI * 1.1), ribMat);
+    torus.position.set(0, 0.7 - i * 0.42, 0); torus.rotation.z = -Math.PI * 0.05; ribGroup.add(torus);
+  }
+
+  // diaphragm — a flattened dome (scaled sphere cap)
+  const diaMat = new THREE.MeshStandardMaterial({ color: 0x2f9f74, roughness: 0.6, emissive: 0x0d2e22, emissiveIntensity: 0.4 });
+  const diaphragm = new THREE.Mesh(new THREE.SphereGeometry(1.9, 24, 12, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45), diaMat);
+  diaphragm.position.set(0, -1.7, 0); pivot.add(diaphragm);
+
+  // air particles streaming in/out
+  const airParts = new THREE.Group(); pivot.add(airParts);
+  const apMat = new THREE.MeshBasicMaterial({ color: 0x7fe3ff });
+  function puff(dir) { // dir +1 in, -1 out
+    if (reduced()) return;
+    for (let i = 0; i < 10; i++) {
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), apMat);
+      p.position.set((Math.random() - 0.5) * 0.4, 3.0, (Math.random() - 0.5) * 0.4);
+      p.userData = { vy: dir > 0 ? -(0.06 + Math.random() * 0.05) : (0.06 + Math.random() * 0.05), born: Date.now(), dir };
+      airParts.add(p);
+    }
+  }
+
+  const needle = gaugeCol.querySelector("#lc-needle");
+  const volOut = gaugeCol.querySelector("#lc-vol");
+  const airOut = gaugeCol.querySelector("#lc-air");
+  const range = ctrlCol.querySelector("#lc-dia-range");
+
+  function volToSlider(v) { return Math.round((v - 0.2) / 0.8 * 100); }
+  function sliderToVol(s) { return 0.2 + (s / 100) * 0.8; }
+  function pressureIndex(volPct) { return Math.round(120 - volPct); }
+
+  function paintGauge() {
+    const volPct = Math.round(vol * 100);
+    volOut.textContent = volPct;
+    const pi = pressureIndex(volPct);
+    // needle: high volume -> low pressure -> needle to left; angle -80..+80
+    const ang = (pi - 60) * 1.4; // deg
+    needle.setAttribute("transform", `rotate(${ang} 60 62)`);
+    const rising = vol > prevVol + 0.002, falling = vol < prevVol - 0.002;
+    if (rising) airOut.innerHTML = L("Pressure LOW → air flows <b>IN</b>", "Presión BAJA → el aire <b>ENTRA</b>");
+    else if (falling) airOut.innerHTML = L("Pressure HIGH → air flows <b>OUT</b>", "Presión ALTA → el aire <b>SALE</b>");
+    else airOut.innerHTML = L(`Pressure index ${pi}`, `Índice de presión ${pi}`);
+  }
+
+  // Reading is computed from a GIVEN volume (the intended target state), NEVER
+  // from the rAF-animated `vol` — rAF is throttled when the pane is hidden, so
+  // relying on the animation having "caught up" would log stale/wrong evidence.
+  function readingStr(v) {
+    const volPct = Math.round(v * 100); const pi = pressureIndex(volPct);
+    const band = pi < 60 ? L("low", "baja") : L("high", "alta");
+    return L(`volume ${volPct}%, pressure ${pi} (${band})`, `volumen ${volPct}%, presión ${pi} (${band})`);
+  }
+
+  function setTarget(v, log, actionLabel, dir) {
+    targetVol = v;
+    range.value = volToSlider(v);
+    if (log) {
+      puff(dir);
+      sim.recordTrial({
+        station: L("Breathe the lungs", "Respirar con los pulmones"),
+        action: actionLabel,
+        reading: readingStr(v),
+        result: dir > 0 ? L("Air flows IN", "El aire entra") : L("Air flows OUT", "El aire sale"),
+      });
+      if (dir > 0) breaths.in = true; else breaths.out = true;
+      if (breaths.in && breaths.out) { sim.award("lc-first-breaths", L("First Breaths Logged", "Primeras respiraciones registradas")); onDone(); }
+    }
+  }
+
+  ctrlCol.querySelector("#lc-in").addEventListener("click", () => setTarget(0.95, true, L("Inhale — diaphragm down", "Inhalar — diafragma abajo"), 1));
+  ctrlCol.querySelector("#lc-out").addEventListener("click", () => setTarget(0.25, true, L("Exhale — diaphragm up", "Exhalar — diafragma arriba"), -1));
+  range.addEventListener("input", () => { targetVol = sliderToVol(Number(range.value)); });
+  ctrlCol.querySelector("#lc-lock").addEventListener("click", () => {
+    // reading derived from the slider's target (intended state), not animated vol
+    const pi = pressureIndex(Math.round(targetVol * 100));
+    sim.recordTrial({
+      station: L("Breathe the lungs", "Respirar con los pulmones"),
+      action: L(`Set diaphragm to ${Number(range.value)}%`, `Diafragma al ${Number(range.value)}%`),
+      reading: readingStr(targetVol),
+      result: pi < 60 ? L("Low pressure → air flows IN", "Presión baja → el aire entra") : L("High pressure → air flows OUT", "Presión alta → el aire sale"),
+    });
+    sim.toast(L(`Reading locked: ${readingStr(targetVol)}.`, `Lectura fijada: ${readingStr(targetVol)}.`), "info");
+  });
+
+  // orbit by drag (no click-picking here, so a simple drag-rotate is safe)
+  let dragging = false, lastX = 0, lastY = 0, rotY = 0.2, rotX = 0.1;
+  function down(e) { dragging = true; const t = e.touches ? e.touches[0] : e; lastX = t.clientX; lastY = t.clientY; }
+  function move(e) { if (!dragging) return; const t = e.touches ? e.touches[0] : e; rotY += (t.clientX - lastX) * 0.01; rotX += (t.clientY - lastY) * 0.008; rotX = Math.max(-0.6, Math.min(0.7, rotX)); lastX = t.clientX; lastY = t.clientY; }
+  function up() { dragging = false; }
+  wrap.addEventListener("mousedown", down); window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+  wrap.addEventListener("touchstart", down, { passive: true }); wrap.addEventListener("touchmove", move, { passive: true }); wrap.addEventListener("touchend", up);
+
+  let cw = 0, ch = 0;
+  function resize() {
+    const w = wrap.clientWidth, h = wrap.clientHeight; if (!w || !h || (w === cw && h === ch)) return;
+    cw = w; ch = h; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(wrap); resize();
+
+  let raf = 0;
+  function render() {
+    resize();   // self-heal if the stage was hidden when first built
+    const now = Date.now();
+    prevVol = vol;
+    vol += (targetVol - vol) * 0.12;
+    const sc = 0.62 + vol * 0.62;
+    lungs.forEach(l => l.mesh.scale.set(sc, sc * 1.12, sc));
+    diaphragm.position.y = -1.3 - vol * 0.9;
+    diaphragm.scale.y = 1.1 - vol * 0.35;
+    ribGroup.scale.set(1 + (vol - 0.25) * 0.14, 1 + (vol - 0.25) * 0.08, 1 + (vol - 0.25) * 0.14);
+    if (!reduced()) {
+      dust.children.forEach((d, i) => { d.position.y += Math.sin(now / 900 + i) * 0.004 * d.userData.sp; d.rotation.y += 0.01; });
+      pivot.position.y = Math.sin(now / 1200) * 0.05;
+    }
+    pivot.rotation.y = rotY + (reduced() ? 0 : Math.sin(now / 4000) * 0.15);
+    pivot.rotation.x = rotX;
+    airParts.children.slice().forEach(p => {
+      const age = (now - p.userData.born) / 1000; if (age > 1.1) { airParts.remove(p); return; }
+      p.position.y += p.userData.vy; p.scale.setScalar(Math.max(0, 1 - age / 1.1));
+    });
+    camera.position.set(0, 0.4, 7.4); camera.lookAt(0, 0, 0);
+    paintGauge();
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(render);
+  }
+  render();
+  paintGauge();
+}
+
+/* ======================================================================
+   STATION 3 — GAS EXCHANGE AT THE ALVEOLUS (2D canvas diffusion)
+   Tap O2 in the air sac to send it INTO the blood; tap CO2 in the blood
+   to send it OUT into the air. Correct moves follow the gradient; a wrong
+   tap gets an in-place shake. Blood turns from blue to red as O2 arrives.
+   ====================================================================== */
+function buildGasStation(root, sim, onDone, PAL) {
+  const card = document.createElement("div"); card.className = "card lc-station";
+  card.innerHTML = `<p class="eyebrow">${L("Station 3 · Gas exchange at the alveolus","Estación 3 · Intercambio de gases en el alvéolo")}</p>
+    <p class="q__hint">${L("Left = air sac (lots of O₂). Right = blood (lots of CO₂, low O₂). Tap an <b>O₂</b> to diffuse it INTO the blood, and tap a <b>CO₂</b> to diffuse it OUT into the air. Each gas moves from where it is high to where it is low.",
+      "Izquierda = saco de aire (mucho O₂). Derecha = sangre (mucho CO₂, poco O₂). Toca un <b>O₂</b> para que se difunda a la sangre, y toca un <b>CO₂</b> para que salga al aire. Cada gas va de donde está alto a donde está bajo.")}</p>`;
+  const gw = document.createElement("div"); gw.className = "lc-gas-wrap";
+  const cv = document.createElement("canvas"); gw.append(cv); card.append(gw);
+  const legend = document.createElement("div"); legend.className = "lc-gas-legend";
+  legend.innerHTML = `<span class="lc-swatch"><i style="background:#39d98a"></i>${L("Oxygen (O₂)","Oxígeno (O₂)")}</span>
+    <span class="lc-swatch"><i style="background:#8a93a6"></i>${L("Carbon dioxide (CO₂)","Dióxido de carbono (CO₂)")}</span>
+    <span class="lc-swatch"><i style="background:#d14a4a"></i>${L("O₂-rich blood","Sangre rica en O₂")}</span>
+    <span class="lc-swatch"><i style="background:#4a6fd1"></i>${L("O₂-poor blood","Sangre pobre en O₂")}</span>`;
+  card.append(legend);
+  const prog = document.createElement("p"); prog.className = "lc-gas-progress"; card.append(prog);
+  root.append(card);
+
+  const ctx = cv.getContext("2d");
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // Self-healing size: the Experiment stage is display:none when the station
+  // is first built, so a one-shot resize would latch W=0 and every click would
+  // miss. Re-check live size each draw frame and on every click instead.
+  function ensureSize() {
+    const w = gw.clientWidth, h = gw.clientHeight;
+    if (!w || !h) return false;
+    if (w !== W || h !== H) {
+      W = w; H = h; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    return true;
+  }
+  new ResizeObserver(ensureSize).observe(gw); ensureSize();
+
+  const NEED_O2 = 6, NEED_CO2 = 5;
+  let o2In = 0, co2Out = 0, finished = false;
+  // molecules
+  const o2s = [], co2s = [], rbcs = [];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function membraneX() { return W * 0.5; }
+  for (let i = 0; i < 7; i++) o2s.push({ x: rnd(0.08, 0.42), y: rnd(0.15, 0.85), vx: rnd(-.2, .2), vy: rnd(-.2, .2), moving: false, gone: false });
+  for (let i = 0; i < 6; i++) co2s.push({ x: rnd(0.58, 0.92), y: rnd(0.15, 0.85), vx: rnd(-.2, .2), vy: rnd(-.2, .2), moving: false, gone: false });
+  for (let i = 0; i < 5; i++) rbcs.push({ x: rnd(0.62, 0.9), y: 0.2 + i * 0.15, o2: false });
+
+  function nearest(list, mx, my, side) {
+    let best = null, bd = 1e9;
+    list.forEach(m => {
+      if (m.gone || m.moving) return;
+      const dx = m.x * W - mx, dy = m.y * H - my, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = m; }
+    });
+    if (best && bd < 40 * 40) return best;
+    return null;
+  }
+
+  let shakeUntil = 0, shakeX = 0, shakeY = 0;
+  function wrongTap(mx, my) {
+    shakeUntil = Date.now() + 300; shakeX = mx; shakeY = my;
+    gw.classList.remove("is-shaking"); void gw.offsetWidth; if (!reduced()) gw.classList.add("is-shaking");
+    sim.toast(L("That gas is already where it's low — it won't diffuse that way. Move O₂ into the blood, CO₂ out to the air.",
+      "Ese gas ya está donde está bajo — no se difunde en esa dirección. Mueve O₂ a la sangre y CO₂ al aire."), "info");
+  }
+
+  function burst(x, y, color) {
+    if (reduced()) return;
+    for (let i = 0; i < 8; i++) parts.push({ x, y, vx: rnd(-2, 2), vy: rnd(-2.5, -.5), life: 1, color });
+  }
+  const parts = [];
+
+  cv.addEventListener("click", e => {
+    if (!ensureSize()) return;
+    const r = cv.getBoundingClientRect(); const mx = e.clientX - r.left, my = e.clientY - r.top;
+    if (mx < membraneX()) {
+      // left/air side: only O2 can diffuse in
+      const o = nearest(o2s, mx, my, "L");
+      if (o) { sendO2(o); return; }
+      // tapped a region with no O2 (maybe wants to move CO2 wrongly)
+      wrongTap(mx, my);
+    } else {
+      const c = nearest(co2s, mx, my, "R");
+      if (c) { sendCO2(c); return; }
+      wrongTap(mx, my);
+    }
+  });
+
+  // Game state resolves on the CLICK (counters, record, completion) — never in
+  // the rAF animation callback, which is throttled when the pane is hidden.
+  // The move-to-target animation below is purely cosmetic.
+  function sendO2(o) {
+    if (o.moving || o.gone) return;
+    o.moving = true;
+    const rbc = rbcs.find(b => !b.o2) || rbcs[Math.floor(Math.random() * rbcs.length)];
+    o.tx = rbc.x; o.ty = rbc.y; rbc.o2 = true; o2In++;
+    burst(o.x * W, o.y * H, "#39d98a");
+    sim.recordTrial({ station: L("Gas exchange", "Intercambio de gases"), action: L("Diffuse O2 into blood", "Difundir O2 a la sangre"), reading: L(`O2 in: ${o2In}/${NEED_O2}`, `O2 dentro: ${o2In}/${NEED_O2}`), result: L("Blood cell now carries O2", "El glóbulo ahora lleva O2") });
+    o.onArrive = () => { o.gone = true; };
+    check();
+  }
+  function sendCO2(c) {
+    if (c.moving || c.gone) return;
+    c.moving = true; c.tx = rnd(0.1, 0.4); c.ty = rnd(0.15, 0.85); co2Out++;
+    burst(c.x * W, c.y * H, "#8a93a6");
+    sim.recordTrial({ station: L("Gas exchange", "Intercambio de gases"), action: L("Diffuse CO2 out to air", "Difundir CO2 al aire"), reading: L(`CO2 out: ${co2Out}/${NEED_CO2}`, `CO2 fuera: ${co2Out}/${NEED_CO2}`), result: L("CO2 leaves in the breath", "El CO2 sale al respirar") });
+    c.onArrive = () => { c.gone = true; };
+    check();
+  }
+  function check() {
+    prog.textContent = L(`Oxygen delivered: ${o2In}/${NEED_O2} · Carbon dioxide removed: ${co2Out}/${NEED_CO2}`,
+      `Oxígeno entregado: ${o2In}/${NEED_O2} · Dióxido de carbono retirado: ${co2Out}/${NEED_CO2}`);
+    if (!finished && o2In >= NEED_O2 && co2Out >= NEED_CO2) {
+      finished = true; sim.award("lc-gas-swapper", L("Gas Swap Specialist", "Especialista en Intercambio de Gases"));
+      sim.toast(L("Gas exchange complete — the blood leaving is bright red and loaded with oxygen!",
+        "¡Intercambio de gases completo — la sangre que sale es roja brillante y cargada de oxígeno!"), "correct");
+      onDone();
+    }
+  }
+  check();
+
+  function draw() {
+    if (!ensureSize()) { requestAnimationFrame(draw); return; }
+    ctx.clearRect(0, 0, W, H);
+    // backgrounds
+    ctx.fillStyle = "#13344a"; ctx.fillRect(0, 0, membraneX(), H);          // air sac
+    ctx.fillStyle = "#3a1222"; ctx.fillRect(membraneX(), 0, W - membraneX(), H); // blood
+    // membrane
+    ctx.strokeStyle = "rgba(255,255,255,.5)"; ctx.setLineDash([6, 6]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(membraneX(), 0); ctx.lineTo(membraneX(), H); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.font = "600 12px system-ui"; ctx.textAlign = "center";
+    ctx.fillText(L("AIR SAC (alveolus)", "SACO DE AIRE (alvéolo)"), membraneX() / 2, 18);
+    ctx.fillText(L("BLOOD (capillary)", "SANGRE (capilar)"), membraneX() + (W - membraneX()) / 2, 18);
+    ctx.fillStyle = "rgba(255,255,255,.4)"; ctx.font = "10px system-ui";
+    ctx.fillText(L("wall = 1 cell thick", "pared = 1 célula de grosor"), membraneX(), H - 8);
+
+    const t = Date.now() / 1000;
+    // rbcs
+    rbcs.forEach(b => {
+      const x = b.x * W, y = b.y * H + (reduced() ? 0 : Math.sin(t + b.y * 9) * 4);
+      ctx.beginPath(); ctx.ellipse(x, y, 16, 11, 0, 0, 7); ctx.fillStyle = b.o2 ? "#d14a4a" : "#4a6fd1"; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x, y, 6, 4, 0, 0, 7); ctx.fillStyle = b.o2 ? "#a83535" : "#36529e"; ctx.fill();
+    });
+    // molecules drift / move
+    function stepMol(m, lo, hi) {
+      if (m.gone) return;
+      if (m.moving) {
+        m.x += (m.tx - m.x) * 0.12; m.y += (m.ty - m.y) * 0.12;
+        if (Math.abs(m.tx - m.x) < 0.01 && Math.abs(m.ty - m.y) < 0.01 && m.onArrive) { const f = m.onArrive; m.onArrive = null; f(); }
+      } else if (!reduced()) {
+        m.x += m.vx * 0.002; m.y += m.vy * 0.004;
+        if (m.x < lo || m.x > hi) m.vx *= -1; if (m.y < 0.12 || m.y > 0.88) m.vy *= -1;
+        m.x = Math.max(lo, Math.min(hi, m.x)); m.y = Math.max(0.12, Math.min(0.88, m.y));
+      }
+    }
+    o2s.forEach(o => { stepMol(o, 0.05, 0.95); if (!o.gone) drawMol(o.x * W, o.y * H, "#39d98a", "O₂"); });
+    co2s.forEach(c => { stepMol(c, 0.05, 0.95); if (!c.gone) drawMol(c.x * W, c.y * H, "#8a93a6", "CO₂"); });
+    // particles
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life -= 0.03;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    if (Date.now() < shakeUntil && !reduced()) { ctx.strokeStyle = "rgba(255,120,120,.9)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(shakeX, shakeY, 18, 0, 7); ctx.stroke(); }
+    requestAnimationFrame(draw);
+  }
+  function drawMol(x, y, color, label) {
+    ctx.beginPath(); ctx.arc(x, y, 11, 0, 7); ctx.fillStyle = color; ctx.fill();
+    ctx.fillStyle = "#05121a"; ctx.font = "700 9px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(label, x, y + 0.5); ctx.textBaseline = "alphabetic";
+  }
+  draw();
+}
+
+/* ======================================================================
+   STATION 4 — BREATHING vs RESPIRATION sort
+   ====================================================================== */
+function buildSortStation(root, sim, onDone, PAL) {
+  const card = document.createElement("div"); card.className = "card lc-station";
+  card.innerHTML = `<p class="eyebrow">${L("Station 4 · Breathing vs respiration","Estación 4 · Ventilación vs respiración celular")}</p>
+    <p class="q__hint">${L("Sort each statement into the right box. <b>Breathing</b> = moving air (physical). <b>Respiration</b> = releasing energy inside cells (chemical).",
+      "Clasifica cada frase en la caja correcta. <b>Ventilación</b> = mover aire (físico). <b>Respiración celular</b> = liberar energía dentro de las células (químico).")}</p>`;
+  const grid = document.createElement("div"); grid.className = "lc-sort-grid"; card.append(grid);
+  const prog = document.createElement("p"); prog.className = "lc-sort-progress"; card.append(prog);
+  root.append(card);
+
+  const CARDS = [
+    { t: L("Moving air into and out of the lungs", "Mover aire dentro y fuera de los pulmones"), cat: "bre" },
+    { t: L("Happens inside every living cell", "Ocurre dentro de cada célula viva"), cat: "res" },
+    { t: L("A physical, mechanical process", "Un proceso físico y mecánico"), cat: "bre" },
+    { t: L("A chemical reaction that releases energy", "Una reacción química que libera energía"), cat: "res" },
+    { t: L("Uses the diaphragm and the ribs", "Usa el diafragma y las costillas"), cat: "bre" },
+    { t: L("Uses glucose and oxygen to make energy", "Usa glucosa y oxígeno para producir energía"), cat: "res" },
+  ];
+  let placed = 0;
+  CARDS.forEach(c => {
+    const el = document.createElement("div"); el.className = "lc-sort-card";
+    el.innerHTML = `<span class="lc-sort-card__txt">${c.t}</span>
+      <div class="lc-sort-bins">
+        <button type="button" class="lc-bin-btn bre">${L("BREATHING", "VENTILACIÓN")}</button>
+        <button type="button" class="lc-bin-btn res">${L("RESPIRATION", "RESPIRACIÓN CELULAR")}</button>
+      </div>`;
+    const [breBtn, resBtn] = el.querySelectorAll(".lc-bin-btn");
+    function pick(cat, btn) {
+      if (el.classList.contains("is-placed")) return;
+      if (cat === c.cat) {
+        el.classList.add("is-placed");
+        const tag = document.createElement("span"); tag.className = "lc-sort-card__tag " + c.cat;
+        tag.textContent = cat === "bre" ? L("✓ Breathing (ventilation)", "✓ Ventilación") : L("✓ Respiration (in cells)", "✓ Respiración celular");
+        el.querySelector(".lc-sort-bins").replaceWith(tag);
+        sim.recordTrial({ station: L("Breathing vs respiration", "Ventilación vs respiración"), action: c.t, reading: cat === "bre" ? L("Breathing", "Ventilación") : L("Respiration", "Respiración celular"), result: L("Correct", "Correcto") });
+        placed++; update();
+      } else {
+        el.classList.remove("is-shake"); void el.offsetWidth; el.classList.add("is-shake");
+        btn.style.borderColor = "var(--negative)"; setTimeout(() => btn.style.borderColor = "", 500);
+        sim.toast(L("Not that box — think: is this moving air, or releasing energy in a cell?",
+          "Esa caja no — piensa: ¿es mover aire o liberar energía en una célula?"), "info");
+      }
+    }
+    breBtn.addEventListener("click", () => pick("bre", breBtn));
+    resBtn.addEventListener("click", () => pick("res", resBtn));
+    grid.append(el);
+  });
+  function update() {
+    prog.textContent = L(`Sorted ${placed} of ${CARDS.length}.`, `Clasificadas ${placed} de ${CARDS.length}.`);
+    if (placed === CARDS.length) { sim.award("lc-sorter", L("Breathing-vs-Respiration Ace", "As de Ventilación vs Respiración")); onDone(); }
+  }
+  update();
+}
+
+/* ======================================================================
+   BONUS ROUND — "BREATH CONDUCTOR" (timing/rhythm + quiz-in-the-action)
+   A time-boxed ~2-minute round: keep the lungs breathing by hitting the
+   open INHALE/EXHALE window; every few beats a quick content question
+   appears. No fail state. 3D lungs backdrop, particles, mute, keyboard.
+   Distinct from the course's lane-driving sim and from the arcade/quest
+   shared modules (CLAUDE.md §4 bonus-mechanic variety).
+   ====================================================================== */
+const BC_QUESTIONS = [
+  { q: L("Breathing (ventilation) is…", "La ventilación es…"), opts: [L("Moving air in and out of the lungs", "Mover aire dentro y fuera de los pulmones"), L("Releasing energy inside cells", "Liberar energía dentro de las células"), L("Pumping blood around the body", "Bombear sangre por el cuerpo")], a: 0 },
+  { q: L("Gas exchange happens in the…", "El intercambio de gases ocurre en…"), opts: [L("Alveoli (tiny air sacs)", "Los alvéolos (sacos de aire)"), L("Windpipe", "La tráquea"), L("Ribs", "Las costillas")], a: 0 },
+  { q: L("During gas exchange, oxygen moves…", "En el intercambio, el oxígeno pasa…"), opts: [L("Into the blood", "A la sangre"), L("Out of the blood", "Fuera de la sangre"), L("Into the bones", "A los huesos")], a: 0 },
+  { q: L("The diaphragm is a…", "El diafragma es un…"), opts: [L("Muscle below the lungs", "Músculo bajo los pulmones"), L("Bone in the chest", "Hueso del pecho"), L("Tube to the stomach", "Tubo al estómago")], a: 0 },
+  { q: L("Respiration in cells releases…", "La respiración celular libera…"), opts: [L("Energy", "Energía"), L("Only sound", "Solo sonido"), L("New bones", "Huesos nuevos")], a: 0 },
+  { q: L("When you breathe IN, the chest…", "Al inhalar, el pecho…"), opts: [L("Gets bigger", "Se agranda"), L("Gets smaller", "Se achica"), L("Stays exactly the same", "Queda exactamente igual")], a: 0 },
+];
+
+function mountBreathConductorLaunch(host, sim, PAL) {
+  host.innerHTML = "";
+  const launch = document.createElement("div"); launch.className = "lc-launch";
+  launch.innerHTML = `<p class="lc-launch__title">${L("Bonus round — Breath Conductor", "Ronda bonus — Director de la Respiración")}</p>
+    <p class="q__hint" style="margin:0">${L("Keep the lungs breathing in rhythm for two minutes. Press the glowing button in time — IN then OUT — and answer quick questions along the way. No fail, no rush: a missed beat just resets your streak.",
+      "Mantén los pulmones respirando a ritmo durante dos minutos. Pulsa el botón que brilla a tiempo — INHALAR y luego EXHALAR — y responde preguntas rápidas por el camino. Sin fallos ni prisas: una falla solo reinicia tu racha.")}</p>
+    <div class="lc-launch__row">
+      <button type="button" class="btn btn--signal" id="lc-play">${L("Play Breath Conductor", "Jugar Director de la Respiración")}</button>
+      <button type="button" class="btn btn--ghost" id="lc-skip">${L("Skip bonus round", "Saltar ronda bonus")}</button>
+    </div>`;
+  host.append(launch);
+  launch.querySelector("#lc-play").addEventListener("click", () => { launch.remove(); mountBreathConductor(host, sim, PAL); });
+  launch.querySelector("#lc-skip").addEventListener("click", () => { host.innerHTML = `<p class="q__hint">${L("Bonus skipped — you can always come back.", "Ronda saltada — siempre puedes volver.")}</p>`; });
+}
+
+function mountBreathConductor(host, sim, PAL) {
+  host.innerHTML = "";
+  const game = document.createElement("div"); game.className = "lc-game";
+  const wrap = document.createElement("div"); wrap.className = "lc-canvas-wrap"; wrap.style.aspectRatio = "16/9";
+  wrap.innerHTML = `<span class="lc-hud" id="bc-time">2:00</span>`;
+  game.append(wrap);
+  const panel = document.createElement("div"); panel.className = "lc-conduct";
+  panel.innerHTML = `
+    <div class="lc-conduct__hud">
+      <span>${L("Breaths", "Respiraciones")} <b id="bc-score">0</b></span>
+      <span>${L("Streak", "Racha")} <b id="bc-streak">0</b></span>
+      <span>${L("Quiz", "Quiz")} <b id="bc-quiz">0/0</b></span>
+    </div>
+    <div class="lc-conduct__toast" id="bc-toast"></div>
+    <div class="lc-breath-btns" id="bc-btns">
+      <button type="button" class="lc-bbtn in" id="bc-in"><small>${L("press 1 / ↑", "pulsa 1 / ↑")}</small>${L("INHALE", "INHALAR")}</button>
+      <button type="button" class="lc-bbtn out" id="bc-out"><small>${L("press 2 / ↓", "pulsa 2 / ↓")}</small>${L("EXHALE", "EXHALAR")}</button>
+    </div>
+    <div id="bc-quizhost"></div>`;
+  game.append(panel);
+  const foot = document.createElement("div"); foot.className = "lc-game-foot";
+  const SPK_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>';
+  const SPK_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+  const mute = document.createElement("button"); mute.type = "button"; mute.className = "lc-mute";
+  function paintMute() { const on = ttsEnabled(); mute.innerHTML = (on ? SPK_ON : SPK_OFF) + `<span>${on ? L("Sound on", "Sonido activado") : L("Sound off", "Sonido silenciado")}</span>`; }
+  paintMute(); mute.addEventListener("click", () => { setTTS(!ttsEnabled()); paintMute(); });
+  foot.append(mute);
+  const hint = document.createElement("span"); hint.textContent = L("Hit the glowing button in time. Fully keyboard-playable.", "Pulsa el botón que brilla a tiempo. Totalmente jugable con teclado.");
+  foot.append(hint);
+  game.append(foot);
+  host.append(game);
+
+  /* ---- 3D backdrop: breathing lungs + particles + dust ---- */
+  const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x0a1622, 6, 20);
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  wrap.appendChild(renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0xbfe0ff, 0x10202c, 1.05));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(3, 6, 5); scene.add(dl);
+  const grp = new THREE.Group(); scene.add(grp);
+  const dust = new THREE.Group(); grp.add(dust);
+  const dMat = new THREE.MeshBasicMaterial({ color: 0x9fc7e8 });
+  for (let i = 0; i < 70; i++) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.03 + Math.random() * 0.03, 6, 6), dMat); d.position.set((Math.random() - 0.5) * 14, (Math.random() - 0.5) * 9, (Math.random() - 0.5) * 8 - 2); dust.add(d); }
+  const lungMat = new THREE.MeshStandardMaterial({ color: 0xe06a80, roughness: 0.5, emissive: 0x3a0f16, emissiveIntensity: 0.5 });
+  const lungGeo = new THREE.SphereGeometry(1, 24, 20);
+  const lungs = [-1, 1].map(s => { const m = new THREE.Mesh(lungGeo, lungMat); m.position.set(s * 1.1, 0, 0); grp.add(m); return m; });
+  const ringMat = new THREE.MeshStandardMaterial({ color: 0x2f9f74, emissive: 0x2f9f74, emissiveIntensity: 0.4, roughness: 0.4 });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.06, 10, 48), ringMat); ring.position.z = 0.5; grp.add(ring);
+  const marker = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffe27a })); grp.add(marker);
+  const burstGrp = new THREE.Group(); grp.add(burstGrp);
+  function burst3(color) {
+    if (reduced()) return;
+    for (let i = 0; i < 14; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), new THREE.MeshBasicMaterial({ color })); const a = Math.random() * 7, sp = 1.5 + Math.random() * 2; p.position.set(0, 0, 0.6); p.userData = { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: Math.random() * 2, born: Date.now() }; burstGrp.add(p); }
+  }
+  let cw = 0, ch = 0;
+  function resize() { const w = wrap.clientWidth, h = wrap.clientHeight; if (!w || !h || (w === cw && h === ch)) return; cw = w; ch = h; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(wrap); resize();
+
+  /* ---- game state (wall-clock) ---- */
+  const DURATION = 120000, BEAT = 2600;
+  const startAt = Date.now();
+  let score = 0, streak = 0, best = 0, quizCorrect = 0, quizTotal = 0;
+  let currentWindow = null, windowUsed = false, quizOpen = false, ended = false, breath = 0.3, breathTarget = 0.3;
+  const scoreEl = panel.querySelector("#bc-score"), streakEl = panel.querySelector("#bc-streak"), quizEl = panel.querySelector("#bc-quiz"), toastEl = panel.querySelector("#bc-toast");
+  const inBtn = panel.querySelector("#bc-in"), outBtn = panel.querySelector("#bc-out"), timeEl = wrap.querySelector("#bc-time"), quizHost = panel.querySelector("#bc-quizhost");
+
+  function showToast(msg, color) { toastEl.textContent = msg; toastEl.style.color = color || "var(--ink-2)"; }
+  function hit(kind) {
+    if (quizOpen || ended) return;
+    if (currentWindow === kind && !windowUsed) {
+      windowUsed = true; score++; streak++; best = Math.max(best, streak);
+      scoreEl.textContent = score; streakEl.textContent = streak;
+      breathTarget = kind === "in" ? 1 : 0.25; burst3(kind === "in" ? 0x39d98a : 0xffce7a);
+      showToast(kind === "in" ? L("Good inhale!", "¡Buena inhalación!") : L("Good exhale!", "¡Buena exhalación!"), "var(--positive)");
+      if (score % 4 === 0) setTimeout(openQuiz, 350);
+    } else {
+      streak = 0; streakEl.textContent = 0;
+      showToast(L("Off the beat — streak reset (no penalty).", "Fuera de ritmo — racha reiniciada (sin penalización)."), "var(--signal)");
+    }
+  }
+  function openQuiz() {
+    if (ended || quizOpen) return;
+    quizOpen = true; windowUsed = true;
+    const q = BC_QUESTIONS[quizTotal % BC_QUESTIONS.length];
+    const box = document.createElement("div"); box.className = "lc-quiz";
+    box.innerHTML = `<p class="lc-quiz__q">${q.q}</p><div class="lc-quiz__opts"></div>`;
+    const opts = box.querySelector(".lc-quiz__opts");
+    q.opts.forEach((o, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "lc-quiz__opt"; b.textContent = o; b.addEventListener("click", () => answerQuiz(i, q, box)); opts.append(b); });
+    quizHost.append(box);
+    if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(q.q);
+  }
+  function answerQuiz(i, q, box) {
+    quizTotal++;
+    if (i === q.a) { quizCorrect++; score += 2; showToast(L("Correct! +2", "¡Correcto! +2"), "var(--positive)"); scoreEl.textContent = score; }
+    else showToast(L(`Answer: ${q.opts[q.a]}`, `Respuesta: ${q.opts[q.a]}`), "var(--signal)");
+    quizEl.textContent = `${quizCorrect}/${quizTotal}`;
+    box.remove(); quizOpen = false;
+  }
+  inBtn.addEventListener("click", () => hit("in"));
+  outBtn.addEventListener("click", () => hit("out"));
+  function onKey(e) {
+    if (e.key === "1" || e.key === "ArrowUp") { e.preventDefault(); hit("in"); }
+    else if (e.key === "2" || e.key === "ArrowDown") { e.preventDefault(); hit("out"); }
+  }
+  document.addEventListener("keydown", onKey);
+
+  /* game clock — setInterval, never rAF, decides window + end */
+  const clock = setInterval(() => {
+    if (ended) return;
+    const elapsed = Date.now() - startAt;
+    const remain = Math.max(0, DURATION - elapsed);
+    timeEl.textContent = `${Math.floor(remain / 60000)}:${String(Math.floor((remain % 60000) / 1000)).padStart(2, "0")}`;
+    if (remain <= 0) { endGame(); return; }
+    if (quizOpen) return;
+    const phase = (elapsed % BEAT) / BEAT;
+    const win = phase < 0.5 ? "in" : "out";
+    if (win !== currentWindow) {
+      // window just changed: if previous window was never used, it was a miss
+      if (currentWindow && !windowUsed) { streak = 0; streakEl.textContent = 0; }
+      currentWindow = win; windowUsed = false;
+      breathTarget = win === "in" ? 0.85 : 0.3; // auto-cue
+    }
+    inBtn.classList.toggle("is-open", win === "in" && !windowUsed);
+    outBtn.classList.toggle("is-open", win === "out" && !windowUsed);
+  }, 60);
+
+  function endGame() {
+    if (ended) return; ended = true;
+    clearInterval(clock); cancelAnimationFrame(raf); document.removeEventListener("keydown", onKey);
+    sim.recordTrial({ station: L("Bonus — Breath Conductor", "Bonus — Director de la Respiración"), action: L("Rhythm round", "Ronda de ritmo"), reading: L(`${score} points, best streak ${best}`, `${score} puntos, mejor racha ${best}`), result: L(`Quiz ${quizCorrect}/${quizTotal}`, `Quiz ${quizCorrect}/${quizTotal}`) });
+    if (score >= 20) sim.award("lc-conductor", L("Breath Conductor", "Director de la Respiración"));
+    const pct = quizTotal ? Math.round(quizCorrect / quizTotal * 100) : 0;
+    host.innerHTML = "";
+    const recap = document.createElement("div"); recap.className = "lc-game"; recap.innerHTML = `
+      <div class="lc-recap">
+        <h4>${L("Round complete! 🫁", "¡Ronda completa! 🫁")}</h4>
+        <div class="lc-recap__stats">
+          <span class="lc-recap__stat"><b>${score}</b>${L("points", "puntos")}</span>
+          <span class="lc-recap__stat"><b>${best}</b>${L("best streak", "mejor racha")}</span>
+          <span class="lc-recap__stat"><b>${pct}%</b>${L("quiz accuracy", "precisión quiz")}</span>
+        </div>
+        <div class="lc-launch__row" style="justify-content:center">
+          <button type="button" class="btn btn--signal" id="bc-again">${L("Play again", "Jugar de nuevo")}</button>
+        </div>
+      </div>`;
+    host.append(recap);
+    recap.querySelector("#bc-again").addEventListener("click", () => mountBreathConductor(host, sim, PAL));
+    sim.toast(L(`Bonus complete — ${score} points, quiz ${quizCorrect}/${quizTotal}.`, `Bonus completo — ${score} puntos, quiz ${quizCorrect}/${quizTotal}.`), "info");
+  }
+
+  let raf = 0;
+  function render() {
+    resize();
+    const now = Date.now();
+    breath += (breathTarget - breath) * 0.1;
+    const sc = 0.6 + breath * 0.7;
+    lungs.forEach((m, i) => m.scale.set(sc, sc * 1.12, sc));
+    if (!reduced()) {
+      const elapsed = now - startAt, phase = (elapsed % BEAT) / BEAT, ang = phase * Math.PI * 2 - Math.PI / 2;
+      marker.position.set(Math.cos(ang) * 2.6, Math.sin(ang) * 2.6, 0.5);
+      dust.children.forEach((d, i) => { d.position.y += Math.sin(now / 800 + i) * 0.004; });
+      grp.rotation.y = Math.sin(now / 3500) * 0.12;
+      ring.material.emissiveIntensity = 0.35 + 0.25 * Math.sin(now / 300);
+    } else { marker.position.set(0, 2.6, 0.5); }
+    burstGrp.children.slice().forEach(p => { const age = (now - p.userData.born) / 1000; if (age > 0.8) { burstGrp.remove(p); return; } p.position.x += p.userData.vx * 0.03; p.position.y += p.userData.vy * 0.03; p.position.z += p.userData.vz * 0.03; p.scale.setScalar(Math.max(0, 1 - age / 0.8)); });
+    camera.position.set(0, 0.2, 7.2); camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(render);
+  }
+  render();
+}
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
