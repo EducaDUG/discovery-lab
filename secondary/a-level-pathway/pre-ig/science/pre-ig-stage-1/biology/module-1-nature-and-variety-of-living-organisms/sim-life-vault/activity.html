@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life Vault: Kingdoms &amp; Viruses — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Life Vault — activity-local styles only ---- */
+.lv-credit{font-size:.68rem;color:var(--ink-3);margin-top:var(--sp-3);line-height:1.5;}
+.lv-credit a{color:inherit;}
+
+/* orient: MRS C GREN flip tiles */
+.lv-mrs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:var(--sp-3) 0;}
+
+.lv-tile{perspective:600px;border:0;background:none;padding:0;cursor:pointer;font:inherit;min-height:104px;}
+.lv-tile__in{position:relative;display:block;width:100%;height:100%;min-height:104px;transition:transform .5s;transform-style:preserve-3d;}
+.lv-tile.is-open .lv-tile__in{transform:rotateY(180deg);}
+.lv-tile__f,.lv-tile__b{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;}
+.lv-tile__f{background:linear-gradient(160deg,#0f3a40,#0a2328);color:#7dffd9;font-family:var(--font-display);font-size:2.2rem;font-weight:800;box-shadow:inset 0 0 0 2px #2ec4a6,0 4px 14px rgba(0,0,0,.18);}
+.lv-tile__f small{font-size:.58rem;font-family:var(--font-data);color:#a8d8cf;letter-spacing:.08em;}
+.lv-tile__b{transform:rotateY(180deg);background:var(--surface);border:2px solid var(--accent);color:var(--ink);font-size:.72rem;text-align:center;line-height:1.25;}
+.lv-tile__b b{font-size:.8rem;color:var(--accent);display:block;margin-bottom:2px;}
+[data-reduced-motion="on"] .lv-tile__in{transition:none;}
+.lv-groups{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:var(--sp-3);}
+@media (max-width:420px){.lv-groups{grid-template-columns:repeat(2,1fr);}}
+.lv-gcard{border:2px solid var(--c);border-radius:14px;overflow:hidden;background:var(--surface);cursor:pointer;padding:0;font:inherit;text-align:left;color:var(--ink);transition:transform .2s;}
+.lv-gcard:hover{transform:translateY(-3px);}
+.lv-gcard img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.lv-gcard__n{display:block;padding:5px 8px;font-weight:800;background:var(--c);color:#fff;font-size:.8rem;}
+.lv-gcard__tag{display:block;padding:3px 8px 0;font-size:.66rem;font-family:var(--font-data);color:var(--ink-3);}
+.lv-gcard__more{display:block;padding:4px 8px 8px;font-size:.72rem;line-height:1.3;}
+.lv-gcard:not(.is-open) .lv-gcard__more{display:none;}
+.lv-split{display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--sp-2);font-size:.75rem;}
+.lv-split span{padding:3px 10px;border-radius:999px;background:var(--accent-wash);color:var(--accent);font-weight:700;}
+
+/* observation: real jellyfish photo with pins */
+.lv-photo{position:relative;border-radius:14px;max-width:820px;margin:var(--sp-3) auto 0;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+.lv-photo img{display:block;width:100%;height:auto;border-radius:14px;}
+.lv-pin{position:absolute;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;border:3px solid #fff;background:rgba(14,120,110,.85);color:#fff;font-weight:800;cursor:pointer;
+  box-shadow:0 0 0 6px rgba(94,230,200,.35);font:inherit;font-weight:800;animation:lv-pin 2.4s ease-in-out infinite;}
+.lv-pin[data-state="ok"]{background:#2fbf71;animation:none;}
+.lv-pin[data-state="bad"]{background:#d9475e;}
+@keyframes lv-pin{0%,100%{box-shadow:0 0 0 4px rgba(94,230,200,.35);}50%{box-shadow:0 0 0 12px rgba(94,230,200,.08);}}
+[data-reduced-motion="on"] .lv-pin{animation:none;}
+.lv-pop{position:absolute;z-index:3;width:min(300px,80%);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px 12px;box-shadow:0 12px 30px rgba(0,0,0,.35);font-size:.82rem;border:2px solid var(--accent);}
+.lv-pop p{margin:0 0 6px;}
+.lv-pop__opts{display:flex;flex-direction:column;gap:5px;}
+.lv-pop__opts button{font:inherit;text-align:left;padding:6px 9px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);cursor:pointer;}
+.lv-pop__opts button:hover{border-color:var(--accent);}
+.lv-pop__x{position:absolute;top:4px;right:6px;border:0;background:none;font-size:1.1rem;cursor:pointer;color:var(--ink-3);}
+.lv-obs-score{text-align:center;font-weight:700;margin-top:var(--sp-2);}
+
+/* investigate */
+.lv-track{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--sp-3);}
+.lv-track span{padding:6px 12px;border-radius:999px;border:2px solid var(--line-strong);font-size:.8rem;font-weight:700;color:var(--ink-2);background:var(--surface);}
+.lv-track span.done{border-color:#2fbf71;background:#2fbf71;color:#fff;}
+.lv-station{margin-top:var(--sp-4);border-top:4px solid var(--accent);}
+.lv-station__head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.lv-station__title{font-family:var(--font-display);font-size:var(--step-1);margin:.2em 0 .3em;}
+.lv-mute{font:inherit;font-size:.75rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;}
+.lv-stage{position:relative;height:400px;border-radius:16px;overflow:hidden;margin-top:var(--sp-3);
+  background:radial-gradient(120% 90% at 50% 10%,#16424a 0%,#08171c 60%,#050d10 100%);}
+@media (max-width:640px){.lv-stage{height:320px;}}
+.lv-stage canvas{display:block;width:100%;height:100%;cursor:grab;}
+.lv-lost canvas{visibility:hidden;}
+.lv-lost::after{content:"3D view paused by the browser - reload the page to restore it. Everything else still works.";position:absolute;inset:auto 12px 12px 12px;z-index:2;color:#d9fff5;font-size:.8rem;background:rgba(5,20,24,.8);padding:8px 12px;border-radius:10px;}
+html[lang="es"] .lv-lost::after{content:"El navegador pausó la vista 3D: recarga la página para recuperarla. Todo lo demás sigue funcionando.";}
+.lv-stage--key{height:560px;}
+@media (max-width:640px){.lv-stage--key{height:420px;}}
+.lv-hud{position:absolute;top:10px;left:12px;z-index:2;font-family:var(--font-data);font-size:.74rem;color:#d9fff5;background:rgba(5,20,24,.7);padding:4px 10px;border-radius:999px;pointer-events:none;}
+.lv-stamp{position:absolute;right:14px;bottom:14px;z-index:2;font-family:var(--font-display);font-weight:900;letter-spacing:.06em;padding:6px 14px;border:3px solid currentColor;border-radius:8px;transform:rotate(-6deg);background:rgba(5,20,24,.72);}
+.lv-stamp[data-kind="living"]{color:#7dffb4;} .lv-stamp[data-kind="nonliving"]{color:#ffcf7a;} .lv-stamp[data-kind="virus"]{color:#ff8fa3;}
+.lv-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:var(--sp-2);}
+.lv-pick{position:relative;display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;}
+.lv-pick img{width:38px;height:38px;border-radius:50%;object-fit:cover;}
+.lv-pick[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash);}
+.lv-pick__done{font-style:normal;color:#2fbf71;font-size:1rem;}
+.lv-tests{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:var(--sp-3);}
+@media (max-width:760px){.lv-tests{grid-template-columns:repeat(4,1fr);}}
+.lv-test{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:2px solid #2b4954;background:linear-gradient(180deg,#123138,#0b1f24);color:#d9fff5;cursor:pointer;font:inherit;}
+.lv-test:hover{border-color:#5ee6c8;}
+.lv-test__letter{font-family:var(--font-display);font-size:1.5rem;font-weight:900;line-height:1;}
+.lv-test__name{font-size:.66rem;}
+.lv-test__light{width:12px;height:12px;border-radius:50%;background:#33464d;margin-top:3px;}
+.lv-test[data-state="yes"]{border-color:#2fbf71;} .lv-test[data-state="yes"] .lv-test__light{background:#35d07f;box-shadow:0 0 8px #35d07f;}
+.lv-test[data-state="look"]{border-color:#e69b22;} .lv-test[data-state="look"] .lv-test__light{background:#ffb547;box-shadow:0 0 8px #ffb547;}
+.lv-test[data-state="no"] .lv-test__light{background:#7d8a93;}
+.lv-readout{margin-top:var(--sp-3);padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);min-height:6.4em;display:flex;flex-direction:column;gap:4px;}
+.lv-readout__tag{align-self:flex-start;color:#fff;font-weight:800;font-size:.74rem;padding:2px 10px;border-radius:999px;}
+.lv-readout__txt{font-weight:600;}
+.lv-readout__def{font-size:.75rem;color:var(--ink-3);}
+.lv-verdict{margin-top:var(--sp-3);}
+.lv-verdict__q{font-weight:700;margin:0 0 6px;}
+.lv-verdict__lock{font-weight:500;color:var(--ink-3);font-size:.8rem;}
+.lv-verdict__btns{display:flex;flex-wrap:wrap;gap:8px;}
+.lv-vbtn.is-right{background:#2fbf71;color:#fff;border-color:#2fbf71;}
+.lv-vbtn.is-wrong{background:#d9475e;color:#fff;border-color:#d9475e;}
+.lv-vbtn.is-answer{outline:3px dashed #2fbf71;outline-offset:2px;}
+.lv-fb{margin:var(--sp-2) 0;padding:10px 12px;border-radius:10px;font-size:.88rem;}
+.lv-fb--ok{background:rgba(47,191,113,.12);border-left:4px solid #2fbf71;}
+.lv-fb--bad{background:rgba(217,71,94,.1);border-left:4px solid #d9475e;}
+.lv-key{display:grid;grid-template-columns:270px 1fr;gap:var(--sp-3);margin-top:var(--sp-3);align-items:start;}
+@media (max-width:760px){.lv-key{grid-template-columns:1fr;}}
+.lv-key .lv-stage{margin-top:0;}
+.lv-key__card{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:10px;}
+.lv-key__card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block;}
+.lv-key__name{font-weight:800;margin:.4em 0 0;font-size:1rem;}
+.lv-key__count{font-family:var(--font-data);font-size:.7rem;color:var(--ink-3);margin:0 0 6px;}
+.lv-facts{margin:0;padding-left:1.1em;font-size:.78rem;line-height:1.35;}
+.lv-key__side{display:flex;flex-direction:column;gap:var(--sp-2);}
+.lv-key__ask{padding:10px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);}
+.lv-key__ask:empty,.lv-key__fb:empty{display:none;}
+.lv-key__card img{max-height:140px;}
+.lv-ask__q{font-size:.98rem;font-weight:800;margin:0 0 8px;}
+.lv-ask__n{display:inline-block;background:var(--accent);color:#fff;border-radius:8px;padding:1px 8px;margin-right:6px;}
+.lv-ask__btns{display:flex;gap:10px;}
+.lv-ask__btns .btn{flex:1;font-size:1rem;}
+.lv-yes{background:#2fbf71 !important;border-color:#2fbf71 !important;color:#fff !important;}
+.lv-no{background:#d9475e !important;border-color:#d9475e !important;color:#fff !important;}
+.lv-ask__btns kbd{font-size:.7rem;opacity:.8;margin-left:4px;}
+.lv-key__trail{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:var(--sp-2);}
+.lv-chip{font-size:.72rem;padding:3px 9px;border-radius:999px;background:var(--accent-wash);color:var(--accent);}
+.lv-chip.is-wrong{background:rgba(217,71,94,.14);color:#b02a3f;text-decoration:line-through;}
+.lv-arrow{color:var(--ink-3);}
+.lv-order{display:flex;gap:12px;align-items:center;margin-top:var(--sp-3);padding:10px;border-radius:14px;background:linear-gradient(90deg,var(--accent-wash),transparent);border:1px solid var(--line);}
+.lv-order img{width:64px;height:64px;border-radius:12px;object-fit:cover;}
+.lv-order__kick{margin:0;font-family:var(--font-data);font-size:.7rem;color:var(--ink-3);}
+.lv-order__txt{margin:0;font-size:1.05rem;}
+.lv-build{display:grid;grid-template-columns:1fr 290px;gap:var(--sp-3);margin-top:var(--sp-3);align-items:start;}
+@media (max-width:760px){.lv-build{grid-template-columns:1fr;}}
+.lv-build .lv-stage{margin-top:0;}
+.lv-parts{display:flex;flex-direction:column;gap:6px;}
+.lv-part{display:flex;align-items:center;gap:10px;text-align:left;font:inherit;font-size:.84rem;font-weight:600;padding:8px 10px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;}
+.lv-part__sw{width:34px;height:18px;border-radius:999px;background:#9aa7ad;position:relative;flex:none;transition:background .2s;}
+.lv-part__sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;}
+.lv-part[aria-pressed="true"]{border-color:var(--accent);}
+.lv-part[aria-pressed="true"] .lv-part__sw{background:#2fbf71;}
+.lv-part[aria-pressed="true"] .lv-part__sw::after{left:18px;}
+.lv-seg{border:1px solid var(--line-strong);border-radius:10px;padding:6px 8px;background:var(--surface);}
+.lv-seg__label{font-size:.78rem;font-weight:700;display:block;margin-bottom:4px;}
+.lv-seg__row{display:flex;flex-wrap:wrap;gap:4px;}
+.lv-seg__btn{font:inherit;font-size:.74rem;padding:4px 8px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);cursor:pointer;}
+.lv-seg__btn[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:#fff;}
+.lv-build__go{display:flex;gap:8px;flex-wrap:wrap;margin-top:var(--sp-3);}
+.lv-stage--flat{display:flex;align-items:center;justify-content:center;padding:12px;}
+.lv-flat-photo{max-height:90%;max-width:70%;border-radius:12px;}
+.lv-flat-react{animation:lv-pulse .7s;}
+.lv-flat-key,.lv-flat-build{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.lv-flat-vault{padding:8px 12px;border-radius:10px;border:2px solid var(--c);color:#fff;}
+.lv-flat-vault.is-ok{background:var(--c);} .lv-flat-vault.is-bad{background:#d9475e;}
+.lv-flat-part{padding:6px 10px;border-radius:999px;border:1px solid #2b4954;color:#9fb;font-size:.75rem;opacity:.5;}
+.lv-flat-part.is-on{opacity:1;background:#164b44;}
+.lv-done{display:flex;gap:16px;align-items:center;margin-top:var(--sp-4);padding:var(--sp-4);border-radius:16px;color:#eafff8;
+  background:linear-gradient(120deg,#0b4d45,#14324f);box-shadow:0 10px 30px rgba(0,0,0,.2);}
+.lv-done__badge{font-size:2.6rem;}
+.lv-done__title{font-family:var(--font-display);font-size:var(--step-1);margin:0;}
+.lv-done__line{margin:.2em 0 0;opacity:.9;}
+.lv-done__stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-family:var(--font-data);font-size:.8rem;}
+
+/* juice */
+.lv-spark{position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;animation:lv-spark .7s ease-out forwards;}
+@keyframes lv-spark{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0;}}
+.lv-float{position:absolute;z-index:9999;font-weight:900;font-size:1.1rem;pointer-events:none;transform:translateX(-50%);animation:lv-float 1.1s ease-out forwards;}
+@keyframes lv-float{to{transform:translate(-50%,-48px);opacity:0;}}
+.lv-shake{animation:lv-shake .45s;}
+@keyframes lv-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+
+.lv-test.lv-bumpit{animation:lv-bump .35s;}
+@keyframes lv-bump{50%{transform:scale(1.12);}}
+.lv-pulse{animation:lv-pulse .7s;}
+@keyframes lv-pulse{50%{color:#d9475e;transform:scale(1.04);}}
+[data-reduced-motion="on"] .lv-spark,[data-reduced-motion="on"] .lv-float{display:none;}
+[data-reduced-motion="on"] .lv-shake,[data-reduced-motion="on"] .lv-test.lv-bumpit,[data-reduced-motion="on"] .lv-pulse{animation:none;}
+
+/* bonus: Kingdom Carnival */
+.lv-bonus{margin-top:var(--sp-5);}
+.lv-launch{display:flex;gap:16px;align-items:center;padding:var(--sp-4);border-radius:18px;color:#fff;background:linear-gradient(120deg,#3b1450,#7a1f4a 60%,#c4573a);box-shadow:0 12px 34px rgba(80,20,60,.3);}
+.lv-launch .q__hint{color:#ffe9f1;}
+.lv-launch__art{flex:none;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#e8475c 18% 36%,#fff 36% 54%,#e8475c 54% 72%,#fff 72% 100%);box-shadow:0 0 0 6px rgba(255,255,255,.2);}
+.lv-launch__title{font-family:var(--font-display);font-size:var(--step-1);font-weight:800;margin:0;}
+.lv-launch .btn--ghost{color:#fff;border-color:rgba(255,255,255,.6);}
+.lv-carn{border-radius:18px;overflow:hidden;background:#120a1e;box-shadow:0 12px 34px rgba(0,0,0,.3);}
+.lv-carn__hud{display:flex;gap:16px;align-items:center;padding:8px 14px;color:#ffe9c7;font-family:var(--font-data);font-weight:800;background:#1d1030;}
+.lv-carn__time{font-size:1.1rem;} .lv-carn__score{font-size:1.1rem;color:#7dffb4;} .lv-carn__streak{color:#ffb547;}
+.lv-carn__mute{margin-left:auto;background:#2b1a4a;color:#ffe9c7;border-color:#5b3a7a;}
+.lv-carn__stage{position:relative;height:460px;cursor:none;outline:none;background:radial-gradient(120% 90% at 50% 0%,#3b1450,#120a1e 70%);}
+.lv-carn__stage:focus-visible{box-shadow:inset 0 0 0 3px #ffd27a;}
+@media (max-width:640px){.lv-carn__stage{height:380px;}}
+.lv-carn__stage canvas{display:block;width:100%;height:100%;}
+.lv-carn__stage--flat{cursor:default;display:flex;align-items:flex-end;justify-content:center;}
+.lv-bubble{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:3;display:flex;gap:10px;align-items:center;max-width:min(520px,92%);
+  background:#fff;color:#1b1030;border-radius:18px;padding:8px 14px 8px 8px;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:default;}
+.lv-bubble::after{content:"";position:absolute;bottom:-12px;left:50%;border:12px solid transparent;border-top-color:#fff;border-bottom:0;transform:translateX(-50%);}
+.lv-bubble img{width:62px;height:62px;border-radius:12px;object-fit:cover;flex:none;}
+.lv-bubble b{display:block;font-size:.9rem;} .lv-bubble span{display:block;font-size:.85rem;} .lv-bubble em{font-size:.72rem;color:#7a1f4a;font-weight:800;}
+.lv-bubble--in{animation:lv-bub .35s ease-out;}
+@keyframes lv-bub{from{transform:translateX(-50%) scale(.8);opacity:0;}}
+.lv-cross{position:absolute;z-index:2;width:44px;height:44px;margin:-22px 0 0 -22px;border:3px solid #ffd27a;border-radius:50%;pointer-events:none;box-shadow:0 0 12px #ffd27a;}
+.lv-cross::before,.lv-cross::after{content:"";position:absolute;background:#ffd27a;}
+.lv-cross::before{left:50%;top:-10px;bottom:-10px;width:2px;margin-left:-1px;} .lv-cross::after{top:50%;left:-10px;right:-10px;height:2px;margin-top:-1px;}
+.lv-carn__toast{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:3;font-weight:900;font-size:1rem;text-align:center;max-width:92%;
+  background:rgba(18,10,30,.85);padding:6px 14px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;}
+.lv-carn__toast.is-on{opacity:1;}
+.lv-carn__lanes{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:8px;background:#1d1030;}
+@media (max-width:640px){.lv-carn__lanes{grid-template-columns:repeat(3,1fr);}}
+.lv-lane{font:inherit;font-size:.78rem;font-weight:800;padding:8px 4px;border-radius:10px;border:2px solid var(--c);background:color-mix(in srgb,var(--c) 30%,#1d1030);color:#fff;cursor:pointer;}
+.lv-lane kbd{background:rgba(255,255,255,.2);border-radius:4px;padding:0 4px;}
+.lv-recap{padding:var(--sp-4);text-align:center;border-radius:18px;background:linear-gradient(160deg,#2b1240,#120a1e);color:#fff;}
+.lv-recap__title{font-family:var(--font-display);font-size:var(--step-1);font-weight:800;margin:0;}
+.lv-recap__stats{display:flex;justify-content:center;gap:var(--sp-4);flex-wrap:wrap;margin:var(--sp-3) 0;}
+.lv-recap__stats span{font-family:var(--font-data);font-size:.75rem;color:#e6d6ff;}
+.lv-recap__stats b{display:block;font-size:1.6rem;color:#7dffb4;}
+.lv-recap .eyebrow{color:#ffd27a;justify-content:center;}
+.lv-recap__list{list-style:none;padding:0;margin:0 auto var(--sp-3);max-width:560px;text-align:left;font-size:.85rem;}
+.lv-recap__list li{display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.1);}
+.lv-recap__list img{width:34px;height:34px;border-radius:8px;object-fit:cover;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secondary</a></li>
+      <li><a href="../../../../../../">A-Level Pathway</a></li>
+      <li><a href="../../../../../">Pre-IG</a></li>
+      <li><a href="../../../../">Science</a></li>
+      <li><a href="../../../">Stage 1</a></li>
+      <li><a href="../../">Biology</a></li>
+      <li><a href="../">Module 1: Nature and Variety of Living Organisms</a></li>
+      <li><span aria-current="page">Life Vault: Kingdoms &amp; Viruses</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secundaria</a></li>
+      <li><a href="../../../../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../../../../">Pre-IG</a></li>
+      <li><a href="../../../../">Ciencias</a></li>
+      <li><a href="../../../">Etapa 1</a></li>
+      <li><a href="../../">Biología</a></li>
+      <li><a href="../">Módulo 1: Naturaleza y variedad de los seres vivos</a></li>
+      <li><span aria-current="page">Bóveda de la Vida: reinos y virus</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=19";
+import { setTTS } from "../../../../../../../../engine/accessibility.js?v=6";
+import { L, SPEC, GROUPS, GROUP_ORDER, PROCESSES, PROCESS_DEF, img, creditLine } from "./data.js?v=1";
+import { burstAt, shake, floatText, blip, sound } from "./fx.js?v=1";
+import { buildScanner } from "./scanner.js?v=1";
+import { buildKey } from "./key.js?v=1";
+import { buildBuilder } from "./builder.js?v=1";
+import { mountCarnivalLaunch } from "./carnival.js?v=1";
+
+/* one sound switch for the whole lab, reachable inside every station
+   (CLAUDE.md §6: anything that makes sound gets its own visible mute) */
+const muteButtons = new Set();
+function muteBtn() {
+  const b = document.createElement("button"); b.type = "button"; b.className = "lv-mute";
+  muteButtons.add(b); paintMute(b);
+  b.addEventListener("click", () => { sound.on = !sound.on; if (!sound.on) setTTS(false); muteButtons.forEach(paintMute); });
+  return b;
+}
+function paintMute(b) { b.textContent = sound.on ? L("🔊 Sound on", "🔊 Sonido") : L("🔇 Muted", "🔇 Silencio"); b.setAttribute("aria-pressed", sound.on ? "false" : "true"); }
+
+/* ---- key features per group, used in Orient's tap cards ---- */
+const GROUP_INFO = {
+  plant: { tag: () => L("eukaryote", "eucariota"), rep: "maize", more: () => L("Multicellular · chloroplasts · cellulose cell walls · stores starch or sucrose · makes its own food.", "Pluricelulares · cloroplastos · paredes de celulosa · almacenan almidón o sacarosa · fabrican su alimento.") },
+  animal: { tag: () => L("eukaryote", "eucariota"), rep: "polar-bear", more: () => L("Multicellular · no cell wall · no chloroplasts · nervous coordination · stores glycogen · moves.", "Pluricelulares · sin pared celular · sin cloroplastos · coordinación nerviosa · almacenan glucógeno · se desplazan.") },
+  fungi: { tag: () => L("eukaryote", "eucariota"), rep: "mushroom", more: () => L("Chitin cell walls · hyphae with many nuclei · feed with enzymes outside the body (saprophytic) · store glycogen.", "Paredes de quitina · hifas con muchos núcleos · digieren fuera del cuerpo (saprofíticos) · almacenan glucógeno.") },
+  protoctist: { tag: () => L("eukaryote", "eucariota"), rep: "amoeba", more: () => L("Mostly single-celled · some animal-like (Amoeba), some plant-like (Chlorella) · the 'dustbin' kingdom.", "Casi todos unicelulares · unos parecidos a animales (ameba), otros a plantas (Chlorella) · el reino 'cajón de sastre'.") },
+  bacteria: { tag: () => L("prokaryote", "procariota"), rep: "lactobacillus", more: () => L("Single cells · NO nucleus · one circular chromosome · peptidoglycan wall · some have plasmids or flagella.", "Células únicas · SIN núcleo · un cromosoma circular · pared de peptidoglucano · algunas tienen plásmidos o flagelos.") },
+  virus: { tag: () => L("not made of cells", "no son células"), rep: "influenza", more: () => L("Not living · DNA or RNA in a protein coat · only reproduce inside a host cell · all are parasites.", "No vivos · ADN o ARN en una cubierta de proteína · solo se reproducen dentro de una célula huésped · todos son parásitos.") },
+};
+
+/* ---- jellyfish photo pins (Observation): positions checked against the photo ---- */
+const PINS = [
+  { x: 0.27, y: 0.52, see: () => L("The see-through bell has a thick rim. It squeezes in and out in a rhythm.", "La campana transparente tiene un borde grueso que se contrae y se relaja con ritmo."),
+    ans: "movement", opts: ["movement", "growth", "excretion"] },
+  { x: 0.50, y: 0.52, see: () => L("Four pink horseshoe shapes in the middle: these are its gonads, where eggs or sperm are made.", "Cuatro formas rosas de herradura en el centro: son sus gónadas, donde se forman óvulos o espermatozoides."),
+    ans: "reproduction", opts: ["nutrition", "reproduction", "control"] },
+  { x: 0.47, y: 0.77, see: () => L("A fringe of fine tentacles hangs round the edge. They carry stinging cells that catch small prey.", "Un fleco de tentáculos finos cuelga del borde. Tienen células urticantes que atrapan presas pequeñas."),
+    ans: "nutrition", opts: ["sensitivity", "nutrition", "reproduction"] },
+  { x: 0.50, y: 0.30, see: () => L("Tiny notches round the rim hold sense organs (too small to see clearly here) that detect light and balance.", "Pequeñas muescas del borde guardan órganos sensoriales (demasiado pequeños para verlos bien aquí) que detectan luz y equilibrio."),
+    ans: "sensitivity", opts: ["sensitivity", "movement", "respiration"] },
+  { x: 0.37, y: 0.40, see: () => L("The body is only a thin, jelly-like layer. Oxygen can pass straight in from the water, and carbon dioxide out.", "El cuerpo es solo una capa fina y gelatinosa. El oxígeno entra directamente desde el agua y el dióxido de carbono sale."),
+    ans: "respiration", opts: ["growth", "respiration", "nutrition"] },
+  { x: 0.17, y: 0.22, see: () => L("Smaller jellyfish swim all around: younger moon jellyfish that will get bigger.", "Medusas más pequeñas nadan alrededor: medusas luna más jóvenes que se harán más grandes."),
+    ans: "growth", opts: ["reproduction", "control", "growth"] },
+];
+const PNAME = Object.fromEntries(PROCESSES.map(p => [p.id, p.name]));
+
+const simulation = {
+  /* ============================== ORIENT ============================== */
+  orient(host) {
+    host.innerHTML = `
+      <p class="q__hint">${L("<b>MRS C GREN</b> — the eight things <b>every</b> living organism does. Tap each letter to flip it.",
+        "<b>MRS C GREN</b>: las ocho cosas que hace <b>todo</b> organismo vivo. Toca cada letra para girarla.")}</p>
+      <div class="lv-mrs"></div>
+      <p class="q__hint" style="margin-top:var(--sp-4)">${L("Every living organism belongs to one of <b>five kingdoms</b>. Viruses are kept <b>separate</b> — they are not living. Tap a card for its key features.",
+        "Todo organismo vivo pertenece a uno de los <b>cinco reinos</b>. Los virus se clasifican <b>aparte</b>: no son seres vivos. Toca una tarjeta para ver sus rasgos clave.")}</p>
+      <div class="lv-groups"></div>
+      <div class="lv-split"><span>${L("Eukaryotes (cells WITH a nucleus): plants, animals, fungi, protoctists", "Eucariotas (células CON núcleo): plantas, animales, hongos, protoctistas")}</span>
+        <span>${L("Prokaryotes (NO nucleus): bacteria", "Procariotas (SIN núcleo): bacterias")}</span><span>${L("Not cells at all: viruses", "Ni siquiera células: virus")}</span></div>
+      <p class="lv-credit"></p>`;
+    const mrs = host.querySelector(".lv-mrs");
+    PROCESSES.forEach(p => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "lv-tile";
+      b.innerHTML = `<span class="lv-tile__in"><span class="lv-tile__f">${p.letter}<small>${L("TAP", "TOCA")}</small></span><span class="lv-tile__b"><b>${p.name()}</b>${PROCESS_DEF[p.id]()}</span></span>`;
+      b.setAttribute("aria-label", `${p.letter}: ${p.name()}. ${PROCESS_DEF[p.id]()}`);
+      b.addEventListener("click", () => { b.classList.toggle("is-open"); blip("tap"); });
+      mrs.append(b);
+    });
+    const grid = host.querySelector(".lv-groups");
+    GROUP_ORDER.forEach(g => {
+      const info = GROUP_INFO[g];
+      const b = document.createElement("button"); b.type = "button"; b.className = "lv-gcard"; b.style.setProperty("--c", GROUPS[g].color);
+      b.innerHTML = `<img src="${img(info.rep)}" alt="${SPEC[info.rep].name()}"><span class="lv-gcard__n">${GROUPS[g].name()}</span><span class="lv-gcard__tag">${info.tag()}</span><span class="lv-gcard__more">${info.more()}</span>`;
+      b.setAttribute("aria-expanded", "false");
+      b.addEventListener("click", () => { const o = b.classList.toggle("is-open"); b.setAttribute("aria-expanded", o ? "true" : "false"); if (o) burstAt(b, GROUPS[g].color, 8); });
+      grid.append(b);
+    });
+    host.querySelector(".lv-credit").innerHTML = creditLine(GROUP_ORDER.map(g => GROUP_INFO[g].rep));
+  },
+
+  /* ============================ OBSERVATION ============================ */
+  observation(host, sim) {
+    host.innerHTML = "";
+    sim.state.obs = sim.state.obs || {};
+    const done = sim.state.obs;
+    const card = document.createElement("div"); card.className = "card";
+    card.innerHTML = `<p class="eyebrow">${L("Notice something — a real moon jellyfish", "Observa algo: una medusa luna real")}</p>
+      <p class="q__hint">${L("Jellyfish have no brain, no blood, no bones and no heart. Are they really alive? Tap each glowing pin, read what you can see, then pick which life process it is evidence of.",
+        "Las medusas no tienen cerebro, ni sangre, ni huesos, ni corazón. ¿De verdad están vivas? Toca cada punto brillante, lee lo que se ve y elige de qué proceso vital es una prueba.")}</p>
+      <div class="lv-photo"><img src="photos/jellyfish.jpg" alt="${L("A moon jellyfish swimming in blue sea, with smaller jellyfish behind it", "Una medusa luna nadando en el mar azul, con medusas más pequeñas detrás")}"></div>
+      <p class="lv-obs-score" aria-live="polite"></p>
+      <p class="lv-credit">${creditLine(["jellyfish"])}</p>`;
+    host.append(card);
+    const photo = card.querySelector(".lv-photo"), score = card.querySelector(".lv-obs-score");
+    let pop = null;
+    const paintScore = () => {
+      const n = Object.keys(done).length, first = Object.values(done).filter(v => v === 1).length;
+      score.textContent = n < PINS.length ? L(`${n} of ${PINS.length} pins explained`, `${n} de ${PINS.length} puntos explicados`)
+        : L(`All ${PINS.length} explained — ${first} right first time. A jellyfish shows the signs of life!`, `Los ${PINS.length} explicados: ${first} a la primera. ¡La medusa muestra las señales de la vida!`);
+    };
+    PINS.forEach((p, i) => {
+      const pin = document.createElement("button"); pin.type = "button"; pin.className = "lv-pin"; pin.textContent = i + 1;
+      pin.style.left = p.x * 100 + "%"; pin.style.top = p.y * 100 + "%";
+      pin.setAttribute("aria-label", L(`Pin ${i + 1}`, `Punto ${i + 1}`));
+      if (done[i]) { pin.dataset.state = "ok"; pin.textContent = "✓"; pin.title = PNAME[p.ans](); }
+      pin.addEventListener("click", () => openPop(i, pin));
+      photo.append(pin);
+    });
+    function openPop(i, pin) {
+      pop?.remove(); blip("tap");
+      const p = PINS[i];
+      pop = document.createElement("div"); pop.className = "lv-pop";
+      pop.style.left = Math.min(Math.max(p.x * 100 - 20, 2), 48) + "%";
+      pop.style.top = (p.y > 0.55 ? Math.max(2, p.y * 100 - 52) : p.y * 100 + 6) + "%";
+      pop.innerHTML = `<button type="button" class="lv-pop__x" aria-label="${L("Close", "Cerrar")}">×</button><p><b>${L("You can see:", "Se ve:")}</b> ${p.see()}</p>
+        <p><b>${L("Evidence of which life process?", "¿Prueba de qué proceso vital?")}</b></p><div class="lv-pop__opts"></div><div class="lv-pop__fb" aria-live="polite"></div>`;
+      const opts = pop.querySelector(".lv-pop__opts"), fb = pop.querySelector(".lv-pop__fb");
+      p.opts.forEach(o => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = PNAME[o]();
+        b.addEventListener("click", () => {
+          if (o === p.ans) {
+            const first = done[i] == null && !pin.dataset.tried;
+            if (done[i] == null) {
+              done[i] = first ? 1 : 2; sim.saveState();
+              sim.recordTrial({ station: L("Jellyfish photo", "Foto de medusa"), sample: L(`Pin ${i + 1}`, `Punto ${i + 1}`), evidence: p.see(),
+                verdict: PNAME[o](), check: first ? L("Correct", "Correcto") : L("Correct on retry", "Correcto al reintentar") });
+            }
+            pin.dataset.state = "ok"; pin.textContent = "✓"; burstAt(pin, "#2fbf71", 14); blip("ok");
+            fb.innerHTML = `<p class="lv-fb lv-fb--ok">${L("Yes!", "¡Sí!")} ${PNAME[o]()}: ${PROCESS_DEF[o]()}</p>`;
+            paintScore(); setTimeout(() => { pop?.remove(); pop = null; }, 1600);
+          } else {
+            pin.dataset.tried = "1"; pin.dataset.state = "bad"; shake(b); shake(pin); blip("bad");
+            fb.innerHTML = `<p class="lv-fb lv-fb--bad">${L("Not this one —", "Esta no:")} ${PNAME[o]()} = ${PROCESS_DEF[o]()} ${L("Try another.", "Prueba otra.")}</p>`;
+          }
+        });
+        opts.append(b);
+      });
+      pop.querySelector(".lv-pop__x").addEventListener("click", () => { pop.remove(); pop = null; });
+      photo.append(pop);
+      opts.querySelector("button").focus({ preventScroll: true });
+    }
+    paintScore();
+  },
+
+  /* ============================ EXPERIMENT ============================ */
+  investigate(host, sim) {
+    host.innerHTML = "";
+    sim.state.lab = sim.state.lab || {};
+    const lab = sim.state.lab;
+    const track = document.createElement("div"); track.className = "lv-track";
+    const labels = [L("1 · Life-Signs Scanner", "1 · Escáner de Señales de Vida"), L("2 · Kingdom Key", "2 · Clave de Reinos"), L("3 · Bio-Printer", "3 · Bioimpresora")];
+    const pills = labels.map(t => { const s = document.createElement("span"); s.textContent = t; track.append(s); return s; });
+    host.append(track);
+    const stations = document.createElement("div"); host.append(stations);
+    const finish = document.createElement("div"); host.append(finish);
+    const bonus = document.createElement("div"); bonus.className = "lv-bonus"; host.append(bonus);
+
+    const mark = (k, i) => () => { lab[k] = true; sim.saveState(); pills[i].classList.add("done"); check(); };
+    buildScanner(stations, sim, mark("scan", 0), muteBtn);
+    buildKey(stations, sim, mark("key", 1), muteBtn);
+    buildBuilder(stations, sim, mark("build", 2), muteBtn);
+    ["scan", "key", "build"].forEach((k, i) => { if (lab[k]) pills[i].classList.add("done"); });
+
+    function check() {
+      if (!(lab.scan && lab.key && lab.build)) return;
+      const tr = sim.trials, ok = tr.filter(r => /^(Correct|Correcto)/.test(r.check || "")).length;
+      finish.innerHTML = `<div class="lv-done"><div class="lv-done__badge" aria-hidden="true">🧬</div><div>
+        <p class="lv-done__title">${L("Vault secured — investigation complete!", "¡Bóveda asegurada: investigación completa!")}</p>
+        <p class="lv-done__line">${L("All three stations done. Your results are in the Record. Play the bonus round below, then move on to Record and Explain.",
+          "Las tres estaciones completas. Tus resultados están en el Registro. Juega la ronda bonus y luego sigue con Registrar y Explicar.")}</p>
+        <div class="lv-done__stats"><span>${L("Logged results", "Resultados registrados")}: ${tr.length}</span><span>${L("Correct", "Correctos")}: ${ok}</span><span>XP: ${ok * 10}</span></div></div></div>`;
+      if (!lab.awarded) { lab.awarded = true; sim.saveState(); sim.award("lv-vault", L("Vault Keeper", "Guardián de la Bóveda")); blip("win"); burstAt(finish.firstElementChild, "#7dffb4", 24); }
+      sim.setScienceMethod({
+        observation: L("A moon jellyfish has no brain, blood, bones or heart, yet it swims, catches prey, makes eggs or sperm and grows. A candle flame flickers, grows and uses oxygen, and a flu virus copies itself — so 'showing some signs of life' is not the same as being alive.",
+          "Una medusa luna no tiene cerebro, sangre, huesos ni corazón, pero nada, caza, produce óvulos o espermatozoides y crece. Una llama parpadea, crece y usa oxígeno, y un virus de la gripe se copia: 'mostrar algunas señales de vida' no es lo mismo que estar vivo."),
+        question: L("What features decide whether something is a living organism, and which of the five kingdoms (or the separate virus group) it belongs to?",
+          "¿Qué rasgos deciden si algo es un organismo vivo, y a cuál de los cinco reinos (o al grupo aparte de los virus) pertenece?"),
+        hypothesis: L("If something is a living organism, then it will carry out all eight MRS C GREN life processes, because every living thing, from a bacterium to a polar bear, does all of them; a virus will only reproduce, and only inside a host cell.",
+          "Si algo es un organismo vivo, entonces realizará los ocho procesos MRS C GREN, porque todo ser vivo, de una bacteria a un oso polar, los realiza; un virus solo se reproducirá, y solo dentro de una célula huésped."),
+        variables: L("Independent: the specimen tested. Dependent: which life processes are detected (real / look-alike / none), the vault each specimen reaches through the key, and whether each printed cell matches its kingdom. Controlled: the same eight tests, the same five key questions and the same parts list for every specimen.",
+          "Independiente: el espécimen probado. Dependiente: qué procesos vitales se detectan (real / parecido / ninguno), la cámara a la que llega cada espécimen por la clave y si cada célula impresa coincide con su reino. Controladas: las mismas ocho pruebas, las mismas cinco preguntas de la clave y la misma lista de partes para cada espécimen."),
+        results: L("See the Investigation Record: one row per scanned sample (real processes and look-alikes counted), one row per specimen steered through the Kingdom Key (route and vault), and one row per Bio-Printer print (parts chosen).",
+          "Ver el Registro de investigación: una fila por muestra escaneada (procesos reales y parecidos contados), una por espécimen guiado por la Clave de Reinos (ruta y cámara) y una por impresión de la Bioimpresora (partes elegidas)."),
+        analysis: L("Only the living specimens showed all eight real life processes; the flame and the crystal showed only look-alikes, and the virus only copied itself inside a host. Cell features sort organisms: no nucleus means bacteria, chitin walls mean fungi, one nucleated cell without chitin means protoctist, chloroplasts with cellulose walls mean plant, and many cells with no wall means animal.",
+          "Solo los especímenes vivos mostraron los ocho procesos vitales reales; la llama y el cristal solo mostraron parecidos, y el virus solo se copió dentro de un huésped. Los rasgos celulares clasifican a los organismos: sin núcleo es bacteria, paredes de quitina es hongo, una célula con núcleo y sin quitina es protoctista, cloroplastos con paredes de celulosa es planta, y muchas células sin pared es animal."),
+        conclusion: L("A living organism must carry out all eight MRS C GREN processes. Living organisms are classified into five kingdoms by their cell features; viruses are not made of cells and reproduce only inside a host, so they are not living and sit outside the five kingdoms.",
+          "Un organismo vivo debe realizar los ocho procesos MRS C GREN. Los organismos vivos se clasifican en cinco reinos según sus rasgos celulares; los virus no están formados por células y solo se reproducen dentro de un huésped, así que no son seres vivos y quedan fuera de los cinco reinos."),
+        reflection: L("The look-alikes were the most useful evidence: a flame seems to 'breathe' and 'grow', so I had to check whether each sign was a real life process happening in cells. Next I would like to test more tricky cases, such as a seed or a dormant spore.",
+          "Los parecidos fueron la prueba más útil: una llama parece 'respirar' y 'crecer', así que tuve que comprobar si cada señal era un proceso vital real dentro de células. Después me gustaría probar más casos difíciles, como una semilla o una espora latente."),
+      });
+      if (!bonus.dataset.on) { bonus.dataset.on = "1"; mountCarnivalLaunch(bonus, sim); }
+    }
+    check();
+    if (!(lab.scan && lab.key && lab.build)) bonus.innerHTML = `<p class="q__hint">${L("Bonus round (Kingdom Carnival) unlocks when all three stations are done.", "La ronda bonus (Feria de los Reinos) se desbloquea al completar las tres estaciones.")}</p>`;
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
