@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Fraction Groups Workshop — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../engine/i18n.js?v=9";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED_MOTION = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+/* ── confetti burst ── */
+function burst(container, x, y, color) {
+  if (REDUCED_MOTION()) return;
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement("span");
+    p.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:7px;height:7px;margin:-3px;border-radius:50%;background:${color};pointer-events:none;z-index:5`;
+    container.appendChild(p);
+    const ang = Math.random() * Math.PI * 2, dist = 24 + Math.random() * 34;
+    const anim = p.animate([
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0.3)`, opacity: 0 }
+    ], { duration: 480 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    anim.onfinish = () => p.remove();
+  }
+}
+
+/* ── fraction strip SVG: a row of `den` segments with `num` shaded ── */
+function stripSVG(num, den, color, w = 200, h = 32) {
+  const segW = (w - 2) / den;
+  let rects = "";
+  for (let i = 0; i < den; i++) {
+    const filled = i < num;
+    rects += `<rect x="${1 + i * segW}" y="1" width="${segW - 1.5}" height="${h - 2}" rx="3"
+      fill="${filled ? color : '#f0ece4'}" stroke="#4a3728" stroke-width="1.2"/>`;
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${rects}</svg>`;
+}
+
+function stripDataURI(num, den, color, w = 72, h = 28) {
+  const segW = (w - 2) / den;
+  let rects = "";
+  for (let i = 0; i < den; i++) {
+    rects += `<rect x="${1 + i * segW}" y="1" width="${segW - 1.5}" height="${h - 2}" rx="2"
+      fill="${i < num ? color : '#fff'}" stroke="#233b57" stroke-width="1.2"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${rects}</svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+function orderBannerHTML(id) {
+  return `<p id="${id}" style="align-self:flex-start;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)"></p>`;
+}
+
+function toMixed(num, den) {
+  if (num < den) return `${num}/${den}`;
+  const whole = Math.floor(num / den);
+  const rem = num % den;
+  if (rem === 0) return `${whole}`;
+  return `${whole} ${rem}/${den}`;
+}
+
+/* ============================================================
+   ORIENT — visual intro: what "3 groups of 2/5" looks like
+   ============================================================ */
+function drawOrient(host) {
+  const color = "#e67e22";
+  host.innerHTML = `
+    <p class="q__hint">${L(
+      "Multiplying a whole number by a fraction just means making that many <strong>groups</strong> of the fraction and adding them up.",
+      "Multiplicar un número entero por una fracción simplemente significa hacer esa cantidad de <strong>grupos</strong> de la fracción y sumarlos."
+    )}</p>
+    <div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:12px">
+      <p style="font-family:var(--font-data);font-size:var(--step-0);font-weight:700;text-align:center;margin-bottom:12px">3 × 2/5 = ?</p>
+      <p class="q__hint" style="text-align:center;margin-bottom:8px">${L("3 groups of 2/5:","3 grupos de 2/5:")}</p>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center;max-width:240px;margin:0 auto">
+        <div style="width:100%">${stripSVG(2, 5, color)}</div>
+        <div style="width:100%">${stripSVG(2, 5, color)}</div>
+        <div style="width:100%">${stripSVG(2, 5, color)}</div>
+      </div>
+      <p style="font-family:var(--font-data);font-size:var(--step-0);font-weight:700;text-align:center;margin-top:12px">
+        = 6/5 = 1 1/5
+      </p>
+      <p class="q__hint" style="text-align:center">${L(
+        "2 + 2 + 2 = 6 shaded fifths → 6/5 → that's more than 1 whole, so it's an <strong>improper fraction</strong>. Rewrite it as <strong>1 and 1/5</strong> (a mixed number).",
+        "2 + 2 + 2 = 6 quintos sombreados → 6/5 → es más de 1 entero, así que es una <strong>fracción impropia</strong>. Rescríbela como <strong>1 y 1/5</strong> (un número mixto)."
+      )}</p>
+    </div>
+    <p class="q__hint" style="margin-top:12px">${L(
+      "The three workshop stations are on the next screen — lots of practice at each one!",
+      "¡Las tres estaciones del taller están en la siguiente pantalla — mucha práctica en cada una!"
+    )}</p>`;
+}
+
+/* ============================================================
+   INVESTIGATE — three stations
+   ============================================================ */
+function drawInvestigate(host, sim) {
+  host.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "stack";
+  wrap.style.gap = "var(--sp-5)";
+
+  /* ── Station 1: Group Builder ── */
+  const GROUP_TARGETS = [
+    { w: 2, n: 1, d: 3 }, { w: 3, n: 2, d: 5 }, { w: 4, n: 1, d: 4 },
+    { w: 5, n: 2, d: 3 }, { w: 3, n: 3, d: 4 }, { w: 6, n: 1, d: 2 }
+  ];
+  let groupIx = 0;
+
+  const groupPanel = document.createElement("div");
+  groupPanel.className = "panel stack";
+  groupPanel.style.position = "relative";
+  groupPanel.style.overflow = "visible";
+  groupPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 1 — Group Builder","Estación 1 — Constructor de grupos")}</p>
+    <p class="q__hint">${L(
+      "Tap the <strong>+ Group</strong> button to add one group of the fraction at a time. Watch the total grow! When all groups are added, type the product.",
+      "Toca el botón <strong>+ Grupo</strong> para añadir un grupo de la fracción a la vez. ¡Observa cómo crece el total! Cuando todos los grupos estén añadidos, escribe el producto."
+    )}</p>
+    ${orderBannerHTML("grp-banner")}
+    <div id="grp-strips" style="display:flex;flex-direction:column;gap:6px;max-width:260px"></div>
+    <div class="cluster" style="gap:var(--sp-3);align-items:center;flex-wrap:wrap">
+      <button id="grp-add-btn" class="btn btn--accent" type="button">${L("+ Group","+ Grupo")}</button>
+      <p class="readout" id="grp-count" aria-live="polite" style="margin:0"></p>
+    </div>
+    <div id="grp-answer-row" style="display:none;gap:var(--sp-3);align-items:end;flex-wrap:wrap" class="cluster">
+      <div>
+        <label class="field__label" for="grp-num">${L("Numerator","Numerador")}</label>
+        <input id="grp-num" class="input" type="number" min="0" style="width:70px">
+      </div>
+      <span style="font-family:var(--font-data);font-size:var(--step-1);padding-bottom:6px">/</span>
+      <div>
+        <label class="field__label" for="grp-den">${L("Denominator","Denominador")}</label>
+        <input id="grp-den" class="input" type="number" min="1" style="width:70px">
+      </div>
+      <button id="grp-check-btn" class="btn btn--signal" type="button">${L("Check →","Comprobar →")}</button>
+    </div>
+    <p class="readout" id="grp-feedback" aria-live="polite"></p>
+    <p class="q__hint" id="grp-progress" aria-live="polite"></p>
+  `;
+  wrap.append(groupPanel);
+
+  const grpBanner = groupPanel.querySelector("#grp-banner");
+  const grpStrips = groupPanel.querySelector("#grp-strips");
+  const grpAddBtn = groupPanel.querySelector("#grp-add-btn");
+  const grpCount = groupPanel.querySelector("#grp-count");
+  const grpAnswerRow = groupPanel.querySelector("#grp-answer-row");
+  const grpNum = groupPanel.querySelector("#grp-num");
+  const grpDen = groupPanel.querySelector("#grp-den");
+  const grpCheckBtn = groupPanel.querySelector("#grp-check-btn");
+  const grpFeedback = groupPanel.querySelector("#grp-feedback");
+  const grpProgress = groupPanel.querySelector("#grp-progress");
+  let grpAdded = 0;
+  const COLORS = ["#e67e22","#3498db","#2ecc71","#e74c3c","#9b59b6","#1abc9c"];
+
+  function paintGroupTarget() {
+    if (groupIx >= GROUP_TARGETS.length) {
+      grpBanner.textContent = L("All groups built!","¡Todos los grupos construidos!");
+      grpStrips.innerHTML = "";
+      grpAddBtn.style.display = "none";
+      grpAnswerRow.style.display = "none";
+      grpCount.textContent = "";
+      grpFeedback.textContent = "";
+      grpProgress.textContent = "";
+      return;
+    }
+    const t = GROUP_TARGETS[groupIx];
+    grpAdded = 0;
+    grpBanner.textContent = L(`Build: ${t.w} × ${t.n}/${t.d}`,`Construye: ${t.w} × ${t.n}/${t.d}`);
+    grpProgress.textContent = L(`Round ${groupIx+1} of ${GROUP_TARGETS.length}`,`Ronda ${groupIx+1} de ${GROUP_TARGETS.length}`);
+    grpStrips.innerHTML = "";
+    grpAddBtn.style.display = "";
+    grpAddBtn.disabled = false;
+    grpAnswerRow.style.display = "none";
+    grpNum.value = "";
+    grpDen.value = "";
+    grpCount.textContent = L(`0 of ${t.w} groups`,`0 de ${t.w} grupos`);
+    grpFeedback.textContent = "";
+  }
+
+  grpAddBtn.addEventListener("click", (ev) => {
+    const t = GROUP_TARGETS[groupIx];
+    if (!t || grpAdded >= t.w) return;
+    grpAdded++;
+    const row = document.createElement("div");
+    row.style.cssText = "opacity:0;transform:translateX(-20px)";
+    row.innerHTML = `<span style="font-family:var(--font-data);font-size:var(--step--1);color:var(--ink-3);margin-right:4px">${L("Group","Grupo")} ${grpAdded}:</span>` + stripSVG(t.n, t.d, COLORS[groupIx % COLORS.length], 180, 28);
+    grpStrips.append(row);
+    row.animate([
+      { opacity: 0, transform: "translateX(-20px)" },
+      { opacity: 1, transform: "translateX(0)" }
+    ], { duration: 300, fill: "forwards", easing: "ease-out" });
+    const rect = grpAddBtn.getBoundingClientRect(), pr = groupPanel.getBoundingClientRect();
+    burst(groupPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, COLORS[groupIx % COLORS.length]);
+    grpCount.textContent = L(
+      `${grpAdded} of ${t.w} groups — total shaded: ${grpAdded * t.n}/${t.d}`,
+      `${grpAdded} de ${t.w} grupos — total sombreado: ${grpAdded * t.n}/${t.d}`
+    );
+    if (grpAdded >= t.w) {
+      grpAddBtn.disabled = true;
+      grpAnswerRow.style.display = "flex";
+      grpFeedback.textContent = L(
+        `All ${t.w} groups added! Now type the product as a fraction.`,
+        `¡Los ${t.w} grupos están añadidos! Ahora escribe el producto como fracción.`
+      );
+    }
+  });
+
+  grpCheckBtn.addEventListener("click", (ev) => {
+    const t = GROUP_TARGETS[groupIx];
+    if (!t) return;
+    const expectedNum = t.w * t.n, expectedDen = t.d;
+    const givenNum = parseInt(grpNum.value), givenDen = parseInt(grpDen.value);
+    const correct = givenNum === expectedNum && givenDen === expectedDen;
+    const rect = grpCheckBtn.getBoundingClientRect(), pr = groupPanel.getBoundingClientRect();
+    const mixed = toMixed(expectedNum, expectedDen);
+    sim.recordTrial({ task: L("Group Builder","Constructor de grupos"), input: `${t.w} × ${t.n}/${t.d}`, result: `${expectedNum}/${expectedDen} = ${mixed}${correct ? " ✓" : ""}` });
+    if (correct) {
+      burst(groupPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#2ecc71");
+      const msg = expectedNum > expectedDen
+        ? L(`Correct! ${expectedNum}/${expectedDen} is an improper fraction — as a mixed number: ${mixed}`,`¡Correcto! ${expectedNum}/${expectedDen} es una fracción impropia — como número mixto: ${mixed}`)
+        : L(`Correct! ${expectedNum}/${expectedDen}`,`¡Correcto! ${expectedNum}/${expectedDen}`);
+      sim.toast(msg, "correct");
+      grpFeedback.textContent = msg;
+      groupIx++;
+      setTimeout(paintGroupTarget, 900);
+    } else {
+      burst(groupPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#c0392b");
+      grpFeedback.textContent = L(
+        `Not quite — you had ${t.w} groups, each with ${t.n} shaded parts out of ${t.d}. So the numerator is ${t.w} × ${t.n} = ${expectedNum} and the denominator stays ${expectedDen}. Try again!`,
+        `No exactamente — tenías ${t.w} grupos, cada uno con ${t.n} partes sombreadas de ${t.d}. Entonces el numerador es ${t.w} × ${t.n} = ${expectedNum} y el denominador sigue siendo ${expectedDen}. ¡Inténtalo de nuevo!`
+      );
+      sim.toast(L("Not quite — read the hint and try again.","No exactamente — lee la pista e inténtalo de nuevo."), "info");
+    }
+  });
+
+  paintGroupTarget();
+
+  /* ── Station 2: Conversion Station ── */
+  const CONV_TARGETS = [
+    { n: 7, d: 2 }, { n: 9, d: 4 }, { n: 11, d: 3 },
+    { n: 15, d: 4 }, { n: 10, d: 3 }, { n: 13, d: 5 }
+  ];
+  let convIx = 0;
+
+  const convPanel = document.createElement("div");
+  convPanel.className = "panel stack";
+  convPanel.style.position = "relative";
+  convPanel.style.overflow = "visible";
+  convPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 2 — Conversion Station","Estación 2 — Estación de conversión")}</p>
+    <p class="q__hint">${L(
+      "Convert the improper fraction into a mixed number. Divide the numerator by the denominator: the quotient is the whole number, the remainder is the new numerator.",
+      "Convierte la fracción impropia en un número mixto. Divide el numerador entre el denominador: el cociente es el número entero, el residuo es el nuevo numerador."
+    )}</p>
+    ${orderBannerHTML("conv-banner")}
+    <div id="conv-visual" style="display:flex;flex-wrap:wrap;gap:8px;max-width:320px"></div>
+    <div class="cluster" style="gap:var(--sp-3);align-items:end;flex-wrap:wrap">
+      <div>
+        <label class="field__label" for="conv-whole">${L("Whole part","Parte entera")}</label>
+        <input id="conv-whole" class="input" type="number" min="0" style="width:60px">
+      </div>
+      <div>
+        <label class="field__label" for="conv-rem">${L("Remainder numerator","Numerador restante")}</label>
+        <input id="conv-rem" class="input" type="number" min="0" style="width:60px">
+      </div>
+      <span style="font-family:var(--font-data);font-size:var(--step-1);padding-bottom:6px">/ <span id="conv-den-label"></span></span>
+      <button id="conv-check-btn" class="btn btn--signal" type="button">${L("Check →","Comprobar →")}</button>
+    </div>
+    <p class="readout" id="conv-feedback" aria-live="polite"></p>
+    <p class="q__hint" id="conv-progress" aria-live="polite"></p>
+  `;
+  wrap.append(convPanel);
+
+  const convBanner = convPanel.querySelector("#conv-banner");
+  const convVisual = convPanel.querySelector("#conv-visual");
+  const convWhole = convPanel.querySelector("#conv-whole");
+  const convRem = convPanel.querySelector("#conv-rem");
+  const convDenLabel = convPanel.querySelector("#conv-den-label");
+  const convCheckBtn = convPanel.querySelector("#conv-check-btn");
+  const convFeedback = convPanel.querySelector("#conv-feedback");
+  const convProgress = convPanel.querySelector("#conv-progress");
+
+  function paintConvTarget() {
+    if (convIx >= CONV_TARGETS.length) {
+      convBanner.textContent = L("All conversions done!","¡Todas las conversiones hechas!");
+      convVisual.innerHTML = "";
+      convCheckBtn.closest(".cluster").style.display = "none";
+      convFeedback.textContent = "";
+      convProgress.textContent = "";
+      return;
+    }
+    const t = CONV_TARGETS[convIx];
+    convBanner.textContent = L(`Convert: ${t.n}/${t.d}`,`Convierte: ${t.n}/${t.d}`);
+    convProgress.textContent = L(`Round ${convIx+1} of ${CONV_TARGETS.length}`,`Ronda ${convIx+1} de ${CONV_TARGETS.length}`);
+    convDenLabel.textContent = t.d;
+    convWhole.value = "";
+    convRem.value = "";
+    convFeedback.textContent = "";
+    const wholes = Math.floor(t.n / t.d);
+    const rem = t.n % t.d;
+    convVisual.innerHTML = "";
+    for (let i = 0; i < wholes; i++) {
+      const s = document.createElement("div");
+      s.style.cssText = "border:2px solid var(--accent);border-radius:8px;padding:2px;background:var(--accent-wash)";
+      s.innerHTML = `<span style="font-size:var(--step--2);font-family:var(--font-data);display:block;text-align:center;color:var(--accent);font-weight:700">1</span>` + stripSVG(t.d, t.d, COLORS[convIx % COLORS.length], 100, 20);
+      convVisual.append(s);
+    }
+    if (rem > 0) {
+      const s = document.createElement("div");
+      s.style.cssText = "border:2px dashed var(--ink-3);border-radius:8px;padding:2px";
+      s.innerHTML = `<span style="font-size:var(--step--2);font-family:var(--font-data);display:block;text-align:center;color:var(--ink-3);font-weight:700">${rem}/${t.d}</span>` + stripSVG(rem, t.d, COLORS[convIx % COLORS.length], 100, 20);
+      convVisual.append(s);
+    }
+  }
+
+  convCheckBtn.addEventListener("click", (ev) => {
+    const t = CONV_TARGETS[convIx];
+    if (!t) return;
+    const expectedW = Math.floor(t.n / t.d), expectedR = t.n % t.d;
+    const givenW = parseInt(convWhole.value), givenR = parseInt(convRem.value);
+    const correct = givenW === expectedW && givenR === expectedR;
+    const rect = convCheckBtn.getBoundingClientRect(), pr = convPanel.getBoundingClientRect();
+    const mixed = toMixed(t.n, t.d);
+    sim.recordTrial({ task: L("Conversion Station","Estación de conversión"), input: `${t.n}/${t.d}`, result: `${mixed}${correct ? " ✓" : ""}` });
+    if (correct) {
+      burst(convPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#2ecc71");
+      sim.toast(L(`Correct! ${t.n}/${t.d} = ${mixed}`,`¡Correcto! ${t.n}/${t.d} = ${mixed}`), "correct");
+      convFeedback.textContent = L(`${t.n} ÷ ${t.d} = ${expectedW} remainder ${expectedR} → ${mixed}`,`${t.n} ÷ ${t.d} = ${expectedW} residuo ${expectedR} → ${mixed}`);
+      convIx++;
+      setTimeout(paintConvTarget, 900);
+    } else {
+      burst(convPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#c0392b");
+      convFeedback.textContent = L(
+        `Not quite — divide ${t.n} by ${t.d}. How many times does ${t.d} fit into ${t.n}? That's the whole part. What's left over? That's the remainder numerator.`,
+        `No exactamente — divide ${t.n} entre ${t.d}. ¿Cuántas veces cabe ${t.d} en ${t.n}? Esa es la parte entera. ¿Qué queda? Ese es el numerador restante.`
+      );
+      sim.toast(L("Not quite — read the hint and try again.","No exactamente — lee la pista e inténtalo de nuevo."), "info");
+    }
+  });
+
+  paintConvTarget();
+
+  /* ── Station 3: Ticket Office ── */
+  const TICKET_PROBLEMS = [
+    { total: 150, n: 6, d: 10, who: { en: "Max", es: "Max" }, item: { en: "tickets", es: "boletos" }, verb: { en: "sold", es: "vendió" } },
+    { total: 150, n: 4, d: 5, who: { en: "Helen", es: "Helen" }, item: { en: "tickets", es: "boletos" }, verb: { en: "sold", es: "vendió" } },
+    { total: 200, n: 3, d: 4, who: { en: "Mia", es: "Mia" }, item: { en: "stickers", es: "pegatinas" }, verb: { en: "gave away", es: "regaló" } },
+    { total: 120, n: 2, d: 3, who: { en: "Sam", es: "Sam" }, item: { en: "pencils", es: "lápices" }, verb: { en: "shared", es: "repartió" } },
+    { total: 180, n: 5, d: 6, who: { en: "Lola", es: "Lola" }, item: { en: "beads", es: "cuentas" }, verb: { en: "used", es: "usó" } }
+  ];
+  let ticketIx = 0;
+
+  const ticketPanel = document.createElement("div");
+  ticketPanel.className = "panel stack";
+  ticketPanel.style.position = "relative";
+  ticketPanel.style.overflow = "visible";
+  ticketPanel.innerHTML = `
+    <p class="eyebrow">${L("Station 3 — Ticket Office","Estación 3 — Taquilla")}</p>
+    <p class="q__hint">${L(
+      "Read the word problem, then calculate: total × fraction. Type the answer.",
+      "Lee el problema verbal, luego calcula: total × fracción. Escribe la respuesta."
+    )}</p>
+    ${orderBannerHTML("tkt-banner")}
+    <p class="readout" id="tkt-text" style="font-size:var(--step-0);line-height:1.5"></p>
+    <p class="q__hint" id="tkt-setup" style="font-family:var(--font-data);font-weight:600"></p>
+    <div class="cluster" style="gap:var(--sp-3);align-items:end">
+      <div>
+        <label class="field__label" for="tkt-answer">${L("Answer","Respuesta")}</label>
+        <input id="tkt-answer" class="input" type="number" min="0" style="width:100px">
+      </div>
+      <button id="tkt-check-btn" class="btn btn--signal" type="button">${L("Check →","Comprobar →")}</button>
+    </div>
+    <p class="readout" id="tkt-feedback" aria-live="polite"></p>
+    <p class="q__hint" id="tkt-progress" aria-live="polite"></p>
+  `;
+  wrap.append(ticketPanel);
+
+  const tktBanner = ticketPanel.querySelector("#tkt-banner");
+  const tktText = ticketPanel.querySelector("#tkt-text");
+  const tktSetup = ticketPanel.querySelector("#tkt-setup");
+  const tktAnswer = ticketPanel.querySelector("#tkt-answer");
+  const tktCheckBtn = ticketPanel.querySelector("#tkt-check-btn");
+  const tktFeedback = ticketPanel.querySelector("#tkt-feedback");
+  const tktProgress = ticketPanel.querySelector("#tkt-progress");
+
+  function paintTicket() {
+    if (ticketIx >= TICKET_PROBLEMS.length) {
+      tktBanner.textContent = L("All problems solved!","¡Todos los problemas resueltos!");
+      tktText.textContent = "";
+      tktSetup.textContent = "";
+      tktCheckBtn.closest(".cluster").style.display = "none";
+      tktFeedback.textContent = "";
+      tktProgress.textContent = "";
+      return;
+    }
+    const p = TICKET_PROBLEMS[ticketIx];
+    const who = L(p.who.en, p.who.es), item = L(p.item.en, p.item.es), verb = L(p.verb.en, p.verb.es);
+    tktBanner.textContent = L("How many?","¿Cuántos?");
+    tktText.innerHTML = L(
+      `${who} started with <strong>${p.total}</strong> ${item}. ${who} ${verb} <strong>${p.n}/${p.d}</strong> of them. How many ${item} did ${who} actually ${p.verb.en.split(" ")[0]}?`,
+      `${who} empezó con <strong>${p.total}</strong> ${item}. ${who} ${verb} <strong>${p.n}/${p.d}</strong> de ellos. ¿Cuántos ${item} ${verb} ${who} realmente?`
+    );
+    tktSetup.textContent = `${p.total} × ${p.n}/${p.d} = ?`;
+    tktProgress.textContent = L(`Problem ${ticketIx+1} of ${TICKET_PROBLEMS.length}`,`Problema ${ticketIx+1} de ${TICKET_PROBLEMS.length}`);
+    tktAnswer.value = "";
+    tktFeedback.textContent = "";
+  }
+
+  tktCheckBtn.addEventListener("click", (ev) => {
+    const p = TICKET_PROBLEMS[ticketIx];
+    if (!p) return;
+    const expected = (p.total * p.n) / p.d;
+    const given = parseInt(tktAnswer.value);
+    const correct = given === expected;
+    const rect = tktCheckBtn.getBoundingClientRect(), pr = ticketPanel.getBoundingClientRect();
+    sim.recordTrial({ task: L("Ticket Office","Taquilla"), input: `${p.total} × ${p.n}/${p.d}`, result: `${expected}${correct ? " ✓" : `, ${L("your answer","tu respuesta")}: ${isNaN(given) ? "—" : given}`}` });
+    if (correct) {
+      burst(ticketPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#2ecc71");
+      sim.toast(L(`Correct! ${p.total} × ${p.n}/${p.d} = ${expected}`,`¡Correcto! ${p.total} × ${p.n}/${p.d} = ${expected}`), "correct");
+      tktFeedback.textContent = L(
+        `${p.total} × ${p.n} = ${p.total * p.n}, then ÷ ${p.d} = ${expected}.`,
+        `${p.total} × ${p.n} = ${p.total * p.n}, luego ÷ ${p.d} = ${expected}.`
+      );
+      ticketIx++;
+      setTimeout(paintTicket, 900);
+    } else {
+      burst(ticketPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#c0392b");
+      tktFeedback.textContent = L(
+        `Not quite — try: ${p.total} × ${p.n} = ${p.total * p.n}, then divide by ${p.d}.`,
+        `No exactamente — intenta: ${p.total} × ${p.n} = ${p.total * p.n}, luego divide entre ${p.d}.`
+      );
+      sim.toast(L("Not quite — read the hint and try again.","No exactamente — lee la pista e inténtalo de nuevo."), "info");
+    }
+  });
+
+  paintTicket();
+
+  host.append(wrap);
+
+  /* ── Bonus Round: Fraction Stack (build-and-balance) ──
+     A brand-new mechanic from the library (CLAUDE.md §4): stack fraction
+     blocks to reach a target mixed-number height. Each round shows a target
+     (e.g. "2 ¾") and a set of fraction blocks; the student picks which ones
+     to stack. This is the first build-and-balance in the library. */
+
+  const bonusSection = document.createElement("div");
+  bonusSection.id = "bonus-section";
+  bonusSection.style.marginTop = "var(--sp-5)";
+  host.append(bonusSection);
+
+  const STACK_ROUNDS = [
+    { target: { n: 5, d: 2 }, blocks: [
+      { n: 1, d: 2 }, { n: 1, d: 2 }, { n: 1, d: 2 }, { n: 1, d: 2 }, { n: 1, d: 2 },
+      { n: 1, d: 4 }, { n: 3, d: 4 }
+    ]},
+    { target: { n: 11, d: 4 }, blocks: [
+      { n: 1, d: 4 }, { n: 1, d: 4 }, { n: 1, d: 4 }, { n: 3, d: 4 }, { n: 3, d: 4 },
+      { n: 1, d: 2 }, { n: 1, d: 2 }
+    ]},
+    { target: { n: 7, d: 3 }, blocks: [
+      { n: 1, d: 3 }, { n: 1, d: 3 }, { n: 1, d: 3 }, { n: 2, d: 3 }, { n: 2, d: 3 },
+      { n: 1, d: 6 }, { n: 1, d: 2 }
+    ]},
+    { target: { n: 13, d: 5 }, blocks: [
+      { n: 1, d: 5 }, { n: 2, d: 5 }, { n: 2, d: 5 }, { n: 3, d: 5 }, { n: 3, d: 5 },
+      { n: 1, d: 5 }, { n: 4, d: 5 }
+    ]},
+    { target: { n: 9, d: 4 }, blocks: [
+      { n: 1, d: 4 }, { n: 1, d: 4 }, { n: 3, d: 4 }, { n: 3, d: 4 }, { n: 1, d: 2 },
+      { n: 1, d: 4 }, { n: 1, d: 4 }
+    ]},
+    { target: { n: 17, d: 6 }, blocks: [
+      { n: 1, d: 6 }, { n: 1, d: 6 }, { n: 1, d: 3 }, { n: 2, d: 3 }, { n: 5, d: 6 },
+      { n: 1, d: 2 }, { n: 1, d: 6 }
+    ]}
+  ];
+
+  function mountBonus() {
+    let roundIx = 0, stackSum = 0, stackItems = [], startTime = Date.now(), timerRef = null;
+    const DURATION_MS = 120000;
+
+    bonusSection.innerHTML = `
+      <div class="panel stack" style="position:relative;overflow:visible">
+        <div class="cluster" style="justify-content:space-between;flex-wrap:wrap">
+          <p class="eyebrow">${L("Bonus — Fraction Stack","Bonus — Torre de fracciones")}</p>
+          <p class="readout" id="stack-timer" style="margin:0;font-weight:700"></p>
+        </div>
+        <p class="q__hint">${L(
+          "Stack fraction blocks to reach the target height exactly! Tap a block to add it. Tap it again to remove it. When the total matches the target, hit ✓ Done.",
+          "¡Apila bloques de fracciones para alcanzar la altura objetivo exactamente! Toca un bloque para añadirlo. Tócalo de nuevo para quitarlo. Cuando el total coincida con el objetivo, pulsa ✓ Listo."
+        )}</p>
+        ${orderBannerHTML("stack-target")}
+        <div style="display:flex;gap:var(--sp-4);flex-wrap:wrap;align-items:end">
+          <div id="stack-tower" style="min-width:80px;min-height:60px;border:2px dashed var(--accent);border-radius:8px;padding:6px;display:flex;flex-direction:column-reverse;gap:3px;align-items:center"></div>
+          <div id="stack-blocks" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:180px"></div>
+        </div>
+        <div class="cluster" style="gap:var(--sp-3)">
+          <p class="readout" id="stack-sum" style="margin:0" aria-live="polite"></p>
+          <button id="stack-done-btn" class="btn btn--signal" type="button">${L("✓ Done","✓ Listo")}</button>
+        </div>
+        <p class="readout" id="stack-feedback" aria-live="polite"></p>
+        <p class="q__hint" id="stack-progress" aria-live="polite"></p>
+        <div id="stack-end" style="display:none" class="panel stack" role="status">
+          <p class="eyebrow">${L("Fraction Stack — Results","Torre de fracciones — Resultados")}</p>
+          <p id="stack-end-msg" class="readout"></p>
+        </div>
+      </div>`;
+
+    const stackTarget = bonusSection.querySelector("#stack-target");
+    const stackTower = bonusSection.querySelector("#stack-tower");
+    const stackBlocks = bonusSection.querySelector("#stack-blocks");
+    const stackSumEl = bonusSection.querySelector("#stack-sum");
+    const stackDoneBtn = bonusSection.querySelector("#stack-done-btn");
+    const stackFeedbackEl = bonusSection.querySelector("#stack-feedback");
+    const stackProgress = bonusSection.querySelector("#stack-progress");
+    const stackTimer = bonusSection.querySelector("#stack-timer");
+    const stackEnd = bonusSection.querySelector("#stack-end");
+    const stackEndMsg = bonusSection.querySelector("#stack-end-msg");
+    let score = 0;
+
+    function updateTimer() {
+      const elapsed = Date.now() - startTime;
+      const remain = Math.max(0, DURATION_MS - elapsed);
+      const s = Math.ceil(remain / 1000);
+      stackTimer.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+      if (remain <= 0) { clearInterval(timerRef); endBonus(); }
+    }
+    timerRef = setInterval(updateTimer, 1000);
+    updateTimer();
+
+    function paintRound() {
+      if (roundIx >= STACK_ROUNDS.length) { endBonus(); return; }
+      const r = STACK_ROUNDS[roundIx];
+      stackSum = 0;
+      stackItems = [];
+      const mixed = toMixed(r.target.n, r.target.d);
+      stackTarget.textContent = L(`Target: ${mixed} (= ${r.target.n}/${r.target.d})`,`Objetivo: ${mixed} (= ${r.target.n}/${r.target.d})`);
+      stackProgress.textContent = L(`Round ${roundIx+1} of ${STACK_ROUNDS.length}`,`Ronda ${roundIx+1} de ${STACK_ROUNDS.length}`);
+      stackFeedbackEl.textContent = "";
+      stackTower.innerHTML = "";
+      stackBlocks.innerHTML = "";
+      stackSumEl.textContent = L("Tower: 0","Torre: 0");
+      const shuffled = [...r.blocks].sort(() => Math.random() - 0.5);
+      shuffled.forEach((b, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn--ghost";
+        btn.style.cssText = "font-family:var(--font-data);padding:6px 10px;min-width:52px;position:relative";
+        btn.innerHTML = `<span>${b.n}/${b.d}</span>`;
+        btn.dataset.idx = i;
+        btn.dataset.selected = "0";
+        btn.dataset.num = b.n;
+        btn.dataset.den = b.d;
+        btn.addEventListener("click", () => toggleBlock(btn, b));
+        stackBlocks.append(btn);
+      });
+    }
+
+    function toggleBlock(btn, b) {
+      const sel = btn.dataset.selected === "1";
+      btn.dataset.selected = sel ? "0" : "1";
+      btn.style.background = sel ? "" : "var(--accent-wash)";
+      btn.style.borderColor = sel ? "" : "var(--accent)";
+      if (sel) {
+        stackItems = stackItems.filter(x => x.btn !== btn);
+      } else {
+        stackItems.push({ btn, n: b.n, d: b.d });
+      }
+      recalcSum();
+    }
+
+    function recalcSum() {
+      let sumNum = 0, lcd = 1;
+      for (const it of stackItems) lcd = lcm(lcd, it.d);
+      for (const it of stackItems) sumNum += it.n * (lcd / it.d);
+      stackSum = sumNum / lcd;
+      const g = gcd(sumNum, lcd);
+      const sn = sumNum / g, sd = lcd / g;
+      stackSumEl.textContent = stackItems.length === 0
+        ? L("Tower: 0","Torre: 0")
+        : L(`Tower: ${sn}/${sd} = ${toMixed(sn, sd)}`,`Torre: ${sn}/${sd} = ${toMixed(sn, sd)}`);
+      stackTower.innerHTML = "";
+      for (const it of stackItems) {
+        const brick = document.createElement("div");
+        brick.style.cssText = "padding:3px 8px;background:var(--accent);color:#fff;border-radius:4px;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;text-align:center;min-width:50px";
+        brick.textContent = `${it.n}/${it.d}`;
+        stackTower.append(brick);
+      }
+    }
+
+    function lcm(a, b) { return (a * b) / gcd(a, b); }
+
+    stackDoneBtn.addEventListener("click", () => {
+      const r = STACK_ROUNDS[roundIx];
+      if (!r) return;
+      const targetVal = r.target.n / r.target.d;
+      const correct = Math.abs(stackSum - targetVal) < 0.001;
+      const mixed = toMixed(r.target.n, r.target.d);
+      if (correct) {
+        score++;
+        burst(bonusSection.querySelector(".panel"), 120, 40, "#2ecc71");
+        sim.toast(L(`Stack complete — ${mixed}!`,`¡Torre completa — ${mixed}!`), "correct");
+        stackFeedbackEl.textContent = L(`You reached ${mixed} exactly!`,`¡Alcanzaste ${mixed} exactamente!`);
+        roundIx++;
+        setTimeout(paintRound, 800);
+      } else {
+        burst(bonusSection.querySelector(".panel"), 120, 40, "#c0392b");
+        stackFeedbackEl.textContent = L(
+          `Not quite — your tower doesn't add up to ${mixed} yet. Add or remove blocks and try again.`,
+          `No exactamente — tu torre todavía no suma ${mixed}. Añade o quita bloques e inténtalo de nuevo.`
+        );
+        sim.toast(L("Not quite — adjust your stack.","No exactamente — ajusta tu torre."), "info");
+      }
+    });
+
+    function endBonus() {
+      clearInterval(timerRef);
+      stackTarget.style.display = "none";
+      stackTower.style.display = "none";
+      stackBlocks.style.display = "none";
+      stackDoneBtn.style.display = "none";
+      stackSumEl.style.display = "none";
+      stackFeedbackEl.style.display = "none";
+      stackProgress.style.display = "none";
+      stackEnd.style.display = "";
+      stackEndMsg.textContent = L(
+        `You stacked ${score} of ${STACK_ROUNDS.length} towers in 2 minutes! Great fraction work.`,
+        `¡Apilaste ${score} de ${STACK_ROUNDS.length} torres en 2 minutos! Gran trabajo con fracciones.`
+      );
+    }
+
+    paintRound();
+  }
+
+  const launchCard = document.createElement("div");
+  launchCard.className = "panel stack";
+  launchCard.innerHTML = `
+    <p class="eyebrow">${L("Bonus Round — Fraction Stack","Ronda Bonus — Torre de fracciones")}</p>
+    <p class="q__hint">${L(
+      "Stack fraction blocks to reach target heights in 2 minutes! This is optional — it doesn't count for marks.",
+      "¡Apila bloques de fracciones para alcanzar alturas objetivo en 2 minutos! Esto es opcional — no cuenta para la nota."
+    )}</p>
+    <div class="cluster" style="gap:var(--sp-3)">
+      <button class="btn btn--accent" type="button" id="bonus-play">${L("Play","Jugar")}</button>
+      <button class="btn btn--ghost" type="button" id="bonus-skip">${L("Skip","Omitir")}</button>
+    </div>`;
+  bonusSection.append(launchCard);
+  launchCard.querySelector("#bonus-play").addEventListener("click", () => { launchCard.remove(); mountBonus(); });
+  launchCard.querySelector("#bonus-skip").addEventListener("click", () => { launchCard.remove(); bonusSection.innerHTML = `<p class="q__hint">${L("Bonus round skipped.","Ronda bonus omitida.")}</p>`; });
+}
+
+/* ── Mount ── */
+const sim = mountActivity({
+  configUrl: "./config.json",
+  simulation: {
+    orient(host) { drawOrient(host); },
+    investigate(host, s) { drawInvestigate(host, s); }
+  }
+});
+</script>
+</body>
+</html>
