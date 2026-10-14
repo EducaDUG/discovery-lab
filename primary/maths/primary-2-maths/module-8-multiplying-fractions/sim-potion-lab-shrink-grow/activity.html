@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Potion Lab — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../engine/i18n.js?v=9";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* ─── Shared helpers ─── */
+function burst(container, x, y, color) {
+  if (REDUCED()) return;
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement("span");
+    p.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:8px;height:8px;margin:-4px;border-radius:50%;background:${color};pointer-events:none;z-index:5`;
+    container.appendChild(p);
+    const ang = Math.random() * Math.PI * 2, dist = 20 + Math.random() * 40;
+    const anim = p.animate([
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: `translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px) scale(0.2)`, opacity: 0 }
+    ], { duration: 450 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    anim.onfinish = () => p.remove();
+  }
+}
+
+function gemSVG(color = "#a855f7") {
+  return `<svg viewBox="0 0 24 24" width="28" height="28" style="display:inline-block;vertical-align:middle"><polygon points="12,2 22,9 18,22 6,22 2,9" fill="${color}" stroke="#7c3aed" stroke-width="1.2"/><polygon points="12,2 17,9 12,14 7,9" fill="#c084fc" opacity=".5"/></svg>`;
+}
+
+function frac(n, d) { return `<sup>${n}</sup>⁄<sub>${d}</sub>`; }
+function fracPlain(n, d) { return `${n}/${d}`; }
+
+/* ─── Orient diagram ─── */
+function orientDiagram(host) {
+  host.innerHTML = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+    <div class="panel" style="text-align:center;padding:20px;position:relative;border:2px solid #7c3aed;border-radius:12px;background:linear-gradient(135deg,#f3e8ff,#ede9fe)">
+      <p style="font-weight:700;color:#7c3aed;font-size:1.1em;margin:0 0 8px">${L("Shrink Potion","Poción de Encoger")}</p>
+      <p style="margin:0 0 4px;font-size:.95em;color:var(--ink-2)">${L("Multiply by a fraction","Multiplica por una fracción")} <strong>&lt; 1</strong></p>
+      <div style="display:flex;justify-content:center;gap:2px;margin:12px 0">${gemSVG("#a855f7").repeat(8)}</div>
+      <p style="margin:4px 0;font-size:1.2em;font-weight:700">8 × ${frac(1,2)} = 4</p>
+      <div style="display:flex;justify-content:center;gap:2px;margin:8px 0">${gemSVG("#a855f7").repeat(4)}</div>
+      <p style="margin:4px 0;font-size:.9em;color:#7c3aed;font-weight:600">${L("The product is SMALLER","El producto es MENOR")} ↓</p>
+    </div>
+    <div class="panel" style="text-align:center;padding:20px;position:relative;border:2px solid #059669;border-radius:12px;background:linear-gradient(135deg,#ecfdf5,#d1fae5)">
+      <p style="font-weight:700;color:#059669;font-size:1.1em;margin:0 0 8px">${L("Grow Potion","Poción de Crecer")}</p>
+      <p style="margin:0 0 4px;font-size:.95em;color:var(--ink-2)">${L("Multiply by a fraction","Multiplica por una fracción")} <strong>&gt; 1</strong></p>
+      <div style="display:flex;justify-content:center;gap:2px;margin:12px 0">${gemSVG("#10b981").repeat(4)}</div>
+      <p style="margin:4px 0;font-size:1.2em;font-weight:700">4 × ${frac(3,2)} = 6</p>
+      <div style="display:flex;justify-content:center;gap:2px;margin:8px 0">${gemSVG("#10b981").repeat(6)}</div>
+      <p style="margin:4px 0;font-size:.9em;color:#059669;font-weight:600">${L("The product is BIGGER","El producto es MAYOR")} ↑</p>
+    </div>
+  </div>
+  <div class="panel" style="text-align:center;padding:14px;margin-top:12px;border:2px solid var(--accent);border-radius:12px;background:var(--paper)">
+    <p style="margin:0;font-size:1em;font-weight:600;color:var(--ink-1)">${L(
+      "The secret: compare the fraction to 1. Less than 1 → shrinks. Greater than 1 → grows. Equal to 1 → stays the same!",
+      "El secreto: compara la fracción con 1. Menor que 1 → encoge. Mayor que 1 → crece. Igual a 1 → se queda igual!"
+    )}</p>
+  </div>`;
+}
+
+/* ─── Station 1: Shrink & Grow Machine ─── */
+const SGM_ROUNDS = [
+  { start: 8,  options: [{n:1,d:2},{n:1,d:4},{n:3,d:2}] },
+  { start: 12, options: [{n:1,d:3},{n:2,d:3},{n:4,d:3}] },
+  { start: 10, options: [{n:3,d:5},{n:7,d:5},{n:1,d:2}] },
+  { start: 6,  options: [{n:5,d:6},{n:7,d:6},{n:1,d:6}] },
+  { start: 15, options: [{n:2,d:3},{n:4,d:3},{n:1,d:5}] },
+];
+
+function buildStation1(host, sim) {
+  let round = 0;
+  function render() {
+    if (round >= SGM_ROUNDS.length) {
+      host.innerHTML = `<div class="panel" style="text-align:center;padding:24px">
+        <p style="font-size:1.2em;font-weight:700;color:#059669">✦ ${L("Station 1 Complete!","¡Estación 1 completa!")} ✦</p>
+        <p style="color:var(--ink-2)">${L("Move to the Inequality Scale →","Pasa a la Balanza de Desigualdades →")}</p>
+      </div>`;
+      return;
+    }
+    const r = SGM_ROUNDS[round];
+    const wrap = document.createElement("div");
+    wrap.className = "panel"; wrap.style.cssText = "position:relative;padding:20px;overflow:hidden";
+    wrap.innerHTML = `
+      <p class="eyebrow" style="margin:0 0 6px">${L("Shrink & Grow Machine","Máquina de Encoger y Crecer")} — ${L("Round","Ronda")} ${round+1}/${SGM_ROUNDS.length}</p>
+      <p style="font-size:1.05em;margin:4px 0 12px">${L("You have","Tienes")} <strong>${r.start}</strong> ${L("gems. Pick a potion to pour!","gemas. ¡Elige una poción!")}</p>
+      <div id="sgm-gems" style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;min-height:40px">${gemSVG("#a855f7").repeat(r.start)}</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin:16px 0;flex-wrap:wrap" id="sgm-btns"></div>
+      <div id="sgm-result" style="text-align:center;min-height:60px"></div>`;
+    host.innerHTML = "";
+    host.appendChild(wrap);
+    const btns = wrap.querySelector("#sgm-btns");
+    r.options.forEach(opt => {
+      const b = document.createElement("button");
+      b.className = "btn"; b.type = "button";
+      const isGrow = opt.n / opt.d > 1;
+      b.style.cssText = isGrow ? "border-color:#059669;color:#059669" : "border-color:#7c3aed;color:#7c3aed";
+      b.textContent = `× ${opt.n}/${opt.d}`;
+      b.addEventListener("click", () => pourPotion(r, opt, wrap));
+      btns.appendChild(b);
+    });
+  }
+
+  function pourPotion(r, opt, wrap) {
+    const product = r.start * opt.n / opt.d;
+    const isGrow = opt.n / opt.d > 1;
+    const isSame = opt.n === opt.d;
+    const effect = isSame ? L("Same","Igual") : isGrow ? L("Grow!","¡Crecer!") : L("Shrink!","¡Encoger!");
+    const color = isSame ? "var(--accent)" : isGrow ? "#059669" : "#7c3aed";
+
+    const gemsDiv = wrap.querySelector("#sgm-gems");
+    const resultDiv = wrap.querySelector("#sgm-result");
+    const btnsDiv = wrap.querySelector("#sgm-btns");
+    btnsDiv.querySelectorAll("button").forEach(b => b.disabled = true);
+
+    // Animate gems
+    if (!REDUCED()) {
+      gemsDiv.style.transition = "opacity .3s";
+      gemsDiv.style.opacity = "0.3";
+      setTimeout(() => {
+        gemsDiv.innerHTML = gemSVG(isGrow ? "#10b981" : "#a855f7").repeat(Math.round(product));
+        gemsDiv.style.opacity = "1";
+        burst(wrap, wrap.offsetWidth / 2, gemsDiv.offsetTop + 20, color);
+      }, 350);
+    } else {
+      gemsDiv.innerHTML = gemSVG(isGrow ? "#10b981" : "#a855f7").repeat(Math.round(product));
+    }
+
+    resultDiv.innerHTML = `<p style="font-size:1.3em;font-weight:700;margin:8px 0;color:${color}">${r.start} × ${frac(opt.n, opt.d)} = ${product}</p>
+      <p style="font-size:1.1em;font-weight:600;color:${color}">${effect}</p>`;
+
+    sim.recordTrial({
+      task: L("Shrink & Grow","Encoger y Crecer"),
+      input: `${r.start} × ${fracPlain(opt.n, opt.d)}`,
+      result: `${product} (${effect})`
+    });
+
+    const next = document.createElement("button");
+    next.className = "btn btn--signal"; next.type = "button";
+    next.textContent = round < SGM_ROUNDS.length - 1 ? L("Next round →","Siguiente ronda →") : L("Station complete! ✦","¡Estación completa! ✦");
+    next.style.marginTop = "12px";
+    next.addEventListener("click", () => { round++; render(); });
+    resultDiv.appendChild(next);
+  }
+
+  render();
+}
+
+/* ─── Station 2: Inequality Scale ─── */
+const INEQ_ROUNDS = [
+  { base: 8,  fA:{n:1,d:2}, fB:{n:3,d:4}, ans:"<" },
+  { base: 10, fA:{n:2,d:5}, fB:{n:3,d:5}, ans:"<" },
+  { base: 12, fA:{n:2,d:3}, fB:{n:1,d:3}, ans:">" },
+  { base: 6,  fA:{n:5,d:6}, fB:{n:5,d:6}, ans:"=" },
+  { base: 15, fA:{n:3,d:5}, fB:{n:2,d:5}, ans:">" },
+];
+
+function buildStation2(host, sim) {
+  let round = 0;
+  function render() {
+    if (round >= INEQ_ROUNDS.length) {
+      host.innerHTML = `<div class="panel" style="text-align:center;padding:24px">
+        <p style="font-size:1.2em;font-weight:700;color:#059669">✦ ${L("Station 2 Complete!","¡Estación 2 completa!")} ✦</p>
+        <p style="color:var(--ink-2)">${L("Move to the Product Predictor →","Pasa al Predictor de Productos →")}</p>
+      </div>`;
+      return;
+    }
+    const r = INEQ_ROUNDS[round];
+    const prodA = r.base * r.fA.n / r.fA.d;
+    const prodB = r.base * r.fB.n / r.fB.d;
+    const wrap = document.createElement("div");
+    wrap.className = "panel"; wrap.style.cssText = "position:relative;padding:20px;overflow:hidden";
+    wrap.innerHTML = `
+      <p class="eyebrow" style="margin:0 0 6px">${L("Inequality Scale","Balanza de Desigualdades")} — ${L("Round","Ronda")} ${round+1}/${INEQ_ROUNDS.length}</p>
+      <p style="margin:4px 0 12px;font-size:1em">${L("Which symbol goes in the middle?","¿Qué símbolo va en el medio?")}</p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:12px 0">
+        <div id="ineq-left" style="background:linear-gradient(135deg,#f3e8ff,#ede9fe);border:2px solid #7c3aed;border-radius:12px;padding:16px 20px;text-align:center;min-width:120px;transition:transform .3s">
+          <p style="margin:0;font-size:1.3em;font-weight:700">${r.base} × ${frac(r.fA.n,r.fA.d)}</p>
+          <p id="ineq-val-a" style="margin:4px 0 0;font-size:1em;color:var(--ink-3)">= ?</p>
+        </div>
+        <div id="ineq-sign" style="font-size:2em;font-weight:900;color:var(--ink-3);min-width:50px;text-align:center">?</div>
+        <div id="ineq-right" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #059669;border-radius:12px;padding:16px 20px;text-align:center;min-width:120px;transition:transform .3s">
+          <p style="margin:0;font-size:1.3em;font-weight:700">${r.base} × ${frac(r.fB.n,r.fB.d)}</p>
+          <p id="ineq-val-b" style="margin:4px 0 0;font-size:1em;color:var(--ink-3)">= ?</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;margin:14px 0" id="ineq-btns">
+        <button class="btn" type="button" data-sym="<" style="font-size:1.4em;min-width:54px">&lt;</button>
+        <button class="btn" type="button" data-sym="=" style="font-size:1.4em;min-width:54px">=</button>
+        <button class="btn" type="button" data-sym=">" style="font-size:1.4em;min-width:54px">&gt;</button>
+      </div>
+      <div id="ineq-result" style="text-align:center;min-height:50px"></div>`;
+    host.innerHTML = "";
+    host.appendChild(wrap);
+
+    wrap.querySelectorAll("#ineq-btns button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const chosen = btn.dataset.sym;
+        const correct = chosen === r.ans;
+        wrap.querySelectorAll("#ineq-btns button").forEach(b => b.disabled = true);
+
+        wrap.querySelector("#ineq-val-a").textContent = `= ${prodA}`;
+        wrap.querySelector("#ineq-val-b").textContent = `= ${prodB}`;
+        wrap.querySelector("#ineq-sign").textContent = r.ans;
+        wrap.querySelector("#ineq-sign").style.color = correct ? "#059669" : "#dc2626";
+
+        const leftEl = wrap.querySelector("#ineq-left");
+        const rightEl = wrap.querySelector("#ineq-right");
+        if (!REDUCED()) {
+          if (prodA > prodB) { leftEl.style.transform = "translateY(-6px)"; rightEl.style.transform = "translateY(6px)"; }
+          else if (prodA < prodB) { leftEl.style.transform = "translateY(6px)"; rightEl.style.transform = "translateY(-6px)"; }
+        }
+
+        const res = wrap.querySelector("#ineq-result");
+        if (correct) {
+          burst(wrap, wrap.offsetWidth / 2, res.offsetTop, "#059669");
+          res.innerHTML = `<p style="color:#059669;font-weight:700;font-size:1.1em">✦ ${L("Correct!","¡Correcto!")} ${prodA} ${r.ans} ${prodB}</p>`;
+        } else {
+          res.innerHTML = `<p style="color:#dc2626;font-weight:700">${L("Not quite!","¡Casi!")} ${prodA} ${r.ans} ${prodB}</p>`;
+          if (!REDUCED()) btn.animate([{transform:"translateX(-4px)"},{transform:"translateX(4px)"},{transform:"translateX(-2px)"},{transform:"translateX(0)"}], {duration:300});
+        }
+
+        sim.recordTrial({
+          task: L("Inequality Scale","Balanza de Desigualdades"),
+          input: `${r.base}×${fracPlain(r.fA.n,r.fA.d)} vs ${r.base}×${fracPlain(r.fB.n,r.fB.d)}`,
+          result: `${r.ans} (${correct ? "✓" : "✗"})`
+        });
+
+        const next = document.createElement("button");
+        next.className = "btn btn--signal"; next.type = "button";
+        next.textContent = round < INEQ_ROUNDS.length - 1 ? L("Next round →","Siguiente ronda →") : L("Station complete! ✦","¡Estación completa! ✦");
+        next.style.marginTop = "10px";
+        next.addEventListener("click", () => { round++; render(); });
+        res.appendChild(next);
+      });
+    });
+  }
+  render();
+}
+
+/* ─── Station 3: Product Predictor ─── */
+const PRED_ROUNDS = [
+  { base: 20, fA:{n:1,d:2}, fB:{n:1,d:3}, ans:"A", hint_en:"Both fractions are less than 1, but ½ is closer to 1 than ⅓.", hint_es:"Ambas fracciones son menores que 1, pero ½ está más cerca de 1 que ⅓." },
+  { base: 8,  fA:{n:3,d:4}, fB:{n:5,d:4}, ans:"B", hint_en:"¾ is less than 1 (shrinks), but ⁵⁄₄ is greater than 1 (grows)!", hint_es:"¾ es menor que 1 (encoge), ¡pero ⁵⁄₄ es mayor que 1 (crece)!" },
+  { base: 10, fA:{n:3,d:5}, fB:{n:4,d:5}, ans:"B", hint_en:"Both fractions are less than 1, but ⁴⁄₅ is bigger than ³⁄₅.", hint_es:"Ambas fracciones son menores que 1, pero ⁴⁄₅ es mayor que ³⁄₅." },
+  { base: 12, fA:{n:7,d:6}, fB:{n:5,d:6}, ans:"A", hint_en:"⁷⁄₆ is greater than 1 (grows), but ⁵⁄₆ is less than 1 (shrinks).", hint_es:"⁷⁄₆ es mayor que 1 (crece), pero ⁵⁄₆ es menor que 1 (encoge)." },
+];
+
+function buildStation3(host, sim) {
+  let round = 0;
+  function render() {
+    if (round >= PRED_ROUNDS.length) {
+      host.innerHTML = `<div class="panel" style="text-align:center;padding:24px">
+        <p style="font-size:1.2em;font-weight:700;color:#059669">✦ ${L("All Stations Complete!","¡Todas las estaciones completas!")} ✦</p>
+        <p style="color:var(--ink-2)">${L("Well done! Move to the next stage.","¡Bien hecho! Pasa a la siguiente etapa.")}</p>
+      </div>`;
+      return;
+    }
+    const r = PRED_ROUNDS[round];
+    const prodA = r.base * r.fA.n / r.fA.d;
+    const prodB = r.base * r.fB.n / r.fB.d;
+    const wrap = document.createElement("div");
+    wrap.className = "panel"; wrap.style.cssText = "position:relative;padding:20px;overflow:hidden";
+    wrap.innerHTML = `
+      <p class="eyebrow" style="margin:0 0 6px">${L("Product Predictor","Predictor de Productos")} — ${L("Round","Ronda")} ${round+1}/${PRED_ROUNDS.length}</p>
+      <p style="margin:4px 0 12px;font-size:1em">${L("WITHOUT calculating, which product is BIGGER?","SIN calcular, ¿cuál producto es MAYOR?")}</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:12px 0" id="pred-cards">
+        <button class="btn" type="button" data-pick="A" style="padding:16px 24px;font-size:1.15em;border-radius:12px;border-width:2px;min-width:140px">
+          <strong>A:</strong> ${r.base} × ${frac(r.fA.n,r.fA.d)}
+        </button>
+        <button class="btn" type="button" data-pick="B" style="padding:16px 24px;font-size:1.15em;border-radius:12px;border-width:2px;min-width:140px">
+          <strong>B:</strong> ${r.base} × ${frac(r.fB.n,r.fB.d)}
+        </button>
+      </div>
+      <div id="pred-result" style="text-align:center;min-height:70px"></div>`;
+    host.innerHTML = "";
+    host.appendChild(wrap);
+
+    wrap.querySelectorAll("#pred-cards button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const pick = btn.dataset.pick;
+        const correct = pick === r.ans;
+        wrap.querySelectorAll("#pred-cards button").forEach(b => b.disabled = true);
+
+        const res = wrap.querySelector("#pred-result");
+        const winBtn = wrap.querySelector(`[data-pick="${r.ans}"]`);
+        winBtn.style.borderColor = "#059669"; winBtn.style.background = "#ecfdf5";
+
+        if (correct) {
+          burst(wrap, wrap.offsetWidth / 2, res.offsetTop, "#059669");
+        } else {
+          btn.style.borderColor = "#dc2626"; btn.style.background = "#fef2f2";
+          if (!REDUCED()) btn.animate([{transform:"translateX(-4px)"},{transform:"translateX(4px)"},{transform:"translateX(-2px)"},{transform:"translateX(0)"}], {duration:300});
+        }
+
+        res.innerHTML = `
+          <p style="font-weight:700;color:${correct?"#059669":"#dc2626"};font-size:1.1em">${correct ? "✦ "+L("Correct!","¡Correcto!")+" ✦" : L("Not quite!","¡Casi!")}</p>
+          <p style="margin:4px 0"><strong>A:</strong> ${r.base} × ${frac(r.fA.n,r.fA.d)} = ${prodA} &nbsp;&nbsp; <strong>B:</strong> ${r.base} × ${frac(r.fB.n,r.fB.d)} = ${prodB}</p>
+          <p style="color:var(--ink-2);font-size:.95em">${L(r.hint_en, r.hint_es)}</p>`;
+
+        sim.recordTrial({
+          task: L("Product Predictor","Predictor de Productos"),
+          input: `${r.base}×${fracPlain(r.fA.n,r.fA.d)} vs ${r.base}×${fracPlain(r.fB.n,r.fB.d)}`,
+          result: `${r.ans} (${correct ? "✓" : "✗"})`
+        });
+
+        const next = document.createElement("button");
+        next.className = "btn btn--signal"; next.type = "button";
+        next.textContent = round < PRED_ROUNDS.length - 1 ? L("Next round →","Siguiente ronda →") : L("All done! ✦","¡Todo listo! ✦");
+        next.style.marginTop = "10px";
+        next.addEventListener("click", () => { round++; render(); });
+        res.appendChild(next);
+      });
+    });
+  }
+  render();
+}
+
+/* ─── Investigate: station selector + bonus ─── */
+function investigate(host, sim) {
+  host.innerHTML = "";
+  const tabs = document.createElement("div");
+  tabs.style.cssText = "display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap";
+  const stations = [
+    { label: L("Shrink & Grow Machine","Máquina de Encoger y Crecer"), build: buildStation1, icon: "🧪" },
+    { label: L("Inequality Scale","Balanza de Desigualdades"), build: buildStation2, icon: "⚖️" },
+    { label: L("Product Predictor","Predictor de Productos"), build: buildStation3, icon: "🔮" },
+  ];
+  const content = document.createElement("div");
+  content.id = "station-content";
+
+  stations.forEach((st, i) => {
+    const b = document.createElement("button");
+    b.className = "btn"; b.type = "button";
+    b.textContent = `${st.icon} ${st.label}`;
+    b.style.fontSize = ".9em";
+    b.addEventListener("click", () => {
+      tabs.querySelectorAll("button").forEach(t => { t.style.borderColor = ""; t.style.fontWeight = ""; });
+      b.style.borderColor = "var(--accent)"; b.style.fontWeight = "700";
+      st.build(content, sim);
+    });
+    tabs.appendChild(b);
+  });
+  host.appendChild(tabs);
+  host.appendChild(content);
+
+  // Bonus section
+  const bonusSection = document.createElement("div");
+  bonusSection.style.marginTop = "20px";
+  host.appendChild(bonusSection);
+
+  function paintBonus() {
+    bonusSection.innerHTML = "";
+    renderBalanceLaunch(bonusSection);
+    const playBtn = bonusSection.querySelector("#bal-play");
+    const skipBtn = bonusSection.querySelector("#bal-skip");
+    if (playBtn) playBtn.addEventListener("click", () => {
+      bonusSection.innerHTML = "";
+      const gameHost = document.createElement("div");
+      bonusSection.appendChild(gameHost);
+      mountBalanceBeam(gameHost);
+    });
+    if (skipBtn) skipBtn.addEventListener("click", () => { bonusSection.innerHTML = ""; });
+  }
+  paintBonus();
+
+  // Auto-start Station 1
+  tabs.children[0].click();
+}
+
+/* ─── Bonus round: Balance Beam (build-and-balance — first from the library!) ─── */
+const BALANCE_ITEMS = [
+  { expr: "8 × ½", val: 4 },
+  { expr: "6 × ⅔", val: 4 },
+  { expr: "10 × ³⁄₅", val: 6 },
+  { expr: "12 × ¼", val: 3 },
+  { expr: "9 × ⅓", val: 3 },
+  { expr: "4 × ³⁄₂", val: 6 },
+  { expr: "15 × ⅕", val: 3 },
+  { expr: "10 × ⁷⁄₅", val: 14 },
+  { expr: "6 × ⅚", val: 5 },
+  { expr: "8 × ¾", val: 6 },
+  { expr: "12 × ⅓", val: 4 },
+  { expr: "20 × ½", val: 10 },
+  { expr: "15 × ⅖", val: 6 },
+  { expr: "8 × ⁵⁄₄", val: 10 },
+  { expr: "6 × ⁷⁄₆", val: 7 },
+  { expr: "10 × ²⁄₅", val: 4 },
+  { expr: "9 × ⅔", val: 6 },
+  { expr: "4 × ⁵⁄₂", val: 10 },
+  { expr: "12 × ½", val: 6 },
+  { expr: "15 × ⅓", val: 5 },
+  { expr: "6 × ⁴⁄₃", val: 8 },
+  { expr: "10 × ³⁄₁₀", val: 3 },
+  { expr: "8 × ⅝", val: 5 },
+  { expr: "20 × ¼", val: 5 },
+];
+
+function potionBottleSVG(val, maxVal, hue) {
+  const fillH = Math.max(8, (val / maxVal) * 40);
+  return `<svg viewBox="0 0 40 60" width="40" height="60"><rect x="14" y="2" width="12" height="8" rx="2" fill="#94a3b8" stroke="#64748b" stroke-width="1"/><path d="M10 16 Q10 10 14 10 H26 Q30 10 30 16 V50 Q30 56 20 56 Q10 56 10 50 Z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2"/><rect x="11" y="${56-fillH}" width="18" height="${fillH}" rx="1" fill="hsl(${hue},70%,55%)" opacity=".8"/><text x="20" y="38" text-anchor="middle" font-size="9" font-weight="700" fill="#1e293b">${val}</text></svg>`;
+}
+
+function renderBalanceLaunch(host) {
+  host.innerHTML = `<div class="panel" style="text-align:center;padding:24px;border:2px dashed var(--accent);border-radius:14px">
+    <p style="font-size:1.3em;font-weight:700;color:var(--accent);margin:0 0 8px">⚖️ ${L("Bonus: Balance Beam Challenge","Bonus: Reto de la Balanza")}</p>
+    <p style="margin:0 0 16px;color:var(--ink-2)">${L(
+      "Place potion bottles on the left or right side of the balance beam to keep it level. You have 2 minutes!",
+      "Coloca las botellas de pociones a la izquierda o derecha de la balanza para mantenerla equilibrada. ¡Tienes 2 minutos!"
+    )}</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button type="button" class="btn btn--signal" id="bal-play">${L("Play!","¡Jugar!")}</button>
+      <button type="button" class="btn" id="bal-skip">${L("Skip","Saltar")}</button>
+    </div>
+  </div>`;
+}
+
+function mountBalanceBeam(host) {
+  const DURATION = 120000;
+  const items = [...BALANCE_ITEMS].sort(() => Math.random() - 0.5);
+  const maxVal = Math.max(...items.map(i => i.val));
+  let idx = 0, left = 0, right = 0, score = 0, streak = 0, bestStreak = 0;
+  let running = true;
+
+  host.innerHTML = `<div style="position:relative;padding:16px;overflow:hidden" id="bal-game">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="eyebrow" id="bal-timer">2:00</span>
+      <span style="font-weight:600" id="bal-score">${L("Score","Puntos")}: 0</span>
+      <span style="font-weight:600;color:var(--accent)" id="bal-streak">${L("Streak","Racha")}: 0</span>
+    </div>
+    <div id="bal-current" style="text-align:center;margin:10px 0;min-height:80px"></div>
+    <div id="bal-beam" style="position:relative;height:100px;margin:10px 0">
+      <div id="bal-fulcrum" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:30px solid #94a3b8"></div>
+      <div id="bal-plank" style="position:absolute;bottom:28px;left:10%;width:80%;height:8px;background:linear-gradient(90deg,#7c3aed,#059669);border-radius:4px;transform-origin:center center;transition:transform .4s ease-out"></div>
+      <div style="position:absolute;bottom:40px;left:12%;text-align:center;font-weight:700;font-size:1.1em;color:#7c3aed" id="bal-left-val">0</div>
+      <div style="position:absolute;bottom:40px;right:12%;text-align:center;font-weight:700;font-size:1.1em;color:#059669" id="bal-right-val">0</div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin:14px 0">
+      <button type="button" class="btn" id="bal-btn-left" style="min-width:110px;border-color:#7c3aed;color:#7c3aed;font-size:1.05em">← ${L("Left","Izquierda")}</button>
+      <button type="button" class="btn" id="bal-btn-right" style="min-width:110px;border-color:#059669;color:#059669;font-size:1.05em">${L("Right","Derecha")} →</button>
+    </div>
+    <div id="bal-feedback" style="text-align:center;min-height:30px"></div>
+  </div>`;
+
+  const game = host.querySelector("#bal-game");
+  const timerEl = host.querySelector("#bal-timer");
+  const scoreEl = host.querySelector("#bal-score");
+  const streakEl = host.querySelector("#bal-streak");
+  const currentEl = host.querySelector("#bal-current");
+  const plank = host.querySelector("#bal-plank");
+  const leftVal = host.querySelector("#bal-left-val");
+  const rightVal = host.querySelector("#bal-right-val");
+  const feedbackEl = host.querySelector("#bal-feedback");
+  const btnL = host.querySelector("#bal-btn-left");
+  const btnR = host.querySelector("#bal-btn-right");
+
+  function updateBeam() {
+    const diff = left - right;
+    const angle = Math.max(-15, Math.min(15, diff * 2));
+    plank.style.transform = `rotate(${angle}deg)`;
+    leftVal.textContent = left;
+    rightVal.textContent = right;
+  }
+
+  function showItem() {
+    if (!running || idx >= items.length) { endGame(); return; }
+    const item = items[idx];
+    currentEl.innerHTML = `<div style="display:inline-flex;align-items:center;gap:10px;padding:12px 20px;background:var(--paper);border:2px solid var(--accent);border-radius:12px">
+      ${potionBottleSVG(item.val, maxVal, idx * 30 % 360)}
+      <span style="font-size:1.2em;font-weight:700">${item.expr} = ${item.val}</span>
+    </div>`;
+    feedbackEl.innerHTML = "";
+    btnL.disabled = false; btnR.disabled = false;
+  }
+
+  function place(side) {
+    if (!running || idx >= items.length) return;
+    btnL.disabled = true; btnR.disabled = true;
+    const item = items[idx];
+    if (side === "left") left += item.val; else right += item.val;
+    updateBeam();
+
+    const balanced = Math.abs(left - right) <= 2;
+    if (balanced) {
+      score += 10; streak++;
+      if (streak > bestStreak) bestStreak = streak;
+      feedbackEl.innerHTML = `<span style="color:#059669;font-weight:700">⚖️ ${L("Balanced!","¡Equilibrada!")} +10</span>`;
+      burst(game, game.offsetWidth / 2, plank.offsetTop, "#059669");
+    } else {
+      streak = 0;
+      feedbackEl.innerHTML = `<span style="color:#f59e0b;font-weight:600">${L("Tipping...","Inclinándose...")} ${left > right ? "←" : "→"}</span>`;
+    }
+    scoreEl.textContent = `${L("Score","Puntos")}: ${score}`;
+    streakEl.textContent = `${L("Streak","Racha")}: ${streak}`;
+
+    idx++;
+    setTimeout(showItem, 900);
+  }
+
+  btnL.addEventListener("click", () => place("left"));
+  btnR.addEventListener("click", () => place("right"));
+
+  // Timer on setInterval (never rAF for game state)
+  const startTime = Date.now();
+  const timer = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const remain = Math.max(0, DURATION - elapsed);
+    const m = Math.floor(remain / 60000);
+    const s = Math.floor((remain % 60000) / 1000);
+    timerEl.textContent = `${m}:${String(s).padStart(2, "0")}`;
+    if (remain <= 0) { running = false; clearInterval(timer); endGame(); }
+  }, 250);
+
+  function endGame() {
+    running = false;
+    clearInterval(timer);
+    btnL.disabled = true; btnR.disabled = true;
+    currentEl.innerHTML = "";
+    host.innerHTML = `<div class="panel" style="text-align:center;padding:24px">
+      <p style="font-size:1.4em;font-weight:700;color:var(--accent);margin:0 0 10px">⚖️ ${L("Balance Beam Complete!","¡Reto de la Balanza completo!")}</p>
+      <p style="font-size:1.1em;margin:4px 0">${L("Score","Puntos")}: <strong>${score}</strong></p>
+      <p style="font-size:1.1em;margin:4px 0">${L("Best streak","Mejor racha")}: <strong>${bestStreak}</strong></p>
+      <p style="font-size:1.1em;margin:4px 0">${L("Items placed","Piezas colocadas")}: <strong>${idx}</strong></p>
+      <p style="margin:12px 0;color:var(--ink-2)">${L("Great work! Continue to the next stage.","¡Buen trabajo! Continúa a la siguiente etapa.")}</p>
+    </div>`;
+  }
+
+  showItem();
+}
+
+/* ─── Wire it all up ─── */
+const simulation = {
+  orient(host) { orientDiagram(host); },
+  investigate(host, sim) { investigate(host, sim); },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
