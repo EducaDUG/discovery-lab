@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Perimeter Patrol — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=19";
+import { getLang } from "../../../../../engine/i18n.js?v=9";
+import { mountPacPerimeter, renderPacLaunch, shapeIconSVG } from "./pacman-perimeter.js?v=1";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED_MOTION = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* Confetti-style burst: the shared "something visibly moves" reaction for each
+   hands-on moment. Container must be position:relative. Skipped under reduced motion. */
+function burst(container, x, y, color) {
+  if (REDUCED_MOTION()) return;
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement("span");
+    p.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:7px;height:7px;margin:-3px;border-radius:50%;background:${color};pointer-events:none;z-index:5`;
+    container.appendChild(p);
+    const ang = Math.random() * Math.PI * 2, dist = 24 + Math.random() * 34;
+    const anim = p.animate([
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0.3)`, opacity: 0 }
+    ], { duration: 480 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    anim.onfinish = () => p.remove();
+  }
+}
+/* Shake an element on a wrong answer (immediate, in-place feedback). */
+function shake(el) {
+  if (!el || REDUCED_MOTION()) return;
+  el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(0)" }], { duration: 320 });
+}
+function burstAtEl(panel, el, color) {
+  const r = el.getBoundingClientRect(), pr = panel.getBoundingClientRect();
+  burst(panel, r.left - pr.left + r.width / 2, r.top - pr.top + r.height / 2, color);
+}
+
+/* ---- drawn garden-plot helpers (real objects, not bare blocks) ---- */
+const CELL = 38, PAD = 26;
+function flowerSVG(cx, cy, c) {
+  let s = `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy + 9}" stroke="#3f7a2e" stroke-width="2"/>`;
+  for (let a = 0; a < 5; a++) {
+    const t = (a / 5) * 6.283;
+    s += `<circle cx="${cx + Math.cos(t) * 4.5}" cy="${cy + Math.sin(t) * 4.5}" r="3.2" fill="${c}"/>`;
+  }
+  return s + `<circle cx="${cx}" cy="${cy}" r="2.4" fill="#ffd84a"/>`;
+}
+function gardenBackground(l, w) {
+  let s = `<rect x="${PAD}" y="${PAD}" width="${l * CELL}" height="${w * CELL}" fill="#9fd47a"/>`;
+  const cols = ["#e8567a", "#f4a63a", "#b86bd6", "#ff7a59"];
+  for (let i = 0; i < l; i++) for (let j = 0; j < w; j++) {
+    s += `<rect x="${PAD + i * CELL}" y="${PAD + j * CELL}" width="${CELL}" height="${CELL}" fill="none" stroke="#6fa24c" stroke-width="1" stroke-dasharray="3 3"/>`;
+    s += flowerSVG(PAD + i * CELL + CELL / 2, PAD + j * CELL + CELL / 2 - 4, cols[(i * 3 + j) % cols.length]);
+  }
+  return s;
+}
+function fencePanel(x1, y1, x2, y2, placed) {
+  if (!placed) return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#b9a37a" stroke-width="3" stroke-dasharray="4 5" stroke-linecap="round"/>`;
+  const horiz = y1 === y2;
+  let s = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8a5a1f" stroke-width="6" stroke-linecap="round"/>`;
+  s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c98a3a" stroke-width="2.5" stroke-linecap="round"/>`;
+  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+  s += horiz ? `<rect x="${mx - 3}" y="${my - 9}" width="6" height="18" rx="2" fill="#6b3f1d"/>` : `<rect x="${mx - 9}" y="${my - 3}" width="18" height="6" rx="2" fill="#6b3f1d"/>`;
+  return s;
+}
+function plotLabelsSVG(l, w) {
+  return `<text x="${PAD + (l * CELL) / 2}" y="14" text-anchor="middle" font-family="var(--font-data)" font-size="13" fill="var(--ink-3)">${l} m</text>
+          <text x="10" y="${PAD + (w * CELL) / 2}" text-anchor="middle" font-family="var(--font-data)" font-size="13" fill="var(--ink-3)" transform="rotate(-90 10 ${PAD + (w * CELL) / 2})">${w} m</text>`;
+}
+function rectCardSVG(l, w, scale = 14) {
+  const rw = l * scale, rh = w * scale;
+  return `<svg viewBox="0 0 ${rw + 70} ${rh + 50}" style="width:100%;max-width:${rw + 70}px;height:auto" role="img" aria-label="${L(`A rectangle ${l} long and ${w} wide`, `Un rectángulo de ${l} de largo y ${w} de ancho`)}">
+    <rect x="35" y="22" width="${rw}" height="${rh}" fill="#bfe3a8" stroke="#8a5a1f" stroke-width="4"/>
+    <text x="${35 + rw / 2}" y="16" text-anchor="middle" font-family="var(--font-data)" font-size="13" fill="var(--ink)">${l}</text>
+    <text x="${35 + rw / 2}" y="${22 + rh + 18}" text-anchor="middle" font-family="var(--font-data)" font-size="13" fill="var(--ink)">${l}</text>
+    <text x="22" y="${22 + rh / 2 + 4}" text-anchor="middle" font-family="var(--font-data)" font-size="13" fill="var(--ink)">${w}</text>
+    <text x="${35 + rw + 14}" y="${22 + rh / 2 + 4}" text-anchor="middle" font-family="var(--font-data)" font-size="13" fill="var(--ink)">${w}</text>
+  </svg>`;
+}
+
+/* ============================================================
+   ORIENT - what perimeter is, the formula, and the times-one idea
+   ============================================================ */
+function drawOrient(host) {
+  host.innerHTML =
+    `<p class="q__hint">${L(
+      "Perimeter is the distance all the way around the outside of a shape. Walk round the edge, add up every side, and you have it. A rectangle has two long sides and two short sides, so P = l + w + l + w = 2 × (l + w).",
+      "El perímetro es la distancia total alrededor del borde de una figura. Recorre el borde, suma todos los lados y listo. Un rectángulo tiene dos lados largos y dos cortos, así que P = l + w + l + w = 2 × (l + w)."
+    )}</p>
+    <svg viewBox="0 0 340 230" style="width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:12px" role="img"
+         aria-label="${L('A garden rectangle 6 long and 3 wide with arrows tracing round the edge, and a note that times 1 stays the same','Un jardín rectangular de 6 de largo y 3 de ancho con flechas que recorren el borde, y una nota de que por 1 queda igual')}">
+      <defs><marker id="arr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#c0392b"/></marker></defs>
+      <rect x="60" y="40" width="180" height="90" fill="#bfe3a8" stroke="#8a5a1f" stroke-width="5"/>
+      ${flowerSVG(110, 80, "#e8567a")}${flowerSVG(150, 90, "#f4a63a")}${flowerSVG(195, 78, "#b86bd6")}
+      <text x="150" y="28" text-anchor="middle" font-family="var(--font-data)" font-size="12" fill="var(--ink)">${L('length = 6','largo = 6')}</text>
+      <text x="38" y="88" text-anchor="middle" font-family="var(--font-data)" font-size="12" fill="var(--ink)" transform="rotate(-90 38 88)">${L('width = 3','ancho = 3')}</text>
+      <path d="M66 34 H236 V136 H66 Z" fill="none" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arr)" opacity=".85"/>
+      <text x="170" y="154" text-anchor="middle" font-family="var(--font-data)" font-size="12" fill="var(--ink)">P = 6 + 3 + 6 + 3 = 18 = 2 × (6 + 3)</text>
+      <g transform="translate(70,172)">
+        <rect width="200" height="42" rx="21" fill="#fff4cc" stroke="#e0b64c" stroke-width="2"/>
+        <text x="100" y="26" text-anchor="middle" font-family="var(--font-data)" font-size="15" font-weight="700" fill="#7a5a00">${L('× 1 = the same!','× 1 = ¡igual!')}</text>
+      </g>
+    </svg>`;
+}
+
+/* ============================================================
+   INVESTIGATE - three hands-on moments
+   ============================================================ */
+function drawInvestigate(host, sim) {
+  host.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "stack";
+  wrap.style.gap = "var(--sp-5)";
+  const bannerStyle = "align-self:flex-start;font-family:var(--font-data);font-size:var(--step--1);font-weight:600;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)";
+  const mkPanel = (html) => {
+    const p = document.createElement("div");
+    p.className = "panel stack"; p.style.position = "relative"; p.style.overflow = "visible";
+    p.innerHTML = html; wrap.append(p); return p;
+  };
+
+  /* ---------- Moment 1: Garden Fence Builder ---------- */
+  const PLOTS = [{ l: 4, w: 3 }, { l: 5, w: 2 }, { l: 3, w: 3 }, { l: 6, w: 3 }];
+  let plotIx = 0, placed = new Set();
+  const fencePanelEl = mkPanel(`
+    <p class="eyebrow">${L("Job 1 — Garden Fence Builder", "Trabajo 1 — Constructor de vallas")}</p>
+    <p class="q__hint">${L("Tap the dotted edges to build the fence panel by panel (each panel is 1 metre). Then count and type the perimeter: how many metres of fence go all the way round?", "Toca los bordes punteados para construir la valla panel por panel (cada panel mide 1 metro). Luego cuenta y escribe el perímetro: ¿cuántos metros de valla rodean todo?")}</p>
+    <p id="plot-banner" style="${bannerStyle}"></p>
+    <svg id="plot-svg" style="width:100%;max-width:340px;height:auto"></svg>
+    <p class="readout" id="plot-count" aria-live="polite"></p>
+    <div class="cluster" style="gap:var(--sp-3);flex-wrap:wrap;align-items:end">
+      <div><label class="field__label" for="plot-ans">${L("Perimeter (metres)", "Perímetro (metros)")}</label>
+        <input id="plot-ans" class="input" type="number" min="0" max="99" inputmode="numeric" style="max-width:8rem"></div>
+      <button id="plot-check" class="btn btn--signal" type="button">${L("Check perimeter →", "Comprobar perímetro →")}</button>
+      <button id="plot-clear" class="btn" type="button">${L("Clear fence", "Quitar valla")}</button>
+    </div>
+    <p class="q__hint" id="plot-msg" aria-live="polite"></p>
+    <p class="q__hint" id="plot-progress" aria-live="polite"></p>`);
+  const plotSvg = fencePanelEl.querySelector("#plot-svg"), plotCount = fencePanelEl.querySelector("#plot-count");
+  const plotBanner = fencePanelEl.querySelector("#plot-banner"), plotAns = fencePanelEl.querySelector("#plot-ans");
+  const plotMsg = fencePanelEl.querySelector("#plot-msg"), plotProgress = fencePanelEl.querySelector("#plot-progress");
+
+  function segments(l, w) {
+    const segs = [];
+    for (let i = 0; i < l; i++) {
+      segs.push({ id: `t${i}`, x1: PAD + i * CELL, y1: PAD, x2: PAD + (i + 1) * CELL, y2: PAD, name: L(`top panel ${i + 1}`, `panel superior ${i + 1}`) });
+      segs.push({ id: `b${i}`, x1: PAD + i * CELL, y1: PAD + w * CELL, x2: PAD + (i + 1) * CELL, y2: PAD + w * CELL, name: L(`bottom panel ${i + 1}`, `panel inferior ${i + 1}`) });
+    }
+    for (let j = 0; j < w; j++) {
+      segs.push({ id: `l${j}`, x1: PAD, y1: PAD + j * CELL, x2: PAD, y2: PAD + (j + 1) * CELL, name: L(`left panel ${j + 1}`, `panel izquierdo ${j + 1}`) });
+      segs.push({ id: `r${j}`, x1: PAD + l * CELL, y1: PAD + j * CELL, x2: PAD + l * CELL, y2: PAD + (j + 1) * CELL, name: L(`right panel ${j + 1}`, `panel derecho ${j + 1}`) });
+    }
+    return segs;
+  }
+  function paintPlot() {
+    const p = PLOTS[plotIx];
+    if (!p) {
+      plotBanner.textContent = L("All plots fenced! Great patrol work.", "¡Todas las parcelas valladas! Gran trabajo de patrulla.");
+      plotSvg.innerHTML = ""; plotCount.textContent = ""; plotProgress.textContent = "";
+      return;
+    }
+    plotBanner.textContent = L(`Plot ${plotIx + 1}: ${p.l} m long, ${p.w} m wide`, `Parcela ${plotIx + 1}: ${p.l} m de largo, ${p.w} m de ancho`);
+    plotProgress.textContent = L(`Plot ${plotIx + 1} of ${PLOTS.length}`, `Parcela ${plotIx + 1} de ${PLOTS.length}`);
+    plotSvg.setAttribute("viewBox", `0 0 ${p.l * CELL + PAD * 2} ${p.w * CELL + PAD * 2}`);
+    let svg = gardenBackground(p.l, p.w) + plotLabelsSVG(p.l, p.w);
+    for (const s of segments(p.l, p.w)) {
+      const on = placed.has(s.id);
+      svg += `<g data-seg="${s.id}" role="button" tabindex="0" aria-pressed="${on}" aria-label="${s.name}" style="cursor:pointer">
+        <rect x="${Math.min(s.x1, s.x2) - 10}" y="${Math.min(s.y1, s.y2) - 10}" width="${Math.abs(s.x2 - s.x1) + 20}" height="${Math.abs(s.y2 - s.y1) + 20}" fill="transparent"/>
+        ${fencePanel(s.x1, s.y1, s.x2, s.y2, on)}</g>`;
+    }
+    plotSvg.innerHTML = svg;
+    plotCount.textContent = L(`Fence panels placed: ${placed.size}`, `Paneles de valla colocados: ${placed.size}`);
+  }
+  function togglePanel(id, g) {
+    if (placed.has(id)) placed.delete(id); else placed.add(id);
+    paintPlot();
+    const node = plotSvg.querySelector(`[data-seg="${id}"]`);
+    if (node) {
+      burstAtEl(fencePanelEl, node, placed.has(id) ? "#c98a3a" : "#b9a37a");
+      if (!REDUCED_MOTION()) node.animate([{ opacity: .3 }, { opacity: 1 }], { duration: 220 });
+    }
+  }
+  plotSvg.addEventListener("click", (e) => { const g = e.target.closest("[data-seg]"); if (g) togglePanel(g.dataset.seg, g); });
+  plotSvg.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const g = e.target.closest("[data-seg]"); if (!g) return;
+    e.preventDefault(); const id = g.dataset.seg; togglePanel(id, g);
+    const again = plotSvg.querySelector(`[data-seg="${id}"]`); if (again) again.focus();
+  });
+  fencePanelEl.querySelector("#plot-clear").addEventListener("click", () => { placed = new Set(); plotMsg.textContent = ""; paintPlot(); });
+  function checkPlot() {
+    const p = PLOTS[plotIx]; if (!p) return;
+    const ans = Number(plotAns.value), correct = 2 * (p.l + p.w);
+    if (plotAns.value === "") { plotMsg.textContent = L("Type your perimeter first.", "Escribe primero tu perímetro."); shake(plotAns); return; }
+    const ok = ans === correct, complete = placed.size === correct;
+    sim.recordTrial({ task: L("Fence builder", "Constructor de vallas"), input: L(`${p.l} m × ${p.w} m, ${placed.size} panels placed`, `${p.l} m × ${p.w} m, ${placed.size} paneles colocados`), result: `${L("your answer", "tu respuesta")} ${ans} m, P = ${correct} m${ok ? " ✓" : ""}` });
+    const btn = fencePanelEl.querySelector("#plot-check");
+    if (ok) {
+      burstAtEl(fencePanelEl, btn, "#3f8f6b");
+      plotMsg.textContent = complete
+        ? L(`Yes! ${p.l} + ${p.w} + ${p.l} + ${p.w} = ${correct} metres of fence.`, `¡Sí! ${p.l} + ${p.w} + ${p.l} + ${p.w} = ${correct} metros de valla.`)
+        : L(`Yes! The perimeter is ${correct} m. Your fence still has gaps, which is fine for this answer.`, `¡Sí! El perímetro es ${correct} m. Tu valla aún tiene huecos, pero la respuesta es correcta.`);
+      sim.toast(L(`Plot fenced — perimeter ${correct} m!`, `¡Parcela vallada — perímetro ${correct} m!`), "correct");
+      plotIx++; placed = new Set(); plotAns.value = "";
+      setTimeout(() => { plotMsg.textContent = ""; paintPlot(); }, 900);
+    } else {
+      burstAtEl(fencePanelEl, btn, "#c0392b"); shake(plotSvg);
+      plotMsg.textContent = L(`Not yet. You have ${placed.size} panels. Walk all the way round the edge and count every side: ${p.l} + ${p.w} + ... `, `Todavía no. Tienes ${placed.size} paneles. Recorre todo el borde y cuenta cada lado: ${p.l} + ${p.w} + ... `);
+    }
+  }
+  fencePanelEl.querySelector("#plot-check").addEventListener("click", checkPlot);
+  plotAns.addEventListener("keydown", (e) => { if (e.key === "Enter") checkPlot(); });
+  paintPlot();
+
+  /* ---------- Moment 2: Perimeter Speed Calculator ---------- */
+  const FIELDS = [{ l: 7, w: 3 }, { l: 9, w: 4 }, { l: 6, w: 6 }, { l: 10, w: 5 }];
+  let fieldIx = 0, fieldStart = 0, timerHandle = 0;
+  const calcPanel = mkPanel(`
+    <p class="eyebrow">${L("Job 2 — Perimeter Speed Calculator", "Trabajo 2 — Calculadora rápida de perímetro")}</p>
+    <p class="q__hint">${L("Use the quick formula P = 2 × (length + width). The stopwatch is only for fun: there is no penalty for taking your time.", "Usa la fórmula rápida P = 2 × (largo + ancho). El cronómetro es solo por diversión: no hay penalización por tomarte tu tiempo.")}</p>
+    <p id="field-banner" style="${bannerStyle}"></p>
+    <div id="field-card"></div>
+    <p class="readout" id="field-formula"></p>
+    <div class="cluster" style="gap:var(--sp-3);flex-wrap:wrap;align-items:end">
+      <div><label class="field__label" for="field-ans">${L("Perimeter", "Perímetro")}</label>
+        <input id="field-ans" class="input" type="number" min="0" max="199" inputmode="numeric" style="max-width:8rem"></div>
+      <button id="field-check" class="btn btn--signal" type="button">${L("Check →", "Comprobar →")}</button>
+    </div>
+    <p class="q__hint" id="field-msg" aria-live="polite"></p>
+    <p class="q__hint" id="field-progress" aria-live="polite"></p>`);
+  const fieldBanner = calcPanel.querySelector("#field-banner"), fieldCard = calcPanel.querySelector("#field-card");
+  const fieldFormula = calcPanel.querySelector("#field-formula"), fieldAns = calcPanel.querySelector("#field-ans");
+  const fieldMsg = calcPanel.querySelector("#field-msg"), fieldProgress = calcPanel.querySelector("#field-progress");
+  function paintField() {
+    const f = FIELDS[fieldIx];
+    if (!f) {
+      fieldBanner.textContent = L("All fields measured! Keep practising freely in the bonus round.", "¡Todos los campos medidos! Sigue practicando en la ronda bonus.");
+      fieldCard.innerHTML = ""; fieldFormula.textContent = ""; fieldProgress.textContent = "";
+      clearInterval(timerHandle); return;
+    }
+    fieldBanner.textContent = L(`Field ${fieldIx + 1}: ${f.l} long × ${f.w} wide`, `Campo ${fieldIx + 1}: ${f.l} de largo × ${f.w} de ancho`);
+    fieldCard.innerHTML = rectCardSVG(f.l, f.w, Math.min(14, 150 / f.l));
+    fieldFormula.innerHTML = `P = 2 × (${f.l} + ${f.w}) = ? <span class="readout__unit" id="field-timer"></span>`;
+    fieldProgress.textContent = L(`Field ${fieldIx + 1} of ${FIELDS.length}`, `Campo ${fieldIx + 1} de ${FIELDS.length}`);
+    fieldStart = performance.now();
+    clearInterval(timerHandle);
+    timerHandle = setInterval(() => {
+      const t = calcPanel.querySelector("#field-timer");
+      if (!t || !calcPanel.isConnected) { clearInterval(timerHandle); return; }
+      t.textContent = `${Math.floor((performance.now() - fieldStart) / 1000)} s`;
+    }, 500);
+  }
+  function checkField() {
+    const f = FIELDS[fieldIx]; if (!f) return;
+    if (fieldAns.value === "") { fieldMsg.textContent = L("Type your answer first.", "Escribe primero tu respuesta."); shake(fieldAns); return; }
+    const ans = Number(fieldAns.value), correct = 2 * (f.l + f.w), ok = ans === correct;
+    sim.recordTrial({ task: L("Perimeter calculator", "Calculadora de perímetro"), input: `${f.l} × ${f.w}: 2 × (${f.l} + ${f.w})`, result: `${L("your answer", "tu respuesta")} ${ans}, P = ${correct}${ok ? " ✓" : ""}` });
+    const btn = calcPanel.querySelector("#field-check");
+    if (ok) {
+      burstAtEl(calcPanel, btn, "#3f8f6b");
+      fieldMsg.textContent = L(`Correct! ${f.l} + ${f.w} = ${f.l + f.w}, and doubled is ${correct}.`, `¡Correcto! ${f.l} + ${f.w} = ${f.l + f.w}, y el doble es ${correct}.`);
+      sim.toast(L(`Field measured — perimeter ${correct}!`, `¡Campo medido — perímetro ${correct}!`), "correct");
+      fieldIx++; fieldAns.value = "";
+      setTimeout(() => { fieldMsg.textContent = ""; paintField(); }, 900);
+    } else {
+      burstAtEl(calcPanel, btn, "#c0392b"); shake(fieldCard);
+      fieldMsg.textContent = L(`Not quite. First add ${f.l} + ${f.w}, then double the answer.`, `Casi. Primero suma ${f.l} + ${f.w}, y luego duplica el resultado.`);
+    }
+  }
+  calcPanel.querySelector("#field-check").addEventListener("click", checkField);
+  fieldAns.addEventListener("keydown", (e) => { if (e.key === "Enter") checkField(); });
+  paintField();
+
+  /* ---------- Moment 3: Identity Property Discovery ---------- */
+  const FACTS = [
+    { q: "7 × 1", a: 7 }, { q: "1 × 12", a: 12 }, { q: "45 × 1", a: 45 }, { q: "9 × 3/3", a: 9 },
+  ];
+  const doneFacts = new Set();
+  const idPanel = mkPanel(`
+    <p class="eyebrow">${L("Job 3 — The Times-One Code", "Trabajo 3 — El código del por uno")}</p>
+    <p class="q__hint">${L("Crack the code: work out each answer and look for the pattern. What do you notice about the answer and the starting number?", "Descifra el código: calcula cada resultado y busca el patrón. ¿Qué notas entre el resultado y el número inicial?")}</p>
+    <div id="fact-list" class="stack" style="gap:var(--sp-2)"></div>
+    <p class="q__hint" id="fact-msg" aria-live="polite"></p>
+    <div id="id-reveal"></div>`);
+  const factList = idPanel.querySelector("#fact-list"), factMsg = idPanel.querySelector("#fact-msg"), reveal = idPanel.querySelector("#id-reveal");
+  FACTS.forEach((f, i) => {
+    const row = document.createElement("div");
+    row.className = "cluster"; row.style.cssText = "gap:var(--sp-3);flex-wrap:wrap;align-items:center";
+    row.innerHTML = `<span style="font-family:var(--font-data);font-size:var(--step-1);min-width:6em">${f.q} =</span>
+      <label class="field__label" for="fact-${i}" style="position:absolute;left:-9999px">${f.q}</label>
+      <input id="fact-${i}" class="input" type="number" inputmode="numeric" style="max-width:6rem">
+      <button type="button" class="btn btn--signal" data-i="${i}">${L("Check", "Comprobar")}</button>
+      <span class="q__hint" id="fact-ok-${i}" aria-live="polite"></span>`;
+    factList.append(row);
+    const input = row.querySelector("input"), btn = row.querySelector("button");
+    const go = () => {
+      if (doneFacts.has(i)) return;
+      if (input.value === "") { factMsg.textContent = L("Type an answer first.", "Escribe primero una respuesta."); shake(input); return; }
+      const ans = Number(input.value), ok = ans === f.a;
+      sim.recordTrial({ task: L("Times-one code", "Código del por uno"), input: f.q, result: `${L("your answer", "tu respuesta")} ${ans}${ok ? " ✓" : ""}` });
+      if (ok) {
+        doneFacts.add(i); input.disabled = true; btn.disabled = true;
+        row.querySelector(`#fact-ok-${i}`).textContent = L(`${f.a} — same number you started with!`, `${f.a} — ¡el mismo número con el que empezaste!`);
+        burstAtEl(idPanel, btn, "#3f8f6b");
+        sim.toast(L("Code piece cracked!", "¡Pieza del código descifrada!"), "correct");
+        if (doneFacts.size === FACTS.length) showReveal();
+      } else {
+        burstAtEl(idPanel, btn, "#c0392b"); shake(row);
+        factMsg.textContent = L(`Not quite. Multiplying by 1 means one group of the number: what is ${f.q}?`, `Casi. Multiplicar por 1 es un grupo del número: ¿cuánto es ${f.q}?`);
+      }
+    };
+    btn.addEventListener("click", go);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+  });
+
+  function showReveal() {
+    factMsg.textContent = "";
+    const base = { l: 5, w: 3 };
+    reveal.innerHTML = `<div class="stack" style="gap:var(--sp-3);border-top:2px dashed var(--line);padding-top:var(--sp-3)">
+      <p><strong>${L("Code cracked: any number × 1 = the same number!", "¡Código descifrado: cualquier número × 1 = el mismo número!")}</strong> ${L("This is called the identity property. And 1 can be written as 2/2, 3/3, 4/4 too.", "Se llama propiedad de identidad. Y 1 también puede escribirse como 2/2, 3/3, 4/4.")}</p>
+      <p>${L("So what if you multiply each side of a rectangle by 1? Try a 5 by 3 garden:", "¿Y si multiplicas cada lado de un rectángulo por 1? Prueba con un jardín de 5 por 3:")}</p>
+      <div class="cluster" style="gap:var(--sp-2);flex-wrap:wrap">
+        <button type="button" class="btn" data-m="1/1">${L("Multiply sides by 1", "Multiplicar lados por 1")}</button>
+        <button type="button" class="btn" data-m="2/2">${L("Multiply sides by 2/2", "Multiplicar lados por 2/2")}</button>
+        <button type="button" class="btn" data-m="2/1">${L("Multiply sides by 2 (not 1!)", "Multiplicar lados por 2 (¡no es 1!)")}</button>
+      </div>
+      <div id="id-out" aria-live="polite" style="min-height:130px"></div></div>`;
+    const out = reveal.querySelector("#id-out");
+    const paint = (nl, nw, label, same) => {
+      out.innerHTML = rectCardSVG(nl, nw, Math.min(14, 120 / nl)) +
+        `<p class="readout">${label}: ${nl} × ${nw} → P = 2 × (${nl} + ${nw}) = <strong>${2 * (nl + nw)}</strong> ${same ? `<span class="readout__unit">${L("(unchanged: the identity property!)", "(sin cambios: ¡la propiedad de identidad!)")}</span>` : `<span class="readout__unit">${L("(changed, because 2 is not 1)", "(cambió, porque 2 no es 1)")}</span>`}</p>`;
+    };
+    paint(base.l, base.w, L("Start", "Inicio"), true);
+    reveal.querySelectorAll("[data-m]").forEach((b) => b.addEventListener("click", () => {
+      const [n, d] = b.dataset.m.split("/").map(Number);
+      const nl = base.l * n / d, nw = base.w * n / d, same = n === d;
+      paint(nl, nw, `× ${n}/${d}`, same);
+      sim.recordTrial({ task: L("Sides × 1 test", "Prueba lados × 1"), input: `5 × ${n}/${d}, 3 × ${n}/${d}`, result: `${L("sides", "lados")} ${nl} × ${nw}, P = ${2 * (nl + nw)}${same ? " ✓ " + L("unchanged", "sin cambios") : ""}` });
+      burstAtEl(idPanel, b, same ? "#3f8f6b" : "#e0b64c");
+      if (same) sim.toast(L("Perimeter stayed 16: times 1 changes nothing!", "El perímetro sigue en 16: ¡por 1 no cambia nada!"), "correct");
+    }));
+  }
+
+  host.append(wrap);
+
+  /* ---------- Bonus round: Perimeter Pac (classic Pac-Man reskin) ---------- */
+  const pacSection = document.createElement("div");
+  pacSection.style.marginTop = "var(--sp-5)";
+  host.append(pacSection);
+  const strings = () => ({
+    title: L("Bonus round — Perimeter Pac", "Ronda bonus — Perímetro Pac"),
+    instructions: L("Steer the patrol along the edge of each garden and eat every dot. One dot per metre, so the number of dots is the perimeter! Arrow keys, WASD or the buttons. About 2 minutes, no lives.", "Guía a la patrulla por el borde de cada jardín y come todos los puntos. ¡Un punto por metro, así que el número de puntos es el perímetro! Flechas, WASD o los botones. Unos 2 minutos, sin vidas."),
+    play: L("Play Perimeter Pac", "Jugar Perímetro Pac"), skip: L("Skip bonus round", "Saltar ronda bonus"),
+    time: L("Time", "Tiempo"), score: L("Score", "Puntos"), streak: L("Streak", "Racha"), shapes: L("Gardens", "Jardines"), best: L("Best streak", "Mejor racha"),
+    canvasLabel: L("Perimeter Pac game board: a garden rectangle with dots along its edge", "Tablero de Perímetro Pac: un jardín rectangular con puntos en el borde"),
+    padLabel: L("Direction buttons", "Botones de dirección"), up: L("Up", "Arriba"), down: L("Down", "Abajo"), left: L("Left", "Izquierda"), right: L("Right", "Derecha"),
+    tray: L("Gardens completed", "Jardines completados"),
+    shapeBanner: L("Garden {l} × {w}: eat every dot round the edge!", "Jardín {l} × {w}: ¡come todos los puntos del borde!"),
+    shapeDone: L("Garden {l} × {w} done! Perimeter = 2 × ({l} + {w}) = {p} dots.", "¡Jardín {l} × {w} listo! Perímetro = 2 × ({l} + {w}) = {p} puntos."),
+    sideLabel: L("{n} m", "{n} m"), dotsCounter: L("Dots eaten: {n}", "Puntos comidos: {n}"),
+    soundOn: L("Sound on", "Sonido activado"), soundOff: L("Sound off", "Sonido desactivado"),
+    finishTitle: L("Patrol complete!", "¡Patrulla completa!"),
+    finishNote: L("Every garden you finished had as many dots as its perimeter. Nicely done.", "Cada jardín que terminaste tenía tantos puntos como su perímetro. Muy bien."),
+    playAgain: L("Play again", "Jugar de nuevo"), continueLabel: L("Continue", "Continuar"),
+  });
+  function paintPac() {
+    pacSection.innerHTML = "";
+    renderPacLaunch(pacSection, {
+      strings: strings(),
+      onPlay() {
+        pacSection.innerHTML = "";
+        const gameHost = document.createElement("div");
+        pacSection.append(gameHost);
+        mountPacPerimeter(gameHost, {
+          durationSec: 120, strings: strings(),
+          onExit(stats) {
+            pacSection.innerHTML = "";
+            sim.toast(L(`Bonus round complete — score ${stats.score}, ${stats.shapes} gardens.`, `Ronda bonus completa — ${stats.score} puntos, ${stats.shapes} jardines.`), "info");
+            paintPac();
+          }
+        });
+      },
+      onSkip() { pacSection.innerHTML = ""; }
+    });
+  }
+  paintPac();
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
