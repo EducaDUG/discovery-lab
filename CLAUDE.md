@@ -12,6 +12,16 @@ Before doing anything else, check what you actually have access to (git configur
 
 **Standing authorization — always commit and push (confirmed 2026-09-07).** Once I give you an instruction — a new simulation, an amendment, a fix — design it, build it, verify it, commit it, and push it to `main` yourself. Do not stop to ask whether you should push; that permission is already given, for every session, not just this one. I'd rather have a live MVP than a polished thing sitting uncommitted. The only reason to stop before pushing is a genuine access problem (see above) or a destructive/irreversible action outside normal content work (e.g. force-push, rewriting history, deleting a branch) — those still need to be flagged.
 
+**Standing authorization - also publish to morehumaned.com (confirmed 2026-10-19).** Discovery Lab is
+served at https://morehumaned.com/discovery-lab/ (a copy living in `EducaDUG/morehumaned-site` under
+`discovery-lab/`; the old educadug.github.io URL still works). After every push to `main` of this repo -
+new simulation, amendment or fix - run `bash tools/sync-to-morehumaned.sh`, which copies the committed
+tree there and pushes straight to that repo's `main` (no PR, no merge click; Diego explicitly overrides
+that repo's "PR only" rule for the `discovery-lab/` folder). Then give Diego the **morehumaned.com**
+link, not the github.io one. Never touch the rest of `morehumaned-site` (his main MoreHuman Ed pages)
+without being asked. Still to do on Diego's side: add morehumaned.com to Firebase Authorized domains and
+Google OAuth origins so the hidden admin page works there.
+
 ---
 
 ## 1. What this is
