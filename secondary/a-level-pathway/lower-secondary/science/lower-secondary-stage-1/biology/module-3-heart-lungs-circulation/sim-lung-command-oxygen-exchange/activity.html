@@ -212,7 +212,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 
 <script src="../../../../../../../../engine/vendor/three.min.js"></script>
 <script type="module">
-import { mountActivity } from "../../../../../../../../engine/engine.js?v=19";
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=20";
 import { getLang } from "../../../../../../../../engine/i18n.js?v=9";
 import { setTTS, ttsEnabled } from "../../../../../../../../engine/accessibility.js?v=6";
 
@@ -1070,7 +1070,7 @@ function mountBreathConductor(host, sim, PAL) {
     const box = document.createElement("div"); box.className = "lc-quiz";
     box.innerHTML = `<p class="lc-quiz__q">${q.q}</p><div class="lc-quiz__opts"></div>`;
     const opts = box.querySelector(".lc-quiz__opts");
-    q.opts.forEach((o, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "lc-quiz__opt"; b.textContent = o; b.addEventListener("click", () => answerQuiz(i, q, box)); opts.append(b); });
+    q.opts.map((o, i) => [o, i]).sort(() => Math.random() - 0.5).forEach(([o, i]) => { const b = document.createElement("button"); b.type = "button"; b.className = "lc-quiz__opt"; b.textContent = o; b.addEventListener("click", () => answerQuiz(i, q, box)); opts.append(b); });
     quizHost.append(box);
     if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(q.q);
   }

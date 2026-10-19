@@ -108,7 +108,11 @@ function makeMC(q, index, multi) {
   list.setAttribute("aria-label", q.prompt);
   const name = `${q.id}-${index}`;
   const inputs = [];
-  q.options.forEach(opt => {
+  /* Randomise option order so the right answer isn't always first. Seeded by the
+     question id + page path: stable across reloads/languages, different per question
+     and per activity. Set keepOrder:true on a question to opt out (e.g. ordered scales). */
+  const optsInOrder = q.keepOrder ? q.options : shuffle(q.options, seeded(q.id + "|" + location.pathname));
+  optsInOrder.forEach(opt => {
     const row = el("label", "option");
     row.dataset.optid = opt.id;
     const input = el("input");

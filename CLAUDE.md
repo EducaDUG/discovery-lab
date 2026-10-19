@@ -1935,3 +1935,11 @@ Diego sent a third OceanCurrents zip. Unlike the second (help layer only) it rem
 - **Layout is part of the port, not just logic.** Diego compared the Discovery Lab page with the AI Studio original and the tall, scrolling layout lost. Standing rules for any ported external app: match the original's screen economy (compact header with every tool, floating primary action over the scene, live readings in a single strip, a 3-column dashboard), give it a real full-screen button, and keep the original's **Hide top menu / Hide bottom menus** buttons with floating "Show ..." pills so the 3D scene can be enlarged. Both the full lab and the Free Play page share the same `marine-*` modules, so a change lands in both.
 - **Two pages, one set of modules.** `sim-ocean-power-grid-free-play` imports `../sim-ocean-power-grid/marine-sim.js`; bump the `?v=` on every `marine-*` import (all modules plus both `activity.html` files) together, or two module copies load.
 - v3.3 added the air-drop helicopter ($8,000, flies from a city heliport tower, winches a floaty, restores integrity to 100%), looping boat/helicopter engine sounds that obey the mute switch, one-at-a-time mentor alerts with 5 s auto-dismiss, and exactly three celebration bursts per new generator. Beacons stay steady (no flashing, CLAUDE.md §6).
+
+### 12.13 Lesson from `sim-lung-command-oxygen-exchange` feedback — the right answer was always the top option (2026-10-20)
+
+Students learned that the correct choice is always first, because config options were authored with the answer at `a`. Fixed in the engine: `makeMC` (`engine/engine.js`, engine v20) shuffles option order with a seeded shuffle (question id + page path), so it is stable per question across reloads/languages but differs between questions and activities. Standing rules:
+
+- **Never rely on authoring order for multiple-choice position.** The engine shuffles every `mc`/`multi` (including Question and Hypothesis stages); set `"keepOrder": true` on a question only when order carries meaning (ordered scales, "both of the above").
+- **Any hand-built quiz inside an activity or bonus round (e.g. `BC_QUESTIONS`) must shuffle its own options** and compare by original index/id, not displayed position.
+- Spot-check a new activity by listing answer positions across its questions; they should not all land in the same slot.
