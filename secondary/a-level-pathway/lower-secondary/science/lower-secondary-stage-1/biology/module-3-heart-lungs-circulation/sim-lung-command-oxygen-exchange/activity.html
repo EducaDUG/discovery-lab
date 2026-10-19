@@ -234,12 +234,14 @@ function palette() {
    ORIENT — a clear, standalone breathing diagram (inhale state), with the
    key breathing-vs-respiration idea in words underneath.
    ====================================================================== */
+let lcSvgN = 0;
 function breathingSVG(animated) {
+  const U = "lc" + (++lcSvgN);
   return `
   <svg class="lc-diagram ${animated ? "lc-breathe" : ""}" viewBox="0 0 340 220" role="img"
        aria-label="${L("Diagram of the lungs, diaphragm and ribs during a breath","Diagrama de los pulmones, el diafragma y las costillas durante una respiración")}">
     <defs>
-      <linearGradient id="lc-lg" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="${U}-lg" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#ff9db0"/><stop offset="100%" stop-color="#d4596e"/>
       </linearGradient>
     </defs>
@@ -255,16 +257,16 @@ function breathingSVG(animated) {
       <path d="M220,112 A58,54 0 0 1 232,176"/>
     </g>
     <!-- lungs -->
-    <path class="lc-lung" d="M150,88 C120,92 104,120 104,150 C104,176 120,186 138,182 C150,179 152,160 152,140 L152,92 Z" fill="url(#lc-lg)"/>
-    <path class="lc-lung" d="M190,88 C220,92 236,120 236,150 C236,176 220,186 202,182 C190,179 188,160 188,140 L188,92 Z" fill="url(#lc-lg)"/>
+    <path class="lc-lung" d="M150,88 C120,92 104,120 104,150 C104,176 120,186 138,182 C150,179 152,160 152,140 L152,92 Z" fill="url(#${U}-lg)"/>
+    <path class="lc-lung" d="M190,88 C220,92 236,120 236,150 C236,176 220,186 202,182 C190,179 188,160 188,140 L188,92 Z" fill="url(#${U}-lg)"/>
     <!-- diaphragm -->
     <path class="lc-dia" d="M96,182 Q170,206 244,182" stroke="#2f8f6b" stroke-width="7" fill="none" stroke-linecap="round"/>
     <text x="250" y="200" font-family="var(--font-data)" font-size="10" fill="var(--ink-3)">${L("diaphragm","diafragma")}</text>
     <!-- air arrows -->
     <g stroke="var(--accent)" stroke-width="3" fill="none" stroke-linecap="round">
-      <path d="M170,8 L170,20" marker-end="url(#lc-ar)"/>
+      <path d="M170,8 L170,20" marker-end="url(#${U}-ar)"/>
     </g>
-    <defs><marker id="lc-ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)"/></marker></defs>
+    <defs><marker id="${U}-ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)"/></marker></defs>
     <text x="118" y="150" font-family="var(--font-data)" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">${L("lung","pulmón")}</text>
   </svg>`;
 }
