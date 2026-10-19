@@ -19,8 +19,8 @@ new simulation, amendment or fix - run `bash tools/sync-to-morehumaned.sh`, whic
 tree there and pushes straight to that repo's `main` (no PR, no merge click; Diego explicitly overrides
 that repo's "PR only" rule for the `discovery-lab/` folder). Then give Diego the **morehumaned.com**
 link, not the github.io one. Never touch the rest of `morehumaned-site` (his main MoreHuman Ed pages)
-without being asked. Still to do on Diego's side: add morehumaned.com to Firebase Authorized domains and
-Google OAuth origins so the hidden admin page works there.
+without being asked. morehumaned.com was added to Firebase Authorized domains and the Google OAuth client's JavaScript
+origins on 2026-10-19, so the hidden admin page is authorised there.
 
 ---
 
