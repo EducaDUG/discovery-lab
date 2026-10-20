@@ -31,18 +31,23 @@ const popIt = e => { e.classList.remove("pop"); void e.offsetWidth; e.classList.
 const STORE = "dl-living-orgs-revision-v1";
 let prog = { levels: { 1: false, 2: false, 3: false }, labs: { life: false, insp: false, fung: false, key: false }, quiz: false };
 try { const s = JSON.parse(localStorage.getItem(STORE) || "null"); if (s) prog = Object.assign(prog, s); } catch (e) { /* storage may be blocked */ }
-const BADGES = [["L1", () => prog.levels[1]], ["L2", () => prog.levels[2]], ["L3", () => prog.levels[3]],
-  ["Living Cell", () => prog.labs.life], ["Inspector", () => prog.labs.insp], ["Digestion", () => prog.labs.fung], ["Detective", () => prog.labs.key], ["Exam", () => prog.quiz]];
+const BADGES = [["L1", () => prog.levels[1], "Press “Mark level complete” on Level 1"], ["L2", () => prog.levels[2], "Press “Mark level complete” on Level 2"], ["L3", () => prog.levels[3], "Press “Mark level complete” on Level 3"],
+  ["Living Cell", () => prog.labs.life, "Lab 1: light up all 8 MRS C GREN letters (poke, feed, heat, divide, and let it respire and excrete)"], ["Inspector", () => prog.labs.insp, "Lab 2: score at least 80% on the label challenge"], ["Digestion", () => prog.labs.fung, "Lab 3: get 12 nutrient molecules absorbed into the hyphae"], ["Detective", () => prog.labs.key, "Lab 4: score at least 60% across the 6 mystery specimens"], ["Exam", () => prog.quiz, "Score at least 60% on the 20-question practice exam"]];
 function saveProg() { try { localStorage.setItem(STORE, JSON.stringify(prog)); } catch (e) { /* ignore */ } }
 function renderProgress() {
   const on = BADGES.filter(b => b[1]()).length;
   const pct = Math.round(on / BADGES.length * 100);
   $("#pPct").textContent = pct + "%"; $("#pBar").style.width = pct + "%";
-  $("#pBadges").innerHTML = BADGES.map(b => `<span class="${b[1]() ? "on" : ""}">${b[0]}</span>`).join("");
+  $("#pBadges").innerHTML = BADGES.map(b => `<span class="${b[1]() ? "on" : ""}" title="${b[2]}">${b[0]}</span>`).join("");
+  $("#pHow").innerHTML = BADGES.map(b => `<li class="${b[1]() ? "on" : ""}"><b>${b[0]}</b> ${b[2]}</li>`).join("");
   $$(".gx-done").forEach(b => { const l = b.dataset.level; b.setAttribute("aria-pressed", prog.levels[l]); b.textContent = prog.levels[l] ? "Level complete" : "Mark level complete"; });
 }
-function award(lab) { if (!prog.labs[lab]) { prog.labs[lab] = true; saveProg(); renderProgress(); } }
-$$(".gx-done").forEach(b => b.addEventListener("click", () => { const l = b.dataset.level; prog.levels[l] = !prog.levels[l]; saveProg(); renderProgress(); popIt(b); }));
+function toast(text) {
+  const t = el("div", "", text); t.setAttribute("role", "status"); t.style.cssText = "position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#0b1f18;color:#7dffd0;border:2px solid #3fd9a0;padding:.7rem 1.2rem;border-radius:99px;font-weight:700;z-index:50;box-shadow:0 8px 24px #0006";
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3800);
+}
+function award(lab) { if (!prog.labs[lab]) { prog.labs[lab] = true; saveProg(); renderProgress(); toast("Badge earned! Mastery is now " + $("#pPct").textContent); } }
+$$(".gx-done").forEach(b => b.addEventListener("click", () => { const l = b.dataset.level; prog.levels[l] = !prog.levels[l]; saveProg(); renderProgress(); popIt(b); if (prog.levels[l]) toast("Level " + l + " complete. Mastery is now " + $("#pPct").textContent); }));
 renderProgress();
 
 /* ---------------------------------------------------------------- LEVEL 1: flip cards */
@@ -616,7 +621,7 @@ $("#credits").innerHTML = "Photos (Wikimedia Commons): " + Object.entries(CRED).
     $q("qNext").textContent = last ? "See results" : "Next question"; $q("qNext").disabled = last ? !allDone : false;
   }
   function results() {
-    finished = true; const [s] = tally(), pct = Math.round(s / N * 100); if (pct >= 60) { prog.quiz = true; saveProg(); renderProgress(); }
+    finished = true; const [s] = tally(), pct = Math.round(s / N * 100); if (pct >= 60 && !prog.quiz) { prog.quiz = true; saveProg(); renderProgress(); toast("Badge earned! Mastery is now " + $("#pPct").textContent); }
     const miss = qs.filter(q => !q.opts[q.pick].ok);
     $q("quiz").innerHTML = `<div class="qend"><h3>${s} / ${N} (${pct}%)</h3><p>${pct >= 80 ? "Excellent: you are exam ready on this topic." : pct >= 60 ? "Good work. Review the questions you missed below." : "Keep revising. Re-read the levels, try the labs, then take a new exam. (60% earns the exam badge.)"}</p>${miss.length ? "<p><b>Revise these:</b></p><ul>" + miss.map(q => `<li>${q.q}<br><small>Answer: ${q.opts.find(o => o.ok).t}</small></li>`).join("") + "</ul>" : "<p>No mistakes at all.</p>"}<button class="btn" id="qAgain">New exam</button></div>`;
     $q("qAgain").onclick = rebuild;
