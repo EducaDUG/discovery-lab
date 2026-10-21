@@ -566,13 +566,19 @@ function investigate(host, sim) {
     const st = lastSt; const my = myIn.value === "" ? null : Number(myIn.value);
     if (my == null) { if (!silent) fb("warn", L("Type your calculated RH first - or log without one.", "Escribe primero tu HR calculada - o registra sin ella.")); return null; }
     const tabRH = st.saturated ? 100 : rhFromTable(st.T, st.dew);
-    const ok = Math.abs(my - st.rh) <= 5;
+    // The table method (whole-degree rounding) can differ slightly from the exact reading; accept either.
+    const ok = Math.abs(my - st.rh) <= 5 || Math.abs(my - tabRH) <= 5;
     if (!silent) {
       if (ok) fb("good", L(`<b>Match!</b> The hygrometer reads ${Math.round(st.rh)}% and you calculated ${my}%. The table gives ${st.saturated ? "100" : Math.round(tabRH)}% (capacity at the dew point ÷ capacity at ${Math.round(st.T)} °C).`, `<b>¡Coincide!</b> El higrómetro marca ${Math.round(st.rh)}% y calculaste ${my}%. La tabla da ${st.saturated ? "100" : Math.round(tabRH)}% (capacidad en el punto de rocío ÷ capacidad a ${Math.round(st.T)} °C).`));
       else fb("warn", L(`The hygrometer reads ${Math.round(st.rh)}% but you got ${my}%. Look up the table value at the dew point (${Math.round(st.dew)} °C) and at the air temperature (${Math.round(st.T)} °C), divide the first by the second and multiply by 100.`, `El higrómetro marca ${Math.round(st.rh)}% pero obtuviste ${my}%. Busca en la tabla el valor en el punto de rocío (${Math.round(st.dew)} °C) y a la temperatura del aire (${Math.round(st.T)} °C), divide el primero entre el segundo y multiplica por 100.`));
     }
     return ok;
   }
+  // Feedback describes one specific jar state and answer: hide it once either changes.
+  const hideFb = () => { calcFb.dataset.show = "false"; };
+  myIn.addEventListener("input", hideFb);
+  slider.addEventListener("input", hideFb);
+  ["b-chill", "b-heat", "b-moist", "b-dry"].forEach(id => $j(id).addEventListener("click", hideFb));
   $j("b-check").addEventListener("click", () => doCheck(false));
   $j("b-log").addEventListener("click", () => {
     const st = lastSt; const my = myIn.value === "" ? null : Number(myIn.value);
