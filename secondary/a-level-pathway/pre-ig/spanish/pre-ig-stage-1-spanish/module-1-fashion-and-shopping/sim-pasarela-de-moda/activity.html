@@ -60,7 +60,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 @keyframes hsshake{0%,100%{transform:translate(-50%,-50%)}30%{transform:translate(calc(-50% - 6px),-50%)}60%{transform:translate(calc(-50% + 6px),-50%)}}
 
 .vis{display:flex;justify-content:center;margin:.6em 0}
-.item-card{width:120px;text-align:center}.item-card svg{width:96px;height:96px}
+.item-card{width:170px;text-align:center}.cphoto{border-radius:12px;object-fit:cover;border:2px solid var(--line);background:#fff;display:block;margin:0 auto}.item-card .cphoto{width:150px;height:150px}
 .item-card b{display:block;font-family:var(--font-data)}
 .price{display:inline-block;background:#f0a030;color:#3a2200;border-radius:6px;padding:.1em .5em;font-weight:800;font-family:var(--font-data);font-size:.85rem}
 
@@ -68,8 +68,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .scene .person{position:absolute;bottom:34%;transform:translateX(-50%);text-align:center;font-size:.7rem;font-weight:700;font-family:var(--font-data)}
 .scene .person svg{width:44px;height:70px;display:block;margin:0 auto}
 .scene .thing{position:absolute;bottom:26%;transform:translateX(-50%);transition:left .9s cubic-bezier(.2,.9,.3,1.2),transform .9s;text-align:center}
-.scene .thing svg{width:54px;height:54px;display:block}
-.scene .thing.is-far svg{width:34px;height:34px}
+.scene .thing .cphoto{border-width:1px}
 .scene .tag{position:absolute;top:6px;left:50%;transform:translateX(-50%);background:#7a1f3d;color:#fff;border-radius:99px;padding:.15em .8em;font-family:var(--font-data);font-size:.8rem;opacity:0;transition:opacity .4s}
 .scene .tag.show{opacity:1}
 
@@ -112,7 +111,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .wd{background:#241226;color:#fff;border-radius:16px;padding:var(--sp-4);text-align:center}
 .wd h3{margin:0;color:#ffd27a}
 .wd-hint{display:flex;gap:1em;align-items:center;justify-content:center;margin:.5em 0}
-.wd-hint svg{width:70px;height:70px;background:#fff1;border-radius:12px;padding:6px}
+
 .wd-grid{display:grid;gap:5px;justify-content:center;margin:.6em auto}
 .wd-row{display:flex;gap:5px;justify-content:center}
 .wd-cell{width:38px;height:42px;border:2px solid #6b4b73;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-data);font-size:1.2rem;text-transform:uppercase;position:relative}
@@ -155,6 +154,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../../../engine/engine.js?v=20";
 import "../../../../../../../engine/i18n.js?v=9";
+import { mountQuest3D } from "../../../../../../../engine/quest3d.js?v=4";
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
 
 /* ================= DATA ================= */
 const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstElementChild; };
@@ -206,6 +207,7 @@ const PATH = {
   camiseta:'<path d="M17 6q7 5 14 0l9 7-4 7-4-2v24H16V18l-4 2-4-7z"/>'
 };
 const gar = (id, hex = "#d2562b", size) => `<svg viewBox="0 0 48 48" ${size ? `width="${size}" height="${size}"` : ""} fill="${hex}" stroke="#2b2030" stroke-width="2" stroke-linejoin="round" aria-hidden="true">${PATH[id]}</svg>`;
+const photo = (id, px = 96) => `<img class="cphoto" src="photos/clothes/${id}.jpg" width="${px}" height="${px}" alt="${IT[id].en}" loading="lazy">`;
 const person = (c) => `<svg viewBox="0 0 44 70" aria-hidden="true"><circle cx="22" cy="12" r="9" fill="${c}" stroke="#2b2030" stroke-width="2"/><path d="M10 68V34q0-8 12-8t12 8v34z" fill="${c}" stroke="#2b2030" stroke-width="2"/></svg>`;
 
 const HOTSPOTS = [
@@ -436,7 +438,7 @@ function drawInvestigate(host, sim) {
         const it = IT[id], wrongArt = { m:"la", f:"el" }[it.g];
         const bad = (it.p === "p") ? [(it.a === "los" ? "las" : "los") + " " + it.n] : [wrongArt + " " + it.n];
         const others = shuffle(VOCAB.filter(x => x !== id)).slice(0, 2).map(x => IT[x].a + " " + IT[x].n);
-        return { task: "Name: " + it.en, q: "What is this in Spanish?", visual: `<div class="item-card">${gar(id, "#d2562b")}<b>${it.en}</b></div>`, ok: it.a + " " + it.n, opts: [it.a + " " + it.n, ...bad, ...others], why: `${it.a} ${it.n} (${it.en})`, hint: "Check the article: el/la for one thing, los/las for a pair or several." };
+        return { task: "Name: " + it.en, q: "What is this in Spanish?", visual: `<div class="item-card">${photo(id, 150)}<b>${it.en}</b></div>`, ok: it.a + " " + it.n, opts: [it.a + " " + it.n, ...bad, ...others], why: `${it.a} ${it.n} (${it.en})`, hint: "Check the article: el/la for one thing, los/las for a pair or several." };
       });
       deck(part2, "voc", "1 Vocabulary", qs, () => {
         part2.innerHTML = "";
@@ -475,7 +477,7 @@ function drawInvestigate(host, sim) {
       return {
         task: `${it.a} ${it.n} (${DIST_WORD[d]})`,
         visual: `<div class="scene"><div class="person" style="left:10%">${person("#d2562b")}Tú</div><div class="person" style="left:48%">${person("#2d62c8")}Amigo/a</div>
-          <div class="thing ${d === "far" ? "is-far" : ""}" style="left:110%" data-d="${d}">${gar(id, "#e8a33a")}<b class="es" style="font-size:.8rem">${it.a} ${it.n}</b></div><div class="tag"></div></div>`,
+          <div class="thing ${d === "far" ? "is-far" : ""}" style="left:110%" data-d="${d}">${photo(id, d === "far" ? 38 : 58)}<b class="es" style="font-size:.8rem">${it.a} ${it.n}</b></div><div class="tag"></div></div>`,
         preview: (s, full) => `<u>${s.dem || "_____"}</u> ${it.n} <small style="font-weight:400">(${it.en})</small>`,
         rows: [{ id:"dem", label:"Choose the word for “this / that / that over there”", opts, ans:correct, hint:`the item is “${DIST_WORD[d]}” and “${it.n}” is ${it.g === "m" ? "masculine" : "feminine"} ${it.p === "p" ? "plural" : "singular"}.` }],
         why: `${DIST_WORD[d]} → ${correct} ${it.n}`,
@@ -508,7 +510,7 @@ function drawInvestigate(host, sim) {
       const it = IT[d.item];
       return {
         task: `${d.subj} + ponerse + ${it.n}`,
-        visual: `<div style="text-align:center"><div class="mannequin-wrap">${mannequin(wearUpTo(n))}</div><p><span class="es" style="font-size:1.3rem">${d.subj}</span> <small>(${d.en})</small> → put on ${gar(d.item, d.hex, 44)} <b>${it.en}</b></p></div>`,
+        visual: `<div style="text-align:center"><div class="mannequin-wrap">${mannequin(wearUpTo(n))}</div><p><span class="es" style="font-size:1.3rem">${d.subj}</span> <small>(${d.en})</small> → put on <b>${it.en}</b></p><div>${photo(d.item, 84)}</div><p style="margin:0"></p></div>`,
         preview: (s) => `${d.subj} <u>${s.rp || "__"}</u> <u>${s.v || "_____"}</u> <u>${s.a || "__"}</u> ${it.n}`,
         rows: [
           { id:"rp", label:"1. The little word (reflexive pronoun)", opts:["me","te","se","nos","os"], ans:d.rp, hint:`“${d.subj}” needs “${d.rp}”.` },
@@ -534,7 +536,7 @@ function drawInvestigate(host, sim) {
       while (forms.length < 4) forms.push(col.ms + (forms.length % 2 ? "a" : "o") + (forms.length > 3 ? "s" : ""));
       return {
         task: `${d.subj} ${d.v} ${ART_IND[kk]} ${it.n} ${col[kk]}`,
-        visual: `<div style="text-align:center"><div class="runway"><div class="spot"></div><div class="model">${gar(d.item, col.hex)}</div></div><p><span class="es">${d.subj}</span> · ${it.en} · <span class="price">€${d.price}</span></p></div>`,
+        visual: `<div style="text-align:center"><div class="runway"><div class="spot"></div><div class="model">${gar(d.item, col.hex)}</div></div><p style="display:flex;gap:.8em;align-items:center;justify-content:center">${photo(d.item, 72)}<span><span class="es">${d.subj}</span> · ${it.en} · <b>${d.c}</b> · <span class="price">€${d.price}</span></span></p></div>`,
         preview: (s) => `${d.subj} <u>${s.v || "_____"}</u> <u>${s.art || "__"}</u> ${it.n} <u>${s.adj || "_____"}</u>.`,
         rows: [
           { id:"v", label:"1. The verb llevar", opts:LLEVAR_FORMS, ans:d.v, hint:`“${d.subj}” goes with “${d.v}”.` },
@@ -612,9 +614,25 @@ function drawInvestigate(host, sim) {
   function bonusSection() {
     const box = host.querySelector("#bonus");
     if (box.dataset.on) return; box.dataset.on = 1;
-    box.innerHTML = `<div class="pz-panel"><h3 class="pz-title">Bonus · Wordle de la Moda</h3><p>Guess the Spanish clothing word in 6 tries — like Wordle! A picture and the English word are your clues. Accents are not needed. No marks, just fun.</p><button type="button" class="btn btn--signal" id="pl">Play</button> <button type="button" class="btn" id="sk">Skip</button></div>`;
+    box.innerHTML = `<div class="pz-panel"><h3 class="pz-title">Bonus games (no marks — just fun!)</h3>
+      <p><b>🛍️ Caza de Ropa (3D):</b> drive a rover around a 3D shopping mall for 2 minutes. The banner shows <b>el / la / los / las</b> — collect only the clothes that go with that word. Arrow keys or WASD, or drag the pad.</p>
+      <p><b>🔤 Wordle de la Moda:</b> guess the Spanish clothing word in 6 tries.</p>
+      <button type="button" class="btn btn--signal" id="pq">Play Caza de Ropa</button> <button type="button" class="btn btn--signal" id="pl">Play Wordle</button> <button type="button" class="btn" id="sk">Skip</button></div>`;
     box.querySelector("#sk").onclick = () => { box.innerHTML = ""; };
     box.querySelector("#pl").onclick = () => wordle(box);
+    box.querySelector("#pq").onclick = () => quest(box);
+  }
+  function quest(box) {
+    box.innerHTML = "";
+    const gh = document.createElement("div"); box.append(gh);
+    const G = [["el","EL · one masculine thing","#2d62c8"],["la","LA · one feminine thing","#d2562b"],["los","LOS · several masculine things","#2f9a5b"],["las","LAS · several feminine things","#7a1f3d"]];
+    mountQuest3D(gh, {
+      threeUrl: THREE_URL, durationMs: 120000,
+      groups: G.map(g => ({ id:g[0], label:g[1], color:g[2] })),
+      items: Object.keys(IT).map(id => ({ id, label: IT[id].n + " (" + IT[id].en + ")", groupId: IT[id].a, img: `photos/clothes/${id}.jpg` })),
+      strings: { title:"Caza de Ropa", instructions:"Drive with arrow keys or WASD (or drag the pad). Collect ONLY the clothes that go with the article on the banner. A wrong pickup just resets your streak.", time:"Time", score:"Score", streak:"Streak", best:"Best streak", find:"Find", correct:"¡Lo tienes!", wrong:"Ese no.", finishTitle:"¡Se acabó el tiempo!", accuracy:"Accuracy", playAgain:"Play again", continueLabel:"Continue", moveHint:"Arrow keys or WASD to move — or drag the pad." },
+      onExit(st) { gh.remove(); box.dataset.on = ""; bonusSection(); sim.toast(`Caza de Ropa: score ${st.score}, ${st.accuracy}% accuracy.`, "info"); }
+    });
   }
   function wordle(box) {
     const WORDS = shuffle(["falda","botas","gorro","camisa","jersey","bufanda","zapatos","abrigo","guantes","vestido","gafas","chaqueta"]).slice(0, 6);
@@ -627,7 +645,7 @@ function drawInvestigate(host, sim) {
         return;
       }
       const id = WORDS[wi], it = IT[id], target = it.n; let row = 0, cur = ""; const L = target.length;
-      box.innerHTML = `<div class="wd"><h3>Word ${wi + 1} / ${WORDS.length}</h3><div class="wd-hint">${gar(id, "#f0a030")}<div><b>${it.en}</b><br><small>${L} letters</small></div></div><div class="wd-grid" id="g"></div><div class="wd-msg" id="m" role="status"></div><div class="wd-kb" id="kb"></div></div>`;
+      box.innerHTML = `<div class="wd"><h3>Word ${wi + 1} / ${WORDS.length}</h3><div class="wd-hint">${photo(id, 78)}<div><b>${it.en}</b><br><small>${L} letters</small></div></div><div class="wd-grid" id="g"></div><div class="wd-msg" id="m" role="status"></div><div class="wd-kb" id="kb"></div></div>`;
       const g = box.querySelector("#g"), msg = box.querySelector("#m"), kb = box.querySelector("#kb");
       const cells = []; for (let r = 0; r < 6; r++) { const rw = $('<div class="wd-row"></div>'); cells[r] = []; for (let c = 0; c < L; c++) { const x = $('<div class="wd-cell"></div>'); cells[r].push(x); rw.append(x); } g.append(rw); }
       const keys = {}; "qwertyuiopasdfghjklñzxcvbnm".split("").forEach(ch => { const b = $(`<button type="button">${ch}</button>`); b.onclick = () => press(ch); kb.append(b); keys[ch] = b; });
@@ -656,6 +674,11 @@ function drawInvestigate(host, sim) {
   }
 
   paint();
+  fetch("photos/clothes/credits.json").then(r => r.json()).then(c => {
+    const d = document.createElement("details"); d.className = "credit"; d.style.marginTop = "var(--sp-4)";
+    d.innerHTML = "<summary>Photo credits (Wikimedia Commons)</summary>" + Object.entries(c).map(([k, v]) => `<div>${k}: <a href="${v.page}" target="_blank" rel="noopener noreferrer">${v.file.replace("File:", "")}</a> — ${v.author || "unknown author"}, ${v.license}</div>`).join("") + `<div>Level 1 outfit, Level 6 photos: see credits under each photo.</div>`;
+    host.append(d);
+  }).catch(() => {});
 }
 
 const simulation = { orient: drawOrient, investigate: drawInvestigate };
