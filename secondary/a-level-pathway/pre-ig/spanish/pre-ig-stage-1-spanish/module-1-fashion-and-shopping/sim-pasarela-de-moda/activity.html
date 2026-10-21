@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Pasarela de la Moda — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right}.credit a{color:inherit}
+.rule-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin-top:var(--sp-3)}
+.rule-card{border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:var(--sp-3);cursor:pointer;text-align:center;font:inherit;color:inherit;transition:transform .2s,box-shadow .2s}
+.rule-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-2)}
+.rule-card__big{font-family:var(--font-data);font-weight:800;font-size:1.25rem;color:var(--accent)}
+.rule-card__more{margin-top:.5em;font-size:.85rem;color:var(--ink-2);display:none}
+.rule-card.is-open{background:var(--wash);border-color:var(--accent)}.rule-card.is-open .rule-card__more{display:block}
+@media(max-width:600px){.rule-cards{grid-template-columns:1fr}}
+
+.pz-hud{display:flex;flex-wrap:wrap;gap:.5em;align-items:center;justify-content:space-between;background:linear-gradient(120deg,#7a1f3d,#d2562b 60%,#f0a030);color:#fff;border-radius:14px;padding:.7em 1em}
+.pz-hud b{font-family:var(--font-data)}
+.pz-hud__rank{font-weight:800;font-size:1.05rem}
+.pz-hud__bar{flex:1 1 140px;height:8px;background:rgba(255,255,255,.3);border-radius:99px;overflow:hidden}
+.pz-hud__bar i{display:block;height:100%;background:#fff;transition:width .5s}
+.pz-tabs{display:flex;gap:.4em;flex-wrap:wrap;margin:var(--sp-3) 0}
+.pz-tab{border:2px solid var(--line);background:var(--paper);border-radius:99px;padding:.3em .8em;font-size:.82rem;font-family:var(--font-data)}
+.pz-tab.is-now{border-color:var(--accent);background:var(--accent);color:#fff}.pz-tab.is-done{border-color:var(--positive,#2e8b57);color:var(--positive,#2e8b57)}
+.pz-panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:var(--sp-4)}
+.pz-title{font-family:var(--font-data);font-weight:800;font-size:1.15rem;color:var(--accent);margin:0}
+.pz-how{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.6em 0;font-size:.92rem}
+.pz-count{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.es{font-family:var(--font-data);font-weight:700}
+.pz-chips{display:flex;flex-wrap:wrap;gap:.5em;margin:.3em 0 .8em}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:.5em .9em;font-family:var(--font-data);font-size:1rem;cursor:pointer;color:inherit;transition:transform .12s}
+.chip:hover:not(:disabled){transform:translateY(-2px)}
+.chip.is-on{border-color:var(--accent);background:var(--wash)}
+.chip.is-ok{border-color:var(--positive,#2e8b57);background:color-mix(in srgb,var(--positive,#2e8b57) 16%,var(--paper))}
+.chip.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+.chip:disabled{cursor:default}
+@keyframes pzshake{0%,100%{transform:translateX(0)}30%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+[data-reduced-motion="on"] .chip.is-bad{animation:none;outline:3px solid var(--negative,#b3392c)}
+.row-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.preview{font-family:var(--font-data);font-size:1.35rem;font-weight:700;padding:.5em .8em;border-radius:10px;background:var(--wash);margin:.5em 0;min-height:2.4em}
+.preview u{color:var(--accent);text-decoration-thickness:2px}
+.fb{min-height:1.5em;font-weight:600;margin:.4em 0}.fb.good{color:var(--positive,#2e8b57)}.fb.bad{color:var(--negative,#b3392c)}
+.pz-next{margin-top:.6em}
+
+.photo-wrap{position:relative;max-width:340px;margin:var(--sp-3) auto 0;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.photo-wrap img{width:100%;display:block}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid #fff;box-shadow:0 0 0 2px var(--accent),0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.hotspot i{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.hotspot.is-done{border-color:var(--positive,#2e8b57);box-shadow:0 0 0 2px var(--positive,#2e8b57)}.hotspot.is-done i{background:var(--positive,#2e8b57)}
+.hotspot.is-wrong{animation:hsshake .32s}
+@keyframes hsshake{0%,100%{transform:translate(-50%,-50%)}30%{transform:translate(calc(-50% - 6px),-50%)}60%{transform:translate(calc(-50% + 6px),-50%)}}
+
+.vis{display:flex;justify-content:center;margin:.6em 0}
+.item-card{width:120px;text-align:center}.item-card svg{width:96px;height:96px}
+.item-card b{display:block;font-family:var(--font-data)}
+.price{display:inline-block;background:#f0a030;color:#3a2200;border-radius:6px;padding:.1em .5em;font-weight:800;font-family:var(--font-data);font-size:.85rem}
+
+.scene{position:relative;height:150px;width:100%;max-width:560px;background:linear-gradient(#ffe7c4 0 60%,#d9a066 60%);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.scene .person{position:absolute;bottom:34%;transform:translateX(-50%);text-align:center;font-size:.7rem;font-weight:700;font-family:var(--font-data)}
+.scene .person svg{width:44px;height:70px;display:block;margin:0 auto}
+.scene .thing{position:absolute;bottom:26%;transform:translateX(-50%);transition:left .9s cubic-bezier(.2,.9,.3,1.2),transform .9s;text-align:center}
+.scene .thing svg{width:54px;height:54px;display:block}
+.scene .thing.is-far svg{width:34px;height:34px}
+.scene .tag{position:absolute;top:6px;left:50%;transform:translateX(-50%);background:#7a1f3d;color:#fff;border-radius:99px;padding:.15em .8em;font-family:var(--font-data);font-size:.8rem;opacity:0;transition:opacity .4s}
+.scene .tag.show{opacity:1}
+
+.mannequin{width:150px;height:260px}
+.mannequin .g{opacity:0;transform:translateY(-30px);transition:opacity .5s,transform .5s}
+.mannequin .g.on{opacity:1;transform:none}
+[data-reduced-motion="on"] .mannequin .g{transition:none}
+.runway{position:relative;height:130px;max-width:560px;margin:.4em auto;border-radius:12px;background:linear-gradient(#2a1033,#4b1d5e);overflow:hidden}
+.runway::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:repeating-linear-gradient(90deg,#fff3 0 18px,#fff1 18px 36px)}
+.runway .model{position:absolute;bottom:18%;left:-80px;width:70px;animation:walk 3.6s ease-out forwards}
+@keyframes walk{to{left:calc(50% - 35px)}}
+[data-reduced-motion="on"] .runway .model{animation:none;left:calc(50% - 35px)}
+.runway .spot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:140px;height:100%;background:linear-gradient(#ffffff44,transparent);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%)}
+
+.chat{display:flex;flex-direction:column;gap:.4em;margin:.6em 0}
+.bubble{max-width:82%;padding:.5em .8em;border-radius:14px;font-family:var(--font-data)}
+.bubble small{display:block;font-size:.68rem;opacity:.75;text-transform:uppercase}
+.bubble.v{align-self:flex-start;background:#ffe3b5}.bubble.c{align-self:flex-end;background:#cde6ff}
+.bubble .en{display:none;font-family:var(--font-body,inherit);font-style:italic;font-weight:400;font-size:.8rem;margin-top:.2em}
+.show-en .bubble .en{display:block}
+.pool{display:flex;flex-direction:column;gap:.4em}
+.pool .chip{text-align:left}
+
+.culture{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin:.6em 0}
+.culture button{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:0;overflow:hidden;cursor:pointer;color:inherit;font:inherit;text-align:left}
+.culture img{width:100%;height:130px;object-fit:cover;display:block}.culture span{display:block;padding:.5em .6em;font-size:.85rem}
+.culture button.is-ok{border-color:var(--positive,#2e8b57)}.culture button.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+@media(max-width:560px){.culture{grid-template-columns:1fr}}
+.blog{background:#fff8ec;border-left:5px solid #d2562b;border-radius:8px;padding:.8em 1em;font-family:var(--font-data);margin:.6em 0}
+.blog span{cursor:pointer;border-bottom:1px dotted var(--ink-3)}.blog span:hover{background:#ffe3b5}
+.blog-en{font-size:.85rem;color:var(--ink-2);min-height:1.3em;font-style:italic}
+
+.done-card{text-align:center;background:linear-gradient(120deg,#7a1f3d,#d2562b 60%,#f0a030);color:#fff;border-radius:16px;padding:var(--sp-5)}
+.done-card h3{margin:0;font-size:1.6rem}.done-card .big{font-size:2.4rem;font-weight:800;font-family:var(--font-data)}
+.burst{position:absolute;pointer-events:none;width:8px;height:8px;border-radius:50%;animation:burst .8s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+[data-reduced-motion="on"] .burst{display:none}
+
+/* Wordle bonus */
+.wd{background:#241226;color:#fff;border-radius:16px;padding:var(--sp-4);text-align:center}
+.wd h3{margin:0;color:#ffd27a}
+.wd-hint{display:flex;gap:1em;align-items:center;justify-content:center;margin:.5em 0}
+.wd-hint svg{width:70px;height:70px;background:#fff1;border-radius:12px;padding:6px}
+.wd-grid{display:grid;gap:5px;justify-content:center;margin:.6em auto}
+.wd-row{display:flex;gap:5px;justify-content:center}
+.wd-cell{width:38px;height:42px;border:2px solid #6b4b73;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-data);font-size:1.2rem;text-transform:uppercase;position:relative}
+.wd-cell.ok{background:#2e8b57;border-color:#2e8b57}.wd-cell.mid{background:#c58a12;border-color:#c58a12}.wd-cell.no{background:#4a3b50;border-color:#4a3b50}
+.wd-cell.ok::after{content:"✓";position:absolute;right:2px;top:-1px;font-size:.6rem}.wd-cell.mid::after{content:"~";position:absolute;right:3px;top:-1px;font-size:.7rem}
+.wd-kb{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:430px;margin:.6em auto}
+.wd-kb button{min-width:32px;padding:.5em .4em;border-radius:6px;border:0;background:#6b4b73;color:#fff;font-weight:700;font-family:var(--font-data);cursor:pointer;text-transform:uppercase}
+.wd-kb button.ok{background:#2e8b57}.wd-kb button.mid{background:#c58a12}.wd-kb button.no{background:#2b2030;opacity:.6}
+.wd-kb button.wide{min-width:64px}
+.wd-msg{min-height:1.4em;font-weight:700;color:#ffd27a}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+<main id="main" class="shell"><div id="lab-root"></div></main>
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=20";
+import "../../../../../../../engine/i18n.js?v=9";
+
+/* ================= DATA ================= */
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstElementChild; };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* noun, definite article, gender g (m/f), number n (s/p), English */
+const IT = {
+  falda:{n:"falda",a:"la",g:"f",p:"s",en:"skirt"}, pantalones:{n:"pantalones",a:"los",g:"m",p:"p",en:"trousers"},
+  vestido:{n:"vestido",a:"el",g:"m",p:"s",en:"dress"}, bufanda:{n:"bufanda",a:"la",g:"f",p:"s",en:"scarf"},
+  botas:{n:"botas",a:"las",g:"f",p:"p",en:"boots"}, guantes:{n:"guantes",a:"los",g:"m",p:"p",en:"gloves"},
+  gorro:{n:"gorro",a:"el",g:"m",p:"s",en:"hat"}, abrigo:{n:"abrigo",a:"el",g:"m",p:"s",en:"coat"},
+  camiseta:{n:"camiseta",a:"la",g:"f",p:"s",en:"T-shirt"}, camisa:{n:"camisa",a:"la",g:"f",p:"s",en:"shirt"},
+  jersey:{n:"jersey",a:"el",g:"m",p:"s",en:"sweater"}, zapatos:{n:"zapatos",a:"los",g:"m",p:"p",en:"shoes"},
+  gafas:{n:"gafas",a:"las",g:"f",p:"p",en:"glasses"}, chaqueta:{n:"chaqueta",a:"la",g:"f",p:"s",en:"jacket"}
+};
+const ART_DEF = {ms:"el",fs:"la",mp:"los",fp:"las"};
+const ART_IND = {ms:"un",fs:"una",mp:"unos",fp:"unas"};
+const DEM = {
+  near:{ms:"este",fs:"esta",mp:"estos",fp:"estas"},
+  mid:{ms:"ese",fs:"esa",mp:"esos",fp:"esas"},
+  far:{ms:"aquel",fs:"aquella",mp:"aquellos",fp:"aquellas"}
+};
+const DIST_WORD = {near:"aquí",mid:"ahí",far:"allí"};
+const key = (it) => it.g + it.p;
+const COL = {
+  rojo:{ms:"rojo",fs:"roja",mp:"rojos",fp:"rojas",hex:"#d33a2f"},
+  blanco:{ms:"blanco",fs:"blanca",mp:"blancos",fp:"blancas",hex:"#f4f1ea"},
+  negro:{ms:"negro",fs:"negra",mp:"negros",fp:"negras",hex:"#2b2b33"},
+  azul:{ms:"azul",fs:"azul",mp:"azules",fp:"azules",hex:"#2d62c8"},
+  verde:{ms:"verde",fs:"verde",mp:"verdes",fp:"verdes",hex:"#2f9a5b"},
+  amarillo:{ms:"amarillo",fs:"amarilla",mp:"amarillos",fp:"amarillas",hex:"#f2c230"}
+};
+
+/* garment icons: filled, coloured */
+const PATH = {
+  falda:'<path d="M16 6h16l7 34H9z"/><path d="M16 6l-2 8M32 6l2 8" fill="none"/>',
+  pantalones:'<path d="M12 6h24l1 12-3 24h-6l-4-20-4 20h-6l-3-24z"/>',
+  vestido:'<path d="M18 6h12l3 8-4 4 5 26H14l5-26-4-4z"/>',
+  jersey:'<path d="M18 6h12l4 6 6 4-4 6-4-2v22H14V20l-4 2-4-6 6-4z"/><path d="M18 6q6 5 12 0" fill="none"/>',
+  bufanda:'<path d="M5 12c8 7 9-6 17 0s9-6 17 0v8c-8-6-9 6-17 0s-9 6-17 0z"/><path d="M30 20l7 22h-7l-3-14z"/>',
+  gafas:'<circle cx="14" cy="26" r="9" fill="#bfe3ff"/><circle cx="34" cy="26" r="9" fill="#bfe3ff"/><path d="M5 26h0" /><path d="M23 24h2M5 22l-1-3M43 22l1-3" fill="none"/><path d="M5 26V20h38v6" fill="none"/>',
+  botas:'<path d="M17 4h12v24l11 6v10H7V34l10-6z"/>',
+  zapatos:'<path d="M5 28h14l6 5h16v9H5z"/><path d="M5 34h36" fill="none"/>',
+  guantes:'<path d="M14 40V20l-3-9 4-1 3 8V6h4v13l2-13h4l-1 14 2-8 4 1-4 15v14z"/>',
+  gorro:'<path d="M8 32a16 16 0 0132 0z"/><rect x="5" y="32" width="38" height="8" rx="3"/><circle cx="24" cy="12" r="4"/>',
+  abrigo:'<path d="M17 6l7 5 7-5 7 8-3 5v25H13V19l-3-5z"/><path d="M24 11v30" fill="none" stroke-dasharray="2 3"/>',
+  chaqueta:'<path d="M17 6l7 5 7-5 7 8-3 5v19H13V19l-3-5z"/><path d="M24 11v26" fill="none"/>',
+  camisa:'<path d="M18 6l6 4 6-4 6 6-4 6-2-2v26H16V16l-2 2-4-6z"/><path d="M24 10v30" fill="none"/>',
+  camiseta:'<path d="M17 6q7 5 14 0l9 7-4 7-4-2v24H16V18l-4 2-4-7z"/>'
+};
+const gar = (id, hex = "#d2562b", size) => `<svg viewBox="0 0 48 48" ${size ? `width="${size}" height="${size}"` : ""} fill="${hex}" stroke="#2b2030" stroke-width="2" stroke-linejoin="round" aria-hidden="true">${PATH[id]}</svg>`;
+const person = (c) => `<svg viewBox="0 0 44 70" aria-hidden="true"><circle cx="22" cy="12" r="9" fill="${c}" stroke="#2b2030" stroke-width="2"/><path d="M10 68V34q0-8 12-8t12 8v34z" fill="${c}" stroke="#2b2030" stroke-width="2"/></svg>`;
+
+const HOTSPOTS = [
+  { key:"gorro",   fx:.50, fy:.06, es:"el gorro / la boina", en:"the hat" },
+  { key:"guantes", fx:.65, fy:.08, es:"los guantes",         en:"the gloves" },
+  { key:"abrigo",  fx:.23, fy:.45, es:"el abrigo",           en:"the coat" },
+  { key:"vestido", fx:.60, fy:.52, es:"el vestido",          en:"the dress" },
+  { key:"botas",   fx:.55, fy:.90, es:"las botas",           en:"the boots" }
+];
+const CREDITS = {
+  outfit:'Photo: Tobias ToMar Maier — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>',
+  weaving:'Photo: ArtProf — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a>',
+  zara:'Photo: MingtieanHai BG — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>'
+};
+
+const VOCAB = ["falda","pantalones","vestido","bufanda","botas","guantes","gorro","abrigo"];
+const REGIONAL = [
+  { q:"A customer from Mexico says: “¿Dónde está mi suéter?” Which word would a shop in Spain use?", ok:"el jersey", opts:["el jersey","la bufanda","el abrigo","el vestido"], why:"Spain: el jersey. Latin America: el suéter." },
+  { q:"In Spain you say “las gafas”. What do many people in Argentina say?", ok:"los anteojos", opts:["los anteojos","las botas","los guantes","los zapatos"], why:"Argentina often says los anteojos; Mexico often says los lentes." },
+  { q:"“La cartera” is a word in Latin America for a bag. In Spain, a handbag is…", ok:"el bolso", opts:["el bolso","el gorro","la falda","el abrigo"], why:"Spain: el bolso. Latin America: la cartera (or el bolso)." }
+];
+const DEMS = [
+  ["falda","near"],["pantalones","mid"],["abrigo","far"],["botas","near"],["camiseta","mid"],
+  ["gafas","far"],["vestido","far"],["zapatos","near"],["chaqueta","mid"],["guantes","far"]
+];
+const DRESS = [
+  { subj:"Yo", en:"I", rp:"me", v:"pongo", item:"gorro", hex:"#d33a2f" },
+  { subj:"Tú", en:"you", rp:"te", v:"pones", item:"bufanda", hex:"#f2c230" },
+  { subj:"Ella", en:"she", rp:"se", v:"pone", item:"abrigo", hex:"#2d62c8" },
+  { subj:"Nosotros", en:"we", rp:"nos", v:"ponemos", item:"pantalones", hex:"#2b2b33" },
+  { subj:"Vosotros", en:"you all", rp:"os", v:"ponéis", item:"botas", hex:"#8a4b22" },
+  { subj:"Ellos", en:"they", rp:"se", v:"ponen", item:"guantes", hex:"#2f9a5b" }
+];
+const LLEVA = [
+  { subj:"Ella", v:"lleva", item:"camiseta", c:"blanco", price:12 },
+  { subj:"Yo", v:"llevo", item:"pantalones", c:"negro", price:35 },
+  { subj:"Él", v:"lleva", item:"abrigo", c:"azul", price:80 },
+  { subj:"Tú", v:"llevas", item:"falda", c:"rojo", price:25 },
+  { subj:"Nosotros", v:"llevamos", item:"zapatos", c:"negro", price:50 },
+  { subj:"Ellos", v:"llevan", item:"jersey", c:"verde", price:30 }
+];
+const LLEVAR_FORMS = ["llevo","llevas","lleva","llevamos","llevan"];
+const SHOP = [
+  { who:"v", es:"Buenos días. ¿Qué desea?", en:"Good morning. What would you like?" },
+  { who:"c", es:"Quiero esta chaqueta. ¿Cuánto cuesta?", en:"I want this jacket. How much does it cost?" },
+  { who:"v", es:"Cuesta ochenta euros.", en:"It costs eighty euros." },
+  { who:"c", es:"¡Es muy cara!", en:"It is very expensive!" },
+  { who:"v", es:"Hoy hay un descuento. Cuesta sesenta euros.", en:"Today there is a discount. It costs sixty euros." },
+  { who:"c", es:"Perfecto. ¿Tienen una talla más grande?", en:"Perfect. Do you have a bigger size?" }
+];
+const BLOG = [
+  { es:"Hola fashionistas.", en:"Hello fashionistas." },
+  { es:"Hoy llevo un outfit de Zara.", en:"Today I am wearing an outfit from Zara." },
+  { es:"Llevo una blusa de seda blanca y unos pantalones negros.", en:"I am wearing a white silk blouse and black trousers." },
+  { es:"Es un look muy elegante para la oficina.", en:"It is a very elegant look for the office." },
+  { es:"Los zapatos cuestan cincuenta euros.", en:"The shoes cost fifty euros." }
+];
+const BLOGQ = [
+  { q:"Where is the outfit from?", ok:"Zara", opts:["Zara","Guatemala","A school","A market in Chile"], why:"“Un outfit de Zara.”" },
+  { q:"Is the look casual or elegant?", ok:"Elegant — for the office", opts:["Elegant — for the office","Casual — for the beach","Sporty — for the gym","Winter — for the snow"], why:"“Muy elegante para la oficina.”" },
+  { q:"How much do the shoes cost?", ok:"50 euros", opts:["50 euros","15 euros","5 euros","500 euros"], why:"“Cincuenta” = 50." }
+];
+const RANKS = [[0,"Aprendiz"],[120,"Costurero/a"],[280,"Estilista"],[450,"Diseñador/a"],[620,"Icono de la Moda"]];
+const rankFor = (xp) => RANKS.filter(r => xp >= r[0]).pop()[1];
+
+/* ================= ORIENT ================= */
+function drawOrient(host) {
+  const cards = [
+    ["Aquí · Ahí · Allí", "este · ese · aquel", "Three distances: in my hand / near you / far away. “This and These have T’s” (este, esta, estos, estas)."],
+    ["me · te · se · nos · os · se", "Me pongo la chaqueta", "Ponerse = to put on. The little word (me/te/se…) matches WHO. Use el/la, not “my”."],
+    ["Llevar + colour", "Llevo una camisa roja", "Llevar = to wear. The colour goes AFTER the thing and agrees: una falda roja, unos zapatos negros."]
+  ];
+  host.innerHTML = `<p class="q__hint">Tap each card to flip it. These three rules run the whole unit.</p><div class="rule-cards"></div>`;
+  const wrap = host.querySelector(".rule-cards");
+  cards.forEach(([big, ex, more]) => {
+    const b = $(`<button type="button" class="rule-card"><div class="rule-card__big">${big}</div><div class="es">${ex}</div><div class="rule-card__more">${more}</div></button>`);
+    b.addEventListener("click", () => b.classList.toggle("is-open"));
+    wrap.append(b);
+  });
+}
+
+/* ================= INVESTIGATE ================= */
+function drawInvestigate(host, sim) {
+  sim.state.custom = sim.state.custom || {};
+  const S = sim.state.custom;
+  S.stage = S.stage || 0; S.xp = S.xp || 0; S.streak = S.streak || 0; S.best = S.best || 0; S.p = S.p || {}; S.firstTry = S.firstTry || 0; S.answered = S.answered || 0;
+  const STAGES = ["El Armario","Señala","Vístete","Pasarela","En la Tienda","Cultura"];
+  host.innerHTML = `<div class="pz-hud"><span class="pz-hud__rank" id="rk"></span><span class="pz-hud__bar"><i id="bar"></i></span><span><b id="xp"></b> XP · 🔥 <b id="st"></b></span></div><div class="pz-tabs" id="tabs"></div><div id="body"></div><div id="bonus" style="margin-top:var(--sp-5)"></div>`;
+  const body = host.querySelector("#body");
+
+  function hud() {
+    host.querySelector("#rk").textContent = rankFor(S.xp);
+    host.querySelector("#xp").textContent = S.xp; host.querySelector("#st").textContent = S.streak;
+    host.querySelector("#bar").style.width = Math.min(100, S.xp / 6.2) + "%";
+    host.querySelector("#tabs").innerHTML = STAGES.map((n, i) => `<span class="pz-tab ${i < S.stage ? "is-done" : i === S.stage ? "is-now" : ""}">${i + 1}. ${n}${i < S.stage ? " ✓" : ""}</span>`).join("");
+  }
+  function burst(el, color) {
+    const r = el.getBoundingClientRect(), root = el.closest(".pz-panel") || el;
+    const rr = root.getBoundingClientRect(); root.style.position = "relative";
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("i"); s.className = "burst";
+      s.style.left = (r.left - rr.left + r.width / 2) + "px"; s.style.top = (r.top - rr.top + r.height / 2) + "px";
+      s.style.background = ["#f0a030", "#d2562b", "#7a1f3d", "#2e8b57"][i % 4];
+      const a = Math.random() * 6.28, d = 30 + Math.random() * 50; s.style.setProperty("--dx", Math.cos(a) * d + "px"); s.style.setProperty("--dy", Math.sin(a) * d + "px");
+      root.append(s); setTimeout(() => s.remove(), 850);
+    }
+  }
+  function award(nivel, tarea, respuesta, tries, ok, anchor) {
+    if (ok) { S.xp += tries === 1 ? 10 + Math.min(S.streak, 5) * 2 : 5; S.streak = tries === 1 ? S.streak + 1 : 0; if (tries === 1) S.firstTry++; }
+    else S.streak = 0;
+    S.best = Math.max(S.best, S.streak); S.answered++;
+    sim.recordTrial({ nivel, tarea, respuesta, correcto: ok ? "Yes" : "No", intentos: tries });
+    if (ok && anchor) burst(anchor);
+    sim.save && sim.save(); hud();
+  }
+  const finishStage = (container) => {
+    const b = $(`<button type="button" class="btn btn--signal pz-next">${S.stage < 5 ? "Next level →" : "Finish the collection →"}</button>`);
+    b.addEventListener("click", () => { S.stage++; sim.save && sim.save(); paint(); });
+    container.append(b);
+  };
+  const panel = (title, how) => { const p = $(`<section class="pz-panel"><h3 class="pz-title">${title}</h3><div class="pz-how">${how}</div><div class="slot"></div></section>`); body.append(p); return p.querySelector(".slot"); };
+
+  /* ---- generic one-question-at-a-time multiple choice ---- */
+  function deck(slot, k, nivel, qs, done) {
+    const i = S.p[k] || 0;
+    if (i >= qs.length) { done(); return; }
+    const q = qs[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${qs.length}</div><div class="vis">${q.visual || ""}</div><p><b>${q.q}</b></p><div class="pz-chips"></div><div class="fb"></div>`;
+    const chips = slot.querySelector(".pz-chips"), fb = slot.querySelector(".fb");
+    shuffle(q.opts).forEach(o => {
+      const c = $(`<button type="button" class="chip es">${o}</button>`);
+      c.addEventListener("click", () => {
+        tries++;
+        if (o === q.ok) {
+          c.classList.add("is-ok"); chips.querySelectorAll("button").forEach(b => b.disabled = true);
+          fb.className = "fb good"; fb.textContent = "¡Correcto! " + (q.why || "");
+          award(nivel, q.task || q.q, o, tries, true, c);
+          setTimeout(() => { S.p[k] = i + 1; deck(slot, k, nivel, qs, done); }, 1300);
+        } else {
+          c.classList.add("is-bad"); c.disabled = true;
+          if (tries >= 2) {
+            chips.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === q.ok) b.classList.add("is-ok"); });
+            fb.className = "fb bad"; fb.textContent = "The answer is “" + q.ok + "”. " + (q.why || "");
+            award(nivel, q.task || q.q, o, tries, false);
+            setTimeout(() => { S.p[k] = i + 1; deck(slot, k, nivel, qs, done); }, 2300);
+          } else { fb.className = "fb bad"; fb.textContent = "Not quite — try once more. " + (q.hint || ""); }
+        }
+      });
+      chips.append(c);
+    });
+  }
+
+  /* ---- generic multi-row sentence builder ---- */
+  function builder(slot, k, nivel, rounds, done) {
+    const i = S.p[k] || 0;
+    if (i >= rounds.length) { done(); return; }
+    const R = rounds[i]; let tries = 0; const sel = {};
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${rounds.length}</div><div class="vis">${R.visual}</div><div class="preview"></div><div class="rows"></div><div class="fb"></div>`;
+    const prev = slot.querySelector(".preview"), rowsEl = slot.querySelector(".rows"), fb = slot.querySelector(".fb");
+    const paintPrev = () => { prev.innerHTML = R.preview(sel); };
+    paintPrev();
+    const rowEls = {};
+    R.rows.forEach(row => {
+      const wrap = $(`<div><div class="row-label">${row.label}</div><div class="pz-chips"></div></div>`);
+      rowEls[row.id] = wrap.querySelector(".pz-chips");
+      shuffle(row.opts).forEach(o => {
+        const c = $(`<button type="button" class="chip es">${o}</button>`);
+        c.addEventListener("click", () => {
+          if (slot.dataset.locked) return;
+          rowEls[row.id].querySelectorAll("button").forEach(b => b.classList.remove("is-on", "is-bad"));
+          c.classList.add("is-on"); sel[row.id] = o; paintPrev();
+          if (R.rows.every(r => sel[r.id])) check();
+        });
+        rowEls[row.id].append(c);
+      });
+      rowsEl.append(wrap);
+    });
+    function reveal(ok) {
+      slot.dataset.locked = "1";
+      R.rows.forEach(r => rowEls[r.id].querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === r.ans) { b.classList.remove("is-on", "is-bad"); b.classList.add("is-ok"); } }));
+      const full = R.rows.reduce((o, r) => (o[r.id] = r.ans, o), {});
+      prev.innerHTML = R.preview(full, true);
+      R.reveal && R.reveal(slot.querySelector(".vis"));
+      award(nivel, R.task, R.rows.map(r => sel[r.id]).join(" "), tries, ok, prev);
+      fb.className = "fb " + (ok ? "good" : "bad");
+      fb.textContent = ok ? "¡Muy bien! " + (R.why || "") : "Here is the full answer. " + (R.why || "");
+      setTimeout(() => { S.p[k] = i + 1; delete slot.dataset.locked; builder(slot, k, nivel, rounds, done); }, ok ? 1900 : 3000);
+    }
+    function check() {
+      tries++;
+      const wrong = R.rows.filter(r => sel[r.id] !== r.ans);
+      if (!wrong.length) { reveal(true); return; }
+      wrong.forEach(r => { rowEls[r.id].querySelectorAll("button.is-on").forEach(b => { b.classList.remove("is-on"); b.classList.add("is-bad"); b.disabled = true; }); delete sel[r.id]; });
+      paintPrev();
+      if (tries >= 2) { reveal(false); return; }
+      fb.className = "fb bad"; fb.textContent = "Check: " + wrong.map(r => r.hint).join(" · ");
+    }
+  }
+
+  /* ================= STAGE 1: El Armario ================= */
+  function stage1() {
+    const slot = panel("Nivel 1 · El Armario", "Learn the clothes <b>with their article</b> (el, la, los, las). First tap the real photo, then choose the right word for each picture.");
+    S.p.lab = S.p.lab || 0;
+    const part1 = $("<div></div>"), part2 = $("<div></div>"); slot.append(part1, part2);
+    const doVocab = () => {
+      part1.innerHTML = `<p class="fb good">✓ Photo labelled.</p>`;
+      const qs = VOCAB.map(id => {
+        const it = IT[id], wrongArt = { m:"la", f:"el" }[it.g];
+        const bad = (it.p === "p") ? [(it.a === "los" ? "las" : "los") + " " + it.n] : [wrongArt + " " + it.n];
+        const others = shuffle(VOCAB.filter(x => x !== id)).slice(0, 2).map(x => IT[x].a + " " + IT[x].n);
+        return { task: "Name: " + it.en, q: "What is this in Spanish?", visual: `<div class="item-card">${gar(id, "#d2562b")}<b>${it.en}</b></div>`, ok: it.a + " " + it.n, opts: [it.a + " " + it.n, ...bad, ...others], why: `${it.a} ${it.n} (${it.en})`, hint: "Check the article: el/la for one thing, los/las for a pair or several." };
+      });
+      deck(part2, "voc", "1 Vocabulary", qs, () => {
+        part2.innerHTML = "";
+        const slot3 = $("<div></div>"); part2.append(slot3);
+        slot3.innerHTML = `<p class="row-label">Spain or Latin America?</p>`;
+        const inner = $("<div></div>"); slot3.append(inner);
+        deck(inner, "reg", "1 Regional", REGIONAL.map(r => ({ task: r.q, q: r.q, ok: r.ok, opts: r.opts, why: r.why })), () => { slot3.innerHTML = `<p class="fb good">¡Nivel 1 completo!</p>`; finishStage(slot3); });
+      });
+    };
+    const paintLab = () => {
+      if (S.p.lab >= HOTSPOTS.length) { doVocab(); return; }
+      const t = HOTSPOTS[S.p.lab];
+      part1.innerHTML = `<p><b>Tap the photo where you see:</b> <span class="es">${t.es}</span> <small>(${t.en})</small></p><div class="photo-wrap"><img src="photos/outfit.jpg" alt="A winter outfit with a hat, gloves, coat, dress and boots"></div><p class="credit">${CREDITS.outfit}</p><p class="fb"></p>`;
+      const w = part1.querySelector(".photo-wrap"), f = part1.querySelector(".fb");
+      HOTSPOTS.forEach((h, n) => {
+        const b = $(`<button type="button" class="hotspot" style="left:${h.fx * 100}%;top:${h.fy * 100}%" aria-label="Spot ${n + 1}"><i></i></button>`);
+        if (n < S.p.lab) b.classList.add("is-done");
+        b.addEventListener("click", () => {
+          if (h.key === t.key) { b.classList.add("is-done"); f.className = "fb good"; f.textContent = "¡Correcto! " + h.es; burst(b); S.xp += 6; S.p.lab++; hud(); sim.save && sim.save(); sim.recordTrial({ nivel:"1 Photo", tarea:"Tap " + h.es, respuesta:h.es, correcto:"Yes", intentos:1 }); setTimeout(paintLab, 700); }
+          else { b.classList.remove("is-wrong"); void b.offsetWidth; b.classList.add("is-wrong"); f.className = "fb bad"; f.textContent = "Not that one — look again for " + t.en + "."; }
+        });
+        w.append(b);
+      });
+    };
+    paintLab();
+  }
+
+  /* ================= STAGE 2: Señala ================= */
+  function stage2() {
+    const slot = panel("Nivel 2 · Señala (Point it out)", "You are the person on the left. Look <b>where the item is</b>: close to you (aquí), near your friend (ahí) or far (allí). Pick the correct <b>este / ese / aquel</b> form — it must match the <b>gender and number</b> too.");
+    const pos = { near:"22%", mid:"58%", far:"88%" };
+    const rounds = DEMS.map(([id, d]) => {
+      const it = IT[id], kk = key(it), correct = DEM[d][kk];
+      const opts = [correct, ...["near","mid","far"].filter(x => x !== d).map(x => DEM[x][kk])];
+      const flip = { ms:"fs", fs:"ms", mp:"fp", fp:"mp" }[kk]; opts.push(DEM[d][flip]);
+      return {
+        task: `${it.a} ${it.n} (${DIST_WORD[d]})`,
+        visual: `<div class="scene"><div class="person" style="left:10%">${person("#d2562b")}Tú</div><div class="person" style="left:48%">${person("#2d62c8")}Amigo/a</div>
+          <div class="thing ${d === "far" ? "is-far" : ""}" style="left:110%" data-d="${d}">${gar(id, "#e8a33a")}<b class="es" style="font-size:.8rem">${it.a} ${it.n}</b></div><div class="tag"></div></div>`,
+        preview: (s, full) => `<u>${s.dem || "_____"}</u> ${it.n} <small style="font-weight:400">(${it.en})</small>`,
+        rows: [{ id:"dem", label:"Choose the word for “this / that / that over there”", opts, ans:correct, hint:`the item is “${DIST_WORD[d]}” and “${it.n}” is ${it.g === "m" ? "masculine" : "feminine"} ${it.p === "p" ? "plural" : "singular"}.` }],
+        why: `${DIST_WORD[d]} → ${correct} ${it.n}`,
+        reveal: (v) => { const t = v.querySelector(".thing"); t.style.left = pos[d]; v.querySelector(".tag").textContent = `${DIST_WORD[d]}: ${correct} ${it.n}`; v.querySelector(".tag").classList.add("show"); }
+      };
+    });
+    /* slide the item in at the start */
+    const orig = slot; const obs = new MutationObserver(() => { const t = slot.querySelector(".thing:not([data-go])"); if (t) { t.dataset.go = 1; requestAnimationFrame(() => requestAnimationFrame(() => { t.style.left = pos[t.dataset.d]; })); } });
+    obs.observe(slot, { childList: true, subtree: true });
+    builder(slot, "dem", "2 Demonstrative", rounds, () => { obs.disconnect(); slot.innerHTML = `<p class="fb good">¡Nivel 2 completo! You can point at anything now.</p>`; finishStage(slot); });
+    const t0 = slot.querySelector(".thing"); if (t0) { t0.dataset.go = 1; requestAnimationFrame(() => requestAnimationFrame(() => { t0.style.left = pos[t0.dataset.d]; })); }
+  }
+
+  /* ================= STAGE 3: Vístete ================= */
+  const MANN = {
+    gorro:'<g class="g" data-i="gorro"><path d="M36 22a14 14 0 0128 0z" fill="__H__" stroke="#2b2030" stroke-width="2"/><rect x="33" y="21" width="34" height="6" rx="3" fill="__H__" stroke="#2b2030" stroke-width="2"/></g>',
+    bufanda:'<g class="g" data-i="bufanda"><rect x="38" y="42" width="24" height="9" rx="4" fill="__H__" stroke="#2b2030" stroke-width="2"/><rect x="52" y="48" width="8" height="26" rx="3" fill="__H__" stroke="#2b2030" stroke-width="2"/></g>',
+    abrigo:'<g class="g" data-i="abrigo"><path d="M32 50l18 8 18-8 8 50-10 3-4-30v50H40V73l-4 30-10-3z" fill="__H__" stroke="#2b2030" stroke-width="2" opacity=".96"/></g>',
+    pantalones:'<g class="g" data-i="pantalones"><path d="M36 108h28l2 70H54l-4-48-4 48H34z" fill="__H__" stroke="#2b2030" stroke-width="2"/></g>',
+    botas:'<g class="g" data-i="botas"><path d="M34 176h14v14h14v-14h2v28H30v-12z" transform="translate(0,0)" fill="__H__" stroke="#2b2030" stroke-width="2"/><path d="M52 176h14v28H52z" fill="__H__" stroke="#2b2030" stroke-width="2"/></g>',
+    guantes:'<g class="g" data-i="guantes"><circle cx="22" cy="104" r="8" fill="__H__" stroke="#2b2030" stroke-width="2"/><circle cx="78" cy="104" r="8" fill="__H__" stroke="#2b2030" stroke-width="2"/></g>'
+  };
+  function mannequin(worn, fresh) {
+    return `<svg class="mannequin" viewBox="0 0 100 210" aria-hidden="true"><circle cx="50" cy="26" r="13" fill="#f0c9a5" stroke="#2b2030" stroke-width="2"/><rect x="45" y="38" width="10" height="10" fill="#f0c9a5"/><path d="M34 50h32l4 58H30z" fill="#e6dcd0" stroke="#2b2030" stroke-width="2"/><path d="M30 52l-8 52M70 52l8 52" stroke="#2b2030" stroke-width="7" stroke-linecap="round" fill="none"/><path d="M38 108h24l-2 90H54l-4-70-4 70h-6z" fill="#e6dcd0" stroke="#2b2030" stroke-width="2"/>${worn.map((w, i) => MANN[w.id].replace(/__H__/g, w.hex).replace('class="g"', fresh && i === worn.length - 1 ? 'class="g"' : 'class="g on"')).join("")}</svg>`;
+  }
+  function stage3() {
+    const slot = panel("Nivel 3 · Vístete (Get dressed)", "<b>Ponerse</b> = to put on. Choose the little word (<b>me, te, se, nos, os</b>), the verb ending and the article (<b>el, la, los, las</b> — never “mi”). Get all three right and the clothes land on the mannequin!");
+    const wearUpTo = (n) => DRESS.filter((x, j) => j < n).map(x => ({ id:x.item, hex:x.hex }));
+    const rounds = DRESS.map((d, n) => {
+      const it = IT[d.item];
+      return {
+        task: `${d.subj} + ponerse + ${it.n}`,
+        visual: `<div style="text-align:center"><div class="mannequin-wrap">${mannequin(wearUpTo(n))}</div><p><span class="es" style="font-size:1.3rem">${d.subj}</span> <small>(${d.en})</small> → put on ${gar(d.item, d.hex, 44)} <b>${it.en}</b></p></div>`,
+        preview: (s) => `${d.subj} <u>${s.rp || "__"}</u> <u>${s.v || "_____"}</u> <u>${s.a || "__"}</u> ${it.n}`,
+        rows: [
+          { id:"rp", label:"1. The little word (reflexive pronoun)", opts:["me","te","se","nos","os"], ans:d.rp, hint:`“${d.subj}” needs “${d.rp}”.` },
+          { id:"v", label:"2. The verb", opts:["pongo","pones","pone","ponemos","ponéis","ponen"], ans:d.v, hint:`the verb for “${d.subj}” is “${d.v}”.` },
+          { id:"a", label:"3. The article", opts:["el","la","los","las"], ans:it.a, hint:`${it.n} is ${it.g === "m" ? "masculine" : "feminine"} ${it.p === "p" ? "plural" : "singular"} → “${it.a}”.` }
+        ],
+        why: `${d.subj} ${d.rp} ${d.v} ${it.a} ${it.n}.`,
+        reveal: (v) => { const wrap = v.querySelector(".mannequin-wrap"); wrap.innerHTML = mannequin(wearUpTo(n + 1), true); const gs = wrap.querySelectorAll(".g"); requestAnimationFrame(() => requestAnimationFrame(() => gs.forEach(g => g.classList.add("on")))); }
+      };
+    });
+    builder(slot, "dress", "3 Ponerse", rounds, () => {
+      slot.innerHTML = `<div style="text-align:center">${mannequin(wearUpTo(DRESS.length))}</div><p class="fb good">¡Nivel 3 completo! Fully dressed for winter.</p>`;
+      slot.querySelectorAll(".g").forEach(g => g.classList.add("on")); finishStage(slot);
+    });
+  }
+
+  /* ================= STAGE 4: Pasarela ================= */
+  function stage4() {
+    const slot = panel("Nivel 4 · Pasarela (Runway)", "Describe the model with <b>llevar</b> (to wear). Pick the verb, the article <b>un / una / unos / unas</b>, and the colour. The colour goes <b>after</b> the clothes and must <b>match</b> them (una falda roja, unos zapatos negros).");
+    const rounds = LLEVA.map(d => {
+      const it = IT[d.item], kk = key(it), col = COL[d.c];
+      const forms = [...new Set([col.ms, col.fs, col.mp, col.fp])];
+      while (forms.length < 4) forms.push(col.ms + (forms.length % 2 ? "a" : "o") + (forms.length > 3 ? "s" : ""));
+      return {
+        task: `${d.subj} ${d.v} ${ART_IND[kk]} ${it.n} ${col[kk]}`,
+        visual: `<div style="text-align:center"><div class="runway"><div class="spot"></div><div class="model">${gar(d.item, col.hex)}</div></div><p><span class="es">${d.subj}</span> · ${it.en} · <span class="price">€${d.price}</span></p></div>`,
+        preview: (s) => `${d.subj} <u>${s.v || "_____"}</u> <u>${s.art || "__"}</u> ${it.n} <u>${s.adj || "_____"}</u>.`,
+        rows: [
+          { id:"v", label:"1. The verb llevar", opts:LLEVAR_FORMS, ans:d.v, hint:`“${d.subj}” goes with “${d.v}”.` },
+          { id:"art", label:"2. The article", opts:["un","una","unos","unas"], ans:ART_IND[kk], hint:`${it.n} is ${it.g === "m" ? "masculine" : "feminine"} ${it.p === "p" ? "plural" : "singular"} → “${ART_IND[kk]}”.` },
+          { id:"adj", label:"3. The colour (it goes AFTER the noun and agrees)", opts:forms.slice(0, 4), ans:col[kk], hint:`the colour must agree with “${it.n}” → “${col[kk]}”.` }
+        ],
+        why: `${d.subj} ${d.v} ${ART_IND[kk]} ${it.n} ${col[kk]}.`
+      };
+    });
+    builder(slot, "llev", "4 Llevar", rounds, () => { slot.innerHTML = `<p class="fb good">¡Nivel 4 completo! The audience loves your collection.</p>`; finishStage(slot); });
+  }
+
+  /* ================= STAGE 5: En la Tienda ================= */
+  function stage5() {
+    const slot = panel("Nivel 5 · En la Tienda", "Rebuild a real shop conversation. Tap the line that comes <b>next</b>. <b>V</b> = vendedor (shop assistant), <b>C</b> = cliente (customer). Use “Show English” if you need help.");
+    S.p.shop = S.p.shop || 0; let tries = 0, mistakes = 0;
+    function paint() {
+      const n = S.p.shop;
+      slot.innerHTML = `<label><input type="checkbox" id="en"> Show English</label><div class="chat"></div><p class="pz-count">Lines left: ${SHOP.length - n}</p><div class="pool"></div><div class="fb"></div>`;
+      const chat = slot.querySelector(".chat"), pool = slot.querySelector(".pool"), fb = slot.querySelector(".fb");
+      slot.querySelector("#en").addEventListener("change", e => slot.classList.toggle("show-en", e.target.checked));
+      const line = (l) => `<div class="bubble ${l.who}"><small>${l.who === "v" ? "Vendedor" : "Cliente"}</small>${l.es}<div class="en">${l.en}</div></div>`;
+      SHOP.slice(0, n).forEach(l => chat.append($(line(l))));
+      if (n >= SHOP.length) { pool.remove(); fb.className = "fb good"; fb.textContent = "¡Conversación completa! Perfect."; finishStage(slot); return; }
+      const left = shuffle(SHOP.slice(n).map((l, i) => ({ l, idx: n + i })));
+      left.forEach(({ l, idx }) => {
+        const b = $(`<button type="button" class="chip es">${l.who === "v" ? "V" : "C"}: ${l.es}</button>`);
+        b.addEventListener("click", () => {
+          if (idx === n) {
+            tries++;
+            award("5 Shop", "Line " + (n + 1) + " of the conversation", l.es, mistakes ? 2 : 1, true, b);
+            mistakes = 0; S.p.shop++; paint();
+          } else { mistakes++; b.classList.remove("is-bad"); void b.offsetWidth; b.classList.add("is-bad"); fb.className = "fb bad"; fb.textContent = "Not yet — who speaks next? Think about what was just said. " + (mistakes > 1 ? "Hint: " + (SHOP[n].who === "v" ? "the vendedor" : "the cliente") + " speaks." : ""); }
+        });
+        pool.append(b);
+      });
+    }
+    paint();
+  }
+
+  /* ================= STAGE 6: Cultura ================= */
+  function stage6() {
+    const slot = panel("Nivel 6 · Cultura y Blog", "Spanish fashion has two faces. <b>Tap the photo</b> that shows <b>slow fashion</b> (handmade, takes months). Then tap the blog sentences to read the English, and answer 3 questions.");
+    const part = $("<div></div>"); slot.append(part);
+    let tries = 0;
+    part.innerHTML = `<div class="culture"><button type="button" data-k="zara"><img src="photos/zara-store.jpg" alt="A Zara shop in Madrid"><span><b>Zara (Inditex)</b><br>New designs reach shops twice a week.</span></button><button type="button" data-k="weave"><img src="photos/weaving.jpg" alt="A woman weaving on a backstrap loom in Guatemala"><span><b>Telar de cintura (Guatemala)</b><br>One piece can take months.</span></button></div><p class="credit">${CREDITS.zara}<br>${CREDITS.weaving}</p><p class="fb"></p>`;
+    const fb = part.querySelector(".fb");
+    part.querySelectorAll(".culture button").forEach(b => b.addEventListener("click", () => {
+      if (S.p.cul) return;
+      tries++;
+      if (b.dataset.k === "weave") { b.classList.add("is-ok"); fb.className = "fb good"; fb.textContent = "¡Correcto! Slow fashion = handmade weaving. Zara is “fast fashion”."; award("6 Culture", "Which photo is slow fashion?", "Backstrap loom", tries, true, b); S.p.cul = 1; startBlog(); }
+      else { b.classList.add("is-bad"); fb.className = "fb bad"; fb.textContent = "Zara makes new designs very quickly — that is fast fashion. Try the other photo."; if (tries >= 2) { award("6 Culture", "Which photo is slow fashion?", "Zara", tries, false); S.p.cul = 1; startBlog(); } }
+    }));
+    function startBlog() {
+      const sec = $(`<div><h4 class="pz-title">El blog de moda</h4><div class="blog">${BLOG.map((s, n) => `<span data-n="${n}">${s.es}</span>`).join(" ")}</div><div class="blog-en">Tap a sentence to read the English.</div><div class="qs"></div></div>`);
+      slot.append(sec);
+      sec.querySelectorAll(".blog span").forEach(s => s.addEventListener("click", () => { sec.querySelector(".blog-en").textContent = BLOG[+s.dataset.n].en; }));
+      deck(sec.querySelector(".qs"), "blog", "6 Reading", BLOGQ.map(q => ({ task: q.q, q: q.q, ok: q.ok, opts: q.opts, why: q.why })), () => { sec.querySelector(".qs").innerHTML = `<p class="fb good">¡Nivel 6 completo!</p>`; finishStage(sec.querySelector(".qs")); });
+    }
+    if (S.p.cul) { startBlog(); }
+  }
+
+  function finale() {
+    body.innerHTML = `<div class="done-card"><h3>¡Colección completa!</h3><div class="big">${rankFor(S.xp)}</div><p>${S.xp} XP · best streak ${S.best} · ${S.firstTry}/${S.answered} correct first time</p><p>Next: try the bonus round below, then check your Record and keep going to <b>Explain</b>.</p></div>`;
+    bonusSection();
+  }
+
+  function paint() {
+    body.innerHTML = ""; hud();
+    [stage1, stage2, stage3, stage4, stage5, stage6][S.stage] ? [stage1, stage2, stage3, stage4, stage5, stage6][S.stage]() : finale();
+    if (S.stage > 5) finale();
+  }
+
+  /* ================= BONUS: Wordle de la Moda ================= */
+  function bonusSection() {
+    const box = host.querySelector("#bonus");
+    if (box.dataset.on) return; box.dataset.on = 1;
+    box.innerHTML = `<div class="pz-panel"><h3 class="pz-title">Bonus · Wordle de la Moda</h3><p>Guess the Spanish clothing word in 6 tries — like Wordle! A picture and the English word are your clues. Accents are not needed. No marks, just fun.</p><button type="button" class="btn btn--signal" id="pl">Play</button> <button type="button" class="btn" id="sk">Skip</button></div>`;
+    box.querySelector("#sk").onclick = () => { box.innerHTML = ""; };
+    box.querySelector("#pl").onclick = () => wordle(box);
+  }
+  function wordle(box) {
+    const WORDS = shuffle(["falda","botas","gorro","camisa","jersey","bufanda","zapatos","abrigo","guantes","vestido","gafas","chaqueta"]).slice(0, 6);
+    let wi = 0, score = 0, streak = 0, best = 0;
+    const strip = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+    function round() {
+      if (wi >= WORDS.length) {
+        box.innerHTML = `<div class="wd"><h3>¡Ronda terminada!</h3><p>${score}/${WORDS.length} words solved · best streak ${best}</p><button type="button" class="btn btn--signal" id="ag">Play again</button> <button type="button" class="btn" id="dn">Continue</button></div>`;
+        box.querySelector("#ag").onclick = () => { wi = 0; score = 0; streak = 0; round(); }; box.querySelector("#dn").onclick = () => { box.innerHTML = ""; };
+        return;
+      }
+      const id = WORDS[wi], it = IT[id], target = it.n; let row = 0, cur = ""; const L = target.length;
+      box.innerHTML = `<div class="wd"><h3>Word ${wi + 1} / ${WORDS.length}</h3><div class="wd-hint">${gar(id, "#f0a030")}<div><b>${it.en}</b><br><small>${L} letters</small></div></div><div class="wd-grid" id="g"></div><div class="wd-msg" id="m" role="status"></div><div class="wd-kb" id="kb"></div></div>`;
+      const g = box.querySelector("#g"), msg = box.querySelector("#m"), kb = box.querySelector("#kb");
+      const cells = []; for (let r = 0; r < 6; r++) { const rw = $('<div class="wd-row"></div>'); cells[r] = []; for (let c = 0; c < L; c++) { const x = $('<div class="wd-cell"></div>'); cells[r].push(x); rw.append(x); } g.append(rw); }
+      const keys = {}; "qwertyuiopasdfghjklñzxcvbnm".split("").forEach(ch => { const b = $(`<button type="button">${ch}</button>`); b.onclick = () => press(ch); kb.append(b); keys[ch] = b; });
+      const en = $('<button type="button" class="wide">Enter</button>'); en.onclick = () => press("Enter"); const bk = $('<button type="button" class="wide">⌫</button>'); bk.onclick = () => press("Backspace"); kb.append(en, bk);
+      function press(k) {
+        if (!document.body.contains(g)) return;
+        if (k === "Enter") { if (cur.length === L) submit(); else msg.textContent = `Need ${L} letters.`; }
+        else if (k === "Backspace") { cur = cur.slice(0, -1); draw(); }
+        else if (/^[a-zñ]$/i.test(k) && cur.length < L && row < 6) { cur += k.toLowerCase(); draw(); }
+      }
+      function draw() { cells[row].forEach((c, i) => c.textContent = cur[i] || ""); }
+      function submit() {
+        const t = strip(target), gs = strip(cur), res = Array(L).fill("no"), pool = {};
+        for (let i = 0; i < L; i++) { if (gs[i] === t[i]) res[i] = "ok"; else pool[t[i]] = (pool[t[i]] || 0) + 1; }
+        for (let i = 0; i < L; i++) if (res[i] === "no" && pool[gs[i]] > 0) { res[i] = "mid"; pool[gs[i]]--; }
+        res.forEach((r, i) => { cells[row][i].classList.add(r); const kk = keys[cur[i]]; if (kk && !kk.classList.contains("ok")) { kk.classList.remove("mid", "no"); kk.classList.add(r); } });
+        if (gs === t) { score++; streak++; best = Math.max(best, streak); msg.textContent = `¡Sí! ${it.a} ${it.n}`; document.removeEventListener("keydown", onKey); wi++; setTimeout(round, 1600); return; }
+        row++; cur = "";
+        if (row >= 6) { streak = 0; msg.textContent = `It was: ${it.a} ${it.n}`; document.removeEventListener("keydown", onKey); wi++; setTimeout(round, 2200); }
+        else msg.textContent = "✓ = right place · ~ = wrong place";
+      }
+      const onKey = (e) => { if (!document.body.contains(g)) { document.removeEventListener("keydown", onKey); return; } if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return; if (e.key === "Enter" || e.key === "Backspace" || /^[a-zA-ZñÑ]$/.test(e.key)) { e.preventDefault(); press(e.key); } };
+      document.addEventListener("keydown", onKey);
+    }
+    round();
+  }
+
+  paint();
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
