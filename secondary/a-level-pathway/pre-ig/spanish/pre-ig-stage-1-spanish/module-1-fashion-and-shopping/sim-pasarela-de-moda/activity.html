@@ -227,6 +227,7 @@ const VOCAB = ["falda","pantalones","vestido","bufanda","botas","guantes","gorro
 const REGIONAL = [
   { q:"A customer from Mexico says: “¿Dónde está mi suéter?” Which word would a shop in Spain use?", ok:"el jersey", opts:["el jersey","la bufanda","el abrigo","el vestido"], why:"Spain: el jersey. Latin America: el suéter." },
   { q:"In Spain you say “las gafas”. What do many people in Argentina say?", ok:"los anteojos", opts:["los anteojos","las botas","los guantes","los zapatos"], why:"Argentina often says los anteojos; Mexico often says los lentes." },
+  { q:"In Spain you buy a “billete” for a trip. In Latin America the word is…", ok:"el boleto", opts:["el boleto","el bolso","el gorro","la bufanda"], why:"Spain: el billete. Latin America: el boleto." },
   { q:"“La cartera” is a word in Latin America for a bag. In Spain, a handbag is…", ok:"el bolso", opts:["el bolso","el gorro","la falda","el abrigo"], why:"Spain: el bolso. Latin America: la cartera (or el bolso)." }
 ];
 const DEMS = [
@@ -250,6 +251,16 @@ const LLEVA = [
   { subj:"Ellos", v:"llevan", item:"jersey", c:"verde", price:30 }
 ];
 const LLEVAR_FORMS = ["llevo","llevas","lleva","llevamos","llevan"];
+const CUSTOMERS = [
+  { name:"Ana", city:"Madrid, Spain", line:"Perdón, ¿cuánto cuesta esta falda de aquí?", zone:"near", target:"falda", others:{ mid:"pantalones", far:"botas" }, price:30, verb:["lleva","llevas","llevamos","llevo"], vsub:"Ana", vtxt:"la falda a casa" },
+  { name:"Martín", city:"Buenos Aires, Argentina", line:"Prefiero esos pantalones de ahí.", zone:"mid", target:"pantalones", others:{ near:"jersey", far:"vestido" }, price:40, verb:["se pone","te pones","me pongo","nos ponemos"], vsub:"Martín", vtxt:"los pantalones nuevos" },
+  { name:"Sofía", city:"Mexico City, Mexico", line:"¿Puedo ver aquel vestido de allí?", zone:"far", target:"vestido", others:{ near:"camisa", mid:"botas" }, price:55, verb:["me pongo","se pone","te pones","nos ponemos"], vsub:"Yo", vtxt:"ese vestido para la fiesta" },
+  { name:"Diego", city:"Seville, Spain", line:"Busco ese jersey de ahí, no el otro.", zone:"mid", target:"jersey", others:{ near:"bufanda", far:"abrigo" }, price:35, flavor:"In Spain a sweater is “el jersey” — in most of Latin America it is “el suéter”.", verb:["llevamos","lleva","llevo","llevan"], vsub:"Nosotros", vtxt:"jerséis en invierno" },
+  { name:"Valentina", city:"Santiago, Chile", line:"¿Me pasas esas gafas de ahí? Las necesito para el sol.", zone:"mid", target:"gafas", others:{ near:"bufanda", far:"botas" }, price:20, flavor:"Spain says “las gafas”; Latin America often says “los lentes”, and Argentina “los anteojos”.", verb:["se pone","me pongo","te pones","se ponen"], vsub:"Valentina", vtxt:"los lentes de sol" },
+  { name:"Laura", city:"Barcelona, Spain", line:"Quiero probarme esta bufanda de aquí.", zone:"near", target:"bufanda", others:{ mid:"abrigo", far:"gafas" }, price:15, verb:["me pongo","te pones","se pone","nos ponemos"], vsub:"Yo", vtxt:"la bufanda cuando hace frío" },
+  { name:"Tomás", city:"Valparaíso, Chile", line:"¿Tienen aquellas botas de allí en una talla más grande?", zone:"far", target:"botas", others:{ near:"camisa", mid:"pantalones" }, price:60, flavor:"“La talla” = clothing size. “De cuero” = leather.", verb:["lleva","llevas","llevo","llevamos"], vsub:"Tomás", vtxt:"botas de cuero" },
+  { name:"Carmen", city:"Valencia, Spain", line:"Me gusta esa camisa de ahí, ¿de qué es?", zone:"mid", target:"camisa", others:{ near:"vestido", far:"gafas" }, price:25, flavor:"“De algodón” = made of cotton.", verb:["lleva","llevas","llevo","llevamos"], vsub:"Ella", vtxt:"una camisa de algodón" }
+];
 const SHOP = [
   { who:"v", es:"Buenos días. ¿Qué desea?", en:"Good morning. What would you like?" },
   { who:"c", es:"Quiero esta chaqueta. ¿Cuánto cuesta?", en:"I want this jacket. How much does it cost?" },
@@ -314,7 +325,7 @@ function drawInvestigate(host, sim) {
   sim.state.custom = sim.state.custom || {};
   const S = sim.state.custom;
   S.stage = S.stage || 0; S.xp = S.xp || 0; S.streak = S.streak || 0; S.best = S.best || 0; S.p = S.p || {}; S.firstTry = S.firstTry || 0; S.answered = S.answered || 0;
-  const STAGES = ["El Armario","Señala","Vístete","Pasarela","En la Tienda","Cultura"];
+  const STAGES = ["El Armario","Señala","Vístete","Pasarela","La Boutique","En la Tienda","Cultura"];
   host.innerHTML = `<div class="pz-hud"><span class="pz-hud__rank" id="rk"></span><span class="pz-hud__bar"><i id="bar"></i></span><span><b id="xp"></b> XP · 🔥 <b id="st"></b></span></div><div class="pz-tabs" id="tabs"></div><div id="body"></div><div id="bonus" style="margin-top:var(--sp-5)"></div>`;
   const body = host.querySelector("#body");
 
@@ -344,7 +355,7 @@ function drawInvestigate(host, sim) {
     sim.save && sim.save(); hud();
   }
   const finishStage = (container) => {
-    const b = $(`<button type="button" class="btn btn--signal pz-next">${S.stage < 5 ? "Next level →" : "Finish the collection →"}</button>`);
+    const b = $(`<button type="button" class="btn btn--signal pz-next">${S.stage < 6 ? "Next level →" : "Finish the collection →"}</button>`);
     b.addEventListener("click", () => { S.stage++; sim.save && sim.save(); paint(); });
     container.append(b);
   };
@@ -549,9 +560,28 @@ function drawInvestigate(host, sim) {
     builder(slot, "llev", "4 Llevar", rounds, () => { slot.innerHTML = `<p class="fb good">¡Nivel 4 completo! The audience loves your collection.</p>`; finishStage(slot); });
   }
 
+  /* ================= STAGE: La Boutique (8 customers) ================= */
+  function stageBoutique() {
+    const slot = panel("Nivel 5 · La Boutique", "Run your pop-up boutique! A customer from Spain or Latin America tells you what they want. <b>Listen for aquí / ahí / allí</b> and este / ese / aquel, pick the right item from the shelf, then complete the verb. Regional notes included.");
+    const ZL = { near:"Aquí", mid:"Ahí", far:"Allí" };
+    const rounds = CUSTOMERS.map(c => {
+      const place = { [c.zone]: c.target, ...c.others }, it = IT[c.target];
+      const names = ["near","mid","far"].map(z => IT[place[z]].a + " " + IT[place[z]].n);
+      const vrow = { id:"v", label:"2. Complete: " + c.vsub + " ______ " + c.vtxt, opts:c.verb, ans:c.verb[0], hint:"match the verb to “" + c.vsub + "”." };
+      return {
+        task: c.line,
+        visual: `<div style="text-align:center;width:100%"><div class="bubble c" style="margin:0 auto"><small>${c.name} · ${c.city}</small>“${c.line}”</div>${c.flavor ? `<p class="pz-how" style="max-width:520px;margin:.5em auto">💬 ${c.flavor}</p>` : ""}<div style="display:flex;gap:1em;justify-content:center;align-items:flex-end;margin-top:.6em">${["near","mid","far"].map(z => `<div style="text-align:center"><div class="row-label">${ZL[z]}</div>${photo(place[z], z === "near" ? 96 : z === "mid" ? 76 : 58)}<small>${IT[place[z]].en}</small></div>`).join("")}</div></div>`,
+        preview: (sel) => `${sel.it || "_____"} — €${c.price}`,
+        rows: [{ id:"it", label:"1. Which item does the customer want?", opts:names, ans:IT[c.target].a + " " + IT[c.target].n, hint:"listen for " + ZL[c.zone].toLowerCase() + " / " + DEM[c.zone][key(IT[c.target])] + "." }, vrow],
+        why: `Sold! €${c.price} — ${DEM[c.zone][key(it)]} ${it.n} (${ZL[c.zone]}).`
+      };
+    });
+    builder(slot, "bout", "5 Boutique", rounds, () => { slot.innerHTML = `<p class="fb good">¡Nivel 5 completo! The till is closed — what a day.</p>`; finishStage(slot); });
+  }
+
   /* ================= STAGE 5: En la Tienda ================= */
   function stage5() {
-    const slot = panel("Nivel 5 · En la Tienda", "Rebuild a real shop conversation. Tap the line that comes <b>next</b>. <b>V</b> = vendedor (shop assistant), <b>C</b> = cliente (customer). Use “Show English” if you need help.");
+    const slot = panel("Nivel 6 · En la Tienda", "Rebuild a real shop conversation. Tap the line that comes <b>next</b>. <b>V</b> = vendedor (shop assistant), <b>C</b> = cliente (customer). Use “Show English” if you need help.");
     S.p.shop = S.p.shop || 0; let tries = 0, mistakes = 0;
     function paint() {
       const n = S.p.shop;
@@ -567,7 +597,7 @@ function drawInvestigate(host, sim) {
         b.addEventListener("click", () => {
           if (idx === n) {
             tries++;
-            award("5 Shop", "Line " + (n + 1) + " of the conversation", l.es, mistakes ? 2 : 1, true, b);
+            award("6 Shop", "Line " + (n + 1) + " of the conversation", l.es, mistakes ? 2 : 1, true, b);
             mistakes = 0; S.p.shop++; paint();
           } else { mistakes++; b.classList.remove("is-bad"); void b.offsetWidth; b.classList.add("is-bad"); fb.className = "fb bad"; fb.textContent = "Not yet — who speaks next? Think about what was just said. " + (mistakes > 1 ? "Hint: " + (SHOP[n].who === "v" ? "the vendedor" : "the cliente") + " speaks." : ""); }
         });
@@ -579,7 +609,7 @@ function drawInvestigate(host, sim) {
 
   /* ================= STAGE 6: Cultura ================= */
   function stage6() {
-    const slot = panel("Nivel 6 · Cultura y Blog", "Spanish fashion has two faces. <b>Tap the photo</b> that shows <b>slow fashion</b> (handmade, takes months). Then tap the blog sentences to read the English, and answer 3 questions.");
+    const slot = panel("Nivel 7 · Cultura y Blog", "Spanish fashion has two faces. <b>Tap the photo</b> that shows <b>slow fashion</b> (handmade, takes months). Then tap the blog sentences to read the English, and answer 3 questions.");
     const part = $("<div></div>"); slot.append(part);
     let tries = 0;
     part.innerHTML = `<div class="culture"><button type="button" data-k="zara"><img src="photos/zara-store.jpg" alt="A Zara shop in Madrid"><span><b>Zara (Inditex)</b><br>New designs reach shops twice a week.</span></button><button type="button" data-k="weave"><img src="photos/weaving.jpg" alt="A woman weaving on a backstrap loom in Guatemala"><span><b>Telar de cintura (Guatemala)</b><br>One piece can take months.</span></button></div><p class="credit">${CREDITS.zara}<br>${CREDITS.weaving}</p><p class="fb"></p>`;
@@ -587,14 +617,14 @@ function drawInvestigate(host, sim) {
     part.querySelectorAll(".culture button").forEach(b => b.addEventListener("click", () => {
       if (S.p.cul) return;
       tries++;
-      if (b.dataset.k === "weave") { b.classList.add("is-ok"); fb.className = "fb good"; fb.textContent = "¡Correcto! Slow fashion = handmade weaving. Zara is “fast fashion”."; award("6 Culture", "Which photo is slow fashion?", "Backstrap loom", tries, true, b); S.p.cul = 1; startBlog(); }
-      else { b.classList.add("is-bad"); fb.className = "fb bad"; fb.textContent = "Zara makes new designs very quickly — that is fast fashion. Try the other photo."; if (tries >= 2) { award("6 Culture", "Which photo is slow fashion?", "Zara", tries, false); S.p.cul = 1; startBlog(); } }
+      if (b.dataset.k === "weave") { b.classList.add("is-ok"); fb.className = "fb good"; fb.textContent = "¡Correcto! Slow fashion = handmade weaving. Zara is “fast fashion”."; award("7 Culture", "Which photo is slow fashion?", "Backstrap loom", tries, true, b); S.p.cul = 1; startBlog(); }
+      else { b.classList.add("is-bad"); fb.className = "fb bad"; fb.textContent = "Zara makes new designs very quickly — that is fast fashion. Try the other photo."; if (tries >= 2) { award("7 Culture", "Which photo is slow fashion?", "Zara", tries, false); S.p.cul = 1; startBlog(); } }
     }));
     function startBlog() {
       const sec = $(`<div><h4 class="pz-title">El blog de moda</h4><div class="blog">${BLOG.map((s, n) => `<span data-n="${n}">${s.es}</span>`).join(" ")}</div><div class="blog-en">Tap a sentence to read the English.</div><div class="qs"></div></div>`);
       slot.append(sec);
       sec.querySelectorAll(".blog span").forEach(s => s.addEventListener("click", () => { sec.querySelector(".blog-en").textContent = BLOG[+s.dataset.n].en; }));
-      deck(sec.querySelector(".qs"), "blog", "6 Reading", BLOGQ.map(q => ({ task: q.q, q: q.q, ok: q.ok, opts: q.opts, why: q.why })), () => { sec.querySelector(".qs").innerHTML = `<p class="fb good">¡Nivel 6 completo!</p>`; finishStage(sec.querySelector(".qs")); });
+      deck(sec.querySelector(".qs"), "blog", "7 Reading", BLOGQ.map(q => ({ task: q.q, q: q.q, ok: q.ok, opts: q.opts, why: q.why })), () => { sec.querySelector(".qs").innerHTML = `<p class="fb good">¡Nivel 7 completo!</p>`; finishStage(sec.querySelector(".qs")); });
     }
     if (S.p.cul) { startBlog(); }
   }
@@ -606,8 +636,8 @@ function drawInvestigate(host, sim) {
 
   function paint() {
     body.innerHTML = ""; hud();
-    [stage1, stage2, stage3, stage4, stage5, stage6][S.stage] ? [stage1, stage2, stage3, stage4, stage5, stage6][S.stage]() : finale();
-    if (S.stage > 5) finale();
+    const SG = [stage1, stage2, stage3, stage4, stageBoutique, stage5, stage6];
+    if (S.stage < SG.length) SG[S.stage](); else finale();
   }
 
   /* ================= BONUS: Wordle de la Moda ================= */
