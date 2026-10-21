@@ -246,7 +246,7 @@ function drawInvestigate(host, sim) {
     if (!item) return;
     const given = Number(drillInput.value);
     const exact = (item.a[0] * item.b[0]) / (item.a[1] * item.b[1]);
-    const matched = !isNaN(given) && Math.abs(given - exact) <= 0.02;
+    const matched = !isNaN(given) && Math.abs(given - exact) <= 0.01 && drillInput.value !== "";
     const [sn, sd] = simplifyFrac(item.a[0] * item.b[0], item.a[1] * item.b[1]);
     sim.recordTrial({ task: L("Speed multiply", "Multiplicación rápida"), input: `${item.a[0]}/${item.a[1]} × ${item.b[0]}/${item.b[1]}`, result: `${L("your answer","tu respuesta")} ${isNaN(given) ? "—" : given}, ${sn}/${sd} = ${exact.toFixed(2)}${matched ? " ✓" : ""}` });
     const rect = ev.target.getBoundingClientRect(), panelRect = drillPanel.getBoundingClientRect();
@@ -262,6 +262,7 @@ function drawInvestigate(host, sim) {
       sim.toast(L(`Not quite — the exact answer is ${exact.toFixed(2)}. Try again.`, `No exactamente — la respuesta exacta es ${exact.toFixed(2)}. Inténtalo de nuevo.`), "info");
     }
   });
+  drillInput.addEventListener("input", () => { drillReadout.textContent = ""; });
   paintDrill();
 
   /* ---------- Station 3: Word Problem Solver ---------- */

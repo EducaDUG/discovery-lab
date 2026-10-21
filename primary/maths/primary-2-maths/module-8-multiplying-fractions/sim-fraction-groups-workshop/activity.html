@@ -260,7 +260,8 @@ function drawInvestigate(host, sim) {
     if (!t) return;
     const expectedNum = t.w * t.n, expectedDen = t.d;
     const givenNum = parseInt(grpNum.value), givenDen = parseInt(grpDen.value);
-    const correct = givenNum === expectedNum && givenDen === expectedDen;
+    // Equivalent fractions are correct too (e.g. 1/1 for 4 × 1/4).
+    const correct = givenDen > 0 && givenNum * expectedDen === expectedNum * givenDen;
     const rect = grpCheckBtn.getBoundingClientRect(), pr = groupPanel.getBoundingClientRect();
     const mixed = toMixed(expectedNum, expectedDen);
     sim.recordTrial({ task: L("Group Builder","Constructor de grupos"), input: `${t.w} × ${t.n}/${t.d}`, result: `${expectedNum}/${expectedDen} = ${mixed}${correct ? " ✓" : ""}` });
@@ -390,6 +391,7 @@ function drawInvestigate(host, sim) {
 
   // A stale "Not quite" must not linger once the student edits an answer.
   [convWhole, convRem].forEach(inp => inp.addEventListener("input", () => { convFeedback.textContent = ""; }));
+  [grpNum, grpDen].forEach(inp => inp.addEventListener("input", () => { grpFeedback.textContent = ""; }));
 
   paintConvTarget();
 
@@ -486,6 +488,7 @@ function drawInvestigate(host, sim) {
     }
   });
 
+  tktAnswer.addEventListener("input", () => { tktFeedback.textContent = ""; });
   paintTicket();
 
   host.append(wrap);
