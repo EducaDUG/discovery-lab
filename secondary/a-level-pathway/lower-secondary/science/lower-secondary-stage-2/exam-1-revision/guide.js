@@ -1,5 +1,6 @@
 /* Exam 1 Revision Website: all interactive behaviour. Plain ES module, no network, no CDN. */
 import { BANK } from "./quiz-data.js?v=1";
+import { mountBonus } from "./bonus.js?v=2";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -40,6 +41,8 @@ const LAB_HOW = {
 const BADGES = [
   ...[1, 2, 3, 4, 5, 6].map(n => ["Lesson " + n, () => prog.lessons[n], "Press “Mark lesson complete” on Lesson " + n]),
   ...Object.keys(LAB_NAMES).map(k => [LAB_NAMES[k], () => prog.labs[k], LAB_NAMES[k] + ": " + LAB_HOW[k]]),
+  ["Photo hunter", () => prog.labs.photos, "Real cells: find every part on all three microscope photos"],
+  ["Bonus round", () => prog.labs.bonus, "Finish a Lab Bench Rush round"],
   ["Exam 80%", () => prog.quiz, "Score 80% or more on a 20-question practice exam"]
 ];
 function saveProg() { try { localStorage.setItem(STORE, JSON.stringify(prog)); } catch (e) { /* ignore */ } }
@@ -671,5 +674,49 @@ function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arc
   $("#quizNew").addEventListener("click", build);
   build();
 })();
+
+/* ================================================================ REAL-PHOTO LABELLING */
+(function () {
+  const SETS = {
+    onion: { name: "Onion cells", img: "photos/onion.jpg", alt: "Onion skin cells under a microscope, with thick dark cell walls", tasks: [
+      ["Tap a cell wall (the thick dark outline of a cell).", .425, .14, "Cell wall", "Only plant cells have a cell wall. It strengthens and supports the cell."],
+      ["Tap the inside of one cell (where the cytoplasm is).", .61, .45, "Cytoplasm", "Cytoplasm is where the chemical reactions happen."]] },
+    elodea: { name: "Pondweed (Elodea)", img: "photos/elodea.jpg", alt: "Pondweed leaf cells full of green chloroplasts", tasks: [
+      ["Tap a cluster of green chloroplasts.", .55, .30, "Chloroplasts", "Chloroplasts use sunlight for photosynthesis, so only plant cells have them."],
+      ["Tap a clear area inside a cell (the large vacuole).", .25, .49, "Large vacuole", "The large vacuole stores water and nutrients and helps the cell keep its shape."]] },
+    cheek: { name: "Cheek cell", img: "photos/cheek.jpg", alt: "A human cheek cell stained blue under a microscope", tasks: [
+      ["Tap the nucleus (the small dark dot in the middle of the cell).", .505, .44, "Nucleus", "The nucleus controls the cell. Animal cells have one too."],
+      ["Tap the cytoplasm (inside the cell, away from the nucleus).", .585, .50, "Cytoplasm", "Notice there is no cell wall: this is an animal cell."]] }
+  };
+  const done = {}; let cur = "onion", ti = 0, found = [];
+  const tabs = $("#hsTabs"), img = $("#hsImg"), marks = $("#hsMarks"), q = $("#hsQ"), fb = $("#hsFb");
+  Object.keys(SETS).forEach(k => { const b = el("button", "", SETS[k].name); b.setAttribute("role", "tab"); b.dataset.k = k; b.addEventListener("click", () => load(k)); tabs.append(b); });
+  function load(k) {
+    cur = k; ti = 0; found = []; marks.innerHTML = ""; fb.textContent = "";
+    $$("button", tabs).forEach(b => b.setAttribute("aria-selected", b.dataset.k === k));
+    img.src = SETS[k].img; img.alt = SETS[k].alt; prompt();
+  }
+  function prompt() { const set = SETS[cur]; q.textContent = ti < set.tasks.length ? `${ti + 1} of ${set.tasks.length}: ${set.tasks[ti][0]}` : "All found on this photo! Try another photo."; }
+  img.addEventListener("click", e => {
+    const set = SETS[cur]; if (ti >= set.tasks.length) return;
+    const r = img.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height, t = set.tasks[ti];
+    const hit = Math.hypot(x - t[1], (y - t[2]) * r.height / r.width) < 0.075;
+    if (hit) {
+      const m = el("div", "hs__mark", `<b>${t[3]}</b>`); m.style.left = t[1] * 100 + "%"; m.style.top = t[2] * 100 + "%"; marks.append(m);
+      fb.innerHTML = `<b>${t[3]}.</b> ${t[4]}`; ti++; prompt();
+      if (ti >= set.tasks.length) { done[cur] = true; if (Object.keys(SETS).every(k => done[k])) award("photos"); }
+    } else {
+      const ring = el("div", "hs__ring"); ring.style.left = x * 100 + "%"; ring.style.top = y * 100 + "%"; marks.append(ring); setTimeout(() => ring.remove(), 800);
+      fb.textContent = "Not there. Look again: " + t[0].toLowerCase(); shake(q);
+    }
+  });
+  load("onion");
+})();
+
+/* ================================================================ BONUS GAME + PHOTO CREDITS */
+$("#bonusPlay").addEventListener("click", () => { mountBonus($("#bonusHost"), { onFinish: r => { if (r.score > 0) award("bonus"); } }); $("#bonusHost").scrollIntoView({ block: "center" }); });
+fetch("photos/credits.json").then(r => r.json()).then(c => {
+  $("#credits").innerHTML = "Photo credits (all from Wikimedia Commons): " + Object.keys(c).map(k => `<a href="${c[k].page}" target="_blank" rel="noopener noreferrer">${c[k].file.replace(/\.[a-z]+$/i, "")}</a> by ${c[k].author}, <a href="${c[k].licenseUrl}" target="_blank" rel="noopener noreferrer">${c[k].license}</a>`).join("; ") + ".";
+}).catch(() => { /* credits are a progressive enhancement */ });
 
 renderProgress();
