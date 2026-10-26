@@ -4,6 +4,7 @@
    - No lives and no fail state: a blackout hour just scores fewer points and names how to fix it.
    - Source cards are real <button>s with real photos (keys 1-7 mirror them). Has its own mute button. */
 import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=6";
+import { T } from "../../../../../../engine/revision-kit.js?v=12";
 
 const HOUR_MS = 5000, HOURS = 24;
 const DEMAND = [40, 36, 34, 34, 38, 50, 68, 82, 80, 74, 70, 70, 72, 70, 70, 72, 78, 92, 100, 96, 86, 74, 58, 46];
@@ -28,6 +29,8 @@ function out(s, h, lvl) {
   return s.max * lvl;
 }
 
+
+["Off", "Half", "Full", "Solar", "Wind", "Hydro", "Geothermal", "Biomass", "Natural gas", "Coal", "free, but only by day", "free, but only when it blows", "reliable, clean", "steady day and night", "renewable, some CO₂", "dependable, dirty", "dependable, dirtiest", "Fossil fuels are dependable but release CO₂ and are non-renewable.", "Solar and wind are clean but depend on the weather.", "Geothermal runs day and night where the location allows it.", "Wasted power: turn off sources you do not need, especially fossil fuels.", "Solar gives nothing at night, so plan geothermal, hydro, wind, biomass or battery cover.", "Wind and solar change with the weather: keep a steady source such as geothermal or hydro on as backup.", "Lots of CO₂ this hour: could renewables or the battery cover more?", "Excellent: you kept the lights on with a low-carbon mix.", "The lights stayed on, but try to use more clean power and less coal and gas.", "Good effort. Try using more steady renewables and the battery next time.", "The grid struggled. Plan ahead using the forecast and keep a steady source on."].forEach(T);
 let styled = false;
 function css() {
   if (styled) return; styled = true;
@@ -72,22 +75,22 @@ export function mountGrid(host, { onFinish }) {
   let hour = 0, battery = 20, score = 0, co2 = 0, metHours = 0, cleanSum = 0, over = false, tickCount = 0;
   const log = [], tips = new Set();
   const t0 = performance.now(), BATTERY_MAX = 60;
-  host.innerHTML = `<div class="gg"><div class="gg__hud"><span>Hour<b id="ggH">0:00</b></span><span>Demand<b id="ggD">40</b> MW</span><span>Supply<b id="ggS">0</b> MW</span><span>CO&#8322;<b id="ggC">0</b></span><span>Score<b id="ggP">0</b></span></div>
+  host.innerHTML = `<div class="gg"><div class="gg__hud"><span>${T("Hour")}<b id="ggH">0:00</b></span><span>${T("Demand")}<b id="ggD">40</b> MW</span><span>${T("Supply")}<b id="ggS">0</b> MW</span><span>CO&#8322;<b id="ggC">0</b></span><span>${T("Score")}<b id="ggP">0</b></span></div>
     <div class="gg__timer"><i id="ggBar"></i></div>
-    <canvas class="gg__chart" id="ggCv" width="640" height="220" role="img" aria-label="Chart of electricity demand and your supply over the day"></canvas>
+    <canvas class="gg__chart" id="ggCv" width="640" height="220" role="img" aria-label="${T("Chart of electricity demand and your supply over the day")}"></canvas>
     <div class="gg__fc" id="ggFc" aria-live="polite"></div>
-    <div class="gg__meters"><div>Battery<b id="ggB">20 / 60</b><div class="gg__bar"><u id="ggBb"></u></div></div><div>Hours fully powered<b id="ggM">0</b></div><div>Clean share of power<b id="ggCl">0%</b></div></div>
-    <div class="gg__cards" role="group" aria-label="Power sources: press to change Off, Half, Full">${SRC.map((s, i) => `<button type="button" class="gg__card" data-id="${s.id}" data-l="${lv[s.id]}"><kbd>${i + 1}</kbd><img src="photos/${s.img}.jpg" alt=""><b>${s.n}</b><small>${s.note}</small><span>${LABEL[lv[s.id]]}</span></button>`).join("")}</div>
-    <div class="gg__fb" id="ggFb" aria-live="polite">Switch sources so supply matches demand. Solar and wind follow the weather. The battery stores spare power for later.</div>
-    <div class="gg__foot"><button type="button" class="gg__mute" id="ggMute"></button><span>Press a card (or keys 1 to 7) to cycle Off, Half, Full. No lives: take your time.</span></div></div>`;
+    <div class="gg__meters"><div>${T("Battery")}<b id="ggB">20 / 60</b><div class="gg__bar"><u id="ggBb"></u></div></div><div>${T("Hours fully powered")}<b id="ggM">0</b></div><div>${T("Clean share of power")}<b id="ggCl">0%</b></div></div>
+    <div class="gg__cards" role="group" aria-label="${T("Power sources: press to change Off, Half, Full")}">${SRC.map((s, i) => `<button type="button" class="gg__card" data-id="${s.id}" data-l="${lv[s.id]}"><kbd>${i + 1}</kbd><img src="photos/${s.img}.jpg" alt=""><b>${T(s.n)}</b><small>${T(s.note)}</small><span>${T(LABEL[lv[s.id]])}</span></button>`).join("")}</div>
+    <div class="gg__fb" id="ggFb" aria-live="polite">${T("Switch sources so supply matches demand. Solar and wind follow the weather. The battery stores spare power for later.")}</div>
+    <div class="gg__foot"><button type="button" class="gg__mute" id="ggMute"></button><span>${T("Press a card (or keys 1 to 7) to cycle Off, Half, Full. No lives: take your time.")}</span></div></div>`;
   const $ = s => host.querySelector(s);
-  const paintMute = () => { const on = ttsEnabled(); $("#ggMute").textContent = on ? "Sound on" : "Sound off"; $("#ggMute").setAttribute("aria-label", on ? "Sound on. Press to mute" : "Sound off. Press to unmute"); };
+  const paintMute = () => { const on = ttsEnabled(); $("#ggMute").textContent = on ? T("Sound on") : T("Sound off"); $("#ggMute").setAttribute("aria-label", on ? T("Sound on. Press to mute") : T("Sound off. Press to unmute")); };
   paintMute(); $("#ggMute").addEventListener("click", () => { setTTS(!ttsEnabled()); paintMute(); });
   const cards = {}; host.querySelectorAll(".gg__card").forEach(c => { cards[c.dataset.id] = c; c.addEventListener("click", () => cycle(c.dataset.id)); });
   function cycle(id) {
     const s = SRC.find(x => x.id === id);
     if (!s.ctrl) lv[id] = lv[id] === 2 ? 0 : 2; else lv[id] = (lv[id] + 1) % 3;
-    cards[id].dataset.l = lv[id]; cards[id].querySelector("span").textContent = (!s.ctrl && lv[id] === 1) ? "Full" : LABEL[lv[id]];
+    cards[id].dataset.l = lv[id]; cards[id].querySelector("span").textContent = T((!s.ctrl && lv[id] === 1) ? "Full" : LABEL[lv[id]]);
     refresh();
   }
   const onKey = e => { const n = Number(e.key); if (n >= 1 && n <= SRC.length && host.contains($(".gg"))) cycle(SRC[n - 1].id); };
@@ -96,8 +99,8 @@ export function mountGrid(host, { onFinish }) {
   function refresh() {
     const h = hour % HOURS, S = supplyAt(h); $("#ggH").textContent = String(h).padStart(2, "0") + ":00"; $("#ggD").textContent = DEMAND[h]; $("#ggS").textContent = Math.round(S.sup); $("#ggC").textContent = Math.round(co2);
     $("#ggP").textContent = Math.round(score); $("#ggB").textContent = `${Math.round(battery)} / ${BATTERY_MAX}`; $("#ggBb").style.width = battery / BATTERY_MAX * 100 + "%"; $("#ggM").textContent = metHours; $("#ggCl").textContent = (tickCount ? Math.round(cleanSum / tickCount * 100) : 0) + "%";
-    const fc = []; for (let k = 1; k <= 3; k++) { const hh = (h + k) % HOURS; fc.push(`${String(hh).padStart(2, "0")}:00 sun ${Math.round(sunAt(hh) * cloudAt(hh) * 100)}% wind ${Math.round(windAt(hh) * 100)}% demand ${DEMAND[hh]}`); }
-    $("#ggFc").innerHTML = "<span>Forecast:</span>" + fc.map(f => `<span>${f}</span>`).join("");
+    const fc = []; for (let k = 1; k <= 3; k++) { const hh = (h + k) % HOURS; fc.push(`${String(hh).padStart(2, "0")}:00 ${T("sun")} ${Math.round(sunAt(hh) * cloudAt(hh) * 100)}% ${T("wind")} ${Math.round(windAt(hh) * 100)}% ${T("demand")} ${DEMAND[hh]}`); }
+    $("#ggFc").innerHTML = "<span>" + T("Forecast:") + "</span>" + fc.map(f => `<span>${f}</span>`).join("");
     draw();
   }
   function draw() {
@@ -105,23 +108,23 @@ export function mountGrid(host, { onFinish }) {
     ctx.strokeStyle = "#ffffff1a"; for (let i = 0; i <= 4; i++) { ctx.beginPath(); ctx.moveTo(30, 20 + i * 45); ctx.lineTo(630, 20 + i * 45); ctx.stroke(); }
     ctx.fillStyle = "#a9c9bc"; ctx.font = "11px sans-serif"; [0, 6, 12, 18, 24].forEach(h => ctx.fillText(h + ":00", 30 + h / 24 * 590 - 10, 214));
     ctx.strokeStyle = "#f3d36b"; ctx.lineWidth = 3; ctx.beginPath(); DEMAND.forEach((d, i) => { const x = 30 + i / 24 * 590 + 12, y = 200 - d * 1.75; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
-    ctx.fillStyle = "#f3d36b"; ctx.fillText("Demand", 36, 18);
-    ctx.strokeStyle = "#3fd9a0"; ctx.lineWidth = 3; ctx.beginPath(); for (let i = 0; i < Math.min(log.length, 24); i++) { const x = 30 + i / 24 * 590 + 12, y = 200 - log[i].sup * 1.75; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); ctx.fillStyle = "#3fd9a0"; ctx.fillText("Your supply", 100, 18);
+    ctx.fillStyle = "#f3d36b"; ctx.fillText(T("Demand"), 36, 18);
+    ctx.strokeStyle = "#3fd9a0"; ctx.lineWidth = 3; ctx.beginPath(); for (let i = 0; i < Math.min(log.length, 24); i++) { const x = 30 + i / 24 * 590 + 12, y = 200 - log[i].sup * 1.75; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); ctx.fillStyle = "#3fd9a0"; ctx.fillText(T("Your supply"), 100, 18);
     const cx = 30 + (hour % 24) / 24 * 590 + 12; ctx.strokeStyle = "#ffffff88"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, 10); ctx.lineTo(cx, 200); ctx.stroke();
   }
   function tick() {
     const h = hour % HOURS, S = supplyAt(h), D = DEMAND[h];
     let sup = S.sup, used = sup, note = "";
-    if (sup >= D) { const spare = sup - D; const store = Math.min(spare, BATTERY_MAX - battery); battery += store; used = D; if (spare - store > 5) { note = ` ${Math.round(spare - store)} MW was wasted: switch something off or let the battery fill.`; tips.add("Wasted power: turn off sources you do not need, especially fossil fuels."); } }
-    else { const need = D - sup, draw = Math.min(need, battery); battery -= draw; used = sup + draw; if (draw > 0) note = ` The battery supplied ${Math.round(draw)} MW.`; }
+    if (sup >= D) { const spare = sup - D; const store = Math.min(spare, BATTERY_MAX - battery); battery += store; used = D; if (spare - store > 5) { note = ` ${Math.round(spare - store)} MW ${T("was wasted: switch something off or let the battery fill.")}`; tips.add(T("Wasted power: turn off sources you do not need, especially fossil fuels.")); } }
+    else { const need = D - sup, draw = Math.min(need, battery); battery -= draw; used = sup + draw; if (draw > 0) note = ` ${T("The battery supplied")} ${Math.round(draw)} MW.`; }
     const met = used >= D - 2; if (met) metHours++;
     const cleanFrac = used > 0 ? Math.min(1, S.clean / Math.max(S.sup, 1)) : 0;
     const pts = Math.min(1, used / D) * 60 + (met ? cleanFrac * 40 : 0);
     score += pts; co2 += S.co; cleanSum += cleanFrac; tickCount++;
     log.push({ sup, D, met, h });
     let msg;
-    if (met) msg = `<b style="color:#7dffd0">${String(h).padStart(2, "0")}:00 fully powered.</b> Demand ${D} MW, supply ${Math.round(sup)} MW.${note} ${S.co > 150 ? "Lots of CO₂ this hour: could renewables or the battery cover more?" : ""}`;
-    else { msg = `<b style="color:#ff9d8d">${String(h).padStart(2, "0")}:00 short by ${Math.round(D - used)} MW.</b> Demand ${D} MW, supply ${Math.round(sup)} MW.${note}`; if (sunAt(h) === 0) tips.add("Solar gives nothing at night, so plan geothermal, hydro, wind, biomass or battery cover."); else tips.add("Wind and solar change with the weather: keep a steady source such as geothermal or hydro on as backup."); }
+    if (met) msg = `<b style="color:#7dffd0">${String(h).padStart(2, "0")}:00 ${T("fully powered.")}</b> ${T("Demand")} ${D} MW, ${T("supply")} ${Math.round(sup)} MW.${note} ${S.co > 150 ? T("Lots of CO₂ this hour: could renewables or the battery cover more?") : ""}`;
+    else { msg = `<b style="color:#ff9d8d">${String(h).padStart(2, "0")}:00 ${T("short by")} ${Math.round(D - used)} MW.</b> ${T("Demand")} ${D} MW, ${T("supply")} ${Math.round(sup)} MW.${note}`; if (sunAt(h) === 0) tips.add(T("Solar gives nothing at night, so plan geothermal, hydro, wind, biomass or battery cover.")); else tips.add(T("Wind and solar change with the weather: keep a steady source such as geothermal or hydro on as backup.")); }
     $("#ggFb").innerHTML = msg;
     hour++; refresh();
     if (hour >= HOURS) end();
@@ -133,11 +136,11 @@ export function mountGrid(host, { onFinish }) {
   function end() {
     if (over) return; over = true; clearInterval(clock); document.removeEventListener("keydown", onKey);
     const pct = Math.round(score / (HOURS * 100) * 100), clean = tickCount ? Math.round(cleanSum / tickCount * 100) : 0;
-    host.innerHTML = `<div class="gg"><div class="gg__end"><h3>Day complete!</h3><div class="gg__stats"><div><b>${Math.round(score)}</b>score (max 2400)</div><div><b>${metHours} / 24</b>hours fully powered</div><div><b>${clean}%</b>clean power</div><div><b>${Math.round(co2)}</b>CO&#8322; released</div></div>
-      <p>${pct >= 80 && clean >= 60 ? "Excellent: you kept the lights on with a low-carbon mix." : pct >= 80 ? "The lights stayed on, but try to use more clean power and less coal and gas." : pct >= 55 ? "Good effort. Try using more steady renewables and the battery next time." : "The grid struggled. Plan ahead using the forecast and keep a steady source on."}</p>
-      ${tips.size ? `<p><b>What to remember:</b></p><ul>${[...tips].map(t => `<li>${t}</li>`).join("")}</ul>` : ""}
-      <ul><li>Fossil fuels are dependable but release CO&#8322; and are non-renewable.</li><li>Solar and wind are clean but depend on the weather.</li><li>Geothermal runs day and night where the location allows it.</li></ul>
-      <button type="button" class="btn" id="ggAgain">Play again</button> <button type="button" class="btn btn--ghost" id="ggDone">Close</button></div></div>`;
+    host.innerHTML = `<div class="gg"><div class="gg__end"><h3>${T("Day complete!")}</h3><div class="gg__stats"><div><b>${Math.round(score)}</b>${T("score (max 2400)")}</div><div><b>${metHours} / 24</b>${T("hours fully powered")}</div><div><b>${clean}%</b>${T("clean power")}</div><div><b>${Math.round(co2)}</b>CO&#8322; ${T("released")}</div></div>
+      <p>${T(pct >= 80 && clean >= 60 ? "Excellent: you kept the lights on with a low-carbon mix." : pct >= 80 ? "The lights stayed on, but try to use more clean power and less coal and gas." : pct >= 55 ? "Good effort. Try using more steady renewables and the battery next time." : "The grid struggled. Plan ahead using the forecast and keep a steady source on.")}</p>
+      ${tips.size ? `<p><b>${T("What to remember:")}</b></p><ul>${[...tips].map(t => `<li>${t}</li>`).join("")}</ul>` : ""}
+      <ul><li>${T("Fossil fuels are dependable but release CO₂ and are non-renewable.")}</li><li>${T("Solar and wind are clean but depend on the weather.")}</li><li>${T("Geothermal runs day and night where the location allows it.")}</li></ul>
+      <button type="button" class="btn" id="ggAgain">${T("Play again")}</button> <button type="button" class="btn btn--ghost" id="ggDone">${T("Close")}</button></div></div>`;
     host.querySelector("#ggAgain").addEventListener("click", () => mountGrid(host, { onFinish }));
     host.querySelector("#ggDone").addEventListener("click", () => { host.innerHTML = ""; });
     if (onFinish) onFinish({ score, metHours });

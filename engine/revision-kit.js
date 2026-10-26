@@ -32,7 +32,7 @@ export const isES = () => getLang() === "es";
 let DICT = {};
 window.__dlMissing = window.__dlMissing || new Set();
 window.__dlKeys = window.__dlKeys || new Set();
-let VALS = new Set();
+let VALS = new Set(); let quiet = false;
 export function setDict(d) { DICT = d || {}; VALS = new Set(Object.values(DICT).map(v => v.replace(/\s+/g, " ").trim())); window.__dlMissing.clear(); }
 /* initLang: in Spanish mode load the shared dictionary (engine/revision-es.js, built by tools/build-es.py) before anything renders */
 export async function initLang() { if (getLang() === "es") { try { const m = await import("./revision-es.js?v=1"); setDict(m.ES); } catch (e) { console.warn("Spanish dictionary missing", e); } } }
@@ -61,25 +61,35 @@ function textNodes(n, deep = true, out = []) { n.childNodes.forEach(c => { if (c
 export function translateDom(root = document.body) {
   const es = getLang() === "es", keys = window.__dlKeys, hasText = t => /[A-Za-z]{3}/.test(t);
   (function walk(n) {
-    if (n.nodeType !== 1 || SKIP.has(n.tagName) || n.matches(SKIP_SEL) || n.hasAttribute("data-no-t")) return;
+    if (n.nodeType !== 1 || SKIP.has(n.tagName) || n.matches(SKIP_SEL) || n.closest(SKIP_SEL) || n.hasAttribute("data-no-t")) return;
     if (isBlock(n)) {
       const k = norm(n.innerHTML); keys.add(k);
       const v = es ? DICT[k] : undefined;
       if (v !== undefined) { n.innerHTML = v; return; }
       if (!es) { /* fragments are only a Spanish-mode fallback; they are not source strings */ return; }
-      textNodes(n).forEach(tn => { const raw = tn.nodeValue, t = norm(raw); if (!hasText(t)) return; const tv = DICT[t]; if (tv !== undefined) tn.nodeValue = raw.replace(t, tv); });
-      if (/[A-Za-z]{3}/.test(n.textContent) && !VALS.has(k)) window.__dlMissing.add(k);
+      let bad = false;
+      textNodes(n).forEach(tn => { const raw = tn.nodeValue, t = norm(raw); if (!hasText(t)) return; const tv = DICT[t]; if (tv !== undefined) tn.nodeValue = raw.replace(t, tv); else if (!VALS.has(t) && !/\d/.test(t)) bad = true; });
+      if (bad && !quiet) window.__dlMissing.add(k);
       return;
     }
-    textNodes(n, false).forEach(tn => { const raw = tn.nodeValue, t = norm(raw); if (!hasText(t)) return; keys.add(t); if (!es) return; const tv = DICT[t]; if (tv !== undefined) tn.nodeValue = raw.replace(t, tv); else if (!VALS.has(t)) window.__dlMissing.add(t); });
+    textNodes(n, false).forEach(tn => { const raw = tn.nodeValue, t = norm(raw); if (!hasText(t)) return; keys.add(t); if (!es) return; const tv = DICT[t]; if (tv !== undefined) tn.nodeValue = raw.replace(t, tv); else if (!VALS.has(t) && !quiet) window.__dlMissing.add(t); });
     [...n.children].forEach(walk);
   })(root);
   const attrs = ["alt", "aria-label", "title", "placeholder"];
-  $$("*", root).forEach(n => { if (n.matches(SKIP_SEL) || n.closest(SKIP_SEL)) return; attrs.forEach(a => { const v = n.getAttribute?.(a); if (v && hasText(v)) { keys.add(v); if (es) { const t = DICT[v]; if (t !== undefined) n.setAttribute(a, t); else if (!VALS.has(v)) window.__dlMissing.add(v); } } }); });
-  $$("option", root).forEach(o => { const t = norm(o.textContent); if (hasText(t)) { keys.add(t); if (es && DICT[t] !== undefined) o.textContent = DICT[t]; else if (es && !VALS.has(t)) window.__dlMissing.add(t); } });
+  $$("*", root).forEach(n => { if (n.matches(SKIP_SEL) || n.closest(SKIP_SEL)) return; attrs.forEach(a => { const v = n.getAttribute?.(a); if (v && hasText(v)) { keys.add(v); if (es) { const t = DICT[v]; if (t !== undefined) n.setAttribute(a, t); else if (!VALS.has(v) && !quiet) window.__dlMissing.add(v); } } }); });
+  $$("option", root).forEach(o => { const t = norm(o.textContent); if (hasText(t)) { keys.add(t); if (es && DICT[t] !== undefined) o.textContent = DICT[t]; else if (es && !VALS.has(t) && !quiet) window.__dlMissing.add(t); } });
   if (es) { document.documentElement.lang = "es"; const t = DICT[document.title]; if (t) document.title = t; const m = $('meta[name="description"]'); if (m && DICT[m.content]) m.content = DICT[m.content]; }
   keys.add(document.title);
   const m = $('meta[name="description"]'); if (m) keys.add(m.content);
+}
+
+
+/* observeDom: dynamic text written by a lab (textContent / innerHTML) is translated after the fact; in English mode it only harvests keys */
+export function observeDom() {
+  if (window.__dlObs) return; const es = getLang() === "es"; const keys = window.__dlKeys;
+  const tr = tn => { if (!tn.parentNode || tn.parentNode.closest?.(SKIP_SEL) || SKIP.has(tn.parentNode.tagName)) return; const raw = tn.nodeValue, t = norm(raw); if (!/[A-Za-z]{3}/.test(t)) return; keys.add(t); if (!es) return; const v = DICT[t]; if (v !== undefined) tn.nodeValue = raw.replace(t, v); };
+  window.__dlObs = new MutationObserver(ms => { for (const m of ms) { if (m.type === "characterData") tr(m.target); else m.addedNodes.forEach(n => { if (n.nodeType === 3) tr(n); else if (n.nodeType === 1) { quiet = true; try { translateDom(n); } finally { quiet = false; } } }); } });
+  window.__dlObs.observe(document.body, { childList: true, subtree: true, characterData: true });
 }
 
 /* ---------------------------------------------------------------- feedback bits */

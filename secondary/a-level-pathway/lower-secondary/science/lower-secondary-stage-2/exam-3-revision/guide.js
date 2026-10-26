@@ -1,7 +1,7 @@
 /* Exam 3 Revision Website: lessons 12-16. Plain ES module on top of engine/revision-kit.js. Vendored Three.js (window.THREE), no network. */
 import { BANK } from "./quiz-data.js?v=1";
 import { mountRunner } from "./runner.js?v=3";
-import { $, $$, el, rnd, clamp, shuffle, shake, popIt, burstOn, T, L, isES, initLang, translateDom, initProgress, makeSorter, makeMatch, makeAnswer, makeOrder, rafLoop, rr, make3D, mat, glowTexture, labelSprite, initHotspots, loadCredits, initQuiz, wireBooklet, reduced } from "../../../../../../engine/revision-kit.js?v=8";
+import { $, $$, el, rnd, clamp, shuffle, shake, popIt, burstOn, T, L, isES, initLang, translateDom, observeDom, initProgress, makeSorter, makeMatch, makeAnswer, makeOrder, rafLoop, rr, make3D, mat, glowTexture, labelSprite, initHotspots, loadCredits, initQuiz, wireBooklet, reduced } from "../../../../../../engine/revision-kit.js?v=12";
 
 await initLang();
 
@@ -387,3 +387,4 @@ loadCredits($("#credits"));
 wireBooklet("Exam-3-Revision-Booklet");
 P.render();
 translateDom();
+observeDom();

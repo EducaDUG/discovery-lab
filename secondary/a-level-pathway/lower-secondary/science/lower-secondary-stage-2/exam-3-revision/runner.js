@@ -4,7 +4,7 @@
    - Game state runs on setInterval wall-clock time. requestAnimationFrame only draws the scene from performance.now().
    - Real <button>s (and arrow keys, and swipe) steer; has its own mute button; respects reduced motion; calm DOM fallback if WebGL is missing. */
 import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=6";
-import { T, L, reduced, shuffle, el } from "../../../../../../engine/revision-kit.js?v=8";
+import { T, L, reduced, shuffle, el } from "../../../../../../engine/revision-kit.js?v=12";
 
 const TOTAL_MS = 120000, FIRST = 4500, GAP = 5500, SPEED = 6;
 const LANES = [

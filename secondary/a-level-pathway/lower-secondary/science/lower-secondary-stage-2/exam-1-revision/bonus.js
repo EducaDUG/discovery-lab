@@ -4,6 +4,7 @@
    - No lives and no fail state: a wrong or late answer resets the streak and names the right method plus a memory hook.
    - Bins are real <button>s (keys 1-6 mirror them). Reduced-motion aware. Has its own always-visible mute button. */
 import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=6";
+import { T } from "../../../../../../engine/revision-kit.js?v=12";
 
 const BINS = [
   { id: "filt", label: "Filtration", color: "#2f7dd1" },
@@ -31,6 +32,7 @@ const ITEMS = [
   ["chroma", "Is there an illegal dye in this sweet?", "chrom", "Chromatography separates mixtures of coloured substances."]
 ].map(r => ({ img: "photos/" + r[0] + ".jpg", text: r[1], bin: r[2], hook: r[3] }));
 
+BINS.forEach(b => T(b.label)); ITEMS.forEach(i => { T(i.text); T(i.hook); }); ["Time", "Streak", "Score", "Too slow", "Not quite", "The answer is"].forEach(T);
 let styled = false;
 function css() {
   if (styled) return; styled = true;
@@ -77,15 +79,15 @@ export function mountBonus(host, { onFinish }) {
   let score = 0, streak = 0, best = 0, hits = 0, seen = 0, cur = null, answered = false, travel = 7500, spawnAt = 0, over = false;
   const missed = [];
   const t0 = performance.now();
-  host.innerHTML = `<div class="bz"><div class="bz__hud"><span>Time<b id="bzT">120</b></span><span>Streak<b id="bzS">0</b></span><span>Score<b id="bzP">0</b></span></div>
+  host.innerHTML = `<div class="bz"><div class="bz__hud"><span>${T("Time")}<b id="bzT">120</b></span><span>${T("Streak")}<b id="bzS">0</b></span><span>${T("Score")}<b id="bzP">0</b></span></div>
     <div class="bz__timer"><i id="bzBar"></i></div>
     <div class="bz__belt${reduced() ? "" : " is-moving"}" id="bzBelt"><div class="bz__gate"></div></div>
-    <div class="bz__bins" role="group" aria-label="Separation methods">${BINS.map((b, i) => `<button type="button" class="bz__bin" data-id="${b.id}" style="--c:${b.color}"><kbd>${i + 1}</kbd>${b.label}</button>`).join("")}</div>
-    <div class="bz__fb" id="bzFb" aria-live="polite">Pick the best separation method for each situation before it reaches the yellow gate.</div>
-    <div class="bz__foot"><button type="button" class="bz__mute" id="bzMute"></button><span>Keys 1 to 6 work too. No lives: take your time.</span></div></div>`;
+    <div class="bz__bins" role="group" aria-label="${T("Separation methods")}">${BINS.map((b, i) => `<button type="button" class="bz__bin" data-id="${b.id}" style="--c:${b.color}"><kbd>${i + 1}</kbd>${T(b.label)}</button>`).join("")}</div>
+    <div class="bz__fb" id="bzFb" aria-live="polite">${T("Pick the best separation method for each situation before it reaches the yellow gate.")}</div>
+    <div class="bz__foot"><button type="button" class="bz__mute" id="bzMute"></button><span>${T("Keys 1 to 6 work too. No lives: take your time.")}</span></div></div>`;
   const $ = s => host.querySelector(s);
   const belt = $("#bzBelt"), fb = $("#bzFb");
-  const paintMute = () => { const on = ttsEnabled(); $("#bzMute").textContent = on ? "Sound on" : "Sound off"; $("#bzMute").setAttribute("aria-label", on ? "Sound on. Press to mute" : "Sound off. Press to unmute"); };
+  const paintMute = () => { const on = ttsEnabled(); $("#bzMute").textContent = on ? T("Sound on") : T("Sound off"); $("#bzMute").setAttribute("aria-label", on ? T("Sound on. Press to mute") : T("Sound off. Press to unmute")); };
   paintMute(); $("#bzMute").addEventListener("click", () => { setTTS(!ttsEnabled()); paintMute(); });
   let card = null, raf = null;
   const binBtn = id => host.querySelector(`.bz__bin[data-id="${id}"]`);
@@ -97,7 +99,7 @@ export function mountBonus(host, { onFinish }) {
     answered = false; seen++; spawnAt = performance.now();
     travel = Math.max(4200, 7500 - (performance.now() - t0) / 1000 * 28);
     if (card) card.remove();
-    card = document.createElement("div"); card.className = "bz__card"; card.innerHTML = `<img src="${cur.img}" alt=""><span>${cur.text}</span>`; card.style.left = "-240px";
+    card = document.createElement("div"); card.className = "bz__card"; card.innerHTML = `<img src="${cur.img}" alt=""><span>${T(cur.text)}</span>`; card.style.left = "-240px";
     belt.append(card);
   }
   function draw() {
@@ -108,8 +110,8 @@ export function mountBonus(host, { onFinish }) {
   function resolve(binId, late) {
     if (answered || over || !cur) return; answered = true;
     const ok = !late && binId === cur.bin;
-    if (ok) { score += 10 + Math.min(streak, 10) * 2; streak++; best = Math.max(best, streak); hits++; flash(binId, "is-correct"); card.classList.add("ok"); fb.innerHTML = `<b style="color:#7dffd0">Sorted!</b> ${cur.hook}`; }
-    else { streak = 0; if (!missed.includes(cur)) missed.push(cur); if (binId) flash(binId, "is-wrong"); flash(cur.bin, "is-correct"); card.classList.add("no"); fb.innerHTML = `<b style="color:#ff9d8d">${late ? "Too slow" : "Not quite"}.</b> The answer is <b>${NAME[cur.bin]}</b>. ${cur.hook}`; }
+    if (ok) { score += 10 + Math.min(streak, 10) * 2; streak++; best = Math.max(best, streak); hits++; flash(binId, "is-correct"); card.classList.add("ok"); fb.innerHTML = `<b style="color:#7dffd0">${T("Sorted!")}</b> ${T(cur.hook)}`; }
+    else { streak = 0; if (!missed.includes(cur)) missed.push(cur); if (binId) flash(binId, "is-wrong"); flash(cur.bin, "is-correct"); card.classList.add("no"); fb.innerHTML = `<b style="color:#ff9d8d">${late ? T("Too slow") : T("Not quite")}.</b> ${T("The answer is")} <b>${T(NAME[cur.bin])}</b>. ${T(cur.hook)}`; }
     paint(); setTimeout(spawn, SETTLE);
   }
   host.querySelectorAll(".bz__bin").forEach(b => b.addEventListener("click", () => resolve(b.dataset.id, false)));
@@ -125,9 +127,9 @@ export function mountBonus(host, { onFinish }) {
   function end() {
     if (over) return; over = true; clearInterval(clock); cancelAnimationFrame(raf); document.removeEventListener("keydown", onKey);
     const acc = seen ? Math.round(hits / Math.max(1, seen - (answered ? 0 : 1)) * 100) : 0;
-    host.innerHTML = `<div class="bz"><div class="bz__end"><h3>Round complete!</h3><div class="bz__stats"><div><b>${score}</b>score</div><div><b>${Math.min(100, acc)}%</b>accuracy</div><div><b>${best}</b>best streak</div></div>
-      ${missed.length ? `<p><b>Revisit these:</b></p><ul>${missed.map(m => `<li>${m.text}: <b>${NAME[m.bin]}</b>. ${m.hook}</li>`).join("")}</ul>` : "<p>Every situation sorted correctly. Brilliant!</p>"}
-      <button type="button" class="btn" id="bzAgain">Play again</button> <button type="button" class="btn btn--ghost" id="bzDone">Close</button></div></div>`;
+    host.innerHTML = `<div class="bz"><div class="bz__end"><h3>${T("Round complete!")}</h3><div class="bz__stats"><div><b>${score}</b>${T("score")}</div><div><b>${Math.min(100, acc)}%</b>${T("accuracy")}</div><div><b>${best}</b>${T("best streak")}</div></div>
+      ${missed.length ? `<p><b>${T("Revisit these:")}</b></p><ul>${missed.map(m => `<li>${T(m.text)}: <b>${T(NAME[m.bin])}</b>. ${T(m.hook)}</li>`).join("")}</ul>` : `<p>${T("Every situation sorted correctly. Brilliant!")}</p>`}
+      <button type="button" class="btn" id="bzAgain">${T("Play again")}</button> <button type="button" class="btn btn--ghost" id="bzDone">${T("Close")}</button></div></div>`;
     host.querySelector("#bzAgain").addEventListener("click", () => mountBonus(host, { onFinish }));
     host.querySelector("#bzDone").addEventListener("click", () => { host.innerHTML = ""; });
     if (onFinish) onFinish({ score, best });
