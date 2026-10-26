@@ -35,7 +35,7 @@ window.__dlKeys = window.__dlKeys || new Set();
 let VALS = new Set(); let quiet = false;
 export function setDict(d) { DICT = d || {}; VALS = new Set(Object.values(DICT).map(v => v.replace(/\s+/g, " ").trim())); window.__dlMissing.clear(); }
 /* initLang: in Spanish mode load the shared dictionary (engine/revision-es.js, built by tools/build-es.py) before anything renders */
-export async function initLang() { if (getLang() === "es") { try { const m = await import("./revision-es.js?v=1"); setDict(m.ES); } catch (e) { console.warn("Spanish dictionary missing", e); } } }
+export async function initLang() { if (getLang() === "es") { try { const m = await import("./revision-es.js?v=4"); setDict(m.ES); } catch (e) { console.warn("Spanish dictionary missing", e); } } }
 /* T: translate one English string (exact match). English mode returns the input untouched. */
 export function T(s) {
   if (s == null || s === "") return s;
@@ -245,7 +245,7 @@ export function rafLoop(cv, step) {
 export function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 
 /* ---------------------------------------------------------------- 3D stage (vendored Three.js, orbit on drag, calm fallback) */
-export function make3D(host, { cam = [0, 1.2, 6], target = [0, 0, 0], fov = 45, auto = 0.25, bg = null, onFrame, onPick, hint } = {}) {
+export function make3D(host, { cam = [0, 1.2, 6], target = [0, 0, 0], fov = 45, auto = 0.25, bg = null, onFrame, onPick, hint, real = false } = {}) {
   const THREE = window.THREE;
   let gl = null;
   try { const c = document.createElement("canvas"); gl = !!THREE && (c.getContext("webgl2") || c.getContext("webgl")); } catch (e) { gl = null; }
@@ -256,8 +256,21 @@ export function make3D(host, { cam = [0, 1.2, 6], target = [0, 0, 0], fov = 45, 
   host.innerHTML = ""; host.append(renderer.domElement);
   const scene = new THREE.Scene(); if (bg) scene.background = new THREE.Color(bg);
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 200);
-  scene.add(new THREE.HemisphereLight(0xdff3ff, 0x20301f, 0.9));
-  const sun = new THREE.DirectionalLight(0xffffff, 0.9); sun.position.set(4, 8, 5); scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0xdff3ff, 0x20301f, real ? 0.35 : 0.9));
+  const sun = new THREE.DirectionalLight(0xffffff, real ? 1.1 : 0.9); sun.position.set(4, 8, 5); scene.add(sun);
+  if (real) {
+    /* hyper-real mode: ACES tone mapping, soft shadows and a procedural studio environment for glass, metal and liquid */
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.85;
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+    const sc = sun.shadow.camera; sc.left = -9; sc.right = 9; sc.top = 9; sc.bottom = -9; sc.near = 1; sc.far = 40;
+    try {
+      const es = new THREE.Scene(); es.background = new THREE.Color(0x1a2433);
+      const box = new THREE.Mesh(new THREE.BoxGeometry(40, 20, 40), new THREE.MeshBasicMaterial({ side: THREE.BackSide, color: 0x2b3a52 })); es.add(box);
+      [[0, 9, 0, 14, 0.5, 14, 0xffffff, 2.2], [-16, 4, 0, 0.5, 8, 12, 0xcfe6ff, 1.6], [16, 4, 4, 0.5, 8, 10, 0xffe3c0, 1.6], [0, 3, -16, 14, 6, 0.5, 0xffffff, 1.2]].forEach(p => { const m = new THREE.Mesh(new THREE.BoxGeometry(p[3], p[4], p[5]), new THREE.MeshBasicMaterial({ color: new THREE.Color(p[6]).multiplyScalar(p[7]) })); m.position.set(p[0], p[1], p[2]); es.add(m); });
+      const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(es, 0.04).texture; pm.dispose();
+    } catch (e) { /* environment is a nicety; the scene still renders without it */ }
+  }
   const S = { THREE, scene, camera, renderer, host, az: 0, polar: 0, dist: 1, zoom: 1, clock: 0, spin: auto, target: new THREE.Vector3(...target), running: true, dragging: false };
   const base = new THREE.Vector3(...cam).sub(S.target); const baseLen = base.length(); const baseAz = Math.atan2(base.x, base.z), basePol = Math.asin(base.y / baseLen);
   function place() { const az = baseAz + S.az, pol = clamp(basePol + S.polar, -0.2, 1.3), d = baseLen * S.zoom; camera.position.set(S.target.x + d * Math.sin(az) * Math.cos(pol), S.target.y + d * Math.sin(pol), S.target.z + d * Math.cos(az) * Math.cos(pol)); camera.lookAt(S.target); }
