@@ -242,7 +242,7 @@ export async function mountNav() {
   if (children.length) {
     const grid = el("div", "grid-tiles");
     children.forEach(child => {
-      const href = child.type === "simulation" ? `./${child.id}/activity.html` : `./${child.id}/`;
+      const href = child.url || (child.type === "simulation" ? `./${child.id}/activity.html` : `./${child.id}/`);
       grid.append(tile(child, href));
     });
     mount.append(grid);
