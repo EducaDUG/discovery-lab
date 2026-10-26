@@ -4,7 +4,7 @@
    - Game state runs on setInterval wall-clock time. requestAnimationFrame only draws the scene from performance.now().
    - Real <button>s (and arrow keys, and swipe) steer; has its own mute button; respects reduced motion; calm DOM fallback if WebGL is missing. */
 import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=6";
-import { T, L, reduced, shuffle, el } from "../../../../../../engine/revision-kit.js?v=2";
+import { T, L, reduced, shuffle, el } from "../../../../../../engine/revision-kit.js?v=8";
 
 const TOTAL_MS = 120000, FIRST = 4500, GAP = 5500, SPEED = 6;
 const LANES = [
@@ -21,6 +21,7 @@ const ITEMS = [
 ];
 
 ["Through the right door!", "Not that door.", "belongs through", "Run complete!", "score", "accuracy", "best streak", "Revisit these:", "Every gate was correct. Brilliant!", "Play again", "Close", "Time", "Streak", "Score", "Move left", "Move right", "Left", "Right", "Choose a door", "Read the substance on the next gate, then steer through the matching door.", "Sound on", "Sound off", "Sound on. Press to mute", "Sound off. Press to unmute", "Left and right arrows, buttons, or swipe. No lives: keep running.", "3D view is not available on this device. Use the door buttons to answer each gate.", "Where does", "belong?", "Acid", "Neutral", "Alkali"].forEach(T);
+ITEMS.forEach(i => { T(i[0]); T(i[2]); });
 let styled = false;
 function css() {
   if (styled) return; styled = true;
@@ -107,7 +108,7 @@ export function mountRunner(host, { onFinish }) {
     gates.forEach(g => {
       const grp = new THREE.Group();
       LANES.forEach(l => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 2.4), new THREE.MeshBasicMaterial({ map: labelTexture(THREE, nameOf(l.id).toUpperCase(), l.color), transparent: true })); m.position.set(l.x, 1.3, 0); grp.add(m); const base = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.12, 0.3), new THREE.MeshBasicMaterial({ color: l.color })); base.position.set(l.x, 0.06, 0); grp.add(base); m.userData.lane = l.id; });
-      const ban = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 1.1), new THREE.MeshBasicMaterial({ map: bannerTexture(THREE, T(g.item[0])), transparent: true })); ban.position.set(0, 3.1, 0); grp.add(ban);
+      const ban = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 1.6), new THREE.MeshBasicMaterial({ map: bannerTexture(THREE, T(g.item[0])), transparent: true })); ban.position.set(0, 3.7, 0); grp.add(ban);
       grp.visible = false; scene.add(grp); gateObjs.push(grp); g.obj = grp;
     });
     const size = () => { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); renderer.domElement.style.width = "100%"; renderer.domElement.style.height = "100%"; camera.aspect = w / h; camera.updateProjectionMatrix(); };
@@ -133,7 +134,7 @@ export function mountRunner(host, { onFinish }) {
   const clock = setInterval(() => {
     const now = performance.now() - t0, left = Math.max(0, TOTAL_MS - now);
     $("#rnT").textContent = Math.ceil(left / 1000); $("#rnBar").style.width = (left / TOTAL_MS * 100) + "%";
-    const up = upcoming(now); const q = host.querySelector("#rnQ"); if (q && up) q.textContent = `${T("Where does")} ${T(up.item[0])} ${T("belong?")}`; else if (q && !up && !over) q.textContent = "";
+    const up = upcoming(now); const q = host.querySelector("#rnQ"); if (q && up) q.textContent = `${T("Where does")} ${T(up.item[0])} ${T("belong?")}`.replace(/ \?$/, "?"); else if (q && !up && !over) q.textContent = "";
     gates.forEach(g => {
       if (g.done || now < g.t) return; g.done = true; answered++;
       const ok = lane === g.item[1];

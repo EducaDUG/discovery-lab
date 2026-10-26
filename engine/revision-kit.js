@@ -32,7 +32,8 @@ export const isES = () => getLang() === "es";
 let DICT = {};
 window.__dlMissing = window.__dlMissing || new Set();
 window.__dlKeys = window.__dlKeys || new Set();
-export function setDict(d) { DICT = d || {}; window.__dlMissing.clear(); }
+let VALS = new Set();
+export function setDict(d) { DICT = d || {}; VALS = new Set(Object.values(DICT).map(v => v.replace(/\s+/g, " ").trim())); window.__dlMissing.clear(); }
 /* initLang: in Spanish mode load the shared dictionary (engine/revision-es.js, built by tools/build-es.py) before anything renders */
 export async function initLang() { if (getLang() === "es") { try { const m = await import("./revision-es.js?v=1"); setDict(m.ES); } catch (e) { console.warn("Spanish dictionary missing", e); } } }
 /* T: translate one English string (exact match). English mode returns the input untouched. */
@@ -42,32 +43,43 @@ export function T(s) {
   if (getLang() !== "es") return s;
   const v = DICT[s];
   if (v !== undefined) return v;
-  if (/[A-Za-z]{3}/.test(s)) window.__dlMissing.add(s);
+  if (/[A-Za-z]{3}/.test(s) && !VALS.has(s)) window.__dlMissing.add(s);
   return s;
 }
 /* L: inline pair, for the odd string that is built from parts */
 export const L = (en, es) => (getLang() === "es" ? es : en);
 const norm = s => s.replace(/\s+/g, " ").trim();
 const INLINE = new Set(["B", "EM", "I", "A", "SPAN", "SUP", "SUB", "KBD", "BR", "SMALL", "CODE", "STRONG", "U", "ABBR", "IMG"]);
-const SKIP = new Set(["SCRIPT", "STYLE", "SVG", "CANVAS", "NOSCRIPT"]);
-function isBlock(n) { return [...n.children].every(c => INLINE.has(c.tagName)) && !!n.textContent.trim(); }
-/* translateDom: walk the page; a "text block" (an element whose children are only inline markup) is looked up by its normalised innerHTML */
+const SKIP = new Set(["SCRIPT", "STYLE", "SVG", "CANVAS", "NOSCRIPT", "SELECT"]);
+/* parts of the page built by JS (already translated through T) or by other engine modules (own dictionaries) are skipped by the DOM pass */
+const SKIP_SEL = ".sorter,.pmatch,.order,.ans,.hz,.phscale,.mrs,.a11y,.a11y-panel,[id^=a11y],.lang-switch,#pBadges,#pHow,.stage3d,.hs__marks,.codes,.lab__hud,.hs__q,.hs__fb,.gx-credit,.quiz__opts,#qText,#qFb,.gg,.bz,.rn,.chips,.s3dbar,.sp__bar";
+const SPLIT_SEL = ".gx-cta,.gx-nav,.gx-links,.crumbs__list,.site-foot__inner,.gx-progress__top,.site-head__inner,.gx-row,.gx-two,.lab__btns";
+function isBlock(n) { return !n.matches(SPLIT_SEL) && [...n.children].every(c => INLINE.has(c.tagName)) && !!n.textContent.trim(); }
+function textNodes(n, deep = true, out = []) { n.childNodes.forEach(c => { if (c.nodeType === 3) out.push(c); else if (deep && c.nodeType === 1 && !SKIP.has(c.tagName) && !c.matches(SKIP_SEL)) textNodes(c, true, out); }); return out; }
+/* translateDom: walk the page. A "text block" (only inline children) is looked up by its normalised innerHTML; if that fails,
+   each text node is looked up on its own, so blocks holding live numbers or ids still translate. */
 export function translateDom(root = document.body) {
-  const es = getLang() === "es";
-  const keys = window.__dlKeys;
+  const es = getLang() === "es", keys = window.__dlKeys, hasText = t => /[A-Za-z]{3}/.test(t);
   (function walk(n) {
-    if (SKIP.has(n.tagName) || n.hasAttribute?.("data-no-t")) return;
-    if (n.nodeType === 1 && isBlock(n)) {
+    if (n.nodeType !== 1 || SKIP.has(n.tagName) || n.matches(SKIP_SEL) || n.hasAttribute("data-no-t")) return;
+    if (isBlock(n)) {
       const k = norm(n.innerHTML); keys.add(k);
-      if (es) { const v = DICT[k]; if (v !== undefined) n.innerHTML = v; else if (/[A-Za-z]{3}/.test(n.textContent)) window.__dlMissing.add(k); }
+      const v = es ? DICT[k] : undefined;
+      if (v !== undefined) { n.innerHTML = v; return; }
+      if (!es) { /* fragments are only a Spanish-mode fallback; they are not source strings */ return; }
+      textNodes(n).forEach(tn => { const raw = tn.nodeValue, t = norm(raw); if (!hasText(t)) return; const tv = DICT[t]; if (tv !== undefined) tn.nodeValue = raw.replace(t, tv); });
+      if (/[A-Za-z]{3}/.test(n.textContent) && !VALS.has(k)) window.__dlMissing.add(k);
       return;
     }
+    textNodes(n, false).forEach(tn => { const raw = tn.nodeValue, t = norm(raw); if (!hasText(t)) return; keys.add(t); if (!es) return; const tv = DICT[t]; if (tv !== undefined) tn.nodeValue = raw.replace(t, tv); else if (!VALS.has(t)) window.__dlMissing.add(t); });
     [...n.children].forEach(walk);
   })(root);
   const attrs = ["alt", "aria-label", "title", "placeholder"];
-  $$("*", root).forEach(n => attrs.forEach(a => { const v = n.getAttribute?.(a); if (v && /[A-Za-z]{3}/.test(v)) { keys.add(v); if (es) { const t = DICT[v]; if (t !== undefined) n.setAttribute(a, t); else window.__dlMissing.add(v); } } }));
+  $$("*", root).forEach(n => { if (n.matches(SKIP_SEL) || n.closest(SKIP_SEL)) return; attrs.forEach(a => { const v = n.getAttribute?.(a); if (v && hasText(v)) { keys.add(v); if (es) { const t = DICT[v]; if (t !== undefined) n.setAttribute(a, t); else if (!VALS.has(v)) window.__dlMissing.add(v); } } }); });
+  $$("option", root).forEach(o => { const t = norm(o.textContent); if (hasText(t)) { keys.add(t); if (es && DICT[t] !== undefined) o.textContent = DICT[t]; else if (es && !VALS.has(t)) window.__dlMissing.add(t); } });
   if (es) { document.documentElement.lang = "es"; const t = DICT[document.title]; if (t) document.title = t; const m = $('meta[name="description"]'); if (m && DICT[m.content]) m.content = DICT[m.content]; }
   keys.add(document.title);
+  const m = $('meta[name="description"]'); if (m) keys.add(m.content);
 }
 
 /* ---------------------------------------------------------------- feedback bits */

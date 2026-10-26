@@ -1,7 +1,7 @@
 /* Exam 3 Revision Website: lessons 12-16. Plain ES module on top of engine/revision-kit.js. Vendored Three.js (window.THREE), no network. */
 import { BANK } from "./quiz-data.js?v=1";
-import { mountRunner } from "./runner.js?v=2";
-import { $, $$, el, rnd, clamp, shuffle, shake, popIt, burstOn, T, L, isES, initLang, translateDom, initProgress, makeSorter, makeMatch, makeAnswer, makeOrder, rafLoop, rr, make3D, mat, glowTexture, labelSprite, initHotspots, loadCredits, initQuiz, wireBooklet, reduced } from "../../../../../../engine/revision-kit.js?v=2";
+import { mountRunner } from "./runner.js?v=3";
+import { $, $$, el, rnd, clamp, shuffle, shake, popIt, burstOn, T, L, isES, initLang, translateDom, initProgress, makeSorter, makeMatch, makeAnswer, makeOrder, rafLoop, rr, make3D, mat, glowTexture, labelSprite, initHotspots, loadCredits, initQuiz, wireBooklet, reduced } from "../../../../../../engine/revision-kit.js?v=8";
 
 await initLang();
 
@@ -163,17 +163,17 @@ makeAnswer($("#ans3"), [
 /* ---------------------------------------------------------------- real-photo tap-the-part */
 initHotspots({
   cabbage: { name: "Red cabbage test", img: "photos/cabbage.jpg", alt: "Test tubes of red cabbage indicator in different colours, from pink to yellow-green", tasks: [
-    ["Tap the pink tube on the left. Phosphoric acid turns the indicator pink.", .09, .27, "Acid", "Acids turn red cabbage indicator pink or red."],
-    ["Tap the purple tube. It holds a neutral salt solution.", .42, .27, "Neutral", "A neutral solution keeps the cabbage purple."],
-    ["Tap the yellow-green tube on the right. It holds a strong alkali.", .65, .27, "Alkali", "Alkalis turn red cabbage blue, green or yellow."]] },
+    ["Tap the pink tube on the left. Phosphoric acid turns the indicator pink.", .18, .38, "Acid", "Acids turn red cabbage indicator pink or red."],
+    ["Tap the purple tube. It holds a neutral salt solution.", .52, .38, "Neutral", "A neutral solution keeps the cabbage purple."],
+    ["Tap the yellow-green tube on the right. It holds a strong alkali.", .885, .38, "Alkali", "Alkalis turn red cabbage blue, green or yellow."]] },
   cleaner: { name: "Hazard label", img: "photos/cleaner.jpg", alt: "A cleaner bottle label showing the corrosive hazard symbol and the word Danger", tasks: [
-    ["Tap the corrosive hazard symbol (a red diamond).", .44, .115, "Corrosive symbol", "The corrosive symbol warns that the contents can damage skin and eyes."],
-    ["Tap the word Danger.", .29, .205, "Danger", "A signal word warns how serious the hazard is. This cleaner contains a strong alkali (sodium hydroxide)."]] },
+    ["Tap the corrosive hazard symbol (a red diamond).", .54, .28, "Corrosive symbol", "The corrosive symbol warns that the contents can damage skin and eyes."],
+    ["Tap the word Danger.", .46, .42, "Danger", "A signal word warns how serious the hazard is. This cleaner contains a strong alkali (sodium hydroxide)."]] },
   panda: { name: "Giant panda", img: "photos/panda.jpg", alt: "A giant panda cub looking at the camera", tasks: [
-    ["Tap the panda's face.", .62, .38, "Giant panda", "Female pandas are fertile for only a few days each year, so they are hard to breed in captivity."],
+    ["Tap the panda's face.", .50, .60, "Giant panda", "Female pandas are fertile for only a few days each year, so they are hard to breed in captivity."],
     ["Tap the panda's black ear.", .70, .08, "Ear", "Look at the black and white pattern: this is a young panda, which was born alive (viviparous)."]] },
   turtle: { name: "Sea turtles", img: "photos/turtle.jpg", alt: "Two baby loggerhead sea turtles on a sandy beach", tasks: [
-    ["Tap a baby turtle.", .30, .55, "Hatchling", "Sea turtles lay eggs (oviparous). The eggs and hatchlings are often eaten by predators."],
+    ["Tap a baby turtle.", .27, .45, "Hatchling", "Sea turtles lay eggs (oviparous). The eggs and hatchlings are often eaten by predators."],
     ["Tap the sand where the nest was buried.", .60, .85, "Sand", "Conservationists protect nesting areas so more eggs survive."]] }
 }, "cabbage", award);
 
@@ -362,7 +362,7 @@ function makeEgg(THREE, r = 1) {
     const sx = 40, sw = 560; for (let i = 0; i <= 14; i++) { ctx.fillStyle = PHCOL[i]; ctx.fillRect(sx + i * sw / 15, 420, sw / 15 - 2, 28); ctx.fillStyle = "#000b"; ctx.font = "bold 11px sans-serif"; ctx.fillText(String(i), sx + i * sw / 15 + 4, 438); }
     const mx = sx + cur[1] * sw / 15 + sw / 30 - 1; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(mx, 414); ctx.lineTo(mx - 8, 398); ctx.lineTo(mx + 8, 398); ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.fillText(`pH ${cur[1]}`, mx - 16, 392);
     // hazard
-    if (cur[2]) { ctx.save(); ctx.translate(100, 190); ctx.rotate(Math.PI / 4); ctx.fillStyle = "#fff"; ctx.strokeStyle = "#d32f2f"; ctx.lineWidth = 8; ctx.fillRect(-36, -36, 72, 72); ctx.strokeRect(-36, -36, 72, 72); ctx.restore(); ctx.fillStyle = "#111"; ctx.font = "bold 40px sans-serif"; ctx.textAlign = "center"; ctx.fillText(cur[2] === "excl" ? "!" : "☢", 100, 204); ctx.textAlign = "left"; ctx.font = "12px sans-serif"; ctx.fillStyle = "#ffd0d0"; ctx.fillText(T(cur[2] === "excl" ? "Irritant" : "Corrosive"), 70, 250); }
+    if (cur[2]) { ctx.save(); ctx.translate(100, 190); ctx.rotate(Math.PI / 4); ctx.fillStyle = "#fff"; ctx.strokeStyle = "#d32f2f"; ctx.lineWidth = 8; ctx.fillRect(-36, -36, 72, 72); ctx.strokeRect(-36, -36, 72, 72); ctx.restore(); ctx.fillStyle = "#111"; if (cur[2] === "excl") { ctx.fillRect(96, 168, 8, 24); ctx.beginPath(); ctx.arc(100, 202, 5, 0, 6.28); ctx.fill(); } else { ctx.save(); ctx.translate(100, 188); ctx.rotate(0.7); ctx.fillRect(-16, -22, 9, 24); ctx.fillRect(2, -22, 9, 24); ctx.restore(); ctx.beginPath(); ctx.arc(88, 200, 3, 0, 6.28); ctx.arc(112, 205, 3, 0, 6.28); ctx.arc(100, 208, 3, 0, 6.28); ctx.fill(); ctx.fillRect(78, 214, 44, 4); } ctx.font = "12px sans-serif"; ctx.fillStyle = "#ffd0d0"; ctx.fillText(T(cur[2] === "excl" ? "Irritant" : "Corrosive"), 70, 250); }
   });
 })();
 
