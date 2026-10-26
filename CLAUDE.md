@@ -1958,3 +1958,14 @@ Diego now gives the source material (a PDF of slides, a Word revision booklet, a
 - **The PDF booklet is a designed Discovery Lab document, not the Word file.** Build it with `tools/make-booklets.py` (HTML + CSS printed by headless Edge): gradient cover, coloured lesson pages, key-idea boxes, diagrams, check-yourself questions, revision tasks, checklist and a short answer key. Never ship the raw teacher Word export.
 - **Photos:** real, licence-checked Wikimedia Commons photos, vendored into the site's own `photos/`, credits in `photos/credits.json` and shown on the page; verify tap-targets on photos with an overlay.
 - **Timers/game state use `setInterval` wall-clock time, never `requestAnimationFrame`.** Bonus games have no fail state and their own mute button.
+
+---
+
+## 18. Hyper-real 3D simulations - standing rule (agreed 2026-10-26)
+
+Diego: from now on simulations are built **hyper-real and in 3D, so they feel more gamey.** This applies to every new simulation and to any existing one next time it is opened.
+
+- The core Investigate scene (not only the bonus round) is a realistic, orbitable or actively playable 3D scene using vendored Three.js: physically based materials, ACES tone mapping, soft shadow maps, fog, real textures or licence-checked photos, particle effects, and continuous idle motion.
+- Physics and manipulation should be believable (things fall, float, flow, collide for the right reasons) and the student operates them directly, game-style.
+- Everything else stays mandatory: the non-WebGL fallback, reduced-motion respect, keyboard route, always-visible mute button, no fail state, the 4-moments floor (section 4), and Spanish (section 15).
+- Plan the 3D scene at design time with `learningFocus` and the mechanic choice, and record it in the commit message.
