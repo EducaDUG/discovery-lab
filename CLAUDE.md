@@ -1943,3 +1943,18 @@ Students learned that the correct choice is always first, because config options
 - **Never rely on authoring order for multiple-choice position.** The engine shuffles every `mc`/`multi` (including Question and Hypothesis stages); set `"keepOrder": true` on a question only when order carries meaning (ordered scales, "both of the above").
 - **Any hand-built quiz inside an activity or bonus round (e.g. `BC_QUESTIONS`) must shuffle its own options** and compare by original index/id, not displayed position.
 - Spot-check a new activity by listing answer positions across its questions; they should not all land in the same slot.
+
+---
+
+## 17. Revision websites (`exam-N-revision/`) — standing rules (agreed 2026-10-27)
+
+Diego now gives the source material (a PDF of slides, a Word revision booklet, and the exam questions as a *reference for what is asked*) and Claude designs the revision site itself (see [[discovery-lab-no-claude-design-for-now]]). Reference builds: `secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-2/exam-1-revision/`, `exam-2-revision/`, `exam-3-revision/`.
+
+- **Never show the exam's own answers or reuse its questions.** The exam questions only tell you what must be covered so a student who revises well could score 100%. Write an original practice bank (about 100+ questions, 20 drawn at random per attempt, answers reshuffled) plus original long-answer builders.
+- **Every revision site has: lessons with interactive activities, 3D animation, live labs, real licence-checked photos with credits and a tap-the-part photo activity, a bonus game (never the same mechanic as the previous site), a practice exam, badges, and a downloadable PDF booklet.**
+- **3D is mandatory** on every revision site and every simulation from now on (vendored `engine/vendor/three.min.js`, orbitable or continuously animated, with a calm non-WebGL fallback and reduced-motion respect). Exam 1: 3D cell. Exam 2: 3D energy island. Exam 3: 3D fertilisation / pregnancy / pH scenes.
+- **Spanish is mandatory** on every revision site and every simulation (CLAUDE.md §15). Revision sites use `engine/revision-kit.js`: all English strings go through the shared `T()`/`translateDom()` and a per-site `es.js` dictionary keyed by the exact English string. Unknown strings are logged to `window.__dlMissing`; a site is not done until that list is empty in Spanish mode. The PDF booklet is generated in both languages and the download button picks the current language.
+- **Phone and tablet layouts are essential.** Test every revision page at 375x812 (phone) and 768x1024 (tablet) before publishing: no horizontal page scroll, 44px touch targets, canvases and 3D stages scale, the sticky nav scrolls sideways, tables scroll inside their wrapper, labs stack to one column.
+- **The PDF booklet is a designed Discovery Lab document, not the Word file.** Build it with `tools/make-booklets.py` (HTML + CSS printed by headless Edge): gradient cover, coloured lesson pages, key-idea boxes, diagrams, check-yourself questions, revision tasks, checklist and a short answer key. Never ship the raw teacher Word export.
+- **Photos:** real, licence-checked Wikimedia Commons photos, vendored into the site's own `photos/`, credits in `photos/credits.json` and shown on the page; verify tap-targets on photos with an overlay.
+- **Timers/game state use `setInterval` wall-clock time, never `requestAnimationFrame`.** Bonus games have no fail state and their own mute button.
