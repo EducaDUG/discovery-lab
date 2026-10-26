@@ -35,7 +35,7 @@ window.__dlKeys = window.__dlKeys || new Set();
 let VALS = new Set(); let quiet = false;
 export function setDict(d) { DICT = d || {}; VALS = new Set(Object.values(DICT).map(v => v.replace(/\s+/g, " ").trim())); window.__dlMissing.clear(); }
 /* initLang: in Spanish mode load the shared dictionary (engine/revision-es.js, built by tools/build-es.py) before anything renders */
-export async function initLang() { if (getLang() === "es") { try { const m = await import("./revision-es.js?v=4"); setDict(m.ES); } catch (e) { console.warn("Spanish dictionary missing", e); } } }
+export async function initLang() { if (getLang() === "es") { try { const m = await import("./revision-es.js?v=5"); setDict(m.ES); } catch (e) { console.warn("Spanish dictionary missing", e); } } }
 /* T: translate one English string (exact match). English mode returns the input untouched. */
 export function T(s) {
   if (s == null || s === "") return s;
