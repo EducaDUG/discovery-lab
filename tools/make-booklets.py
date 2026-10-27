@@ -9,6 +9,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
 EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 SITE = ROOT / "secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-2"
+SITE_S1BIO = ROOT / "secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-1/biology"
 
 UI = {
     "en": dict(name="Name", cls="Class", date="Date", key="Key ideas", fact="Did you know?", check="Check yourself", task="Revision task", answers="Answer key",
@@ -112,20 +113,24 @@ def build(lang, d, exam_no, url):
 <div class="task"><b class="t">{u["challenge"]}</b>{fin["challenge"]}<div class="draw" style="height:30mm"></div></div>
 <h3 class="sec"><i></i>{u["checklist"]}</h3><table class="check"><thead><tr><th>{u["task"]}</th><th>{u["done"]}</th></tr></thead><tbody>{cl}</tbody></table>
 <div class="live"><b>{u["live"]}</b> · {u["live_note"]} <b>{url}</b></div>{foot()}</section>''')
-    ans = "".join(f'<h4>{u["lesson"]} {L["num"]}: {L["title"]}</h4><ol>' + "".join(f"<li>{a}</li>" for a in L["answers"]) + "</ol>" for L in d["lessons"])
+    def ans_block(L): return f'<h4>{u["lesson"]} {L["num"]}: {L["title"]}</h4><ol>' + "".join(f"<li>{a}</li>" for a in L["answers"]) + "</ol>"
     ans2 = "<h4>" + u["final"] + "</h4><ol>" + "".join(f"<li>{a}</li>" for a in fin["answers"]) + "</ol>"
-    parts.append(f'''<section class="page ans" style="--c:#12998a"><div class="band" style="--c:#12998a"><div class="num">✔</div><div><small>{u["answers"]}</small><h2>{u["answers"]}</h2><p>{u["ans_note"]}</p></div></div>{ans}{ans2}{foot()}</section>''')
+    chunks = [d["lessons"]] if len(d["lessons"]) <= 7 else [d["lessons"][:5], d["lessons"][5:]]
+    for ci, ch in enumerate(chunks):
+        body = "".join(ans_block(L) for L in ch) + (ans2 if ci == len(chunks) - 1 else "")
+        parts.append(f'''<section class="page ans" style="--c:#12998a"><div class="band" style="--c:#12998a"><div class="num">✔</div><div><small>{u["answers"]}</small><h2>{u["answers"]}</h2><p>{u["ans_note"]}</p></div></div>{body}{foot()}</section>''')
     parts.append(f'''<section class="page end"><div class="brand cover" style="background:none;padding:0;display:flex;gap:10px;align-items:center;font-family:Georgia,serif;font-size:16pt;color:#fff">{LOGO.replace('<svg','<svg width="34" height="34"')}<span>Discovery&nbsp;Lab</span></div><h2>{u["good"]}</h2><p style="margin-top:8mm;color:#9bbdb0">Mr Guevara · {url}</p></section>''')
     return f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><title>{d["cover_title"]}</title><style>{CSS}</style></head><body>{"".join(parts)}</body></html>'
 
 def load(n):
-    spec = importlib.util.spec_from_file_location(f"exam{n}", HERE / "booklets" / f"exam{n}.py")
+    spec = importlib.util.spec_from_file_location(f"exam{n}", HERE / "booklets" / (f"exam{n}.py" if str(n).isdigit() else f"{n}.py"))
     m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m.DATA
 
 def main():
-    wanted = [int(a) for a in sys.argv[1:]] or [1, 2, 3]
+    wanted = [int(a) if a.isdigit() else a for a in sys.argv[1:]] or [1, 2, 3]
     for n in wanted:
         data = load(n); folder = SITE / f"exam-{n}-revision"
+        if not str(n).isdigit(): folder = SITE_S1BIO / "exam-1-revision"; n = 1  # "s1bio1" = Stage 1 Biology Exam 1
         for lang in ("en", "es"):
             h = build(lang, data[lang], n, "morehumaned.com/discovery-lab")
             tmp = pathlib.Path(tempfile.gettempdir()) / f"dl-booklet-{n}-{lang}.html"; tmp.write_text(h, encoding="utf8")
