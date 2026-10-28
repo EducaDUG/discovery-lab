@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El Diario de Viaje — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right}.credit a{color:inherit}
+.rule-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--sp-3);margin-top:var(--sp-3)}
+.rule-card{border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:var(--sp-3);cursor:pointer;text-align:center;font:inherit;color:inherit;transition:transform .2s,box-shadow .2s}
+.rule-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-2)}
+.rule-card img{width:100%;height:110px;object-fit:cover;border-radius:10px;display:block;margin-bottom:.5em}
+.rule-card__big{font-family:var(--font-data);font-weight:800;font-size:1.25rem;color:var(--accent)}
+.rule-card__more{margin-top:.5em;font-size:.85rem;color:var(--ink-2);display:none;text-align:left}
+.rule-card.is-open{background:var(--wash);border-color:var(--accent)}.rule-card.is-open .rule-card__more{display:block}
+.ctab{width:100%;border-collapse:collapse;font-family:var(--font-data);margin-top:.4em}
+.ctab td{padding:.15em .3em;border-bottom:1px dotted var(--line)}.ctab td:first-child{color:var(--ink-3);font-size:.8rem}
+.ctab b{color:var(--accent);text-decoration:underline;text-decoration-thickness:2px}
+@media(max-width:600px){.rule-cards{grid-template-columns:1fr}}
+
+.pz-hud{display:flex;flex-wrap:wrap;gap:.5em;align-items:center;justify-content:space-between;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:14px;padding:.7em 1em}
+.pz-hud b{font-family:var(--font-data)}
+.pz-hud__rank{font-weight:800;font-size:1.05rem}
+.pz-hud__bar{flex:1 1 140px;height:8px;background:rgba(255,255,255,.3);border-radius:99px;overflow:hidden}
+.pz-hud__bar i{display:block;height:100%;background:#fff;transition:width .5s}
+.pz-tabs{display:flex;gap:.4em;flex-wrap:wrap;margin:var(--sp-3) 0}
+.pz-tab{border:2px solid var(--line);background:var(--paper);border-radius:99px;padding:.3em .8em;font-size:.82rem;font-family:var(--font-data)}
+.pz-tab.is-now{border-color:var(--accent);background:var(--accent);color:#fff}.pz-tab.is-done{border-color:var(--positive,#2e8b57);color:var(--positive,#2e8b57)}
+.pz-panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:var(--sp-4)}
+.pz-title{font-family:var(--font-data);font-weight:800;font-size:1.15rem;color:var(--accent);margin:0}
+.pz-how{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.6em 0;font-size:.92rem}
+.pz-count{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.es{font-family:var(--font-data);font-weight:700}
+.pz-chips{display:flex;flex-wrap:wrap;gap:.5em;margin:.3em 0 .8em}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:.5em .9em;font-family:var(--font-data);font-size:1rem;cursor:pointer;color:inherit;transition:transform .12s;min-height:44px}
+.chip:hover:not(:disabled){transform:translateY(-2px)}
+.chip.is-on{border-color:var(--accent);background:var(--wash)}
+.chip.is-ok{border-color:var(--positive,#2e8b57);background:color-mix(in srgb,var(--positive,#2e8b57) 16%,var(--paper))}
+.chip.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+.chip:disabled{cursor:default}
+@keyframes pzshake{0%,100%{transform:translateX(0)}30%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+[data-reduced-motion="on"] .chip.is-bad{animation:none;outline:3px solid var(--negative,#b3392c)}
+.row-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.preview{font-family:var(--font-data);font-size:1.3rem;font-weight:700;padding:.5em .8em;border-radius:10px;background:var(--wash);margin:.5em 0;min-height:2.4em}
+.preview u{color:var(--accent);text-decoration-thickness:2px}
+.fb{min-height:1.5em;font-weight:600;margin:.4em 0}.fb.good{color:var(--positive,#2e8b57)}.fb.bad{color:var(--negative,#b3392c)}
+.pz-next{margin-top:.6em}
+.vis{display:flex;justify-content:center;margin:.6em 0}
+.cphoto{border-radius:12px;object-fit:cover;border:2px solid var(--line);background:#fff;display:block}
+
+/* globe */
+.globe-wrap{position:relative;height:280px;border-radius:14px;overflow:hidden;background:radial-gradient(#10243f,#050a16);margin-bottom:var(--sp-3);touch-action:pan-y}
+.globe-wrap canvas{width:100%;height:100%;display:block;cursor:grab}
+.globe-tag{position:absolute;left:10px;top:10px;background:rgba(5,10,22,.7);color:#fff;border-radius:99px;padding:.25em .8em;font-family:var(--font-data);font-size:.85rem}
+.globe-hint{position:absolute;right:10px;bottom:8px;color:#cfe3ff;font-size:.7rem}
+.globe-fallback{display:flex;height:100%;align-items:center;justify-content:center;color:#fff;font-family:var(--font-data);text-align:center;padding:1em}
+
+/* time machine & passport & suitcase */
+.tm{width:100%;max-width:300px}
+.tm .hand{transform-origin:60px 60px;transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+.tm.rew .hand{transform:rotate(-300deg)}
+.timeword{font-family:var(--font-data);font-weight:800;font-size:1.8rem;color:var(--accent)}
+.passport{display:flex;gap:1em;align-items:center;background:#16385c;color:#fff;border-radius:12px;padding:.8em;max-width:560px;width:100%;position:relative;overflow:hidden}
+.passport img{width:120px;height:90px;border-radius:8px;object-fit:cover;border:2px solid #fff6}
+.passport .meta{font-family:var(--font-data)}.passport .meta small{opacity:.8;display:block}
+.stamp{position:absolute;right:10px;top:8px;border:3px solid #ffd27a;color:#ffd27a;border-radius:10px;padding:.1em .5em;font-family:var(--font-data);font-weight:800;transform:rotate(-12deg) scale(3);opacity:0}
+.stamp.go{animation:thump .55s ease-out forwards}
+@keyframes thump{60%{transform:rotate(-12deg) scale(.9);opacity:1}100%{transform:rotate(-12deg) scale(1);opacity:1}}
+[data-reduced-motion="on"] .stamp.go{animation:none;opacity:1;transform:rotate(-12deg)}
+.suit{position:relative;width:200px;height:120px;margin:0 auto}
+.suit .case{position:absolute;bottom:0;left:0;right:0;height:70px;background:#8a4b22;border-radius:10px;border:3px solid #4b2710}
+.suit .case::before{content:"";position:absolute;top:-14px;left:70px;width:60px;height:14px;border:3px solid #4b2710;border-bottom:0;border-radius:8px 8px 0 0}
+.suit img{position:absolute;left:62px;top:-70px;width:76px;height:76px;object-fit:cover;border-radius:10px;border:2px solid #fff;z-index:2;animation:drop .7s cubic-bezier(.5,0,.8,.5) forwards}
+@keyframes drop{70%{top:34px}85%{top:24px}100%{top:30px;opacity:.95}}
+[data-reduced-motion="on"] .suit img{animation:none;top:30px}
+
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin:.6em 0}
+.pgrid button{border:3px solid var(--line);background:var(--paper);border-radius:12px;padding:0;overflow:hidden;cursor:pointer}
+.pgrid img{width:100%;height:120px;object-fit:cover;display:block}
+.pgrid button.is-ok{border-color:var(--positive,#2e8b57)}.pgrid button.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+@media(min-width:700px){.pgrid{grid-template-columns:repeat(4,1fr)}}
+
+.chat{display:flex;flex-direction:column;gap:.4em;margin:.6em 0}
+.bubble{max-width:82%;padding:.5em .8em;border-radius:14px;font-family:var(--font-data)}
+.bubble small{display:block;font-size:.68rem;opacity:.75;text-transform:uppercase}
+.bubble.v{align-self:flex-start;background:#ffe3b5}.bubble.c{align-self:flex-end;background:#cde6ff}
+.bubble .en{display:none;font-family:var(--font-body,inherit);font-style:italic;font-weight:400;font-size:.8rem;margin-top:.2em}
+.show-en .bubble .en{display:block}
+.pool{display:flex;flex-direction:column;gap:.4em}.pool .chip{text-align:left}
+.postcard{background:#fff8ec;border:2px dashed #c58a12;border-radius:8px;padding:.8em 1em;font-family:var(--font-data);margin:.6em 0;display:flex;gap:1em;align-items:flex-start;flex-wrap:wrap}
+.postcard img{width:150px;height:112px;object-fit:cover;border-radius:6px}
+.postcard span.s{cursor:pointer;border-bottom:1px dotted var(--ink-3)}.postcard span.s:hover{background:#ffe3b5}
+.blog-en{font-size:.85rem;color:var(--ink-2);min-height:1.3em;font-style:italic}
+
+.done-card{text-align:center;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:16px;padding:var(--sp-5)}
+.done-card h3{margin:0;font-size:1.6rem}.done-card .big{font-size:2.4rem;font-weight:800;font-family:var(--font-data)}
+.burst{position:absolute;pointer-events:none;width:8px;height:8px;border-radius:50%;animation:burst .8s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+[data-reduced-motion="on"] .burst{display:none}
+
+/* Past-Tense Express (3D runner) */
+.ex{background:#0e2238;color:#fff;border-radius:16px;padding:var(--sp-3);text-align:center}
+.ex h3{margin:0;color:#ffd27a}
+.ex-hud{display:flex;justify-content:space-between;font-family:var(--font-data);font-size:.9rem;margin:.3em 0}
+.ex-q{display:flex;gap:.8em;align-items:center;justify-content:center;background:#16385c;border-radius:10px;padding:.5em .8em;margin:.4em 0;text-align:left}
+.ex-q img{width:84px;height:63px;object-fit:cover;border-radius:8px}
+.ex-q .es{font-size:1.25rem}.ex-q small{display:block;opacity:.8}
+.ex-stage{position:relative;height:260px;border-radius:12px;overflow:hidden;background:#8ecbff}
+.ex-stage canvas{width:100%;height:100%;display:block}
+.ex-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em;margin:.5em 0}
+.ex-btns button{border:3px solid transparent;border-radius:10px;padding:.7em .3em;font-family:var(--font-data);font-weight:800;font-size:1.05rem;color:#fff;cursor:pointer;min-height:48px}
+.ex-btns button.sel{outline:4px solid #fff}
+.ex-msg{min-height:1.6em;font-weight:700;color:#ffd27a}
+.ex-flat{display:flex;align-items:center;justify-content:center;height:100%;color:#0e2238;font-weight:700;padding:1em}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+<main id="main" class="shell"><div id="lab-root"></div></main>
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=20";
+import "../../../../../../../engine/i18n.js?v=9";
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
+
+/* ================= DATA ================= */
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstElementChild; };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const loadThree = () => new Promise((res, rej) => { if (window.THREE) return res(window.THREE); const s = document.createElement("script"); s.src = THREE_URL; s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("no THREE")); s.onerror = rej; document.head.append(s); });
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+const PEOPLE = [
+  { es:"yo", en:"I" }, { es:"tú", en:"you" }, { es:"ella", en:"she" },
+  { es:"nosotros", en:"we" }, { es:"vosotros", en:"you all" }, { es:"ellos", en:"they" }
+];
+const ENDING = {
+  visitar:["é","aste","ó","amos","asteis","aron"],
+  comer:["í","iste","ió","imos","isteis","ieron"],
+  llevar:["é","aste","ó","amos","asteis","aron"],
+  comprar:["é","aste","ó","amos","asteis","aron"],
+  ir:null
+};
+const STEM = { visitar:"visit", comer:"com", llevar:"llev", comprar:"compr" };
+const FORMS = {
+  visitar:["visité","visitaste","visitó","visitamos","visitasteis","visitaron"],
+  comer:["comí","comiste","comió","comimos","comisteis","comieron"],
+  ir:["fui","fuiste","fue","fuimos","fuisteis","fueron"],
+  llevar:["llevé","llevaste","llevó","llevamos","llevasteis","llevaron"],
+  comprar:["compré","compraste","compró","compramos","comprasteis","compraron"]
+};
+const PAST_EN = { visitar:"visited", comer:"ate", ir:"went", llevar:"wore", comprar:"bought" };
+const endOf = (v, p) => v === "ir" ? FORMS.ir[p].replace(/^fu/, "") : ENDING[v][p];
+
+const PH = (id) => `photos/${id}.jpg`;
+const CLO = (id) => `photos/clothes/${id}.jpg`;
+const img = (src, w, h, alt = "") => `<img class="cphoto" src="${src}" width="${w}" height="${h}" alt="${alt}" loading="lazy">`;
+
+const TIMEWORDS = [
+  ["ayer","yesterday",1], ["anoche","last night",1], ["el año pasado","last year",1], ["la semana pasada","last week",1], ["el verano pasado","last summer",1],
+  ["hoy","today",0], ["mañana","tomorrow",0], ["ahora","now",0], ["la semana próxima","next week",0], ["el año próximo","next year",0]
+];
+
+/* Level 2: Pasaporte — verb, person, time, tail, English, photo */
+const PASS = [
+  { v:"ir", p:0, t:"Ayer", tail:"a Madrid", en:"I went to Madrid.", img:"madrid" },
+  { v:"visitar", p:0, t:"Ayer", tail:"el Museo del Prado", en:"I visited the Prado Museum.", img:"prado" },
+  { v:"comer", p:0, t:"Anoche", tail:"paella", en:"I ate paella.", img:"paella" },
+  { v:"ir", p:1, t:"El año pasado", tail:"a Barcelona", en:"You went to Barcelona.", img:"sagrada" },
+  { v:"visitar", p:1, t:"Ayer", tail:"la Sagrada Familia", en:"You visited the Sagrada Família.", img:"sagrada" },
+  { v:"comer", p:1, t:"Anoche", tail:"tacos", en:"You ate tacos.", img:"tacos" },
+  { v:"ir", p:2, t:"La semana pasada", tail:"a México", en:"She went to Mexico.", img:"tacos" },
+  { v:"visitar", p:3, t:"El año pasado", tail:"Machu Picchu", en:"We visited Machu Picchu.", img:"machu" },
+  { v:"comer", p:3, t:"Ayer", tail:"paella", en:"We ate paella.", img:"paella" },
+  { v:"ir", p:5, t:"Ayer", tail:"a la playa", en:"They went to the beach.", img:"playa" },
+  { v:"visitar", p:5, t:"La semana pasada", tail:"el museo", en:"They visited the museum.", img:"prado" },
+  { v:"comer", p:4, t:"Anoche", tail:"tacos", en:"You all ate tacos.", img:"tacos" }
+];
+
+/* Level 3: ir or ser? */
+const IRSER = [
+  { s:"Fui a España.", en:"“… to Spain.”", ok:"went", why:"“a” + a place = movement, so fui = I went (ir)." },
+  { s:"Fue divertido.", en:"“… fun.”", ok:"was", why:"A describing word (divertido) follows, so fue = it was (ser)." },
+  { s:"Fuimos a la playa.", en:"“… to the beach.”", ok:"went", why:"“a la playa” = to the beach, so fuimos = we went (ir)." },
+  { s:"La comida fue deliciosa.", en:"“The food … delicious.”", ok:"was", why:"Deliciosa describes the food, so fue = was (ser)." },
+  { s:"Ella fue a Madrid.", en:"“She … to Madrid.”", ok:"went", why:"“a Madrid” = to Madrid, so fue = she went (ir)." },
+  { s:"El museo fue enorme.", en:"“The museum … huge.”", ok:"was", why:"Enorme describes the museum, so fue = was (ser)." },
+  { s:"Fueron a Perú.", en:"“They … to Peru.”", ok:"went", why:"“a Perú” = to Peru, so fueron = they went (ir)." },
+  { s:"Fuiste muy simpático.", en:"“You … very nice.”", ok:"were", why:"Simpático describes you, so fuiste = you were (ser)." }
+];
+
+/* Level 4: photo match */
+const PHOTOS4 = [
+  { s:"Visité la Sagrada Familia.", ok:"sagrada" }, { s:"Comimos paella.", ok:"paella" }, { s:"Fui a Machu Picchu.", ok:"machu" },
+  { s:"Ella visitó el Museo del Prado.", ok:"prado" }, { s:"Comí tacos.", ok:"tacos" }, { s:"Fuimos a la playa.", ok:"playa" }
+];
+const PHOTO_EN = { sagrada:"Sagrada Família", paella:"paella", machu:"Machu Picchu", prado:"Prado Museum", tacos:"tacos", playa:"the beach", madrid:"Madrid" };
+
+/* Level 5: Mi Diario */
+const DIARY = [
+  { v:"llevar", p:0, t:"Ayer", tail:"una camiseta blanca", en:"Yesterday I wore a white T-shirt.", img:"camiseta", clo:1 },
+  { v:"comprar", p:3, t:"Anoche", tail:"una chaqueta", en:"Last night we bought a jacket.", img:"chaqueta", clo:1 },
+  { v:"ir", p:2, t:"El año pasado", tail:"a Perú", en:"Last year she went to Peru.", img:"machu" },
+  { v:"comer", p:1, t:"Ayer", tail:"tacos", en:"Yesterday you ate tacos.", img:"tacos" },
+  { v:"comprar", p:0, t:"Ayer", tail:"unas botas", en:"Yesterday I bought boots.", img:"botas", clo:1 },
+  { v:"visitar", p:5, t:"La semana pasada", tail:"un museo", en:"Last week they visited a museum.", img:"prado" },
+  { v:"llevar", p:3, t:"El verano pasado", tail:"gafas de sol", en:"Last summer we wore sunglasses.", img:"gafas", clo:1 },
+  { v:"comer", p:3, t:"El año pasado", tail:"paella", en:"Last year we ate paella.", img:"paella" }
+];
+const TIMEOPTS = ["Ayer","Anoche","El año pasado","La semana pasada","El verano pasado"];
+
+/* Level 6: chat */
+const CHAT = [
+  { who:"c", es:"¡Hola! ¿Adónde fuiste ayer?", en:"Hi! Where did you go yesterday?" },
+  { who:"v", es:"Fui a Madrid con mi familia.", en:"I went to Madrid with my family." },
+  { who:"c", es:"¿Qué visitaste?", en:"What did you visit?" },
+  { who:"v", es:"Visité el Museo del Prado.", en:"I visited the Prado Museum." },
+  { who:"c", es:"¿Qué comiste?", en:"What did you eat?" },
+  { who:"v", es:"Comí paella. ¡Fue deliciosa!", en:"I ate paella. It was delicious!" }
+];
+
+/* Level 7: postcard */
+const POST = [
+  { es:"¡Hola, abuela!", en:"Hello, grandma!" },
+  { es:"Ayer fui a Barcelona con mi familia.", en:"Yesterday I went to Barcelona with my family." },
+  { es:"Visité la Sagrada Familia.", en:"I visited the Sagrada Família." },
+  { es:"Comimos tacos en un restaurante pequeño.", en:"We ate tacos in a small restaurant." },
+  { es:"Fue muy divertido.", en:"It was very fun." }
+];
+const POSTQ = [
+  { q:"Where did the writer go?", ok:"Barcelona", opts:["Barcelona","Madrid","Peru","The beach"], why:"“Fui a Barcelona.”" },
+  { q:"What did they eat?", ok:"Tacos", opts:["Tacos","Paella","Churros","Nothing"], why:"“Comimos tacos.”" },
+  { q:"“Fue muy divertido” means…", ok:"It was very fun", opts:["It was very fun","I went to a fun place","We ate fun food","He visited it"], why:"Here fue = it was (ser), followed by a describing word." }
+];
+
+/* Globe stops: one per level */
+const STOPS = [
+  { n:"Madrid", lat:40.4, lon:-3.7 }, { n:"Barcelona", lat:41.4, lon:2.2 }, { n:"Ciudad de México", lat:19.4, lon:-99.1 },
+  { n:"Antigua, Guatemala", lat:14.6, lon:-90.7 }, { n:"Cusco, Perú", lat:-13.5, lon:-72 }, { n:"Santiago, Chile", lat:-33.4, lon:-70.6 }, { n:"Buenos Aires", lat:-34.6, lon:-58.4 }
+];
+const RANKS = [[0,"Turista"],[120,"Viajero/a"],[260,"Explorador/a"],[420,"Aventurero/a"],[580,"Maestro/a del Pasado"]];
+const rankFor = (xp) => RANKS.filter(r => xp >= r[0]).pop()[1];
+
+/* Express bonus questions */
+const EXQ = [
+  { img:"tacos", es:"Ayer yo ___ tacos.", en:"Yesterday I ate tacos.", o:["comí","comió","como"], hook:"yo + -ER past = -í" },
+  { img:"madrid", es:"El año pasado nosotros ___ a España.", en:"Last year we went to Spain.", o:["fuimos","fueron","fui"], hook:"nosotros = -imos" },
+  { img:"prado", es:"Ella ___ el museo.", en:"She visited the museum.", o:["visitó","visité","visitaste"], hook:"ella = -ó" },
+  { img:"paella", es:"Tú ___ paella anoche.", en:"You ate paella last night.", o:["comiste","comí","comió"], hook:"tú = -iste" },
+  { img:"playa", es:"Ayer ellos ___ a la playa.", en:"Yesterday they went to the beach.", o:["fueron","fuimos","fue"], hook:"ellos = -ron" },
+  { img:"machu", es:"Yo ___ Machu Picchu.", en:"I visited Machu Picchu.", o:["visité","visitó","visitamos"], hook:"yo + -AR past = -é" },
+  { img:"paella", es:"Nosotros ___ paella.", en:"We ate paella.", o:["comimos","comieron","comí"], hook:"nosotros = -imos" },
+  { img:"prado", es:"El museo ___ enorme.", en:"The museum was huge.", o:["fue","fui","fueron"], hook:"fue + describing word = was" },
+  { img:"camiseta", es:"Ayer yo ___ una camiseta blanca.", en:"Yesterday I wore a white T-shirt.", o:["llevé","llevó","llevo"], hook:"past = llevé (é)", clo:1 },
+  { img:"sagrada", es:"Tú ___ Barcelona.", en:"You visited Barcelona.", o:["visitaste","visité","visitó"], hook:"tú = -aste" },
+  { img:"tacos", es:"Ellos ___ tacos.", en:"They ate tacos.", o:["comieron","comimos","comió"], hook:"ellos = -ieron" },
+  { img:"chaqueta", es:"Anoche nosotros ___ una chaqueta.", en:"Last night we bought a jacket.", o:["compramos","compraron","compré"], hook:"nosotros = -amos", clo:1 },
+  { img:"madrid", es:"¿Adónde ___ tú ayer?", en:"Where did you go yesterday?", o:["fuiste","fui","fue"], hook:"tú = -iste" },
+  { img:"botas", es:"Ella ___ unas botas.", en:"She bought some boots.", o:["compró","compré","compraste"], hook:"ella = -ó", clo:1 },
+  { img:"playa", es:"Vosotros ___ a la playa.", en:"You all went to the beach.", o:["fuisteis","fuimos","fueron"], hook:"vosotros = -isteis" }
+];
+
+/* ================= EXPLAINER ART ================= */
+const timeMachine = () => `<svg class="tm" viewBox="0 0 120 120" role="img" aria-label="A time machine clock"><circle cx="60" cy="60" r="52" fill="#fff4e0" stroke="#0e3a5f" stroke-width="5"/><g class="hand"><path d="M60 60V18" stroke="#d2562b" stroke-width="5" stroke-linecap="round"/></g><path d="M60 60L84 72" stroke="#0e3a5f" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="60" r="5" fill="#0e3a5f"/><path d="M96 20l10-6-2 12z" fill="#1a7f8e"/><path d="M14 44a50 50 0 0 1 28-30" fill="none" stroke="#1a7f8e" stroke-width="4"/></svg>`;
+
+/* ================= ORIENT ================= */
+function drawOrient(host) {
+  const cards = [
+    { id:"madrid", v:"ir", big:"IR / SER → fui", ex:"Fui a España.", more:"Irregular twins! Ir (to go) and ser (to be) share the same past forms. Context tells them apart: fui a España = I went, fue divertido = it was fun." },
+    { id:"paella", v:"comer", big:"COMER → comí", ex:"Comí tacos.", more:"Regular -ER pattern. Take off -er, add the ending for the person." },
+    { id:"prado", v:"visitar", big:"VISITAR → visité", ex:"Visité el museo.", more:"Regular -AR pattern. Take off -ar, add the ending for the person." }
+  ];
+  host.innerHTML = `<p class="q__hint">Tap each card to flip it. “The Big 3” runs the whole unit. We use the <b>past tense (preterite)</b> for finished actions: <span class="es">ayer, el año pasado…</span></p><div class="rule-cards"></div>`;
+  const wrap = host.querySelector(".rule-cards");
+  cards.forEach(c => {
+    const rows = FORMS[c.v].map((f, i) => { const e = endOf(c.v, i); return `<tr><td>${PEOPLE[i].es}</td><td class="es">${f.slice(0, f.length - e.length)}<b>${e}</b></td></tr>`; }).join("");
+    const b = $(`<button type="button" class="rule-card"><img src="${PH(c.id)}" alt="" loading="lazy"><div class="rule-card__big">${c.big}</div><div class="es">${c.ex}</div><div class="rule-card__more">${c.more}<table class="ctab">${rows}</table></div></button>`);
+    b.addEventListener("click", () => b.classList.toggle("is-open"));
+    wrap.append(b);
+  });
+}
+
+/* ================= GLOBE (3D hero scene) ================= */
+const LAND = [
+  [[-168,66],[-140,70],[-95,72],[-80,68],[-62,58],[-55,48],[-70,42],[-76,35],[-81,25],[-97,26],[-97,18],[-88,15],[-80,8],[-92,14],[-105,20],[-110,24],[-118,32],[-124,41],[-125,49],[-135,58],[-150,60],[-165,62]],
+  [[-55,60],[-20,70],[-20,82],[-60,82],[-70,76]],
+  [[-80,8],[-60,10],[-50,0],[-35,-6],[-40,-22],[-48,-28],[-58,-38],[-65,-42],[-68,-52],[-72,-54],[-75,-45],[-71,-30],[-70,-18],[-81,-6]],
+  [[-10,36],[-9,43],[-2,47],[-5,49],[3,51],[8,55],[10,59],[5,62],[15,70],[30,71],[60,70],[100,77],[140,73],[170,69],[180,66],[160,58],[142,52],[135,43],[122,40],[121,31],[110,20],[106,10],[100,13],[98,8],[104,1],[98,17],[90,22],[80,15],[77,8],[72,20],[66,25],[57,26],[50,30],[56,24],[44,12],[35,28],[34,32],[27,37],[26,40],[19,40],[16,38],[12,44],[3,43],[-2,37]],
+  [[-17,21],[-10,35],[10,37],[32,31],[34,28],[43,12],[51,12],[40,-3],[40,-15],[32,-27],[20,-35],[12,-17],[9,-1],[8,4],[-8,4],[-17,14]],
+  [[114,-22],[122,-18],[131,-12],[142,-11],[146,-19],[153,-27],[150,-37],[140,-38],[130,-32],[115,-34]]
+];
+function earthTexture(THREE) {
+  const W = 1024, H = 512, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  const og = g.createLinearGradient(0, 0, 0, H); og.addColorStop(0, "#1b5fa8"); og.addColorStop(.5, "#1478c8"); og.addColorStop(1, "#1b5fa8"); g.fillStyle = og; g.fillRect(0, 0, W, H);
+  const X = (lon) => (lon + 180) / 360 * W, Y = (lat) => (90 - lat) / 180 * H;
+  g.filter = "blur(2px)";
+  LAND.forEach(poly => { g.beginPath(); poly.forEach(([lo, la], i) => i ? g.lineTo(X(lo), Y(la)) : g.moveTo(X(lo), Y(la))); g.closePath(); const lg = g.createLinearGradient(0, 0, 0, H); lg.addColorStop(0, "#e8efe8"); lg.addColorStop(.2, "#6aa84f"); lg.addColorStop(.5, "#4c8a3a"); lg.addColorStop(.75, "#b49a5a"); lg.addColorStop(1, "#e8efe8"); g.fillStyle = lg; g.fill(); });
+  g.filter = "none";
+  for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(255,255,255,${Math.random() * .05})`; g.fillRect(Math.random() * W, Math.random() * H, 2 + Math.random() * 8, 1 + Math.random() * 2); }
+  const t = new THREE.CanvasTexture(c); if ("encoding" in t) t.encoding = THREE.sRGBEncoding; return t;
+}
+function cloudTexture(THREE) {
+  const W = 512, H = 256, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  for (let i = 0; i < 160; i++) { const x = Math.random() * W, y = 30 + Math.random() * (H - 60), r = 6 + Math.random() * 22; const rg = g.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, "rgba(255,255,255,.55)"); rg.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  return new THREE.CanvasTexture(c);
+}
+function glowTexture(THREE, col) {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const rg = g.createRadialGradient(64, 64, 20, 64, 64, 64); rg.addColorStop(0, col); rg.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = rg; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+async function mountGlobe(wrap, tag) {
+  let THREE; try { THREE = await loadThree(); } catch (e) { THREE = null; }
+  const test = document.createElement("canvas"); const gl = test.getContext("webgl") || test.getContext("experimental-webgl");
+  const api = { flyTo() {}, dispose() {} };
+  if (!THREE || !gl) { wrap.innerHTML = `<div class="globe-fallback">Your device cannot show the 3D globe — no problem! Your plane still follows you: <br><b id="gf"></b></div>`; api.flyTo = (i) => { const f = wrap.querySelector("#gf"); if (f) f.textContent = "✈ " + STOPS[Math.min(i, STOPS.length - 1)].n; }; return api; }
+  const w = wrap.clientWidth || 600, h = wrap.clientHeight || 280;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(w, h);
+  if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  wrap.prepend(renderer.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(40, w / h, .1, 100); cam.position.set(0, 0, 6.2);
+  scene.add(new THREE.AmbientLight(0x6688aa, .6)); const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(4, 2, 5); scene.add(sun);
+  const stars = (() => { const n = 500, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const r = 30 + Math.random() * 20, a = Math.random() * 6.28, b = Math.acos(2 * Math.random() - 1); p[i * 3] = r * Math.sin(b) * Math.cos(a); p[i * 3 + 1] = r * Math.cos(b); p[i * 3 + 2] = r * Math.sin(b) * Math.sin(a); } const gm = new THREE.BufferGeometry(); gm.setAttribute("position", new THREE.BufferAttribute(p, 3)); const s = new THREE.Points(gm, new THREE.PointsMaterial({ color: 0xffffff, size: .12 })); scene.add(s); return s; })();
+  const globe = new THREE.Group(); scene.add(globe); const R = 2;
+  globe.add(new THREE.Mesh(new THREE.SphereGeometry(R, 64, 48), new THREE.MeshStandardMaterial({ map: earthTexture(THREE), roughness: .85, metalness: 0 })));
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(R * 1.012, 48, 36), new THREE.MeshBasicMaterial({ map: cloudTexture(THREE), transparent: true, opacity: .55, depthWrite: false })); globe.add(clouds);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(110,180,255,.9)"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(R * 3.1, R * 3.1, 1); scene.add(halo);
+  const ll = (lat, lon, r) => { const ph = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)); };
+  const pins = STOPS.map(s => { const m = new THREE.Mesh(new THREE.SphereGeometry(.05, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffd27a })); m.position.copy(ll(s.lat, s.lon, R * 1.01)); globe.add(m); const gl2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(255,200,80,.9)"), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); gl2.scale.set(.4, .4, 1); gl2.position.copy(m.position); globe.add(gl2); return { m, gl2 }; });
+  const plane = new THREE.Group(); const body = new THREE.Mesh(new THREE.ConeGeometry(.045, .2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff })); body.rotation.x = Math.PI / 2; plane.add(body);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(.2, .01, .06), new THREE.MeshStandardMaterial({ color: 0xd2562b })); plane.add(wing); globe.add(plane); plane.position.copy(ll(STOPS[0].lat, STOPS[0].lon, R * 1.04));
+  const trailN = 60, trailPos = new Float32Array(trailN * 3), tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.BufferAttribute(trailPos, 3)); const trail = new THREE.Line(tg, new THREE.LineBasicMaterial({ color: 0xffd27a })); trail.frustumCulled = false; globe.add(trail);
+  let trailLen = 0; const pushTrail = (v) => { for (let i = Math.min(trailLen, trailN - 1); i > 0; i--) { trailPos[i * 3] = trailPos[(i - 1) * 3]; trailPos[i * 3 + 1] = trailPos[(i - 1) * 3 + 1]; trailPos[i * 3 + 2] = trailPos[(i - 1) * 3 + 2]; } trailPos[0] = v.x; trailPos[1] = v.y; trailPos[2] = v.z; trailLen = Math.min(trailLen + 1, trailN); tg.setDrawRange(0, trailLen); tg.attributes.position.needsUpdate = true; };
+  let cur = 0, fly = null, spin = 0, drag = null, userY = 0, userX = 0, focus = new THREE.Quaternion();
+  const faceQ = (i) => { const v = ll(STOPS[i].lat, STOPS[i].lon, 1).normalize(); const q = new THREE.Quaternion().setFromUnitVectors(v, new THREE.Vector3(0, .25, 1).normalize()); return q; };
+  focus.copy(faceQ(0)); globe.quaternion.copy(focus);
+  api.flyTo = (i) => { i = Math.min(i, STOPS.length - 1); if (i === cur) return; fly = { a: cur, b: i, t0: performance.now(), dur: reduced() ? 1 : 2600 }; tag.textContent = "✈ " + STOPS[cur].n + " → " + STOPS[i].n; cur = i; };
+  const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", e => { if (!drag) return; userY += (e.clientX - drag.x) * .008; userX += (e.clientY - drag.y) * .008; drag = { x: e.clientX, y: e.clientY }; });
+  const up = () => { drag = null; cv.style.cursor = "grab"; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  let alive = true, raf = 0, last = performance.now();
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), P = new THREE.Vector3();
+  const loop = (now) => {
+    if (!alive) return; raf = requestAnimationFrame(loop); const dt = Math.min(.05, (now - last) / 1000); last = now;
+    clouds.rotation.y += dt * (reduced() ? 0 : .05); stars.rotation.y += dt * (reduced() ? 0 : .01);
+    pins.forEach((p, i) => { const s = 1 + (reduced() ? 0 : .25 * Math.sin(now / 350 + i)); p.gl2.scale.set(.4 * s, .4 * s, 1); p.gl2.material.opacity = i <= cur ? 1 : .35; });
+    if (fly) {
+      const k = Math.min(1, (now - fly.t0) / fly.dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      A.copy(ll(STOPS[fly.a].lat, STOPS[fly.a].lon, 1)).normalize(); B.copy(ll(STOPS[fly.b].lat, STOPS[fly.b].lon, 1)).normalize();
+      const om = Math.acos(Math.max(-1, Math.min(1, A.dot(B)))) || .001; const sa = Math.sin((1 - e) * om) / Math.sin(om), sb = Math.sin(e * om) / Math.sin(om);
+      P.copy(A).multiplyScalar(sa).addScaledVector(B, sb).normalize(); const alt = 1.03 + Math.sin(e * Math.PI) * .22; const prev = plane.position.clone(); plane.position.copy(P).multiplyScalar(R * alt);
+      plane.lookAt(plane.position.clone().add(plane.position.clone().sub(prev).multiplyScalar(5))); pushTrail(plane.position);
+      const fq = faceQ(fly.a).slerp(faceQ(fly.b), e); focus.copy(fq);
+      if (k >= 1) { fly = null; tag.textContent = "📍 " + STOPS[cur].n; trailLen = 0; tg.setDrawRange(0, 0); }
+    }
+    const uq = new THREE.Quaternion().setFromEuler(new THREE.Euler(userX, userY, 0));
+    if (!drag && !fly) { userY *= .97; userX *= .97; if (!reduced()) { spin += dt * .12; } }
+    globe.quaternion.copy(uq).multiply(focus); globe.rotateY(0); if (!reduced()) globe.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0); const wob = reduced() ? 0 : Math.sin(spin * 3) * .04; globe.rotation.z += 0; cam.position.x = Math.sin(spin) * .15; cam.position.y = wob; cam.lookAt(0, 0, 0);
+    renderer.render(scene, cam);
+  };
+  raf = requestAnimationFrame(loop);
+  api.dispose = () => { alive = false; cancelAnimationFrame(raf); renderer.dispose(); };
+  const ro = new ResizeObserver(() => { const ww = wrap.clientWidth, hh = wrap.clientHeight; if (ww && hh) { renderer.setSize(ww, hh); cam.aspect = ww / hh; cam.updateProjectionMatrix(); } }); ro.observe(wrap);
+  tag.textContent = "📍 " + STOPS[0].n;
+  return api;
+}
+
+/* ================= INVESTIGATE ================= */
+function drawInvestigate(host, sim) {
+  sim.state.custom = sim.state.custom || {};
+  const S = sim.state.custom;
+  S.stage = S.stage || 0; S.xp = S.xp || 0; S.streak = S.streak || 0; S.best = S.best || 0; S.p = S.p || {}; S.firstTry = S.firstTry || 0; S.answered = S.answered || 0;
+  const STAGES = ["Máquina del Tiempo","Pasaporte","¿Ir o Ser?","Fotos de Viaje","Mi Diario","El Chat","La Postal"];
+  host.innerHTML = `<div class="globe-wrap" id="gw"><div class="globe-tag" id="gt"></div><div class="globe-hint">drag to spin the globe</div></div><div class="pz-hud"><span class="pz-hud__rank" id="rk"></span><span class="pz-hud__bar"><i id="bar"></i></span><span><b id="xp"></b> XP · 🔥 <b id="st"></b></span></div><div class="pz-tabs" id="tabs"></div><div id="body"></div><div id="bonus" style="margin-top:var(--sp-5)"></div>`;
+  const body = host.querySelector("#body");
+  let globe = { flyTo() {} };
+  mountGlobe(host.querySelector("#gw"), host.querySelector("#gt")).then(g => { globe = g; if (S.stage > 0) { const i = Math.min(S.stage, STOPS.length - 1); g.flyTo(i); } });
+
+  function hud() {
+    host.querySelector("#rk").textContent = rankFor(S.xp);
+    host.querySelector("#xp").textContent = S.xp; host.querySelector("#st").textContent = S.streak;
+    host.querySelector("#bar").style.width = Math.min(100, S.xp / 6.2) + "%";
+    host.querySelector("#tabs").innerHTML = STAGES.map((n, i) => `<span class="pz-tab ${i < S.stage ? "is-done" : i === S.stage ? "is-now" : ""}">${i + 1}. ${n}${i < S.stage ? " ✓" : ""}</span>`).join("");
+  }
+  function burst(el) {
+    const r = el.getBoundingClientRect(), root = el.closest(".pz-panel") || el, rr = root.getBoundingClientRect(); root.style.position = "relative";
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("i"); s.className = "burst";
+      s.style.left = (r.left - rr.left + r.width / 2) + "px"; s.style.top = (r.top - rr.top + r.height / 2) + "px";
+      s.style.background = ["#f0a030", "#1a7f8e", "#0e3a5f", "#2e8b57"][i % 4];
+      const a = Math.random() * 6.28, d = 30 + Math.random() * 50; s.style.setProperty("--dx", Math.cos(a) * d + "px"); s.style.setProperty("--dy", Math.sin(a) * d + "px");
+      root.append(s); setTimeout(() => s.remove(), 850);
+    }
+  }
+  function award(nivel, tarea, respuesta, tries, ok, anchor) {
+    if (ok) { S.xp += tries === 1 ? 10 + Math.min(S.streak, 5) * 2 : 5; S.streak = tries === 1 ? S.streak + 1 : 0; if (tries === 1) S.firstTry++; }
+    else S.streak = 0;
+    S.best = Math.max(S.best, S.streak); S.answered++;
+    sim.recordTrial({ nivel, tarea, respuesta, correcto: ok ? "Yes" : "No", intentos: tries });
+    if (ok && anchor) burst(anchor);
+    sim.save && sim.save(); hud();
+  }
+  const finishStage = (container) => {
+    const b = $(`<button type="button" class="btn btn--signal pz-next">${S.stage < 6 ? "Next level — fly to " + STOPS[S.stage + 1].n + " ✈" : "Finish the diary →"}</button>`);
+    b.addEventListener("click", () => { S.stage++; sim.save && sim.save(); globe.flyTo(Math.min(S.stage, STOPS.length - 1)); paint(); window.scrollTo({ top: host.offsetTop - 20, behavior: reduced() ? "auto" : "smooth" }); });
+    container.append(b);
+  };
+  const panel = (title, how) => { const p = $(`<section class="pz-panel"><h3 class="pz-title">${title}</h3><div class="pz-how">${how}</div><div class="slot"></div></section>`); body.append(p); return p.querySelector(".slot"); };
+
+  /* ---- one-question-at-a-time multiple choice ---- */
+  function deck(slot, k, nivel, qs, done) {
+    const i = S.p[k] || 0;
+    if (i >= qs.length) { done(); return; }
+    const q = qs[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${qs.length}</div><div class="vis">${q.visual || ""}</div><p><b>${q.q}</b></p><div class="pz-chips"></div><div class="fb" role="status"></div>`;
+    const chips = slot.querySelector(".pz-chips"), fb = slot.querySelector(".fb");
+    shuffle(q.opts).forEach(o => {
+      const c = $(`<button type="button" class="chip es">${o}</button>`);
+      c.addEventListener("click", () => {
+        tries++;
+        if (o === q.ok) {
+          c.classList.add("is-ok"); chips.querySelectorAll("button").forEach(b => b.disabled = true);
+          fb.className = "fb good"; fb.textContent = "¡Correcto! " + (q.why || "");
+          if (q.onOk) q.onOk(slot);
+          award(nivel, q.task || q.q, o, tries, true, c);
+          setTimeout(() => { S.p[k] = i + 1; deck(slot, k, nivel, qs, done); }, 1400);
+        } else {
+          c.classList.add("is-bad"); c.disabled = true;
+          if (tries >= 2) {
+            chips.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === q.ok) b.classList.add("is-ok"); });
+            fb.className = "fb bad"; fb.textContent = "The answer is “" + q.ok + "”. " + (q.why || "");
+            award(nivel, q.task || q.q, o, tries, false);
+            setTimeout(() => { S.p[k] = i + 1; deck(slot, k, nivel, qs, done); }, 2400);
+          } else { fb.className = "fb bad"; fb.textContent = "Not quite — try once more. " + (q.hint || ""); }
+        }
+      });
+      chips.append(c);
+    });
+  }
+
+  /* ---- multi-row sentence builder ---- */
+  function builder(slot, k, nivel, rounds, done) {
+    const i = S.p[k] || 0;
+    if (i >= rounds.length) { done(); return; }
+    const R = rounds[i]; let tries = 0; const sel = {};
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${rounds.length}</div><div class="vis">${R.visual}</div><div class="preview"></div><div class="rows"></div><div class="fb" role="status"></div>`;
+    const prev = slot.querySelector(".preview"), rowsEl = slot.querySelector(".rows"), fb = slot.querySelector(".fb");
+    const paintPrev = () => { prev.innerHTML = R.preview(sel); }; paintPrev();
+    const rowEls = {};
+    R.rows.forEach(row => {
+      const wrap = $(`<div><div class="row-label">${row.label}</div><div class="pz-chips"></div></div>`);
+      rowEls[row.id] = wrap.querySelector(".pz-chips");
+      shuffle(row.opts).forEach(o => {
+        const c = $(`<button type="button" class="chip es">${o}</button>`);
+        c.addEventListener("click", () => {
+          if (slot.dataset.locked) return;
+          rowEls[row.id].querySelectorAll("button").forEach(b => b.classList.remove("is-on", "is-bad"));
+          c.classList.add("is-on"); sel[row.id] = o; paintPrev();
+          if (R.rows.every(r => sel[r.id])) check();
+        });
+        rowEls[row.id].append(c);
+      });
+      rowsEl.append(wrap);
+    });
+    function reveal(ok) {
+      slot.dataset.locked = "1";
+      R.rows.forEach(r => rowEls[r.id].querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === r.ans) { b.classList.remove("is-on", "is-bad"); b.classList.add("is-ok"); } }));
+      prev.innerHTML = R.preview(R.rows.reduce((o, r) => (o[r.id] = r.ans, o), {}), true);
+      R.reveal && R.reveal(slot.querySelector(".vis"));
+      award(nivel, R.task, R.rows.map(r => sel[r.id]).join(" "), tries, ok, prev);
+      fb.className = "fb " + (ok ? "good" : "bad");
+      fb.textContent = ok ? "¡Muy bien! " + (R.why || "") : "Here is the full answer. " + (R.why || "");
+      setTimeout(() => { S.p[k] = i + 1; delete slot.dataset.locked; builder(slot, k, nivel, rounds, done); }, ok ? 2000 : 3200);
+    }
+    function check() {
+      tries++;
+      const wrong = R.rows.filter(r => sel[r.id] !== r.ans);
+      if (!wrong.length) { reveal(true); return; }
+      wrong.forEach(r => { rowEls[r.id].querySelectorAll("button.is-on").forEach(b => { b.classList.remove("is-on"); b.classList.add("is-bad"); b.disabled = true; }); delete sel[r.id]; });
+      paintPrev();
+      if (tries >= 2) { reveal(false); return; }
+      fb.className = "fb bad"; fb.textContent = "Check: " + wrong.map(r => r.hint).join(" · ");
+    }
+  }
+
+  /* ================= LEVEL 1: Máquina del Tiempo ================= */
+  function stage1() {
+    const slot = panel("Nivel 1 · Máquina del Tiempo", "Spanish uses special <b>time words</b> for the past: <span class='es'>ayer</span> (yesterday), <span class='es'>anoche</span> (last night), <span class='es'>el año pasado</span> (last year). Is the word about the <b>past</b> or <b>not past</b>? Right answers spin the clock back in time!");
+    const qs = TIMEWORDS.map(([w, en, past]) => ({
+      task: "Past or not: " + w, q: "Is this word about the past?", ok: past ? "Past ⏪" : "Now or future ⏩", opts: ["Past ⏪", "Now or future ⏩"],
+      visual: `<div style="text-align:center">${timeMachine()}<div class="timeword">${w}</div><small>${en}</small></div>`,
+      why: `${w} = ${en}.`, hint: "Think: did it already happen?",
+      onOk: (s) => { if (past) { const t = s.querySelector(".tm"); if (t) { t.classList.add("rew"); } } }
+    }));
+    deck(slot, "tm", "1 Time words", shuffle(qs), () => { slot.innerHTML = `<p class="fb good">¡Nivel 1 completo! Past-time words: ayer, anoche, el año pasado.</p>`; finishStage(slot); });
+  }
+
+  /* ================= LEVEL 2: Pasaporte ================= */
+  function stage2() {
+    const slot = panel("Nivel 2 · Pasaporte (The Big 3)", "Build the past-tense verb for each traveller. Look at <b>who</b> did it (yo, tú, ella, nosotros, ellos…) and pick the matching form of <b>ir</b> (fui…), <b>comer</b> (comí…) or <b>visitar</b> (visité…). Right answers stamp your passport!");
+    const rounds = PASS.map(d => ({
+      task: `${PEOPLE[d.p].es} + ${d.v}`,
+      visual: `<div class="passport"><img src="${PH(d.img)}" alt=""><div class="meta"><small>${d.t}</small><span class="es" style="font-size:1.2rem">${PEOPLE[d.p].es} ${d.v === "ir" ? "(ir)" : "(" + d.v + ")"}</span><small>${d.en}</small></div><div class="stamp">${STOPS[0].n === "" ? "" : "¡VISADO!"}</div></div>`,
+      preview: (s) => `${d.t} (${PEOPLE[d.p].es}) <u>${s.v || "_______"}</u> ${d.tail}.`,
+      rows: [{ id:"v", label:"The past-tense verb", opts:FORMS[d.v], ans:FORMS[d.v][d.p], hint:`“${PEOPLE[d.p].es}” takes the ending “-${endOf(d.v, d.p)}”.` }],
+      why: `${PEOPLE[d.p].es} → ${FORMS[d.v][d.p]}.`,
+      reveal: (v) => { const s = v.querySelector(".stamp"); if (s) s.classList.add("go"); }
+    }));
+    builder(slot, "pas", "2 Passport", rounds, () => { slot.innerHTML = `<p class="fb good">¡Nivel 2 completo! Your passport is full of stamps.</p>`; finishStage(slot); });
+  }
+
+  /* ================= LEVEL 3: ¿Ir o Ser? ================= */
+  function stage3() {
+    const slot = panel("Nivel 3 · ¿Ir o Ser?", "<span class='es'>Fui / fue / fuimos…</span> are the past of <b>two</b> verbs: <b>ir</b> (to go) and <b>ser</b> (to be). The rest of the sentence tells you which. After <b>a + place</b> it means <b>went</b>. Before a <b>describing word</b> it means <b>was / were</b>.");
+    const qs = IRSER.map(d => ({ task: d.s, q: "What does the verb mean here?", visual: `<div style="text-align:center"><div class="preview es">${d.s}</div></div>`, ok: d.ok, opts: ["went", "was", "were"].filter(o => o === d.ok || (d.ok === "were" ? o !== "went" : o !== "were")), why: d.why, hint: "Is there “a” + a place (went), or a describing word (was/were)?" }));
+    deck(slot, "irser", "3 Ir or Ser", qs, () => { slot.innerHTML = `<p class="fb good">¡Nivel 3 completo! Context tells ir and ser apart.</p>`; finishStage(slot); });
+  }
+
+  /* ================= LEVEL 4: Fotos de Viaje ================= */
+  function stage4() {
+    const slot = panel("Nivel 4 · Fotos de Viaje", "Read the Spanish sentence, then <b>tap the real photo</b> that matches it. Find the verb ending — it tells you who did it!");
+    const credit = `<p class="credit" id="c4"></p>`;
+    function round() {
+      const i = S.p.fot || 0;
+      if (i >= PHOTOS4.length) { slot.innerHTML = `<p class="fb good">¡Nivel 4 completo!</p>`; finishStage(slot); return; }
+      const d = PHOTOS4[i]; let tries = 0; const ids = shuffle([d.ok, ...shuffle(Object.keys(PHOTO_EN).filter(x => x !== d.ok && x !== "madrid")).slice(0, 3)]);
+      slot.innerHTML = `<div class="pz-count">${i + 1} / ${PHOTOS4.length}</div><p class="preview es">${d.s}</p><div class="pgrid"></div><div class="fb" role="status"></div>` + credit;
+      const grid = slot.querySelector(".pgrid"), fb = slot.querySelector(".fb");
+      ids.forEach(id => {
+        const b = $(`<button type="button" aria-label="${PHOTO_EN[id]}"><img src="${PH(id)}" alt="${PHOTO_EN[id]}"></button>`);
+        b.addEventListener("click", () => {
+          tries++;
+          if (id === d.ok) { b.classList.add("is-ok"); grid.querySelectorAll("button").forEach(x => x.disabled = true); fb.className = "fb good"; fb.textContent = "¡Correcto! " + PHOTO_EN[id] + "."; award("4 Photos", d.s, PHOTO_EN[id], tries, true, b); setTimeout(() => { S.p.fot = i + 1; round(); }, 1300); }
+          else { b.classList.remove("is-bad"); void b.offsetWidth; b.classList.add("is-bad"); b.disabled = true; fb.className = "fb bad"; fb.textContent = "That is " + PHOTO_EN[id] + " — read the sentence again."; if (tries >= 2) { grid.querySelectorAll("button").forEach(x => x.disabled = true); grid.querySelectorAll("button").forEach(x => { if (x.getAttribute("aria-label") === PHOTO_EN[d.ok]) x.classList.add("is-ok"); }); award("4 Photos", d.s, PHOTO_EN[id], tries, false); setTimeout(() => { S.p.fot = i + 1; round(); }, 2300); } }
+        });
+        grid.append(b);
+      });
+    }
+    round();
+  }
+
+  /* ================= LEVEL 5: Mi Diario ================= */
+  function stage5() {
+    const slot = panel("Nivel 5 · Mi Diario", "Write your travel diary in Spanish! Read the English, then pick the <b>time word</b> and the <b>past-tense verb</b>. Surprise: <span class='es'>llevar</span> (Unit 7: wear) and <span class='es'>comprar</span> (buy) use the <b>same -AR endings</b> as visitar. Right answers pack your suitcase!");
+    const rounds = DIARY.map(d => {
+      const subj = d.p === 2 || d.p === 5 || d.p === 3 ? "" : "";
+      return {
+        task: d.en,
+        visual: `<div style="text-align:center;width:100%"><p class="es" style="font-size:1.1rem;margin:.2em 0">“${d.en}”</p><div class="suit"><div class="case"></div></div><div style="display:flex;justify-content:center;gap:.5em;margin-top:.4em">${img(d.clo ? CLO(d.img) : PH(d.img), 84, 84)}</div></div>`,
+        preview: (s) => `<u>${s.t || "_____"}</u> (${PEOPLE[d.p].es}) <u>${s.v || "_____"}</u> ${d.tail}.`,
+        rows: [
+          { id:"t", label:"1. The time word", opts:TIMEOPTS, ans:d.t, hint:`the English says “${d.en.split(" ").slice(0, d.t.split(" ").length).join(" ")}”.` },
+          { id:"v", label:"2. The past-tense verb (" + d.v + ")", opts:FORMS[d.v], ans:FORMS[d.v][d.p], hint:`“${PEOPLE[d.p].es}” takes the ending “-${endOf(d.v, d.p)}”.` }
+        ],
+        why: `${d.t} ${FORMS[d.v][d.p]} ${d.tail}.`,
+        reveal: (v) => { const s = v.querySelector(".suit"); if (s) { const im = document.createElement("img"); im.src = d.clo ? CLO(d.img) : PH(d.img); im.alt = ""; s.append(im); } }
+      };
+    });
+    builder(slot, "dia", "5 Diary", rounds, () => { slot.innerHTML = `<p class="fb good">¡Nivel 5 completo! Your suitcase is packed.</p>`; finishStage(slot); });
+  }
+
+  /* ================= LEVEL 6: El Chat ================= */
+  function stage6() {
+    const slot = panel("Nivel 6 · El Chat", "Rebuild a chat with a friend about a trip. Tap the line that comes <b>next</b>. Use “Show English” if you need help.");
+    S.p.chat = S.p.chat || 0; let mistakes = 0;
+    function paint() {
+      const n = S.p.chat;
+      slot.innerHTML = `<label><input type="checkbox" id="en"> Show English</label><div class="chat"></div><p class="pz-count">Lines left: ${CHAT.length - n}</p><div class="pool"></div><div class="fb" role="status"></div>`;
+      const chat = slot.querySelector(".chat"), pool = slot.querySelector(".pool"), fb = slot.querySelector(".fb");
+      slot.querySelector("#en").addEventListener("change", e => slot.classList.toggle("show-en", e.target.checked));
+      const line = (l) => `<div class="bubble ${l.who}"><small>${l.who === "c" ? "Amigo/a" : "Tú"}</small>${l.es}<div class="en">${l.en}</div></div>`;
+      CHAT.slice(0, n).forEach(l => chat.append($(line(l))));
+      if (n >= CHAT.length) { pool.remove(); fb.className = "fb good"; fb.textContent = "¡Conversación completa! Perfect."; finishStage(slot); return; }
+      shuffle(CHAT.slice(n).map((l, i) => ({ l, idx: n + i }))).forEach(({ l, idx }) => {
+        const b = $(`<button type="button" class="chip es">${l.who === "c" ? "Amigo/a" : "Tú"}: ${l.es}</button>`);
+        b.addEventListener("click", () => {
+          if (idx === n) { award("6 Chat", "Line " + (n + 1) + " of the chat", l.es, mistakes ? 2 : 1, true, b); mistakes = 0; S.p.chat++; paint(); }
+          else { mistakes++; b.classList.remove("is-bad"); void b.offsetWidth; b.classList.add("is-bad"); fb.className = "fb bad"; fb.textContent = "Not yet — a question gets an answer, and the story goes in order: where, what you visited, what you ate."; }
+        });
+        pool.append(b);
+      });
+    }
+    paint();
+  }
+
+  /* ================= LEVEL 7: La Postal ================= */
+  function stage7() {
+    const slot = panel("Nivel 7 · La Postal", "Read the postcard. <b>Tap a sentence</b> to see the English. Then answer three questions.");
+    slot.innerHTML = `<div class="postcard"><img src="${PH("sagrada")}" alt="The Sagrada Família in Barcelona"><div>${POST.map((s, n) => `<span class="s" data-n="${n}">${s.es}</span>`).join(" ")}</div></div><div class="blog-en">Tap a sentence to read the English.</div><div class="qs"></div><p class="credit" id="c7"></p>`;
+    slot.querySelectorAll(".postcard .s").forEach(s => s.addEventListener("click", () => { slot.querySelector(".blog-en").textContent = POST[+s.dataset.n].en; }));
+    const qs = slot.querySelector(".qs");
+    deck(qs, "post", "7 Reading", POSTQ.map(q => ({ task: q.q, q: q.q, ok: q.ok, opts: q.opts, why: q.why })), () => { qs.innerHTML = `<p class="fb good">¡Nivel 7 completo!</p>`; finishStage(qs); });
+  }
+
+  function finale() {
+    body.innerHTML = `<div class="done-card"><h3>¡Diario completo!</h3><div class="big">${rankFor(S.xp)}</div><p>${S.xp} XP · best streak ${S.best} · ${S.firstTry}/${S.answered} correct first time</p><p>Now ride the bonus train below, then check your Record and keep going to <b>Explain</b>.</p></div>`;
+    bonusSection();
+  }
+  function paint() {
+    body.innerHTML = ""; hud();
+    const SG = [stage1, stage2, stage3, stage4, stage5, stage6, stage7];
+    if (S.stage < SG.length) SG[S.stage](); else finale();
+  }
+
+  /* ================= BONUS: Expreso del Pasado (3D steer-through-the-answer runner) ================= */
+  function bonusSection() {
+    const box = host.querySelector("#bonus");
+    if (box.dataset.on) return; box.dataset.on = 1;
+    box.innerHTML = `<div class="pz-panel"><h3 class="pz-title">🚆 Bonus game: El Expreso del Pasado (no marks — just fun!)</h3>
+      <p>Ride a 3D train for 2 minutes. A sentence appears with a gap — <b>steer into the lane</b> with the correct past-tense verb before the gate arrives. Arrow keys / A-D, keys 1-3, or the big buttons. Nothing can hurt you — a wrong lane just shows the right answer and a memory hook.</p>
+      <button type="button" class="btn btn--signal" id="pq">Play El Expreso</button> <button type="button" class="btn" id="sk">Skip</button></div>`;
+    box.querySelector("#sk").onclick = () => { box.innerHTML = ""; };
+    box.querySelector("#pq").onclick = () => express(box);
+  }
+  async function express(box) {
+    const DUR = 120000, GATE = 7000, FLY = 6500, COLS = ["#2d62c8", "#d2562b", "#2e8b57"], COLH = [0x2d62c8, 0xd2562b, 0x2e8b57];
+    let THREE = null; try { THREE = await loadThree(); } catch (e) {}
+    let ok3d = false; if (THREE) { const t = document.createElement("canvas"); ok3d = !!(t.getContext("webgl") || t.getContext("experimental-webgl")); }
+    const C = (h) => THREE ? new THREE.Color(h).convertSRGBToLinear() : h; const bank = shuffle(EXQ); let qn = 0; let lane = 1, laneVis = 1, score = 0, streak = 0, best = 0, right = 0, total = 0;
+    box.innerHTML = `<div class="ex"><h3>El Expreso del Pasado</h3><div class="ex-hud"><span>Time <b id="tm">2:00</b></span><span>Score <b id="sc">0</b></span><span>🔥 <b id="sk2">0</b></span></div><div class="ex-q" id="q"></div><div class="ex-stage" id="stage"></div><div class="ex-btns" id="btns"></div><div class="ex-msg" id="msg" role="status">Steer with ← → or tap a lane.</div><button type="button" class="btn" id="quit">End game</button></div>`;
+    const el = (s) => box.querySelector(s), qEl = el("#q"), stage = el("#stage"), btns = el("#btns"), msg = el("#msg");
+    let cur = null, order = [], resolved = -1, over = false;
+    const makeQ = (n) => { const b = bank[n % bank.length]; const opts = shuffle(b.o.map((t, i) => ({ t, ok: i === 0 }))); return { b, opts, ans: opts.findIndex(o => o.ok) }; };
+    const qs = []; const getQ = (n) => qs[n] || (qs[n] = makeQ(n));
+    function setLane(l) { lane = Math.max(0, Math.min(2, l)); btns.querySelectorAll("button").forEach((b, i) => b.classList.toggle("sel", i === lane)); }
+    function paintQ(n) { const Q = getQ(n); cur = Q; qEl.innerHTML = `<img src="${Q.b.clo ? CLO(Q.b.img) : PH(Q.b.img)}" alt=""><div><span class="es">${Q.b.es}</span><small>${Q.b.en}</small></div>`; btns.innerHTML = ""; Q.opts.forEach((o, i) => { const b = $(`<button type="button" style="background:${COLS[i]}">${i + 1} · ${o.t}</button>`); b.onclick = () => setLane(i); btns.append(b); }); setLane(lane); if (gates) gates.setQ(Q); }
+    /* 3D */
+    let gates = null, renderer = null, raf = 0, parts = [];
+    const t0 = Date.now(); const now = () => Date.now() - t0;
+    if (ok3d) {
+      const w = stage.clientWidth || 600, h = stage.clientHeight || 260;
+      renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(w, h);
+      if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      stage.append(renderer.domElement);
+      const scene = new THREE.Scene(); scene.background = C(0x8ecbff); scene.fog = new THREE.Fog(C(0x8ecbff), 25, 75);
+      const cam = new THREE.PerspectiveCamera(60, w / h, .1, 120); cam.position.set(0, 3.2, 7); cam.lookAt(0, 1, -8);
+      scene.add(new THREE.HemisphereLight(0xffffff, C(0x88aa66), .9)); const sun = new THREE.DirectionalLight(0xfff2cc, 1.4); sun.position.set(6, 12, 4); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -15, right: 15, top: 15, bottom: -30 }); scene.add(sun);
+      const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 200), new THREE.MeshStandardMaterial({ color: C(0x5aa04a), roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.position.z = -60; ground.receiveShadow = true; scene.add(ground);
+      const trackC = document.createElement("canvas"); trackC.width = 64; trackC.height = 256; { const g = trackC.getContext("2d"); g.fillStyle = "#555a63"; g.fillRect(0, 0, 64, 256); g.fillStyle = "#ffffffaa"; [21, 43].forEach(x => { for (let y = 0; y < 256; y += 64) g.fillRect(x - 1, y, 3, 32); }); }
+      const trackT = new THREE.CanvasTexture(trackC); trackT.wrapS = trackT.wrapT = THREE.RepeatWrapping; trackT.repeat.set(1, 20); if ("encoding" in trackT) trackT.encoding = THREE.sRGBEncoding;
+      const track = new THREE.Mesh(new THREE.PlaneGeometry(9, 200), new THREE.MeshStandardMaterial({ map: trackT, roughness: .9 })); track.rotation.x = -Math.PI / 2; track.position.set(0, .01, -60); track.receiveShadow = true; scene.add(track);
+      const side = []; for (let i = 0; i < 24; i++) { const g = new THREE.Group(); const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.15, .2, 1.4, 6), new THREE.MeshStandardMaterial({ color: C(0x6b4423) })); trunk.position.y = .7; const top = new THREE.Mesh(new THREE.ConeGeometry(.9, 2.2, 8), new THREE.MeshStandardMaterial({ color: C(0x2f7d3a) })); top.position.y = 2.4; trunk.castShadow = top.castShadow = true; g.add(trunk, top); g.userData.z = -i * 5; g.userData.x = (i % 2 ? 1 : -1) * (6 + Math.random() * 6); g.position.set(g.userData.x, 0, g.userData.z); scene.add(g); side.push(g); }
+      const mt = new THREE.Mesh(new THREE.ConeGeometry(18, 14, 5), new THREE.MeshStandardMaterial({ color: C(0x7a8fa6), flatShading: true })); mt.position.set(-22, 5, -70); scene.add(mt); const mt2 = mt.clone(); mt2.position.set(20, 3, -75); mt2.scale.set(1.2, .8, 1); scene.add(mt2);
+      const train = new THREE.Group(); const bodyM = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 3), new THREE.MeshPhysicalMaterial({ color: C(0xd2562b), roughness: .35, clearcoat: .8 })); bodyM.position.y = 1; bodyM.castShadow = true; const cab = new THREE.Mesh(new THREE.BoxGeometry(1.5, .8, 1.2), new THREE.MeshPhysicalMaterial({ color: C(0x0e3a5f), roughness: .3 })); cab.position.set(0, 2, .6); const nose = new THREE.Mesh(new THREE.CylinderGeometry(.5, .7, 1, 12), new THREE.MeshStandardMaterial({ color: C(0xffd27a) })); nose.rotation.x = Math.PI / 2; nose.position.set(0, 1, -1.8); train.add(bodyM, cab, nose); for (let i = 0; i < 4; i++) { const wh = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, .2, 12), new THREE.MeshStandardMaterial({ color: C(0x222222) })); wh.rotation.z = Math.PI / 2; wh.position.set(i % 2 ? .8 : -.8, .35, i < 2 ? -1 : 1); train.add(wh); } scene.add(train);
+      const mkLabel = (t, col) => { const c = document.createElement("canvas"); c.width = 256; c.height = 192; const g = c.getContext("2d"); g.fillStyle = col; g.fillRect(0, 0, 256, 192); g.fillStyle = "#fff"; g.font = "800 46px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t, 128, 96, 232); const tx = new THREE.CanvasTexture(c); if ("encoding" in tx) tx.encoding = THREE.sRGBEncoding; return tx; };
+      const gateG = new THREE.Group(); const panels = []; for (let i = 0; i < 3; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2, .25), new THREE.MeshStandardMaterial({ color: C(0xffffff) })); m.position.set((i - 1) * 3, 1.6, 0); m.castShadow = true; gateG.add(m); panels.push(m); const p1 = new THREE.Mesh(new THREE.BoxGeometry(.2, 2.6, .2), new THREE.MeshStandardMaterial({ color: C(0x333a44) })); p1.position.set((i - 1) * 3 - 1.4, 1.3, 0); gateG.add(p1); } scene.add(gateG); gateG.visible = false;
+      gates = { setQ(Q) { panels.forEach((m, i) => { if (m.material.map) m.material.map.dispose(); m.material.map = mkLabel(Q.opts[i].t, COLS[i]); m.material.needsUpdate = true; }); } };
+      const burstPts = (x, good) => { const n = 40, p = new Float32Array(n * 3), v = []; for (let i = 0; i < n; i++) { p[i * 3] = x; p[i * 3 + 1] = 1.6; p[i * 3 + 2] = 0; v.push(new THREE.Vector3((Math.random() - .5) * 6, Math.random() * 5, (Math.random() - .5) * 6)); } const gm = new THREE.BufferGeometry(); gm.setAttribute("position", new THREE.BufferAttribute(p, 3)); const pts = new THREE.Points(gm, new THREE.PointsMaterial({ color: good ? 0xffd27a : 0xcfd6e0, size: .22 })); scene.add(pts); parts.push({ pts, v, t: 0 }); };
+      gates.burst = burstPts;
+      let last = performance.now(); const sw = () => reduced() ? 0 : 1;
+      const frame = (tn) => {
+        if (over) return; raf = requestAnimationFrame(frame); const dt = Math.min(.05, (tn - last) / 1000); last = now(); last = tn;
+        const t = now(), k = Math.floor(t / GATE), ph = (t - k * GATE) / FLY;
+        laneVis += (lane - laneVis) * Math.min(1, dt * 8); train.position.x = (laneVis - 1) * 3; train.rotation.z = -(lane - laneVis) * .12 * sw();
+        trackT.offset.y = -(t / 1000) * 3.2; side.forEach(s => { s.userData.z += dt * 12; if (s.userData.z > 8) s.userData.z -= 120; s.position.z = s.userData.z; });
+        gateG.visible = ph <= 1.08; gateG.position.z = -65 + 65 * Math.min(ph, 1.08);
+        cam.position.x = train.position.x * .35 + Math.sin(t / 900) * .1 * sw(); cam.position.y = 3.2 + Math.sin(t / 500) * .05 * sw(); cam.lookAt(train.position.x * .4, 1, -8);
+        parts = parts.filter(p => { p.t += dt; const a = p.pts.geometry.attributes.position; for (let i = 0; i < p.v.length; i++) { a.array[i * 3] += p.v[i].x * dt; a.array[i * 3 + 1] += (p.v[i].y -= 9 * dt) * dt; a.array[i * 3 + 2] += p.v[i].z * dt; } a.needsUpdate = true; if (p.t > 1) { scene.remove(p.pts); p.pts.geometry.dispose(); return false; } return true; });
+        renderer.render(scene, cam);
+      };
+      raf = requestAnimationFrame(frame);
+      const onResize = () => { const ww = stage.clientWidth, hh = stage.clientHeight; if (ww && hh) { renderer.setSize(ww, hh); cam.aspect = ww / hh; cam.updateProjectionMatrix(); } }; addEventListener("resize", onResize); gates.off = () => removeEventListener("resize", onResize);
+    } else { stage.innerHTML = `<div class="ex-flat">Your device cannot show the 3D train — the game still works: pick the lane (1, 2 or 3) before the timer bar fills.</div>`; }
+    function hud() { const left = Math.max(0, DUR - now()); el("#tm").textContent = Math.floor(left / 60000) + ":" + String(Math.floor(left % 60000 / 1000)).padStart(2, "0"); el("#sc").textContent = score; el("#sk2").textContent = streak; }
+    function resolveGate(n) {
+      const Q = getQ(n), good = lane === Q.ans; total++;
+      if (good) { right++; streak++; best = Math.max(best, streak); score += 10 + Math.min(streak, 5) * 2; msg.textContent = "¡Sí! " + Q.opts[Q.ans].t + " ✓ " + Q.b.hook; msg.style.color = "#8be29d"; }
+      else { streak = 0; msg.textContent = "Answer: " + Q.opts[Q.ans].t + " · " + Q.b.hook; msg.style.color = "#ffd27a"; }
+      if (gates && gates.burst && !reduced()) gates.burst((laneVis - 1) * 3, good);
+      hud();
+    }
+    function finish() {
+      if (over) return; over = true; clearInterval(tick); cancelAnimationFrame(raf); removeEventListener("keydown", onKey);
+      if (renderer) { renderer.dispose(); } if (gates && gates.off) gates.off();
+      const acc = total ? Math.round(right / total * 100) : 0;
+      box.innerHTML = `<div class="ex"><h3>¡Fin del viaje!</h3><p>Score <b>${score}</b> · ${right}/${total} correct (${acc}%) · best streak ${best}</p><p>${acc >= 70 ? "¡Excelente! You really know the past tense." : "Good ride! Play again to lock in the endings."}</p><button type="button" class="btn btn--signal" id="ag">Play again</button> <button type="button" class="btn" id="dn">Continue</button></div>`;
+      box.querySelector("#ag").onclick = () => express(box); box.querySelector("#dn").onclick = () => { box.innerHTML = ""; box.dataset.on = ""; bonusSection(); sim.toast(`El Expreso: score ${score}, ${acc}% accuracy.`, "info"); };
+    }
+    const onKey = (e) => { if (over) return; if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return; if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { e.preventDefault(); setLane(lane - 1); } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { e.preventDefault(); setLane(lane + 1); } else if (["1", "2", "3"].includes(e.key)) { setLane(+e.key - 1); } };
+    addEventListener("keydown", onKey);
+    el("#quit").onclick = finish;
+    paintQ(0);
+    const tick = setInterval(() => {
+      if (over) return; if (!document.body.contains(box.querySelector("#q") || document.body)) { }
+      const t = now(); const n = Math.floor(t / GATE);
+      if (t >= DUR) { finish(); return; }
+      if (n !== qn) { qn = n; paintQ(qn); msg.style.color = "#ffd27a"; }
+      if (t - n * GATE >= FLY && resolved < n) { resolved = n; resolveGate(n); }
+      hud();
+    }, 100);
+  }
+
+  paint();
+  fetch("photos/credits.json").then(r => r.json()).then(c => {
+    const d = document.createElement("details"); d.className = "credit"; d.style.marginTop = "var(--sp-4)";
+    d.innerHTML = "<summary>Photo credits (Wikimedia Commons)</summary>" + Object.entries(c).map(([k, v]) => `<div>${k}: <a href="${v.page}" target="_blank" rel="noopener noreferrer">${v.file.replace("File:", "")}</a> — ${v.author || "unknown author"}, ${v.license}</div>`).join("") + `<div>Clothing photos: see <code>photos/clothes/credits.json</code> (also Wikimedia Commons).</div><div>The globe is a stylised drawing, not a map.</div>`;
+    host.append(d);
+  }).catch(() => {});
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
