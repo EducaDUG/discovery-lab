@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Chocolate Workshop — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.cw-st{position:relative;padding:18px;overflow:hidden}
+.cw-f sup,.cw-f sub{font-size:.62em;line-height:0}
+.cw-order{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:1.1em;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,#fff3dc,#ffe2b0);border:2px solid #b4741f;color:#4a2a0e;margin:6px 0 12px}
+.cw-order strong{font-size:1.25em}
+.cw-grid2{display:grid;grid-template-columns:3fr 2fr;gap:14px;align-items:center}
+@media(max-width:700px){.cw-grid2{grid-template-columns:1fr}}
+.cw-3d{min-height:240px;border-radius:14px;background:#1d120c;overflow:hidden;position:relative}
+.cw-3d .cw-note{color:#f3d9b0;padding:16px;font-size:.95em}
+.cw-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:12px 0}
+.cw-in{width:84px;font-size:1.3em;text-align:center;padding:6px;border:2px solid var(--accent);border-radius:10px}
+.cw-fb{min-height:44px;text-align:center;margin-top:6px}
+.cw-ok{color:#047857;font-weight:700}.cw-no{color:#b91c1c;font-weight:700}
+.cw-hud{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.cw-chip{padding:5px 12px;border-radius:999px;font-weight:700;font-size:.9em;background:linear-gradient(135deg,#5a2e1b,#8a4a26);color:#ffe9c4}
+.cw-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.cw-tabs .btn{font-size:.9em;min-height:44px}
+.cw-tabs .btn[aria-pressed=true]{border-color:var(--accent);font-weight:800;box-shadow:0 0 0 2px var(--accent) inset}
+.cw-photo{position:relative;max-width:760px;margin:8px auto;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(60,30,10,.35)}
+.cw-photo img{display:block;width:100%;height:auto}
+.cw-photo svg{position:absolute;inset:0;width:100%;height:100%}
+.cw-photo .cell{fill:rgba(255,255,255,0);stroke:rgba(255,255,255,.0);cursor:pointer;transition:fill .15s}
+.cw-photo .cell:hover,.cw-photo .cell:focus{fill:rgba(255,210,90,.28);outline:none}
+.cw-photo .cell.on{fill:rgba(255,190,40,.45);stroke:#ffd25a;stroke-width:5}
+.cw-photo .cell.col{fill:rgba(255,190,40,.18);stroke:#ffd25a;stroke-width:4}
+.cw-credit{font-size:.8em;color:var(--ink-3);text-align:center}
+.cw-opts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.cw-opts .btn{min-width:96px;font-size:1.15em;min-height:48px}
+.cw-dials{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+@media(max-width:600px){.cw-dials{grid-template-columns:1fr}}
+.cw-dial{border:2px solid #b4741f;border-radius:12px;padding:10px 14px;background:#fff8ea}
+.cw-dial label{font-weight:700;display:flex;justify-content:space-between}
+.cw-dial input[type=range]{width:100%}
+.cw-eq{font-size:1.4em;font-weight:800;text-align:center;margin:8px 0;color:#4a2a0e}
+.cw-pizza{max-width:260px;margin:0 auto;display:block}
+.cw-launch{text-align:center;padding:24px;border:2px dashed var(--accent);border-radius:14px}
+.shake{animation:cwshake .3s}
+@keyframes cwshake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+[data-reduced-motion=on] .shake{animation:none}
+.cw-big{font-size:1.5em;font-weight:800;color:var(--accent)}
+.cw-dialbig{display:flex;align-items:center;gap:12px;justify-content:center}
+.cw-dialbig .val{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2em;font-weight:900;color:#ffe9c4;background:radial-gradient(circle at 30% 30%,#a8642f,#4a2a0e);border:4px solid #f5b73b;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=20";
+import { getLang } from "../../../../../engine/i18n.js?v=9";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+const THREE_URL = "../../../../../engine/vendor/three.min.js";
+const F = (n, d) => `<span class="cw-f"><sup>${n}</sup>⁄<sub>${d}</sub></span>`;
+const fp = (n, d) => `${n}/${d}`;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+let threeP = null;
+const loadThree = () => threeP || (threeP = window.THREE ? Promise.resolve(window.THREE) : new Promise((res, rej) => {
+  const s = document.createElement("script"); s.src = THREE_URL; s.onload = () => res(window.THREE); s.onerror = () => rej(new Error("three")); document.head.append(s);
+}));
+const webglOK = () => { try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch (e) { return false; } };
+
+function burst(container, x, y, color) {
+  if (REDUCED()) return;
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement("span");
+    p.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:9px;height:9px;margin:-4px;border-radius:50%;background:${color};pointer-events:none;z-index:5`;
+    container.appendChild(p);
+    const ang = Math.random() * Math.PI * 2, dist = 24 + Math.random() * 50;
+    p.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist}px) scale(.2)`, opacity: 0 }], { duration: 450 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+const shakeEl = el => { if (!el) return; el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); };
+
+/* ─────────── 2D chocolate bar diagram (companion + fallback) ─────────── */
+function barSVG(n, k, { cut = false, numbers = false } = {}) {
+  const w = 360, H = 100, x0 = 8, y0 = 8, bw = w - 16, cw = bw / n, rows = cut ? k : 1, rh = H / rows;
+  let s = `<svg viewBox="0 0 ${w} ${H + 16}" style="width:100%;max-width:${w}px;display:block;margin:auto" role="img" aria-label="${L(`A chocolate bar in ${n} equal columns; the first column is ${fp(1, n)} of the bar` + (cut ? `, cut into ${k} equal pieces. The whole bar has ${n * k} equal pieces.` : "."), `Una barra de chocolate en ${n} columnas iguales; la primera columna es ${fp(1, n)} de la barra` + (cut ? `, cortada en ${k} piezas iguales. La barra entera tiene ${n * k} piezas iguales.` : "."))}">
+  <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4425"/><stop offset="1" stop-color="#4b2815"/></linearGradient>
+  <linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8642f"/><stop offset="1" stop-color="#6e3a18"/></linearGradient>
+  <linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd86b"/><stop offset="1" stop-color="#d9962a"/></linearGradient></defs>
+  <rect x="${x0 - 4}" y="${y0 - 4}" width="${bw + 8}" height="${H + 8}" rx="10" fill="#2b170c"/>`;
+  for (let i = 0; i < n; i++) for (let r = 0; r < rows; r++) {
+    const sel = i === 0, ans = sel && r === 0 && cut;
+    s += `<rect x="${x0 + i * cw + 1.5}" y="${y0 + r * rh + 1.5}" width="${cw - 3}" height="${rh - 3}" rx="4" fill="url(#${ans ? "gg" : sel ? "gs" : "gc"})" stroke="#2b170c" stroke-width="1"/>`;
+    s += `<rect x="${x0 + i * cw + cw * .16}" y="${y0 + r * rh + rh * .18}" width="${cw * .68}" height="${rh * .64}" rx="3" fill="none" stroke="rgba(255,235,200,.22)" stroke-width="1.2"/>`;
+    if (numbers && cut) s += `<text x="${x0 + i * cw + cw / 2}" y="${y0 + r * rh + rh / 2 + 4}" text-anchor="middle" font-size="${Math.min(15, cw * .42, rh * .55)}" font-weight="800" fill="#fff2d6">${r * n + i + 1}</text>`;
+  }
+  s += `<rect x="${x0 + 1}" y="${y0 + 1}" width="${cw - 2}" height="${H - 2}" rx="5" fill="none" stroke="#ffd25a" stroke-width="3"/>`;
+  return s + `</svg>`;
+}
+
+/* ─────────── Procedural textures ─────────── */
+function canvasTex(T, size, draw) {
+  const c = document.createElement("canvas"); c.width = c.height = size; draw(c.getContext("2d"), size);
+  const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.wrapS = t.wrapT = T.RepeatWrapping; return t;
+}
+const chocTex = T => canvasTex(T, 256, (g, s) => {
+  g.fillStyle = "#4b2a18"; g.fillRect(0, 0, s, s);
+  for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(${Math.random() < .5 ? "255,225,190" : "0,0,0"},${Math.random() * .06})`; g.fillRect(Math.random() * s, Math.random() * s, 1 + Math.random() * 4, 1 + Math.random() * 4); }
+});
+const woodTex = T => { const t = canvasTex(T, 512, (g, s) => {
+  for (let p = 0; p < 6; p++) { const x = p * s / 6; g.fillStyle = `hsl(${24 + Math.random() * 6},${38 + Math.random() * 10}%,${30 + Math.random() * 8}%)`; g.fillRect(x, 0, s / 6, s);
+    for (let i = 0; i < 70; i++) { g.strokeStyle = `rgba(30,12,2,${Math.random() * .22})`; g.lineWidth = Math.random() * 1.6; g.beginPath(); const gx = x + Math.random() * s / 6; g.moveTo(gx, 0); for (let y = 0; y <= s; y += 32) g.lineTo(gx + Math.sin(y * .04 + p) * 3, y); g.stroke(); }
+    g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(x, 0, 2, s); }
+}); t.repeat.set(2, 2); return t; };
+
+/* ─────────── The 3D bench (shared by stations 1, 4 and the bonus) ─────────── */
+class BarScene {
+  constructor(T, host) {
+    this.T = T; this.host = host; this.dead = false; this.t0 = performance.now(); this.drag = null; this.lastUser = 0;
+    this.W = 4.8; this.D = 2.4; this.H = 0.34; this.n = 4; this.k = 1; this.punchV = 0;
+    const w = host.clientWidth || 560, h = Math.round(Math.min(380, Math.max(250, w * .5)));
+    const r = this.r = new T.WebGLRenderer({ antialias: true });
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); r.setSize(w, h);
+    r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+    r.outputEncoding = T.sRGBEncoding; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.1;
+    const cv = r.domElement; cv.style.cssText = "display:block;width:100%;touch-action:none;cursor:grab"; cv.tabIndex = 0;
+    cv.setAttribute("role", "img"); cv.setAttribute("aria-label", L("3D chocolate bar on a wooden bench. Drag or use the arrow keys to look around.", "Barra de chocolate 3D sobre un banco de madera. Arrastra o usa las flechas para mirar alrededor."));
+    host.innerHTML = ""; host.appendChild(cv);
+    const sc = this.scene = new T.Scene(); sc.background = new T.Color(0x1d120c); sc.fog = new T.Fog(0x1d120c, 10, 20);
+    this.cam = new T.PerspectiveCamera(38, w / h, .1, 60);
+    this.az = 0; this.el = .82; this.dist = 6.9;
+    sc.add(new T.HemisphereLight(0xffe7c8, 0x2a1608, .75));
+    const sun = new T.DirectionalLight(0xfff0d6, 1.35); sun.position.set(3.5, 7, 4); sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024); const sh = sun.shadow.camera; sh.left = -6; sh.right = 6; sh.top = 5; sh.bottom = -5; sh.near = 1; sh.far = 20; sun.shadow.bias = -.0006;
+    sc.add(sun);
+    const rim = new T.PointLight(0xffa24a, .8, 14); rim.position.set(-4, 2.2, -3); sc.add(rim);
+    const table = new T.Mesh(new T.PlaneGeometry(30, 20), new T.MeshStandardMaterial({ map: woodTex(T), roughness: .62, metalness: 0 }));
+    table.rotation.x = -Math.PI / 2; table.receiveShadow = true; sc.add(table);
+    const board = new T.Mesh(new T.BoxGeometry(this.W + 1.1, .08, this.D + 1.1), new T.MeshStandardMaterial({ color: 0xe8d3a8, roughness: .8 }));
+    board.position.y = .04; board.receiveShadow = true; board.castShadow = true; sc.add(board); this.boardTop = .08;
+    const ct = chocTex(T);
+    this.mat = {
+      choc: new T.MeshPhysicalMaterial({ color: 0x6b3a1f, map: ct, roughness: .38, clearcoat: .55, clearcoatRoughness: .3 }),
+      lite: new T.MeshPhysicalMaterial({ color: 0x7e4a28, map: ct, roughness: .3, clearcoat: .7, clearcoatRoughness: .25 }),
+      sel: new T.MeshPhysicalMaterial({ color: 0x9a5a2c, map: ct, roughness: .3, clearcoat: .7, emissive: 0x4a2c00, emissiveIntensity: .55 }),
+      ans: new T.MeshPhysicalMaterial({ color: 0xc98a2c, map: ct, roughness: .25, clearcoat: .9, emissive: 0xb07a00, emissiveIntensity: .8 }),
+      knife: new T.MeshStandardMaterial({ color: 0xdfe5ee, metalness: .55, roughness: .22, emissive: 0x222a33, emissiveIntensity: .5 }),
+      groove: new T.MeshBasicMaterial({ color: 0x140903 })
+    };
+    this.unit = new T.BoxGeometry(1, 1, 1);
+    this.bar = new T.Group(); sc.add(this.bar); this.fx = new T.Group(); sc.add(this.fx);
+    const kn = this.knife = new T.Group();
+    const blade = new T.Mesh(this.unit, this.mat.knife); blade.scale.set(1.6, 1.1, .035); blade.position.y = .55; blade.castShadow = true;
+    const hd = new T.Mesh(this.unit, new T.MeshStandardMaterial({ color: 0x2a1a10, roughness: .6 })); hd.scale.set(1.5, .22, .14); hd.position.y = 1.2;
+    kn.add(blade, hd); kn.visible = false; sc.add(kn);
+    // ambient cocoa dust
+    const N = 80, pp = new Float32Array(N * 3); for (let i = 0; i < N; i++) { pp[i * 3] = rnd(-5, 5); pp[i * 3 + 1] = rnd(.3, 4); pp[i * 3 + 2] = rnd(-3.5, 3.5); }
+    this.dustG = new T.BufferGeometry(); this.dustG.setAttribute("position", new T.BufferAttribute(pp, 3));
+    sc.add(new T.Points(this.dustG, new T.PointsMaterial({ color: 0xffd9a0, size: .045, transparent: true, opacity: .55, depthWrite: false, blending: T.AdditiveBlending })));
+    // crumb pool
+    this.CN = 60; this.cp = new Float32Array(this.CN * 3); this.cv = new Float32Array(this.CN * 3); this.cl = new Float32Array(this.CN);
+    this.crumbG = new T.BufferGeometry(); this.crumbG.setAttribute("position", new T.BufferAttribute(this.cp, 3));
+    this.crumbM = new T.PointsMaterial({ color: 0x8a4a22, size: .07, transparent: true, opacity: 1, depthWrite: false });
+    sc.add(new T.Points(this.crumbG, this.crumbM)); this.cp.fill(-50);
+    // input
+    const down = e => { this.drag = { x: e.clientX, y: e.clientY, az: this.az, el: this.el }; cv.style.cursor = "grabbing"; try { cv.setPointerCapture(e.pointerId); } catch (_) {} };
+    const move = e => { if (!this.drag) return; this.az = Math.max(-1.2, Math.min(1.2, this.drag.az - (e.clientX - this.drag.x) * .006)); this.el = Math.max(.35, Math.min(1.3, this.drag.el + (e.clientY - this.drag.y) * .005)); this.lastUser = performance.now(); };
+    const up = () => { this.drag = null; cv.style.cursor = "grab"; };
+    cv.addEventListener("pointerdown", down); cv.addEventListener("pointermove", move); cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+    cv.addEventListener("keydown", e => {
+      const m = { ArrowLeft: [.12, 0], ArrowRight: [-.12, 0], ArrowUp: [0, -.08], ArrowDown: [0, .08] }[e.key]; if (!m) return;
+      e.preventDefault(); this.az = Math.max(-1.2, Math.min(1.2, this.az + m[0])); this.el = Math.max(.35, Math.min(1.3, this.el + m[1])); this.lastUser = performance.now();
+    });
+    this.ro = new ResizeObserver(() => { const w2 = host.clientWidth; if (!w2 || this.dead) return; const h2 = Math.round(Math.min(380, Math.max(250, w2 * .5))); r.setSize(w2, h2); this.cam.aspect = w2 / h2; this.cam.updateProjectionMatrix(); });
+    this.ro.observe(host);
+    this.setBar(4, 1);
+    this.last = performance.now(); this.loop = this.loop.bind(this); this.raf = requestAnimationFrame(this.loop);
+  }
+  tileMesh(cw, cd, mat, inset) {
+    const T = this.T, g = new T.Group(), inner = new T.Group();
+    const b = new T.Mesh(this.unit, mat); b.scale.set(cw, this.H, cd); b.castShadow = true; b.receiveShadow = true;
+    const t = new T.Mesh(this.unit, inset); t.scale.set(cw * .72, .05, cd * .7); t.position.y = this.H / 2 + .005; t.castShadow = true;
+    inner.add(b, t); g.add(inner); g.userData.inner = inner; return g;
+  }
+  clearBar() { while (this.bar.children.length) this.bar.remove(this.bar.children[0]); while (this.fx.children.length) this.fx.remove(this.fx.children[0]); this.tiles = []; }
+  setBar(n, k, { cut = false, spread = false, enter = false } = {}) {
+    this.n = n; this.k = k; this.clearBar();
+    const { W, D, H, T } = this, cwCol = W / n, rows = cut ? k : 1, rd = D / rows, base = this.boardTop + H / 2;
+    for (let i = 0; i < n; i++) for (let r = 0; r < rows; r++) {
+      const sel = i === 0, ans = sel && cut && r === 0;
+      const gapX = sel ? .08 : .035, gapZ = (sel && cut) ? .05 : .03;
+      const g = this.tileMesh(cwCol - gapX, rd - gapZ, ans ? this.mat.ans : sel ? this.mat.sel : this.mat.choc, ans ? this.mat.ans : sel ? this.mat.sel : this.mat.lite);
+      const x = -W / 2 + (i + .5) * cwCol, z = -D / 2 + (r + .5) * rd;
+      let y = base, tz = z;
+      if (sel) y += cut ? .12 : .3;
+      if (sel && cut && spread) tz = z + (r - (rows - 1) / 2) * .16;
+      if (ans) y += .3;
+      g.userData.tp = new T.Vector3(x, y, tz); g.userData.bob = sel; g.userData.ph = rnd(0, 6);
+      g.position.set(x, y, enter && sel ? z : tz); if (enter && !sel) g.scale.set(1, .15, 1);
+      this.bar.add(g); this.tiles.push(g);
+    }
+  }
+  groove(x, y, z, w) { const m = new this.T.Mesh(this.unit, this.mat.groove); m.scale.set(w, .02, .018); m.position.set(x, y, z); this.fx.add(m); }
+  crumbs(x, y, z) {
+    for (let j = 0; j < 26; j++) { const i = (this.ci = ((this.ci || 0) + 1) % this.CN);
+      this.cp[i * 3] = x + rnd(-.5, .5); this.cp[i * 3 + 1] = y; this.cp[i * 3 + 2] = z; this.cv[i * 3] = rnd(-.9, .9); this.cv[i * 3 + 1] = rnd(1.4, 3); this.cv[i * 3 + 2] = rnd(-.9, .9); this.cl[i] = .9; }
+  }
+  punch() { this.punchV = REDUCED() ? 0 : 1; }
+  tween(ms, fn) { return new Promise(res => { const s = performance.now(); const step = () => { const p = Math.min(1, (performance.now() - s) / ms); fn(p * p * (3 - 2 * p)); if (p < 1 && !this.dead) requestAnimationFrame(step); else res(); }; step(); setTimeout(res, ms + 120); }); }
+  async slice(k, { fast = false } = {}) {
+    const { n } = this, cw = this.W / n, x0 = -this.W / 2 + cw / 2, topY = this.boardTop + this.H + .3 + .02;
+    if (REDUCED() || fast || k < 2) { this.setBar(n, k, { cut: true, spread: true, enter: !REDUCED() }); return; }
+    const kn = this.knife; kn.visible = true; kn.scale.set(cw + .15, 1, 1); let zPrev = -this.D / 2 - .4; kn.position.set(x0, 2.4, zPrev);
+    for (let j = 1; j < k; j++) {
+      const z = -this.D / 2 + j * this.D / k, a = zPrev;
+      await this.tween(fast ? 120 : 230, p => kn.position.set(x0, 2.4, a + (z - a) * p));
+      await this.tween(150, p => kn.position.y = 2.4 - p * (2.4 - topY - .55));
+      this.crumbs(x0, topY, z); this.groove(x0, topY, z, cw - .1);
+      await this.tween(120, p => kn.position.y = topY + .55 - .55 + p * 1.9);
+      zPrev = z;
+    }
+    kn.visible = false; await sleep(120);
+    this.setBar(n, k, { cut: true, spread: true, enter: true }); this.punch();
+  }
+  loop(now) {
+    if (this.dead) return;
+    if (!this.host.isConnected) { this.dispose(); return; }
+    this.raf = requestAnimationFrame(this.loop);
+    const dt = Math.min(.05, (now - this.last) / 1000); this.last = now; const t = (now - this.t0) / 1000, red = REDUCED();
+    const idle = !this.drag && now - this.lastUser > 2500 && !red;
+    const az = this.az + (idle ? Math.sin(t * .35) * .16 : 0);
+    this.punchV = Math.max(0, this.punchV - dt * 2.2);
+    const d = this.dist - Math.sin(this.punchV * Math.PI) * .9;
+    this.cam.position.set(d * Math.sin(az) * Math.cos(this.el), .3 + d * Math.sin(this.el), d * Math.cos(az) * Math.cos(this.el));
+    this.cam.lookAt(0, .35, 0);
+    const k = 1 - Math.exp(-dt * 7);
+    for (const g of this.tiles) {
+      const tp = g.userData.tp; g.position.lerp(tp, k); g.scale.lerp(this._one || (this._one = new this.T.Vector3(1, 1, 1)), k);
+      g.userData.inner.position.y = (g.userData.bob && !red) ? Math.sin(t * 2.2 + g.userData.ph) * .035 : 0;
+    }
+    const dp = this.dustG.attributes.position; for (let i = 0; i < dp.count; i++) { let y = dp.getY(i) + dt * (red ? 0 : .12); if (y > 4.2) y = .3; dp.setY(i, y); } dp.needsUpdate = true;
+    let live = false; for (let i = 0; i < this.CN; i++) { if (this.cl[i] > 0) { live = true; this.cl[i] -= dt; this.cv[i * 3 + 1] -= 7 * dt; for (let a = 0; a < 3; a++) this.cp[i * 3 + a] += this.cv[i * 3 + a] * dt; if (this.cl[i] <= 0) this.cp[i * 3 + 1] = -50; } }
+    if (live) this.crumbG.attributes.position.needsUpdate = true;
+    this.r.render(this.scene, this.cam);
+  }
+  dispose() { if (this.dead) return; this.dead = true; cancelAnimationFrame(this.raf); try { this.ro.disconnect(); } catch (_) {} try { this.r.dispose(); this.r.forceContextLoss(); } catch (_) {} this.r.domElement.remove(); }
+}
+
+function mountScene(host, onReady) {
+  host.classList.add("cw-3d");
+  if (!webglOK()) { host.innerHTML = `<p class="cw-note">${L("3D view isn't available on this device — use the flat picture instead.", "La vista 3D no está disponible en este dispositivo — usa el dibujo plano.")}</p>`; return; }
+  host.innerHTML = `<p class="cw-note">${L("Loading the 3D workshop…", "Cargando el taller 3D…")}</p>`;
+  loadThree().then(T => { if (!host.isConnected) return; try { onReady(new BarScene(T, host)); } catch (e) { host.innerHTML = `<p class="cw-note">${L("3D view isn't available on this device — use the flat picture instead.", "La vista 3D no está disponible en este dispositivo — usa el dibujo plano.")}</p>`; } })
+    .catch(() => { host.innerHTML = `<p class="cw-note">${L("3D view couldn't load — use the flat picture instead.", "No se pudo cargar la vista 3D — usa el dibujo plano.")}</p>`; });
+}
+
+/* ─────────── Orient ─────────── */
+function orient(host) {
+  host.innerHTML = `<div class="panel" style="padding:16px;text-align:center">
+    <p class="eyebrow" style="margin:0 0 6px">${L("Tap to share the quarter", "Toca para repartir el cuarto")}</p>
+    <div id="o-svg">${barSVG(4, 1)}</div>
+    <div class="cw-row" id="o-btns">${[2, 3, 4].map(k => `<button type="button" class="btn" data-k="${k}">${L("Share between", "Repartir entre")} ${k}</button>`).join("")}</div>
+    <p class="cw-eq" id="o-eq" aria-live="polite">${L("The highlighted column is ", "La columna resaltada es ")}${F(1, 4)}</p>
+    <p id="o-note" style="color:var(--ink-2);margin:0">${L("Try a button: watch how many equal pieces the WHOLE bar is made of.", "Prueba un botón: mira de cuántas piezas iguales está hecha la barra ENTERA.")}</p></div>`;
+  host.querySelectorAll("#o-btns button").forEach(b => b.addEventListener("click", () => {
+    const k = +b.dataset.k; host.querySelector("#o-svg").innerHTML = barSVG(4, k, { cut: true });
+    host.querySelector("#o-eq").innerHTML = `${F(1, 4)} ÷ ${k} = ${F(1, 4 * k)}`;
+    host.querySelector("#o-note").textContent = L(`The whole bar is now 4 × ${k} = ${4 * k} equal pieces, so each piece is 1 out of ${4 * k}.`, `La barra entera ahora tiene 4 × ${k} = ${4 * k} piezas iguales, así que cada pieza es 1 de ${4 * k}.`);
+    burst(host.querySelector(".panel"), host.querySelector(".panel").offsetWidth / 2, 110, "#f5b73b");
+  }));
+}
+
+/* ─────────── Shared station helpers ─────────── */
+function celebrate(panel, y = 120) { burst(panel, panel.offsetWidth / 2, y, "#f5b73b"); burst(panel, panel.offsetWidth / 2 - 60, y + 10, "#a8642f"); }
+function nextBtn(label, fn) { const b = document.createElement("button"); b.className = "btn btn--signal"; b.type = "button"; b.textContent = label; b.addEventListener("click", fn); return b; }
+function doneCard(host, title, msg) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p class="cw-big">✦ ${title} ✦</p><p style="color:var(--ink-2)">${msg}</p></div>`; }
+
+/* ─────────── Station 1: Slicing Bench (3D) ─────────── */
+const BENCH = [{ n: 4, k: 3 }, { n: 3, k: 2 }, { n: 2, k: 4 }, { n: 5, k: 2 }, { n: 6, k: 3 }];
+function buildBench(host, sim, hud, cleanup) {
+  let round = 0, scene = null;
+  cleanup(() => { if (scene) scene.dispose(); });
+  function paint() {
+    if (scene) { scene.dispose(); scene = null; }
+    if (round >= BENCH.length) { doneCard(host, L("Slicing Bench complete!", "¡Banco de Corte completo!"), L(`Notice the pattern: the denominator was always multiplied by the number you divided by. Try the Photo Lab next.`, `Fíjate en el patrón: el denominador siempre se multiplicó por el número entre el que dividiste. Prueba el Laboratorio de Foto.`)); return; }
+    const { n, k } = BENCH[round]; let tries = 0, sliced = false;
+    host.innerHTML = `<div class="panel cw-st">
+      <p class="eyebrow" style="margin:0">${L("Slicing Bench", "Banco de Corte")} — ${L("Order", "Pedido")} ${round + 1}/${BENCH.length}</p>
+      <div class="cw-order"><span>${L("Cut the lifted column", "Corta la columna elevada")} (${F(1, n)}) ${L("into", "en")} <strong>${k}</strong> ${L("equal pieces", "piezas iguales")}:</span> <strong>${F(1, n)} ÷ ${k}</strong></div>
+      <div class="cw-grid2"><div id="b3d"></div><div id="b2d">${barSVG(n, k)}</div></div>
+      <div class="cw-row"><button type="button" class="btn btn--signal" id="b-slice">🔪 ${L("Slice!", "¡Cortar!")}</button></div>
+      <div class="cw-row" id="b-ask" hidden><span>${L("Each piece is", "Cada pieza es")} <strong style="font-size:1.3em">1 ⁄</strong> <label class="sr-only" for="b-in">${L("Denominator", "Denominador")}</label><input id="b-in" class="cw-in" type="number" min="1" max="99" inputmode="numeric"> ${L("of the WHOLE bar", "de la barra ENTERA")}</span>
+        <button type="button" class="btn btn--signal" id="b-check">${L("Check", "Comprobar")}</button><button type="button" class="btn" id="b-hint">${L("Number the pieces", "Numerar las piezas")}</button></div>
+      <div class="cw-fb" id="b-fb" aria-live="polite">${L("Press Slice, then count ALL the equal pieces in the whole bar. Drag the 3D bar to look around.", "Pulsa Cortar y luego cuenta TODAS las piezas iguales de la barra entera. Arrastra la barra 3D para mirar.")}</div></div>`;
+    const panel = host.querySelector(".panel"), fb = host.querySelector("#b-fb"), b2d = host.querySelector("#b2d");
+    mountScene(host.querySelector("#b3d"), s => { scene = s; s.setBar(n, 1); });
+    host.querySelector("#b3d").classList.add("cw-3d");
+    host.querySelector("#b-slice").addEventListener("click", async e => {
+      if (sliced) return; sliced = true; e.target.disabled = true; fb.textContent = "";
+      if (scene) await scene.slice(k);
+      b2d.innerHTML = barSVG(n, k, { cut: true });
+      host.querySelector("#b-ask").hidden = false; host.querySelector("#b-in").focus();
+      fb.textContent = L("The bar is cut! How many equal pieces make the WHOLE bar?", "¡La barra está cortada! ¿Cuántas piezas iguales forman la barra ENTERA?");
+    });
+    host.querySelector("#b-hint").addEventListener("click", () => { b2d.innerHTML = barSVG(n, k, { cut: true, numbers: true }); });
+    const check = () => {
+      const inp = host.querySelector("#b-in"), v = parseInt(inp.value, 10); if (!v) { shakeEl(inp); return; }
+      if (v === n * k) {
+        hud.award(true); if (scene) scene.punch(); celebrate(panel, 160);
+        host.querySelector("#b-ask").hidden = true; b2d.innerHTML = barSVG(n, k, { cut: true, numbers: true });
+        fb.innerHTML = `<p class="cw-ok">✦ ${L("Correct!", "¡Correcto!")} ${F(1, n)} ÷ ${k} = ${F(1, n * k)}</p><p style="margin:2px 0;color:var(--ink-2)">${L(`${n} columns × ${k} rows = ${n * k} equal pieces, so each piece is 1 out of ${n * k}.`, `${n} columnas × ${k} filas = ${n * k} piezas iguales, así que cada pieza es 1 de ${n * k}.`)}</p>`;
+        sim.recordTrial({ task: L("Slicing Bench", "Banco de Corte"), input: `${fp(1, n)} ÷ ${k}`, result: `${fp(1, n * k)} (${tries ? L(`after ${tries} tries`, `tras ${tries} intentos`) : "✓"})` });
+        fb.appendChild(nextBtn(round < BENCH.length - 1 ? L("Next order →", "Siguiente pedido →") : L("Finish ✦", "Terminar ✦"), () => { round++; paint(); }));
+      } else {
+        tries++; hud.award(false); shakeEl(inp); shakeEl(host.querySelector("#b-check"));
+        if (tries >= 2) b2d.innerHTML = barSVG(n, k, { cut: true, numbers: true });
+        fb.innerHTML = `<p class="cw-no">${L("Not yet.", "Todavía no.")}</p><p style="margin:2px 0;color:var(--ink-2)">${tries >= 2 ? L("I numbered the pieces — count them all, not just the lifted column.", "Numeré las piezas — cuéntalas todas, no solo la columna elevada.") : L(`Count every equal piece in the whole bar: columns × rows (${n} × ${k}).`, `Cuenta cada pieza igual de la barra entera: columnas × filas (${n} × ${k}).`)}</p>`;
+      }
+    };
+    host.querySelector("#b-check").addEventListener("click", check);
+    host.querySelector("#b-in").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  }
+  paint();
+}
+
+/* ─────────── Station 2: Real Chocolate Photo Lab ─────────── */
+const PX = [30, 332, 637, 941, 1238], PY = [22, 176, 334, 492], PW = 1280, PH = 522;
+function buildPhotoLab(host, sim, hud) {
+  let step = 0, colSel = null, cellSel = null, rowSel = null;
+  host.innerHTML = `<div class="panel cw-st"><p class="eyebrow" style="margin:0">${L("Real Chocolate Photo Lab", "Laboratorio de Foto Real de Chocolate")}</p>
+    <p id="p-q" style="font-size:1.1em;margin:8px 0" aria-live="polite"></p>
+    <div class="cw-photo" id="p-photo"><img src="photos/hershey-bar.jpg" alt="${L("A real milk chocolate bar with 4 columns and 3 rows of equal pieces.", "Una barra real de chocolate con leche con 4 columnas y 3 filas de piezas iguales.")}" width="${PW}" height="${PH}"><svg viewBox="0 0 ${PW} ${PH}" preserveAspectRatio="none" id="p-svg"></svg></div>
+    <div class="cw-row" id="p-ctl"></div><div class="cw-fb" id="p-fb" aria-live="polite"></div>
+    <p class="cw-credit">${L("Photo", "Foto")}: “Hershey chocolate bar” by Famartin, <a href="https://commons.wikimedia.org/wiki/File:Hershey_chocolate_bar.jpg" target="_blank" rel="noopener">Wikimedia Commons</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.</p></div>`;
+  const panel = host.querySelector(".panel"), svg = host.querySelector("#p-svg"), q = host.querySelector("#p-q"), ctl = host.querySelector("#p-ctl"), fb = host.querySelector("#p-fb");
+  const cells = [];
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    el.setAttribute("x", PX[c] + 3); el.setAttribute("y", PY[r] + 3); el.setAttribute("width", PX[c + 1] - PX[c] - 6); el.setAttribute("height", PY[r + 1] - PY[r] - 6); el.setAttribute("rx", 8);
+    el.setAttribute("class", "cell"); el.setAttribute("tabindex", "0"); el.setAttribute("role", "button");
+    el.setAttribute("aria-label", L(`Piece in row ${r + 1}, column ${c + 1}`, `Pieza en la fila ${r + 1}, columna ${c + 1}`));
+    el.addEventListener("click", () => tap(r, c)); el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tap(r, c); } });
+    svg.appendChild(el); cells.push({ el, r, c });
+  }
+  const mark = (fn, cls) => cells.forEach(o => o.el.setAttribute("class", "cell" + (fn(o) ? " " + cls : "")));
+  function tap(r, c) {
+    if (step === 0) { colSel = c; mark(o => o.c === c, "on"); celebrate(panel, 120); step = 1; hud.award(true);
+      sim.recordTrial({ task: L("Photo Lab", "Laboratorio de Foto"), input: L("Tap one column of the real bar", "Toca una columna de la barra real"), result: `${fp(1, 4)} ✓` });
+      fb.innerHTML = `<p class="cw-ok">✦ ${L("That column is ¼ of the whole bar!", "¡Esa columna es ¼ de la barra entera!")}</p>`; setTimeout(go, 700); }
+    else if (step === 1) { if (c !== colSel) { shakeEl(svg.parentElement); fb.innerHTML = `<p class="cw-no">${L("Tap a piece inside your highlighted column.", "Toca una pieza dentro de tu columna resaltada.")}</p>`; return; }
+      cellSel = r; mark(o => o.c === colSel && o.r === r, "on"); step = 2; celebrate(panel, 120); go(); }
+    else if (step === 3) { rowSel = r; mark(o => o.r === r, "on"); step = 4; celebrate(panel, 120); hud.award(true); go(); }
+  }
+  function go() {
+    ctl.innerHTML = ""; fb.innerHTML = "";
+    if (step === 0) { q.innerHTML = L(`This real bar has 4 equal columns. <strong>Tap one column</strong> — it is ${F(1, 4)} of the whole bar.`, `Esta barra real tiene 4 columnas iguales. <strong>Toca una columna</strong> — es ${F(1, 4)} de la barra entera.`); mark(o => false, ""); }
+    else if (step === 1) { q.innerHTML = L(`Your column is cut into 3 pieces (look at the rows!). <strong>Tap one piece</strong> in your column — that is ${F(1, 4)} ÷ 3.`, `Tu columna está cortada en 3 piezas (¡mira las filas!). <strong>Toca una pieza</strong> de tu columna — eso es ${F(1, 4)} ÷ 3.`); mark(o => o.c === colSel, "col"); }
+    else if (step === 2) {
+      q.innerHTML = L(`How many pieces like that fit in the WHOLE bar? So ${F(1, 4)} ÷ 3 = ${F(1, "?")}`, `¿Cuántas piezas así caben en la barra ENTERA? Entonces ${F(1, 4)} ÷ 3 = ${F(1, "?")}`);
+      ctl.innerHTML = `<label class="sr-only" for="p-in">${L("Number of pieces", "Número de piezas")}</label><input id="p-in" class="cw-in" type="number" min="1" max="99"><button class="btn btn--signal" type="button" id="p-ck">${L("Check", "Comprobar")}</button>`;
+      const chk = () => { const inp = ctl.querySelector("#p-in"), v = parseInt(inp.value, 10); if (!v) { shakeEl(inp); return; }
+        if (v === 12) { hud.award(true); celebrate(panel, 150); mark(o => o.c === colSel && o.r === cellSel, "on");
+          sim.recordTrial({ task: L("Photo Lab", "Laboratorio de Foto"), input: `${fp(1, 4)} ÷ 3`, result: `${fp(1, 12)} ✓` });
+          step = 3; q.innerHTML = L(`✦ Yes! 4 × 3 = 12 pieces, so ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Now look across: <strong>tap one ROW</strong>. It is ${F(1, 3)} of the bar.`, `✦ ¡Sí! 4 × 3 = 12 piezas, así que ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Ahora mira a lo ancho: <strong>toca una FILA</strong>. Es ${F(1, 3)} de la barra.`); ctl.innerHTML = ""; mark(o => false, ""); }
+        else { hud.award(false); shakeEl(inp); fb.innerHTML = `<p class="cw-no">${L("Count the pieces in the whole photo: 4 columns × 3 rows.", "Cuenta las piezas de toda la foto: 4 columnas × 3 filas.")}</p>`; } };
+      ctl.querySelector("#p-ck").addEventListener("click", chk); ctl.querySelector("#p-in").addEventListener("keydown", e => { if (e.key === "Enter") chk(); }); ctl.querySelector("#p-in").focus();
+    }
+    else if (step === 4) {
+      q.innerHTML = L(`Your row is ${F(1, 3)} of the bar. Cut that row into 4 equal pieces. What is ${F(1, 3)} ÷ 4?`, `Tu fila es ${F(1, 3)} de la barra. Corta esa fila en 4 piezas iguales. ¿Cuánto es ${F(1, 3)} ÷ 4?`);
+      const opts = shuffle([{ t: F(1, 12), ok: true }, { t: F(1, 7), ok: false }, { t: F(1, 4), ok: false }]);
+      ctl.className = "cw-row cw-opts"; ctl.innerHTML = opts.map((o, i) => `<button class="btn" type="button" data-i="${i}">${o.t}</button>`).join("");
+      ctl.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { const o = opts[+b.dataset.i];
+        if (o.ok) { hud.award(true); celebrate(panel, 150); ctl.querySelectorAll("button").forEach(x => x.disabled = true);
+          sim.recordTrial({ task: L("Photo Lab", "Laboratorio de Foto"), input: `${fp(1, 3)} ÷ 4`, result: `${fp(1, 12)} ✓` });
+          mark(o2 => o2.r === rowSel && o2.c === 0, "on");
+          fb.innerHTML = `<p class="cw-ok">✦ ${L("The same tiny piece!", "¡La misma pieza diminuta!")}</p><p style="margin:2px 0;color:var(--ink-2)">${F(1, 4)} ÷ 3 = ${F(1, 3)} ÷ 4 = ${F(1, 12)}. ${L("Both make 12 equal pieces, because 4 × 3 = 3 × 4.", "Ambas hacen 12 piezas iguales, porque 4 × 3 = 3 × 4.")}</p>`; step = 5; }
+        else { hud.award(false); shakeEl(b); fb.innerHTML = `<p class="cw-no">${L("Not quite — how many equal pieces make the whole bar if each row is cut in 4?", "Casi — ¿cuántas piezas iguales forman la barra entera si cada fila se corta en 4?")}</p>`; } }));
+    }
+  }
+  go();
+}
+
+/* ─────────── Station 3: Pizza Orders ─────────── */
+const PIZZA = [{ n: 2, k: 3, who: "friends" }, { n: 4, k: 2, who: "friends" }, { n: 3, k: 4, who: "friends" }, { n: 2, k: 5, who: "friends" }, { n: 5, k: 2, who: "friends" }];
+function pizzaSVG(n, k, split) {
+  const R = 86, cx = 100, cy = 100, a = 2 * Math.PI / n, a0 = -Math.PI / 2;
+  const pt = (ang, r) => [cx + r * Math.cos(ang), cy + r * Math.sin(ang)];
+  const sec = (s, e, r) => { const [x1, y1] = pt(s, r), [x2, y2] = pt(e, r); return `M${cx} ${cy}L${x1.toFixed(1)} ${y1.toFixed(1)}A${r} ${r} 0 ${e - s > Math.PI ? 1 : 0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}Z`; };
+  let s = `<svg class="cw-pizza" viewBox="0 0 200 200" role="img" aria-label="${L(`A plate with one slice, ${fp(1, n)} of a pizza, left over`, `Un plato con una porción, ${fp(1, n)} de una pizza, sobrante`)}">
+  <defs><radialGradient id="pc" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#eeb13f"/></radialGradient></defs>
+  <ellipse cx="100" cy="108" rx="96" ry="92" fill="rgba(0,0,0,.18)"/><circle cx="100" cy="100" r="95" fill="#f4f1ea" stroke="#cfc8b8" stroke-width="2"/>
+  <circle cx="100" cy="100" r="${R}" fill="none" stroke="#bda57a" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  for (let i = 1; i < n; i++) { const [x, y] = pt(a0 + i * a, R); s += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#bda57a" stroke-width="1.5" stroke-dasharray="4 4"/>`; }
+  s += `<path d="${sec(a0, a0 + a, R)}" fill="#d9923b" stroke="#a86a1e" stroke-width="2"/><path d="${sec(a0 + .01, a0 + a - .01, R - 7)}" fill="url(#pc)"/>`;
+  for (let j = 0; j < k; j++) { const mid = a0 + a * (j + .5) / k, [px, py] = pt(mid, R * .58); s += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${Math.max(3.5, Math.min(8, 40 / (n * k) * 3))}" fill="#b3342b" stroke="#7d1f19" stroke-width="1"/>`; }
+  if (split) {
+    for (let j = 1; j < n * k; j++) { const [x, y] = pt(a0 + j * a / k, R); s += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${j % k === 0 ? "#bda57a" : "#6a3a10"}" stroke-width="${j % k === 0 ? 1.2 : 2.2}" ${j % k === 0 ? 'stroke-dasharray="4 4"' : ""}/>`; }
+  }
+  return s + `</svg>`;
+}
+function buildPizza(host, sim, hud) {
+  let round = 0;
+  function paint() {
+    if (round >= PIZZA.length) { doneCard(host, L("Pizza Orders complete!", "¡Pedidos de Pizza completos!"), L("Every share was a unit fraction divided by a whole number. Try the Factory Dials next.", "Cada reparto fue una fracción unitaria dividida entre un número entero. Prueba los Diales de la Fábrica.")); return; }
+    const { n, k } = PIZZA[round], opts = shuffle([{ d: n * k, ok: true }, { d: n + k, ok: false }, { d: k, ok: false }]);
+    host.innerHTML = `<div class="panel cw-st"><p class="eyebrow" style="margin:0">${L("Pizza Orders", "Pedidos de Pizza")} — ${L("Order", "Pedido")} ${round + 1}/${PIZZA.length}</p>
+      <div class="cw-order"><span>${L(`One slice (${fp(1, n)} of the pizza) is left. ${k} friends share it equally.`, `Queda una porción (${fp(1, n)} de la pizza). ${k} amigos la reparten por igual.`)}</span></div>
+      <div id="z-pic">${pizzaSVG(n, k, false)}</div>
+      <p style="text-align:center;margin:8px 0">${L("What fraction of the WHOLE pizza does each friend get?", "¿Qué fracción de la pizza ENTERA recibe cada amigo?")}</p>
+      <div class="cw-row cw-opts" id="z-opts">${opts.map((o, i) => `<button type="button" class="btn" data-i="${i}">${F(1, o.d)}</button>`).join("")}</div><div class="cw-fb" id="z-fb" aria-live="polite"></div></div>`;
+    const panel = host.querySelector(".panel"), fb = host.querySelector("#z-fb");
+    host.querySelectorAll("#z-opts button").forEach(b => b.addEventListener("click", () => {
+      const o = opts[+b.dataset.i];
+      if (o.ok) {
+        hud.award(true); host.querySelectorAll("#z-opts button").forEach(x => x.disabled = true); host.querySelector("#z-pic").innerHTML = pizzaSVG(n, k, true); celebrate(panel, 150);
+        fb.innerHTML = `<p class="cw-ok">✦ ${L("Correct!", "¡Correcto!")} ${F(1, n)} ÷ ${k} = ${F(1, n * k)}</p><p style="margin:2px 0;color:var(--ink-2)">${L(`Cutting every slice the same way makes ${n} × ${k} = ${n * k} equal slices in the whole pizza.`, `Cortar cada porción igual da ${n} × ${k} = ${n * k} porciones iguales en la pizza entera.`)}</p>`;
+        sim.recordTrial({ task: L("Pizza Orders", "Pedidos de Pizza"), input: `${fp(1, n)} ÷ ${k}`, result: `${fp(1, n * k)} ✓` });
+        fb.appendChild(nextBtn(round < PIZZA.length - 1 ? L("Next order →", "Siguiente pedido →") : L("Finish ✦", "Terminar ✦"), () => { round++; paint(); }));
+      } else {
+        hud.award(false); shakeEl(b); b.disabled = true;
+        const why = o.d === k ? L(`That is just 1 out of ${k}. But the ${k} friends share only ONE SLICE, not the whole pizza.`, `Eso es solo 1 de ${k}. Pero los ${k} amigos comparten solo UNA PORCIÓN, no la pizza entera.`) : L(`Adding doesn't work: cut every slice into ${k} and count all the equal slices (${n} × ${k}).`, `Sumar no sirve: corta cada porción en ${k} y cuenta todas las porciones iguales (${n} × ${k}).`);
+        fb.innerHTML = `<p class="cw-no">${L("Not quite.", "Casi.")}</p><p style="margin:2px 0;color:var(--ink-2)">${why}</p>`;
+      }
+    }));
+  }
+  paint();
+}
+
+/* ─────────── Station 4: Factory Dials ─────────── */
+const MISSIONS = [{ t: 12 }, { t: 20 }, { t: 18 }, { t: 30 }];
+function buildDials(host, sim, hud, cleanup) {
+  let mi = 0, scene = null, n = 3, k = 4, found = [], timer = null;
+  cleanup(() => { if (scene) scene.dispose(); clearTimeout(timer); });
+  function paint() {
+    if (scene) { scene.dispose(); scene = null; }
+    if (mi >= MISSIONS.length) { doneCard(host, L("Factory Dials complete!", "¡Diales de la Fábrica completos!"), L("Different dial pairs can make the same piece, because n × k = k × n.", "Distintos pares de diales pueden hacer la misma pieza, porque n × k = k × n.")); return; }
+    const T = MISSIONS[mi].t; found = []; n = 3; k = 4;
+    host.innerHTML = `<div class="panel cw-st"><p class="eyebrow" style="margin:0">${L("Factory Dials", "Diales de la Fábrica")} — ${L("Mission", "Misión")} ${mi + 1}/${MISSIONS.length}</p>
+      <div class="cw-order"><span>${L("Make every piece exactly", "Haz que cada pieza sea exactamente")} <strong>${F(1, T)}</strong> ${L("of the whole bar. Find TWO different dial settings!", "de la barra entera. ¡Encuentra DOS ajustes distintos de diales!")}</span></div>
+      <div class="cw-grid2"><div id="d3d"></div><div id="d2d"></div></div>
+      <div class="cw-dials">
+        <div class="cw-dial"><label for="d-n"><span>${L("Dial n: the bar is cut into n columns", "Dial n: la barra tiene n columnas")}</span><span id="d-nv">${n}</span></label><input type="range" id="d-n" min="2" max="10" value="${n}"></div>
+        <div class="cw-dial"><label for="d-k"><span>${L("Dial k: share one column between k", "Dial k: reparte una columna entre k")}</span><span id="d-kv">${k}</span></label><input type="range" id="d-k" min="2" max="10" value="${k}"></div></div>
+      <p class="cw-eq" id="d-eq" aria-live="polite"></p>
+      <div class="cw-row"><button type="button" class="btn btn--signal" id="d-lock">🔒 ${L("Lock it in", "Fijar")}</button></div>
+      <div class="cw-fb" id="d-fb" aria-live="polite">${L("Move the dials and watch the bar being cut.", "Mueve los diales y mira cómo se corta la barra.")}</div></div>`;
+    const panel = host.querySelector(".panel"), fb = host.querySelector("#d-fb"), d2 = host.querySelector("#d2d");
+    const upd = () => {
+      host.querySelector("#d-nv").textContent = n; host.querySelector("#d-kv").textContent = k;
+      host.querySelector("#d-eq").innerHTML = `${F(1, n)} ÷ ${k} = ${F(1, n * k)}`; d2.innerHTML = barSVG(n, k, { cut: true });
+      clearTimeout(timer); timer = setTimeout(() => { if (scene) scene.setBar(n, k, { cut: true, spread: true }); }, 120);
+    };
+    mountScene(host.querySelector("#d3d"), s => { scene = s; s.setBar(n, k, { cut: true, spread: true }); });
+    host.querySelector("#d-n").addEventListener("input", e => { n = +e.target.value; upd(); });
+    host.querySelector("#d-k").addEventListener("input", e => { k = +e.target.value; upd(); });
+    host.querySelector("#d-lock").addEventListener("click", () => {
+      if (n * k !== T) { hud.award(false); shakeEl(host.querySelector("#d-eq")); fb.innerHTML = `<p class="cw-no">${F(1, n)} ÷ ${k} = ${F(1, n * k)}</p><p style="margin:2px 0;color:var(--ink-2)">${n * k < T ? L("Pieces too big — you need more equal pieces in the whole bar.", "Piezas demasiado grandes — necesitas más piezas iguales en la barra entera.") : L("Pieces too small — you need fewer equal pieces in the whole bar.", "Piezas demasiado pequeñas — necesitas menos piezas iguales en la barra entera.")} ${L(`Aim for n × k = ${T}.`, `Busca n × k = ${T}.`)}</p>`; return; }
+      if (found.some(f => f[0] === n && f[1] === k)) { fb.innerHTML = `<p class="cw-no">${L("You already found that one — try a different pair.", "Ya encontraste ese — prueba otro par.")}</p>`; return; }
+      found.push([n, k]); hud.award(true); celebrate(panel, 120); if (scene) scene.punch();
+      sim.recordTrial({ task: L("Factory Dials", "Diales de la Fábrica"), input: `${fp(1, n)} ÷ ${k}`, result: `${fp(1, T)} ✓` });
+      fb.innerHTML = `<p class="cw-ok">✦ ${n} × ${k} = ${T} — ${F(1, n)} ÷ ${k} = ${F(1, T)}</p><p style="margin:2px 0;color:var(--ink-2)">${L("Found", "Encontrados")}: ${found.map(f => `${F(1, f[0])} ÷ ${f[1]}`).join(" · ")}</p>`;
+      if (found.length >= 2) fb.appendChild(nextBtn(mi < MISSIONS.length - 1 ? L("Next mission →", "Siguiente misión →") : L("Finish ✦", "Terminar ✦"), () => { mi++; paint(); }));
+    });
+    upd();
+  }
+  paint();
+}
+
+/* ─────────── Bonus: Precision Slicer (precision-instrument challenge) ─────────── */
+function renderLaunch(host, onPlay) {
+  host.innerHTML = `<div class="cw-launch"><p class="cw-big" style="margin:0 0 6px">🔪 ${L("Bonus: Precision Slicer", "Bonus: Cortador de Precisión")}</p>
+    <p style="margin:0 auto 14px;max-width:560px;color:var(--ink-2)">${L("Run the laser slicer for 2 minutes. Set the dial exactly, slice, and fill the orders. Mistakes only cost a few seconds. No marks — just fun!", "Maneja el cortador láser durante 2 minutos. Ajusta el dial con exactitud, corta y atiende los pedidos. Los errores solo cuestan unos segundos. ¡Sin puntos de nota, solo diversión!")}</p>
+    <div class="cw-row"><button type="button" class="btn btn--signal" id="bn-play">${L("Play!", "¡Jugar!")}</button><button type="button" class="btn" id="bn-skip">${L("Skip", "Saltar")}</button></div></div>`;
+  host.querySelector("#bn-play").addEventListener("click", onPlay); host.querySelector("#bn-skip").addEventListener("click", () => { host.innerHTML = ""; });
+}
+function mountSlicer(host, cleanup) {
+  const DUR = 120000; let score = 0, streak = 0, best = 0, count = 0, ok = 0, scene = null, order = null, locked = false, over = false, dial = 3, jamUntil = 0, ans = null, sliced = false;
+  const missed = []; const t0 = Date.now();
+  host.innerHTML = `<div class="panel cw-st"><div class="cw-hud"><span class="cw-chip" id="g-t">2:00</span><span class="cw-chip" id="g-s">${L("Score", "Puntos")}: 0</span><span class="cw-chip" id="g-k">${L("Streak", "Racha")}: 0</span></div>
+    <div class="cw-order" id="g-o" aria-live="polite"></div><div id="g-3d"></div>
+    <div id="g-ctl"></div><div class="cw-fb" id="g-fb" aria-live="polite"></div></div>`;
+  const panel = host.querySelector(".panel"), $ = s => host.querySelector(s), fb = $("#g-fb");
+  mountScene($("#g-3d"), s => { scene = s; if (order) scene.setBar(order.n, 1); });
+  const hudUpd = () => { $("#g-s").textContent = `${L("Score", "Puntos")}: ${score}`; $("#g-k").textContent = `${L("Streak", "Racha")}: ${streak}`; };
+  let last = null;
+  function next() {
+    if (over) return; let n, k; do { n = 2 + Math.floor(Math.random() * 5); k = 2 + Math.floor(Math.random() * 5); } while (last && last.n === n && last.k === k);
+    order = { n, k, type: Math.random() < .5 ? "A" : "B" }; last = order; locked = false; sliced = false; dial = 2 + Math.floor(Math.random() * 5); fb.textContent = "";
+    if (scene) scene.setBar(n, 1);
+    const o = $("#g-o"), c = $("#g-ctl");
+    if (order.type === "A") {
+      o.innerHTML = `${L("Order", "Pedido")} #${count + 1}: ${L("slice", "corta")} ${F(1, n)} ${L("into", "en")} <strong>${k}</strong> ${L("equal pieces, then pick the size of each piece.", "piezas iguales y elige el tamaño de cada pieza.")}`;
+      c.innerHTML = `<div class="cw-row"><button class="btn btn--signal" type="button" id="g-slice">🔪 ${L("SLICE", "CORTAR")} (Enter)</button></div><div class="cw-row cw-opts" id="g-opts"></div>`;
+      ans = shuffle([{ d: n * k, ok: true }, { d: n + k, ok: false }, { d: k, ok: false }]);
+      $("#g-slice").addEventListener("click", sliceA);
+    } else {
+      o.innerHTML = `${L("Order", "Pedido")} #${count + 1}: ${L("the customer wants pieces of exactly", "el cliente quiere piezas de exactamente")} <strong>${F(1, n * k)}</strong> ${L("of the bar. You hold", "de la barra. Tienes")} ${F(1, n)}. ${L("Set the dial, then SLICE.", "Ajusta el dial y luego CORTA.")}`;
+      c.innerHTML = `<div class="cw-dialbig"><button class="btn" type="button" id="g-m" aria-label="${L("Dial down", "Bajar dial")}">−</button><div class="val" id="g-v" aria-live="polite">${dial}</div><button class="btn" type="button" id="g-p" aria-label="${L("Dial up", "Subir dial")}">+</button></div>
+        <div class="cw-row"><button class="btn btn--signal" type="button" id="g-slice">🔪 ${L("SLICE", "CORTAR")} (Enter)</button></div>`;
+      $("#g-m").addEventListener("click", () => setDial(-1)); $("#g-p").addEventListener("click", () => setDial(1)); $("#g-slice").addEventListener("click", sliceB);
+    }
+  }
+  function setDial(d) { dial = Math.max(2, Math.min(10, dial + d)); const v = $("#g-v"); if (v) v.textContent = dial; }
+  const jam = () => Date.now() < jamUntil;
+  function finishOrder(good, hook) {
+    count++; if (good) { ok++; streak++; best = Math.max(best, streak); score += 10 + Math.min(10, streak * 2); celebrate(panel, 150); if (scene) scene.punch(); fb.innerHTML = `<span class="cw-ok">✦ ${L("Perfect!", "¡Perfecto!")} +${10 + Math.min(10, streak * 2)}</span>`; }
+    else { streak = 0; missed.push(`${fp(1, order.n)} ÷ ${order.type === "A" ? order.k : order.k} = ${fp(1, order.n * order.k)}`); jamUntil = Date.now() + 2200; fb.innerHTML = `<span class="cw-no">${hook}</span>`; }
+    hudUpd(); locked = true; setTimeout(next, good ? 900 : 2300);
+  }
+  async function sliceA() { if (locked || sliced || over) return; sliced = true; $("#g-slice").disabled = true; if (scene) await scene.slice(order.k, { fast: true });
+    const box = $("#g-opts"); if (!box) return; box.innerHTML = ans.map((o, i) => `<button class="btn" type="button" data-i="${i}">${i + 1}: ${F(1, o.d)}</button>`).join("");
+    box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => pickA(+b.dataset.i))); }
+  function pickA(i) { if (locked || over || !ans) return; const o = ans[i]; if (!o) return; const good = o.ok;
+    finishOrder(good, `${L("Answer", "Respuesta")}: ${fp(1, order.n * order.k)} — ${L(`${order.n} columns × ${order.k} rows = ${order.n * order.k} pieces.`, `${order.n} columnas × ${order.k} filas = ${order.n * order.k} piezas.`)}`); }
+  async function sliceB() { if (locked || sliced || over) return; if (jam()) return; sliced = true; const good = dial === order.k;
+    if (scene) await scene.slice(dial, { fast: true });
+    finishOrder(good, `${L("Jam!", "¡Atasco!")} ${F(1, order.n)} ÷ ${dial} = ${F(1, order.n * dial)} — ${L(`you needed dial ${order.k}: ${order.n} × ${order.k} = ${order.n * order.k}.`, `necesitabas el dial ${order.k}: ${order.n} × ${order.k} = ${order.n * order.k}.`)}`); }
+  const key = e => { if (over || locked) return;
+    if (order.type === "B") { if (e.key === "ArrowLeft") { e.preventDefault(); setDial(-1); } else if (e.key === "ArrowRight") { e.preventDefault(); setDial(1); } else if (e.key === "Enter") { e.preventDefault(); sliceB(); } }
+    else { if (e.key === "Enter") { e.preventDefault(); sliceA(); } else if (/^[1-3]$/.test(e.key) && sliced) pickA(+e.key - 1); } };
+  document.addEventListener("keydown", key);
+  const timer = setInterval(() => { const rem = Math.max(0, DUR - (Date.now() - t0)); $("#g-t") && ($("#g-t").textContent = `${Math.floor(rem / 60000)}:${String(Math.floor(rem % 60000 / 1000)).padStart(2, "0")}`); if (rem <= 0) end(); }, 250);
+  function end() { if (over) return; over = true; clearInterval(timer); document.removeEventListener("keydown", key); if (scene) scene.dispose();
+    host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p class="cw-big">🔪 ${L("Slicer shift complete!", "¡Turno del cortador completado!")}</p>
+      <p>${L("Score", "Puntos")}: <strong>${score}</strong> · ${L("Orders", "Pedidos")}: <strong>${ok}/${count}</strong> · ${L("Best streak", "Mejor racha")}: <strong>${best}</strong></p>
+      ${missed.length ? `<p style="color:var(--ink-2)">${L("Worth another look", "Vale la pena repasar")}: ${missed.slice(0, 5).join(" · ")}</p>` : `<p style="color:var(--ink-2)">${L("Flawless shift!", "¡Turno impecable!")}</p>`}
+      <p style="color:var(--ink-2)">${L("Great work! Continue to the next stage.", "¡Buen trabajo! Continúa a la siguiente etapa.")}</p></div>`; }
+  cleanup(() => { over = true; clearInterval(timer); document.removeEventListener("keydown", key); if (scene) scene.dispose(); });
+  next();
+}
+
+/* ─────────── Investigate ─────────── */
+function investigate(host, sim) {
+  host.innerHTML = ""; let cleanups = [], xp = 0, streak = 0, bestStreak = 0;
+  const addClean = f => cleanups.push(f), runClean = () => { cleanups.forEach(f => { try { f(); } catch (_) {} }); cleanups = []; };
+  const hudEl = document.createElement("div"); hudEl.className = "cw-hud"; host.appendChild(hudEl);
+  const hud = { award(good) { if (good) { xp += 10 + Math.min(10, streak * 2); streak++; bestStreak = Math.max(bestStreak, streak); } else streak = 0; paint(); } };
+  const rank = () => xp >= 150 ? L("Master Chocolatier", "Maestro Chocolatero") : xp >= 80 ? L("Head Chef", "Chef principal") : xp >= 30 ? L("Sous Chef", "Sub-chef") : L("Apprentice", "Aprendiz");
+  const paint = () => { hudEl.innerHTML = `<span class="cw-chip">⭐ XP ${xp}</span><span class="cw-chip">🔥 ${L("Streak", "Racha")} ${streak}</span><span class="cw-chip">👨‍🍳 ${rank()}</span>`; }; paint();
+  const tabs = document.createElement("div"); tabs.className = "cw-tabs"; host.appendChild(tabs);
+  const content = document.createElement("div"); host.appendChild(content);
+  const bonus = document.createElement("div"); bonus.style.marginTop = "20px"; host.appendChild(bonus);
+  function paintBonus() {
+    renderLaunch(bonus, () => { runClean(); content.innerHTML = ""; tabs.querySelectorAll("button").forEach(t => t.setAttribute("aria-pressed", "false")); bonus.innerHTML = ""; mountSlicer(bonus, addClean); bonus.scrollIntoView({ block: "nearest" }); });
+  }
+  const stations = [
+    { icon: "🔪", label: L("3D Slicing Bench", "Banco de Corte 3D"), build: buildBench },
+    { icon: "📷", label: L("Real Photo Lab", "Laboratorio de Foto Real"), build: buildPhotoLab },
+    { icon: "🍕", label: L("Pizza Orders", "Pedidos de Pizza"), build: buildPizza },
+    { icon: "🎛️", label: L("Factory Dials", "Diales de la Fábrica"), build: buildDials }
+  ];
+  stations.forEach((st, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.textContent = `${st.icon} ${st.label}`; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => { runClean(); if (bonus.querySelector("#g-t")) paintBonus(); tabs.querySelectorAll("button").forEach(t => t.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); content.innerHTML = ""; st.build(content, sim, hud, addClean); });
+    tabs.appendChild(b);
+  });
+  paintBonus();
+  tabs.children[0].click();
+}
+
+const simulation = { orient(host) { orient(host); }, investigate(host, sim) { investigate(host, sim); } };
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
