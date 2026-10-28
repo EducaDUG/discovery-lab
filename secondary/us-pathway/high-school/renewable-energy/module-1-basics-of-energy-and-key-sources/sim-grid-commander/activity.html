@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid Commander: Energy, Thermodynamics &amp; the Grid — Discovery Lab</title>
+<meta name="description" content="Run a living 3D energy island: build solar, wind, hydro, geothermal, gas and battery plants, keep the grid at 60 Hz through three missions, and watch the First Law of Thermodynamics at work.">
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<link rel="stylesheet" href="grid-sim.css?v=5">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%230e1a2e'/><path d='M34 6 20 36h10l-4 22 18-32H33z' fill='%23facc15'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <g stroke="currentColor" stroke-width="1.5" opacity=".45"><path d="M32 2v7M32 55v7M2 32h7M55 32h7"/></g>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Renewable Energy</a></li>
+      <li><a href="../">Module 1: Basics of Energy</a></li>
+      <li><span aria-current="page">Grid Commander</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=20";
+import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { mountGridSim } from "./grid-ui.js?v=11";
+import { mountFreqGame } from "./freq-game.js?v=2";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+const isReduced = () => { const a = document.documentElement.getAttribute("data-reduced-motion"); if (a === "on") return true; if (a === "off") return false; return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); };
+const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+
+/* Photo credits: every photo is vendored in photos/ (never hotlinked); licences verified on each file's own Commons page. */
+const CREDITS = {};
+const creditsReady = fetch("photos/credits.json").then(r => r.json()).then(j => Object.assign(CREDITS, j)).catch(() => {});
+function creditLine(keys) {
+  const parts = keys.filter(k => CREDITS[k]).map(k => { const c = CREDITS[k];
+    const lic = c.licenseUrl ? `<a href="${c.licenseUrl}" target="_blank" rel="noopener noreferrer">${c.license}</a>` : c.license;
+    return `${(c.author || "").replace(/^Source file:\s*/, "").split("\n").join(", ")} (<a href="${c.page}" target="_blank" rel="noopener noreferrer">Commons</a>, ${lic})`; });
+  return parts.length ? L("Photos: ", "Fotos: ") + parts.join("; ") + L(" — resized.", " — redimensionadas.") : "";
+}
+function creditsBlock() {
+  const d = el("details", "gc-credits"); const all = ["hydro", "solar", "wind", "geo", "gas", "coal", "battery", "station"];
+  const fill = () => { d.innerHTML = `<summary>${L("Photo credits (real photos from Wikimedia Commons)", "Créditos de fotos (fotos reales de Wikimedia Commons)")}</summary><p>${creditLine(all)}</p><p>${L("The battery card shows two single lithium cells; a real battery park holds thousands of cells like these inside shipping containers. The 3D island itself is a drawn model, not a photo.", "La tarjeta de la batería muestra dos celdas de litio; un parque real contiene miles de celdas como estas dentro de contenedores. La isla 3D es un modelo dibujado, no una foto.")}</p>`; };
+  creditsReady.then(fill); fill(); return d;
+}
+const imgOf = k => `<img src="photos/${k}.jpg" alt="" loading="lazy">`;
+
+let sim = null;
+
+const simulation = {
+  /* ---- ORIENT: primary-or-secondary quick-check on real photos + label a real hydro dam ---- */
+  orient(host, api) {
+    sim = api; host.innerHTML = "";
+    const st = api.state.orient || (api.state.orient = { sorted: {}, parts: {} });
+
+    host.append(el("p", "q__hint", L("Every power plant follows one chain: raw nature, then a conversion, then a carrier you can use. Tap <b>Primary</b> if the thing shown is energy straight from nature, or <b>Secondary</b> if it is a carrier made from something else.", "Toda central sigue una cadena: naturaleza, luego una conversión y luego un portador que puedes usar. Toca <b>Primaria</b> si lo que ves es energía directa de la naturaleza, o <b>Secundaria</b> si es un portador fabricado a partir de otra cosa.")));
+    host.append(el("div", "gcx-chain", `<div><small>${L("Raw nature", "Naturaleza")}</small><b>${L("Falling water", "Agua que cae")}</b></div><div class="arr">→</div><div><small>${L("Conversion", "Conversión")}</small><b>${L("Turbine + generator", "Turbina + generador")}</b></div><div class="arr">→</div><div><small>${L("Carrier", "Portador")}</small><b>${L("Grid electricity", "Electricidad de la red")}</b></div>`));
+    const ITEMS = [
+      { k: "solar", ans: "p", name: L("Sunlight falling on these solar panels", "La luz solar que cae sobre estos paneles"), why: L("Sunlight is captured straight from nature: primary (and renewable).", "La luz solar se capta directamente de la naturaleza: primaria (y renovable).") },
+      { k: "coal", ans: "p", name: L("Coal dug out of the ground", "Carbón extraído del suelo"), why: L("Raw coal is primary, but it is non-renewable: it took millions of years to form.", "El carbón en bruto es primario, pero no renovable: tardó millones de años en formarse.") },
+      { k: "battery", ans: "s", name: L("Electricity stored in these lithium cells", "Electricidad almacenada en estas celdas de litio"), why: L("Stored electricity was made from another source, so it is a secondary carrier.", "La electricidad almacenada se hizo a partir de otra fuente: es un portador secundario.") },
+      { k: "hydro", ans: "p", name: L("The water held behind this dam", "El agua retenida tras esta presa"), why: L("Water held high up is nature's own stored energy: primary (and renewable).", "El agua retenida en lo alto es energía almacenada por la naturaleza: primaria (y renovable).") },
+      { k: "gas", ans: "p", name: L("Natural gas burning on a stove", "Gas natural ardiendo en una cocina"), why: L("Natural gas comes straight from underground: primary, but non-renewable.", "El gas natural viene directo del subsuelo: primaria, pero no renovable.") },
+    ];
+    const sort = el("div", "gcx-sort");
+    ITEMS.forEach(it => { const row = el("div", "gcx-sort__item", `${imgOf(it.k)}<span class="nm">${it.name}</span><button type="button" data-a="p">${L("Primary", "Primaria")}</button><button type="button" data-a="s">${L("Secondary", "Secundaria")}</button><span class="fb" hidden></span>`);
+      const fb = row.querySelector(".fb"); const mark = (a, silent) => { row.classList.toggle("ok", a === it.ans); fb.hidden = false; fb.textContent = (a === it.ans ? "✓ " : L("Not quite. ", "No exactamente. ")) + it.why; if (a === it.ans) row.querySelectorAll("button").forEach(b => b.disabled = true); };
+      if (st.sorted[it.k]) mark(it.ans, true);
+      row.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { const a = b.dataset.a; if (a === it.ans) { st.sorted[it.k] = 1; api.saveState(); mark(a); if (api.ttsEnabled && api.ttsEnabled()) api.speak(it.why); if (ITEMS.every(x => st.sorted[x.k])) api.award("classify", L("Energy classifier", "Clasificador de energía")); } else { mark(a); if (!isReduced()) row.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 300 }); } }));
+      sort.append(row); });
+    host.append(sort);
+
+    /* label the dam */
+    host.append(el("h4", null, L("Now label a real pumped-storage-style dam", "Ahora etiqueta una presa real")));
+    host.append(el("p", "q__hint", L("Tap a part name, then tap the matching spot on the photo. (The turbines and generators are inside the dam, so you cannot see them here.)", "Toca el nombre de una parte y luego el punto correspondiente en la foto. (Las turbinas y generadores están dentro de la presa, así que aquí no se ven.)")));
+    const PARTS = [
+      { id: "res", x: 90, y: 28, name: L("Upper reservoir", "Embalse superior"), note: L("Water held high up stores gravitational potential energy, Ep = m × g × h. The higher and heavier the water, the more energy it holds.", "El agua retenida en lo alto almacena energía potencial gravitatoria, Ep = m × g × h. Cuanto más alta y pesada, más energía guarda.") },
+      { id: "wall", x: 56, y: 62, name: L("Dam wall", "Muro de la presa"), note: L("Millions of tonnes of concrete hold the water back. Water leaves only through gates and pipes you choose to open.", "Millones de toneladas de hormigón retienen el agua. Solo sale por compuertas y tuberías que tú decides abrir.") },
+      { id: "crane", x: 71, y: 45, name: L("Gantry crane", "Grúa pórtico"), note: L("Heavy cranes lift gates and machinery for repair. In the simulation, your drone and crew van do this job.", "Las grúas pesadas levantan compuertas y maquinaria para repararlas. En la simulación, tu dron y tu cuadrilla hacen este trabajo.") },
+      { id: "low", x: 8, y: 79, name: L("Lower river pool", "Poza del río, aguas abajo"), note: L("After falling through the turbines the water leaves here, having handed over its energy. In pumped storage it can be pumped back up.", "Tras caer por las turbinas el agua sale aquí, habiendo entregado su energía. En el bombeo se puede subir de nuevo.") },
+    ];
+    let current = null; const wrap = el("div", "gcx-wrap"); const left = el("div"); const frame = el("div", "gcx-photo", `<img src="photos/hydro.jpg" alt="${L("A huge concrete dam with red gantry cranes holding back a wide reservoir", "Una enorme presa de hormigón con grúas rojas que retiene un amplio embalse")}">`);
+    const tray = el("div", "gcx-tray"); const note = el("p", "gcx-note", L("Choose a part name first.", "Elige primero el nombre de una parte."));
+    const rows = {}, spots = {};
+    const done = p => { st.parts[p.id] = 1; api.saveState(); spots[p.id].classList.add("is-done"); rows[p.id].classList.add("is-done"); rows[p.id].querySelector(".mk").textContent = "✓"; note.textContent = p.name + ": " + p.note; if (api.ttsEnabled && api.ttsEnabled()) api.speak(p.note); current = null; Object.values(rows).forEach(r => r.setAttribute("aria-pressed", "false")); if (PARTS.every(q => st.parts[q.id])) api.award("dam", L("Dam anatomist", "Anatomista de presas")); };
+    PARTS.forEach(p => { const b = el("button", "gcx-hs", "<i></i>"); b.type = "button"; b.style.left = p.x + "%"; b.style.top = p.y + "%"; b.setAttribute("aria-label", p.name); spots[p.id] = b;
+      b.addEventListener("click", () => { if (st.parts[p.id]) { note.textContent = p.name + ": " + p.note; return; } if (!current) { b.classList.add("is-wrong"); setTimeout(() => b.classList.remove("is-wrong"), 350); note.textContent = L("Choose a part name first, then tap its spot.", "Elige primero un nombre y luego toca su punto."); return; } if (current === p.id) done(p); else { b.classList.add("is-wrong"); setTimeout(() => b.classList.remove("is-wrong"), 350); note.textContent = L("Not that spot. Look again at the part you chose.", "Ese no es el punto. Mira de nuevo la parte que elegiste."); } });
+      frame.append(b);
+      const r = el("button", "gcx-part", `<span>${p.name}</span><span class="mk">→</span>`); r.type = "button"; r.setAttribute("aria-pressed", "false"); rows[p.id] = r;
+      r.addEventListener("click", () => { if (st.parts[p.id]) return; Object.values(rows).forEach(x => x.setAttribute("aria-pressed", "false")); current = p.id; r.setAttribute("aria-pressed", "true"); note.textContent = L("Now tap its spot on the photo.", "Ahora toca su punto en la foto."); });
+      tray.append(r); if (st.parts[p.id]) { spots[p.id].classList.add("is-done"); r.classList.add("is-done"); r.querySelector(".mk").textContent = "✓"; } });
+    const cr = el("p", "gcx-credit"); left.append(frame, cr); const right = el("div"); right.append(tray, note); wrap.append(left, right); host.append(wrap);
+    creditsReady.then(() => { cr.innerHTML = creditLine(["hydro"]); });
+  },
+
+  /* ---- OBSERVATION: tap-to-reveal notices on three real photos ---- */
+  observation(host, api) {
+    sim = api; host.innerHTML = "";
+    api.setScienceMethod({
+      observation: L("Real photos show that renewable plants depend on the place: solar farms sit in sunny open land, wind farms spread over windy plains, geothermal plants sit on hot volcanic ground. None of them can simply be turned up on demand.", "Las fotos reales muestran que las plantas renovables dependen del lugar: los parques solares en terreno soleado y abierto, los eólicos en llanuras ventosas, los geotérmicos sobre suelo volcánico caliente. Ninguna puede subirse a voluntad."),
+      question: L("How can a grid keep supply equal to demand at every moment, even though sun and wind do not follow the clock, while cutting fossil fuels?", "¿Cómo puede una red mantener la oferta igual a la demanda en todo momento, aunque el sol y el viento no sigan el reloj, reduciendo los combustibles fósiles?"),
+    });
+    host.append(el("p", "q__hint", L("Three real energy sites. Tap each button to notice a real detail before anyone explains it.", "Tres sitios de energía reales. Toca cada botón para notar un detalle real antes de que alguien lo explique.")));
+    const CARDS = [
+      { k: "solar", name: L("A solar farm in the desert", "Un parque solar en el desierto"), notes: [L("The panels stand in long rows, all tilted the same way toward the sun. Out here there is almost nothing to shade them.", "Los paneles están en largas filas, todos inclinados hacia el sol. Aquí casi nada les da sombra."), L("The sky is completely clear. A single cloud, or the arrival of night, would cut this farm's power within seconds.", "El cielo está despejado. Una sola nube, o la llegada de la noche, recortaría la potencia de este parque en segundos."), L("Thin power lines run along the horizon. Electricity must travel from where it is made to where people use it.", "Finas líneas eléctricas recorren el horizonte. La electricidad debe viajar de donde se produce a donde se usa.")] },
+      { k: "wind", name: L("Wind turbines beside crops", "Aerogeneradores junto a cultivos"), notes: [L("Dozens of huge turbines reach to the horizon, and farming carries on between them.", "Decenas de enormes turbinas llegan al horizonte y la agricultura continúa entre ellas."), L("An old multi-bladed windmill stands on the right. People have used wind energy for centuries; now it is turned into electricity.", "A la derecha hay un viejo molino de muchas aspas. Se usa la energía eólica desde hace siglos; ahora se convierte en electricidad."), L("Some blades are turning at different angles. Output depends on wind speed, which changes minute by minute.", "Algunas aspas giran en ángulos distintos. La producción depende de la velocidad del viento, que cambia minuto a minuto.")] },
+      { k: "geo", name: L("A geothermal field in Iceland", "Un campo geotérmico en Islandia"), notes: [L("Huge white plumes of steam rise from the plant. That steam spins turbines, and it comes from heat deep in the Earth.", "Enormes penachos blancos de vapor salen de la planta. Ese vapor hace girar turbinas y viene del calor profundo de la Tierra."), L("Pipes snake across the ground carrying hot water and steam to the power station.", "Tuberías serpentean por el suelo llevando agua caliente y vapor a la central."), L("The weather is grey and cloudy, yet the plant runs just the same. It is steady power day and night.", "El tiempo es gris y nublado, pero la planta funciona igual. Es potencia constante de día y de noche.")] },
+    ];
+    const seen = api.state.obsSeen || (api.state.obsSeen = {}); const grid = el("div", "gcx-obs");
+    CARDS.forEach((c, ci) => { const card = el("div", "gcx-card", `<img src="photos/${c.k}.jpg" alt="${c.name}"><div class="gcx-card__b"><b>${c.name}</b></div>`); const body = card.querySelector(".gcx-card__b");
+      c.notes.forEach((n, i) => { const b = el("button", "gcx-card__btn", `<span>${L("Notice something #", "Notar algo #")}${i + 1}</span><span>👁</span>`); b.type = "button"; const key = ci + "_" + i; const open = () => { b.classList.add("is-done"); b.firstChild.textContent = n; };
+        if (seen[key]) open(); b.addEventListener("click", () => { if (b.classList.contains("is-done")) return; seen[key] = 1; open(); if (api.ttsEnabled && api.ttsEnabled()) api.speak(n); api.saveState(); }); body.append(b); });
+      const cr = el("p", "gcx-credit"); card.append(cr); creditsReady.then(() => { cr.innerHTML = creditLine([c.k]); }); grid.append(card); });
+    host.append(grid);
+  },
+
+  /* ---- EXPERIMENT: the Grid Commander digital twin + bonus control room ---- */
+  investigate(host, api) {
+    sim = api; host.innerHTML = "";
+    if (window.__gcSim) { try { window.__gcSim.destroy(); } catch (e) {} window.__gcSim = null; }
+    const HYP = { a: L("If I turn the gas peaker down and bank midday surplus as water in the mountain lake, then the evening peak can be met mostly with clean power, because stored potential energy turns back into electricity after the sun has gone.", "Si bajo la central de gas y guardo el excedente del mediodía como agua en el lago de la montaña, entonces el pico de la tarde se podrá cubrir sobre todo con energía limpia, porque la energía potencial almacenada vuelve a ser electricidad cuando el sol se ha ido."),
+      b: L("If the grid has enough solar panels, then it will never need storage or other plants, because sunlight is free.", "Si la red tiene suficientes paneles solares, entonces nunca necesitará almacenamiento ni otras centrales, porque la luz solar es gratis."),
+      c: L("If the gas peaker always runs at full power, then the grid will be cheapest and safest, because gas is fast and reliable.", "Si la central de gas siempre funciona a plena potencia, entonces la red será la más barata y segura, porque el gas es rápido y fiable."),
+      d: L("If the city has some power, then it does not matter how far the frequency drifts from 60 Hz.", "Si la ciudad tiene algo de potencia, entonces no importa cuánto se aleje la frecuencia de 60 Hz.") };
+    api.setScienceMethod({
+      hypothesis: (api.state.predict != null && HYP[api.state.predict]) || L("No hypothesis recorded before testing.", "No se registró ninguna hipótesis antes de la prueba."),
+      variables: {
+        independent: L("The choices you make: which plants you build, the gas peaker throttle, and the pumped-hydro mode (Auto, Pump now or Save water).", "Las decisiones que tomas: qué centrales construyes, el acelerador de la central de gas y el modo de la hidroeléctrica (Auto, Bombear ya o Guardar agua)."),
+        dependent: L("Grid frequency (Hz), the share of clean power, system efficiency, cash flow and CO₂ emitted.", "La frecuencia de la red (Hz), la parte de energía limpia, la eficiencia del sistema, el flujo de caja y el CO₂ emitido."),
+        controlled: L("Within a mission, the same city demand curve, the same weather schedule and the same starting plants for every attempt, so only your decisions change the result.", "Dentro de una misión, la misma curva de demanda, el mismo calendario meteorológico y las mismas centrales iniciales en cada intento, así que solo tus decisiones cambian el resultado."),
+      },
+    });
+    const gcHost = el("div"); host.append(gcHost);
+    const base = "../../../../../../engine/vendor/three.min.js";
+    mountGridSim(gcHost, {
+      L, reduced: isReduced(), photoBase: "photos/", threeUrl: base, existingSnaps: (api.trials || []).length,
+      award: (id, label) => api.award(id, label), recordTrial: row => api.recordTrial(row),
+      setResult: (k, v) => { api.setResult(k, v); api.saveState(); },
+      toast: (m, k) => api.toast(m, k === "warn" ? "info" : k),
+      onMissionDone: ev => { const lines = ev.res.map(r => (r.ok ? "met: " : "missed: ") + r.label + " (" + r.prog + ")").join("; "); api.setScienceMethod({ results: (api.state.scienceMethod && api.state.scienceMethod.results ? api.state.scienceMethod.results + " | " : "") + ev.id + ": " + ev.stars + "/3 stars. " + lines }); },
+    }).then(inst => { window.__gcSim = inst; });
+    const bonus = el("div"); host.append(bonus);
+    mountFreqGame(bonus, { L, reduced: isReduced(), photoBase: "photos/", award: (id, label) => api.award(id, label), onDone: r => { api.setResult("control_room_stability_pct", r.pct); api.saveState(); } });
+    host.append(creditsBlock());
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>

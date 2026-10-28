@@ -1944,6 +1944,14 @@ Students learned that the correct choice is always first, because config options
 - **Any hand-built quiz inside an activity or bonus round (e.g. `BC_QUESTIONS`) must shuffle its own options** and compare by original index/id, not displayed position.
 - Spot-check a new activity by listing answer positions across its questions; they should not all land in the same slot.
 
+### 12.14 Lesson from `sim-grid-commander` (Renewable Energy M1 Sim 3, 2026-10-28) - gamifying a supplied digital-twin sim
+Diego sent a React/Tailwind "Thermodynamics & Energy Grid Digital Twin" zip and asked for better graphics, more gamification and the same tools. Ported to plain ES modules (`grid-engine.js` physics + missions, `grid-scene.js` Three.js diorama, `grid-ui.js` HUD, `freq-game.js` bonus). Standing rules:
+- **Bot-test every economy/mission before shipping, and read the per-hour numbers, not just the stars.** Bots found: a power shortage that *earned* money (the spike price multiplied revenue), hydro pumping 20 MW more than the surplus so the battery drained while pumping, initial wind farms at the wrong capacity, a price shock too weak to matter, and a 150 MWh target unreachable without building. Fixes: revenue at base price plus a lost-load penalty, heat-rate fuel cost, per-mission targets calibrated so idle = 0 stars and a good plan = 3 stars.
+- **Run the sim clock in sim-minutes as a float.** The source floored the minute each tick so the clock stalled at 1x; wear, water and money must also scale with sim-hours.
+- **Snap every facility's y to `terrainHeight()`** (the source positions were buried in the hills) and keep a placement validity check with a visible reason (`spotCheck`) plus an auto-place button as the no-mouse route.
+- **Mobile 3D needs a camera fit** (`fit = 1/aspect` multiplier) and a far plane larger than the sky dome, or the sky clips black; hide marker names on narrow screens.
+- **A bonus round can be a precision-instrument challenge:** `freq-game.js` ("Frequency Control Room", 120 s wall-clock `setInterval`, no fail state, silent so no mute needed, memory hook per event, real photos on the three sources).
+
 ---
 
 ## 17. Revision websites (`exam-N-revision/`) — standing rules (agreed 2026-10-27)
