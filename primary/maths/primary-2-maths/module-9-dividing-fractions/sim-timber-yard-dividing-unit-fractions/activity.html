@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Timber Yard — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.ty-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#fff3e0;border:2px solid #d99a4e;font-weight:700;color:#5a3410}
+.ty-chip b{font-size:1.15em;color:#a3400f}
+.ty-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.ty-step{width:40px;height:40px;border-radius:50%;border:2px solid #7a4a1d;background:#fff;font-size:1.4em;font-weight:800;color:#7a4a1d;cursor:pointer}
+.ty-step:hover{background:#fde3b8}
+.ty-msg{min-height:44px;margin:8px 0 0;padding:10px 14px;border-radius:12px;background:#f3f1ea;font-weight:600;color:#3a3020}
+.ty-msg.bad{background:#fdeceb;color:#8c2118}
+.ty-msg.good{background:#e3f6dc;color:#1c5a1a}
+.ty-order{display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:14px;background:linear-gradient(135deg,#fff0d6,#ffdca8);border:2px solid #d99a4e;margin-bottom:10px}
+.ty-tab[aria-pressed=true]{border-color:var(--accent);font-weight:800}
+.ty-spot{position:absolute;width:36px;height:36px;margin:-18px;border-radius:50%;border:3px solid #fff;background:rgba(196,50,31,.16);color:#fff;text-shadow:0 1px 3px #000;font-size:.9em;font-weight:800;cursor:pointer;box-shadow:0 0 0 2px #c4321f,0 2px 8px rgba(0,0,0,.4);padding:0}
+.ty-spot.done{background:rgba(42,138,58,.3);box-shadow:0 0 0 2px #2a8a3a,0 2px 8px rgba(0,0,0,.4)}
+.ty-ans{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.ty-ans button{min-width:92px;min-height:48px;font-size:1.15em}
+.ty-tyc{background:linear-gradient(180deg,#3a2a18,#24180d);color:#fff0d6;border-radius:16px;padding:14px}
+.ty-tyc .ty-chip{background:#4a3520;border-color:#d99a4e;color:#ffe9c6}
+.ty-tyc .ty-chip b{color:#ffd54a}
+.ty-plank{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.ty-plank button{min-height:56px;font-weight:800;font-size:1.05em;border-radius:12px;border:2px solid #b98a4a;background:#fff1d6;color:#4a2f10;cursor:pointer}
+.ty-plank button:hover{background:#ffdf9f}
+.ty-pat{height:10px;border-radius:6px;background:#5a4630;overflow:hidden;margin-top:6px}
+.ty-pat i{display:block;height:100%;width:100%;background:#79c85a}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=20";
+import { getLang } from "../../../../../engine/i18n.js?v=9";
+import { loadThree, C as lin, createStage, makeStall, makeLabelSprite } from "../sim-orchard-market-fraction-review/orchard3d.js?v=10";
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const REDUCED = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+const frac = (n, d) => `<sup>${n}</sup>⁄<sub>${d}</sub>`;
+const uf = b => frac(1, b);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const disposers = [];
+const killAll = () => { while (disposers.length) { try { disposers.pop()(); } catch (e) {} } };
+const U = 2.4;
+
+function plankSVG(size = 44) { return `<svg viewBox="0 0 48 32" width="${size}" height="${Math.round(size * .67)}" aria-hidden="true" style="display:inline-block;vertical-align:middle"><rect x="2" y="6" width="44" height="20" rx="2" fill="#c58a4d" stroke="#6b3f17" stroke-width="2"/><path d="M6 12h30M10 18h32M6 22h20" stroke="#8a5a2a" stroke-width="1.4" opacity=".7"/><circle cx="36" cy="16" r="2.4" fill="#8a5a2a"/></svg>`; }
+function shake(el) { if (REDUCED() || !el || !el.animate) return; el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(9px)" }, { transform: "translateX(-5px)" }, { transform: "translateX(0)" }], { duration: 320 }); }
+function flyChips(from, n = 4) {
+  if (REDUCED() || !from) return; const r = from.getBoundingClientRect();
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement("span"); s.innerHTML = plankSVG(30);
+    s.style.cssText = `position:fixed;left:${r.left + r.width / 2 - 15}px;top:${r.top + r.height / 2 - 10}px;z-index:50;pointer-events:none`; document.body.appendChild(s);
+    const dx = (Math.random() - .5) * 150, dy = -80 - Math.random() * 90;
+    s.animate([{ transform: "translate(0,0) rotate(0)", opacity: 1 }, { transform: `translate(${dx}px,${dy}px) rotate(${dx * 2}deg)`, opacity: 0 }], { duration: 750 + i * 90, easing: "cubic-bezier(.2,.8,.3,1)" }).onfinish = () => s.remove();
+  }
+}
+const msgSet = (el, text, kind = "") => { el.className = "ty-msg " + kind; el.innerHTML = text; };
+
+/* ───────── Orient: real timber market photo ───────── */
+const SPOTS = [
+  { x: 35, y: 38, en: "A bundle of long planks. If one plank is 3 metres long and you cut it into " + frac(1, 4) + " metre pieces, how many pieces do you get? You will find out at the Saw Bench!", es: "Un manojo de tablones largos. Si un tablón mide 3 metros y lo cortas en piezas de " + frac(1, 4) + " de metro, ¿cuántas piezas obtienes? ¡Lo descubrirás en el Banco de sierra!" },
+  { x: 83, y: 40, en: "Shorter boards stacked on a shelf. Short boards are cut from long planks into equal pieces.", es: "Tablas más cortas apiladas en un estante. Las tablas cortas se cortan de tablones largos en piezas iguales." },
+  { x: 54, y: 53, en: "A person for scale. A long plank is taller than a grown-up! Long lengths are measured in metres.", es: "Una persona para comparar el tamaño. ¡Un tablón largo es más alto que un adulto! Las longitudes largas se miden en metros." },
+  { x: 73, y: 64, en: "Short pointed pieces. Cutting a plank into equal small pieces is dividing by a unit fraction.", es: "Piezas cortas con punta. Cortar un tablón en piezas pequeñas iguales es dividir entre una fracción unitaria." }
+];
+function orientDiagram(host) {
+  host.innerHTML = `<div class="panel" style="padding:14px;margin-top:12px">
+    <p class="eyebrow" style="margin:0 0 8px">${L("Real timber market — tap the red spots", "Mercado de madera real — toca los puntos rojos")}</p>
+    <div id="ph" style="position:relative;border-radius:14px;overflow:hidden;line-height:0;max-width:380px;margin:0 auto"><img src="photos/timber-market.jpg" alt="${L("A timber market with tall bundles of wooden planks, a man looking at them, and shorter boards stacked on a shelf", "Un mercado de madera con manojos altos de tablones, un hombre mirándolos y tablas más cortas apiladas en un estante")}" style="width:100%;height:auto;display:block">
+      ${SPOTS.map((s, i) => `<button type="button" class="ty-spot" data-i="${i}" style="left:${s.x}%;top:${s.y}%" aria-label="${L("Spot", "Punto")} ${i + 1}">${i + 1}</button>`).join("")}</div>
+    <p class="ty-msg" id="phmsg" aria-live="polite">${L("Tap a numbered spot to find a clue about lengths.", "Toca un punto numerado para encontrar una pista sobre longitudes.")}</p>
+    <p id="phcount" class="eyebrow" style="margin:6px 0 0">${L("Clues found", "Pistas encontradas")}: 0 / ${SPOTS.length}</p>
+    <p style="font-size:.8em;margin:8px 0 0;color:var(--ink-2)">${L("Photo:", "Foto:")} “Timber Market Scene” — Bigkotech, <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>, <a href="https://commons.wikimedia.org/wiki/File:Timber_Market_Scene.jpg" target="_blank" rel="noopener">Wikimedia Commons</a>.</p>
+  </div>`;
+  const found = new Set(), msg = host.querySelector("#phmsg"), ph = host.querySelector("#ph");
+  ph.addEventListener("click", e => {
+    const b = e.target.closest(".ty-spot");
+    if (!b) { shake(ph); msgSet(msg, L("Tap one of the numbered red spots on the photo.", "Toca uno de los puntos rojos numerados de la foto."), "bad"); return; }
+    const i = +b.dataset.i; found.add(i); b.classList.add("done"); b.textContent = "✓";
+    msgSet(msg, `<strong>${i + 1}.</strong> ${L(SPOTS[i].en, SPOTS[i].es)}`, "good");
+    host.querySelector("#phcount").textContent = `${L("Clues found", "Pistas encontradas")}: ${found.size} / ${SPOTS.length}`;
+  });
+}
+
+/* ───────── shared 3D plank helpers ───────── */
+function plankKit(T, tex) {
+  const mats = [new T.MeshStandardMaterial({ map: tex.wood, roughness: .8, color: lin(T, 0xf4d9a0) }), new T.MeshStandardMaterial({ map: tex.wood, roughness: .8, color: lin(T, 0xe0a460) })];
+  const edge = new T.MeshStandardMaterial({ color: lin(T, 0x3a2410), roughness: 1 });
+  return {
+    piece(w, i, d = 1.4, h = .55) {
+      const g = new T.Mesh(new T.BoxGeometry(Math.max(.05, w), h, d), mats[i % 2]); g.castShadow = g.receiveShadow = true; return g;
+    },
+    edge
+  };
+}
+function setupBench(st, T, dist, tgt) {
+  st.camera.fov = 40; st.orbit.az = 0; st.orbit.pol = .85; st.orbit.dist = dist; st.orbit.tgt.set(...tgt);
+  st.scene.add(makeStall(T, st.tex, 20, 12, false));
+  const bench = new T.Mesh(new T.BoxGeometry(17, .1, 4.4), new T.MeshStandardMaterial({ color: lin(T, 0x2f3a46), metalness: .5, roughness: .45 })); bench.position.set(0, .05, tgt[2]); bench.receiveShadow = true; st.scene.add(bench);
+}
+
+/* ───────── Station 1: Saw Bench (3D) ───────── */
+const SAW_ORDERS = [{ n: 3, b: 4 }, { n: 2, b: 3 }, { n: 4, b: 2 }, { n: 2, b: 5 }, { n: 3, b: 6 }];
+async function buildSaw(host, sim, setD) {
+  host.innerHTML = ""; let round = 0;
+  async function render() {
+    if (round >= SAW_ORDERS.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Saw Bench complete! Every plank is cut.", "¡Banco de sierra completo! Todos los tablones están cortados.")} ✦</p><p>${L("Move on to the Plank Wall →", "Pasa al Muro de tablones →")}</p></div>`; return; }
+    const { n, b: B } = SAW_ORDERS[round];
+    host.innerHTML = `<div class="panel" style="padding:14px">
+      <p class="eyebrow" style="margin:0 0 6px">${L("Saw Bench", "Banco de sierra")} — ${L("Job", "Trabajo")} ${round + 1}/${SAW_ORDERS.length}</p>
+      <div class="ty-order">${plankSVG(54)}<div style="font-size:1.1em">${L("Customer:", "Cliente:")} <strong>“${L(`Please cut this ${n} m plank into pieces that are each ${uf(B)} m long!`, `¡Por favor corta este tablón de ${n} m en piezas de ${uf(B)} m cada una!`)}”</strong></div></div>
+      <div id="stage"></div>
+      <div class="ty-bar">
+        <span class="ty-chip">${L("Plank", "Tablón")}: <b>${n} m</b></span>
+        <span class="ty-chip">${L("Piece size", "Tamaño de pieza")}: <b>1/</b><button type="button" class="ty-step" id="bm" aria-label="${L("bigger pieces", "piezas más grandes")}">−</button><b id="bv">1</b><button type="button" class="ty-step" id="bp" aria-label="${L("smaller pieces", "piezas más pequeñas")}">+</button><b>m</b></span>
+      </div>
+      <div class="ty-bar"><button type="button" class="btn btn--signal" id="cut">${L("Cut the plank! ⚙", "¡Cortar el tablón! ⚙")}</button><button type="button" class="btn" id="reset">${L("↺ Reset plank", "↺ Reiniciar tablón")}</button></div>
+      <p class="ty-msg" id="msg" aria-live="polite">${L("Set the piece size to match the order, then cut. Watch the cut lines move!", "Ajusta el tamaño de pieza al pedido y luego corta. ¡Mira cómo se mueven las líneas de corte!")}</p>
+      <div id="qa"></div></div>`;
+    const $ = s => host.querySelector(s);
+    let T; try { T = await loadThree(); } catch (e) { T = null; }
+    const st = createStage($("#stage"), T || {}, { height: 340 }); setD(() => st.dispose());
+    let b = 1, cutDone = false, pieces = [], tries = 0, blade, kit, solved = false;
+    if (st.ok) {
+      setupBench(st, T, 12.5, [0, .2, .3]); kit = plankKit(T, st.tex);
+      const metal = new T.MeshStandardMaterial({ color: lin(T, 0xc9d2d8), metalness: .9, roughness: .25 });
+      blade = new T.Mesh(new T.CylinderGeometry(.8, .8, .06, 40), metal); blade.rotation.x = Math.PI / 2; blade.position.set(-n * U / 2 - 1.6, 1.1, 0); blade.castShadow = true; st.scene.add(blade);
+      st.onFrame(dt => { blade.rotation.y += dt * 18; });
+    }
+    function layout(spread) {
+      if (!st.ok) return; pieces.forEach(p => st.scene.remove(p)); pieces = [];
+      const N = n * b, w = n * U / N, gap = spread ? Math.min(.22, 5 / N) : .035;
+      for (let i = 0; i < N; i++) { const p = kit.piece(w - .03, i); p.position.set(-n * U / 2 + (i + .5) * w + (i - (N - 1) / 2) * gap, .28, 0); st.scene.add(p); pieces.push(p); }
+    }
+    layout(false);
+    const hud = () => { $("#bv").textContent = b; };
+    function setB(nb) { if (cutDone) { shake($("#cut")); msgSet($("#msg"), L("Press Reset plank to change the piece size.", "Pulsa Reiniciar tablón para cambiar el tamaño de pieza."), "bad"); return; } b = Math.max(1, Math.min(8, nb)); hud(); layout(false); if (st.ok) st.punch(); }
+    $("#bm").addEventListener("click", () => setB(b - 1)); $("#bp").addEventListener("click", () => setB(b + 1));
+    $("#reset").addEventListener("click", () => { if (solved) return; cutDone = false; $("#qa").innerHTML = ""; layout(false); if (blade) blade.position.x = -n * U / 2 - 1.6; msgSet($("#msg"), L("Plank reset. Choose a piece size and cut again.", "Tablón reiniciado. Elige un tamaño de pieza y corta otra vez.")); });
+    $("#cut").addEventListener("click", ev => {
+      if (cutDone || solved) return; cutDone = true; tries++;
+      const N = n * b;
+      if (st.ok) { st.tween(blade, new T.Vector3(n * U / 2 + 1.6, 1.1, 0), 900, { ease: "inout" }); setTimeout(() => { layout(true); st.burst(new T.Vector3(0, .8, 0), 0xf2d49a, 45); st.punch(); }, REDUCED() ? 0 : 950); }
+      if (b !== B) { shake($("#cut")); msgSet($("#msg"), L(`You cut ${n} m into pieces of 1/${b} m, but the order needs 1/${B} m pieces. Press Reset plank and try again.`, `Cortaste ${n} m en piezas de 1/${b} m, pero el pedido necesita piezas de 1/${B} m. Pulsa Reiniciar tablón e inténtalo otra vez.`), "bad"); return; }
+      msgSet($("#msg"), L(`Cut! Now count the pieces. How many ${uf(B)} m pieces did you make?`, `¡Cortado! Ahora cuenta las piezas. ¿Cuántas piezas de ${uf(B)} m hiciste?`), "good");
+      const right = N, opts = shuffle([...new Set([right, n + B, right - B > 0 ? right - B : right + B])]); while (opts.length < 3) opts.push(right + opts.length + 1);
+      $("#qa").innerHTML = `<p style="font-weight:700;margin:10px 0 0">${L(`How many pieces make ${n} ÷ ${uf(B)} ?`, `¿Cuántas piezas son ${n} ÷ ${uf(B)} ?`)}</p><div class="ty-ans">${opts.map(o => `<button type="button" class="btn" data-o="${o}">${o}</button>`).join("")}</div>`;
+      let wrong = 0;
+      $("#qa").querySelectorAll("button").forEach(bt => bt.addEventListener("click", () => {
+        if (+bt.dataset.o === right) {
+          solved = true; msgSet($("#msg"), L(`Yes! ${n} ÷ ${uf(B)} = ${right} pieces. Each metre makes ${B} pieces, and ${n} × ${B} = ${right}.`, `¡Sí! ${n} ÷ ${uf(B)} = ${right} piezas. Cada metro da ${B} piezas, y ${n} × ${B} = ${right}.`), "good");
+          $("#qa").querySelectorAll("button").forEach(x => x.disabled = true); flyChips(bt, 5); if (st.ok) st.burst(new T.Vector3(0, 1.5, 0), 0xffd54a, 40);
+          sim.recordTrial({ task: L("Saw Bench", "Banco de sierra"), input: `${n} ÷ 1/${B}`, result: `${right} ${L("pieces", "piezas")} (${L("tries", "intentos")}: ${tries + wrong})` });
+          const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = round < SAW_ORDERS.length - 1 ? L("Next job →", "Siguiente trabajo →") : L("Finish station ✦", "Terminar estación ✦");
+          nx.addEventListener("click", () => { st.dispose(); round++; render(); }); $("#qa").appendChild(nx);
+        } else { wrong++; shake(bt); bt.disabled = true; msgSet($("#msg"), L(`Not quite. Count the pieces on the bench again: each metre has ${B} pieces.`, `Casi. Cuenta otra vez las piezas del banco: cada metro tiene ${B} piezas.`), "bad"); }
+      }));
+    });
+    hud();
+  }
+  render();
+}
+
+/* ───────── Station 2: Plank Wall (3D) ───────── */
+const WALL_ORDERS = [{ n: 2, b: 3 }, { n: 4, b: 2 }, { n: 3, b: 5 }, { n: 2, b: 6 }, { n: 5, b: 4 }];
+async function buildWall(host, sim, setD) {
+  host.innerHTML = ""; let round = 0;
+  async function render() {
+    if (round >= WALL_ORDERS.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Plank Wall complete!", "¡Muro de tablones completo!")} ✦</p><p>${L("Next: Order Desk →", "Siguiente: Mostrador →")}</p></div>`; return; }
+    const { n: N0, b: B0 } = WALL_ORDERS[round];
+    host.innerHTML = `<div class="panel" style="padding:14px">
+      <p class="eyebrow" style="margin:0 0 6px">${L("Plank Wall", "Muro de tablones")} — ${L("Wall", "Muro")} ${round + 1}/${WALL_ORDERS.length}</p>
+      <div class="ty-order">${plankSVG(54)}<div style="font-size:1.05em">${L(`Build a wall that shows <strong>${N0} ÷ ${uf(B0)}</strong>: ${N0} whole 1 m planks, each cut into pieces of ${uf(B0)} m.`, `Construye un muro que muestre <strong>${N0} ÷ ${uf(B0)}</strong>: ${N0} tablones enteros de 1 m, cada uno cortado en piezas de ${uf(B0)} m.`)}</div></div>
+      <div id="stage"></div>
+      <div class="ty-bar">
+        <span class="ty-chip">${L("Planks", "Tablones")}: <button type="button" class="ty-step" id="nm" aria-label="${L("fewer planks", "menos tablones")}">−</button><b id="nv">1</b><button type="button" class="ty-step" id="np" aria-label="${L("more planks", "más tablones")}">+</button></span>
+        <span class="ty-chip">${L("Piece size", "Tamaño de pieza")}: <b>1/</b><button type="button" class="ty-step" id="bm" aria-label="${L("bigger pieces", "piezas más grandes")}">−</button><b id="bv">1</b><button type="button" class="ty-step" id="bp" aria-label="${L("smaller pieces", "piezas más pequeñas")}">+</button><b>m</b></span>
+        <span class="ty-chip">${L("Pieces in the wall", "Piezas en el muro")}: <b id="tot">1</b></span>
+      </div>
+      <div class="ty-bar"><button type="button" class="btn btn--signal" id="check">${L("Check my wall ✓", "Comprobar mi muro ✓")}</button></div>
+      <p class="ty-msg" id="msg" aria-live="polite">${L("Use the + and − buttons to build the wall, then check it.", "Usa los botones + y − para construir el muro y luego compruébalo.")}</p>
+      <div id="qa"></div></div>`;
+    const $ = s => host.querySelector(s);
+    let T; try { T = await loadThree(); } catch (e) { T = null; }
+    const st = createStage($("#stage"), T || {}, { height: 340 }); setD(() => st.dispose());
+    let n = 1, b = 1, pieces = [], kit, tries = 0;
+    if (st.ok) { setupBench(st, T, 13.5, [0, .2, 0]); kit = plankKit(T, st.tex); st.onFrame(dt => pieces.forEach(p => { p.scale.y += (1 - p.scale.y) * Math.min(1, dt * 9); p.scale.x += (1 - p.scale.x) * Math.min(1, dt * 9); })); }
+    const rowLen = 7;
+    function build() {
+      $("#nv").textContent = n; $("#bv").textContent = b; $("#tot").textContent = n * b;
+      if (!st.ok) return; pieces.forEach(p => st.scene.remove(p)); pieces = [];
+      const w = rowLen / b, gap = b > 1 ? .12 : 0, zs = 1.65;
+      for (let r = 0; r < n; r++) for (let i = 0; i < b; i++) { const p = kit.piece(w - gap - .03, i + r); p.position.set(-rowLen / 2 + (i + .5) * w, .28, (r - (n - 1) / 2) * zs); p.scale.set(.2, .2, 1); st.scene.add(p); pieces.push(p); }
+    }
+    build();
+    const upd = (dn, db) => { n = Math.max(1, Math.min(6, n + dn)); b = Math.max(1, Math.min(8, b + db)); build(); if (st.ok) st.punch(); };
+    $("#nm").addEventListener("click", () => upd(-1, 0)); $("#np").addEventListener("click", () => upd(1, 0));
+    $("#bm").addEventListener("click", () => upd(0, -1)); $("#bp").addEventListener("click", () => upd(0, 1));
+    $("#check").addEventListener("click", () => {
+      if (n !== N0 || b !== B0) { shake($("#check")); msgSet($("#msg"), n !== N0 && b !== B0 ? L(`Not yet: you need ${N0} planks and pieces of 1/${B0} m.`, `Aún no: necesitas ${N0} tablones y piezas de 1/${B0} m.`) : n !== N0 ? L(`You need ${N0} whole planks for ${N0} ÷ 1/${B0}.`, `Necesitas ${N0} tablones enteros para ${N0} ÷ 1/${B0}.`) : L(`The pieces must be 1/${B0} m long, so each plank is cut into ${B0} pieces.`, `Las piezas deben medir 1/${B0} m, así que cada tablón se corta en ${B0} piezas.`), "bad"); return; }
+      msgSet($("#msg"), L(`Great wall! ${N0} planks × ${B0} pieces each = ${N0 * B0} pieces in total.`, `¡Gran muro! ${N0} tablones × ${B0} piezas cada uno = ${N0 * B0} piezas en total.`), "good");
+      $("#check").disabled = true; if (st.ok) { st.punch(); st.burst(new T.Vector3(0, 1, 0), 0xf2d49a, 40); }
+      const right = `${N0} × ${B0}`, opts = shuffle([right, `${N0} ÷ ${B0}`, `${N0} × 1/${B0}`]);
+      $("#qa").innerHTML = `<p style="font-weight:700;margin:10px 0 0">${L(`Which multiplication gives the same answer as ${N0} ÷ ${uf(B0)} ?`, `¿Qué multiplicación da la misma respuesta que ${N0} ÷ ${uf(B0)} ?`)}</p><div class="ty-ans">${opts.map(o => `<button type="button" class="btn" data-o="${o}">${o}</button>`).join("")}</div>`;
+      $("#qa").querySelectorAll("button").forEach(bt => bt.addEventListener("click", () => {
+        if (bt.dataset.o === right) {
+          msgSet($("#msg"), L(`Yes! ${N0} ÷ 1/${B0} = ${N0} × ${B0} = ${N0 * B0}. Dividing by a unit fraction means multiplying by its denominator.`, `¡Sí! ${N0} ÷ 1/${B0} = ${N0} × ${B0} = ${N0 * B0}. Dividir entre una fracción unitaria es multiplicar por su denominador.`), "good");
+          $("#qa").querySelectorAll("button").forEach(x => x.disabled = true); flyChips(bt, 5);
+          sim.recordTrial({ task: L("Plank Wall", "Muro de tablones"), input: `${N0} ÷ 1/${B0}`, result: `${N0} × ${B0} = ${N0 * B0} (${L("tries", "intentos")}: ${tries + 1})` });
+          const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = round < WALL_ORDERS.length - 1 ? L("Next wall →", "Siguiente muro →") : L("Finish station ✦", "Terminar estación ✦");
+          nx.addEventListener("click", () => { st.dispose(); round++; render(); }); $("#qa").appendChild(nx);
+        } else { tries++; shake(bt); bt.disabled = true; msgSet($("#msg"), L(`Not this one. The wall has ${N0} planks with ${B0} pieces each, so ${N0} groups of ${B0}.`, `Esta no. El muro tiene ${N0} tablones con ${B0} piezas cada uno, o sea ${N0} grupos de ${B0}.`), "bad"); }
+      }));
+    });
+  }
+  render();
+}
+
+/* ───────── Station 3: Order Desk ───────── */
+const DESK = [
+  { en: "A carpenter has 4 m of trim. Each piece must be ½ m long. How many pieces can be cut?", es: "Un carpintero tiene 4 m de moldura. Cada pieza debe medir ½ m. ¿Cuántas piezas se pueden cortar?", ans: "8", opts: ["2", "8", "6"], hook: ["Each metre makes 2 halves, so 4 × 2 = 8.", "Cada metro da 2 mitades, así que 4 × 2 = 8."], expr: "4 ÷ 1/2" },
+  { en: "A baker slices 3 loaves. Each loaf is cut into ¼-size slices. How many slices are there?", es: "Una panadera corta 3 panes. Cada pan se corta en rebanadas de ¼. ¿Cuántas rebanadas hay?", ans: "12", opts: ["12", "7", "¾"], hook: ["Each loaf makes 4 slices, so 3 × 4 = 12.", "Cada pan da 4 rebanadas, así que 3 × 4 = 12."], expr: "3 ÷ 1/4" },
+  { en: "A bottle holds 5 litres of juice. Each cup holds ⅓ litre. How many cups can be filled?", es: "Una botella tiene 5 litros de jugo. Cada vaso contiene ⅓ de litro. ¿Cuántos vasos se pueden llenar?", ans: "15", opts: ["15", "8", "5"], hook: ["Each litre fills 3 cups, so 5 × 3 = 15.", "Cada litro llena 3 vasos, así que 5 × 3 = 15."], expr: "5 ÷ 1/3" },
+  { en: "Which multiplication gives the same answer as 6 ÷ ⅕ ?", es: "¿Qué multiplicación da la misma respuesta que 6 ÷ ⅕ ?", ans: "6 × 5", opts: ["6 × 5", "6 ÷ 5", "6 × ⅕"], hook: ["Dividing by a unit fraction means multiplying by its denominator: 6 × 5 = 30.", "Dividir entre una fracción unitaria es multiplicar por su denominador: 6 × 5 = 30."], expr: "6 ÷ 1/5" },
+  { en: "A ribbon is 2 m long. Each piece is ⅙ m. How many pieces can be cut?", es: "Una cinta mide 2 m. Cada pieza mide ⅙ m. ¿Cuántas piezas se pueden cortar?", ans: "12", opts: ["12", "8", "3"], hook: ["Each metre makes 6 sixths, so 2 × 6 = 12.", "Cada metro da 6 sextos, así que 2 × 6 = 12."], expr: "2 ÷ 1/6" },
+  { en: "Is 4 ÷ ¼ bigger or smaller than 4?", es: "¿4 ÷ ¼ es mayor o menor que 4?", ans: "Bigger: 16", opts: ["Smaller, because ¼ is small", "Bigger: 16", "Equal to 1"], optsEs: ["Menor, porque ¼ es pequeño", "Mayor: 16", "Igual a 1"], hook: ["Each of the 4 wholes makes 4 quarters: 4 × 4 = 16, more than 4.", "Cada uno de los 4 enteros da 4 cuartos: 4 × 4 = 16, más que 4."], expr: "4 ÷ 1/4" }
+];
+function buildDesk(host, sim) {
+  let i = 0, wins = 0;
+  function render() {
+    if (i >= DESK.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Order Desk complete!", "¡Mostrador completo!")} ✦</p><p>${L(`You answered ${wins} of ${DESK.length} on the first try.`, `Acertaste ${wins} de ${DESK.length} al primer intento.`)}</p><p>${L("Try the Lumber Orders bonus round below, or continue to Record.", "Prueba la ronda bonus Pedidos de madera abajo, o continúa a Registro.")}</p></div>`; return; }
+    const q = DESK[i]; let first = true; const es = getLang() === "es";
+    const label = o => (es && q.optsEs) ? q.optsEs[q.opts.indexOf(o)] : o;
+    host.innerHTML = `<div class="panel" style="padding:16px;background:linear-gradient(180deg,#fff4e2,#ffe2b8)">
+      <p class="eyebrow" style="margin:0 0 6px">${L("Order Desk", "Mostrador")} — ${L("Customer", "Cliente")} ${i + 1}/${DESK.length}</p>
+      <div style="display:flex;gap:14px;align-items:flex-start"><svg viewBox="0 0 60 60" width="64" height="64" aria-hidden="true" style="flex:none"><circle cx="30" cy="30" r="28" fill="${["#f2c9a0", "#c68642", "#8d5524", "#ffdbac", "#e0ac69", "#f1c27d"][i % 6]}" stroke="#7a4a1d" stroke-width="2"/><circle cx="21" cy="26" r="3.2" fill="#2a1a0d"/><circle cx="39" cy="26" r="3.2" fill="#2a1a0d"/><path d="M19 38q11 10 22 0" stroke="#2a1a0d" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M8 18h44l-4-9H12z" fill="#e6b422" stroke="#8a6a10" stroke-width="2"/></svg>
+      <div style="font-size:1.15em;font-weight:600;background:#fff;border:2px solid #7a4a1d;border-radius:16px;padding:12px 16px">${L(q.en, q.es)}</div></div>
+      <div class="ty-ans" id="opts">${shuffle(q.opts).map(o => `<button type="button" class="btn" data-o="${o}">${label(o)}</button>`).join("")}</div>
+      <p class="ty-msg" id="msg" aria-live="polite">${L("Pick the right answer. Wrong answers show you the trick, then you can try again!", "Elige la respuesta correcta. ¡Las respuestas equivocadas te muestran el truco y puedes intentarlo otra vez!")}</p></div>`;
+    host.querySelectorAll("#opts button").forEach(bt => bt.addEventListener("click", () => {
+      if (bt.dataset.o === q.ans) {
+        if (first) wins++; flyChips(bt, 5);
+        msgSet(host.querySelector("#msg"), `✓ ${L("Correct!", "¡Correcto!")} ${L(q.hook[0], q.hook[1])}`, "good");
+        host.querySelectorAll("#opts button").forEach(x => x.disabled = true);
+        sim.recordTrial({ task: L("Order Desk", "Mostrador"), input: q.expr, result: `${q.ans} (${first ? L("first try", "primer intento") : L("after a retry", "tras reintentar")})` });
+        const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = i < DESK.length - 1 ? L("Next customer →", "Siguiente cliente →") : L("Finish ✦", "Terminar ✦");
+        nx.addEventListener("click", () => { i++; render(); }); host.querySelector(".panel").appendChild(nx);
+      } else { first = false; shake(bt); bt.disabled = true; bt.style.opacity = ".45"; msgSet(host.querySelector("#msg"), `${L("Not this one.", "Esta no.")} ${L("The trick:", "El truco:")} ${L(q.hook[0], q.hook[1])} ${L("Try again!", "¡Inténtalo otra vez!")}`, "bad"); }
+    }));
+  }
+  render();
+}
+
+/* ───────── Bonus: Lumber Orders (tycoon / stock-and-delivery loop, 3D) ───────── */
+function renderBonus(section, sim) {
+  section.innerHTML = `<div class="panel" style="text-align:center;padding:22px;border:2px dashed var(--accent);border-radius:14px">
+    <p style="font-size:1.3em;font-weight:800;color:var(--accent);margin:0 0 8px">🪵 ${L("Bonus: Lumber Orders", "Bonus: Pedidos de madera")}</p>
+    <p style="margin:0 0 14px;color:var(--ink-2)">${L("Run the yard for 2 minutes! Customers want a number of small pieces. Work out which plank length makes that many pieces, hand it over, and earn coins while delivery trucks restock the shelf. No lives, no penalties.", "¡Dirige el aserradero 2 minutos! Los clientes quieren cierto número de piezas pequeñas. Calcula qué longitud de tablón da esas piezas, entrégalo y gana monedas mientras los camiones reponen el estante. Sin vidas ni castigos.")}</p>
+    <div style="display:flex;gap:10px;justify-content:center"><button type="button" class="btn btn--signal" id="hp">${L("Play!", "¡Jugar!")}</button><button type="button" class="btn" id="hs">${L("Skip", "Saltar")}</button></div></div>`;
+  section.querySelector("#hs").addEventListener("click", () => { section.innerHTML = ""; });
+  section.querySelector("#hp").addEventListener("click", () => mountLumber(section, sim));
+}
+async function mountLumber(section, sim) {
+  const DURATION = 120000, PATIENCE = 30000;
+  section.innerHTML = `<div class="ty-tyc"><div class="ty-bar" style="margin-top:0"><span class="ty-chip" id="ht">2:00</span><span class="ty-chip">${L("Coins", "Monedas")}: <b id="hc">0</b></span><span class="ty-chip">${L("Streak", "Racha")}: <b id="hs2">0</b></span><span class="ty-chip">${L("Shop level", "Nivel")}: <b id="hl">1</b></span><span class="ty-chip">${L("Waiting", "Esperando")}: <b id="hq">1</b></span></div>
+    <div id="hord" style="font-size:1.25em;font-weight:800;margin:6px 0 4px;text-align:center" aria-live="polite"></div><div class="ty-pat"><i id="hpat"></i></div>
+    <div id="hstage" style="margin-top:10px"></div>
+    <div class="ty-plank" id="hbtns" role="group" aria-label="${L("Plank shelf (keyboard route)", "Estante de tablones (ruta de teclado)")}"></div>
+    <p class="ty-msg" id="hmsg" aria-live="polite" style="margin-top:10px">${L("Tap a plank on the shelf (drag to look around) or use the buttons / keys 1-5.", "Toca un tablón del estante (arrastra para mirar) o usa los botones / teclas 1-5.")}</p></div>`;
+  const $ = s => section.querySelector(s);
+  let T; try { T = await loadThree(); } catch (e) { T = null; }
+  const st = createStage($("#hstage"), T || {}, { height: 340 }); disposers.push(() => st.dispose());
+  const stock = { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3 }; let coins = 0, streak = 0, best = 0, served = 0, tries = 0, over = false, locked = false, order = null, t0 = 0, lvl = 1;
+  const shelf = {}; let kit;
+  const S = .95 * U;
+  function rebuildShelf(k) {
+    if (!st.ok) return; const g = shelf[k]; while (g.children.length) g.remove(g.children[0]);
+    for (let c = 0; c < stock[k]; c++) { const p = kit.piece(k * S, c); p.position.set(0, .28 + c * .6, 0); g.add(p); }
+    g.traverse(o => { o.userData.k = k; });
+    const lb = makeLabelSprite(T, k + " m", { w: 160, h: 90, size: 48 }); lb.scale.multiplyScalar(.7); lb.position.set(-k * S / 2 - 1.5, .8, 0); g.add(lb); lb.userData.k = k;
+  }
+  if (st.ok) {
+    st.camera.fov = 42; st.orbit.az = .0; st.orbit.pol = .9; st.orbit.dist = 15; st.orbit.tgt.set(0, .8, 0);
+    st.scene.add(makeStall(T, st.tex, 20, 12, false)); kit = plankKit(T, st.tex);
+    for (let k = 1; k <= 5; k++) { const g = new T.Group(); g.position.set((k * S) / 2 - 5.2, 0, (k - 3) * 1.75); st.scene.add(g); shelf[k] = g; rebuildShelf(k); }
+  }
+  const btns = $("#hbtns");
+  function paintBtns() { btns.innerHTML = [1, 2, 3, 4, 5].map(k => `<button type="button" data-k="${k}" ${stock[k] <= 0 ? "disabled" : ""}>${k}. ${k} m<br><small>${L("stock", "existencias")} ${stock[k]}</small></button>`).join(""); btns.querySelectorAll("button").forEach(b => b.addEventListener("click", () => pick(+b.dataset.k))); }
+  function newOrder() {
+    const bs = lvl === 1 ? [2, 3, 4] : lvl === 2 ? [2, 3, 4, 5, 6] : [3, 4, 5, 6, 8];
+    const ks = [1, 2, 3, 4, 5].filter(k => stock[k] > 0); const k = ks[Math.floor(Math.random() * ks.length)];
+    const okB = bs.filter(b => k * b <= 40); const b = okB[Math.floor(Math.random() * okB.length)];
+    order = { k, b, pieces: k * b }; t0 = Date.now(); locked = false;
+    $("#hord").innerHTML = `${L("Customer wants", "El cliente quiere")} <span style="color:#ffd54a;font-size:1.2em">${order.pieces}</span> ${L("pieces, each", "piezas, de")} <span style="color:#ffd54a;font-size:1.2em">${uf(b)}</span> m. ${L("Which plank?", "¿Qué tablón?")}`;
+    $("#hq").textContent = 1 + Math.min(2, Math.floor((Date.now() - start) / 25000));
+  }
+  function popup(text, color) { const p = document.createElement("div"); p.textContent = text; p.style.cssText = `position:absolute;left:50%;top:38%;transform:translateX(-50%);font-weight:900;font-size:2em;color:${color};text-shadow:0 2px 8px rgba(0,0,0,.6);pointer-events:none`; const w = $("#hstage").firstChild; if (!w) return; w.appendChild(p); if (!REDUCED()) p.animate([{ opacity: 1, transform: "translate(-50%,0)" }, { opacity: 0, transform: "translate(-50%,-60px)" }], { duration: 800 }).onfinish = () => p.remove(); else setTimeout(() => p.remove(), 800); }
+  function pick(k) {
+    if (over || locked || !order) return; tries++;
+    if (stock[k] <= 0) { $("#hmsg").textContent = L("That plank is out of stock — wait for the delivery truck!", "Ese tablón está agotado: ¡espera al camión de reparto!"); return; }
+    if (k === order.k) {
+      locked = true; const left = Math.max(0, 1 - (Date.now() - t0) / PATIENCE), tip = Math.round(left * 10); const gain = 10 + tip; coins += gain; streak++; best = Math.max(best, streak); served++; stock[k]--;
+      $("#hmsg").textContent = `✓ ${k} m ÷ 1/${order.b} = ${k} × ${order.b} = ${order.pieces}. ${L("Order filled!", "¡Pedido entregado!")}`;
+      if (st.ok) { const g = shelf[k]; st.burst(new T.Vector3(g.position.x, 1.2, g.position.z), 0xf2d49a, 36); st.punch(); rebuildShelf(k); }
+      popup("+" + gain, "#ffd54a"); flyChips($("#hmsg"), 4); paintBtns();
+      const nl = Math.min(3, 1 + Math.floor(coins / 80)); if (nl > lvl) { lvl = nl; $("#hl").textContent = lvl; $("#hmsg").textContent += " " + L(`Shop level ${lvl}: harder orders!`, `Nivel ${lvl}: ¡pedidos más difíciles!`); }
+      setTimeout(() => { if (!over) newOrder(); }, 900);
+    } else {
+      streak = 0; $("#hmsg").innerHTML = `${L("Not that one.", "Ese no.")} ${k} m ÷ 1/${order.b} = ${k} × ${order.b} = <b>${k * order.b}</b> ${L("pieces, but the customer needs", "piezas, pero el cliente necesita")} <b>${order.pieces}</b>.`;
+      shake(btns.children[k - 1]); if (st.ok) { const g = shelf[k], p = g.position.clone(); st.tween(g, p.clone().add(new T.Vector3(.35, 0, 0)), 70, { onDone: () => st.tween(g, p, 70) }); }
+      popup(L("Try again", "Otra vez"), "#ffa88a");
+    }
+    $("#hc").textContent = coins; $("#hs2").textContent = streak;
+  }
+  if (st.ok) st.onPick(rc => { const hits = rc.intersectObjects(Object.values(shelf), true); if (hits.length) { let o = hits[0].object; while (o && o.userData.k === undefined) o = o.parent; if (o) pick(o.userData.k); } });
+  const keyH = e => { if (!over && e.key >= "1" && e.key <= "5") pick(+e.key); };
+  document.addEventListener("keydown", keyH); disposers.push(() => document.removeEventListener("keydown", keyH));
+  const start = Date.now(); paintBtns(); newOrder();
+  const timer = setInterval(() => {
+    const el = Date.now() - start, remain = Math.max(0, DURATION - el); $("#ht").textContent = `${Math.floor(remain / 60000)}:${String(Math.floor(remain / 1000) % 60).padStart(2, "0")}`;
+    const left = Math.max(0, 1 - (Date.now() - t0) / PATIENCE); const bar = $("#hpat"); if (bar) { bar.style.width = (left * 100) + "%"; bar.style.background = left > .5 ? "#79c85a" : left > .2 ? "#e6b422" : "#d9593a"; }
+    if (remain <= 0) end();
+  }, 250); disposers.push(() => clearInterval(timer));
+  const truck = setInterval(() => {
+    if (over) return; let min = 1; for (let k = 2; k <= 5; k++) if (stock[k] < stock[min]) min = k; if (stock[min] >= 5) return; stock[min]++;
+    if (st.ok) rebuildShelf(min); paintBtns(); $("#hmsg").textContent = L(`🚚 Delivery: +1 plank of ${min} m.`, `🚚 Reparto: +1 tablón de ${min} m.`);
+  }, 6000); disposers.push(() => clearInterval(truck));
+  function end() {
+    if (over) return; over = true; clearInterval(timer); clearInterval(truck);
+    const acc = tries ? Math.round(served / tries * 100) : 0;
+    section.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.5em;font-weight:800;color:var(--accent);margin:0 0 10px">🪵 ${L("Lumber Orders complete!", "¡Pedidos de madera completos!")}</p>
+      <p style="font-size:1.1em;margin:4px 0">${L("Coins", "Monedas")}: <strong>${coins}</strong> · ${L("Orders filled", "Pedidos entregados")}: <strong>${served}</strong> · ${L("Best streak", "Mejor racha")}: <strong>${best}</strong> · ${L("Accuracy", "Precisión")}: <strong>${acc}%</strong></p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:12px"><button type="button" class="btn btn--signal" id="again">${L("Play again", "Jugar otra vez")}</button></div></div>`;
+    st.dispose(); section.querySelector("#again").addEventListener("click", () => mountLumber(section, sim));
+  }
+}
+
+/* ───────── Investigate shell ───────── */
+function investigate(host, sim) {
+  killAll(); host.innerHTML = "";
+  const tabs = document.createElement("div"); tabs.style.cssText = "display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap";
+  const content = document.createElement("div"); const bonus = document.createElement("div"); bonus.style.marginTop = "20px";
+  const stations = [
+    { label: L("Saw Bench", "Banco de sierra"), icon: "⚙️", build: (h, s, d) => buildSaw(h, s, d) },
+    { label: L("Plank Wall", "Muro de tablones"), icon: "🧱", build: (h, s, d) => buildWall(h, s, d) },
+    { label: L("Order Desk", "Mostrador"), icon: "📋", build: (h, s) => buildDesk(h, s) }
+  ];
+  let cur = null;
+  stations.forEach(s => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn ty-tab"; b.setAttribute("aria-pressed", "false"); b.textContent = `${s.icon} ${s.label}`;
+    b.addEventListener("click", () => {
+      if (cur) { try { cur(); } catch (e) {} cur = null; }
+      tabs.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true");
+      s.build(content, sim, d => { cur = d; });
+    });
+    tabs.appendChild(b);
+  });
+  host.append(tabs, content, bonus);
+  disposers.push(() => { if (cur) { try { cur(); } catch (e) {} cur = null; } });
+  renderBonus(bonus, sim);
+  tabs.children[0].click();
+}
+
+const simulation = { orient(host) { orientDiagram(host); }, investigate(host, sim) { investigate(host, sim); } };
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
