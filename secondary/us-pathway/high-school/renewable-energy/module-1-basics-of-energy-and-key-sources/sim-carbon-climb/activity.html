@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Carbon Climb: Energy Sources &amp; CO₂ — Discovery Lab</title>
+<meta name="description" content="Sort real energy sources, build conversion chains, then ride a 3D time machine from 1960 to 2020 to watch CO₂ climb the Keeling Curve.">
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='20' fill='%231f6f9e'/><circle cx='46' cy='18' r='7' fill='%23f08a3c'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- shared bits ---- */
+.cc-credit{font-size:.68rem;color:var(--ink-3);text-align:center;padding:.5em;}
+.cc-credit a{color:inherit;}
+.cc-photo{position:relative;border-radius:var(--radius-lg);overflow:hidden;background:#0c1a26;border:1px solid var(--line-strong);}
+.cc-photo img{display:block;width:100%;height:auto;}
+.dl-burst{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+.dl-burst i{position:absolute;width:7px;height:7px;border-radius:2px;top:50%;left:50%;opacity:.95;}
+@keyframes ccshake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(3px);}}
+.cc-shake{animation:ccshake .4s;}
+[data-reduced-motion=on] .cc-shake{animation:none;outline:3px solid var(--signal);}
+
+/* ---- Orient diagram ---- */
+.chain-svg{width:100%;height:auto;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);}
+.chain-svg text{font-family:var(--font-data);}
+.chain-tabs{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-3);}
+.chip-btn{font-family:var(--font-data);font-size:.72rem;padding:.4em .9em;border-radius:999px;min-height:2.2rem;
+  border:1px solid var(--line-strong);color:var(--ink-2);background:var(--paper);cursor:pointer;}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash);}
+.chip-btn[aria-pressed=true]{border-color:var(--accent);color:var(--accent-ink);background:var(--accent);}
+@keyframes flowdash{to{stroke-dashoffset:-24;}}
+.flow{stroke-dasharray:6 6;animation:flowdash 1s linear infinite;}
+[data-reduced-motion=on] .flow{animation:none;}
+
+/* ---- Observation hotspots ---- */
+.hs-wrap{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
+@media(min-width:46rem){.hs-wrap{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);align-items:start;}}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.6rem;height:2.6rem;border:none;background:transparent;
+  cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.1rem;height:1.1rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--signal) 25%, transparent);animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+.hotspot.is-done .hotspot__dot{background:var(--positive);box-shadow:0 0 0 5px color-mix(in srgb, var(--positive) 22%, transparent);animation:none;}
+.hs-tray{display:flex;flex-direction:column;gap:var(--sp-2);}
+.hs-part{display:flex;align-items:center;gap:var(--sp-3);text-align:left;padding:var(--sp-3);min-height:2.75rem;
+  border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);font:inherit;color:var(--ink);cursor:pointer;touch-action:manipulation;}
+.hs-part:hover{border-color:var(--accent);}
+.hs-part.is-done{border-color:var(--positive);}
+.hs-part__mark{margin-left:auto;font-weight:800;}
+.hs-part.is-done .hs-part__mark{color:var(--positive);}
+.reveal-panel{padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);
+  min-height:4.4rem;font-size:var(--step--1);margin-top:var(--sp-3);}
+.reveal-panel__hint{color:var(--ink-3);}
+
+/* ---- Investigate shell ---- */
+.cc-hud{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-3);padding:var(--sp-3) var(--sp-4);border-radius:var(--radius);
+  background:linear-gradient(120deg,#0b2a44,#14507a);color:#eaf6ff;font-family:var(--font-data);margin-bottom:var(--sp-4);}
+.cc-hud b{color:#ffd37a;}
+.cc-hud__bar{flex:1 1 8rem;height:.6rem;border-radius:999px;background:#ffffff22;overflow:hidden;min-width:6rem;}
+.cc-hud__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4cc0db,#ffd37a);transition:width .4s;}
+.cc-station{border:1px solid var(--line-strong);border-radius:var(--radius-lg);background:var(--surface);padding:var(--sp-4);margin-bottom:var(--sp-5);}
+.cc-station__head{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-3);margin-bottom:var(--sp-3);}
+.cc-station__n{font-family:var(--font-data);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:800;}
+.cc-station__title{font-size:var(--step-1);font-weight:800;margin:0;}
+.cc-station__done{margin-left:auto;font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);}
+.cc-station__done.ok{color:var(--positive);font-weight:800;}
+
+/* Station 1: sorting yard */
+.yard{display:grid;gap:var(--sp-4);grid-template-columns:1fr;}
+@media(min-width:56rem){.yard{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start;}}
+.card-now{position:relative;border:2px solid var(--accent);border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);}
+.card-now__img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#0c1a26;}
+.card-now__body{padding:var(--sp-3) var(--sp-4);}
+.card-now__name{font-size:var(--step-1);font-weight:800;margin:0 0 .2em;}
+.step-q{font-family:var(--font-data);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin:var(--sp-3) 0 var(--sp-2);}
+.choice-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);}
+.choice{min-height:3rem;font:inherit;font-weight:800;border-radius:var(--radius);border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;padding:.6em;touch-action:manipulation;}
+.choice:hover{border-color:var(--accent);background:var(--accent-wash);}
+.choice kbd{font-family:var(--font-data);font-size:.7rem;opacity:.6;margin-right:.4em;}
+.choice.ok{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 18%,var(--surface));}
+.say{min-height:2.6em;font-size:var(--step--1);margin:var(--sp-3) 0 0;}
+.say.bad{color:var(--danger,#b3261e);}
+.say.good{color:var(--positive);font-weight:700;}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2);}
+.tile{position:relative;border:2px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;padding:0;background:#0c1a26;cursor:pointer;
+  aspect-ratio:1/1;touch-action:manipulation;}
+.tile img{width:100%;height:100%;object-fit:cover;display:block;}
+.tile__lab{position:absolute;left:0;right:0;bottom:0;background:#04182ecc;color:#fff;font-family:var(--font-data);font-size:.62rem;padding:.25em .4em;text-align:center;}
+.tile.is-cur{border-color:var(--signal);box-shadow:0 0 0 3px color-mix(in srgb,var(--signal) 35%,transparent);}
+.tile.is-done{border-color:var(--positive);}
+.tile.is-done::after{content:"✓";position:absolute;top:4px;right:4px;width:1.4rem;height:1.4rem;border-radius:50%;background:var(--positive);color:#fff;font-weight:800;display:grid;place-items:center;font-size:.8rem;}
+.tile__tag{position:absolute;top:4px;left:4px;font-family:var(--font-data);font-size:.55rem;padding:.15em .5em;border-radius:999px;color:#fff;background:#1f6f9e;display:none;}
+.tile.is-done .tile__tag{display:block;}
+.tile__tag.nr{background:#8a5a2b;}
+.tile__tag.r{background:#2f8f4f;}
+.tile__tag.sec{background:#7b3fa0;}
+
+/* Station 2: chain builder */
+.chain-card{border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--sp-3);background:var(--paper);margin-bottom:var(--sp-3);}
+.chain-grid{display:grid;gap:var(--sp-3);grid-template-columns:1fr;align-items:center;}
+@media(min-width:52rem){.chain-grid{grid-template-columns:11rem 1fr;}}
+.chain-raw{display:flex;gap:var(--sp-3);align-items:center;}
+.chain-raw img{width:5rem;height:4rem;object-fit:cover;border-radius:var(--radius);}
+.chain-slots{display:grid;gap:var(--sp-2);}
+.slot-label{font-family:var(--font-data);font-size:.65rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);}
+.chain-svg2{width:100%;height:46px;}
+.chain-state{font-size:var(--step--1);min-height:1.6em;margin:var(--sp-2) 0 0;}
+
+/* Station 3: time machine */
+.tm{display:grid;gap:var(--sp-4);grid-template-columns:1fr;}
+@media(min-width:58rem){.tm{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;}}
+.stage3d{position:relative;border-radius:var(--radius-lg);overflow:hidden;border:1px solid #0c2440;aspect-ratio:5/4;min-height:18rem;
+  background:radial-gradient(120% 100% at 50% 100%, #12385c 0%, #071a30 55%, #02060d 100%);box-shadow:inset 0 0 120px rgba(0,0,0,.5);}
+.stage3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;cursor:grab;touch-action:none;}
+.stage3d canvas:active{cursor:grabbing;}
+.hud{position:absolute;pointer-events:none;color:#eaf6ff;font-family:var(--font-data);z-index:2;}
+.hud--year{top:var(--sp-3);left:var(--sp-3);font-size:var(--step-2);font-weight:800;text-shadow:0 0 12px #000;}
+.hud--ppm{top:var(--sp-3);right:var(--sp-3);background:#04182ecc;border:1px solid #1d4c78;padding:.3em .8em;border-radius:999px;font-weight:800;font-size:var(--step-1);}
+.hud--hint{bottom:var(--sp-3);left:0;right:0;text-align:center;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:#8fc4de;}
+.ctrl{display:flex;flex-direction:column;gap:var(--sp-2);margin-bottom:var(--sp-3);}
+.ctrl__top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);}
+.ctrl__name{font-family:var(--font-data);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);}
+.ctrl__val{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);height:1.8rem;}
+.btn-row{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.btn-row .btn{flex:1 1 9rem;}
+.readout-row{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin:var(--sp-3) 0;}
+.ro{display:flex;flex-direction:column;gap:1px;}
+.ro__k{font-family:var(--font-data);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.ro__v{font-family:var(--font-data);font-variant-numeric:tabular-nums;font-weight:800;font-size:var(--step-1);}
+.graph{width:100%;height:auto;display:block;border:1px solid var(--line-strong);border-radius:var(--radius);background:#fff;}
+.headline{display:flex;flex-wrap:wrap;gap:var(--sp-3);align-items:center;margin-top:var(--sp-3);font-size:var(--step--1);color:var(--ink-2);}
+.headline b{font-size:var(--step-2);color:#d9363e;font-family:var(--font-data);}
+.gas-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:var(--sp-2);margin-top:var(--sp-3);}
+.gas{border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--sp-2) var(--sp-3);background:var(--paper);cursor:pointer;text-align:left;font:inherit;color:var(--ink);min-height:6.2rem;touch-action:manipulation;}
+.gas:hover{border-color:var(--accent);}
+.gas svg{width:4.2rem;height:2.4rem;display:block;}
+.gas__n{font-weight:800;font-size:var(--step--1);}
+.gas__t{font-size:.72rem;color:var(--ink-2);margin-top:.25em;display:none;}
+.gas.is-open{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 10%,var(--paper));}
+.gas.is-open .gas__t{display:block;}
+
+/* Bonus: spectrum analyser */
+.spec{border:1px solid #0c2440;border-radius:var(--radius-lg);background:linear-gradient(160deg,#071a30,#0d3555);color:#eaf6ff;padding:var(--sp-4);margin-top:var(--sp-4);}
+.spec h3{margin:0 0 .3em;color:#ffd37a;}
+.spec svg{width:100%;height:auto;display:block;background:#04101d;border-radius:var(--radius);border:1px solid #1d4c78;touch-action:none;}
+.spec__hud{display:flex;flex-wrap:wrap;gap:var(--sp-4);font-family:var(--font-data);margin:var(--sp-3) 0;}
+.spec__hud b{color:#ffd37a;}
+.spec input[type=range]{width:100%;accent-color:#ffd37a;height:1.8rem;}
+.spec .gas-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:var(--sp-2);margin-top:var(--sp-3);}
+.spec .gbtn{min-height:2.9rem;border-radius:var(--radius);border:1px solid #3f7fae;background:#0b2a44;color:#eaf6ff;font:inherit;font-weight:700;cursor:pointer;padding:.4em;}
+.spec .gbtn:disabled{opacity:.45;cursor:not-allowed;}
+.spec .gbtn:not(:disabled):hover{border-color:#ffd37a;}
+.spec .gbtn kbd{font-family:var(--font-data);font-size:.68rem;opacity:.7;margin-right:.3em;}
+.spec__say{min-height:2.6em;margin:var(--sp-3) 0 0;font-size:var(--step--1);}
+.spec__ref{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:var(--sp-3);}
+.spec__ref td,.spec__ref th{border:1px solid #1d4c78;padding:.3em .5em;text-align:left;}
+.cc-done{border:2px solid var(--positive);border-radius:var(--radius-lg);padding:var(--sp-4);background:color-mix(in srgb,var(--positive) 10%,var(--surface));margin-top:var(--sp-4);}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Renewable Energy</a></li>
+      <li><a href="../">Module 1: The Basics of Energy & Key Renewable Sources</a></li>
+      <li><span aria-current="page">The Carbon Climb</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secundaria</a></li>
+      <li><a href="../../../../">Itinerario estadounidense</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Energías Renovables</a></li>
+      <li><a href="../">Módulo 1: Fundamentos de la Energía y Principales Fuentes Renovables</a></li>
+      <li><span aria-current="page">El ascenso del carbono</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=20";
+import { getLang } from "../../../../../../engine/i18n.js?v=9";
+
+const THREE_URL = "../../../../../../engine/vendor/three.min.js";
+const L = (en, es) => getLang() === "es" ? es : en;
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+let sim = null;
+
+/* ======================================================================
+   REAL PHOTOS (vendored from the repo's other energy sites, licences
+   verified on each file's own Commons page earlier; credits in
+   photos/credits.json and shown on the page).
+   ====================================================================== */
+const CREDITS = {};
+fetch("photos/credits.json").then(r => r.json()).then(j => Object.assign(CREDITS, j)).catch(() => {});
+function creditLine(keys) {
+  const parts = keys.filter(k => CREDITS[k]).map(k => {
+    const c = CREDITS[k];
+    const lic = c.licenseUrl ? `<a href="${c.licenseUrl}" target="_blank" rel="noopener noreferrer">${c.license}</a>` : c.license;
+    return `${(c.author || "").split("\n")[0]} (<a href="${c.page}" target="_blank" rel="noopener noreferrer">Commons</a>, ${lic})`;
+  });
+  return parts.length ? L("Photos: ", "Fotos: ") + parts.join("; ") + " — resized." : "";
+}
+
+/* ======================================================================
+   DATA
+   ====================================================================== */
+/* NOAA GML Mauna Loa annual means (ppm), approximate; linear interpolation between anchors. */
+const CO2_ANCHORS = [[1960,316.9],[1965,320.0],[1970,325.7],[1975,331.1],[1980,338.8],[1985,346.1],[1990,354.4],[1995,360.8],[2000,369.6],[2005,379.8],[2010,389.9],[2015,400.8],[2020,414.2],[2021,416.4],[2022,418.6],[2023,421.1],[2024,424.6]];
+/* Global fossil-fuel CO2 emissions, Gt per year, approximate (Global Carbon Project). */
+const EMIS_ANCHORS = [[1960,9.4],[1970,15.0],[1980,19.4],[1990,22.7],[2000,25.4],[2010,33.0],[2020,34.8],[2024,37.4]];
+function interp(A, y) {
+  if (y <= A[0][0]) return A[0][1];
+  for (let i = 1; i < A.length; i++) if (y <= A[i][0]) {
+    const [x0, v0] = A[i - 1], [x1, v1] = A[i];
+    return v0 + (v1 - v0) * (y - x0) / (x1 - x0);
+  }
+  return A[A.length - 1][1];
+}
+const ppmAt = y => interp(CO2_ANCHORS, y);
+const emisAt = y => interp(EMIS_ANCHORS, y);
+
+const CARDS = [
+  { id: "coal",  photo: "coal",    type: "primary",   renew: false, name: L("Coal", "Carbón"),
+    why: L("Dug straight out of the ground and burned: primary and non-renewable (it took millions of years to form).", "Se extrae del suelo y se quema: primaria y no renovable (tardó millones de años en formarse).") },
+  { id: "oil",   photo: "oil",     type: "primary",   renew: false, name: L("Crude oil", "Petróleo crudo"),
+    why: L("Pumped up as it is, before any refining: primary and non-renewable. Exam trap: gasoline is the secondary one.", "Se bombea tal cual, antes de refinarlo: primaria y no renovable. Ojo: la gasolina es la secundaria.") },
+  { id: "gas",   photo: "gas",     type: "primary",   renew: false, name: L("Natural gas", "Gas natural"),
+    why: L("Captured directly from underground deposits: primary and non-renewable.", "Se capta directamente de yacimientos subterráneos: primaria y no renovable.") },
+  { id: "wind",  photo: "wind",    type: "primary",   renew: true,  name: L("Wind", "Viento"),
+    why: L("Moving air is captured directly from nature and is constantly replenished: primary and renewable.", "El aire en movimiento se capta directamente de la naturaleza y se repone constantemente: primaria y renovable.") },
+  { id: "sun",   photo: "solar",   type: "primary",   renew: true,  name: L("Sunlight", "Luz solar"),
+    why: L("Sunlight arrives from nature unconverted and never runs out on human timescales: primary and renewable.", "La luz solar llega de la naturaleza sin convertir y no se agota en escalas humanas: primaria y renovable.") },
+  { id: "water", photo: "hydro",   type: "primary",   renew: true,  name: L("Falling water", "Agua que cae"),
+    why: L("Water falling downhill is natural, replenished by the water cycle: primary and renewable.", "El agua que cae es natural y la repone el ciclo del agua: primaria y renovable.") },
+  { id: "geo",   photo: "geo",     type: "primary",   renew: true,  name: L("Geothermal heat", "Calor geotérmico"),
+    why: L("Heat from inside the Earth is constantly replenished by natural Earth processes: primary and renewable.", "El calor del interior de la Tierra lo repone constantemente los procesos naturales: primaria y renovable.") },
+  { id: "elec",  photo: "station", type: "secondary", renew: null,  name: L("Grid electricity", "Electricidad de la red"),
+    why: L("Made by converting a primary source in a power station, so it is a secondary carrier, never a primary source.", "Se fabrica convirtiendo una fuente primaria en una central, así que es un portador secundario, nunca una fuente primaria.") },
+  { id: "batt",  photo: "battery", type: "secondary", renew: null,  name: L("Battery-stored electricity", "Electricidad almacenada en baterías"),
+    why: L("Electricity that was generated elsewhere and stored: a carrier produced by transforming primary sources, so secondary.", "Electricidad generada en otro lugar y almacenada: un portador producido al transformar fuentes primarias, por tanto secundaria.") },
+];
+
+const CHAINS = [
+  { id: "coal",  photo: "coal",  raw: L("Coal", "Carbón"), conv: "plant", carrier: "elec",
+    ok: L("Coal burns in a power station boiler, the steam spins a turbine, and the result is grid electricity.", "El carbón se quema en la caldera, el vapor mueve una turbina y se obtiene electricidad de la red.") },
+  { id: "water", photo: "hydro", raw: L("Falling water", "Agua que cae"), conv: "hydro", carrier: "elec",
+    ok: L("Falling water spins a hydro turbine and the generator makes grid electricity, with no fuel burned.", "El agua que cae mueve una turbina hidráulica y el generador produce electricidad de la red, sin quemar combustible.") },
+  { id: "oil",   photo: "oil",   raw: L("Crude oil", "Petróleo crudo"), conv: "refinery", carrier: "gasoline",
+    ok: L("A refinery transforms crude oil into gasoline, a secondary carrier that powers cars.", "Una refinería transforma el petróleo crudo en gasolina, un portador secundario que mueve los coches.") },
+];
+const CONVS = [
+  { id: "plant", label: L("Coal power station", "Central de carbón") },
+  { id: "hydro", label: L("Hydro turbine", "Turbina hidráulica") },
+  { id: "refinery", label: L("Oil refinery", "Refinería de petróleo") },
+  { id: "windt", label: L("Wind turbine", "Aerogenerador") },
+];
+const CARRIERS = [
+  { id: "elec", label: L("Grid electricity", "Electricidad de la red") },
+  { id: "gasoline", label: L("Gasoline", "Gasolina") },
+  { id: "rawcoal", label: L("Raw coal", "Carbón sin procesar") },
+  { id: "sunl", label: L("Sunlight", "Luz solar") },
+];
+
+const GASES = [
+  { id: "co2", name: L("Carbon dioxide", "Dióxido de carbono"), f: "CO₂", bands: [4.3, 15.0],
+    role: L("The baseline greenhouse driver. Released when coal, oil and gas are burned.", "El impulsor base del efecto invernadero. Se libera al quemar carbón, petróleo y gas."), mol: ["O","C","O"], shape: "linear" },
+  { id: "ch4", name: L("Methane", "Metano"), f: "CH₄", bands: [3.3, 7.7],
+    role: L("About 28 to 36 times stronger at trapping heat than CO₂. From livestock, landfills and gas leaks.", "Retiene el calor unas 28 a 36 veces más que el CO₂. Viene del ganado, los vertederos y las fugas de gas."), mol: ["C","H","H","H","H"], shape: "tet" },
+  { id: "n2o", name: L("Nitrous oxide", "Óxido nitroso"), f: "N₂O", bands: [4.5, 8.6],
+    role: L("Roughly 270 times stronger than CO₂. From fertilisers and some combustion.", "Aproximadamente 270 veces más potente que el CO₂. Viene de fertilizantes y algunas combustiones."), mol: ["N","N","O"], shape: "linear" },
+  { id: "h2o", name: L("Water vapor", "Vapor de agua"), f: "H₂O", bands: [2.7, 6.3],
+    role: L("A variable, short-cycle thermal feedback: warmer air holds more of it, which traps more heat.", "Una retroalimentación térmica variable y de ciclo corto: el aire más cálido retiene más, lo que atrapa más calor."), mol: ["O","H","H"], shape: "bent" },
+  { id: "fg", name: L("Fluorinated gases", "Gases fluorados"), f: "CFCs, HFCs", bands: [9.1, 10.9],
+    role: L("Man-made refrigerant and aerosol gases, thousands of times stronger than CO₂ per molecule.", "Gases refrigerantes y de aerosoles creados por el ser humano, miles de veces más potentes que el CO₂ por molécula."), mol: ["C","F","F","F","F"], shape: "tet" },
+];
+const MOL_COL = { C: "#555", O: "#d9363e", H: "#cfd8dc", N: "#3b6fd4", F: "#2fa86a" };
+function molSVG(atoms, shape) {
+  const n = atoms.length; let out = "";
+  if (shape === "linear") {
+    const xs = [10, 32, 54];
+    out = `<line x1="14" y1="20" x2="52" y2="20" stroke="#888" stroke-width="3"/>` + atoms.map((a, i) => `<circle cx="${xs[i]+0}" cy="20" r="${a==="C"||a==="N"?9:8}" fill="${MOL_COL[a]}" stroke="#0004"/>`).join("");
+  } else if (shape === "bent") { /* O centre */
+    out = `<line x1="32" y1="12" x2="14" y2="28" stroke="#888" stroke-width="3"/><line x1="32" y1="12" x2="50" y2="28" stroke="#888" stroke-width="3"/>` +
+      `<circle cx="32" cy="12" r="9" fill="${MOL_COL.O}" stroke="#0004"/><circle cx="14" cy="28" r="6" fill="${MOL_COL.H}" stroke="#0004"/><circle cx="50" cy="28" r="6" fill="${MOL_COL.H}" stroke="#0004"/>`;
+  } else {
+    const c = atoms[0], o = atoms.slice(1), pos = [[32,6],[12,26],[52,26],[32,34]];
+    out = o.map((a, i) => `<line x1="32" y1="20" x2="${pos[i][0]}" y2="${pos[i][1]}" stroke="#888" stroke-width="3"/>`).join("") +
+      `<circle cx="32" cy="20" r="9" fill="${MOL_COL[c]}" stroke="#0004"/>` + o.map((a, i) => `<circle cx="${pos[i][0]}" cy="${pos[i][1]}" r="5.5" fill="${MOL_COL[a]}" stroke="#0004"/>`).join("");
+  }
+  return `<svg viewBox="0 0 64 40" aria-hidden="true">${out}</svg>`;
+}
+
+const HYPOTHESIS_TEXT = {
+  a: L("If we look at CO₂ from 1960 to 2020, then it will rise steadily, because burning coal, oil and gas releases carbon that was locked underground and our energy use kept growing.",
+    "Si miramos el CO₂ de 1960 a 2020, entonces subirá de forma constante, porque quemar carbón, petróleo y gas libera carbono atrapado bajo tierra y nuestro uso de energía siguió creciendo."),
+  b: L("If we look at CO₂ from 1960 to 2020, then it will fall, because plants absorb all the carbon we release.",
+    "Si miramos el CO₂ de 1960 a 2020, entonces bajará, porque las plantas absorben todo el carbono que liberamos."),
+  c: L("If we look at CO₂ from 1960 to 2020, then it will stay about the same, because the atmosphere is far too big for people to change.",
+    "Si miramos el CO₂ de 1960 a 2020, entonces se mantendrá casi igual, porque la atmósfera es demasiado grande para que las personas la cambien."),
+  d: L("If we look at CO₂ from 1960 to 2020, then it will rise until about 1990 and then fall, because renewable energy quickly replaced fossil fuels.",
+    "Si miramos el CO₂ de 1960 a 2020, entonces subirá hasta cerca de 1990 y luego bajará, porque la energía renovable reemplazó rápidamente a los combustibles fósiles."),
+};
+
+function burst(host, color) {
+  const layer = document.createElement("div"); layer.className = "dl-burst"; host.appendChild(layer);
+  if (!reduced()) for (let i = 0; i < 16; i++) {
+    const p = document.createElement("i"); p.style.background = color;
+    const ang = Math.random() * Math.PI * 2, dist = 40 + Math.random() * 80;
+    p.animate([{ transform: "translate(0,0)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px)`, opacity: 0 }],
+      { duration: 700, easing: "cubic-bezier(.2,.7,.3,1)" });
+    layer.appendChild(p);
+  }
+  setTimeout(() => layer.remove(), 750);
+}
+function shake(node) { node.classList.remove("cc-shake"); void node.offsetWidth; node.classList.add("cc-shake"); }
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+const imgTag = (k, alt, cls) => `<img ${cls ? `class="${cls}"` : ""} src="photos/${k}.jpg" alt="${alt}" decoding="async">`;
+
+/* ======================================================================
+   3D TIME MACHINE (Three.js r13x vendored) — a hyper-real-ish Earth with a
+   dot-per-ppm CO2 shell and a factory plume tied to emissions.
+   ====================================================================== */
+let threePromise = null;
+function loadThree() {
+  if (window.THREE) return Promise.resolve(window.THREE);
+  if (threePromise) return threePromise;
+  threePromise = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = THREE_URL;
+    s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("THREE missing"));
+    s.onerror = () => rej(new Error("three failed"));
+    document.head.appendChild(s);
+  });
+  return threePromise;
+}
+function noiseCanvas(w, h, draw) { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); return c; }
+
+function build3D(THREE, stageEl) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+  stageEl.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  let dist = 4.0; const baseDist = () => dist;
+
+  // light
+  scene.add(new THREE.HemisphereLight(0x9cc8ff, 0x101820, 0.55));
+  const sun = new THREE.DirectionalLight(0xfff0d6, 2.2); sun.position.set(4, 2.5, 5); scene.add(sun);
+  const rim = new THREE.DirectionalLight(0x4cc0db, 0.6); rim.position.set(-5, 1, -4); scene.add(rim);
+
+  // stars
+  const starGeo = new THREE.BufferGeometry(); const sp = new Float32Array(700 * 3);
+  for (let i = 0; i < 700; i++) { const r = 30 + Math.random() * 20, a = Math.random() * 6.283, b = Math.acos(2 * Math.random() - 1);
+    sp[i*3] = r * Math.sin(b) * Math.cos(a); sp[i*3+1] = r * Math.cos(b); sp[i*3+2] = r * Math.sin(b) * Math.sin(a); }
+  starGeo.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, sizeAttenuation: true, transparent: true, opacity: 0.8 })));
+
+  const pivot = new THREE.Group(); scene.add(pivot);
+
+  // Earth texture: ocean + procedural continents + polar caps
+  const earthTex = new THREE.CanvasTexture(noiseCanvas(1024, 512, (g, w, h) => {
+    const og = g.createLinearGradient(0, 0, 0, h); og.addColorStop(0, "#1a4f86"); og.addColorStop(.5, "#0d5aa0"); og.addColorStop(1, "#1a4f86");
+    g.fillStyle = og; g.fillRect(0, 0, w, h);
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 70; i++) {
+      const cx = rnd() * w, cy = h * (0.18 + rnd() * 0.64), rx = 20 + rnd() * 70, ry = 14 + rnd() * 40;
+      for (let k = 0; k < 6; k++) {
+        const col = ["#3f7d3a", "#58903f", "#8a7b45", "#2f6a34", "#a2915a"][Math.floor(rnd() * 5)];
+        g.fillStyle = col; g.beginPath(); g.ellipse(cx + (rnd() - .5) * rx, cy + (rnd() - .5) * ry, rx * (0.4 + rnd() * 0.6), ry * (0.4 + rnd() * 0.6), rnd() * 3, 0, 6.283); g.fill();
+      }
+    }
+    g.fillStyle = "#f2f7fb"; g.fillRect(0, 0, w, 24); g.fillRect(0, h - 28, w, 28);
+  }));
+  earthTex.encoding = THREE.sRGBEncoding;
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), new THREE.MeshStandardMaterial({ map: earthTex, roughness: 0.75, metalness: 0.05 }));
+  pivot.add(earth);
+  const cloudTex = new THREE.CanvasTexture(noiseCanvas(512, 256, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    for (let i = 0; i < 90; i++) { const x = Math.random() * w, y = Math.random() * h, r = 8 + Math.random() * 26;
+      const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "rgba(255,255,255,.55)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 6.283); g.fill(); }
+  }));
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.015, 48, 32), new THREE.MeshStandardMaterial({ map: cloudTex, transparent: true, depthWrite: false, roughness: 1 }));
+  pivot.add(clouds);
+  const atmoMat = new THREE.MeshBasicMaterial({ color: 0x4aa8ff, transparent: true, opacity: 0.07, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false });
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.16, 48, 32), atmoMat); pivot.add(atmo);
+
+  // CO2 dots: one dot = one ppm
+  const N = 440, cp = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { const r = 1.12 + Math.random() * 0.42, a = Math.random() * 6.283, b = Math.acos(2 * Math.random() - 1);
+    cp[i*3] = r * Math.sin(b) * Math.cos(a); cp[i*3+1] = r * Math.cos(b); cp[i*3+2] = r * Math.sin(b) * Math.sin(a); }
+  const cg = new THREE.BufferGeometry(); cg.setAttribute("position", new THREE.BufferAttribute(cp, 3));
+  const glow = new THREE.CanvasTexture(noiseCanvas(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, "rgba(255,200,120,1)"); gr.addColorStop(.4, "rgba(255,120,40,.7)"); gr.addColorStop(1, "rgba(255,80,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }));
+  const co2 = new THREE.Points(cg, new THREE.PointsMaterial({ map: glow, size: 0.1, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  pivot.add(co2);
+
+  // Factory district sitting on the globe's front, chimneys + plume
+  const fac = new THREE.Group(); const nrm = new THREE.Vector3(-0.38, 0.30, 0.87).normalize();
+  fac.position.copy(nrm).multiplyScalar(1.0); fac.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), nrm);
+  const concrete = new THREE.MeshStandardMaterial({ color: 0x5d6168, roughness: 0.9 });
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.12, 0.012, 24), new THREE.MeshStandardMaterial({ color: 0x23262a, roughness: 1 })); fac.add(pad);
+  const bld = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.05, 0.07), concrete); bld.position.set(0.0, 0.03, 0.03); fac.add(bld);
+  const stackPos = [[-0.05, -0.03], [-0.01, -0.04], [0.03, -0.03]];
+  stackPos.forEach(([x, z]) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.014, 0.1, 12), new THREE.MeshStandardMaterial({ color: 0xc0583a, roughness: 0.7 })); s.position.set(x, 0.06, z); fac.add(s); });
+  fac.scale.setScalar(1.1); pivot.add(fac);
+  const PN = 160, pp = new Float32Array(PN * 3), pa = new Float32Array(PN);
+  for (let i = 0; i < PN; i++) pa[i] = Math.random();
+  const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pp, 3));
+  const smoke = new THREE.CanvasTexture(noiseCanvas(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, "rgba(220,220,220,.9)"); gr.addColorStop(1, "rgba(120,120,120,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }));
+  const plume = new THREE.Points(pg, new THREE.PointsMaterial({ map: smoke, size: 0.07, transparent: true, depthWrite: false, opacity: 0.8 }));
+  fac.add(plume); let plumeN = 20;
+
+  let curPpm = 316.9, targetPpm = 316.9, punch = 0, dragging = false, lx = 0, ly = 0, rotY = 0, rotX = 0.15;
+  const dom = renderer.domElement;
+  dom.addEventListener("pointerdown", e => { dragging = true; lx = e.clientX; ly = e.clientY; dom.setPointerCapture(e.pointerId); });
+  dom.addEventListener("pointermove", e => { if (!dragging) return; rotY += (e.clientX - lx) * 0.008; rotX = Math.max(-0.8, Math.min(0.8, rotX + (e.clientY - ly) * 0.006)); lx = e.clientX; ly = e.clientY; });
+  const up = () => { dragging = false; };
+  dom.addEventListener("pointerup", up); dom.addEventListener("pointercancel", up);
+  dom.addEventListener("wheel", e => { e.preventDefault(); dist = Math.max(2.6, Math.min(6.5, dist + e.deltaY * 0.004)); }, { passive: false });
+
+  function resize() { const w = stageEl.clientWidth || 600, h = stageEl.clientHeight || 450; renderer.setSize(w, h, false); camera.aspect = w / h;
+    camera.fov = w / h < 1.1 ? 52 : 40; camera.updateProjectionMatrix(); }
+  const ro = new ResizeObserver(resize); ro.observe(stageEl); resize();
+
+  let last = performance.now(), raf;
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const rm = reduced();
+    curPpm += (targetPpm - curPpm) * Math.min(1, dt * 6);
+    co2.geometry.setDrawRange(0, Math.max(0, Math.min(N, Math.round(curPpm))));
+    const t = Math.max(0, Math.min(1, (curPpm - 300) / 130));
+    atmoMat.color.setRGB(0.29 + 0.65 * t, 0.66 - 0.28 * t, 1 - 0.8 * t); atmoMat.opacity = 0.05 + 0.10 * t;
+    if (!rm) { if (!dragging) rotY += dt * 0.12; earth.rotation.y += dt * 0.05; clouds.rotation.y += dt * 0.08; co2.rotation.y -= dt * 0.04; }
+    pivot.rotation.y = rotY; pivot.rotation.x = rotX;
+    // plume: rises, drifts, recycles; number of live puffs follows emissions
+    const arr = pg.attributes.position.array;
+    for (let i = 0; i < PN; i++) {
+      if (i >= plumeN) { arr[i*3] = arr[i*3+1] = arr[i*3+2] = 9999; continue; }
+      if (!rm) pa[i] = (pa[i] + dt * 0.35) % 1;
+      const a = pa[i], s = stackPos[i % 3];
+      arr[i*3] = s[0] + Math.sin(i * 12.9 + a * 5) * 0.03 * a + a * 0.05; arr[i*3+1] = 0.11 + a * 0.4; arr[i*3+2] = s[1] + Math.cos(i * 7.7) * 0.03 * a;
+    }
+    pg.attributes.position.needsUpdate = true;
+    punch *= Math.pow(0.02, dt);
+    const d = baseDist() - punch * 0.5;
+    camera.position.set(0, 0.5, d); camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(loop);
+  }
+  raf = requestAnimationFrame(loop);
+  return {
+    setState(ppm, emis) { targetPpm = ppm; plumeN = Math.round(160 * Math.min(1, emis / 38)); },
+    punch() { punch = 1; },
+    dispose() { cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); },
+  };
+}
+function build2DFallback(stageEl) {
+  stageEl.innerHTML = `<div style="position:absolute;inset:0;display:grid;place-items:center;color:#eaf6ff;font-family:var(--font-data);text-align:center;padding:1rem;">
+    <div><div id="fb-bar" style="width:11rem;height:1rem;border-radius:99px;background:#ffffff22;overflow:hidden;margin:0 auto"><i id="fb-fill" style="display:block;height:100%;width:0;background:linear-gradient(90deg,#4cc0db,#f08a3c)"></i></div>
+    <p style="font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-top:.7rem;">${L("Simplified view: your device can't run the 3D Earth. The graph still works.", "Vista simplificada: tu dispositivo no puede mostrar la Tierra en 3D. El gráfico sigue funcionando.")}</p></div></div>`;
+  const fill = stageEl.querySelector("#fb-fill");
+  return { setState(ppm) { fill.style.width = Math.max(0, Math.min(100, (ppm - 300) / 1.3)) + "%"; }, punch() {}, dispose() {} };
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+const SPOTS = [
+  { id: "steam", fx: 0.57, fy: 0.40, name: L("White plume", "Penacho blanco"),
+    text: L("This is mostly steam: water vapor (H₂O), itself a greenhouse gas. The invisible CO₂ from burning fuel leaves the plant too, and you cannot see it.", "Esto es sobre todo vapor: vapor de agua (H₂O), que también es un gas de efecto invernadero. El CO₂ invisible de quemar combustible también sale de la planta, pero no se ve.") },
+  { id: "tower", fx: 0.41, fy: 0.66, name: L("Cooling tower", "Torre de enfriamiento"),
+    text: L("After steam has spun the turbine, it is cooled here so the water can be used again. This is the conversion step: heat in, electricity out.", "Después de mover la turbina, el vapor se enfría aquí para reutilizar el agua. Es el paso de conversión: entra calor, sale electricidad.") },
+  { id: "lines", fx: 0.13, fy: 0.45, name: L("Power lines", "Líneas eléctricas"),
+    text: L("Grid electricity leaves on lines like these. It is a secondary energy carrier, made by transforming a primary source such as coal, gas or falling water.", "La electricidad de la red sale por líneas como estas. Es un portador de energía secundaria, producida al transformar una fuente primaria como carbón, gas o agua que cae.") },
+  { id: "belt", fx: 0.92, fy: 0.84, name: L("Fuel conveyor", "Cinta de combustible"),
+    text: L("Plants like this one are fed fuel, such as coal, on conveyor belts. Coal is primary and non-renewable: captured from nature, and not replaced on a human timescale.", "Plantas como esta reciben combustible, por ejemplo carbón, en cintas transportadoras. El carbón es primario y no renovable: se capta de la naturaleza y no se repone en una escala de tiempo humana.") },
+];
+
+const simulation = {
+  orient(host, api) {
+    sim = api; host.innerHTML = "";
+    const chains = [
+      { raw: L("Falling water", "Agua que cae"), conv: L("Hydro turbine", "Turbina hidráulica"), car: L("Grid electricity", "Electricidad de la red") },
+      { raw: L("Coal", "Carbón"), conv: L("Power station", "Central eléctrica"), car: L("Grid electricity", "Electricidad de la red") },
+      { raw: L("Crude oil", "Petróleo crudo"), conv: L("Refinery", "Refinería"), car: L("Gasoline", "Gasolina") },
+    ];
+    const box = el("div"); host.append(box);
+    function draw(i) {
+      const c = chains[i];
+      box.innerHTML = `<svg class="chain-svg" viewBox="0 0 640 190" role="img" aria-label="${L("Energy chain: raw nature, conversion, carrier", "Cadena de energía: naturaleza, conversión, portador")}">
+        <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1f6f9e"/></marker></defs>
+        <rect x="14" y="40" width="170" height="100" rx="12" fill="#e8f4ea" stroke="#2f8f4f" stroke-width="2"/>
+        <rect x="235" y="40" width="170" height="100" rx="12" fill="#fff4dd" stroke="#d9a521" stroke-width="2"/>
+        <rect x="456" y="40" width="170" height="100" rx="12" fill="#efe6f7" stroke="#7b3fa0" stroke-width="2"/>
+        <line class="flow" x1="186" y1="90" x2="232" y2="90" stroke="#1f6f9e" stroke-width="4" marker-end="url(#arr)"/>
+        <line class="flow" x1="407" y1="90" x2="453" y2="90" stroke="#1f6f9e" stroke-width="4" marker-end="url(#arr)"/>
+        <text x="99" y="30" text-anchor="middle" font-size="12" font-weight="800" fill="#2f8f4f">${L("RAW NATURE", "NATURALEZA")}</text>
+        <text x="320" y="30" text-anchor="middle" font-size="12" font-weight="800" fill="#b8850d">${L("CONVERSION", "CONVERSIÓN")}</text>
+        <text x="541" y="30" text-anchor="middle" font-size="12" font-weight="800" fill="#7b3fa0">${L("CARRIER", "PORTADOR")}</text>
+        <text x="99" y="96" text-anchor="middle" font-size="17" font-weight="800" fill="#1d2b36">${c.raw}</text>
+        <text x="320" y="96" text-anchor="middle" font-size="17" font-weight="800" fill="#1d2b36">${c.conv}</text>
+        <text x="541" y="96" text-anchor="middle" font-size="17" font-weight="800" fill="#1d2b36">${c.car}</text>
+        <text x="99" y="170" text-anchor="middle" font-size="12" fill="#2f8f4f" font-weight="700">${L("PRIMARY energy", "Energía PRIMARIA")}</text>
+        <text x="541" y="170" text-anchor="middle" font-size="12" fill="#7b3fa0" font-weight="700">${L("SECONDARY energy", "Energía SECUNDARIA")}</text>
+      </svg>`;
+    }
+    draw(0);
+    const tabs = el("div", "chain-tabs");
+    chains.forEach((c, i) => {
+      const b = el("button", "chip-btn", c.raw + " →"); b.type = "button"; b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+      b.addEventListener("click", () => { tabs.querySelectorAll(".chip-btn").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); draw(i); });
+      tabs.append(b);
+    });
+    host.append(tabs);
+    host.append(el("p", "q__hint", L("Tap a chain to see it. <strong>Primary</strong> energy is captured directly from raw nature before conversion. <strong>Secondary</strong> energy is a carrier made by transforming a primary source.",
+      "Toca una cadena para verla. La energía <strong>primaria</strong> se capta directamente de la naturaleza antes de convertirla. La energía <strong>secundaria</strong> es un portador producido al transformar una fuente primaria.")));
+  },
+
+  observation(host, api) {
+    sim = api; host.innerHTML = "";
+    sim.setScienceMethod({
+      observation: L("A real power station photo shows a white plume, a cooling tower, power lines and a fuel conveyor: energy enters as a fuel, is converted, and leaves as electricity, while something is released into the air.",
+        "Una foto real de una central eléctrica muestra un penacho blanco, una torre de enfriamiento, líneas eléctricas y una cinta de combustible: la energía entra como combustible, se convierte y sale como electricidad, mientras algo se libera al aire."),
+      question: L("How has the concentration of CO₂ in the atmosphere changed since 1960, and how is that linked to the energy sources we burn?",
+        "¿Cómo ha cambiado la concentración de CO₂ en la atmósfera desde 1960 y cómo se relaciona con las fuentes de energía que quemamos?")
+    });
+    host.append(el("p", "q__hint", L("Tap each glowing dot on this real power station to see what it tells you about the energy chain.", "Toca cada punto brillante de esta central eléctrica real para ver qué te dice sobre la cadena de energía.")));
+    const wrap = el("div", "hs-wrap"); const left = el("div"); const right = el("div");
+    const pbox = el("div", "cc-photo"); pbox.innerHTML = imgTag("station", L("A real coal and gas fired power station: a tall cooling tower releasing a white plume, with power lines and poles in the foreground and a conveyor belt on the right.", "Una central eléctrica real de carbón y gas: una alta torre de enfriamiento que libera un penacho blanco, con líneas eléctricas y postes en primer plano y una cinta transportadora a la derecha."));
+    const tray = el("div", "hs-tray"); const reveal = el("div", "reveal-panel", `<span class="reveal-panel__hint">${L("Tap a glowing dot on the photo, or a part below ↓", "Toca un punto brillante en la foto, o una parte de abajo ↓")}</span>`);
+    SPOTS.forEach(s => {
+      const btn = el("button", "hotspot", `<span class="hotspot__dot"></span>`); btn.type = "button";
+      btn.style.left = s.fx * 100 + "%"; btn.style.top = s.fy * 100 + "%"; btn.setAttribute("aria-label", L("Learn about ", "Aprende sobre ") + s.name);
+      const part = el("button", "hs-part", `<span>${s.name}</span><span class="hs-part__mark">•</span>`); part.type = "button";
+      const show = () => { btn.classList.add("is-done"); part.classList.add("is-done"); part.querySelector(".hs-part__mark").textContent = "✓";
+        reveal.innerHTML = `<b>${s.name}</b><br>${s.text}`; burst(pbox, "#7bffb0"); if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(`${s.name}. ${s.text}`); };
+      btn.addEventListener("click", show); part.addEventListener("click", show);
+      pbox.append(btn); tray.append(part);
+    });
+    const cr = el("p", "cc-credit"); left.append(pbox, cr); right.append(tray, reveal); wrap.append(left, right); host.append(wrap);
+    setTimeout(() => { cr.innerHTML = creditLine(["station"]); }, 400);
+  },
+
+  investigate(host, api) {
+    sim = api; host.innerHTML = "";
+    const chosen = api.state.predict != null ? HYPOTHESIS_TEXT[api.state.predict] : null;
+    sim.setScienceMethod({
+      hypothesis: chosen || L("No hypothesis recorded before testing.", "No se registró ninguna hipótesis antes de la prueba."),
+      variables: {
+        independent: L("The year (from 1960 to 2024).", "El año (de 1960 a 2024)."),
+        dependent: L("The concentration of CO₂ in the atmosphere, in parts per million (ppm).", "La concentración de CO₂ en la atmósfera, en partes por millón (ppm)."),
+        controlled: L("Every reading comes from the same measuring station (Mauna Loa Observatory) and uses yearly averages, so only time changes.", "Todas las lecturas vienen de la misma estación de medición (Observatorio de Mauna Loa) y usan promedios anuales, así que solo cambia el tiempo.")
+      }
+    });
+
+    const game = { xp: 0, streak: 0, best: 0 };
+    const sorted = new Set(), chained = new Set(), years = new Set();
+    api.trials.forEach(t => { if (t.task === "Sort") { const c = CARDS.find(x => x.name === t.item); if (c) sorted.add(c.id); }
+      if (t.task === "Chain") { const c = CHAINS.find(x => x.raw === t.item); if (c) chained.add(c.id); }
+      if (t.task === "CO2 year") years.add(String(t.item)); });
+
+    const hud = el("div", "cc-hud");
+    host.append(hud);
+    const rank = () => game.xp >= 300 ? L("Climate Scientist", "Científico del clima") : game.xp >= 120 ? L("Analyst", "Analista") : L("Cadet", "Cadete");
+    function paintHud() {
+      const total = CARDS.length + CHAINS.length + 3;
+      const done = sorted.size + chained.size + Math.min(3, years.size);
+      hud.innerHTML = `<span>${L("Rank", "Rango")}: <b>${rank()}</b></span><span>XP <b>${game.xp}</b></span><span>${L("Streak", "Racha")} <b>${game.streak}</b></span>
+        <span class="cc-hud__bar"><i style="width:${Math.round(done / total * 100)}%"></i></span><span>${done}/${total}</span>`;
+    }
+    function award(n) { game.streak += 1; game.best = Math.max(game.best, game.streak); game.xp += n + Math.min(10, game.streak * 2); paintHud(); checkDone(); }
+    function miss() { game.streak = 0; paintHud(); }
+    paintHud();
+
+    const doneBox = el("div");
+    function checkDone() {
+      if (sorted.size === CARDS.length && chained.size === CHAINS.length && years.size >= 3 && !doneBox.dataset.shown) {
+        doneBox.dataset.shown = "1";
+        doneBox.className = "cc-done";
+        doneBox.innerHTML = `<h3 style="margin:0 0 .3em">${L("Investigation complete!", "¡Investigación completa!")}</h3>
+          <p>${L(`Final rank: <b>${rank()}</b> · XP <b>${game.xp}</b> · best streak <b>${game.best}</b>. You classified every source, built every chain and read the Keeling Curve across ${years.size} different years. Now scroll on to Record and Explain.`,
+            `Rango final: <b>${rank()}</b> · XP <b>${game.xp}</b> · mejor racha <b>${game.best}</b>. Clasificaste todas las fuentes, construiste todas las cadenas y leíste la Curva de Keeling en ${years.size} años distintos. Sigue con Registro y Explicación.`)}</p>`;
+        host.append(doneBox);
+        if (!reduced()) burst(doneBox, "#ffd37a");
+      }
+    }
+
+    /* ============ STATION 1: SORTING YARD ============ */
+    const st1 = el("section", "cc-station");
+    const st1done = el("span", "cc-station__done");
+    st1.append(el("div", "cc-station__head", `<span class="cc-station__n">${L("Station 1", "Estación 1")}</span><h3 class="cc-station__title">${L("The Sorting Yard", "El patio de clasificación")}</h3>`));
+    st1.firstChild.append(st1done);
+    st1.append(el("p", "q__hint", L("Pick a card. First decide: <strong>primary</strong> (captured straight from nature) or <strong>secondary</strong> (a carrier made by transforming a primary source). Primary sources then get a second question: renewable or non-renewable. Wrong guesses cost nothing, so use the explanation to learn.",
+      "Elige una tarjeta. Primero decide: <strong>primaria</strong> (captada directamente de la naturaleza) o <strong>secundaria</strong> (un portador producido al transformar una fuente primaria). Las fuentes primarias tienen una segunda pregunta: renovable o no renovable. Equivocarse no cuesta nada, así que aprende de la explicación.")));
+    const yard = el("div", "yard"); st1.append(yard);
+    const nowBox = el("div", "card-now"); const tiles = el("div", "tiles");
+    yard.append(nowBox, tiles);
+    let cur = null, step = 1, tries = 0;
+    const tileEls = {};
+    CARDS.forEach(c => {
+      const t = el("button", "tile", `${imgTag(c.photo, c.name)}<span class="tile__lab">${c.name}</span><span class="tile__tag"></span>`); t.type = "button";
+      t.setAttribute("aria-label", c.name); t.addEventListener("click", () => select(c.id));
+      tileEls[c.id] = t; tiles.append(t);
+      if (sorted.has(c.id)) markTile(c);
+    });
+    function markTile(c) {
+      const t = tileEls[c.id]; t.classList.add("is-done"); const tag = t.querySelector(".tile__tag");
+      if (c.type === "secondary") { tag.textContent = L("Secondary", "Secundaria"); tag.className = "tile__tag sec"; }
+      else { tag.textContent = c.renew ? L("Primary · Renewable", "Primaria · Renovable") : L("Primary · Non-renew.", "Primaria · No renov."); tag.className = "tile__tag " + (c.renew ? "r" : "nr"); }
+    }
+    function select(id) {
+      if (sorted.has(id)) return;
+      cur = CARDS.find(c => c.id === id); step = 1; tries = 0; Object.values(tileEls).forEach(t => t.classList.remove("is-cur")); tileEls[id].classList.add("is-cur"); paintCard("");
+    }
+    function nextCard() { const n = CARDS.find(c => !sorted.has(c.id)); if (n) select(n.id); else { cur = null; nowBox.innerHTML = `<div class="card-now__body"><p class="card-now__name">${L("All sources sorted!", "¡Todas las fuentes clasificadas!")}</p><p class="q__hint">${L("Great work. Station 2 is next.", "Buen trabajo. Sigue la Estación 2.")}</p></div>`; } }
+    function paintCard(msg, cls) {
+      if (!cur) return;
+      const q = step === 1 ? L("Is it primary or secondary?", "¿Es primaria o secundaria?") : L("Renewable or non-renewable?", "¿Renovable o no renovable?");
+      const opts = step === 1 ? [["primary", L("Primary", "Primaria")], ["secondary", L("Secondary", "Secundaria")]] : [["renew", L("Renewable", "Renovable")], ["nonrenew", L("Non-renewable", "No renovable")]];
+      nowBox.innerHTML = `${imgTag(cur.photo, cur.name, "card-now__img")}<div class="card-now__body"><p class="card-now__name">${cur.name}</p>
+        <p class="step-q">${L("Step", "Paso")} ${step} · ${q}</p><div class="choice-row">${opts.map((o, i) => `<button type="button" class="choice" data-v="${o[0]}"><kbd>${i + 1}</kbd>${o[1]}</button>`).join("")}</div>
+        <p class="say ${cls || ""}" aria-live="polite">${msg || ""}</p></div>`;
+      nowBox.querySelectorAll(".choice").forEach(b => b.addEventListener("click", () => answer(b.dataset.v, b)));
+    }
+    function answer(v, btn) {
+      const c = cur; if (!c) return;
+      let ok;
+      if (step === 1) ok = v === c.type; else ok = (v === "renew") === c.renew;
+      if (!ok) {
+        tries++; miss(); shake(btn); shake(nowBox);
+        let hint;
+        if (step === 1) hint = v === "primary" ? L("Not quite: this one is made by transforming another source, so it is a carrier.", "Casi: esta se fabrica transformando otra fuente, así que es un portador.") : L("Not quite: this is captured directly from nature, with no conversion needed first.", "Casi: esta se capta directamente de la naturaleza, sin conversión previa.");
+        else hint = v === "renew" ? L("Think again: could it be used up and not replaced on a human timescale?", "Piénsalo de nuevo: ¿podría agotarse y no reponerse en una escala de tiempo humana?") : L("Think again: is it constantly replenished by natural processes?", "Piénsalo de nuevo: ¿lo repone constantemente la naturaleza?");
+        paintCard(hint, "bad"); const nb = nowBox.querySelector(`.choice[data-v="${v}"]`); if (nb) { nb.disabled = true; nb.style.opacity = ".45"; }
+        return;
+      }
+      btn.classList.add("ok"); burst(nowBox, "#7bffb0");
+      if (step === 1 && c.type === "primary") { award(10); step = 2; setTimeout(() => paintCard(L("Correct! Now the second question.", "¡Correcto! Ahora la segunda pregunta."), "good"), 350); return; }
+      sorted.add(c.id); markTile(c); award(10);
+      const label = c.type === "secondary" ? L("Secondary", "Secundaria") : (c.renew ? L("Primary · Renewable", "Primaria · Renovable") : L("Primary · Non-renewable", "Primaria · No renovable"));
+      sim.recordTrial({ task: "Sort", item: c.name, value: label, outcome: tries ? L(`Correct after ${tries + 1} tries`, `Correcto tras ${tries + 1} intentos`) : L("Correct first try", "Correcto al primer intento") });
+      nowBox.querySelector(".say").className = "say good"; nowBox.querySelector(".say").textContent = c.why;
+      st1done.textContent = `${sorted.size}/${CARDS.length}`; if (sorted.size === CARDS.length) { st1done.classList.add("ok"); st1done.textContent = "✓ " + st1done.textContent; }
+      setTimeout(nextCard, 2600);
+    }
+    document.addEventListener("keydown", e => {
+      if (!st1.isConnected || !cur || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement && document.activeElement.tagName)) return;
+      if (e.key === "1" || e.key === "2") { const b = nowBox.querySelectorAll(".choice")[Number(e.key) - 1]; if (b && !b.disabled) b.click(); }
+    });
+    st1done.textContent = `${sorted.size}/${CARDS.length}`;
+    nextCard();
+    st1.append(el("p", "cc-credit", "")); const cr1 = st1.lastChild; setTimeout(() => cr1.innerHTML = creditLine(CARDS.map(c => c.photo)), 500);
+    host.append(st1);
+
+    /* ============ STATION 2: CHAIN BUILDER ============ */
+    const st2 = el("section", "cc-station"); const st2done = el("span", "cc-station__done");
+    st2.append(el("div", "cc-station__head", `<span class="cc-station__n">${L("Station 2", "Estación 2")}</span><h3 class="cc-station__title">${L("The Conversion Chain Builder", "El constructor de cadenas de conversión")}</h3>`)); st2.firstChild.append(st2done);
+    st2.append(el("p", "q__hint", L("Each chain runs <strong>raw nature → conversion → carrier</strong>. Pick the converter and the carrier, then run the chain.", "Cada cadena va de <strong>naturaleza → conversión → portador</strong>. Elige el conversor y el portador, y luego ejecuta la cadena.")));
+    st2done.textContent = `${chained.size}/${CHAINS.length}`;
+    CHAINS.forEach(ch => {
+      const card = el("div", "chain-card"); let pc = null, pk = null, ctries = 0;
+      const grid = el("div", "chain-grid");
+      grid.innerHTML = `<div class="chain-raw">${imgTag(ch.photo, ch.raw)}<div><div class="slot-label">${L("Raw nature", "Naturaleza")}</div><b>${ch.raw}</b></div></div>`;
+      const slots = el("div", "chain-slots");
+      const convRow = el("div", "chip-row"); convRow.style.cssText = "display:flex;flex-wrap:wrap;gap:.4rem";
+      const carRow = el("div", "chip-row"); carRow.style.cssText = "display:flex;flex-wrap:wrap;gap:.4rem";
+      slots.append(el("div", "slot-label", L("Conversion", "Conversión")), convRow, el("div", "slot-label", L("Carrier", "Portador")), carRow);
+      const pick = (row, list, setter) => list.forEach(o => { const b = el("button", "chip-btn", o.label); b.type = "button"; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", () => { row.querySelectorAll(".chip-btn").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); setter(o.id); }); row.append(b); });
+      pick(convRow, CONVS, v => pc = v); pick(carRow, CARRIERS, v => pk = v);
+      grid.append(slots); card.append(grid);
+      const flow = el("div"); flow.innerHTML = `<svg class="chain-svg2" viewBox="0 0 300 30" aria-hidden="true"><line id="l" x1="10" y1="15" x2="290" y2="15" stroke="#bbb" stroke-width="4"/></svg>`; card.append(flow);
+      const run = el("button", "btn btn--signal", L("Run the chain", "Ejecutar la cadena")); run.type = "button";
+      const state = el("p", "chain-state", ""); state.setAttribute("aria-live", "polite");
+      card.append(run, state); st2.append(card);
+      if (chained.has(ch.id)) { state.textContent = ch.ok; state.className = "chain-state"; flow.querySelector("#l").setAttribute("stroke", "#2f8f4f"); }
+      run.addEventListener("click", () => {
+        if (!pc || !pk) { state.textContent = L("Pick a converter and a carrier first.", "Elige primero un conversor y un portador."); shake(card); return; }
+        const okC = pc === ch.conv, okK = pk === ch.carrier; ctries++;
+        const line = flow.querySelector("#l");
+        if (okC && okK) {
+          line.setAttribute("stroke", "#2f8f4f"); line.setAttribute("class", "flow"); state.textContent = ch.ok; state.style.color = "var(--positive)"; burst(card, "#ffd37a");
+          if (!chained.has(ch.id)) { chained.add(ch.id); st2done.textContent = `${chained.size}/${CHAINS.length}`; if (chained.size === CHAINS.length) st2done.classList.add("ok");
+            sim.recordTrial({ task: "Chain", item: ch.raw, value: `${CONVS.find(x => x.id === pc).label} → ${CARRIERS.find(x => x.id === pk).label}`, outcome: ctries > 1 ? L(`Correct after ${ctries} tries`, `Correcto tras ${ctries} intentos`) : L("Correct first try", "Correcto al primer intento") }); }
+          award(15);
+        } else {
+          line.setAttribute("stroke", "#d9363e"); line.removeAttribute("class"); miss(); shake(card); state.style.color = "var(--danger,#b3261e)";
+          state.textContent = !okC ? L("The conversion step does not match this raw source. What device actually transforms it?", "El paso de conversión no corresponde a esta fuente. ¿Qué dispositivo la transforma realmente?")
+            : L("A carrier is made by transforming a primary source. Which of these is a finished carrier?", "Un portador se produce al transformar una fuente primaria. ¿Cuál de estos es un portador terminado?");
+        }
+      });
+    });
+    host.append(st2);
+
+    /* ============ STATION 3: TIME MACHINE ============ */
+    const st3 = el("section", "cc-station"); const st3done = el("span", "cc-station__done");
+    st3.append(el("div", "cc-station__head", `<span class="cc-station__n">${L("Station 3", "Estación 3")}</span><h3 class="cc-station__title">${L("The Keeling Curve Time Machine", "La máquina del tiempo de la Curva de Keeling")}</h3>`)); st3.firstChild.append(st3done);
+    st3.append(el("p", "q__hint", L("<strong>Drag</strong> the Earth to orbit it. Each glowing dot in the shell is <strong>1 ppm</strong> of CO₂. Move the year slider (or press Play), then <strong>Log this year</strong>. Log at least three years, including <strong>1960</strong> and <strong>2020</strong>.",
+      "<strong>Arrastra</strong> la Tierra para orbitarla. Cada punto brillante de la capa es <strong>1 ppm</strong> de CO₂. Mueve el control del año (o pulsa Reproducir) y luego <strong>Registrar este año</strong>. Registra al menos tres años, incluidos <strong>1960</strong> y <strong>2020</strong>.")));
+    const tm = el("div", "tm"); const left = el("div"); const right = el("div");
+    const stage = el("div", "stage3d");
+    const hudY = el("div", "hud hud--year", "1960"), hudP = el("div", "hud hud--ppm", "317 ppm");
+    const hudH = el("div", "hud hud--hint", L("drag to orbit · scroll to zoom · 1 dot = 1 ppm", "arrastra para orbitar · rueda para acercar · 1 punto = 1 ppm"));
+    stage.append(hudY, hudP, hudH); left.append(stage);
+    const gcv = document.createElement("canvas"); gcv.className = "graph"; gcv.width = 640; gcv.height = 240; gcv.setAttribute("role", "img");
+    gcv.setAttribute("aria-label", L("Graph of atmospheric CO₂ in ppm from 1960 to the chosen year, rising with a small yearly seasonal wiggle.", "Gráfico del CO₂ atmosférico en ppm desde 1960 hasta el año elegido, subiendo con una pequeña oscilación estacional."));
+    gcv.style.marginTop = "var(--sp-3)"; left.append(gcv);
+    left.append(el("p", "cc-credit", L("Data: NOAA Global Monitoring Laboratory / Scripps Mauna Loa annual means (approximate, interpolated). Emissions: Global Carbon Project (approximate).", "Datos: promedios anuales de Mauna Loa de NOAA GML / Scripps (aproximados, interpolados). Emisiones: Global Carbon Project (aproximadas).")));
+    let year = 1960, playing = null;
+    const yc = el("div", "ctrl"); yc.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Year", "Año")}</span><span class="ctrl__val" id="yv">1960</span></div><input type="range" id="ys" min="1960" max="2024" step="1" value="1960" aria-label="${L("Year", "Año")}">`;
+    const rr = el("div", "readout-row");
+    rr.innerHTML = `<div class="ro"><span class="ro__k">CO₂</span><span class="ro__v" id="r1">–</span></div><div class="ro"><span class="ro__k">${L("Change since 1960", "Cambio desde 1960")}</span><span class="ro__v" id="r2">–</span></div><div class="ro"><span class="ro__k">${L("Fossil CO₂ emitted", "CO₂ fósil emitido")}</span><span class="ro__v" id="r3">–</span></div>`;
+    const br = el("div", "btn-row");
+    const play = el("button", "btn", L("▶ Play 1960→2024", "▶ Reproducir 1960→2024")); play.type = "button";
+    const logb = el("button", "btn btn--signal", L("Log this year", "Registrar este año")); logb.type = "button";
+    br.append(play, logb);
+    right.append(yc, rr, br);
+    right.append(el("div", "headline", L(`<b>+37%</b><span>Headline figures (rounded): about 310 ppm in the 1950s to over 420 ppm today. Higher than at any time in the last 800,000 years.</span>`, `<b>+37 %</b><span>Cifras principales (redondeadas): de unos 310 ppm en la década de 1950 a más de 420 ppm hoy. Más alto que en cualquier momento de los últimos 800 000 años.</span>`)));
+    const say3 = el("p", "q__hint", ""); say3.setAttribute("aria-live", "polite"); say3.style.marginTop = "var(--sp-3)"; right.append(say3);
+    tm.append(left, right); st3.append(tm);
+
+    st3.append(el("h4", null, L("Meet the five greenhouse gases", "Conoce los cinco gases de efecto invernadero")));
+    st3.append(el("p", "q__hint", L("Tap each gas to open its card. You will need them for the bonus analyser and the Knowledge Check.", "Toca cada gas para abrir su tarjeta. Los necesitarás para el analizador bonus y la comprobación de conocimientos.")));
+    const gasRow = el("div", "gas-row"); const opened = new Set();
+    GASES.forEach(g => { const b = el("button", "gas", `${molSVG(g.mol, g.shape)}<div class="gas__n">${g.name} (${g.f})</div><div class="gas__t">${g.role}</div>`); b.type = "button";
+      b.addEventListener("click", () => { b.classList.add("is-open"); opened.add(g.id); burst(b, "#7bffb0"); if (opened.size === 5) { st3done.classList.add("ok"); } if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(g.name + ". " + g.role); }); gasRow.append(b); });
+    st3.append(gasRow); host.append(st3);
+
+    // graph + state
+    const logged = new Set([...years].map(Number));
+    function drawGraph() {
+      const g = gcv.getContext("2d"), W = gcv.width, H = gcv.height, pl = 46, pr = 12, pt = 14, pb = 26;
+      g.clearRect(0, 0, W, H); g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+      const X = y => pl + (y - 1960) / 64 * (W - pl - pr), Y = p => pt + (430 - p) / 120 * (H - pt - pb);
+      g.font = "11px sans-serif"; g.fillStyle = "#444"; g.strokeStyle = "#e3e3e3"; g.lineWidth = 1;
+      [320, 360, 400].forEach(p => { g.beginPath(); g.moveTo(pl, Y(p)); g.lineTo(W - pr, Y(p)); g.stroke(); g.fillText(p, 12, Y(p) + 4); });
+      [1960, 1980, 2000, 2020].forEach(y => { g.fillText(y, X(y) - 14, H - 8); });
+      g.save(); g.translate(10, H / 2 + 20); g.rotate(-Math.PI / 2); g.fillText("CO₂ (ppm)", 0, 0); g.restore();
+      g.strokeStyle = "#e8a0a0"; g.lineWidth = 1.2; g.beginPath();
+      for (let t = 1960; t <= year; t += 1 / 12) { const v = ppmAt(t) + 3 * Math.cos(2 * Math.PI * ((t % 1) - 0.38)); t === 1960 ? g.moveTo(X(t), Y(v)) : g.lineTo(X(t), Y(v)); } g.stroke();
+      g.strokeStyle = "#111"; g.lineWidth = 2; g.beginPath(); for (let t = 1960; t <= year; t += 0.25) { t === 1960 ? g.moveTo(X(t), Y(ppmAt(t))) : g.lineTo(X(t), Y(ppmAt(t))); } g.stroke();
+      logged.forEach(y => { g.strokeStyle = "#2f8f4f"; g.lineWidth = 2.5; g.beginPath(); g.arc(X(y), Y(ppmAt(y)), 6, 0, 6.283); g.stroke(); });
+      g.fillStyle = "#d9363e"; g.beginPath(); g.arc(X(year), Y(ppmAt(year)), 5, 0, 6.283); g.fill();
+    }
+    let scene3d = null;
+    function setYear(y) {
+      year = y; const p = ppmAt(y), e = emisAt(y), d = p - ppmAt(1960);
+      yc.querySelector("#yv").textContent = y; yc.querySelector("#ys").value = y; hudY.textContent = y; hudP.textContent = Math.round(p) + " ppm";
+      rr.querySelector("#r1").textContent = p.toFixed(1) + " ppm"; rr.querySelector("#r2").textContent = (d >= 0 ? "+" : "") + d.toFixed(1) + " ppm (+" + (d / ppmAt(1960) * 100).toFixed(0) + "%)";
+      rr.querySelector("#r3").textContent = "≈ " + e.toFixed(0) + " Gt/" + L("yr", "año");
+      if (scene3d) scene3d.setState(p, e); drawGraph();
+    }
+    yc.querySelector("#ys").addEventListener("input", e => setYear(Number(e.target.value)));
+    play.addEventListener("click", () => {
+      if (playing) { clearInterval(playing); playing = null; play.textContent = L("▶ Play 1960→2024", "▶ Reproducir 1960→2024"); return; }
+      if (year >= 2024) setYear(1960);
+      play.textContent = L("⏸ Pause", "⏸ Pausar");
+      playing = setInterval(() => { if (!stage.isConnected) { clearInterval(playing); return; } if (year >= 2024) { clearInterval(playing); playing = null; play.textContent = L("▶ Play 1960→2024", "▶ Reproducir 1960→2024"); return; } setYear(year + 1); }, 240);
+    });
+    logb.addEventListener("click", () => {
+      const p = ppmAt(year), d = p - ppmAt(1960);
+      sim.recordTrial({ task: "CO2 year", item: String(year), value: p.toFixed(1) + " ppm", outcome: (d >= 0 ? "+" : "") + d.toFixed(1) + " ppm vs 1960" });
+      logged.add(year); years.add(String(year)); drawGraph(); burst(stage, "#ffb259"); if (scene3d) scene3d.punch(); award(20);
+      say3.textContent = L(`Logged ${year}: ${p.toFixed(1)} ppm (${d >= 0 ? "+" : ""}${d.toFixed(1)} ppm since 1960). ${years.size} year${years.size === 1 ? "" : "s"} logged.`, `Registrado ${year}: ${p.toFixed(1)} ppm (${d >= 0 ? "+" : ""}${d.toFixed(1)} ppm desde 1960). ${years.size} año${years.size === 1 ? "" : "s"} registrado${years.size === 1 ? "" : "s"}.`);
+      st3done.textContent = `${years.size} ${L("years", "años")}`;
+    });
+    st3done.textContent = `${years.size} ${L("years", "años")}`;
+    loadThree().then(THREE => { if (!stage.isConnected) return; try { scene3d = build3D(THREE, stage); } catch (e) { scene3d = build2DFallback(stage); } setYear(year); })
+      .catch(() => { if (!stage.isConnected) return; scene3d = build2DFallback(stage); setYear(year); });
+    setYear(1960);
+
+    /* ============ BONUS: SPECTRUM ANALYSER (precision instrument challenge) ============ */
+    const bonus = el("div"); host.append(bonus);
+    function paintBonus() {
+      bonus.innerHTML = "";
+      const card = el("div", "spec");
+      card.innerHTML = `<h3>${L("Bonus round: the Infrared Gas Analyser", "Ronda bonus: el analizador infrarrojo de gases")}</h3>
+        <p>${L("Greenhouse gases absorb infrared light at their own fingerprint wavelengths. Dial the cursor onto a dip in the spectrum, lock it, then name the gas. Two minutes, no fail state, just precision.", "Los gases de efecto invernadero absorben luz infrarroja en sus propias longitudes de onda. Coloca el cursor sobre una caída del espectro, bloquéalo y nombra el gas. Dos minutos, sin fallos: solo precisión.")}</p>`;
+      const play = el("button", "btn btn--signal", L("Start the analyser", "Iniciar el analizador")); play.type = "button";
+      const skip = el("button", "btn", L("Skip bonus round", "Omitir ronda bonus")); skip.type = "button"; skip.style.marginLeft = ".5rem";
+      card.append(play, skip); bonus.append(card);
+      skip.addEventListener("click", () => { bonus.innerHTML = ""; });
+      play.addEventListener("click", () => runAnalyser(card));
+    }
+    function runAnalyser(card) {
+      const DUR = 120; let left = DUR, score = 0, streak = 0, best = 0, right = 0, total = 0, sample = null, lock = null, over = false; const missed = {};
+      card.innerHTML = `<h3>${L("Infrared Gas Analyser", "Analizador infrarrojo de gases")}</h3>
+        <div class="spec__hud"><span>${L("Time", "Tiempo")} <b id="tt">${DUR}</b>s</span><span>${L("Score", "Puntos")} <b id="sc">0</b></span><span>${L("Streak", "Racha")} <b id="sk">0</b></span><span>${L("Cursor", "Cursor")} <b id="cl">8.0</b> µm</span></div>
+        <svg id="sp" viewBox="0 0 640 200" aria-label="${L("Infrared absorption spectrum of a mystery gas", "Espectro de absorción infrarroja de un gas misterioso")}" role="img"></svg>
+        <label class="ctrl__name" for="cur" style="color:#8fc4de">${L("Wavelength cursor (µm) — arrow keys fine-tune", "Cursor de longitud de onda (µm) — las flechas afinan")}</label>
+        <input type="range" id="cur" min="2" max="16" step="0.05" value="8">
+        <button type="button" class="btn btn--signal" id="lk" style="margin-top:.5rem">${L("Lock reading (Enter)", "Bloquear lectura (Enter)")}</button>
+        <div class="gas-btns">${GASES.map((g, i) => `<button type="button" class="gbtn" data-g="${g.id}" disabled><kbd>${i + 1}</kbd>${g.name}</button>`).join("")}</div>
+        <p class="spec__say" id="sy" aria-live="polite"></p>
+        <table class="spec__ref"><tr><th>${L("Gas", "Gas")}</th><th>${L("Dips at (µm)", "Caídas en (µm)")}</th></tr>${GASES.map(g => `<tr><td>${g.name} (${g.f})</td><td>${g.bands.join(" and ")}</td></tr>`).join("")}</table>`;
+      const $ = s => card.querySelector(s), svg = $("#sp"), cur = $("#cur"), sy = $("#sy");
+      const X = l => 30 + (l - 2) / 14 * 590, Yv = t => 20 + (1 - t) * 160;
+      function newSample() {
+        sample = GASES[Math.floor(Math.random() * GASES.length)]; lock = null; const sh = (Math.random() - .5) * 0.1;
+        const pts = []; for (let l = 2; l <= 16; l += 0.1) { let t = 0.96; sample.bands.forEach((c, i) => { const w = c > 12 ? 0.55 : 0.16 + i * 0.04; t -= (i ? 0.7 : 0.75) * Math.exp(-Math.pow((l - c - sh) / w, 2)); }); t += (Math.random() - .5) * 0.03; pts.push([X(l), Yv(Math.max(0.05, t))]); }
+        svg.innerHTML = `<rect width="640" height="200" fill="#04101d"/>` + [4, 6, 8, 10, 12, 14, 16].map(l => `<line x1="${X(l)}" y1="14" x2="${X(l)}" y2="182" stroke="#12304a"/><text x="${X(l) - 8}" y="196" fill="#6fa6c9" font-size="10">${l}</text>`).join("") +
+          `<polyline fill="none" stroke="#4cc0db" stroke-width="2" points="${pts.map(p => p.join(",")).join(" ")}"/><line id="cl2" x1="0" y1="14" x2="0" y2="182" stroke="#ffd37a" stroke-width="2"/>`;
+        card.querySelectorAll(".gbtn").forEach(b => b.disabled = true); moveCur(); sy.textContent = L("A mystery gas is in the chamber. Find a dip, then lock.", "Hay un gas misterioso en la cámara. Encuentra una caída y bloquea.");
+      }
+      function moveCur() { const l = Number(cur.value); $("#cl").textContent = l.toFixed(1); const ln = svg.querySelector("#cl2"); if (ln) { ln.setAttribute("x1", X(l)); ln.setAttribute("x2", X(l)); } }
+      cur.addEventListener("input", moveCur);
+      function doLock() {
+        if (over || !sample || lock) return; const l = Number(cur.value); const near = sample.bands.some(c => Math.abs(c - l) <= 0.4);
+        if (!near) { shake(svg); streak = 0; sy.style.color = "#ff9d8f"; sy.textContent = L("No dip under the cursor. Slide it onto a low point and lock again.", "No hay caída bajo el cursor. Deslízalo a un punto bajo y bloquea otra vez."); return; }
+        lock = l; sy.style.color = "#9bf0b9"; sy.textContent = L(`Locked at ${l.toFixed(1)} µm. Which gas has a dip there?`, `Bloqueado en ${l.toFixed(1)} µm. ¿Qué gas tiene una caída ahí?`);
+        card.querySelectorAll(".gbtn").forEach(b => b.disabled = false);
+      }
+      function pickGas(id) {
+        if (over || !sample || lock == null) return; total++;
+        if (id === sample.id) { right++; streak++; best = Math.max(best, streak); score += 10 + Math.min(10, streak * 2); sy.style.color = "#9bf0b9"; sy.textContent = L(`Correct: ${sample.name} (${sample.f}). ${sample.role}`, `Correcto: ${sample.name} (${sample.f}). ${sample.role}`); burst(card, "#ffd37a"); }
+        else { streak = 0; missed[sample.id] = 1; sy.style.color = "#ff9d8f"; sy.textContent = L(`It was ${sample.name} (${sample.f}), with dips at ${sample.bands.join(" and ")} µm. ${sample.role}`, `Era ${sample.name} (${sample.f}), con caídas en ${sample.bands.join(" y ")} µm. ${sample.role}`); shake(card); }
+        $("#sc").textContent = score; $("#sk").textContent = streak; sample = null; lock = null; card.querySelectorAll(".gbtn").forEach(b => b.disabled = true); setTimeout(() => { if (!over) newSample(); }, 1700);
+      }
+      $("#lk").addEventListener("click", doLock); card.querySelectorAll(".gbtn").forEach(b => b.addEventListener("click", () => pickGas(b.dataset.g)));
+      const onKey = e => { if (!card.isConnected) { document.removeEventListener("keydown", onKey); return; }
+        if (e.key === "Enter") { e.preventDefault(); doLock(); } else if (/^[1-5]$/.test(e.key)) pickGas(GASES[Number(e.key) - 1].id);
+        else if (e.key === "ArrowLeft") { cur.value = Number(cur.value) - 0.05; moveCur(); } else if (e.key === "ArrowRight") { cur.value = Number(cur.value) + 0.05; moveCur(); } };
+      document.addEventListener("keydown", onKey);
+      newSample();
+      const t0 = Date.now(), timer = setInterval(() => {
+        if (!card.isConnected) { clearInterval(timer); return; }
+        left = Math.max(0, DUR - Math.floor((Date.now() - t0) / 1000)); const tt = $("#tt"); if (tt) tt.textContent = left;
+        if (left <= 0) { clearInterval(timer); over = true; document.removeEventListener("keydown", onKey);
+          const rev = Object.keys(missed).map(id => GASES.find(g => g.id === id).name).join(", ");
+          card.innerHTML = `<h3>${L("Analysis complete!", "¡Análisis completo!")}</h3><p>${L(`Score <b>${score}</b> · ${right}/${total} identified · best streak <b>${best}</b>.`, `Puntos <b>${score}</b> · ${right}/${total} identificados · mejor racha <b>${best}</b>.`)} ${rev ? L("Revisit: ", "Repasa: ") + rev + "." : L("A perfect read of every gas you met.", "Una lectura perfecta de todos los gases.")}</p>`;
+          const again = el("button", "btn btn--signal", L("Play again", "Jugar de nuevo")); again.type = "button"; again.addEventListener("click", () => runAnalyser(card)); card.append(again);
+        } }, 250);
+    }
+    paintBonus();
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
