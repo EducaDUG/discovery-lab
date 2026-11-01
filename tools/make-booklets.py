@@ -10,6 +10,7 @@ ROOT = HERE.parent
 EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 SITE = ROOT / "secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-2"
 SITE_S1BIO = ROOT / "secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-1/biology"
+SITE_PREIG_SPA = ROOT / "secondary/a-level-pathway/pre-ig/spanish/pre-ig-stage-1-spanish"
 
 UI = {
     "en": dict(name="Name", cls="Class", date="Date", key="Key ideas", fact="Did you know?", check="Check yourself", task="Revision task", answers="Answer key",
@@ -130,7 +131,8 @@ def main():
     wanted = [int(a) if a.isdigit() else a for a in sys.argv[1:]] or [1, 2, 3]
     for n in wanted:
         data = load(n); folder = SITE / f"exam-{n}-revision"
-        if not str(n).isdigit(): folder = SITE_S1BIO / "exam-1-revision"; n = 1  # "s1bio1" = Stage 1 Biology Exam 1
+        if n == "preig4": folder = SITE_PREIG_SPA / "exam-4-revision"; n = 4  # Pre-IG Stage 1 Spanish Internal Exam 4
+        elif not str(n).isdigit(): folder = SITE_S1BIO / "exam-1-revision"; n = 1  # "s1bio1" = Stage 1 Biology Exam 1
         for lang in ("en", "es"):
             h = build(lang, data[lang], n, "morehumaned.com/discovery-lab")
             tmp = pathlib.Path(tempfile.gettempdir()) / f"dl-booklet-{n}-{lang}.html"; tmp.write_text(h, encoding="utf8")
