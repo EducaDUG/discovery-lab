@@ -426,3 +426,10 @@ fetch("photos/credits.json").then(r => r.json()).then(c => {
 /* the site header is sticky too: park the section bar just under it */
 const headFix = () => { const h = $(".site-head"); if (h) document.documentElement.style.setProperty("--headh", Math.round(h.getBoundingClientRect().height) + "px"); };
 headFix(); addEventListener("resize", headFix); setTimeout(headFix, 600);
+
+/* back-to-top button, shown once the student has scrolled down */
+const toTop = el("button", "totop", `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0l-6 6m6-6l6 6"/></svg>${ES ? "Volver arriba" : "Back to top"}`);
+toTop.type = "button"; toTop.setAttribute("aria-label", ES ? "Volver al inicio de la página" : "Return to the top of the page");
+document.body.append(toTop);
+toTop.addEventListener("click", () => scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
+addEventListener("scroll", () => toTop.classList.toggle("show", scrollY > 700), { passive: true });
