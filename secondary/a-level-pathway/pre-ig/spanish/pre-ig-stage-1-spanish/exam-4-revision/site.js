@@ -422,3 +422,7 @@ wireBooklet("Exam-4-Revision-Booklet");
 fetch("photos/credits.json").then(r => r.json()).then(c => {
   $("#credits").innerHTML = u("cred") + " " + Object.keys(c).map(k => `<a href="${c[k].page}" target="_blank" rel="noopener noreferrer">${c[k].file.replace(/^File:/, "").replace(/\.[a-z]+$/i, "")}</a> ${u("by")} ${c[k].author}, ${c[k].license}`).join("; ") + ".";
 }).catch(() => { /* credits are a progressive enhancement */ });
+
+/* the site header is sticky too: park the section bar just under it */
+const headFix = () => { const h = $(".site-head"); if (h) document.documentElement.style.setProperty("--headh", Math.round(h.getBoundingClientRect().height) + "px"); };
+headFix(); addEventListener("resize", headFix); setTimeout(headFix, 600);
