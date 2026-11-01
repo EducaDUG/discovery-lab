@@ -78,6 +78,13 @@ tr:last-child td,tr:last-child th{border-bottom:0}
 .svgc{display:block;margin:3mm auto 0}
 """
 
+EXTRA_CSS = ""
+COMPACT = """
+.page{padding:9mm 13mm 14mm}.band{padding:3mm 6mm;margin-bottom:2mm}.band .num{width:12mm;height:12mm;font-size:16pt}.band h2{font-size:16pt}.band p{font-size:9pt}
+h3.sec{margin:2.2mm 0 1.2mm;font-size:11pt}.ideas{gap:1.6mm}.idea{font-size:9.2pt;line-height:1.3;padding:1.6mm 2.8mm}
+table{font-size:9pt;margin-top:1.6mm}th,td{padding:.9mm 2.4mm}.fact{margin-top:2mm;padding:1.8mm 3.4mm;font-size:9.2pt}
+.q{gap:.8mm}.q li{font-size:9.4pt;padding:1.1mm 2.8mm}.task{margin-top:2mm;padding:1.8mm 3.4mm;font-size:9.2pt}.draw{height:34mm;margin-top:2mm}
+"""
 LOGO = '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="none" stroke="#fff" stroke-width="1.5" opacity=".35"/><circle cx="32" cy="32" r="19" fill="none" stroke="#fff" stroke-width="1.5" opacity=".2"/><path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="#3fd9a0" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="22" r="5" fill="#f3d36b"/><circle cx="32" cy="32" r="2.5" fill="#fff"/></svg>'
 ORBIT = '<svg class="orbit" viewBox="0 0 200 200"><g fill="none" stroke="#7dffd0" opacity=".35"><circle cx="100" cy="100" r="90" stroke-width="1.5"/><circle cx="100" cy="100" r="62" stroke-width="1.5"/><circle cx="100" cy="100" r="34" stroke-width="1.5"/></g><circle cx="190" cy="100" r="9" fill="#f3d36b"/><circle cx="100" cy="38" r="7" fill="#3fd9a0"/><circle cx="76" cy="124" r="6" fill="#ff9d8d"/><circle cx="100" cy="100" r="11" fill="#fff"/></svg>'
 
@@ -121,7 +128,7 @@ def build(lang, d, exam_no, url):
         body = "".join(ans_block(L) for L in ch) + (ans2 if ci == len(chunks) - 1 else "")
         parts.append(f'''<section class="page ans" style="--c:#12998a"><div class="band" style="--c:#12998a"><div class="num">✔</div><div><small>{u["answers"]}</small><h2>{u["answers"]}</h2><p>{u["ans_note"]}</p></div></div>{body}{foot()}</section>''')
     parts.append(f'''<section class="page end"><div class="brand cover" style="background:none;padding:0;display:flex;gap:10px;align-items:center;font-family:Georgia,serif;font-size:16pt;color:#fff">{LOGO.replace('<svg','<svg width="34" height="34"')}<span>Discovery&nbsp;Lab</span></div><h2>{u["good"]}</h2><p style="margin-top:8mm;color:#9bbdb0">Mr Guevara · {url}</p></section>''')
-    return f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><title>{d["cover_title"]}</title><style>{CSS}</style></head><body>{"".join(parts)}</body></html>'
+    return f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><title>{d["cover_title"]}</title><style>{CSS}{EXTRA_CSS}</style></head><body>{"".join(parts)}</body></html>'
 
 def load(n):
     spec = importlib.util.spec_from_file_location(f"exam{n}", HERE / "booklets" / (f"exam{n}.py" if str(n).isdigit() else f"{n}.py"))
@@ -133,6 +140,8 @@ def main():
         data = load(n); folder = SITE / f"exam-{n}-revision"
         if n == "preig4": folder = SITE_PREIG_SPA / "exam-4-revision"; n = 4  # Pre-IG Stage 1 Spanish Internal Exam 4
         elif not str(n).isdigit(): folder = SITE_S1BIO / "exam-1-revision"; n = 1  # "s1bio1" = Stage 1 Biology Exam 1
+        global EXTRA_CSS
+        EXTRA_CSS = COMPACT if n == 4 and folder.name == "exam-4-revision" and "pre-ig" in str(folder) else ""
         for lang in ("en", "es"):
             h = build(lang, data[lang], n, "morehumaned.com/discovery-lab")
             tmp = pathlib.Path(tempfile.gettempdir()) / f"dl-booklet-{n}-{lang}.html"; tmp.write_text(h, encoding="utf8")
