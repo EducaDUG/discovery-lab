@@ -229,8 +229,9 @@ const heroS = buildHero($("#heroStage"), ["falda", "botas", "vestido", "jersey",
     const ex = V[verb].ex[tense]; $("#cjEx").innerHTML = `<b>${verb}</b> · ${ES ? "ejemplo" : "example"}: <i>${ex || (ES ? "Este verbo solo se usa en presente en este examen." : "This verb is only needed in the present tense for this exam.")}</i>`;
   }
   paint();
-  let qs = [], qi = 0, sc = 0;
+  let qs = [], qi = 0, sc = 0, cjStarted = false;
   function newTest() {
+    cjStarted = false;
     const pool = [];
     ["ir", "comer", "visitar"].forEach(v => ["pres", "past", "fut"].forEach(te => PERS.forEach((p, i) => pool.push({ v, te, i }))));
     ["ponerse", "llevar"].forEach(v => PERS.forEach((p, i) => pool.push({ v, te: "pres", i })));
@@ -238,9 +239,10 @@ const heroS = buildHero($("#heroStage"), ["falda", "botas", "vestido", "jersey",
   }
   function show() {
     if (qi >= qs.length) { $("#cjQ").textContent = ES ? `Test terminado: ${sc} / 8.` : `Test finished: ${sc} / 8.`; $("#cjFb").textContent = ""; setText($("#cjScore"), ""); return; }
-    const q = qs[qi]; $("#cjQ").innerHTML = `<b>${PERS[q.i]}</b> · <b>${q.v}</b> · ${TN[q.te]}`; $("#cjIn").value = ""; $("#cjIn").focus(); setText($("#cjScore"), `${qi + 1} / 8`);
+    const q = qs[qi]; $("#cjQ").innerHTML = `<b>${PERS[q.i]}</b> · <b>${q.v}</b> · ${TN[q.te]}`; $("#cjIn").value = ""; if (cjStarted) $("#cjIn").focus(); setText($("#cjScore"), `${qi + 1} / 8`);
   }
   function check() {
+    cjStarted = true;
     if (qi >= qs.length) return; const q = qs[qi], right = forms(q.v, q.te)[q.i], a = $("#cjIn").value.trim().toLowerCase();
     if (!a) return;
     const fb = $("#cjFb");
@@ -250,7 +252,7 @@ const heroS = buildHero($("#heroStage"), ["falda", "botas", "vestido", "jersey",
     if (sc >= 6) award("conj");
     qi++; setTimeout(show, 1400);
   }
-  $("#cjCheck").addEventListener("click", check); $("#cjIn").addEventListener("keydown", e => { if (e.key === "Enter") check(); }); $("#cjNew").addEventListener("click", newTest); newTest();
+  $("#cjCheck").addEventListener("click", check); $("#cjIn").addEventListener("keydown", e => { if (e.key === "Enter") check(); }); $("#cjNew").addEventListener("click", () => { newTest(); cjStarted = true; $("#cjIn").focus(); }); newTest();
 }
 
 /* ---------------------------------------------------------------- Lab 3: Boutique */
@@ -433,3 +435,7 @@ toTop.type = "button"; toTop.setAttribute("aria-label", ES ? "Volver al inicio d
 document.body.append(toTop);
 toTop.addEventListener("click", () => scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
 addEventListener("scroll", () => toTop.classList.toggle("show", scrollY > 700), { passive: true });
+
+/* always open at the top (unless the link has a #section): the page is built by script, so the browser would otherwise restore a stale scroll position or jump to a focused field */
+try { history.scrollRestoration = "manual"; } catch (e) { /* ignore */ }
+if (!location.hash) { scrollTo(0, 0); setTimeout(() => scrollTo(0, 0), 300); addEventListener("load", () => { if (!location.hash) scrollTo(0, 0); }); }
