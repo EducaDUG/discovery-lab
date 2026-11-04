@@ -2,7 +2,7 @@
    lives in the activity's own folder). Every photo here is vendored in
    photos/ and was licence-checked on its own Wikimedia Commons file page
    (2026-10-14). Credits render on the page via creditLine(). */
-import { getLang } from "../../../../../../../../engine/i18n.js?v=9";
+import { getLang } from "../../../../../../../../engine/i18n.js?v=10";
 
 export const L = (en, es) => (getLang() === "es" ? es : en);
 export const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";

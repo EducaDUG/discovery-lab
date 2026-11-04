@@ -3,7 +3,7 @@
    linked: caring for one lifts others, and a very low part makes the next
    one harder. Everything a student sees (tilt, pillars, ripples) is drawn
    from these numbers. */
-import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { getLang } from "../../../../../../engine/i18n.js?v=10";
 export const L = (en, es) => (getLang() === "es" ? es : en);
 
 export const PILLARS = [

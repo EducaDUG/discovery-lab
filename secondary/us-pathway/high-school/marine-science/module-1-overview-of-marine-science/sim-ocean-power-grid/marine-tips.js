@@ -2,7 +2,7 @@
    Each entry: [title EN, title ES, description EN, description ES, tip EN, tip ES] (tip optional).
    Popovers are position:fixed and clamped to the viewport so they never clip inside panels or dialogs;
    they open on hover, keyboard focus or click, and close on Esc, outside click or scroll. */
-import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { getLang } from "../../../../../../engine/i18n.js?v=10";
 
 const D = {
   bay: ["Pacifica Bay Simulation", "Simulación de Pacifica Bay", "100% ocean renewable energy & grid engineering challenge.", "Reto de ingeniería de red con 100% energía renovable oceánica.", "Click 'How to Play' for quick instructions.", "Pulsa 'Cómo jugar' para ver instrucciones rápidas."],

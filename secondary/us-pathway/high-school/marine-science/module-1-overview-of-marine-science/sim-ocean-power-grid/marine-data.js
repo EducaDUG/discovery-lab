@@ -5,7 +5,7 @@
    opex, LCOE, lifespan, unlock costs, mission funds/objectives) are kept exactly
    as in the source; text is bilingual (English / Spanish) via L().
    ========================================================================== */
-import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { getLang } from "../../../../../../engine/i18n.js?v=10";
 export const L = (en, es) => (getLang() === "es" ? es : en);
 
 export const ZONES = {

@@ -11,7 +11,7 @@
    with setDict(). Unknown strings are collected in window.__dlMissing so a site can
    be proven complete: it is not finished until that list is empty in Spanish mode.
    ========================================================================== */
-import { getLang } from "./i18n.js?v=9";
+import { getLang } from "./i18n.js?v=10";
 
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];

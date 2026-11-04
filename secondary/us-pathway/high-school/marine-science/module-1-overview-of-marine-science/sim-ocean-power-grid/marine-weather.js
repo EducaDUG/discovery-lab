@@ -1,7 +1,7 @@
 /* OceanCurrents natural weather — port of weatherPatterns.ts (v3 of the supplied simulator).
    A 10-day coastal weather cycle replaces the old "Test Weather" buttons: every simulated day has its own
    wind, wave height, wave period, tidal strength and cloud cover, repeating from Day 11. */
-import { getLang } from "../../../../../../engine/i18n.js?v=9";
+import { getLang } from "../../../../../../engine/i18n.js?v=10";
 const L = (en, es) => (getLang() === "es" ? es : en);
 
 const CYCLE = [

@@ -31,7 +31,7 @@
    ========================================================================== */
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=6";
-import { t, getLang, localizeConfig } from "./i18n.js?v=9";
+import { t, getLang, localizeConfig } from "./i18n.js?v=10";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -464,7 +464,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     },
     clearTrials() {
       if (state.locked) return;
-      state.trials = [];
+      state.trials = []; state.pinned = [];
       save(); refreshRecord();
     },
     /* Full reset of the Investigate stage: trials AND whatever private
@@ -475,7 +475,7 @@ export async function mountActivity({ simulation = {} } = {}) {
        reads as broken rather than reset. */
     resetInvestigation() {
       if (state.locked) return;
-      state.trials = [];
+      state.trials = []; state.pinned = [];
       state.custom = {};
       save(); refreshRecord();
     },
@@ -784,8 +784,59 @@ export async function mountActivity({ simulation = {} } = {}) {
     table.append(tb);
   }
 
+  /* Read-only copy of the Investigation Record shown on Explain/Apply so the
+     student never flips back (CLAUDE.md §12.15). Rows can be pinned ("Use as
+     evidence"); once any are pinned only those show, with a toggle for all. */
+  function evidencePanel(host) {
+    const cols = (config.record || {}).columns || [];
+    if (!state.trials.length || !cols.length) return;
+    state.pinned = (state.pinned || []).filter(i => i < state.trials.length);
+    let showAll = !state.pinned.length;
+    const det = el("details", "evpanel card"); det.open = true;
+    det.append(el("summary", "evpanel__sum", t("evpanel.title")));
+    det.append(el("p", "evpanel__hint", t("evpanel.hint")));
+    const bar = el("div", "cluster no-print");
+    const tog = el("button", "btn btn--ghost", ""); tog.type = "button";
+    bar.append(tog);
+    const scroll = el("div", "table-scroll");
+    const table = el("table", "data-table");
+    scroll.append(table); det.append(bar, scroll); host.append(det);
+    function draw() {
+      table.textContent = "";
+      const htr = el("tr"); htr.append(el("th", null, "#"));
+      cols.forEach(c => htr.append(el("th", null, c.unit ? `${c.label} (${c.unit})` : c.label)));
+      htr.append(el("th", null, t("evpanel.use")));
+      const th = el("thead"); th.append(htr); table.append(th);
+      const tb = el("tbody");
+      state.trials.forEach((row, i) => {
+        const pinned = state.pinned.includes(i);
+        if (!showAll && !pinned) return;
+        const tr = el("tr"); if (pinned) tr.className = "evpanel__row--on";
+        tr.append(el("td", null, String(i + 1)));
+        cols.forEach(c => tr.append(el("td", null, row[c.key] == null ? "—" : String(row[c.key]))));
+        const td = el("td"); const b = el("button", "btn btn--ghost", pinned ? t("evpanel.pinned") : t("evpanel.pin"));
+        b.type = "button"; b.setAttribute("aria-pressed", String(pinned));
+        b.setAttribute("aria-label", t("evpanel.aria", { n: i + 1 }));
+        b.disabled = !!state.locked;
+        b.addEventListener("click", () => {
+          const k = state.pinned.indexOf(i);
+          if (k >= 0) state.pinned.splice(k, 1); else state.pinned.push(i);
+          if (!state.pinned.length) showAll = true;
+          save(); draw();
+        });
+        td.append(b); tr.append(td); tb.append(tr);
+      });
+      table.append(tb);
+      tog.hidden = !state.pinned.length;
+      tog.textContent = showAll ? t("evpanel.only", { n: state.pinned.length }) : t("evpanel.all");
+    }
+    tog.addEventListener("click", () => { showAll = !showAll; draw(); });
+    draw();
+  }
+
   function buildWritten(host, cfg, key, kicker, title) {
     stageHead(host, kicker, title, cfg.lede);
+    evidencePanel(host);
     const ctl = qShell({ ...cfg, id: key, marks: cfg.maxMarks }, 0);
     host.append(ctl.wrap);
     const field = el("div", "field");
@@ -1717,6 +1768,10 @@ function injectEngineStyles() {
   if (document.getElementById("engine-styles")) return;
   const css = `
   .stages{margin-top:var(--sp-5);}
+  .evpanel{margin-bottom:var(--sp-5);border-left:3px solid var(--accent);}
+  .evpanel__sum{cursor:pointer;font-weight:700;color:var(--ink);}
+  .evpanel__hint{font-size:var(--step--1);color:var(--ink-2);margin:var(--sp-2) 0;}
+  .evpanel__row--on td{background:var(--accent-wash);}
   .lab-nav{display:flex;align-items:center;gap:var(--sp-4);margin-top:var(--sp-7);
     padding-top:var(--sp-5);border-top:1px solid var(--line);}
   .orient-grid{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}

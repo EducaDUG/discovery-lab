@@ -1952,6 +1952,16 @@ Diego sent a React/Tailwind "Thermodynamics & Energy Grid Digital Twin" zip and 
 - **Mobile 3D needs a camera fit** (`fit = 1/aspect` multiplier) and a far plane larger than the sky dome, or the sky clips black; hide marker names on narrow screens.
 - **A bonus round can be a precision-instrument challenge:** `freq-game.js` ("Frequency Control Room", 120 s wall-clock `setInterval`, no fail state, silent so no mute needed, memory hook per event, real photos on the three sources).
 
+### 12.15 Lesson from student feedback - Record and Explain must not force back-and-forth (2026-11-04, standing rule)
+
+Feedback: the Record stage (Investigation Record) and the Explain stage are separate pages, so a student writing an Explain answer has to flip back to see their own data. Standing rules for every new simulation (and any existing one when next opened):
+
+- **The student's recorded data must be visible while they write Explain (and Apply).** Do not make them navigate back to Record. Acceptable patterns: (a) a compact, collapsible "Your records" panel (sticky or side-by-side on wide screens, above the question on phones) repeated on Explain/Apply; (b) a "pick your evidence" step where the student taps the 2-3 most relevant trials and those are pinned beside/above the answer box (also strengthens the "quotes at least two of your own trials" marking points); (c) merging Record and Explain into one page, table on top, question below.
+- Prefer (b) layered on (a): it keeps the page clean and makes selecting relevant evidence part of the thinking. Whatever is used must be read-only, keyboard-operable, Spanish-ready and phone/tablet-safe, and must not change the 10-stage names or marking.
+- **Selected-records carry-over:** where an activity's Record stage asks the student to pick/select a few records (key trials, best evidence), Explain and Apply show ONLY those selected records (with a small "show all records" toggle for reference). Activities with no selection step show the full compact records panel. The Record page itself stays unchanged.
+- **BUILT 2026-11-04 (engine v21):** `evidencePanel()` in `engine/engine.js` shows the records on Explain and Apply for every activity with `record.columns`. Students tap "Use" on trials; picks persist in `state.pinned` and later visits show only those, with a "Show all" toggle. Record page unchanged. Strings `evpanel.*` in `i18n.js` (en/es).
+- Implement once in `engine/engine.js` (shared evidence panel fed from the existing trial log), never per activity.
+
 ---
 
 ## 17. Revision websites (`exam-N-revision/`) — standing rules (agreed 2026-10-27)

@@ -125,6 +125,10 @@ const STRINGS = {
 
     "record": "Record",
     "investigation-record": "Investigation Record",
+    "evpanel.title": "Your records (from the Record page)",
+    "evpanel.hint": "Tap Use on the trials that best support your answer. Only those will stay on screen.",
+    "evpanel.use": "Evidence", "evpanel.pin": "Use", "evpanel.pinned": "Used",
+    "evpanel.aria": "Use trial {n} as evidence", "evpanel.all": "Show all records", "evpanel.only": "Show only my {n} picked",
     "record.intro": "Every trial you run in the chamber is logged here automatically — no copying by hand.",
     "record.empty": "No trials yet. Go back to the chamber and run one.",
 
@@ -355,6 +359,10 @@ const STRINGS = {
 
     "record": "Registro",
     "investigation-record": "Registro de la investigación",
+    "evpanel.title": "Tus registros (de la página Registro)",
+    "evpanel.hint": "Toca Usar en las pruebas que mejor apoyen tu respuesta. Solo esas se quedarán a la vista.",
+    "evpanel.use": "Evidencia", "evpanel.pin": "Usar", "evpanel.pinned": "Usada",
+    "evpanel.aria": "Usar la prueba {n} como evidencia", "evpanel.all": "Mostrar todos los registros", "evpanel.only": "Mostrar solo mis {n} elegidas",
     "record.intro": "Cada prueba que haces en la cámara se registra aquí automáticamente — no necesitas copiarla a mano.",
     "record.empty": "Todavía no hay pruebas. Vuelve a la cámara y realiza una.",
 
