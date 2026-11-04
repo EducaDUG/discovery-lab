@@ -290,7 +290,7 @@ const MODE_NAME = { "word-to-def": "Word to Definition", "def-to-word": "Definit
 
 /* ================= app state ================= */
 const S = {
-  tab: "drill", xp: +store.get("dl-cw-xp", 0) || 0, best: +store.get("dl-cw-best", 0) || 0, streak: 0,
+  tab: ["codex", "cormmss"].includes(store.get("dl-cw-tab", "")) ? store.get("dl-cw-tab", "") : "drill", xp: +store.get("dl-cw-xp", 0) || 0, best: +store.get("dl-cw-best", 0) || 0, streak: 0,
   cfg: { count: 10, timed: false, limit: 20 },
   d: null,            // drill session
   duel: null, codex: { q: "", cat: "all", open: null }, cor: { sub: "de", letter: "C" },
@@ -311,7 +311,7 @@ const GRADES = [
 ];
 const gradeFor = p => GRADES.find(g => p >= g[0]);
 
-function go(tab) { clearTimers(); S.tab = tab; S.d = null; if (S.duel && S.duel.over) S.duel = null; render(); root.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); }
+function go(tab) { clearTimers(); S.tab = tab; store.set("dl-cw-tab", tab); S.d = null; if (S.duel && S.duel.over) S.duel = null; render(); root.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); }
 
 function render() {
   const t = [["drill", "Practice Drills"], ["duel", "Examiner Duel"], ["codex", "Codex"], ["cormmss", "CORMMSS & Strategy"]];

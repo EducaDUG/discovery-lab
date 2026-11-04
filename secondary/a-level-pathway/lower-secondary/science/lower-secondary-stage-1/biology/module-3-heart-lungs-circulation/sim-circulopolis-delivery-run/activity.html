@@ -303,6 +303,7 @@ const BLOOD_PINS = [
 const BLOOD_TERMS = [L("Red blood cell","Glóbulo rojo"), L("White blood cell","Glóbulo blanco"), L("Platelet","Plaqueta"), L("Plasma","Plasma")];
 
 function buildCargoBay(host, sim, onAllDone) {
+  let restoring = false;
   const card = document.createElement("div"); card.className = "card";
   card.innerHTML = `<p class="eyebrow">${L("Step 1 · Cargo Manifest","Paso 1 · Manifiesto de carga")}</p>
     <p class="q__hint">${L("This is a real microscope photo of a blood sample. Tap each pin and choose what it shows — nothing is labelled for you.",
@@ -329,13 +330,14 @@ function buildCargoBay(host, sim, onAllDone) {
   const pinState = {};
   BLOOD_PINS.forEach(p => { pinState[p.id] = { done: false, tries: 0, correct: false }; });
 
+  function saveCargo() { sim.state.cargo = JSON.parse(JSON.stringify(pinState)); sim.saveState(); }
   function updateProgress() {
     const done = Object.values(pinState).filter(s => s.done).length;
     progress.textContent = L(`Identified ${done} of 4.`, `Identificado ${done} de 4.`);
     if (done === BLOOD_PINS.length) {
       const allCorrect = Object.values(pinState).every(s => s.correct);
-      if (allCorrect) sim.award("circulopolis-blood-detective", L("Blood Detective","Detective de la Sangre"));
-      onAllDone();
+      if (!restoring && allCorrect) sim.award("circulopolis-blood-detective", L("Blood Detective","Detective de la Sangre"));
+      onAllDone(restoring);
     }
   }
 
@@ -346,6 +348,17 @@ function buildCargoBay(host, sim, onAllDone) {
     pin.setAttribute("aria-label", L(`Unidentified sample point ${i + 1}`, `Punto de muestra sin identificar ${i + 1}`));
     pin.innerHTML = `<span class="co-pin__dot"></span>`;
     cargo.append(pin);
+    const saved = sim.state.cargo && sim.state.cargo[p.id];
+    if (saved) {
+      pinState[p.id] = { done: !!saved.done, tries: saved.tries || 0, correct: !!saved.correct };
+      if (saved.done) {
+        pin.classList.add(saved.correct ? "is-correct" : "is-revealed");
+        const cap = document.createElement("p"); cap.className = "co-caption";
+        if (!saved.correct) { cap.style.borderColor = "var(--caution)"; cap.textContent = L(`Not quite - this one is a ${p.term}. `, `No exactamente - esto es un/a ${p.term}. `) + p.caption; }
+        else cap.textContent = p.caption;
+        captionHost.append(cap);
+      }
+    }
 
     let open = false;
     let picker = null;
@@ -371,14 +384,15 @@ function buildCargoBay(host, sim, onAllDone) {
             pin.classList.add("is-correct");
             revealCaption(p.caption, "ok");
             sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Correct","Correcto"), detail: p.caption, tries: pinState[p.id].tries });
-            picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
+            saveCargo(); picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
           } else if (pinState[p.id].tries >= 3) {
             pinState[p.id].done = true; pinState[p.id].correct = false;
             pin.classList.add("is-revealed");
             revealCaption(L(`Not quite — this one is a ${p.term}. `, `No exactamente — esto es un/a ${p.term}. `) + p.caption, "bad");
             sim.recordTrial({ task: L("Identify blood component","Identificar componente sanguíneo"), choice: term, result: L("Revealed after 3 tries","Revelado tras 3 intentos"), detail: p.caption, tries: pinState[p.id].tries });
-            picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
+            saveCargo(); picker.remove(); pin.classList.remove("is-open"); open = false; updateProgress();
           } else {
+            saveCargo();
             pin.classList.remove("is-shake"); void pin.offsetWidth; pin.classList.add("is-shake");
             sim.toast(L("Not that one — try again.","No es ese — inténtalo de nuevo."), "info");
           }
@@ -389,6 +403,8 @@ function buildCargoBay(host, sim, onAllDone) {
       open = true;
     });
   });
+
+  restoring = true; updateProgress(); restoring = false;
 
   function revealCaption(text, kind) {
     const box = document.createElement("p");
@@ -668,7 +684,7 @@ function buildDrive(host, sim, cargoScore) {
     });
     return signMats;
   }
-  let currentSignMats = buildGate3D(GATES[0]);
+  let currentSignMats = [];
 
   function resize() {
     const w = canvasWrap.clientWidth, h = canvasWrap.clientHeight;
@@ -689,7 +705,10 @@ function buildDrive(host, sim, cargoScore) {
     }
   }
 
-  let gateIndex = 0, score = 0, streak = 0, bestStreak = 0, correctCount = 0;
+  const dsave = sim.state.drive || {};
+  let gateIndex = Math.min(dsave.gate || 0, GATES.length), score = dsave.score || 0, streak = dsave.streak || 0, bestStreak = dsave.bestStreak || 0, correctCount = dsave.correctCount || 0;
+  const gateResults = (dsave.results || []).slice();
+  currentSignMats = gateIndex < GATES.length ? buildGate3D(GATES[gateIndex]) : [];
   let resolving = false, phase = "idle"; // idle | approach
   let approachStart = 0, fromLaneX = 0, toLaneX = 0;
   let shakeUntil = 0;
@@ -711,6 +730,8 @@ function buildDrive(host, sim, cargoScore) {
     });
     feedbackHost.innerHTML = "";
     [...dotsHost.children].forEach((d, i) => { d.classList.toggle("current", i === gateIndex); });
+    scoreHost.textContent = `${L("Score","Puntuación")}: ${score} · ${L("Streak","Racha")}: ${streak}`;
+    gateResults.forEach((ok, i) => { if (dotsHost.children[i]) dotsHost.children[i].classList.add(ok ? "done-ok" : "done-bad"); });
   }
 
   function pick(laneIdx) {
@@ -751,6 +772,9 @@ function buildDrive(host, sim, cargoScore) {
       : `${L(`Clot! You picked ${chosenLabel}, but it's ${correctLabel}.`, `¡Coágulo! Elegiste ${chosenLabel}, pero es ${correctLabel}.`)} ${g.detail}`;
     feedbackHost.innerHTML = ""; feedbackHost.append(fb);
     sim.recordTrial({ task: g.prompt, choice: chosenLabel, result: correct ? L("Delivered","Entregado") : L("Hit a clot","Chocó con un coágulo"), detail: g.detail });
+    gateResults[gateIndex] = !!correct;
+    sim.state.drive = { gate: gateIndex + 1, score, streak, bestStreak, correctCount, results: gateResults.slice() };
+    sim.saveState();
     if (gateIndex === 0) sim.award("circulopolis-engine-start", L("Engine Started!","¡Motor Encendido!"));
     resolving = false; phase = "idle";
     setTimeout(() => {
@@ -840,10 +864,10 @@ const simulation = {
     host.innerHTML = "";
     let cargoCorrect = 0;
     const drive = buildDrive(host, sim, () => cargoCorrect);
-    buildCargoBay(host, sim, () => {
+    buildCargoBay(host, sim, (restoring) => {
       cargoCorrect = document.querySelectorAll(".co-pin.is-correct").length;
       drive.hidden = false;
-      drive.scrollIntoView({ behavior: document.documentElement.getAttribute("data-reduced-motion") === "on" ? "auto" : "smooth", block: "start" });
+      if (!restoring) drive.scrollIntoView({ behavior: document.documentElement.getAttribute("data-reduced-motion") === "on" ? "auto" : "smooth", block: "start" });
     });
     host.append(drive);
   },

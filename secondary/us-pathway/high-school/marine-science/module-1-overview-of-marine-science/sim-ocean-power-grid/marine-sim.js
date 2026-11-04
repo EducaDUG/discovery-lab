@@ -22,7 +22,7 @@ const DOCK = 0.11;
 const HELI_PAD = { x: -320, z: 10 }, HELI_COST = 8000, HELI_SPEED = 46;   // world units per second; the helicopter flies from the city heliport tower
 
 export function mountOceanSim(host, opts) {
-  const { threeUrl, photoBase, reduced, award, recordTrial, toast, setResult } = opts;
+  const { threeUrl, photoBase, reduced, award, recordTrial, toast, setResult, persist } = opts;
   host.innerHTML = "";
   const root = document.createElement("div"); root.className = "oc"; host.append(root);
   root.innerHTML = `
@@ -310,6 +310,20 @@ export function mountOceanSim(host, opts) {
   root.addEventListener("keydown", e => { if ((e.key === "p" || e.key === "P") && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) { S.paused = !S.paused; refresh(); } });
 
   loadScenario(S.scenario); S.paused = true; refresh();
+  /* optional resume (activity page only): restore the saved mission, then save a JSON snapshot every 2 s of wall-clock time */
+  let saveTimer = 0;
+  const snapshot = () => ({ sid: S.scenario.id, day: S.day, hour: S.hour, grid: S.grid, devices: S.devices.map(d => ({ ...d })), unlocked: S.unlocked.slice(), snaps: S.snaps.slice(), debriefed: S.debriefed });
+  if (persist) {
+    try {
+      const sv = persist.load && persist.load();
+      const sc = sv && scenarios().find(x => x.id === sv.sid);
+      if (sc && sv.grid && Array.isArray(sv.devices)) {
+        loadScenario(sc); S.day = sv.day; S.hour = sv.hour; S.grid = sv.grid; S.devices = sv.devices; S.unlocked = sv.unlocked || S.unlocked; S.snaps = sv.snaps || []; S.debriefed = !!sv.debriefed; S.paused = true;
+        previewOutputs(); refresh();
+      }
+    } catch (e) { console.warn("Ocean sim: could not restore saved mission", e); }
+    saveTimer = setInterval(() => { if (!destroyed) persist.save(snapshot()); }, 2000);
+  }
   createScene($("scene"), {
     state: () => S, reduced: () => { const a = document.documentElement.getAttribute("data-reduced-motion"); return a === "on" || (a !== "off" && !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)); }, label: L("Pacifica Bay 3D ocean. Use the Build button, then the position slider, to build with the keyboard.", "Océano 3D de Pacifica Bay. Usa el botón Construir y luego el control de posición para construir con el teclado."), fallbackNote: L("2D view (WebGL unavailable)", "Vista 2D (WebGL no disponible)"),
     onSelect: id => { if (id) selectDevice(id); else S.selectedId = null; }, onPlace: (tid, xr, zw) => tryPlace(tid, xr, Math.max(0.06, Math.min(0.94, ((zw || 0) + 200) / 400))), onHoverX: (xr, zr) => { if (S.pendingTech) { S.pendingX = xr; if (zr !== undefined) S.pendingZ = zr; S.updTarget && S.updTarget(); } }, onBoatScreen: boatScreen, onHeliScreen: heliScreen, onBoatClick: () => { if (!S.boat.active && !S.heli.active) quickDispatch(); }, onHeliClick: () => { if (!S.heli.active) dispatchHeli(); soundManager.playClick(); }, onUserCamera: () => { if (tracked) { tracked = false; const t = root.querySelector(".oc-track"); t && t.classList.remove("is-on"); } },
@@ -386,7 +400,7 @@ export function mountOceanSim(host, opts) {
     paint();
   }
   intro(); startTick();
-  function destroy() { if (destroyed) return; destroyed = true; soundManager.stopAll(); clearInterval(tickTimer); clearInterval(boatTimer); sceneApi && sceneApi.destroy(); }
+  function destroy() { if (destroyed) return; destroyed = true; soundManager.stopAll(); clearInterval(tickTimer); clearInterval(boatTimer); clearInterval(saveTimer); sceneApi && sceneApi.destroy(); }
   return { destroy, state: () => S, select: selectDevice };
 }
 

@@ -320,7 +320,7 @@ function doneCard(host, title, msg) { host.innerHTML = `<div class="panel" style
 /* ─────────── Station 1: Slicing Bench (3D) ─────────── */
 const BENCH = [{ n: 4, k: 3 }, { n: 3, k: 2 }, { n: 2, k: 4 }, { n: 5, k: 2 }, { n: 6, k: 3 }];
 function buildBench(host, sim, hud, cleanup) {
-  let round = 0, scene = null;
+  let round = sim.state.bench || 0, scene = null;
   cleanup(() => { if (scene) scene.dispose(); });
   function paint() {
     if (scene) { scene.dispose(); scene = null; }
@@ -352,7 +352,7 @@ function buildBench(host, sim, hud, cleanup) {
         host.querySelector("#b-ask").hidden = true; b2d.innerHTML = barSVG(n, k, { cut: true, numbers: true });
         fb.innerHTML = `<p class="cw-ok">✦ ${L("Correct!", "¡Correcto!")} ${F(1, n)} ÷ ${k} = ${F(1, n * k)}</p><p style="margin:2px 0;color:var(--ink-2)">${L(`${n} columns × ${k} rows = ${n * k} equal pieces, so each piece is 1 out of ${n * k}.`, `${n} columnas × ${k} filas = ${n * k} piezas iguales, así que cada pieza es 1 de ${n * k}.`)}</p>`;
         sim.recordTrial({ task: L("Slicing Bench", "Banco de Corte"), input: `${fp(1, n)} ÷ ${k}`, result: `${fp(1, n * k)} (${tries ? L(`after ${tries} tries`, `tras ${tries} intentos`) : "✓"})` });
-        fb.appendChild(nextBtn(round < BENCH.length - 1 ? L("Next order →", "Siguiente pedido →") : L("Finish ✦", "Terminar ✦"), () => { round++; paint(); }));
+        fb.appendChild(nextBtn(round < BENCH.length - 1 ? L("Next order →", "Siguiente pedido →") : L("Finish ✦", "Terminar ✦"), () => { round++; sim.state.bench = round; sim.saveState(); paint(); }));
       } else {
         tries++; hud.award(false); shakeEl(inp); shakeEl(host.querySelector("#b-check"));
         if (tries >= 2) b2d.innerHTML = barSVG(n, k, { cut: true, numbers: true });
@@ -368,7 +368,7 @@ function buildBench(host, sim, hud, cleanup) {
 /* ─────────── Station 2: Real Chocolate Photo Lab ─────────── */
 const PX = [30, 332, 637, 941, 1238], PY = [22, 176, 334, 492], PW = 1280, PH = 522;
 function buildPhotoLab(host, sim, hud) {
-  let step = 0, colSel = null, cellSel = null, rowSel = null;
+  const pls = sim.state.pl || {}; let step = pls.step || 0, colSel = pls.colSel ?? null, cellSel = pls.cellSel ?? null, rowSel = pls.rowSel ?? null;
   host.innerHTML = `<div class="panel cw-st"><p class="eyebrow" style="margin:0">${L("Real Chocolate Photo Lab", "Laboratorio de Foto Real de Chocolate")}</p>
     <p id="p-q" style="font-size:1.1em;margin:8px 0" aria-live="polite"></p>
     <div class="cw-photo" id="p-photo"><img src="photos/hershey-bar.jpg" alt="${L("A real milk chocolate bar with 4 columns and 3 rows of equal pieces.", "Una barra real de chocolate con leche con 4 columnas y 3 filas de piezas iguales.")}" width="${PW}" height="${PH}"><svg viewBox="0 0 ${PW} ${PH}" preserveAspectRatio="none" id="p-svg"></svg></div>
@@ -394,6 +394,7 @@ function buildPhotoLab(host, sim, hud) {
     else if (step === 3) { rowSel = r; mark(o => o.r === r, "on"); step = 4; celebrate(panel, 120); hud.award(true); go(); }
   }
   function go() {
+    sim.state.pl = { step, colSel, cellSel, rowSel }; sim.saveState();
     ctl.innerHTML = ""; fb.innerHTML = "";
     if (step === 0) { q.innerHTML = L(`This real bar has 4 equal columns. <strong>Tap one column</strong> — it is ${F(1, 4)} of the whole bar.`, `Esta barra real tiene 4 columnas iguales. <strong>Toca una columna</strong> — es ${F(1, 4)} de la barra entera.`); mark(o => false, ""); }
     else if (step === 1) { q.innerHTML = L(`Your column is cut into 3 pieces (look at the rows!). <strong>Tap one piece</strong> in your column — that is ${F(1, 4)} ÷ 3.`, `Tu columna está cortada en 3 piezas (¡mira las filas!). <strong>Toca una pieza</strong> de tu columna — eso es ${F(1, 4)} ÷ 3.`); mark(o => o.c === colSel, "col"); }
@@ -403,9 +404,12 @@ function buildPhotoLab(host, sim, hud) {
       const chk = () => { const inp = ctl.querySelector("#p-in"), v = parseInt(inp.value, 10); if (!v) { shakeEl(inp); return; }
         if (v === 12) { hud.award(true); celebrate(panel, 150); mark(o => o.c === colSel && o.r === cellSel, "on");
           sim.recordTrial({ task: L("Photo Lab", "Laboratorio de Foto"), input: `${fp(1, 4)} ÷ 3`, result: `${fp(1, 12)} ✓` });
-          step = 3; q.innerHTML = L(`✦ Yes! 4 × 3 = 12 pieces, so ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Now look across: <strong>tap one ROW</strong>. It is ${F(1, 3)} of the bar.`, `✦ ¡Sí! 4 × 3 = 12 piezas, así que ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Ahora mira a lo ancho: <strong>toca una FILA</strong>. Es ${F(1, 3)} de la barra.`); ctl.innerHTML = ""; mark(o => false, ""); }
+          step = 3; sim.state.pl = { step, colSel, cellSel, rowSel }; sim.saveState(); q.innerHTML = L(`✦ Yes! 4 × 3 = 12 pieces, so ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Now look across: <strong>tap one ROW</strong>. It is ${F(1, 3)} of the bar.`, `✦ ¡Sí! 4 × 3 = 12 piezas, así que ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Ahora mira a lo ancho: <strong>toca una FILA</strong>. Es ${F(1, 3)} de la barra.`); ctl.innerHTML = ""; mark(o => false, ""); }
         else { hud.award(false); shakeEl(inp); fb.innerHTML = `<p class="cw-no">${L("Count the pieces in the whole photo: 4 columns × 3 rows.", "Cuenta las piezas de toda la foto: 4 columnas × 3 filas.")}</p>`; } };
       ctl.querySelector("#p-ck").addEventListener("click", chk); ctl.querySelector("#p-in").addEventListener("keydown", e => { if (e.key === "Enter") chk(); }); ctl.querySelector("#p-in").focus();
+    }
+    else if (step === 3) {
+      q.innerHTML = L(`✦ Yes! 4 × 3 = 12 pieces, so ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Now look across: <strong>tap one ROW</strong>. It is ${F(1, 3)} of the bar.`, `✦ ¡Sí! 4 × 3 = 12 piezas, así que ${F(1, 4)} ÷ 3 = ${F(1, 12)}.<br>Ahora mira a lo ancho: <strong>toca una FILA</strong>. Es ${F(1, 3)} de la barra.`);
     }
     else if (step === 4) {
       q.innerHTML = L(`Your row is ${F(1, 3)} of the bar. Cut that row into 4 equal pieces. What is ${F(1, 3)} ÷ 4?`, `Tu fila es ${F(1, 3)} de la barra. Corta esa fila en 4 piezas iguales. ¿Cuánto es ${F(1, 3)} ÷ 4?`);
@@ -419,6 +423,7 @@ function buildPhotoLab(host, sim, hud) {
         else { hud.award(false); shakeEl(b); fb.innerHTML = `<p class="cw-no">${L("Not quite — how many equal pieces make the whole bar if each row is cut in 4?", "Casi — ¿cuántas piezas iguales forman la barra entera si cada fila se corta en 4?")}</p>`; } }));
     }
   }
+  if (step === 1 || step === 2) mark(o => o.c === colSel && (step === 1 || o.r === cellSel), "on"); else if (step === 4) mark(o => o.r === rowSel, "on");
   go();
 }
 
@@ -441,7 +446,7 @@ function pizzaSVG(n, k, split) {
   return s + `</svg>`;
 }
 function buildPizza(host, sim, hud) {
-  let round = 0;
+  let round = sim.state.pizza || 0;
   function paint() {
     if (round >= PIZZA.length) { doneCard(host, L("Pizza Orders complete!", "¡Pedidos de Pizza completos!"), L("Every share was a unit fraction divided by a whole number. Try the Factory Dials next.", "Cada reparto fue una fracción unitaria dividida entre un número entero. Prueba los Diales de la Fábrica.")); return; }
     const { n, k } = PIZZA[round], opts = shuffle([{ d: n * k, ok: true }, { d: n + k, ok: false }, { d: k, ok: false }]);
@@ -457,7 +462,7 @@ function buildPizza(host, sim, hud) {
         hud.award(true); host.querySelectorAll("#z-opts button").forEach(x => x.disabled = true); host.querySelector("#z-pic").innerHTML = pizzaSVG(n, k, true); celebrate(panel, 150);
         fb.innerHTML = `<p class="cw-ok">✦ ${L("Correct!", "¡Correcto!")} ${F(1, n)} ÷ ${k} = ${F(1, n * k)}</p><p style="margin:2px 0;color:var(--ink-2)">${L(`Cutting every slice the same way makes ${n} × ${k} = ${n * k} equal slices in the whole pizza.`, `Cortar cada porción igual da ${n} × ${k} = ${n * k} porciones iguales en la pizza entera.`)}</p>`;
         sim.recordTrial({ task: L("Pizza Orders", "Pedidos de Pizza"), input: `${fp(1, n)} ÷ ${k}`, result: `${fp(1, n * k)} ✓` });
-        fb.appendChild(nextBtn(round < PIZZA.length - 1 ? L("Next order →", "Siguiente pedido →") : L("Finish ✦", "Terminar ✦"), () => { round++; paint(); }));
+        fb.appendChild(nextBtn(round < PIZZA.length - 1 ? L("Next order →", "Siguiente pedido →") : L("Finish ✦", "Terminar ✦"), () => { round++; sim.state.pizza = round; sim.saveState(); paint(); }));
       } else {
         hud.award(false); shakeEl(b); b.disabled = true;
         const why = o.d === k ? L(`That is just 1 out of ${k}. But the ${k} friends share only ONE SLICE, not the whole pizza.`, `Eso es solo 1 de ${k}. Pero los ${k} amigos comparten solo UNA PORCIÓN, no la pizza entera.`) : L(`Adding doesn't work: cut every slice into ${k} and count all the equal slices (${n} × ${k}).`, `Sumar no sirve: corta cada porción en ${k} y cuenta todas las porciones iguales (${n} × ${k}).`);
@@ -471,7 +476,7 @@ function buildPizza(host, sim, hud) {
 /* ─────────── Station 4: Factory Dials ─────────── */
 const MISSIONS = [{ t: 12 }, { t: 20 }, { t: 18 }, { t: 30 }];
 function buildDials(host, sim, hud, cleanup) {
-  let mi = 0, scene = null, n = 3, k = 4, found = [], timer = null;
+  let mi = sim.state.dials || 0, scene = null, n = 3, k = 4, found = [], timer = null;
   cleanup(() => { if (scene) scene.dispose(); clearTimeout(timer); });
   function paint() {
     if (scene) { scene.dispose(); scene = null; }
@@ -501,7 +506,7 @@ function buildDials(host, sim, hud, cleanup) {
       found.push([n, k]); hud.award(true); celebrate(panel, 120); if (scene) scene.punch();
       sim.recordTrial({ task: L("Factory Dials", "Diales de la Fábrica"), input: `${fp(1, n)} ÷ ${k}`, result: `${fp(1, T)} ✓` });
       fb.innerHTML = `<p class="cw-ok">✦ ${n} × ${k} = ${T} — ${F(1, n)} ÷ ${k} = ${F(1, T)}</p><p style="margin:2px 0;color:var(--ink-2)">${L("Found", "Encontrados")}: ${found.map(f => `${F(1, f[0])} ÷ ${f[1]}`).join(" · ")}</p>`;
-      if (found.length >= 2) fb.appendChild(nextBtn(mi < MISSIONS.length - 1 ? L("Next mission →", "Siguiente misión →") : L("Finish ✦", "Terminar ✦"), () => { mi++; paint(); }));
+      if (found.length >= 2) fb.appendChild(nextBtn(mi < MISSIONS.length - 1 ? L("Next mission →", "Siguiente misión →") : L("Finish ✦", "Terminar ✦"), () => { mi++; sim.state.dials = mi; sim.saveState(); paint(); }));
     });
     upd();
   }
@@ -573,10 +578,10 @@ function mountSlicer(host, cleanup) {
 
 /* ─────────── Investigate ─────────── */
 function investigate(host, sim) {
-  host.innerHTML = ""; let cleanups = [], xp = 0, streak = 0, bestStreak = 0;
+  host.innerHTML = ""; let cleanups = [], xp = sim.state.xp || 0, streak = sim.state.streak || 0, bestStreak = sim.state.bestStreak || 0;
   const addClean = f => cleanups.push(f), runClean = () => { cleanups.forEach(f => { try { f(); } catch (_) {} }); cleanups = []; };
   const hudEl = document.createElement("div"); hudEl.className = "cw-hud"; host.appendChild(hudEl);
-  const hud = { award(good) { if (good) { xp += 10 + Math.min(10, streak * 2); streak++; bestStreak = Math.max(bestStreak, streak); } else streak = 0; paint(); } };
+  const hud = { award(good) { if (good) { xp += 10 + Math.min(10, streak * 2); streak++; bestStreak = Math.max(bestStreak, streak); } else streak = 0; sim.state.xp = xp; sim.state.streak = streak; sim.state.bestStreak = bestStreak; sim.saveState(); paint(); } };
   const rank = () => xp >= 150 ? L("Master Chocolatier", "Maestro Chocolatero") : xp >= 80 ? L("Head Chef", "Chef principal") : xp >= 30 ? L("Sous Chef", "Sub-chef") : L("Apprentice", "Aprendiz");
   const paint = () => { hudEl.innerHTML = `<span class="cw-chip">⭐ XP ${xp}</span><span class="cw-chip">🔥 ${L("Streak", "Racha")} ${streak}</span><span class="cw-chip">👨‍🍳 ${rank()}</span>`; }; paint();
   const tabs = document.createElement("div"); tabs.className = "cw-tabs"; host.appendChild(tabs);
@@ -593,11 +598,11 @@ function investigate(host, sim) {
   ];
   stations.forEach((st, i) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.textContent = `${st.icon} ${st.label}`; b.setAttribute("aria-pressed", "false");
-    b.addEventListener("click", () => { runClean(); if (bonus.querySelector("#g-t")) paintBonus(); tabs.querySelectorAll("button").forEach(t => t.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); content.innerHTML = ""; st.build(content, sim, hud, addClean); });
+    b.addEventListener("click", () => { runClean(); if (bonus.querySelector("#g-t")) paintBonus(); tabs.querySelectorAll("button").forEach(t => t.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); sim.state.tab = i; sim.saveState(); content.innerHTML = ""; st.build(content, sim, hud, addClean); });
     tabs.appendChild(b);
   });
   paintBonus();
-  tabs.children[0].click();
+  tabs.children[sim.state.tab || 0].click();
 }
 
 const simulation = { orient(host) { orient(host); }, investigate(host, sim) { investigate(host, sim); } };

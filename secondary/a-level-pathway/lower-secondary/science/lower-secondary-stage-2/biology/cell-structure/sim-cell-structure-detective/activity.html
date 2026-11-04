@@ -474,13 +474,13 @@ const simulation = {
     function awardXP(host2){
       const before = rankFor(game.xp);
       game.xp += XP_PER_ACTION; game.streak += 1;
-      sim.save && sim.save();
+      sim.saveState();
       paintRank();
       fireBurst(host2, ["#a6ff5c","#3fd08b","#ffd45c","#eafff2"]);
       const after = rankFor(game.xp);
       if (after !== before) celebrateLevelUp(after.name);
     }
-    function breakStreak(){ game.streak = 0; sim.save && sim.save(); paintRank(); }
+    function breakStreak(){ game.streak = 0; sim.saveState(); paintRank(); }
 
     const phaseHost = document.createElement("div"); wrap.append(phaseHost);
     if (game.phase === "plant") renderLabelPhase("plant", PLANT_KEYS, PLANT_IMG, PLANT_CREDIT,
@@ -577,8 +577,8 @@ const simulation = {
             armed = null;
             if (matched === keys.length){
               setTimeout(()=>{
-                if (slideKey === "plant"){ game.phase = "animal"; sim.save && sim.save(); renderLabelPhase("animal", ANIMAL_KEYS, ANIMAL_IMG, ANIMAL_CREDIT, L("Slide B — human cheek cell","Portaobjetos B — célula de mejilla humana")); }
-                else { game.phase = "sort"; sim.save && sim.save(); renderSortPhase(); }
+                if (slideKey === "plant"){ game.phase = "animal"; sim.saveState(); renderLabelPhase("animal", ANIMAL_KEYS, ANIMAL_IMG, ANIMAL_CREDIT, L("Slide B — human cheek cell","Portaobjetos B — célula de mejilla humana")); }
+                else { game.phase = "sort"; sim.saveState(); renderSortPhase(); }
               }, 700);
             }
           } else {

@@ -167,7 +167,7 @@ function drawInvestigate(host, sim) {
 
   /* ---------- Moment 1: Garden Fence Builder ---------- */
   const PLOTS = [{ l: 4, w: 3 }, { l: 5, w: 2 }, { l: 3, w: 3 }, { l: 6, w: 3 }];
-  let plotIx = 0, placed = new Set();
+  let plotIx = sim.state.plotIx || 0, placed = new Set();
   const fencePanelEl = mkPanel(`
     <p class="eyebrow">${L("Job 1 — Garden Fence Builder", "Trabajo 1 — Constructor de vallas")}</p>
     <p class="q__hint">${L("Tap the dotted edges to build the fence panel by panel (each panel is 1 metre). Then count and type the perimeter: how many metres of fence go all the way round?", "Toca los bordes punteados para construir la valla panel por panel (cada panel mide 1 metro). Luego cuenta y escribe el perímetro: ¿cuántos metros de valla rodean todo?")}</p>
@@ -248,7 +248,7 @@ function drawInvestigate(host, sim) {
         ? L(`Yes! ${p.l} + ${p.w} + ${p.l} + ${p.w} = ${correct} metres of fence.`, `¡Sí! ${p.l} + ${p.w} + ${p.l} + ${p.w} = ${correct} metros de valla.`)
         : L(`Yes! The perimeter is ${correct} m. Your fence still has gaps, which is fine for this answer.`, `¡Sí! El perímetro es ${correct} m. Tu valla aún tiene huecos, pero la respuesta es correcta.`);
       sim.toast(L(`Plot fenced — perimeter ${correct} m!`, `¡Parcela vallada — perímetro ${correct} m!`), "correct");
-      plotIx++; placed = new Set(); plotAns.value = "";
+      plotIx++; sim.state.plotIx = plotIx; sim.saveState(); placed = new Set(); plotAns.value = "";
       setTimeout(() => { plotMsg.textContent = ""; paintPlot(); }, 900);
     } else {
       burstAtEl(fencePanelEl, btn, "#c0392b"); shake(plotSvg);
@@ -261,7 +261,7 @@ function drawInvestigate(host, sim) {
 
   /* ---------- Moment 2: Perimeter Speed Calculator ---------- */
   const FIELDS = [{ l: 7, w: 3 }, { l: 9, w: 4 }, { l: 6, w: 6 }, { l: 10, w: 5 }];
-  let fieldIx = 0, fieldStart = 0, timerHandle = 0;
+  let fieldIx = sim.state.fieldIx || 0, fieldStart = 0, timerHandle = 0;
   const calcPanel = mkPanel(`
     <p class="eyebrow">${L("Job 2 — Perimeter Speed Calculator", "Trabajo 2 — Calculadora rápida de perímetro")}</p>
     <p class="q__hint">${L("Use the quick formula P = 2 × (length + width). The stopwatch is only for fun: there is no penalty for taking your time.", "Usa la fórmula rápida P = 2 × (largo + ancho). El cronómetro es solo por diversión: no hay penalización por tomarte tu tiempo.")}</p>
@@ -307,7 +307,7 @@ function drawInvestigate(host, sim) {
       burstAtEl(calcPanel, btn, "#3f8f6b");
       fieldMsg.textContent = L(`Correct! ${f.l} + ${f.w} = ${f.l + f.w}, and doubled is ${correct}.`, `¡Correcto! ${f.l} + ${f.w} = ${f.l + f.w}, y el doble es ${correct}.`);
       sim.toast(L(`Field measured — perimeter ${correct}!`, `¡Campo medido — perímetro ${correct}!`), "correct");
-      fieldIx++; fieldAns.value = "";
+      fieldIx++; sim.state.fieldIx = fieldIx; sim.saveState(); fieldAns.value = "";
       setTimeout(() => { fieldMsg.textContent = ""; paintField(); }, 900);
     } else {
       burstAtEl(calcPanel, btn, "#c0392b"); shake(fieldCard);

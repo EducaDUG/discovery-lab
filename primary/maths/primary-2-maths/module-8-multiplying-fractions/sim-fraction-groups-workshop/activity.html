@@ -154,7 +154,7 @@ function drawInvestigate(host, sim) {
     { w: 2, n: 1, d: 3 }, { w: 3, n: 2, d: 5 }, { w: 4, n: 1, d: 4 },
     { w: 5, n: 2, d: 3 }, { w: 3, n: 3, d: 4 }, { w: 6, n: 1, d: 2 }
   ];
-  let groupIx = 0;
+  let groupIx = sim.state.groupIx || 0;
 
   const groupPanel = document.createElement("div");
   groupPanel.className = "panel stack";
@@ -272,7 +272,7 @@ function drawInvestigate(host, sim) {
         : L(`Correct! ${expectedNum}/${expectedDen}`,`¡Correcto! ${expectedNum}/${expectedDen}`);
       sim.toast(msg, "correct");
       grpFeedback.textContent = msg;
-      groupIx++;
+      groupIx++; sim.state.groupIx = groupIx; sim.saveState();
       setTimeout(paintGroupTarget, 900);
     } else {
       burst(groupPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#c0392b");
@@ -291,7 +291,7 @@ function drawInvestigate(host, sim) {
     { n: 7, d: 2 }, { n: 9, d: 4 }, { n: 11, d: 3 },
     { n: 15, d: 4 }, { n: 10, d: 3 }, { n: 13, d: 5 }
   ];
-  let convIx = 0;
+  let convIx = sim.state.convIx || 0;
 
   const convPanel = document.createElement("div");
   convPanel.className = "panel stack";
@@ -377,7 +377,7 @@ function drawInvestigate(host, sim) {
       burst(convPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#2ecc71");
       sim.toast(L(`Correct! ${t.n}/${t.d} = ${mixed}`,`¡Correcto! ${t.n}/${t.d} = ${mixed}`), "correct");
       convFeedback.textContent = L(`${t.n} ÷ ${t.d} = ${expectedW} remainder ${expectedR} → ${mixed}`,`${t.n} ÷ ${t.d} = ${expectedW} residuo ${expectedR} → ${mixed}`);
-      convIx++;
+      convIx++; sim.state.convIx = convIx; sim.saveState();
       setTimeout(paintConvTarget, 900);
     } else {
       burst(convPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#c0392b");
@@ -403,7 +403,7 @@ function drawInvestigate(host, sim) {
     { total: 120, n: 2, d: 3, who: { en: "Sam", es: "Sam" }, item: { en: "pencils", es: "lápices" }, verb: { en: "shared", es: "repartió" } },
     { total: 180, n: 5, d: 6, who: { en: "Lola", es: "Lola" }, item: { en: "beads", es: "cuentas" }, verb: { en: "used", es: "usó" } }
   ];
-  let ticketIx = 0;
+  let ticketIx = sim.state.ticketIx || 0;
 
   const ticketPanel = document.createElement("div");
   ticketPanel.className = "panel stack";
@@ -476,7 +476,7 @@ function drawInvestigate(host, sim) {
         `${p.total} × ${p.n} = ${p.total * p.n}, then ÷ ${p.d} = ${expected}.`,
         `${p.total} × ${p.n} = ${p.total * p.n}, luego ÷ ${p.d} = ${expected}.`
       );
-      ticketIx++;
+      ticketIx++; sim.state.ticketIx = ticketIx; sim.saveState();
       setTimeout(paintTicket, 900);
     } else {
       burst(ticketPanel, rect.left - pr.left + rect.width / 2, rect.top - pr.top, "#c0392b");

@@ -541,6 +541,8 @@ const simulation = {
 
   investigate(host, api) {
     sim = api; host.innerHTML = "";
+    if (api.state.game) Object.assign(game, api.state.game);
+    api.state.game = game;
     const chosen = (api.state.predict != null) ? HYPOTHESIS_TEXT[api.state.predict] : null;
     sim.setScienceMethod({
       hypothesis: chosen || L("No hypothesis recorded before testing.", "No se registró ninguna hipótesis antes de la prueba."),
@@ -576,12 +578,12 @@ const simulation = {
     const ctrlBox = document.createElement("div"); ctrlBox.className = "stack";
 
     const tiltCtrl = document.createElement("div"); tiltCtrl.className = "ctrl";
-    tiltCtrl.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Panel tilt", "Inclinación del panel")}</span><span class="ctrl__val" id="tiltVal">30°</span></div>
-      <input type="range" id="tiltSlider" min="0" max="90" step="1" value="30">`;
+    tiltCtrl.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Panel tilt", "Inclinación del panel")}</span><span class="ctrl__val" id="tiltVal">${game.tilt}°</span></div>
+      <input type="range" id="tiltSlider" min="0" max="90" step="1" value="${game.tilt}">`;
 
     const hourCtrl = document.createElement("div"); hourCtrl.className = "ctrl";
-    hourCtrl.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Time of day", "Hora del día")}</span><span class="ctrl__val" id="hourVal">12:00</span></div>
-      <input type="range" id="hourSlider" min="6" max="18" step="0.25" value="12">`;
+    hourCtrl.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Time of day", "Hora del día")}</span><span class="ctrl__val" id="hourVal">${hourLabel(game.hour)}</span></div>
+      <input type="range" id="hourSlider" min="6" max="18" step="0.25" value="${game.hour}">`;
 
     const skyCtrl = document.createElement("div"); skyCtrl.className = "ctrl";
     skyCtrl.innerHTML = `<div class="ctrl__name">${L("Sky condition", "Condición del cielo")}</div>`;
@@ -589,7 +591,7 @@ const simulation = {
     SKY.forEach(s => {
       const b = document.createElement("button"); b.type = "button"; b.className = "chip-btn"; b.textContent = s.label;
       b.setAttribute("aria-pressed", s.id === game.sky ? "true" : "false");
-      b.addEventListener("click", () => { game.sky = s.id; skyRow.querySelectorAll(".chip-btn").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); repaint(); });
+      b.addEventListener("click", () => { game.sky = s.id; skyRow.querySelectorAll(".chip-btn").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); api.saveState(); repaint(); });
       skyRow.append(b);
     });
     skyCtrl.append(skyRow);
@@ -656,10 +658,10 @@ const simulation = {
     }
 
     tiltCtrl.querySelector("#tiltSlider").addEventListener("input", e => {
-      game.tilt = Number(e.target.value); tiltCtrl.querySelector("#tiltVal").textContent = game.tilt + "°"; repaint();
+      game.tilt = Number(e.target.value); tiltCtrl.querySelector("#tiltVal").textContent = game.tilt + "°"; api.saveState(); repaint();
     });
     hourCtrl.querySelector("#hourSlider").addEventListener("input", e => {
-      game.hour = Number(e.target.value); hourCtrl.querySelector("#hourVal").textContent = hourLabel(game.hour); repaint();
+      game.hour = Number(e.target.value); hourCtrl.querySelector("#hourVal").textContent = hourLabel(game.hour); api.saveState(); repaint();
     });
 
     logBtn.addEventListener("click", () => {

@@ -602,7 +602,7 @@ const simulation = {
       }
     });
 
-    const game = { xp: 0, streak: 0, best: 0 };
+    const game = api.state.game || (api.state.game = { xp: 0, streak: 0, best: 0 });
     const sorted = new Set(), chained = new Set(), years = new Set();
     api.trials.forEach(t => { if (t.task === "Sort") { const c = CARDS.find(x => x.name === t.item); if (c) sorted.add(c.id); }
       if (t.task === "Chain") { const c = CHAINS.find(x => x.raw === t.item); if (c) chained.add(c.id); }
@@ -617,8 +617,8 @@ const simulation = {
       hud.innerHTML = `<span>${L("Rank", "Rango")}: <b>${rank()}</b></span><span>XP <b>${game.xp}</b></span><span>${L("Streak", "Racha")} <b>${game.streak}</b></span>
         <span class="cc-hud__bar"><i style="width:${Math.round(done / total * 100)}%"></i></span><span>${done}/${total}</span>`;
     }
-    function award(n) { game.streak += 1; game.best = Math.max(game.best, game.streak); game.xp += n + Math.min(10, game.streak * 2); paintHud(); checkDone(); }
-    function miss() { game.streak = 0; paintHud(); }
+    function award(n) { game.streak += 1; game.best = Math.max(game.best, game.streak); game.xp += n + Math.min(10, game.streak * 2); api.saveState(); paintHud(); checkDone(); }
+    function miss() { game.streak = 0; api.saveState(); paintHud(); }
     paintHud();
 
     const doneBox = el("div");
@@ -755,7 +755,7 @@ const simulation = {
     gcv.setAttribute("aria-label", L("Graph of atmospheric CO₂ in ppm from 1960 to the chosen year, rising with a small yearly seasonal wiggle.", "Gráfico del CO₂ atmosférico en ppm desde 1960 hasta el año elegido, subiendo con una pequeña oscilación estacional."));
     gcv.style.marginTop = "var(--sp-3)"; left.append(gcv);
     left.append(el("p", "cc-credit", L("Data: NOAA Global Monitoring Laboratory / Scripps Mauna Loa annual means (approximate, interpolated). Emissions: Global Carbon Project (approximate).", "Datos: promedios anuales de Mauna Loa de NOAA GML / Scripps (aproximados, interpolados). Emisiones: Global Carbon Project (aproximadas).")));
-    let year = 1960, playing = null;
+    let year = api.state.year || 1960, playing = null;
     const yc = el("div", "ctrl"); yc.innerHTML = `<div class="ctrl__top"><span class="ctrl__name">${L("Year", "Año")}</span><span class="ctrl__val" id="yv">1960</span></div><input type="range" id="ys" min="1960" max="2024" step="1" value="1960" aria-label="${L("Year", "Año")}">`;
     const rr = el("div", "readout-row");
     rr.innerHTML = `<div class="ro"><span class="ro__k">CO₂</span><span class="ro__v" id="r1">–</span></div><div class="ro"><span class="ro__k">${L("Change since 1960", "Cambio desde 1960")}</span><span class="ro__v" id="r2">–</span></div><div class="ro"><span class="ro__k">${L("Fossil CO₂ emitted", "CO₂ fósil emitido")}</span><span class="ro__v" id="r3">–</span></div>`;
@@ -770,9 +770,10 @@ const simulation = {
 
     st3.append(el("h4", null, L("Meet the five greenhouse gases", "Conoce los cinco gases de efecto invernadero")));
     st3.append(el("p", "q__hint", L("Tap each gas to open its card. You will need them for the bonus analyser and the Knowledge Check.", "Toca cada gas para abrir su tarjeta. Los necesitarás para el analizador bonus y la comprobación de conocimientos.")));
-    const gasRow = el("div", "gas-row"); const opened = new Set();
+    const gasRow = el("div", "gas-row"); const opened = new Set(api.state.opened || []);
     GASES.forEach(g => { const b = el("button", "gas", `${molSVG(g.mol, g.shape)}<div class="gas__n">${g.name} (${g.f})</div><div class="gas__t">${g.role}</div>`); b.type = "button";
-      b.addEventListener("click", () => { b.classList.add("is-open"); opened.add(g.id); burst(b, "#7bffb0"); if (opened.size === 5) { st3done.classList.add("ok"); } if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(g.name + ". " + g.role); }); gasRow.append(b); });
+      if (opened.has(g.id)) b.classList.add("is-open");
+      b.addEventListener("click", () => { b.classList.add("is-open"); opened.add(g.id); api.state.opened = [...opened]; api.saveState(); burst(b, "#7bffb0"); if (opened.size === 5) { st3done.classList.add("ok"); } if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(g.name + ". " + g.role); }); gasRow.append(b); });
     st3.append(gasRow); host.append(st3);
 
     // graph + state
@@ -793,7 +794,7 @@ const simulation = {
     }
     let scene3d = null;
     function setYear(y) {
-      year = y; const p = ppmAt(y), e = emisAt(y), d = p - ppmAt(1960);
+      year = y; api.state.year = y; api.saveState(); const p = ppmAt(y), e = emisAt(y), d = p - ppmAt(1960);
       yc.querySelector("#yv").textContent = y; yc.querySelector("#ys").value = y; hudY.textContent = y; hudP.textContent = Math.round(p) + " ppm";
       rr.querySelector("#r1").textContent = p.toFixed(1) + " ppm"; rr.querySelector("#r2").textContent = (d >= 0 ? "+" : "") + d.toFixed(1) + " ppm (+" + (d / ppmAt(1960) * 100).toFixed(0) + "%)";
       rr.querySelector("#r3").textContent = "≈ " + e.toFixed(0) + " Gt/" + L("yr", "año");
@@ -816,7 +817,7 @@ const simulation = {
     st3done.textContent = `${years.size} ${L("years", "años")}`;
     loadThree().then(THREE => { if (!stage.isConnected) return; try { scene3d = build3D(THREE, stage); } catch (e) { scene3d = build2DFallback(stage); } setYear(year); })
       .catch(() => { if (!stage.isConnected) return; scene3d = build2DFallback(stage); setYear(year); });
-    setYear(1960);
+    setYear(year); checkDone();
 
     /* ============ BONUS: SPECTRUM ANALYSER (precision instrument challenge) ============ */
     const bonus = el("div"); host.append(bonus);

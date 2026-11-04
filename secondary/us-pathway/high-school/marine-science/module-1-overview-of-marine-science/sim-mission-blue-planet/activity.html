@@ -987,6 +987,12 @@ const simulation = {
 
     /* ---- state + model ---- */
     let ppt = 0, T = DEFAULT_TEMP, spec = SPECIMENS[0], dropped = false, vectors = false, sawFloat = false, sawSink = false, dropTime = 0, scene3d = null;
+    // resume: restore lab settings saved on a previous visit
+    if (typeof game.ppt === "number") ppt = game.ppt;
+    if (typeof game.T === "number") T = game.T;
+    if (game.specId) spec = SPECIMENS.find(x => x.id === game.specId) || spec;
+    if (game.sawFloat) sawFloat = true; if (game.sawSink) sawSink = true;
+    const persistLab = () => { game.ppt = ppt; game.T = T; game.specId = spec.id; game.sawFloat = sawFloat; game.sawSink = sawSink; api.saveState(); };
     const GMIN = 0.98, GMAX = 1.30;
     const sweepZone = catchbox.querySelector("#sweepzone"), sweepNeedle = catchbox.querySelector("#sweepneedle");
     const resultLabel = v => v === "floats" ? L("Floats","Flota") : v === "sinks" ? L("Sinks","Se hunde") : L("Suspended (neutral)","Suspendido (neutro)");
@@ -1018,7 +1024,7 @@ const simulation = {
       sweepZone.style.left = Math.max(0, zonePct - 9) + "%"; sweepZone.style.width = "18%";
       dropBtn.textContent = dropped ? L("Specimen in the water…","Espécimen en el agua…") : L(`Step 2 · Drop the ${spec.name.toLowerCase()} ▼`, `Paso 2 · Soltar: ${spec.name.toLowerCase()} ▼`);
     }
-    function pushConditions(){ if (scene3d) scene3d.setConditions(ppt, T); paintControls(); }
+    function pushConditions(){ if (scene3d) scene3d.setConditions(ppt, T); paintControls(); persistLab(); }
     function setPpt(v){ ppt = Math.max(0, Math.min(350, Math.round(v * 10) / 10)); pushConditions(); }
     function setTemp(v){
       T = Math.max(0, Math.min(35, v));
@@ -1028,7 +1034,7 @@ const simulation = {
     function pickSpecimen(s){
       if (s.id === spec.id && !dropped) return;
       spec = s; dropped = false; catchBtn.disabled = true; dropBtn.disabled = false; dropBtn.classList.add("is-armed");
-      if (scene3d) scene3d.setSpecimen(s);
+      if (scene3d) scene3d.setSpecimen(s); persistLab();
       sfx.tick(); burst(stage, { count: 8, colors: ["#ffd45c", "#5fe0ff"] });
       paintControls();
     }
@@ -1091,7 +1097,7 @@ const simulation = {
       if (sawFloat && sawSink && !game.badges.threshold) { game.badges.threshold = true; api.award("threshold", L("Found the floating point","Encontró el punto de flotación")); }
       if (v === "suspended" && !game.badges.hover) { game.badges.hover = true; api.award("hover", L("Neutral buoyancy!","¡Flotabilidad neutra!")); }
       if (Object.keys(game.tested).length >= 3 && !game.badges.collector) { game.badges.collector = true; api.award("collector", L("Specimen collector","Coleccionista de especímenes")); }
-      api.saveState();
+      persistLab();
       api.toast(L("Reading locked in — logged to your Investigation Record.","¡Lectura atrapada! Registrada en tu Registro de Investigación."), "correct");
       // specimen returns to the dock, ready for the next trial
       dropped = false; catchBtn.disabled = true; dropBtn.disabled = false; dropBtn.classList.add("is-armed");

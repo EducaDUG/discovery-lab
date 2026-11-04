@@ -307,11 +307,12 @@ function buildKitchen(mount, sim, onDone) {
   const stage = card.querySelector("#gh-k-stage");
   const doneTag = card.querySelector("#gh-k-done");
   const countEl = card.querySelector("#gh-k-count");
-  let cycles = 0;
+  let cycles = sim.state.kCycles || 0;
+  if (cycles) { countEl.textContent = String(cycles); doneTag.dataset.show = "true"; }
   let plantGroup = null, camera = null, renderer = null, scene = null;
 
   function cook() {
-    cycles++;
+    cycles++; sim.state.kCycles = cycles; sim.saveState();
     countEl.textContent = String(cycles);
     if (cycles === 1) doneTag.dataset.show = "true";
     burst(stage, 50, 30, ["#F4C542", "#FFE38A", "#E9A63B"], 12);
@@ -440,6 +441,7 @@ function buildLabelling(mount, sim, onDone) {
   const photo = card.querySelector("#gh-l-photo");
   const doneTag = card.querySelector("#gh-l-done");
   let openPanel = null;
+  const solvedIds = new Set(sim.state.labelled || []);
   let solvedCount = 0;
 
   function closePanel() { if (openPanel) { openPanel.remove(); openPanel = null; } photo.querySelectorAll(".gh-spot").forEach(s => s.dataset.open = "false"); }
@@ -468,7 +470,7 @@ function buildLabelling(mount, sim, onDone) {
             dot.setAttribute("aria-label", L(`Labelled: ${part.en}`, `Etiquetado: ${part.es}`));
             burst(photo, part.x * 100, part.y * 100, ["#1E8C60", "#7BFFB0"], 10);
             panel.remove(); openPanel = null;
-            solvedCount++;
+            solvedCount++; solvedIds.add(part.id); sim.state.labelled = [...solvedIds]; sim.saveState();
             sim.recordTrial({ station: L("Seedling", "Plántula"), item: L(opt.en, opt.es), outcome: L("Correctly labelled", "Etiquetado correctamente") });
             sim.toast(L("Correct!", "¡Correcto!"), "correct");
             if (solvedCount === PARTS.length) {
@@ -486,8 +488,14 @@ function buildLabelling(mount, sim, onDone) {
       });
       photo.append(panel); openPanel = panel;
     });
+    if (solvedIds.has(part.id)) {
+      dot.dataset.solved = "true"; dot.innerHTML = ICO.check;
+      dot.setAttribute("aria-label", L(`Labelled: ${part.en}`, `Etiquetado: ${part.es}`));
+      solvedCount++;
+    }
     photo.append(dot);
   });
+  if (solvedCount === PARTS.length) doneTag.dataset.show = "true";
 }
 
 /* ============================================================
@@ -526,7 +534,8 @@ function buildLaunchPad(mount, sim, onDone) {
   const launchBtn = card.querySelector("#gh-p-launch");
   const doneTag = card.querySelector("#gh-p-done");
   let chosenSeed = null, chosenZone = null;
-  const solved = new Set();
+  const solved = new Set(sim.state.seedsLanded || []);
+  if (solved.size === SEEDS.length) doneTag.dataset.show = "true";
 
   ZONES.forEach(z => {
     const el = document.createElement("div"); el.className = "gh-zone"; el.dataset.zone = z.id;
@@ -571,7 +580,7 @@ function buildLaunchPad(mount, sim, onDone) {
       if (success) {
         burst(arena, (endX / arenaRect.width) * 100, (endY / arenaRect.height) * 100, ["#1E8C60", "#8fd6ff", "#F4C542"], 12);
         targetEl.classList.remove("gh-success"); void targetEl.offsetWidth; targetEl.classList.add("gh-success");
-        solved.add(chosenSeed.id);
+        solved.add(chosenSeed.id); sim.state.seedsLanded = [...solved]; sim.saveState();
         sim.toast(L("Landed safely — that's exactly how it travels!", "¡Aterrizó bien — así es exactamente cómo viaja!"), "correct");
         if (solved.size === 1) sim.award("pilot", L("Seed Pilot", "Piloto de Semillas"));
         if (solved.size === SEEDS.length) { doneTag.dataset.show = "true"; sim.award("disperser", L("Dispersal Expert", "Experto en Dispersión")); }
@@ -642,8 +651,10 @@ function investigate(host, sim) {
         container.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false"));
         b.setAttribute("aria-pressed", "true");
         container.dataset.value = o.id;
+        sim.state[container.id] = o.id; sim.saveState();
         saveReflection();
       });
+      if (sim.state[container.id] === o.id) { b.setAttribute("aria-pressed", "true"); container.dataset.value = o.id; }
       container.append(b);
     });
   }

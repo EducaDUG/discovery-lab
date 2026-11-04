@@ -148,7 +148,7 @@ function drawInvestigate(host, sim) {
   const LINE_TARGETS = [
     { num: 1, den: 4 }, { num: 3, den: 4 }, { num: 5, den: 6 }, { num: 1, den: 3 }, { num: 7, den: 8 }
   ];
-  let lineIx = 0;
+  let lineIx = sim.state.lineIx || 0;
 
   const linePanel = document.createElement("div");
   linePanel.className = "panel stack";
@@ -214,7 +214,7 @@ function drawInvestigate(host, sim) {
     sim.recordTrial({ task: L("Number line", "Recta numérica"), input: L(`target ${target.num}/${target.den}`, `objetivo ${target.num}/${target.den}`), result: `${L("placed at", "colocado en")} ${linePos.toFixed(2)} (${L("exact", "exacto")} ${exact.toFixed(2)})${matched ? " ✓" : ""}` });
     if (matched) {
       burst(linePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
-      lineIx++;
+      lineIx++; sim.state.lineIx = lineIx; sim.saveState();
       paintLineOrderBanner();
       sim.toast(L(`Nice placement — ${target.num}/${target.den} = ${exact.toFixed(2)}!`, `¡Buena colocación — ${target.num}/${target.den} = ${exact.toFixed(2)}!`), "correct");
     } else {
@@ -230,7 +230,7 @@ function drawInvestigate(host, sim) {
     { a: [3, 8], b: [5, 8] }, { a: [2, 3], b: [3, 5] }, { a: [5, 6], b: [7, 9] },
     { a: [1, 4], b: [2, 7] }, { a: [4, 5], b: [7, 8] }, { a: [3, 10], b: [1, 3] }
   ];
-  let faceoffIx = 0;
+  let faceoffIx = sim.state.faceoffIx || 0;
 
   const faceoffPanel = document.createElement("div");
   faceoffPanel.className = "panel stack";
@@ -277,7 +277,7 @@ function drawInvestigate(host, sim) {
     sim.recordTrial({ task: L("Fraction face-off", "Enfrentamiento de fracciones"), input: `${pair.a[0]}/${pair.a[1]} vs ${pair.b[0]}/${pair.b[1]}`, result: `${L("picked", "elegido")} ${pair[key][0]}/${pair[key][1]}${matched ? " ✓" : " ✗ (" + pair[correctKey][0] + "/" + pair[correctKey][1] + " " + L("is bigger","es mayor") + ")"}` });
     if (matched) {
       burst(faceoffPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
-      faceoffIx++;
+      faceoffIx++; sim.state.faceoffIx = faceoffIx; sim.saveState();
       paintFaceoff();
       sim.toast(L(`Correct — ${pair[correctKey][0]}/${pair[correctKey][1]} is bigger!`, `¡Correcto — ${pair[correctKey][0]}/${pair[correctKey][1]} es mayor!`), "correct");
     } else {
@@ -293,7 +293,7 @@ function drawInvestigate(host, sim) {
     { a: [7, 8], b: [6, 7], op: "+" }, { a: [5, 6], b: [1, 9], op: "−" },
     { a: [9, 10], b: [4, 9], op: "−" }
   ];
-  let estimateIx = 0;
+  let estimateIx = sim.state.estimateIx || 0;
   const BENCHMARKS = [0, 0.5, 1];
   const BENCHMARK_LABELS = ["0", "1/2", "1"];
 
@@ -365,7 +365,7 @@ function drawInvestigate(host, sim) {
     if (matched) {
       burst(estimatePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
       sim.toast(L(`Great benchmarks — estimate ${estimate}, exact ${exact.toFixed(2)}!`, `¡Buenas fracciones de referencia — estimación ${estimate}, exacto ${exact.toFixed(2)}!`), "correct");
-      estimateIx++;
+      estimateIx++; sim.state.estimateIx = estimateIx; sim.saveState();
       setTimeout(paintEstimate, 900);
     } else {
       burst(estimatePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#c0392b");

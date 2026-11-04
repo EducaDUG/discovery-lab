@@ -489,7 +489,13 @@ const simulation = {
     wrap.append(stations, stationHost);
     host.append(wrap);
 
-    const done = { cargo: false, hull: false, footprint: false };
+    const S = api.state;
+    if (!S.done) S.done = { cargo: false, hull: false, footprint: false };
+    if (!Array.isArray(S.placed)) S.placed = [];
+    if (!Array.isArray(S.seen)) S.seen = [];
+    if (!S.fp) S.fp = { electricity: 50, transport: 50, food: 50 };
+    if (!S.station) S.station = "cargo";
+    const done = S.done;
     const btns = {};
     const STATIONS = [
       { id: "cargo", en: "Station 1 — Sort the Cargo", es: "Estación 1 — Clasifica la carga" },
@@ -505,7 +511,7 @@ const simulation = {
     STATIONS.forEach(s=>{
       const b = document.createElement("button"); b.type = "button"; b.className = "ship-station-btn";
       b.textContent = L(s.en, s.es);
-      b.addEventListener("click", ()=>{ paintStations(s.id); renderStation(s.id); });
+      b.addEventListener("click", ()=>{ S.station = s.id; api.saveState(); paintStations(s.id); renderStation(s.id); });
       btns[s.id] = b; stations.append(b);
     });
 
@@ -533,6 +539,7 @@ const simulation = {
           if (selected === c.id) { selected = null; return; }
           selected = c.id; el.classList.add("is-selected");
         });
+        if (S.placed.includes(c.id)) el.classList.add("is-placed");
         itemEls[c.id] = el; rack.append(el);
       });
 
@@ -553,6 +560,7 @@ const simulation = {
               `¡${item.es} clasificado correctamente en ${AREAS.find(x=>x.id===a.id).es}!`), "correct");
             sim.recordTrial({ item: L(item.en, item.es), area: L(a.en, a.es), result: L("Correct","Correcto") });
             cargoSortedCount++;
+            if (!S.placed.includes(selected)) S.placed.push(selected);
           } else {
             b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-shake");
             sim.toast(L("Not quite — try another system.","No es correcto — prueba otro sistema."), "incorrect");
@@ -561,7 +569,7 @@ const simulation = {
           selected = null;
           Object.values(itemEls).forEach(e=>e.classList.remove("is-selected"));
           if (Object.values(itemEls).every(e=>e.classList.contains("is-placed"))){
-            done.cargo = true; paintStations("cargo");
+            done.cargo = true; api.saveState(); paintStations("cargo");
             sim.toast(L("All cargo sorted! Try Station 2.","¡Toda la carga clasificada! Prueba la Estación 2."), "info");
           }
         });
@@ -588,19 +596,20 @@ const simulation = {
       wrap2.append(globeWrap, panel, progress);
       stationHost.append(wrap2);
 
-      let seen = new Set();
+      let seen = new Set(S.seen);
+      seen.forEach(i=>{ if (dots[i]) dots[i].classList.add("is-seen"); });
       globe.addEventListener("click", ()=>{
         globe.classList.remove("is-spinning"); void globe.offsetWidth; globe.classList.add("is-spinning");
         const idx = seen.size < HULL_FACTS.length
           ? [...HULL_FACTS.keys()].find(i=>!seen.has(i))
           : Math.floor(Math.random()*HULL_FACTS.length);
-        seen.add(idx); dots[idx].classList.add("is-seen");
+        seen.add(idx); S.seen = [...seen]; api.saveState(); dots[idx].classList.add("is-seen");
         const fact = HULL_FACTS[idx];
         panel.innerHTML = `<b>${L("Hull scan result","Resultado del escaneo")}</b>${L(fact.en, fact.es)}`;
         burst(globeWrap, { colors: ["#7bd3a8", "#eaffef", "#3F8FA8"], count: 12 });
         if (sim && sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L(fact.en, fact.es));
         if (seen.size >= HULL_FACTS.length && !done.hull){
-          done.hull = true; paintStations("hull");
+          done.hull = true; api.saveState(); paintStations("hull");
           sim.toast(L("Hull fully scanned! Try Station 3.","¡Casco escaneado por completo! Prueba la Estación 3."), "info");
         }
       });
@@ -620,17 +629,17 @@ const simulation = {
         { id: "transport", en: "Transport (car use)", es: "Transporte (uso de auto)" },
         { id: "food", en: "Meat & food waste", es: "Carne y desperdicio de comida" },
       ];
-      const values = { electricity: 50, transport: 50, food: 50 };
+      const values = S.fp;
       const readout = document.createElement("div"); readout.className = "footprint-readout";
       const earthsRow = document.createElement("div"); earthsRow.className = "footprint-earths";
 
       sliders.forEach(s=>{
         const row = document.createElement("div"); row.className = "footprint-slider";
         row.innerHTML = `<label for="fp-${s.id}">${L(s.en, s.es)}</label>
-          <input id="fp-${s.id}" class="input" type="range" min="0" max="100" value="50" style="accent-color:var(--accent)">`;
+          <input id="fp-${s.id}" class="input" type="range" min="0" max="100" value="${values[s.id]}" style="accent-color:var(--accent)">`;
         panel.append(row);
         row.querySelector("input").addEventListener("input", (e)=>{
-          values[s.id] = Number(e.target.value);
+          values[s.id] = Number(e.target.value); api.saveState();
           updateFootprint();
         });
       });
@@ -662,7 +671,7 @@ const simulation = {
         sim.recordTrial({ item: L("Footprint reading","Lectura de huella"), area: L("Human Impact","Impacto humano"), result: `${earthsNeeded} ${L("Earths","Tierras")}` });
         sim.toast(L(`Logged: ${earthsNeeded} Earths needed.`, `Registrado: ${earthsNeeded} Tierras necesarias.`), "correct");
         burst(readout, { colors: ["#3F8FA8", "#77B255", "#eaffef"], count: 18 });
-        if (!done.footprint){ done.footprint = true; paintStations("footprint"); }
+        if (!done.footprint){ done.footprint = true; api.saveState(); paintStations("footprint"); }
       });
     }
 
@@ -721,7 +730,7 @@ const simulation = {
         bonusSection.dataset.rendered = "skipped";
       });
     }
-    paintStations("cargo"); renderStation("cargo");
+    paintStations(S.station); renderStation(S.station);
   }
 };
 

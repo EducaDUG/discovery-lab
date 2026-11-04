@@ -117,7 +117,7 @@ const SGM_ROUNDS = [
 ];
 
 function buildStation1(host, sim) {
-  let round = 0;
+  let round = sim.state.s1 || 0;
   function render() {
     if (round >= SGM_ROUNDS.length) {
       host.innerHTML = `<div class="panel" style="text-align:center;padding:24px">
@@ -187,7 +187,7 @@ function buildStation1(host, sim) {
     next.className = "btn btn--signal"; next.type = "button";
     next.textContent = round < SGM_ROUNDS.length - 1 ? L("Next round →","Siguiente ronda →") : L("Station complete! ✦","¡Estación completa! ✦");
     next.style.marginTop = "12px";
-    next.addEventListener("click", () => { round++; render(); });
+    next.addEventListener("click", () => { round++; sim.state.s1 = round; sim.saveState(); render(); });
     resultDiv.appendChild(next);
   }
 
@@ -204,7 +204,7 @@ const INEQ_ROUNDS = [
 ];
 
 function buildStation2(host, sim) {
-  let round = 0;
+  let round = sim.state.s2 || 0;
   function render() {
     if (round >= INEQ_ROUNDS.length) {
       host.innerHTML = `<div class="panel" style="text-align:center;padding:24px">
@@ -278,7 +278,7 @@ function buildStation2(host, sim) {
         next.className = "btn btn--signal"; next.type = "button";
         next.textContent = round < INEQ_ROUNDS.length - 1 ? L("Next round →","Siguiente ronda →") : L("Station complete! ✦","¡Estación completa! ✦");
         next.style.marginTop = "10px";
-        next.addEventListener("click", () => { round++; render(); });
+        next.addEventListener("click", () => { round++; sim.state.s2 = round; sim.saveState(); render(); });
         res.appendChild(next);
       });
     });
@@ -295,7 +295,7 @@ const PRED_ROUNDS = [
 ];
 
 function buildStation3(host, sim) {
-  let round = 0;
+  let round = sim.state.s3 || 0;
   function render() {
     if (round >= PRED_ROUNDS.length) {
       host.innerHTML = `<div class="panel" style="text-align:center;padding:24px">
@@ -356,7 +356,7 @@ function buildStation3(host, sim) {
         next.className = "btn btn--signal"; next.type = "button";
         next.textContent = round < PRED_ROUNDS.length - 1 ? L("Next round →","Siguiente ronda →") : L("All done! ✦","¡Todo listo! ✦");
         next.style.marginTop = "10px";
-        next.addEventListener("click", () => { round++; render(); });
+        next.addEventListener("click", () => { round++; sim.state.s3 = round; sim.saveState(); render(); });
         res.appendChild(next);
       });
     });
@@ -385,6 +385,7 @@ function investigate(host, sim) {
     b.addEventListener("click", () => {
       tabs.querySelectorAll("button").forEach(t => { t.style.borderColor = ""; t.style.fontWeight = ""; });
       b.style.borderColor = "var(--accent)"; b.style.fontWeight = "700";
+      sim.state.tab = i; sim.saveState();
       st.build(content, sim);
     });
     tabs.appendChild(b);
@@ -413,7 +414,7 @@ function investigate(host, sim) {
   paintBonus();
 
   // Auto-start Station 1
-  tabs.children[0].click();
+  tabs.children[sim.state.tab || 0].click();
 }
 
 /* ─── Bonus round: Balance Beam (build-and-balance — first from the library!) ─── */

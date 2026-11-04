@@ -180,7 +180,7 @@ function drawInvestigate(host, sim) {
 
   /* ---------- Panel 1: Icing Ratio Mixer — a queue of 4 customer orders ---------- */
   const RATIO_ORDERS = [{ r: 2, w: 3 }, { r: 1, w: 4 }, { r: 3, w: 2 }, { r: 4, w: 1 }];
-  let ratioOrderIx = 0;
+  let ratioOrderIx = sim.state.ratioIx || 0;
 
   const ratioPanel = document.createElement("div");
   ratioPanel.className = "panel stack";
@@ -260,7 +260,7 @@ function drawInvestigate(host, sim) {
     const rect = ev.target.getBoundingClientRect(), panelRect = ratioPanel.getBoundingClientRect();
     if (matched) {
       burst(ratioPanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
-      ratioOrderIx++;
+      ratioOrderIx++; sim.state.ratioIx = ratioOrderIx; sim.saveState();
       paintOrderBanner();
       sim.toast(L(`Order served — ${r}:${w} matched the customer's order!`, `¡Pedido servido — ${r}:${w} coincide con el pedido del cliente!`), "correct");
     } else {
@@ -271,7 +271,7 @@ function drawInvestigate(host, sim) {
 
   /* ---------- Panel 2: Fair-Share Kitchen — a queue of 4 delivery orders ---------- */
   const SHARE_ORDERS = [{ bars: 3, friends: 4 }, { bars: 5, friends: 2 }, { bars: 2, friends: 6 }, { bars: 7, friends: 3 }];
-  let shareOrderIx = 0;
+  let shareOrderIx = sim.state.shareIx || 0;
 
   const sharePanel = document.createElement("div");
   sharePanel.className = "panel stack";
@@ -341,7 +341,7 @@ function drawInvestigate(host, sim) {
     const rect = ev.target.getBoundingClientRect(), panelRect = sharePanel.getBoundingClientRect();
     if (matched) {
       burst(sharePanel, rect.left - panelRect.left + rect.width / 2, rect.top - panelRect.top, "#3f8f6b");
-      shareOrderIx++;
+      shareOrderIx++; sim.state.shareIx = shareOrderIx; sim.saveState();
       paintShareOrderBanner();
       sim.toast(L(`Delivery complete — ${bars} bars for ${friends} friends, ${decimal} each!`, `¡Reparto completo — ${bars} barras para ${friends} amigos, ${decimal} cada uno!`), "correct");
     } else {
@@ -352,7 +352,7 @@ function drawInvestigate(host, sim) {
 
   /* ---------- Panel 3: Fraction Model Workshop — shade the bar to match ---------- */
   const MODEL_TARGETS = [{ num: 3, den: 4 }, { num: 2, den: 5 }, { num: 5, den: 8 }, { num: 1, den: 6 }];
-  let modelIx = 0, shaded = 0;
+  let modelIx = sim.state.modelIx || 0, shaded = 0;
 
   const modelPanel = document.createElement("div");
   modelPanel.className = "panel stack";
@@ -410,7 +410,7 @@ function drawInvestigate(host, sim) {
       const decimal = (t.num / t.den).toFixed(3).replace(/0+$/,"").replace(/\.$/,"");
       sim.recordTrial({ task: L("Fraction model", "Modelo de fracción"), input: L(`shade ${t.num}/${t.den}`, `sombrea ${t.num}/${t.den}`), result: `${t.num}/${t.den} = ${decimal} ✓` });
       sim.toast(L(`Display bar matched — ${t.num}/${t.den} = ${decimal}!`, `¡Barra del escaparate lograda — ${t.num}/${t.den} = ${decimal}!`), "correct");
-      modelIx++;
+      modelIx++; sim.state.modelIx = modelIx; sim.saveState();
       setTimeout(paintModelTarget, 650);
     }
   }

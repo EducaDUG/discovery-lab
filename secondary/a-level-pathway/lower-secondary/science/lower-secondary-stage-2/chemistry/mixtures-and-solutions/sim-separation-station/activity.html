@@ -583,13 +583,13 @@ const simulation = {
       const before = rankFor(game.xp);
       game.xp += XP_PER_ACTION; game.streak += 1;
       game.bestStreak = Math.max(game.bestStreak || 0, game.streak);
-      sim.save && sim.save();
+      sim.saveState();
       paintRank();
       fireBurst(host2, ["#7be6ff","#4fd8e6","#ffd45c","#e9fbff"]);
       const after = rankFor(game.xp);
       if (after !== before) celebrateLevelUp(after.name);
     }
-    function breakStreak(){ game.streak = 0; sim.save && sim.save(); paintRank(); }
+    function breakStreak(){ game.streak = 0; sim.saveState(); paintRank(); }
 
     const phaseHost = document.createElement("div"); wrap.append(phaseHost);
     if (game.phase === "mix") renderMixPhase();
@@ -631,6 +631,11 @@ const simulation = {
         box.textContent = text; note.append(box);
       }
       let settleHeight = 0;
+      SOLUTES.filter(x => game.mixDone[x.id] && !x.dissolves).forEach(() => { settleHeight += 10; });
+      if (settleHeight){
+        beakerWrap.querySelector("#beaker-water").classList.add("is-cloudy");
+        beakerWrap.querySelector("#beaker-settle").style.height = Math.min(settleHeight, 30) + "%";
+      }
       const btns = {};
       SOLUTES.forEach(sub => {
         const b = document.createElement("button"); b.type = "button"; b.className = "solute-btn";
@@ -639,7 +644,7 @@ const simulation = {
         b.addEventListener("click", () => {
           if (b.classList.contains("is-done")) return;
           b.classList.add("is-done");
-          game.mixDone[sub.id] = true; sim.save && sim.save();
+          game.mixDone[sub.id] = true; sim.saveState();
 
           const beaker = beakerWrap.querySelector(".beaker");
           if (!reducedMotion()){
@@ -670,7 +675,7 @@ const simulation = {
 
           if (Object.keys(game.mixDone).length === SOLUTES.length){
             setTimeout(() => {
-              game.phase = "label"; sim.save && sim.save();
+              game.phase = "label"; sim.saveState();
               renderLabelPhase();
             }, 900);
           }
@@ -766,7 +771,7 @@ const simulation = {
             if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(term.name + (getLang() === "es" ? " identificado." : " identified."));
             armed = null;
             if (matched === FILTER_KEYS.length){
-              setTimeout(() => { game.phase = "sort"; sim.save && sim.save(); renderSortPhase(); }, 700);
+              setTimeout(() => { game.phase = "sort"; sim.saveState(); renderSortPhase(); }, 700);
             }
           } else {
             s.classList.remove("is-wrong"); void s.offsetWidth; s.classList.add("is-wrong");
@@ -823,7 +828,7 @@ const simulation = {
         c.addEventListener("click", () => {
           if (c.classList.contains("is-placed")) return;
           if (!game.scanned[sp.id]){
-            game.scanned[sp.id] = true; sim.save && sim.save();
+            game.scanned[sp.id] = true; sim.saveState();
             c.querySelector(".specimen-card__scanflag").textContent = L("Scanned","Escaneado");
             clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl => `<li>${cl}</li>`).join("")}</ul>
               <p class="diagram-credit">${sp.credit}</p>`;
@@ -862,7 +867,7 @@ const simulation = {
             const tag = document.createElement("span"); tag.className = "machine__item"; tag.textContent = sp.name;
             b.querySelector(".machine__items").append(tag);
             cards[armed].classList.add("is-placed");
-            game.sortDone[armed] = true; sim.save && sim.save();
+            game.sortDone[armed] = true; sim.saveState();
             sim.recordTrial({ stage: L("Separation","Separación"), sample: sp.name,
               result: L(`Correctly routed to ${m.name}`,`Correctamente enviado a ${m.name}`) });
             flashNote(L(`Correct! ${sp.name} is separated by ${m.name}.`,`¡Correcto! ${sp.name} se separa por ${m.name}.`), "correct");
@@ -981,7 +986,7 @@ const simulation = {
               },
               onExit(stats){
                 game.arcadeBest = Math.max(game.arcadeBest || 0, stats.score);
-                sim.save && sim.save();
+                sim.saveState();
                 gameHost.innerHTML = "";
                 gameHost.remove();
                 arcadeSection.dataset.rendered = "";

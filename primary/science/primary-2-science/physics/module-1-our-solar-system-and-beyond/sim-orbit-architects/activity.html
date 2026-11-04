@@ -509,6 +509,8 @@ function investigate(host, sim) {
   m2.append(recipeRow);
   wrap.append(m2);
 
+  // resume: all in-Investigate progress lives in sim.state.oa (JSON only)
+  const oa = sim.state.oa || (sim.state.oa = { density: 0, taps: 0, ignited: false, explored: [], planets: {} });
   const exploredEls = new Set();
   function tapElement(id) {
     const e = ELEMENTS.find(x => x.id === id);
@@ -521,7 +523,7 @@ function investigate(host, sim) {
     factBox.dataset.show = "true";
     factBox.textContent = `${e.label} (${e.pct}%) — ${e.fact}`;
     legendBtns[id].dataset.done = "true";
-    exploredEls.add(id);
+    exploredEls.add(id); oa.explored = [...exploredEls]; sim.saveState();
     if (exploredEls.size === ELEMENTS.length && !m2.dataset.complete) {
       m2.dataset.complete = "true";
       document.getElementById("oa-m2-done").dataset.show = "true";
@@ -553,6 +555,7 @@ function investigate(host, sim) {
       sim.toast(L(`Gravity pulled the cloud together over ${taps} taps — nuclear fusion switched on and the Sun was born!`, `La gravedad reunió la nube en ${taps} toques — la fusión nuclear se activó y nació el Sol.`), "correct");
       m2.classList.remove("oa-locked");
     }
+    oa.density = density; oa.taps = taps; oa.ignited = ignited; sim.saveState();
   });
 
   /* ---- Moment 3: Mission Control (locked until Moment 2 done) -------- */
@@ -836,7 +839,7 @@ function investigate(host, sim) {
     const baseSpeed = 0.018; // radians/frame for an 88-day orbit
     launched[p.id] = { mesh, radius, angle: Math.random() * Math.PI * 2, speed: baseSpeed * (88 / orbitDays) };
 
-    done[current] = true;
+    done[current] = true; oa.planets[current] = au; sim.saveState();
     buttons[current].dataset.done = "true";
     hudCount.textContent = L(`${Object.keys(done).length} of 8 planets launched`, `${Object.keys(done).length} de 8 planetas lanzados`);
 
@@ -887,6 +890,7 @@ function investigate(host, sim) {
 
     // reset picker + in-progress classification/distance state
     Object.keys(done).forEach(id => delete done[id]);
+    oa.planets = {}; sim.saveState();
     current = null;
     Object.values(buttons).forEach(b => { b.dataset.done = "false"; b.dataset.active = "false"; });
     classifyWrap.hidden = true;
@@ -949,6 +953,35 @@ function investigate(host, sim) {
     });
   }
   launchBtn.addEventListener("click", paintArcade);
+
+  /* ---- Resume: put the student back where they left off (silent: no toasts/awards) ---- */
+  if (oa.density > 0) {
+    density = oa.density; taps = oa.taps || 0;
+    densityFill.style.width = density + "%";
+    m1.querySelector("#oa-density-pct").textContent = Math.round(density) + "%";
+    cloud.style.transform = `scale(${1 - (density / 100) * 0.55})`;
+    if (oa.ignited) {
+      ignited = true; cloud.dataset.ignited = "true"; compressBtn.disabled = true;
+      compressBtn.textContent = L("☀️ The Sun has ignited!", "☀️ ¡El Sol se ha encendido!");
+      m1.querySelector("#oa-m1-done").dataset.show = "true";
+      m2.classList.remove("oa-locked");
+    }
+  }
+  (oa.explored || []).forEach(id => { if (legendBtns[id]) { legendBtns[id].dataset.done = "true"; exploredEls.add(id); } });
+  if (exploredEls.size === ELEMENTS.length) {
+    m2.dataset.complete = "true"; m2.querySelector("#oa-m2-done").dataset.show = "true"; m3.classList.remove("oa-locked");
+  }
+  Object.entries(oa.planets || {}).forEach(([id, au]) => {
+    const p = PLANETS.find(x => x.id === id); if (!p || done[id]) return;
+    const radius = visualRadius(au), orbitDays = keplerDays(au);
+    addOrbitRing(radius, p.color);
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.16 + Math.min(au, 6) * 0.01, 20, 20), new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.85 }));
+    group.add(mesh);
+    launched[id] = { mesh, radius, angle: Math.random() * Math.PI * 2, speed: 0.018 * (88 / orbitDays) };
+    done[id] = true; buttons[id].dataset.done = "true";
+  });
+  if (Object.keys(done).length) hudCount.textContent = L(`${Object.keys(done).length} of 8 planets launched`, `${Object.keys(done).length} de 8 planetas lanzados`);
+  if (Object.keys(done).length >= 3) paintArcade();
 }
 
 mountActivity({ simulation: { orient, observation, investigate } }).catch(e => {

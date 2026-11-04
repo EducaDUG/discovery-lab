@@ -1968,7 +1968,8 @@ A student closed the tab and reopened it (Chrome): the engine restored the stage
 
 - **Any progress inside Investigate (round/order index, score, streak, current tab/station, placed items, game phase) must live in `sim.state` and be followed by `sim.saveState()`**, never only in a local variable. Test by reloading mid-Investigate and confirming it resumes where it left off.
 - Do not bump `config.version` just to ship a fix like this: saved work is keyed by version and a bump wipes every student's progress.
-- Known gap: only about 10 simulations use `sim.state` today; the rest likely lose in-stage progress on reopen. Fix each when next opened.
+- The engine method is `sim.saveState()`; `sim.save()` does not exist (calls like `sim.save && sim.save()` were silent no-ops in several sims). Do not use it.
+- Audit done 2026-11-04: about 28 simulations now persist their round/station/score progress. Not covered: bonus games (timed, unmarked), half-finished inputs, the embedded-iframe sims (marisma-wetland, day-zero-reservoir, cuvier-deep-dive) and the live-session Primary Enrichment pages, which need their own change.
 
 ---
 

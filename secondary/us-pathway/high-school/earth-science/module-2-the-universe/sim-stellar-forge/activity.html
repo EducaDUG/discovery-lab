@@ -324,10 +324,10 @@ function investigate(host, sim) {
   const massRow = document.createElement("div"); massRow.className = "sf-mass-row";
   const massLabel = document.createElement("label"); massLabel.className = "field__label"; massLabel.htmlFor = "sf-mass"; massLabel.textContent = L("Starting mass", "Masa inicial");
   const massSlider = document.createElement("input");
-  massSlider.type = "range"; massSlider.id = "sf-mass"; massSlider.min = "2"; massSlider.max = "250"; massSlider.step = "1"; massSlider.value = "10";
+  massSlider.type = "range"; massSlider.id = "sf-mass"; massSlider.min = "2"; massSlider.max = "250"; massSlider.step = "1"; massSlider.value = String(sim.state.mass || 10);
   const massRead = document.createElement("span"); massRead.className = "sf-mass-read";
   const updateMassRead = () => { massRead.textContent = (Number(massSlider.value) / 10).toFixed(1) + " M☉"; };
-  massSlider.addEventListener("input", updateMassRead);
+  massSlider.addEventListener("input", () => { updateMassRead(); sim.state.mass = Number(massSlider.value); sim.saveState(); });
   massRow.append(massLabel, massSlider, massRead);
   controls.append(massRow);
 
@@ -340,13 +340,13 @@ function investigate(host, sim) {
   presets.forEach(p => {
     const b = document.createElement("button"); b.type = "button"; b.className = "sf-preset";
     b.textContent = p.label + " (" + (p.v / 10).toFixed(1) + " M☉)";
-    b.addEventListener("click", () => { massSlider.value = String(p.v); updateMassRead(); });
+    b.addEventListener("click", () => { massSlider.value = String(p.v); updateMassRead(); sim.state.mass = p.v; sim.saveState(); });
     controls.append(b);
   });
   updateMassRead();
 
   const collapseBtn = document.createElement("button"); collapseBtn.type = "button"; collapseBtn.className = "btn btn--signal";
-  collapseBtn.textContent = L("Collapse ⭐", "Colapsar ⭐");
+  collapseBtn.textContent = sim.trials.length ? L("Forge Another Star ⭐", "Forjar Otra Estrella ⭐") : L("Collapse ⭐", "Colapsar ⭐");
   controls.append(collapseBtn);
   forgeCard.append(controls);
 

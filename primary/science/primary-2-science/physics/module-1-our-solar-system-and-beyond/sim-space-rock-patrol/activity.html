@@ -411,8 +411,16 @@ const BINS = [
 ];
 
 function buildSorter(mount, sim, onDone) {
-  const queue = [...SORT_ITEMS].sort(() => Math.random() - 0.5);
-  let idx = 0, solved = 0;
+  // resume: keep the shuffled order, position and count across reloads
+  const ss = sim.state.sorter;
+  let queue, idx = 0, solved = 0;
+  if (ss && Array.isArray(ss.order) && ss.order.length === SORT_ITEMS.length && ss.order.every(n => SORT_ITEMS[n])) {
+    queue = ss.order.map(n => SORT_ITEMS[n]); idx = Math.min(ss.idx || 0, queue.length); solved = ss.solved || 0;
+  } else {
+    const order = SORT_ITEMS.map((_, i) => i).sort(() => Math.random() - 0.5);
+    queue = order.map(n => SORT_ITEMS[n]);
+    sim.state.sorter = { order, idx: 0, solved: 0 }; sim.saveState();
+  }
   const card = document.createElement("div"); card.className = "srp-station";
   card.innerHTML = `<div class="srp-station__head">
       <span class="srp-station__n">1</span>
@@ -445,14 +453,13 @@ function buildSorter(mount, sim, onDone) {
     binsEl.append(btn);
   });
 
-  function render() {
+  function render(initial) {
     if (idx >= queue.length) {
       photoEl.innerHTML = `<span class="srp-done-icon">${ICO.check}</span>`;
       progressEl.textContent = L("All photos sorted!", "¡Todas las fotos clasificadas!");
       binsEl.style.display = "none";
       doneTag.dataset.show = "true";
-      sim.award("sorter", L("Space Rock Sorter", "Clasificador de Rocas"));
-      onDone();
+      if (!initial) { sim.award("sorter", L("Space Rock Sorter", "Clasificador de Rocas")); onDone(); }
       return;
     }
     const item = queue[idx];
@@ -468,13 +475,14 @@ function buildSorter(mount, sim, onDone) {
       sim.toast(L("Correct!", "¡Correcto!"), "correct");
       solved++;
       idx++;
+      sim.state.sorter.idx = idx; sim.state.sorter.solved = solved; sim.saveState();
       setTimeout(render, 350);
     } else {
       btn.classList.remove("srp-shake"); void btn.offsetWidth; btn.classList.add("srp-shake");
       sim.toast(L("Not quite — look again and try another category.", "No es correcto — mira de nuevo y prueba otra categoría."), "info");
     }
   }
-  render();
+  render(true);
 }
 
 /* ============================================================
@@ -484,7 +492,7 @@ function buildSorter(mount, sim, onDone) {
 let cleanupComet = null;
 function buildComet(mount, sim, onDone) {
   if (cleanupComet) { cleanupComet(); cleanupComet = null; }
-  const passes = { close: false, far: false };
+  const passes = Object.assign({ close: false, far: false }, sim.state.cometPasses || {});
   const card = document.createElement("div"); card.className = "srp-station";
   card.innerHTML = `<div class="srp-station__head">
       <span class="srp-station__n">2</span>
@@ -568,6 +576,7 @@ function buildComet(mount, sim, onDone) {
   }
 
   slider.addEventListener("input", () => { updateComet(Number(slider.value)); readEl.textContent = ""; });
+  if (passes.close && passes.far) doneTag.dataset.show = "true";
 
   launchBtn.addEventListener("click", () => {
     if (launching) return;
@@ -590,6 +599,7 @@ function buildComet(mount, sim, onDone) {
       sim.recordTrial({ station: L("Comet", "Cometa"), item: passLabel, outcome: L(`Tail length ≈ ${pct}% of maximum`, `Longitud de cola ≈ ${pct}% del máximo`) });
       sim.toast(isClose ? L("The tail grew huge near the Sun!", "¡La cola creció muchísimo cerca del Sol!") : L("Far from the Sun, the tail barely grows.", "Lejos del Sol, la cola casi no crece."), "correct");
       if (isClose) passes.close = true; else passes.far = true;
+      sim.state.cometPasses = { close: passes.close, far: passes.far }; sim.saveState();
       if (passes.close && passes.far) { doneTag.dataset.show = "true"; sim.award("cometpilot", L("Comet Pilot", "Piloto de Cometas")); }
       else sim.toast(L(`Try the opposite too — you still need a ${isClose ? "far" : "close"} pass.`, `Prueba también lo contrario — todavía necesitas un pase ${isClose ? "lejano" : "cercano"}.`), "info");
       launching = false; launchBtn.disabled = false;
@@ -684,7 +694,7 @@ const ROCK_SIZES = [
   { id: "large", ico: ICO.rockLarge, en: "Large", es: "Grande", outcome: "large-meteorite" },
 ];
 function buildMeteorChain(mount, sim, onDone) {
-  const tried = new Set();
+  const tried = new Set(Array.isArray(sim.state.meteorTried) ? sim.state.meteorTried : []);
   const card = document.createElement("div"); card.className = "srp-station";
   card.innerHTML = `<div class="srp-station__head">
       <span class="srp-station__n">3</span>
@@ -713,6 +723,7 @@ function buildMeteorChain(mount, sim, onDone) {
   const revealBox = card.querySelector("#srp-m-reveal");
   const doneTag = card.querySelector("#srp-m-done");
   let chosen = null;
+  if (tried.size === ROCK_SIZES.length) doneTag.dataset.show = "true";
 
   /* A real starfield in the top "outer space" band, built once (not
      regenerated per launch) so the zoomed-out space phase Diego asked for
@@ -808,7 +819,7 @@ function buildMeteorChain(mount, sim, onDone) {
         : chosen.outcome === "small-meteorite" ? L("Meteorite recovered (small fragment)", "Meteorito recuperado (fragmento pequeño)")
         : L("Meteorite recovered (large fragment)", "Meteorito recuperado (fragmento grande)");
       sim.recordTrial({ station: L("Meteor Chain", "Cadena del Meteoro"), item: L(`${chosen.en} rock`, `Roca ${chosen.es.toLowerCase()}`), outcome: outcomeLabel });
-      tried.add(chosen.id);
+      tried.add(chosen.id); sim.state.meteorTried = [...tried]; sim.saveState();
       if (tried.size === ROCK_SIZES.length) { doneTag.dataset.show = "true"; sim.award("meteorwatcher", L("Meteor Watcher", "Observador de Meteoros")); }
       launchBtn.disabled = false;
       setTimeout(() => banner.classList.remove("srp-show"), 2600);
@@ -1084,9 +1095,18 @@ function investigate(host, sim) {
     { id: "beltorigin", label: L("How the asteroid belt actually formed", "Cómo se formó realmente el cinturón de asteroides") },
     { id: "impact", label: L("What would happen if a big asteroid hit Earth", "Qué pasaría si un asteroide grande golpeara la Tierra") },
   ]);
+  // resume: re-select the chips the student already chose
+  const rs = sim.state.reflect || {};
+  [["#srp-r-conf", rs.conf], ["#srp-r-next", rs.next]].forEach(([sel, val]) => {
+    const row = reflectCard.querySelector(sel); if (!val) return;
+    const opts = row.querySelectorAll("button");
+    const ids = sel === "#srp-r-conf" ? ["low", "mid", "high"] : ["moons", "beltorigin", "impact"];
+    const k = ids.indexOf(val); if (k >= 0) { opts[k].setAttribute("aria-pressed", "true"); row.dataset.value = val; }
+  });
   function saveReflection() {
     const conf = reflectCard.querySelector("#srp-r-conf").dataset.value;
     const next = reflectCard.querySelector("#srp-r-next").dataset.value;
+    sim.state.reflect = { conf, next }; sim.saveState();
     sim.setResult("reflection", { confidence: conf, next_investigation: next });
     sim.mark("reflection_recorded", !!(conf && next));
   }

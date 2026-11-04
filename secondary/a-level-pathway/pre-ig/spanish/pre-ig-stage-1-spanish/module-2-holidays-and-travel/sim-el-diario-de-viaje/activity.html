@@ -428,11 +428,11 @@ function drawInvestigate(host, sim) {
     S.best = Math.max(S.best, S.streak); S.answered++;
     sim.recordTrial({ nivel, tarea, respuesta, correcto: ok ? "Yes" : "No", intentos: tries });
     if (ok && anchor) burst(anchor);
-    sim.save && sim.save(); hud();
+    sim.saveState(); hud();
   }
   const finishStage = (container) => {
     const b = $(`<button type="button" class="btn btn--signal pz-next">${S.stage < 6 ? "Next level — fly to " + STOPS[S.stage + 1].n + " ✈" : "Finish the diary →"}</button>`);
-    b.addEventListener("click", () => { S.stage++; sim.save && sim.save(); globe.flyTo(Math.min(S.stage, STOPS.length - 1)); paint(); window.scrollTo({ top: host.offsetTop - 20, behavior: reduced() ? "auto" : "smooth" }); });
+    b.addEventListener("click", () => { S.stage++; sim.saveState(); globe.flyTo(Math.min(S.stage, STOPS.length - 1)); paint(); window.scrollTo({ top: host.offsetTop - 20, behavior: reduced() ? "auto" : "smooth" }); });
     container.append(b);
   };
   const panel = (title, how) => { const p = $(`<section class="pz-panel"><h3 class="pz-title">${title}</h3><div class="pz-how">${how}</div><div class="slot"></div></section>`); body.append(p); return p.querySelector(".slot"); };
@@ -453,14 +453,14 @@ function drawInvestigate(host, sim) {
           fb.className = "fb good"; fb.textContent = "¡Correcto! " + (q.why || "");
           if (q.onOk) q.onOk(slot);
           award(nivel, q.task || q.q, o, tries, true, c);
-          setTimeout(() => { S.p[k] = i + 1; deck(slot, k, nivel, qs, done); }, 1400);
+          setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 1400);
         } else {
           c.classList.add("is-bad"); c.disabled = true;
           if (tries >= 2) {
             chips.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === q.ok) b.classList.add("is-ok"); });
             fb.className = "fb bad"; fb.textContent = "The answer is “" + q.ok + "”. " + (q.why || "");
             award(nivel, q.task || q.q, o, tries, false);
-            setTimeout(() => { S.p[k] = i + 1; deck(slot, k, nivel, qs, done); }, 2400);
+            setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 2400);
           } else { fb.className = "fb bad"; fb.textContent = "Not quite — try once more. " + (q.hint || ""); }
         }
       });
@@ -500,7 +500,7 @@ function drawInvestigate(host, sim) {
       award(nivel, R.task, R.rows.map(r => sel[r.id]).join(" "), tries, ok, prev);
       fb.className = "fb " + (ok ? "good" : "bad");
       fb.textContent = ok ? "¡Muy bien! " + (R.why || "") : "Here is the full answer. " + (R.why || "");
-      setTimeout(() => { S.p[k] = i + 1; delete slot.dataset.locked; builder(slot, k, nivel, rounds, done); }, ok ? 2000 : 3200);
+      setTimeout(() => { S.p[k] = i + 1; sim.saveState(); delete slot.dataset.locked; builder(slot, k, nivel, rounds, done); }, ok ? 2000 : 3200);
     }
     function check() {
       tries++;
@@ -560,8 +560,8 @@ function drawInvestigate(host, sim) {
         const b = $(`<button type="button" aria-label="${PHOTO_EN[id]}"><img src="${PH(id)}" alt="${PHOTO_EN[id]}"></button>`);
         b.addEventListener("click", () => {
           tries++;
-          if (id === d.ok) { b.classList.add("is-ok"); grid.querySelectorAll("button").forEach(x => x.disabled = true); fb.className = "fb good"; fb.textContent = "¡Correcto! " + PHOTO_EN[id] + "."; award("4 Photos", d.s, PHOTO_EN[id], tries, true, b); setTimeout(() => { S.p.fot = i + 1; round(); }, 1300); }
-          else { b.classList.remove("is-bad"); void b.offsetWidth; b.classList.add("is-bad"); b.disabled = true; fb.className = "fb bad"; fb.textContent = "That is " + PHOTO_EN[id] + " — read the sentence again."; if (tries >= 2) { grid.querySelectorAll("button").forEach(x => x.disabled = true); grid.querySelectorAll("button").forEach(x => { if (x.getAttribute("aria-label") === PHOTO_EN[d.ok]) x.classList.add("is-ok"); }); award("4 Photos", d.s, PHOTO_EN[id], tries, false); setTimeout(() => { S.p.fot = i + 1; round(); }, 2300); } }
+          if (id === d.ok) { b.classList.add("is-ok"); grid.querySelectorAll("button").forEach(x => x.disabled = true); fb.className = "fb good"; fb.textContent = "¡Correcto! " + PHOTO_EN[id] + "."; award("4 Photos", d.s, PHOTO_EN[id], tries, true, b); setTimeout(() => { S.p.fot = i + 1; sim.saveState(); round(); }, 1300); }
+          else { b.classList.remove("is-bad"); void b.offsetWidth; b.classList.add("is-bad"); b.disabled = true; fb.className = "fb bad"; fb.textContent = "That is " + PHOTO_EN[id] + " — read the sentence again."; if (tries >= 2) { grid.querySelectorAll("button").forEach(x => x.disabled = true); grid.querySelectorAll("button").forEach(x => { if (x.getAttribute("aria-label") === PHOTO_EN[d.ok]) x.classList.add("is-ok"); }); award("4 Photos", d.s, PHOTO_EN[id], tries, false); setTimeout(() => { S.p.fot = i + 1; sim.saveState(); round(); }, 2300); } }
         });
         grid.append(b);
       });
@@ -604,7 +604,7 @@ function drawInvestigate(host, sim) {
       shuffle(CHAT.slice(n).map((l, i) => ({ l, idx: n + i }))).forEach(({ l, idx }) => {
         const b = $(`<button type="button" class="chip es">${l.who === "c" ? "Amigo/a" : "Tú"}: ${l.es}</button>`);
         b.addEventListener("click", () => {
-          if (idx === n) { award("6 Chat", "Line " + (n + 1) + " of the chat", l.es, mistakes ? 2 : 1, true, b); mistakes = 0; S.p.chat++; paint(); }
+          if (idx === n) { award("6 Chat", "Line " + (n + 1) + " of the chat", l.es, mistakes ? 2 : 1, true, b); mistakes = 0; S.p.chat++; sim.saveState(); paint(); }
           else { mistakes++; b.classList.remove("is-bad"); void b.offsetWidth; b.classList.add("is-bad"); fb.className = "fb bad"; fb.textContent = "Not yet — a question gets an answer, and the story goes in order: where, what you visited, what you ate."; }
         });
         pool.append(b);

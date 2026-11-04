@@ -616,13 +616,13 @@ const simulation = {
       const before = rankFor(game.xp);
       game.xp += XP_PER_ACTION; game.streak += 1;
       game.bestStreak = Math.max(game.bestStreak || 0, game.streak);
-      sim.save && sim.save();
+      sim.saveState();
       paintRank();
       fireBurst(host2, ["#7bd6ff","#3fb0d0","#ffd45c","#eaf6ff"]);
       const after = rankFor(game.xp);
       if (after !== before) celebrateLevelUp(after.name);
     }
-    function breakStreak(){ game.streak = 0; sim.save && sim.save(); paintRank(); }
+    function breakStreak(){ game.streak = 0; sim.saveState(); paintRank(); }
 
     const phaseHost = document.createElement("div"); wrap.append(phaseHost);
     if (game.phase === "fish") renderMicroPhase("fish", FISH_KEYS, FISH_IMG, FISH_CREDIT,
@@ -718,8 +718,8 @@ const simulation = {
             armed = null;
             if (matched === keys.length){
               setTimeout(()=>{
-                if (slideKey === "fish"){ game.phase = "eagle"; sim.save && sim.save(); renderMicroPhase("eagle", EAGLE_KEYS, EAGLE_IMG, EAGLE_CREDIT, L("Specimen B — bald eagle in flight","Espécimen B — águila calva en vuelo"), 976, 768); }
-                else { game.phase = "sort"; sim.save && sim.save(); renderSortPhase(); }
+                if (slideKey === "fish"){ game.phase = "eagle"; sim.saveState(); renderMicroPhase("eagle", EAGLE_KEYS, EAGLE_IMG, EAGLE_CREDIT, L("Specimen B — bald eagle in flight","Espécimen B — águila calva en vuelo"), 976, 768); }
+                else { game.phase = "sort"; sim.saveState(); renderSortPhase(); }
               }, 700);
             }
           } else {
@@ -777,7 +777,7 @@ const simulation = {
         c.addEventListener("click", ()=>{
           if (c.classList.contains("is-placed")) return;
           if (!game.scanned[sp.id]){
-            game.scanned[sp.id] = true; sim.save && sim.save();
+            game.scanned[sp.id] = true; sim.saveState();
             c.classList.add("is-scanned");
             c.querySelector(".specimen-card__scanflag").textContent = L("Scanned","Escaneado");
             clue.innerHTML = `<p class="clue-panel__title">${sp.name}</p><ul>${sp.clues.map(cl=>`<li>${cl}</li>`).join("")}</ul>
@@ -816,7 +816,7 @@ const simulation = {
             const tag = document.createElement("span"); tag.className = "bucket__item"; tag.textContent = sp.name;
             b.querySelector(".bucket__items").append(tag);
             cards[armed].classList.add("is-placed");
-            game.sortDone[armed] = true; sim.save && sim.save();
+            game.sortDone[armed] = true; sim.saveState();
             sim.recordTrial({ stage: L("Classification","Clasificación"), organism: sp.name,
               result: L(`Correctly classified as ${k.name}`,`Clasificado correctamente como ${k.name}`) });
             flashNote(L(`Correct! ${sp.name} belongs in ${k.name}.`,`¡Correcto! ${sp.name} pertenece a ${k.name}.`), "correct");
@@ -936,7 +936,7 @@ const simulation = {
               },
               onExit(stats){
                 game.questBest = Math.max(game.questBest || 0, stats.score);
-                sim.save && sim.save();
+                sim.saveState();
                 gameHost.innerHTML = "";
                 gameHost.remove();
                 arcadeSection.dataset.rendered = "";

@@ -145,7 +145,7 @@ function setupBench(st, T, dist, tgt) {
 /* ───────── Station 1: Saw Bench (3D) ───────── */
 const SAW_ORDERS = [{ n: 3, b: 4 }, { n: 2, b: 3 }, { n: 4, b: 2 }, { n: 2, b: 5 }, { n: 3, b: 6 }];
 async function buildSaw(host, sim, setD) {
-  host.innerHTML = ""; let round = 0;
+  host.innerHTML = ""; let round = sim.state.saw || 0;
   async function render() {
     if (round >= SAW_ORDERS.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Saw Bench complete! Every plank is cut.", "¡Banco de sierra completo! Todos los tablones están cortados.")} ✦</p><p>${L("Move on to the Plank Wall →", "Pasa al Muro de tablones →")}</p></div>`; return; }
     const { n, b: B } = SAW_ORDERS[round];
@@ -195,7 +195,7 @@ async function buildSaw(host, sim, setD) {
           $("#qa").querySelectorAll("button").forEach(x => x.disabled = true); flyChips(bt, 5); if (st.ok) st.burst(new T.Vector3(0, 1.5, 0), 0xffd54a, 40);
           sim.recordTrial({ task: L("Saw Bench", "Banco de sierra"), input: `${n} ÷ 1/${B}`, result: `${right} ${L("pieces", "piezas")} (${L("tries", "intentos")}: ${tries + wrong})` });
           const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = round < SAW_ORDERS.length - 1 ? L("Next job →", "Siguiente trabajo →") : L("Finish station ✦", "Terminar estación ✦");
-          nx.addEventListener("click", () => { st.dispose(); round++; render(); }); $("#qa").appendChild(nx);
+          nx.addEventListener("click", () => { st.dispose(); round++; sim.state.saw = round; sim.saveState(); render(); }); $("#qa").appendChild(nx);
         } else { wrong++; shake(bt); bt.disabled = true; msgSet($("#msg"), L(`Not quite. Count the pieces on the bench again: each metre has ${B} pieces.`, `Casi. Cuenta otra vez las piezas del banco: cada metro tiene ${B} piezas.`), "bad"); }
       }));
     });
@@ -207,7 +207,7 @@ async function buildSaw(host, sim, setD) {
 /* ───────── Station 2: Plank Wall (3D) ───────── */
 const WALL_ORDERS = [{ n: 2, b: 3 }, { n: 4, b: 2 }, { n: 3, b: 5 }, { n: 2, b: 6 }, { n: 5, b: 4 }];
 async function buildWall(host, sim, setD) {
-  host.innerHTML = ""; let round = 0;
+  host.innerHTML = ""; let round = sim.state.wall || 0;
   async function render() {
     if (round >= WALL_ORDERS.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Plank Wall complete!", "¡Muro de tablones completo!")} ✦</p><p>${L("Next: Order Desk →", "Siguiente: Mostrador →")}</p></div>`; return; }
     const { n: N0, b: B0 } = WALL_ORDERS[round];
@@ -251,7 +251,7 @@ async function buildWall(host, sim, setD) {
           $("#qa").querySelectorAll("button").forEach(x => x.disabled = true); flyChips(bt, 5);
           sim.recordTrial({ task: L("Plank Wall", "Muro de tablones"), input: `${N0} ÷ 1/${B0}`, result: `${N0} × ${B0} = ${N0 * B0} (${L("tries", "intentos")}: ${tries + 1})` });
           const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = round < WALL_ORDERS.length - 1 ? L("Next wall →", "Siguiente muro →") : L("Finish station ✦", "Terminar estación ✦");
-          nx.addEventListener("click", () => { st.dispose(); round++; render(); }); $("#qa").appendChild(nx);
+          nx.addEventListener("click", () => { st.dispose(); round++; sim.state.wall = round; sim.saveState(); render(); }); $("#qa").appendChild(nx);
         } else { tries++; shake(bt); bt.disabled = true; msgSet($("#msg"), L(`Not this one. The wall has ${N0} planks with ${B0} pieces each, so ${N0} groups of ${B0}.`, `Esta no. El muro tiene ${N0} tablones con ${B0} piezas cada uno, o sea ${N0} grupos de ${B0}.`), "bad"); }
       }));
     });
@@ -269,7 +269,7 @@ const DESK = [
   { en: "Is 4 ÷ ¼ bigger or smaller than 4?", es: "¿4 ÷ ¼ es mayor o menor que 4?", ans: "Bigger: 16", opts: ["Smaller, because ¼ is small", "Bigger: 16", "Equal to 1"], optsEs: ["Menor, porque ¼ es pequeño", "Mayor: 16", "Igual a 1"], hook: ["Each of the 4 wholes makes 4 quarters: 4 × 4 = 16, more than 4.", "Cada uno de los 4 enteros da 4 cuartos: 4 × 4 = 16, más que 4."], expr: "4 ÷ 1/4" }
 ];
 function buildDesk(host, sim) {
-  let i = 0, wins = 0;
+  let i = sim.state.deskI || 0, wins = sim.state.deskW || 0;
   function render() {
     if (i >= DESK.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Order Desk complete!", "¡Mostrador completo!")} ✦</p><p>${L(`You answered ${wins} of ${DESK.length} on the first try.`, `Acertaste ${wins} de ${DESK.length} al primer intento.`)}</p><p>${L("Try the Lumber Orders bonus round below, or continue to Record.", "Prueba la ronda bonus Pedidos de madera abajo, o continúa a Registro.")}</p></div>`; return; }
     const q = DESK[i]; let first = true; const es = getLang() === "es";
@@ -287,7 +287,7 @@ function buildDesk(host, sim) {
         host.querySelectorAll("#opts button").forEach(x => x.disabled = true);
         sim.recordTrial({ task: L("Order Desk", "Mostrador"), input: q.expr, result: `${q.ans} (${first ? L("first try", "primer intento") : L("after a retry", "tras reintentar")})` });
         const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = i < DESK.length - 1 ? L("Next customer →", "Siguiente cliente →") : L("Finish ✦", "Terminar ✦");
-        nx.addEventListener("click", () => { i++; render(); }); host.querySelector(".panel").appendChild(nx);
+        nx.addEventListener("click", () => { i++; sim.state.deskI = i; sim.state.deskW = wins; sim.saveState(); render(); }); host.querySelector(".panel").appendChild(nx);
       } else { first = false; shake(bt); bt.disabled = true; bt.style.opacity = ".45"; msgSet(host.querySelector("#msg"), `${L("Not this one.", "Esta no.")} ${L("The trick:", "El truco:")} ${L(q.hook[0], q.hook[1])} ${L("Try again!", "¡Inténtalo otra vez!")}`, "bad"); }
     }));
   }
@@ -394,6 +394,7 @@ function investigate(host, sim) {
     b.addEventListener("click", () => {
       if (cur) { try { cur(); } catch (e) {} cur = null; }
       tabs.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true");
+      sim.state.tab = stations.indexOf(s); sim.saveState();
       s.build(content, sim, d => { cur = d; });
     });
     tabs.appendChild(b);
@@ -401,7 +402,7 @@ function investigate(host, sim) {
   host.append(tabs, content, bonus);
   disposers.push(() => { if (cur) { try { cur(); } catch (e) {} cur = null; } });
   renderBonus(bonus, sim);
-  tabs.children[0].click();
+  tabs.children[sim.state.tab || 0].click();
 }
 
 const simulation = { orient(host) { orientDiagram(host); }, investigate(host, sim) { investigate(host, sim); } };
