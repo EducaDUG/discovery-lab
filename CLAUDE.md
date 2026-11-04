@@ -1962,6 +1962,14 @@ Feedback: the Record stage (Investigation Record) and the Explain stage are sepa
 - **BUILT 2026-11-04 (engine v21):** `evidencePanel()` in `engine/engine.js` shows the records on Explain and Apply for every activity with `record.columns`. Students tap "Use" on trials; picks persist in `state.pinned` and later visits show only those, with a "Show all" toggle. Record page unchanged. Strings `evpanel.*` in `i18n.js` (en/es).
 - Implement once in `engine/engine.js` (shared evidence panel fed from the existing trial log), never per activity.
 
+### 12.16 Lesson from `sim-orchard-market-fraction-review` feedback - in-stage progress was lost on reopen (2026-11-04, standing rule)
+
+A student closed the tab and reopened it (Chrome): the engine restored the stage and logged trials, but the station round counters were plain `let round = 0` variables, so every station restarted at order 1. Rules for every simulation:
+
+- **Any progress inside Investigate (round/order index, score, streak, current tab/station, placed items, game phase) must live in `sim.state` and be followed by `sim.saveState()`**, never only in a local variable. Test by reloading mid-Investigate and confirming it resumes where it left off.
+- Do not bump `config.version` just to ship a fix like this: saved work is keyed by version and a bump wipes every student's progress.
+- Known gap: only about 10 simulations use `sim.state` today; the rest likely lose in-stage progress on reopen. Fix each when next opened.
+
 ---
 
 ## 17. Revision websites (`exam-N-revision/`) — standing rules (agreed 2026-10-27)

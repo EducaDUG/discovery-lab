@@ -133,7 +133,7 @@ const CRATE_ORDERS = [{ n: 12, a: 3, b: 4 }, { n: 20, a: 2, b: 5 }, { n: 18, a: 
 const GRID = { 12: [4, 3], 15: [5, 3], 18: [6, 3], 20: [5, 4], 24: [6, 4] };
 
 async function buildStation1(host, sim, setDisposer) {
-  host.innerHTML = ""; let round = 0;
+  host.innerHTML = ""; let round = sim.state.s1 || 0;
   async function render() {
     if (round >= CRATE_ORDERS.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Crate Counter complete! The apples are all sold.", "¡Contador de cajas completo! Se vendieron todas las manzanas.")} ✦</p><p>${L("Move on to the Orchard Plot →", "Pasa a la Parcela del huerto →")}</p></div>`; return; }
     const o = CRATE_ORDERS[round], { n, a, b: B } = o, expected = n * a / B;
@@ -207,7 +207,7 @@ async function buildStation1(host, sim, setDisposer) {
         flyApples(ev.currentTarget, 6);
         sim.recordTrial({ task: L("Crate Counter", "Contador de cajas"), input: `${fp(a, B)} × ${n}`, result: `${expected} ${L("apples", "manzanas")} (${L("tries", "intentos")}: ${tries})` });
         const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = round < CRATE_ORDERS.length - 1 ? L("Next order →", "Siguiente pedido →") : L("Finish station ✦", "Terminar estación ✦");
-        nx.addEventListener("click", () => { st.dispose(); round++; render(); }); $(".om-bar:last-of-type").appendChild(nx);
+        nx.addEventListener("click", () => { st.dispose(); round++; sim.state.s1 = round; sim.saveState(); render(); }); $(".om-bar:last-of-type").appendChild(nx);
       } else {
         shake($("#serve")); if (st.ok && basketGroup) { const p = basketGroup.position.clone(); st.tween(basketGroup, p.clone().add(new T.Vector3(.3, 0, 0)), 70, { onDone: () => st.tween(basketGroup, p, 70) }); }
         msgSet($("#msg"), L(`The basket has ${count} apples, but ${frac(a, B)} of ${n} is a different amount. Hint: the bottom number (${B}) tells you how many equal groups; the top number (${a}) tells you how many groups to take.`, `La cesta tiene ${count} manzanas, pero ${frac(a, B)} de ${n} es otra cantidad. Pista: el número de abajo (${B}) dice cuántos grupos iguales; el de arriba (${a}) dice cuántos grupos tomar.`), "bad");
@@ -222,7 +222,7 @@ async function buildStation1(host, sim, setDisposer) {
 const PLOT_ROUNDS = [{ a: 2, b: 3, c: 3, d: 4 }, { a: 1, b: 2, c: 2, d: 3 }, { a: 3, b: 4, c: 1, d: 2 }, { a: 2, b: 5, c: 3, d: 4 }, { a: 3, b: 5, c: 1, d: 3 }];
 
 async function buildStation2(host, sim, setDisposer) {
-  host.innerHTML = ""; let round = 0;
+  host.innerHTML = ""; let round = sim.state.s2 || 0;
   async function render() {
     if (round >= PLOT_ROUNDS.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Orchard Plot complete!", "¡Parcela del huerto completa!")} ✦</p><p>${L("Next: Market Rush →", "Siguiente: Carrera del mercado →")}</p></div>`; return; }
     const { a, b, c, d } = PLOT_ROUNDS[round];
@@ -280,7 +280,7 @@ async function buildStation2(host, sim, setDisposer) {
           qa.querySelectorAll("button").forEach(x => x.disabled = true); flyApples(bt, 5);
           sim.recordTrial({ task: L("Orchard Plot", "Parcela del huerto"), input: `${fp(a, b)} × ${fp(c, d)}`, result: `${right}${simp} (${L("tries", "intentos")}: ${tries + 1})` });
           const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = round < PLOT_ROUNDS.length - 1 ? L("Next plot →", "Siguiente parcela →") : L("Finish station ✦", "Terminar estación ✦");
-          nx.addEventListener("click", () => { st.dispose(); round++; render(); }); qa.appendChild(nx);
+          nx.addEventListener("click", () => { st.dispose(); round++; sim.state.s2 = round; sim.saveState(); render(); }); qa.appendChild(nx);
         } else { tries++; shake(bt); bt.disabled = true; msgSet($("#msg"), L(`Not quite. Count again: ${a * c} red tiles out of ${b * d} tiles in the whole plot.`, `Casi. Cuenta otra vez: ${a * c} casillas rojas de ${b * d} en toda la parcela.`), "bad"); }
       }));
     });
@@ -299,7 +299,7 @@ const RUSH = [
   { en: "⅔ of a pie is left. A customer eats ½ of what is left. What fraction of the whole pie did the customer eat?", es: "Queda ⅔ de un pastel. Un cliente come ½ de lo que queda. ¿Qué fracción de todo el pastel comió el cliente?", ans: "1/3", opts: ["1/6", "1/3", "1/2"], hook: ["½ × ⅔ = 2/6, which simplifies to 1/3.", "½ × ⅔ = 2/6, que se simplifica a 1/3."], expr: "1/2 × 2/3" }
 ];
 function buildStation3(host, sim) {
-  let i = 0, wins = 0;
+  let i = sim.state.s3i || 0, wins = sim.state.s3w || 0;
   function render() {
     if (i >= RUSH.length) { host.innerHTML = `<div class="panel" style="text-align:center;padding:24px"><p style="font-size:1.2em;font-weight:700;color:#2a8a3a">✦ ${L("Market Rush complete!", "¡Carrera del mercado completa!")} ✦</p><p>${L(`You served ${wins} of ${RUSH.length} customers on the first try.`, `Atendiste a ${wins} de ${RUSH.length} clientes al primer intento.`)}</p><p>${L("Try the Crate Hunt bonus round below, or continue to Record.", "Prueba la ronda bonus Búsqueda de cajas abajo, o continúa a Registro.")}</p></div>`; return; }
     const q = RUSH[i]; let first = true;
@@ -317,7 +317,7 @@ function buildStation3(host, sim) {
         host.querySelectorAll("#opts button").forEach(x => x.disabled = true);
         sim.recordTrial({ task: L("Market Rush", "Carrera del mercado"), input: q.expr, result: `${q.ans} (${first ? L("first try", "primer intento") : L("after a retry", "tras reintentar")})` });
         const nx = document.createElement("button"); nx.className = "btn btn--signal"; nx.type = "button"; nx.textContent = i < RUSH.length - 1 ? L("Next customer →", "Siguiente cliente →") : L("Finish ✦", "Terminar ✦");
-        nx.addEventListener("click", () => { i++; render(); }); host.querySelector(".panel").appendChild(nx);
+        nx.addEventListener("click", () => { i++; sim.state.s3i = i; sim.state.s3w = wins; sim.saveState(); render(); }); host.querySelector(".panel").appendChild(nx);
       } else { first = false; shake(bt); bt.disabled = true; bt.style.opacity = ".45"; msgSet(host.querySelector("#msg"), `${L("Not this one.", "Esta no.")} ${L("The trick:", "El truco:")} ${L(q.hook[0], q.hook[1])} ${L("Try again!", "¡Inténtalo otra vez!")}`, "bad"); }
     }));
   }
@@ -418,6 +418,7 @@ function investigate(host, sim) {
     b.addEventListener("click", () => {
       if (cur) { try { cur(); } catch (e) {} cur = null; }
       tabs.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true");
+      sim.state.tab = i; sim.saveState();
       s.build(content, sim, d => { cur = d; });
     });
     tabs.appendChild(b);
@@ -425,7 +426,7 @@ function investigate(host, sim) {
   host.append(tabs, content, bonus);
   disposers.push(() => { if (cur) { try { cur(); } catch (e) {} cur = null; } });
   renderBonus(bonus, sim);
-  tabs.children[0].click();
+  tabs.children[sim.state.tab || 0].click();
 }
 
 const simulation = {
