@@ -260,6 +260,10 @@
 function boot(){
   if(typeof THREE === "undefined"){ return setTimeout(boot, 120); }
   startGame();
+  try{ restoreProgress(); }catch(e){}
+  setInterval(saveProgress, 1500);
+  window.addEventListener('pagehide', saveProgress);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveProgress(); });
 }
 
 /* ---------- global-ish handles ---------- */
@@ -2204,6 +2208,45 @@ function setupPostFX(){
     }catch(e){ cinePass=null; } }
     useFX = true;
   }catch(e){ useFX=false; }
+}
+
+
+/* ---------- resume support: progress persisted in this frame's localStorage ---------- */
+const SAVE_KEY="dl-game:cuvier-deep-dive", SAVE_VER=1;
+function saveProgress(){
+  try{
+    if(!whale) return;
+    if(state.ended){ localStorage.removeItem(SAVE_KEY); return; }
+    if(!state.running) return;
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      v:SAVE_VER,
+      s:{o2:state.o2,score:state.score,streak:state.streak,bestStreak:state.bestStreak,
+         preyEaten:state.preyEaten,deepest:state.deepest,questionsDone:state.questionsDone,yaw:state.yaw},
+      pos:[whale.position.x,whale.position.y,whale.position.z],
+      done:QUESTIONS.map(q=>q.done?1:0),
+      zones:Array.from(_reportedZones),
+      ms:milestones
+    }));
+  }catch(e){}
+}
+function restoreProgress(){
+  let d=null;
+  try{ d=JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); }catch(e){ d=null; }
+  if(!d || d.v!==SAVE_VER || !d.s || !Array.isArray(d.pos) || !Array.isArray(d.done)){
+    if(d) try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+    return;
+  }
+  const n=x=>typeof x==="number" && isFinite(x);
+  for(const k of ["o2","score","streak","bestStreak","preyEaten","deepest","questionsDone","yaw"]){
+    if(n(d.s[k])) state[k]=d.s[k];
+  }
+  _scoreTarget=state.score;
+  if(d.pos.length===3 && d.pos.every(n)) whale.position.set(d.pos[0],d.pos[1],d.pos[2]);
+  d.done.forEach((f,i)=>{ if(QUESTIONS[i]) QUESTIONS[i].done=!!f; });
+  (d.zones||[]).forEach(z=>_reportedZones.add(z));
+  if(d.ms) for(const k in milestones) if(d.ms[k]) milestones[k]=true;
+  updateQProgress();
+  const b=document.getElementById("playBtn"); if(b) b.textContent="Continue the dive";
 }
 
 /* ---------- go (boot() is invoked by the engine loader above) ---------- */

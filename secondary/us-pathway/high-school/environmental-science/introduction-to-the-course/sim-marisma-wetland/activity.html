@@ -142,6 +142,17 @@ const simulation = {
      logs them to the Investigation Record automatically. */
   investigate(host, sim){
     host.innerHTML = "";
+    /* Resume support: the game saves itself in its own iframe localStorage
+       (key dl-game:marisma-wetland). sim.state.custom.marismaStarted marks that
+       a game has begun for this attempt. If it is absent AND the Record is
+       empty, this is a fresh start or a "Reset investigation", so clear the
+       saved game and the iframe starts from year 1. */
+    try {
+      if (!sim.state.marismaStarted && !(sim.state.trials && sim.state.trials.length)) {
+        localStorage.removeItem("dl-game:marisma-wetland");
+      }
+      sim.state.marismaStarted = true; sim.saveState();
+    } catch (e) { /* ignore */ }
     const wrap = document.createElement("div"); wrap.className = "stack";
 
     const note = document.createElement("p"); note.className = "q__hint";
@@ -151,7 +162,7 @@ const simulation = {
     wrap.append(note);
 
     const frame = document.createElement("iframe");
-    frame.src = "../marisma-wetland/";
+    frame.src = "../marisma-wetland/?v=3";
     frame.title = "Marisma wetland-management simulation";
     frame.setAttribute("allow", "autoplay; fullscreen");
     frame.style.cssText = "width:100%;aspect-ratio:16/10;min-height:480px;border:1px solid var(--line);border-radius:12px;background:#0c1512;display:block";

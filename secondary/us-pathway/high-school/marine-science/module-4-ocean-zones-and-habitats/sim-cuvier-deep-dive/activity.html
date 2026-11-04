@@ -129,7 +129,20 @@ const simulation = {
     wrap.append(note);
 
     const frame = document.createElement("iframe");
-    frame.src = "../cuvier-deep-dive/";
+    // Reset investigation also wipes the game's saved progress and restarts it.
+    window.__cuvierFrame = frame;
+    if (!sim.__cuvierResetWired) {
+      sim.__cuvierResetWired = true;
+      const origReset = sim.resetInvestigation.bind(sim);
+      sim.resetInvestigation = function () {
+        if (!sim.state || !sim.state.locked) {
+          try { if (window.__cuvierFrame) window.__cuvierFrame.src = "about:blank"; } catch (e) {}
+          try { localStorage.removeItem("dl-game:cuvier-deep-dive"); } catch (e) {}
+        }
+        return origReset();
+      };
+    }
+    frame.src = "../cuvier-deep-dive/?v=3";
     frame.title = "Cuvier's Deep Dive simulation";
     frame.setAttribute("allow", "autoplay; fullscreen");
     frame.style.cssText = "width:100%;aspect-ratio:16/10;min-height:460px;border:1px solid var(--line);border-radius:12px;background:#01040c;display:block";

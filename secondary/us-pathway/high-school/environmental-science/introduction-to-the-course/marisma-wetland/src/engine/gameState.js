@@ -8,7 +8,8 @@
 import { CONSTANTS, START_STATE, DECISIONS } from './config.js';
 import { makeRng, stepYear, summariseChanges, deepCopy } from './model.js';
 
-const SAVE_KEY = 'marisma_save_v2';
+const SAVE_KEY = 'dl-game:marisma-wetland';
+const SAVE_VERSION = 1;
 
 function snapshot(s) {
   return {
@@ -142,18 +143,27 @@ export class Game {
   save() {
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        mode: this.mode, seed: this.seed, state: this.state,
-        history: this.history, predictions: this.predictions, finished: this.finished
+        v: SAVE_VERSION, mode: this.mode, seed: this.seed, state: this.state,
+        history: this.history, predictions: this.predictions, finished: this.finished,
+        selected: this.selected
       }));
     } catch (e) { /* storage unavailable — ignore */ }
   }
-  static hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
-  static load() {
+  static _read() {
     try {
       const raw = localStorage.getItem(SAVE_KEY); if (!raw) return null;
       const d = JSON.parse(raw);
+      if (!d || d.v !== SAVE_VERSION || !d.state || !Array.isArray(d.history)) return null;
+      return d;
+    } catch (e) { return null; }
+  }
+  static hasSave() { return !!Game._read(); }
+  static load() {
+    try {
+      const d = Game._read(); if (!d) return null;
       const g = new Game({ mode: d.mode, seed: d.seed });
       g.state = d.state; g.history = d.history; g.predictions = d.predictions || [];
+      g.selected = Array.isArray(d.selected) ? d.selected.slice(0, CONSTANTS.MAX_ACTIONS_PER_YEAR) : [];
       g.finished = d.finished || false;
       // Re-advance the RNG so continued runs stay varied (best-effort).
       for (let i = 0; i < g.history.length; i++) g.rng();

@@ -61,6 +61,13 @@ function boot() {
   if (Game.hasSave()) $('btnContinue').classList.remove('hidden');
   wireStaticUI();
   loop();
+  // Embedded in a Discovery Lab activity: resume exactly where the student left off.
+  try {
+    if (window.parent && window.parent !== window) {
+      const saved = Game.load();
+      if (saved) { mode = saved.mode; startGame(saved, true); }
+    }
+  } catch (e) { /* ignore */ }
 }
 
 function wireStaticUI() {
@@ -100,7 +107,9 @@ function wireStaticUI() {
 /* ======================================================================
  * START / RESTART
  * ==================================================================== */
-function startGame(loaded) {
+let resumed = false; // true when restored from save: don't re-post already-logged rows
+function startGame(loaded, auto = false) {
+  resumed = !!loaded;
   audio.start();
   game = loaded || new Game({ mode });
   ui.setGame(game);
@@ -140,6 +149,7 @@ function syncWorld(immediate = false) {
 function toggleAction(id) {
   if (phase !== 'play') return;
   const ok = game.toggleAction(id);
+  game.save();
   audio.select();
   ui.updateActionBar();
   // Highlight the affected zone of the most recently selected action.
@@ -271,7 +281,7 @@ function endSequence() {
     i++;
     if (i >= series.length) {
       clearInterval(dr);
-      postFinalRow();
+      if (!resumed) postFinalRow();
       setTimeout(() => ui.showReport(), 900);
       return;
     }

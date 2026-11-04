@@ -241,6 +241,32 @@ const state = {
 };
 function levelPct(){ return state.units/10; }
 
+/* ===================== persistence (CLAUDE.md 12.16) ===================== */
+const SAVE_KEY="dl-game:day-zero-reservoir", SAVE_VER=1;
+let resetting=false, lastUi={rain:"",ext:"",rech:"",event:""};
+function saveGame(){
+  if (resetting) return;
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({v:SAVE_VER, state, ui:lastUi}));
+  }catch(e){}
+}
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return false;
+    const d=JSON.parse(raw);
+    if(!d || d.v!==SAVE_VER || !d.state || typeof d.state.year!=="number" || typeof d.state.units!=="number"){ localStorage.removeItem(SAVE_KEY); return false; }
+    Object.assign(state, d.state);
+    state.checksSeen = Object.assign({dam:false,wetland:false}, d.state.checksSeen||{});
+    if(!Array.isArray(state.history)) state.history=[];
+    if(d.ui) lastUi=Object.assign(lastUi,d.ui);
+    return true;
+  }catch(e){ try{localStorage.removeItem(SAVE_KEY);}catch(_){} return false; }
+}
+const resumed = loadGame();
+window.__dlFreezeSave=()=>{ resetting=true; };
+setInterval(saveGame, 4000);
+window.addEventListener("pagehide", saveGame);
+
 /* ===================== three.js scene handles ===================== */
 let scene, camera, renderer, clock, W, H;
 let terrain, terrainGeo, water, waterGeo, sky, skyMat;
@@ -323,6 +349,7 @@ function startGame(){
   wireInput();
   wireUI();
 
+  if (resumed) restoreUI();
   window.addEventListener("resize", onResize);
   document.getElementById("playBtn").onclick = beginRun;
   document.getElementById("continueBtn").onclick = ()=>{ document.getElementById("endScreen").classList.add("hidden"); };
@@ -564,6 +591,7 @@ function wireInput(){
   document.getElementById("zoomOut").onclick = ()=>{ orbit.radius=Math.min(1000,orbit.radius+60); idleTimer=0; };
   document.getElementById("resetSimBtn").onclick = ()=>{
     if (!window.confirm("Restart this simulation from Year 0? This clears every year you've logged so far.")) return;
+    resetting=true; try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
     try{
       if (window.parent && window.parent!==window)
         window.parent.postMessage({source:"day-zero-reservoir", kind:"reset-request"}, "*");
@@ -590,7 +618,7 @@ function showInfo(name, point, sx, sy){
   let html="";
   if (name==="dam" || name==="water"){
     html = `<b>Reservoir & dam</b><br>Level: ${levelPct().toFixed(0)}%<br>Rainfall trend is falling as the climate warms — the dam only holds what flows in.`;
-    if (!state.checksSeen.dam){ state.checksSeen.dam=true; setTimeout(()=>askCheck("dam"), 350); }
+    if (!state.checksSeen.dam){ state.checksSeen.dam=true; saveGame(); setTimeout(()=>askCheck("dam"), 350); }
   } else if (name==="town"){
     html = `<b>Domestic use</b><br>Homes use the smallest share of water (about 10% of the baseline) — but every home matters when the level is critical.`;
   } else if (name==="farmland"){
@@ -599,7 +627,7 @@ function showInfo(name, point, sx, sy){
     html = `<b>Industry</b><br>Industry uses about 20% of the baseline, mostly for processing and cooling.`;
   } else if (name==="wetland"){
     html = `<b>Wetland</b><br>A healthy wetland recharges groundwater and buffers evaporation.<br>Restoration: ${state.wet?"ON":"OFF"}`;
-    if (!state.checksSeen.wetland){ state.checksSeen.wetland=true; setTimeout(()=>askCheck("wetland"), 350); }
+    if (!state.checksSeen.wetland){ state.checksSeen.wetland=true; saveGame(); setTimeout(()=>askCheck("wetland"), 350); }
   } else return;
   card.innerHTML = html;
   let px=sx+16, py=sy-10;
@@ -642,13 +670,29 @@ function askCheck(kind){
 /* ===================== UI wiring ===================== */
 function wireUI(){
   const ag=document.getElementById("agSlider"), ind=document.getElementById("indSlider"), dom=document.getElementById("domSlider");
-  ag.oninput = ()=>{ state.agS=+ag.value; document.getElementById("agVal").textContent=state.agS+"%"; };
-  ind.oninput = ()=>{ state.indS=+ind.value; document.getElementById("indVal").textContent=state.indS+"%"; };
-  dom.oninput = ()=>{ state.domS=+dom.value; document.getElementById("domVal").textContent=state.domS+"%"; };
-  document.getElementById("tglDrip").onclick = (e)=>{ state.drip=!state.drip; e.currentTarget.classList.toggle("on",state.drip); };
-  document.getElementById("tglRain").onclick = (e)=>{ state.rainH=!state.rainH; e.currentTarget.classList.toggle("on",state.rainH); };
-  document.getElementById("tglWetland").onclick = (e)=>{ state.wet=!state.wet; e.currentTarget.classList.toggle("on",state.wet); updateWetlandVisual(); };
+  ag.oninput = ()=>{ state.agS=+ag.value; saveGame(); document.getElementById("agVal").textContent=state.agS+"%"; };
+  ind.oninput = ()=>{ state.indS=+ind.value; saveGame(); document.getElementById("indVal").textContent=state.indS+"%"; };
+  dom.oninput = ()=>{ state.domS=+dom.value; saveGame(); document.getElementById("domVal").textContent=state.domS+"%"; };
+  document.getElementById("tglDrip").onclick = (e)=>{ state.drip=!state.drip; saveGame(); e.currentTarget.classList.toggle("on",state.drip); };
+  document.getElementById("tglRain").onclick = (e)=>{ state.rainH=!state.rainH; saveGame(); e.currentTarget.classList.toggle("on",state.rainH); };
+  document.getElementById("tglWetland").onclick = (e)=>{ state.wet=!state.wet; saveGame(); e.currentTarget.classList.toggle("on",state.wet); updateWetlandVisual(); };
   document.getElementById("advanceBtn").onclick = advanceYear;
+}
+function restoreUI(){
+  const $=id=>document.getElementById(id);
+  [["agSlider","agVal","agS"],["indSlider","indVal","indS"],["domSlider","domVal","domS"]].forEach(([a,b,k])=>{ $(a).value=state[k]; $(b).textContent=state[k]+"%"; });
+  $("tglDrip").classList.toggle("on",!!state.drip);
+  $("tglRain").classList.toggle("on",!!state.rainH);
+  $("tglWetland").classList.toggle("on",!!state.wet);
+  updateWetlandVisual();
+  if (state.year>0 || state.finished){
+    $("startScreen").classList.add("hidden");
+    $("rainTxt").textContent=lastUi.rain; $("extTxt").textContent=lastUi.ext; $("rechTxt").textContent=lastUi.rech;
+    $("eventTxt").textContent=lastUi.event;
+    if (state.year>0) $("climTxt").textContent="+"+(state.year*0.15).toFixed(1)+"°C avg";
+    updateHUD();
+    if (state.finished) endRun(true);
+  }
 }
 function updateWetlandVisual(){
   reedGroup.children.forEach((r,i)=>{ r.visible = state.wet ? true : (i%2===0); });
@@ -703,6 +747,9 @@ function advanceYear(){
   document.getElementById("rechTxt").textContent = recharge+" units";
   document.getElementById("eventTxt").textContent = rain.label==="Normal year" ? "" : (rain.label==="Drought year"?"🌵 Drought reduces rainfall sharply.":"⛈️ Heavy storm boosts inflow.");
   document.getElementById("climTxt").textContent = "+"+(state.year*0.15).toFixed(1)+"°C avg";
+  lastUi={rain:rain.label+" ("+rain.mm+" mm)", ext:extraction+" units", rech:recharge+" units",
+    event: rain.label==="Normal year" ? "" : (rain.label==="Drought year"?"🌵 Drought reduces rainfall sharply.":"⛈️ Heavy storm boosts inflow.")};
+  saveGame();
 
   cinematicYear(rain, ()=>{
     updateHUD();
@@ -710,10 +757,10 @@ function advanceYear(){
     else if (rain.label==="Storm year") flashBanner("HEAVY RAINS", "A storm year gives the reservoir a boost.");
 
     if (state.units<=0){
-      state.finished=true; state.dayZero=true;
+      state.finished=true; state.dayZero=true; saveGame();
       setTimeout(()=>endRun(), 1400);
     } else if (state.year>=TOTAL_YEARS){
-      state.finished=true;
+      state.finished=true; saveGame();
       setTimeout(()=>endRun(), 1000);
     } else {
       document.getElementById("advanceBtn").disabled = false;
@@ -736,26 +783,26 @@ function updateHUD(){
   fill.style.background = pct>50 ? "linear-gradient(90deg,#2fb8c9,#6fe0c8)" : pct>20 ? "linear-gradient(90deg,#e0a83c,#f2c96a)" : "linear-gradient(90deg,#c94a3c,#e07a4a)";
 }
 
-function endRun(){
+function endRun(restored){
   const scr = document.getElementById("endScreen");
   const pct = levelPct();
   let title, sub, msg;
   if (state.dayZero){
     title="💀 Day Zero Reached"; sub="The reservoir ran dry in Year "+state.year+".";
     msg="Extraction outpaced rainfall for too long. In real cities facing this, taps are shut off and residents queue for rationed water.";
-    flashBanner("DAY ZERO REACHED", "The reservoir has run dry.");
+    if(!restored) flashBanner("DAY ZERO REACHED", "The reservoir has run dry.");
   } else if (pct>=50){
     title="🏆 Reservoir Secured"; sub="Rivelago made it through 12 years with water to spare.";
     msg="Your balance of extraction limits and conservation measures kept the reservoir resilient, even as rainfall declined.";
-    flashBanner("RESERVOIR SECURED", "12 years managed — water still flowing.");
+    if(!restored) flashBanner("RESERVOIR SECURED", "12 years managed — water still flowing.");
   } else if (pct>=20){
     title="⚠️ At Risk"; sub="Rivelago survived, but the reservoir is dangerously low.";
     msg="The city avoided Day Zero, but another drought year could tip it over. Small margins like this are what push real cities into crisis.";
-    flashBanner("YEAR 12 COMPLETE", "The reservoir survived — but only just.");
+    if(!restored) flashBanner("YEAR 12 COMPLETE", "The reservoir survived — but only just.");
   } else {
     title="🚨 Critical"; sub="Rivelago is right on the edge of Day Zero.";
     msg="A near miss. This is exactly the position Cape Town was in before its 2018 water crisis.";
-    flashBanner("YEAR 12 COMPLETE", "Critically low — a near miss.");
+    if(!restored) flashBanner("YEAR 12 COMPLETE", "Critically low — a near miss.");
   }
   document.getElementById("endTitle").textContent=title;
   document.getElementById("endSub").textContent=sub;
@@ -763,8 +810,8 @@ function endRun(){
   document.getElementById("endLevel").textContent=pct.toFixed(0)+"%";
   document.getElementById("endDrought").textContent=state.droughtYears;
   document.getElementById("endYears").textContent=state.year;
-  setTimeout(()=>scr.classList.remove("hidden"), 900);
-  postSummary();
+  setTimeout(()=>scr.classList.remove("hidden"), restored?0:900);
+  if(!restored) postSummary();
 }
 
 function postRecord(row){

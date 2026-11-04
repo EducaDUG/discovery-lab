@@ -186,6 +186,20 @@ const simulation = {
 
   investigate(host, api){
     sim = api; host.innerHTML = "";
+    // Clear the game's own saved progress whenever the engine's Reset investigation runs (CLAUDE.md 12.16).
+    if (!api.__dzResetWrapped) {
+      api.__dzResetWrapped = true;
+      const origReset = api.resetInvestigation.bind(api);
+      api.resetInvestigation = function () {
+        try {
+          // freeze the outgoing game so its pagehide/interval save cannot rewrite the key
+          const old = document.querySelector("iframe.sim-frame");
+          if (old && old.contentWindow && old.contentWindow.__dlFreezeSave) old.contentWindow.__dlFreezeSave();
+        } catch (e) {}
+        try { localStorage.removeItem("dl-game:day-zero-reservoir"); } catch (e) {}
+        return origReset();
+      };
+    }
     const wrap = document.createElement("div"); wrap.className = "stack";
 
     const chosen = (api.state.predict != null) ? SIM_PREDICT_TEXT[api.state.predict] : null;
@@ -208,7 +222,7 @@ const simulation = {
     wrap.append(note);
 
     const frame = document.createElement("iframe");
-    frame.src = "../day-zero-reservoir/?v=2";
+    frame.src = "../day-zero-reservoir/?v=3";
     frame.title = "Day Zero reservoir-management simulation";
     frame.className = "sim-frame";
     frame.setAttribute("allow", "autoplay; fullscreen");
