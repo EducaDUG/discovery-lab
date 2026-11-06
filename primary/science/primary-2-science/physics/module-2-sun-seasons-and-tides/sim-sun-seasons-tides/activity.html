@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<!-- Primary 2 Science · Physics · Module 2: Sun, Seasons and Tides · Sun, Seasons & Tides Observatory.
+     Content lives here + config.json/marking.json only. Never edit the shared engine for a content change.
+     Hyper-real 3D (CLAUDE.md §18): vendored Three.js, ACES tone mapping, real NASA texture maps, particle dressing.
+     Bonus mechanic: race/vehicle control ("Tide Pilot", first use in the library). -->
+<html lang="en" data-theme="physics" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sun, Seasons & Tides Observatory — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .ssl-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .ssl-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .ssl-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .ssl-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .ssl-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .ssl-done[data-show="true"] { display: inline; }
+  .ssl-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .ssl-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .ssl-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .ssl-stage { aspect-ratio: 1/1; } .ssl-inset { transform: scale(.82); transform-origin: top right; } }
+  .ssl-stage canvas.ssl-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .ssl-stage canvas.ssl-gl:active { cursor: grabbing; }
+  .ssl-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .ssl-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .ssl-inset canvas { display: block; }
+  .ssl-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .ssl-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .ssl-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .ssl-row label { font-weight: 700; font-size: .84rem; }
+  .ssl-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .ssl-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .ssl-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .ssl-chip:hover, .ssl-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .ssl-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .ssl-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .ssl-btn:disabled { opacity: .5; cursor: default; }
+  .ssl-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .ssl-btn.ssl-shake, .ssl-order.ssl-shake { animation: ssl-shake .35s ease; }
+  [data-reduced-motion="on"] .ssl-shake { animation: none !important; }
+  @keyframes ssl-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .ssl-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .ssl-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .ssl-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .ssl-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .ssl-dots i[data-on="true"] { background: var(--accent); }
+
+  .ssl-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .ssl-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .ssl-city b { display: block; font-size: .84rem; }
+  .ssl-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .ssl-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .ssl-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .ssl-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .ssl-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .ssl-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .ssl-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .ssl-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .ssl-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .ssl-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .ssl-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .ssl-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .ssl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .ssl-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .ssl-card:hover, .ssl-card:focus-visible { border-color: var(--accent); outline: none; }
+  .ssl-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .ssl-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ssl-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .ssl-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .ssl-card[data-done="true"] { border-color: var(--accent); }
+  .ssl-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .ssl-photo img { display: block; width: 100%; height: auto; }
+  .ssl-photo .ssl-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .ssl-photo .ssl-spot:hover, .ssl-photo .ssl-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .ssl-photo .ssl-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .ssl-photo .ssl-spot.ssl-shake { border-color: #E8766A; }
+  .ssl-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .ssl-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .ssl-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .ssl-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .ssl-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .ssl-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .ssl-bonus p { color: #c8d7f5; }
+  .ssl-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .ssl-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .ssl-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .ssl-quiz .ssl-row { margin-top: .3rem; }
+  .ssl-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .ssl-bonus .ssl-btn--ghost { background: #ffffff1c; color: #fff; }
+  .ssl-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2, D2R = Math.PI / 180;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    onUpdate(1 - Math.pow(1 - t, 3), t);
+    if (t < 1) requestAnimationFrame(step); else onDone && onDone();
+  }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return;
+  count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "ssl-particle";
+    const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px";
+    p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
+      { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }],
+      { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); return GL_OK; }
+  catch (e) { GL_OK = false; return false; }
+}
+const fmtH = h => { const m = Math.round(((h % 24) + 24) % 24 * 60); return String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+const ICO_CHECK = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>`;
+
+/* ============================================================
+   3D DRESSING + SHARED SCENE KIT (hyper-real: ACES, sRGB, real NASA maps)
+   ============================================================ */
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 128;
+  const ctx = c.getContext("2d"), g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(0.35, hex + "99"); g.addColorStop(1, hex + "00");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeCloudTexture() {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 256;
+  const ctx = c.getContext("2d"); ctx.clearRect(0, 0, 512, 256);
+  for (let i = 0; i < 120; i++) {
+    const x = Math.random() * 512, y = 40 + Math.random() * 176, r = 8 + Math.random() * 30;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, "rgba(255,255,255,.55)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, r * 1.8, r, 0, 0, TAU); ctx.fill();
+  }
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = THREE.RepeatWrapping; return t;
+}
+function makeStarField(count, radius) {
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const r = radius * (0.7 + Math.random() * 0.3), th = Math.random() * TAU, ph = Math.acos(2 * Math.random() - 1);
+    pos[i * 3] = r * Math.sin(ph) * Math.cos(th); pos[i * 3 + 1] = r * Math.cos(ph); pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+  }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  return new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, sizeAttenuation: true, transparent: true, opacity: .9, map: makeGlowTexture("#ffffff"), depthWrite: false, blending: THREE.AdditiveBlending }));
+}
+const texLoader = () => new THREE.TextureLoader();
+function loadTex(url) { const t = texLoader().load(url); t.encoding = THREE.sRGBEncoding; return t; }
+
+/* One orbitable space scene: renderer + camera + drag orbit + per-frame hooks. */
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "ssl-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+  renderer.domElement.className = "ssl-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(); scene.add(makeStarField(1600, 90));
+  const camera = new THREE.PerspectiveCamera(o.fov || 40, 1, 0.1, 400);
+  const ob = { yaw: o.yaw || 0.6, pitch: o.pitch || 0.45, dist: o.dist || 8, auto: o.auto === undefined ? 0.04 : o.auto, target: new THREE.Vector3(0, 0, 0), fit: 1 };
+  let drag = null, traveled = 0;
+  const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; traveled = 0; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; traveled += Math.abs(dx) + Math.abs(dy);
+    ob.yaw -= dx * 0.008; ob.pitch = Math.max(-1.3, Math.min(1.4, ob.pitch + dy * 0.008)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let alive = true, last = performance.now();
+  function resize() {
+    const w = stage.clientWidth || 600, h = stage.clientHeight || 360;
+    renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.15 / camera.aspect); camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!drag && !reducedMotion() && (!ob.idle || now - ob.idle > 2500)) ob.yaw += ob.auto * dt;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(ob.yaw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(ob.yaw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "ssl-hint-drag"; hint.textContent = L("Drag to orbit", "Arrastra para girar"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer, resize };
+}
+function makeSunSprite(sp, scale) {
+  const g = new THREE.Group();
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#ffb347"), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  glow.scale.setScalar(scale * 3.2); g.add(glow);
+  const disc = new THREE.Sprite(new THREE.SpriteMaterial({ map: loadTex("photos/sun.jpg"), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  disc.scale.setScalar(scale * 1.6); g.add(disc);
+  sp.scene.add(g); return g;
+}
+/* Earth: tilt group > spin mesh (real NASA map, standard material) + clouds + atmosphere + axis line. lat/lon pins live on the spin mesh. */
+function makeEarth(sp, radius) {
+  const tilt = new THREE.Group();
+  const spin = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 48), new THREE.MeshStandardMaterial({ map: loadTex("photos/earthmap.jpg"), roughness: 0.78, metalness: 0.05 }));
+  tilt.add(spin);
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.012, 48, 32), new THREE.MeshStandardMaterial({ map: makeCloudTexture(), transparent: true, opacity: 0.32, depthWrite: false, roughness: 1 }));
+  tilt.add(clouds);
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.12, 48, 32), new THREE.ShaderMaterial({
+    transparent: true, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
+    vertexShader: "varying vec3 vN; varying vec3 vV; void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }",
+    fragmentShader: "varying vec3 vN; varying vec3 vV; void main(){ float i = pow(max(0.0, 0.62 + dot(vN, vV) * 0.9), 2.6); gl_FragColor = vec4(0.30, 0.62, 1.0, 1.0) * i; }" }));
+  tilt.add(atmo);
+  const axis = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.007, radius * 0.007, radius * 2.7, 8), new THREE.MeshBasicMaterial({ color: 0xffd35c, toneMapped: false }));
+  tilt.add(axis);
+  sp.scene.add(tilt);
+  function pin(latDeg, lonDeg, color, size) {
+    const phi = TAU * (lonDeg + 180) / 360, lat = latDeg * D2R, r = radius * 1.01;
+    const p = new THREE.Vector3(-r * Math.cos(lat) * Math.cos(phi), r * Math.sin(lat), r * Math.cos(lat) * Math.sin(phi));
+    const m = new THREE.Mesh(new THREE.SphereGeometry(radius * (size || 0.045), 16, 12), new THREE.MeshBasicMaterial({ color, toneMapped: false }));
+    m.position.copy(p); spin.add(m);
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.006, radius * 0.006, radius * 0.16, 6), new THREE.MeshBasicMaterial({ color, toneMapped: false }));
+    stick.position.copy(p.clone().multiplyScalar(1.04)); stick.lookAt(new THREE.Vector3(0, 0, 0)); stick.rotateX(Math.PI / 2); spin.add(stick);
+    return m;
+  }
+  return { tilt, spin, clouds, pin, radius };
+}
+/* Moon with the real LRO near-side image mapped orthographically (the Moon always shows us one face). */
+function makeMoon(sp, radius) {
+  const geo = new THREE.SphereGeometry(radius, 48, 32), pos = geo.attributes.position, uv = geo.attributes.uv;
+  for (let i = 0; i < pos.count; i++) { const x = pos.getX(i) / radius, y = pos.getY(i) / radius; uv.setXY(i, 0.5 + 0.495 * x, 0.5 + 0.495 * y); }
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: loadTex("photos/moonmap.jpg"), roughness: 1, metalness: 0 }));
+  sp.scene.add(m); return m;
+}
+
+/* Moon phase drawn from the real photo — d = days since new moon (0..29.53). Works on any 2D canvas. */
+let MOON_IMG = null;
+function getMoonImg() { if (!MOON_IMG) { MOON_IMG = new Image(); MOON_IMG.src = "photos/moonmap.jpg"; } return MOON_IMG; }
+function drawMoonPhase(canvas, d, onLoad) {
+  const img = getMoonImg(), ctx = canvas.getContext("2d"), s = canvas.width, r = s / 2 - 2;
+  if (!img.complete) { img.addEventListener("load", () => drawMoonPhase(canvas, d), { once: true }); }
+  ctx.clearRect(0, 0, s, s);
+  ctx.save(); ctx.beginPath(); ctx.arc(s / 2, s / 2, r, 0, TAU); ctx.clip();
+  ctx.fillStyle = "#05070f"; ctx.fillRect(0, 0, s, s);
+  if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0, s, s);
+  const psi = TAU * (((d % 29.53) + 29.53) % 29.53) / 29.53, waxing = psi <= Math.PI, k = Math.cos(waxing ? psi : TAU - psi);
+  ctx.fillStyle = "rgba(2,4,12,.94)"; ctx.beginPath();
+  const flip = waxing ? 1 : -1, N = 40;
+  for (let i = 0; i <= N; i++) { const y = -r + 2 * r * i / N, w = Math.sqrt(Math.max(0, r * r - y * y)); const x = s / 2 - flip * w; i ? ctx.lineTo(x, s / 2 + y) : ctx.moveTo(x, s / 2 + y); }
+  for (let i = N; i >= 0; i--) { const y = -r + 2 * r * i / N, w = Math.sqrt(Math.max(0, r * r - y * y)); ctx.lineTo(s / 2 + flip * k * w, s / 2 + y); }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+  ctx.strokeStyle = "#ffffff55"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(s / 2, s / 2, r, 0, TAU); ctx.stroke();
+}
+function phaseName(d) {
+  d = ((d % 29.53) + 29.53) % 29.53;
+  const n = [[1.2, "New Moon", "Luna nueva"], [6.2, "Waxing Crescent", "Luna creciente"], [8.6, "First Quarter", "Cuarto creciente"], [13.4, "Waxing Gibbous", "Gibosa creciente"], [16.2, "Full Moon", "Luna llena"], [21, "Waning Gibbous", "Gibosa menguante"], [23.4, "Last Quarter", "Cuarto menguante"], [28.3, "Waning Crescent", "Luna menguante"], [30, "New Moon", "Luna nueva"]];
+  const f = n.find(x => d < x[0]); return L(f[1], f[2]);
+}
+const tideAmp = d => 1 + 0.45 * Math.cos(4 * Math.PI * d / 29.53);
+
+/* ============================================================
+   Task queue (persisted in sim.state — CLAUDE.md §12.16): orders the student must satisfy, each lock logs a trial.
+   ============================================================ */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "ssl-order";
+  bar.innerHTML = `<span class="ssl-order__n"></span><span class="ssl-order__text"></span><span class="ssl-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "ssl-btn";
+  lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".ssl-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".ssl-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".ssl-order__text").textContent = st.idx >= tasks.length ? L("Every order complete — keep exploring, or lock in more readings for your record.", "Todos los pedidos completos — sigue explorando, o fija más lecturas para tu registro.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(); const t = tasks[st.idx];
+    const ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" — order met", " — pedido cumplido") : t ? L(" — not the order yet", " — todavía no es el pedido") : "") });
+    if (ok) {
+      st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#ffd24d", "#4CC0DB", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct");
+      if (st.idx >= tasks.length) { onDone(); }
+    } else if (t) {
+      bar.classList.remove("ssl-shake"); void bar.offsetWidth; bar.classList.add("ssl-shake"); lock.classList.remove("ssl-shake"); void lock.offsetWidth; lock.classList.add("ssl-shake");
+      sim.toast(L("Logged — but that is not the order. Re-read it and adjust the controls.", "Registrado — pero ese no es el pedido. Relee y ajusta los controles."), "info");
+    } else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "ssl-station";
+  c.innerHTML = `<div class="ssl-head"><span class="ssl-n">${n}</span><h3 class="ssl-title">${L(titleEn, titleEs)}</h3><span class="ssl-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+
+/* ============================================================
+   ORIENT — four movers (tap each to see what it changes)
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Four things move to give us day and night, the seasons and the tides. Tap each real photo to find out what it does.", "Cuatro cosas se mueven para darnos el día y la noche, las estaciones y las mareas. Toca cada foto real para descubrir qué hace.");
+  host.append(p);
+  const items = [
+    { f: "photos/sun.jpg", en: "The Sun", es: "El Sol", t: { en: "Our star. It gives all the light and heat — and Earth goes round it once a year.", es: "Nuestra estrella. Da toda la luz y el calor — y la Tierra le da una vuelta al año." } },
+    { f: "photos/earth.jpg", en: "Earth's spin", es: "El giro de la Tierra", t: { en: "Earth spins once every 24 hours. The side facing the Sun has day; the side facing away has night.", es: "La Tierra gira una vez cada 24 horas. El lado que mira al Sol tiene día; el lado opuesto, noche." } },
+    { f: "photos/autumn.jpg", en: "Earth's tilt", es: "La inclinación de la Tierra", t: { en: "Earth leans by about 23.5°. As we orbit, this lean gives us spring, summer, autumn and winter.", es: "La Tierra está inclinada unos 23,5°. Mientras orbitamos, esta inclinación nos da primavera, verano, otoño e invierno." } },
+    { f: "photos/moonmap.jpg", en: "The Moon", es: "La Luna", t: { en: "The Moon orbits Earth every 29 days. Its pull on the oceans makes the tides rise and fall.", es: "La Luna orbita la Tierra cada 29 días. Su atracción sobre los océanos hace subir y bajar las mareas." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "ssl-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "ssl-card";
+    c.innerHTML = `<span class="ssl-card__photo"><img src="${it.f}" alt="${L(it.en, it.es)}" loading="lazy"></span><span class="ssl-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out what it does", "Toca para saber qué hace")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".ssl-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid);
+  const cr = document.createElement("p"); cr.className = "ssl-credit";
+  cr.textContent = L("Photos: Sun — NASA/SDO; Earth — NASA/Apollo 17; Moon — NASA/GSFC/Arizona State University (LRO); lake — “Holly’s Coastal View” (CC0). Full credits at the end of this page.", "Fotos: Sol — NASA/SDO; Tierra — NASA/Apolo 17; Luna — NASA/GSFC/Universidad Estatal de Arizona (LRO); lago — «Holly’s Coastal View» (CC0). Créditos completos al final de esta página.");
+  host.append(cr);
+}
+
+/* ============================================================
+   OBSERVATION — notice two seasons, then a real-photo tide detective (labelling activity)
+   ============================================================ */
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at these real photos before you learn any names. Tap each one to notice something.", "Mira de cerca estas fotos reales antes de aprender ningún nombre. Toca cada una para observar algo.");
+  host.append(intro);
+  const obs = [
+    { f: "photos/autumn.jpg", en: "A lake in autumn", es: "Un lago en otoño", n: { en: "Orange and red leaves, open water, grey sky. The air is cool but not frozen.", es: "Hojas naranjas y rojas, agua abierta, cielo gris. El aire es fresco pero no hay hielo." } },
+    { f: "photos/winter.jpg", en: "A lake in winter", es: "Un lago en invierno", n: { en: "The water is frozen and the trees are bare and snowy. Something about the sunlight must be very different.", es: "El agua está congelada y los árboles están pelados y con nieve. Algo de la luz del Sol debe ser muy diferente." } },
+    { f: "photos/tide-high.jpg", en: "A harbour in the morning", es: "Un puerto por la mañana", n: { en: "The boats float on deep water right beside the wharf.", es: "Los barcos flotan en agua profunda junto al muelle." } },
+    { f: "photos/tide-low.jpg", en: "The SAME harbour, hours later", es: "El MISMO puerto, horas después", n: { en: "The water has gone! The boats are sitting on the mud. Same place — what moved the sea?", es: "¡El agua se fue! Los barcos están sobre el barro. Mismo lugar — ¿qué movió el mar?" } },
+  ];
+  const grid = document.createElement("div"); grid.className = "ssl-grid";
+  obs.forEach(o => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "ssl-card";
+    c.innerHTML = `<span class="ssl-card__photo"><img src="${o.f}" alt="${L(o.en, o.es)}"></span><span class="ssl-card__text"><b>${L(o.en, o.es)}</b><span>${L("Tap to notice something", "Toca para observar algo")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".ssl-card__text span").textContent = L(o.n.en, o.n.es); if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L(o.n.en, o.n.es)); });
+    grid.append(c);
+  });
+  host.append(grid);
+
+  /* Photo detective — tap the right place on the real low-tide photo */
+  const h = document.createElement("p"); h.className = "ssl-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "ssl-photo";
+  wrap.innerHTML = `<img src="photos/tide-low.jpg" alt="${L("The harbour at low tide: boats resting on mud", "El puerto con marea baja: barcos apoyados en el barro")}">`;
+  const targets = [
+    { x: 47, y: 72, en: "the wet mud where the sea floor is now showing", es: "el barro mojado donde ahora se ve el fondo del mar" },
+    { x: 73, y: 78, en: "a boat that is resting on the seabed", es: "un barco que descansa sobre el fondo" },
+    { x: 92, y: 66, en: "the wooden posts of the wharf (they show how high the water can reach)", es: "los postes de madera del muelle (muestran hasta dónde puede llegar el agua)" },
+    { x: 74, y: 49, en: "the sea, far away in the distance", es: "el mar, muy lejos en el horizonte" },
+  ];
+  let step = (sim.state.detective | 0);
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "ssl-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%";
+    b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { b.dataset.ok = "true"; burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("ssl-shake"); void b.offsetWidth; b.classList.add("ssl-shake"); h.textContent = L("Not that one — read the clue again and look closely.", "Esa no — vuelve a leer la pista y mira con atención."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    const spots = wrap.querySelectorAll(".ssl-spot");
+    spots.forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! At low tide the sea has pulled far away and left the seabed bare.", "¡Detective de fotos completado! Con marea baja el mar se aleja y deja el fondo al descubierto.") : L(`Photo detective ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Detective de fotos ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const cr = document.createElement("p"); cr.className = "ssl-credit";
+  cr.textContent = L("Photos: harbour — Dylan Kereluk (CC BY 2.0); winter lake — Brian Deegan (CC BY-SA 2.0); autumn lake — Holly’s Coastal View (CC0). All via Wikimedia Commons.", "Fotos: puerto — Dylan Kereluk (CC BY 2.0); lago en invierno — Brian Deegan (CC BY-SA 2.0); lago en otoño — Holly’s Coastal View (CC0). Todas vía Wikimedia Commons.");
+  host.append(cr);
+}
+
+/* ============================================================
+   STATION 1 — SPIN & DAY/NIGHT
+   ============================================================ */
+const CITIES1 = [
+  { id: "madrid", en: "Madrid", es: "Madrid", lat: 40.4, lon: -3.7, c: 0xff5a5a },
+  { id: "quito", en: "Quito", es: "Quito", lat: -0.2, lon: -78.5, c: 0x5aff8a },
+  { id: "cairo", en: "Cairo", es: "El Cairo", lat: 30.0, lon: 31.2, c: 0xffd24d },
+  { id: "tokyo", en: "Tokyo", es: "Tokio", lat: 35.7, lon: 139.7, c: 0xd75aff },
+  { id: "sydney", en: "Sydney", es: "Sídney", lat: -33.9, lon: 151.2, c: 0x5ad8ff },
+];
+function buildSpin(mount, sim, onDone) {
+  const card = stationShell(1, "Spin the Earth: Day & Night", "Haz girar la Tierra: Día y Noche", "Spin the real Earth and watch five cities move through day and night. Follow each order, then lock in your reading.", "Haz girar la Tierra real y mira cinco ciudades pasar del día a la noche. Sigue cada pedido y fija tu lectura.");
+  const stage = document.createElement("div"); stage.className = "ssl-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 7.2, yaw: 0.0, pitch: 0.55, auto: 0 });
+  const S = { T: sim.state.spinT == null ? 12 : sim.state.spinT, playing: false };
+  const spin = { psi: 0 };
+  let earth = null;
+  if (sp) {
+    sp.scene.add(new THREE.AmbientLight(0x20304f, 0.55));
+    const sun = new THREE.DirectionalLight(0xfff1d6, 2.6); sun.position.set(20, 0, 0); sp.scene.add(sun);
+    const sprite = makeSunSprite(sp, 5); sprite.position.set(26, 0, 0);
+    earth = makeEarth(sp, 1.5); earth.tilt.rotation.x = 23.4 * D2R;
+    CITIES1.forEach(c => { c.mesh = earth.pin(c.lat, c.lon, c.c, 0.035); });
+    sp.hooks.push((dt, t) => { earth.clouds.rotation.y += dt * 0.012; earth.spin.rotation.y = spin.psi; sprite.children[1].material.rotation = t * 0.02; });
+  }
+  const madrid = CITIES1[0];
+  const phiM = TAU * (madrid.lon + 180) / 360;
+  const lt = c => (((S.T + (c.lon - madrid.lon) / 15) % 24) + 24) % 24;
+  const isDay = c => { const h = lt(c); return h >= 6 && h < 18; };
+  const speed = c => 1670 * Math.cos(c.lat * D2R);
+  const ctrl = document.createElement("div"); ctrl.className = "ssl-controls"; card.append(ctrl);
+  ctrl.innerHTML = `<div class="ssl-row"><label for="ssl-t">${L("Time of day in Madrid", "Hora del día en Madrid")}</label><input id="ssl-t" type="range" min="0" max="24" step="0.25"><span class="ssl-val" id="ssl-tv"></span><button type="button" class="ssl-btn ssl-btn--ghost" id="ssl-play">${L("Play a whole day", "Reproducir un día entero")}</button></div><div class="ssl-cities" id="ssl-cities"></div>`;
+  const slider = ctrl.querySelector("#ssl-t"), tv = ctrl.querySelector("#ssl-tv"), list = ctrl.querySelector("#ssl-cities"), playB = ctrl.querySelector("#ssl-play");
+  list.innerHTML = CITIES1.map(c => `<div class="ssl-city" id="ssl-c-${c.id}"><span class="ssl-orb" data-day="true"></span><span><b>${L(c.en, c.es)}</b><small></small></span></div>`).join("");
+  function render() {
+    S.T = ((S.T % 24) + 24) % 24; slider.value = S.T; tv.textContent = fmtH(S.T);
+    spin.psi = Math.PI - phiM + TAU * (S.T - 12) / 24;
+    CITIES1.forEach(c => { const el = list.querySelector("#ssl-c-" + c.id), day = isDay(c); el.querySelector(".ssl-orb").dataset.day = String(day);
+      el.querySelector("small").textContent = `${fmtH(lt(c))} · ${day ? L("Day", "Día") : L("Night", "Noche")} · ${Math.round(speed(c)).toLocaleString()} km/h`; });
+  }
+  slider.addEventListener("input", () => { S.T = +slider.value; sim.state.spinT = S.T; render(); });
+  slider.addEventListener("change", () => { sim.saveState(); });
+  let pTimer = null;
+  playB.addEventListener("click", () => {
+    S.playing = !S.playing; playB.textContent = S.playing ? L("Pause", "Pausa") : L("Play a whole day", "Reproducir un día entero");
+    if (S.playing) { let lastT = performance.now(); (function step(now) { if (!S.playing || !card.isConnected) return; S.T += (now - lastT) / 1000 * 2.4; lastT = now; render(); requestAnimationFrame(step); })(lastT); }
+    else { sim.state.spinT = S.T; sim.saveState(); }
+  });
+  const day = id => isDay(CITIES1.find(c => c.id === id)), tIn = (id, a, b) => { const h = lt(CITIES1.find(c => c.id === id)); return h >= a && h <= b; };
+  const tasks = [
+    { en: "Spin the Earth so it is NIGHT in Madrid.", es: "Gira la Tierra para que sea NOCHE en Madrid.", test: () => !day("madrid") },
+    { en: "Make it DAY in Madrid and NIGHT in Tokyo at the same time.", es: "Haz que sea DÍA en Madrid y NOCHE en Tokio al mismo tiempo.", test: () => day("madrid") && !day("tokyo") },
+    { en: "Make it DAY in Cairo and NIGHT in Quito.", es: "Haz que sea DÍA en El Cairo y NOCHE en Quito.", test: () => day("cairo") && !day("quito") },
+    { en: "Find the moment the Sun is just rising in Tokyo (between 05:30 and 06:30 there).", es: "Encuentra el momento en que el Sol sale en Tokio (entre las 05:30 y las 06:30 allí).", test: () => tIn("tokyo", 5.5, 6.5) },
+  ];
+  const q = makeOrders(card, sim, "st1", tasks, () => ({
+    setting: L(`Madrid ${fmtH(S.T)}`, `Madrid ${fmtH(S.T)}`),
+    reading: CITIES1.map(c => `${L(c.en, c.es)} ${fmtH(lt(c))}`).join(", "),
+    result: CITIES1.map(c => `${L(c.en, c.es)}: ${isDay(c) ? L("day", "día") : L("night", "noche")}`).join(", "),
+  }), L("Spin", "Giro"), () => { card.querySelector(".ssl-done").dataset.show = "true"; sim.award("spinner", L("Spin Master", "Maestro del Giro")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  const note = document.createElement("p"); note.className = "q__hint"; note.textContent = L("The yellow axis is tilted 23.5°. Earth spins once in 24 hours — at the equator that is about 1,670 km/h (about 464 metres every second)!", "El eje amarillo está inclinado 23,5°. La Tierra gira una vez en 24 horas — ¡en el ecuador son unos 1.670 km/h (unos 464 metros por segundo)!");
+  card.append(note);
+  if (q.st.idx >= tasks.length) card.querySelector(".ssl-done").dataset.show = "true";
+  render(); mount.append(card);
+}
+
+/* ============================================================
+   STATION 2 — SEASONS ORBIT
+   ============================================================ */
+const CITIES2 = [
+  { id: "reyk", en: "Reykjavik (64°N)", es: "Reikiavik (64°N)", lat: 64.1, lon: -21.9 },
+  { id: "madrid", en: "Madrid (40°N)", es: "Madrid (40°N)", lat: 40.4, lon: -3.7 },
+  { id: "quito", en: "Quito (0°)", es: "Quito (0°)", lat: -0.2, lon: -78.5 },
+  { id: "sydney", en: "Sydney (34°S)", es: "Sídney (34°S)", lat: -33.9, lon: 151.2 },
+];
+const JUMPS = [
+  { d: 80, en: "Spring equinox (Mar 21)", es: "Equinoccio de primavera (21 mar)" },
+  { d: 172, en: "Summer solstice (Jun 21)", es: "Solsticio de verano (21 jun)" },
+  { d: 265, en: "Autumn equinox (Sep 22)", es: "Equinoccio de otoño (22 sep)" },
+  { d: 355, en: "Winter solstice (Dec 21)", es: "Solsticio de invierno (21 dic)" },
+];
+function seasonMath(lat, tiltDeg, d1) {
+  const t = tiltDeg * D2R, dec = Math.asin(Math.sin(t) * Math.cos(TAU * (d1 - 172) / 365)), phi = lat * D2R;
+  const cosH = -Math.tan(phi) * Math.tan(dec); const hours = cosH >= 1 ? 0 : cosH <= -1 ? 24 : 2 * Math.acos(cosH) / D2R / 15;
+  const elev = 90 - Math.abs(lat - dec / D2R);
+  return { dec: dec / D2R, hours, elev, strength: Math.max(0, Math.sin(Math.max(0, elev) * D2R)) * 100 };
+}
+function seasonName(lat, d1, tilt) {
+  if (tilt === 0 || Math.abs(lat) < 10) return L("No real seasons", "Sin estaciones marcadas");
+  let s = d1 >= 80 && d1 < 172 ? 0 : d1 >= 172 && d1 < 265 ? 1 : d1 >= 265 && d1 < 355 ? 2 : 3; if (lat < 0) s = (s + 2) % 4;
+  return [L("Spring", "Primavera"), L("Summer", "Verano"), L("Autumn", "Otoño"), L("Winter", "Invierno")][s];
+}
+function dateLabel(d1) { const dt = new Date(2025, 0, d1); return dt.toLocaleDateString(getLang() === "es" ? "es" : "en-GB", { day: "numeric", month: "short" }); }
+function buildSeasons(mount, sim, onDone) {
+  const card = stationShell(2, "Orbit the Sun: The Seasons", "Orbita el Sol: Las Estaciones", "Slide Earth round its orbit. Pick a city, try different dates — and switch the tilt off to run a fair test!", "Desliza la Tierra por su órbita. Elige una ciudad, prueba fechas distintas — ¡y apaga la inclinación para hacer una prueba justa!");
+  const stage = document.createElement("div"); stage.className = "ssl-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 13, yaw: 0.4, pitch: 0.62, auto: 0.03 });
+  const S = { d1: sim.state.seasonD || 172, tilt: sim.state.seasonTilt === 0 ? 0 : 23.4, city: sim.state.seasonCity || "madrid" };
+  let earth = null, pinMeshes = {}, ray = null, orb = null;
+  const R = 5.2, wp = new THREE.Vector3();
+  if (sp) {
+    sp.scene.add(new THREE.AmbientLight(0x1a2744, 0.45));
+    const light = new THREE.PointLight(0xfff0d0, 3.4, 0, 0); light.position.set(0, 0, 0); sp.scene.add(light);
+    const sprite = makeSunSprite(sp, 1.9); sprite.position.set(0, 0, 0);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(R - 0.015, R + 0.015, 128), new THREE.MeshBasicMaterial({ color: 0x6f8cff, transparent: true, opacity: 0.4, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; sp.scene.add(ring);
+    earth = makeEarth(sp, 0.8);
+    CITIES2.forEach(c => { pinMeshes[c.id] = earth.pin(c.lat, c.lon, c.id === "madrid" ? 0xff5a5a : c.id === "quito" ? 0x5aff8a : c.id === "sydney" ? 0x5ad8ff : 0xd75aff, 0.07); });
+    const lg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]);
+    ray = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0xffe38a, transparent: true, opacity: 0.85 })); sp.scene.add(ray);
+    sp.hooks.push((dt) => {
+      earth.spin.rotation.y += dt * 1.1; earth.clouds.rotation.y += dt * 0.3;
+      const a = Math.PI + TAU * (S.d1 - 172) / 365; earth.tilt.position.set(R * Math.cos(a), 0, -R * Math.sin(a));
+      earth.tilt.rotation.set(0, 0, -S.tilt * D2R);
+      const pm = pinMeshes[S.city]; pm.getWorldPosition(wp);
+      const nrm = wp.clone().sub(earth.tilt.position).normalize(), toSun = wp.clone().multiplyScalar(-1).normalize();
+      const lit = nrm.dot(toSun) > 0; ray.visible = lit;
+      ray.geometry.setFromPoints([wp, new THREE.Vector3(0, 0, 0).lerp(wp, 0.12)]);
+      pm.scale.setScalar(1 + 0.25 * Math.sin(performance.now() / 250));
+    });
+  }
+  const ctrl = document.createElement("div"); ctrl.className = "ssl-controls"; card.append(ctrl);
+  ctrl.innerHTML = `
+    <div class="ssl-row"><label for="ssl-d">${L("Date", "Fecha")}</label><input id="ssl-d" type="range" min="1" max="365" step="1"><span class="ssl-val" id="ssl-dv"></span></div>
+    <div class="ssl-row" id="ssl-jumps"></div>
+    <div class="ssl-row"><label>${L("City", "Ciudad")}</label><span id="ssl-city"></span></div>
+    <div class="ssl-row"><label>${L("Earth's tilt", "Inclinación de la Tierra")}</label><span id="ssl-tilt"></span></div>
+    <div class="ssl-gauges">
+      <div class="ssl-gauge"><div class="ssl-gauge__label">${L("Daylight hours", "Horas de luz")}</div><div class="ssl-gauge__val" id="ssl-hours"></div><div class="ssl-bar"><i id="ssl-hbar"></i></div></div>
+      <div class="ssl-gauge"><div class="ssl-gauge__label">${L("Sunlight strength at noon", "Fuerza de la luz al mediodía")}</div><div class="ssl-gauge__val" id="ssl-str"></div><div class="ssl-bar ssl-bar--cold"><i id="ssl-sbar"></i></div></div>
+      <div class="ssl-gauge"><div class="ssl-gauge__label">${L("Season there", "Estación allí")}</div><div class="ssl-season" id="ssl-seas"></div></div>
+    </div>`;
+  const dS = ctrl.querySelector("#ssl-d"), dv = ctrl.querySelector("#ssl-dv");
+  JUMPS.forEach(j => { const b = document.createElement("button"); b.type = "button"; b.className = "ssl-chip"; b.textContent = L(j.en, j.es);
+    b.addEventListener("click", () => { const from = S.d1; tween(900, e => { S.d1 = Math.round(from + (j.d - from) * e); render(); }, () => { S.d1 = j.d; sim.state.seasonD = S.d1; sim.saveState(); render(); }); });
+    ctrl.querySelector("#ssl-jumps").append(b); });
+  function chips(el, opts, get, set) { opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "ssl-chip"; b.textContent = o.label; b.dataset.v = o.v;
+    b.addEventListener("click", () => { set(o.v); sim.saveState(); render(); }); el.append(b); }); }
+  chips(ctrl.querySelector("#ssl-city"), CITIES2.map(c => ({ v: c.id, label: L(c.en, c.es) })), () => S.city, v => { S.city = v; sim.state.seasonCity = v; });
+  chips(ctrl.querySelector("#ssl-tilt"), [{ v: "23.4", label: L("Real tilt 23.5°", "Inclinación real 23,5°") }, { v: "0", label: L("No tilt (0°)", "Sin inclinación (0°)") }], () => S.tilt, v => { S.tilt = +v; sim.state.seasonTilt = +v; });
+  dS.addEventListener("input", () => { S.d1 = +dS.value; render(); });
+  dS.addEventListener("change", () => { sim.state.seasonD = S.d1; sim.saveState(); });
+  const cityObj = () => CITIES2.find(c => c.id === S.city);
+  function current() { const c = cityObj(); return Object.assign({ city: c }, seasonMath(c.lat, S.tilt, S.d1)); }
+  const inset = document.createElement("div"); inset.className = "ssl-inset"; inset.innerHTML = `<canvas width="170" height="130"></canvas><div>${L("Sun's rays at noon", "Rayos del Sol al mediodía")}</div>`; stage.append(inset);
+  const ic = inset.querySelector("canvas").getContext("2d");
+  function drawRays(m) {
+    const w = 170, h = 130, cx = 105, cy = 65, r = 40; ic.clearRect(0, 0, w, h);
+    const dec = m.dec * D2R, sx = -Math.cos(dec), sy = Math.sin(dec), px0 = sy, py0 = Math.cos(dec); // s = toward the Sun (y up); perp
+    ic.strokeStyle = "#ffe38a"; ic.lineWidth = 1.5;
+    for (let k = -4; k <= 4; k++) {
+      const x0 = cx + sx * 150 + px0 * k * 10, y0 = cy - (sy * 150 + py0 * k * 10), x1 = x0 - sx * 118, y1 = y0 + sy * 118;
+      ic.beginPath(); ic.moveTo(x0, y0); ic.lineTo(x1, y1); ic.stroke();
+    }
+    const g = ic.createRadialGradient(cx - 12, cy - 12, 4, cx, cy, r); g.addColorStop(0, "#5aa8ff"); g.addColorStop(1, "#0b2a66");
+    ic.fillStyle = g; ic.beginPath(); ic.arc(cx, cy, r, 0, TAU); ic.fill();
+    ic.strokeStyle = "#ffd35c"; ic.lineWidth = 1; ic.setLineDash([3, 3]); ic.beginPath(); ic.moveTo(cx, cy - r - 12); ic.lineTo(cx, cy + r + 12); ic.stroke(); ic.setLineDash([]);
+    const lat = cityObj().lat * D2R, px = cx - r * Math.cos(lat), py = cy - r * Math.sin(lat);
+    ic.fillStyle = "#ff5a5a"; ic.beginPath(); ic.arc(px, py, 4, 0, TAU); ic.fill();
+    ic.fillStyle = "#dbe7ff"; ic.font = "11px sans-serif"; ic.fillText(L("Sun ", "Sol ") + Math.round(m.elev) + "°", 6, 14);
+  }
+  function render() {
+    dS.value = S.d1; dv.textContent = dateLabel(S.d1);
+    const m = current();
+    ctrl.querySelector("#ssl-hours").textContent = m.hours.toFixed(1) + " h";
+    ctrl.querySelector("#ssl-hbar").style.cssText = `left:${(12 - m.hours / 2) / 24 * 100}%;width:${m.hours / 24 * 100}%`;
+    ctrl.querySelector("#ssl-str").textContent = Math.round(m.strength) + "%";
+    ctrl.querySelector("#ssl-sbar").style.width = m.strength + "%";
+    ctrl.querySelector("#ssl-seas").textContent = seasonName(m.city.lat, S.d1, S.tilt);
+    ctrl.querySelectorAll("#ssl-city .ssl-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === S.city)));
+    ctrl.querySelectorAll("#ssl-tilt .ssl-chip").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === +S.tilt)));
+    drawRays(m);
+  }
+  const tasks = [
+    { en: "Find the LONGEST day of the year in Madrid (more than 14.7 hours).", es: "Encuentra el día MÁS LARGO del año en Madrid (más de 14,7 horas).", test: r => r.city.id === "madrid" && S.tilt > 0 && r.hours >= 14.7 },
+    { en: "Find the SHORTEST day of the year in Madrid (under 9.4 hours).", es: "Encuentra el día MÁS CORTO del año en Madrid (menos de 9,4 horas).", test: r => r.city.id === "madrid" && S.tilt > 0 && r.hours <= 9.4 },
+    { en: "Choose Sydney and find its LONGEST day. What month is it?", es: "Elige Sídney y encuentra su día MÁS LARGO. ¿Qué mes es?", test: r => r.city.id === "sydney" && S.tilt > 0 && r.hours >= 14.1 },
+    { en: "Fair test: switch the tilt OFF (0°), pick Madrid, and lock in a reading near the June solstice.", es: "Prueba justa: APAGA la inclinación (0°), elige Madrid y fija una lectura cerca del solsticio de junio.", test: r => r.city.id === "madrid" && S.tilt === 0 && S.d1 >= 150 && S.d1 <= 195 },
+  ];
+  const q = makeOrders(card, sim, "st2", tasks, () => { const m = current(); return Object.assign({}, m, {
+    setting: `${L(m.city.en, m.city.es)} · ${dateLabel(S.d1)} · ${L("tilt", "inclinación")} ${S.tilt === 0 ? "0°" : "23.5°"}`,
+    reading: `${m.hours.toFixed(1)} h ${L("daylight", "de luz")} · ${L("noon Sun", "Sol a mediodía")} ${Math.round(m.elev)}° · ${Math.round(m.strength)}%`,
+    result: seasonName(m.city.lat, S.d1, S.tilt) }); }, L("Seasons", "Estaciones"), () => { card.querySelector(".ssl-done").dataset.show = "true"; sim.award("seasonscout", L("Season Scout", "Explorador de Estaciones")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".ssl-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "q__hint"; note.textContent = L("Earth's orbit is almost a perfect circle — so distance is NOT what makes summer. Watch the tilt instead.", "La órbita de la Tierra es casi un círculo perfecto — así que la distancia NO es lo que hace el verano. Fíjate en la inclinación.");
+  card.append(note);
+  render(); mount.append(card);
+}
+
+/* ============================================================
+   STATION 3 — MOON PHASES & TIDES
+   ============================================================ */
+function buildTides(mount, sim, onDone) {
+  const card = stationShell(3, "Moon & Tides Harbour", "La Luna y el Puerto de las Mareas", "Move the Moon round Earth, then run a whole day and watch the sea bulge. Tides rise and fall as the Earth spins through the bulges.", "Mueve la Luna alrededor de la Tierra, luego pasa un día entero y mira cómo se abulta el mar. Las mareas suben y bajan mientras la Tierra gira por los abultamientos.");
+  const stage = document.createElement("div"); stage.className = "ssl-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 11.5, yaw: 0, pitch: 1.0, auto: 0.0 });
+  const S = { d: sim.state.tideD == null ? 3 : sim.state.tideD, t: 0, playing: false, highs: 0, lows: 0 };
+  const RM = 4.2, phiH = TAU * (0 + 180) / 360;
+  let earth = null, moon = null, shell = null;
+  if (sp) {
+    sp.scene.add(new THREE.AmbientLight(0x1b2a4a, 0.5));
+    const sun = new THREE.DirectionalLight(0xfff0d6, 2.8); sun.position.set(30, 0, 0); sp.scene.add(sun);
+    const sprite = makeSunSprite(sp, 7); sprite.position.set(40, 0, 0);
+    earth = makeEarth(sp, 1.2); earth.tilt.rotation.set(0, 0, 0); earth.pin(8, 0, 0xff5a5a, 0.05);
+    shell = new THREE.Mesh(new THREE.SphereGeometry(1.2, 48, 32), new THREE.MeshPhysicalMaterial({ color: 0x2a86f0, transparent: true, opacity: 0.42, roughness: 0.1, clearcoat: 1, depthWrite: false }));
+    const shellG = new THREE.Group(); shellG.add(shell); sp.scene.add(shellG); shell.userData.g = shellG;
+    moon = makeMoon(sp, 0.42);
+    const orbit = new THREE.Mesh(new THREE.RingGeometry(RM - 0.012, RM + 0.012, 128), new THREE.MeshBasicMaterial({ color: 0x8fa8ff, transparent: true, opacity: 0.3, side: THREE.DoubleSide })); orbit.rotation.x = -Math.PI / 2; sp.scene.add(orbit);
+    sp.hooks.push(() => {
+      const th = TAU * (S.d + S.t / 24) / 29.53, A = tideAmp(S.d + S.t / 24);
+      moon.position.set(RM * Math.cos(th), 0, -RM * Math.sin(th)); moon.rotation.y = Math.atan2(-Math.cos(th), Math.sin(th));
+      shellG.rotation.y = th; shell.scale.set(1 + 0.2 * A, 1 - 0.05 * A, 1 - 0.05 * A);
+      earth.spin.rotation.y = TAU * S.t / 24 + 0.0; earth.clouds.rotation.y += 0.0008;
+    });
+  }
+  const ctrl = document.createElement("div"); ctrl.className = "ssl-controls"; card.append(ctrl);
+  ctrl.innerHTML = `
+    <div class="ssl-row"><label for="ssl-md">${L("Moon's day in its 29-day orbit", "Día de la Luna en su órbita de 29 días")}</label><input id="ssl-md" type="range" min="0" max="29.5" step="0.1"><span class="ssl-val" id="ssl-mdv"></span></div>
+    <div class="ssl-row" id="ssl-ph"></div>
+    <div class="ssl-row"><button type="button" class="ssl-btn ssl-btn--ghost" id="ssl-tplay">${L("Spin Earth: run a day", "Girar la Tierra: pasar un día")}</button><button type="button" class="ssl-btn ssl-btn--ghost" id="ssl-treset">${L("Restart the day", "Reiniciar el día")}</button></div>
+    <div class="ssl-gauges">
+      <div class="ssl-gauge"><div class="ssl-gauge__label">${L("Moon phase", "Fase de la Luna")}</div><div class="ssl-season" id="ssl-pname"></div></div>
+      <div class="ssl-gauge"><div class="ssl-gauge__label">${L("Tide range (harbour)", "Rango de marea (puerto)")}</div><div class="ssl-gauge__val" id="ssl-range"></div><div class="ssl-gauge__label" id="ssl-ttype"></div></div>
+      <div class="ssl-gauge"><div class="ssl-gauge__label">${L("Tides seen while spinning", "Mareas vistas al girar")}</div><div class="ssl-gauge__val" id="ssl-seen"></div></div>
+    </div>
+    <canvas id="ssl-chart" width="640" height="120" style="width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#0a1633"></canvas>`;
+  [["New", "Nueva", 0], ["First quarter", "Cuarto creciente", 7.4], ["Full", "Llena", 14.8], ["Last quarter", "Cuarto menguante", 22.1]].forEach(([en, es, d]) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "ssl-chip"; b.textContent = L(en, es);
+    b.addEventListener("click", () => { const from = S.d; tween(700, e => { S.d = from + (d - from) * e; S.t = 0; S.highs = S.lows = 0; render(); }, () => { S.d = d; sim.state.tideD = d; sim.saveState(); render(); }); });
+    ctrl.querySelector("#ssl-ph").append(b);
+  });
+  const mdS = ctrl.querySelector("#ssl-md"), chart = ctrl.querySelector("#ssl-chart"), cx = chart.getContext("2d");
+  const inset = document.createElement("div"); inset.className = "ssl-inset"; inset.innerHTML = `<canvas width="96" height="96"></canvas><div>${L("What we see", "Lo que vemos")}</div>`; stage.append(inset);
+  const phaseCv = inset.querySelector("canvas");
+  const hAt = t => tideAmp(S.d + t / 24) * Math.cos(2 * (phiH + TAU * t / 24 - Math.PI - TAU * (S.d + t / 24) / 29.53));
+  function drawChart() {
+    const w = 640, h = 120; cx.clearRect(0, 0, w, h); cx.strokeStyle = "#ffffff22"; cx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) { cx.beginPath(); cx.moveTo(0, 10 + i * 25); cx.lineTo(w, 10 + i * 25); cx.stroke(); }
+    cx.strokeStyle = "#5ac8ff"; cx.lineWidth = 2.4; cx.beginPath();
+    for (let i = 0; i <= 160; i++) { const t = S.t - 48 + i * 48 / 160, y = 60 - hAt(t) * 38; i ? cx.lineTo(i * w / 160, y) : cx.moveTo(i * w / 160, y); }
+    cx.stroke(); cx.fillStyle = "#ffd24d"; cx.beginPath(); cx.arc(w, 60 - hAt(S.t) * 38, 6, 0, TAU); cx.fill();
+    cx.fillStyle = "#cfe0ff"; cx.font = "12px sans-serif"; cx.fillText(L("Harbour water height — last 48 hours →", "Altura del agua en el puerto — últimas 48 horas →"), 8, 114);
+  }
+  function render() {
+    mdS.value = S.d; ctrl.querySelector("#ssl-mdv").textContent = L("Day ", "Día ") + S.d.toFixed(1);
+    ctrl.querySelector("#ssl-pname").textContent = phaseName(S.d);
+    const A = tideAmp(S.d); ctrl.querySelector("#ssl-range").textContent = (4 * A).toFixed(1) + " m";
+    ctrl.querySelector("#ssl-ttype").textContent = A >= 1.33 ? L("SPRING tide — biggest!", "Marea VIVA — ¡la más grande!") : A <= 0.67 ? L("NEAP tide — smallest", "Marea MUERTA — la más pequeña") : L("In between", "Intermedia");
+    ctrl.querySelector("#ssl-seen").textContent = `${S.highs} ${L("high", "altas")} · ${S.lows} ${L("low", "bajas")}`;
+    drawMoonPhase(phaseCv, S.d); drawChart();
+  }
+  mdS.addEventListener("input", () => { S.d = +mdS.value; S.t = 0; S.highs = S.lows = 0; render(); });
+  mdS.addEventListener("change", () => { sim.state.tideD = S.d; sim.saveState(); });
+  const playB = ctrl.querySelector("#ssl-tplay");
+  playB.addEventListener("click", () => {
+    S.playing = !S.playing; playB.textContent = S.playing ? L("Pause", "Pausa") : L("Spin Earth: run a day", "Girar la Tierra: pasar un día");
+    if (S.playing) { let lastT = performance.now(), prev = hAt(S.t), prevD = 0; (function step(now) {
+      if (!S.playing || !card.isConnected) return; const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now; S.t += dt * 3.2;
+      const h = hAt(S.t), dd = h - prev; if (prevD > 0 && dd <= 0 && h > 0.2) S.highs++; if (prevD < 0 && dd >= 0 && h < -0.2) S.lows++; if (dd !== 0) prevD = dd; prev = h; render(); requestAnimationFrame(step); })(lastT); }
+  });
+  ctrl.querySelector("#ssl-treset").addEventListener("click", () => { S.t = 0; S.highs = S.lows = 0; render(); });
+  const tasks = [
+    { en: "Set the Moon to a FULL Moon (the whole face lit).", es: "Pon la Luna en LUNA LLENA (toda la cara iluminada).", test: () => Math.abs(S.d - 14.77) < 1.0 },
+    { en: "Find a day with the BIGGEST tides (a spring tide — range over 5.3 m).", es: "Encuentra un día con las mareas MÁS GRANDES (marea viva — rango mayor de 5,3 m).", test: () => tideAmp(S.d) >= 1.33 },
+    { en: "Find a day with the SMALLEST tides (a neap tide — range under 2.7 m).", es: "Encuentra un día con las mareas MÁS PEQUEÑAS (marea muerta — rango menor de 2,7 m).", test: () => tideAmp(S.d) <= 0.67 },
+    { en: "Press 'Spin Earth' and watch the harbour until you have seen 2 high tides, then lock in.", es: "Pulsa «Girar la Tierra» y mira el puerto hasta ver 2 mareas altas, luego fija la lectura.", test: () => S.highs >= 2 },
+  ];
+  const q = makeOrders(card, sim, "st3", tasks, () => ({
+    setting: `${L("Moon day", "Día lunar")} ${S.d.toFixed(1)} (${phaseName(S.d)})`,
+    reading: `${L("Tide range", "Rango de marea")} ${(4 * tideAmp(S.d)).toFixed(1)} m · ${S.highs} ${L("high", "altas")}, ${S.lows} ${L("low", "bajas")}`,
+    result: tideAmp(S.d) >= 1.33 ? L("Spring tide", "Marea viva") : tideAmp(S.d) <= 0.67 ? L("Neap tide", "Marea muerta") : L("Medium tide", "Marea media") }), L("Tides", "Mareas"), () => { card.querySelector(".ssl-done").dataset.show = "true"; sim.award("tidewatcher", L("Tide Watcher", "Vigía de Mareas")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".ssl-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "q__hint"; note.textContent = L("The blue bulges are exaggerated so you can see them. Look: there are TWO bulges, so most places get two high tides a day.", "Los abultamientos azules están exagerados para que se vean. Mira: hay DOS abultamientos, así que la mayoría de los lugares tienen dos mareas altas al día.");
+  card.append(note);
+  render(); mount.append(card);
+}
+
+/* ============================================================
+   BONUS — TIDE PILOT (race / vehicle control; cost time, never health)
+   ============================================================ */
+function mountTidePilot(host, sim, onExit) {
+  const W = 640, H = 300, DRAFT = 0.6, SPEED = 1.7, PERIOD = 14, PX = 44;
+  const PH = [{ d: 0, en: "New Moon", es: "Luna nueva", spring: true }, { d: 7.4, en: "First Quarter", es: "Cuarto creciente", spring: false }, { d: 14.8, en: "Full Moon", es: "Luna llena", spring: true }, { d: 22.1, en: "Last Quarter", es: "Cuarto menguante", spring: false }];
+  const bars = Array.from({ length: 8 }, (_, i) => { const p = PH[i % 4]; return { x: 10 + i * 9, b: p.spring ? 2.7 : 1.9, p, quizzed: false, passed: false }; });
+  const wrap = document.createElement("div"); wrap.className = "ssl-bonus";
+  wrap.innerHTML = `<h3>${L("Bonus: Tide Pilot", "Bonus: Piloto de Mareas")}</h3>
+    <p>${L("Sail your boat out of the harbour over eight sandbars. Hold SAIL to move, let go to wait. The boat can only cross a bar when the tide is high enough. Grounding just costs you time — nothing can hurt you here. A quiet game: no sound.", "Saca tu barco del puerto sobre ocho bancos de arena. Mantén NAVEGAR para avanzar, suelta para esperar. El barco solo cruza un banco cuando la marea es lo bastante alta. Varar solo te cuesta tiempo — aquí nada puede hacerte daño. Un juego silencioso: sin sonido.")}</p>
+    <div class="ssl-row"><button type="button" class="ssl-btn" id="tp-start">${L("Play (2 minutes)", "Jugar (2 minutos)")}</button><button type="button" class="ssl-btn ssl-btn--ghost" id="tp-skip">${L("Skip", "Omitir")}</button></div>`;
+  host.append(wrap);
+  wrap.querySelector("#tp-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#tp-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Tide Pilot", "Piloto de Mareas")}</h3>
+      <div class="ssl-hud"><span id="tp-time"></span><span id="tp-bars"></span><span id="tp-score"></span><span id="tp-lvl"></span></div>
+      <canvas width="${W}" height="${H}" aria-label="${L("Tide Pilot game: a boat in a harbour with a rising and falling tide", "Juego Piloto de Mareas: un barco en un puerto con marea que sube y baja")}"></canvas>
+      <button type="button" class="ssl-btn ssl-sail" id="tp-sail">${L("SAIL (hold — or hold Space / →)", "NAVEGAR (mantén — o mantén Espacio / →)")}</button>
+      <div class="ssl-quiz" id="tp-quiz">${L("A question will pop up as you near each bar — answer with the buttons or keys 1 / 2.", "Aparecerá una pregunta al acercarte a cada banco — responde con los botones o las teclas 1 / 2.")}</div>
+      <div class="ssl-toast" id="tp-toast"></div>`;
+    const cv = wrap.querySelector("canvas"), ctx = cv.getContext("2d"), sail = wrap.querySelector("#tp-sail");
+    const G = { x: 0, left: 120, t: 0, score: 0, passed: 0, correct: 0, asked: 0, ampCur: 2.0, hold: false, over: false, bubbles: [], ground: 0 };
+    const imgHi = new Image(); imgHi.src = "photos/tide-high.jpg"; const imgLo = new Image(); imgLo.src = "photos/tide-low.jpg";
+    const ampOf = b => b.p.spring ? 2.0 : 0.9, lvl = () => 2 + G.ampCur * Math.sin(TAU * G.t / PERIOD);
+    const yOf = h => 232 - h * 26;
+    const nextBar = () => bars.find(b => !b.passed);
+    const q = wrap.querySelector("#tp-quiz"), toast = wrap.querySelector("#tp-toast");
+    let curQ = null;
+    function askQuiz(b) {
+      b.quizzed = true; curQ = b;
+      q.innerHTML = `<b>${L("Bar", "Banco")} ${bars.indexOf(b) + 1}: ${L(b.p.en, b.p.es)}.</b> ${L("Will the tides be BIGGER or SMALLER than usual?", "¿Serán las mareas MÁS GRANDES o MÁS PEQUEÑAS de lo normal?")}<div class="ssl-row"><button type="button" class="ssl-btn ssl-btn--ghost" data-a="big">1 · ${L("Bigger", "Más grandes")}</button><button type="button" class="ssl-btn ssl-btn--ghost" data-a="small">2 · ${L("Smaller", "Más pequeñas")}</button></div>`;
+      q.querySelectorAll("button").forEach(bt => bt.addEventListener("click", () => answer(bt.dataset.a)));
+    }
+    function answer(a) {
+      if (!curQ) return; const ok = (a === "big") === curQ.p.spring; G.asked++; if (ok) { G.correct++; G.score += 50; }
+      toast.textContent = ok ? L("Correct! +50", "¡Correcto! +50") : L(`Answer: ${curQ.p.spring ? "BIGGER" : "SMALLER"} · ${curQ.p.spring ? "new and full moon: Sun and Moon pull together" : "quarter moons: Sun and Moon pull sideways, so they partly cancel"}`, `Respuesta: ${curQ.p.spring ? "MÁS GRANDES" : "MÁS PEQUEÑAS"} · ${curQ.p.spring ? "luna nueva y llena: el Sol y la Luna tiran juntos" : "cuartos: el Sol y la Luna tiran de lado, así que se anulan en parte"}`);
+      q.textContent = L("Keep sailing — time your crossing with the water level!", "¡Sigue navegando — cronometra tu cruce con el nivel del agua!"); curQ = null;
+    }
+    const kd = e => { if (e.code === "Space" || e.key === "ArrowRight") { G.hold = true; e.preventDefault(); } else if (e.key === "1") answer("big"); else if (e.key === "2") answer("small"); };
+    const ku = e => { if (e.code === "Space" || e.key === "ArrowRight") G.hold = false; };
+    window.addEventListener("keydown", kd); window.addEventListener("keyup", ku);
+    sail.addEventListener("pointerdown", e => { G.hold = true; sail.setPointerCapture && sail.setPointerCapture(e.pointerId); }); ["pointerup", "pointercancel", "pointerleave"].forEach(ev => sail.addEventListener(ev, () => G.hold = false));
+    const t0 = performance.now(); let lastTick = t0;
+    const timer = setInterval(() => {   // game state on wall-clock setInterval, never rAF
+      const now = performance.now(), dt = Math.min(0.25, (now - lastTick) / 1000); lastTick = now;
+      if (G.over) return; G.left -= dt; G.t += dt;
+      const nb = nextBar(); if (nb) G.ampCur += (ampOf(nb) - G.ampCur) * Math.min(1, dt * 0.8);
+      if (G.ground > 0) { G.ground -= dt; }
+      else if (G.hold && nb) {
+        G.x += SPEED * dt;
+        if (!nb.quizzed && nb.x - G.x < 5.5) askQuiz(nb);
+        if (G.x >= nb.x) {
+          if (lvl() - DRAFT >= nb.b) { nb.passed = true; G.passed++; G.score += 100; toast.textContent = L("Over the bar! +100", "¡Cruzaste el banco! +100"); for (let i = 0; i < 10; i++) G.bubbles.push({ x: G.x, y: lvl(), vx: (Math.random() - 0.5), vy: 1 + Math.random() * 1.4, l: 1 }); }
+          else { G.x = nb.x - 3; G.left -= 3; G.ground = 0.9; toast.textContent = L("Grounded on the sandbar! −3 s. Wait for a higher tide.", "¡Varaste en el banco! −3 s. Espera una marea más alta."); }
+        }
+      }
+      if (G.passed >= bars.length || G.left <= 0) finish();
+      hud();
+    }, 100);
+    function hud() {
+      wrap.querySelector("#tp-time").textContent = L("Time", "Tiempo") + " " + Math.max(0, Math.ceil(G.left)) + " s";
+      wrap.querySelector("#tp-bars").textContent = L("Bars", "Bancos") + " " + G.passed + "/" + bars.length;
+      wrap.querySelector("#tp-score").textContent = L("Score", "Puntos") + " " + G.score;
+      wrap.querySelector("#tp-lvl").textContent = L("Water", "Agua") + " " + lvl().toFixed(1) + " m";
+    }
+    function draw() {
+      if (!cv.isConnected || G.over) return;
+      const cam = G.x * PX - 170, hi = (lvl() - 0.2) / 3.8;
+      const sky = ctx.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, "#8fc4ff"); sky.addColorStop(1, "#dff0ff"); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 0.9; if (imgLo.complete && imgLo.naturalWidth) ctx.drawImage(imgLo, 6, 6, 118, 88); ctx.globalAlpha = Math.max(0, Math.min(1, hi)); if (imgHi.complete && imgHi.naturalWidth) ctx.drawImage(imgHi, 6, 6, 118, 88); ctx.globalAlpha = 1;
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(6, 6, 118, 88); ctx.fillStyle = "#000a"; ctx.fillRect(6, 78, 118, 16); ctx.fillStyle = "#fff"; ctx.font = "10px sans-serif"; ctx.fillText(L("Real harbour right now", "Puerto real ahora"), 10, 90);
+      const nb = nextBar() || bars[bars.length - 1], mp = document.createElement("canvas"); mp.width = mp.height = 54; drawMoonPhase(mp, nb.p.d); ctx.drawImage(mp, W - 70, 10);
+      ctx.fillStyle = "#fff"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center"; ctx.fillText(L(nb.p.en, nb.p.es), W - 43, 78); ctx.textAlign = "left";
+      // water
+      const wy = yOf(lvl()); const wg = ctx.createLinearGradient(0, wy, 0, H); wg.addColorStop(0, "#2f8fe6"); wg.addColorStop(1, "#0a2f66"); ctx.fillStyle = wg; ctx.beginPath(); ctx.moveTo(0, wy);
+      for (let x = 0; x <= W; x += 8) ctx.lineTo(x, wy + (reducedMotion() ? 0 : Math.sin((x + cam) / 30 + G.t * 2) * 2.4)); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+      // seabed + bars
+      ctx.fillStyle = "#c9a96b"; ctx.beginPath(); ctx.moveTo(0, H); for (let x = 0; x <= W; x += 6) { const wx = (x + cam) / PX; let h = -0.9; bars.forEach(b => { const dx = Math.abs(wx - b.x); if (dx < 2.6) h = Math.max(h, -0.9 + (b.b + 0.9) * (1 - dx / 2.6) ** 1.4); }); ctx.lineTo(x, yOf(h)); } ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+      bars.forEach(b => { const sx = b.x * PX - cam; if (sx > -40 && sx < W + 40) { ctx.fillStyle = b.passed ? "#5ee08a" : "#fff"; ctx.fillRect(sx - 1, yOf(b.b) - 38, 2, 34); ctx.font = "bold 10px sans-serif"; ctx.fillText((bars.indexOf(b) + 1) + "", sx + 4, yOf(b.b) - 30); } });
+      // gauge
+      ctx.fillStyle = "#0008"; ctx.fillRect(W - 28, 100, 14, 130); for (let m = 0; m <= 4; m++) { ctx.fillStyle = "#fff"; ctx.fillRect(W - 28, yOf(m) - 130 + 130 - 0 + (-2), 0, 0); }
+      ctx.fillStyle = "#5ac8ff"; ctx.fillRect(W - 28, 100 + (130 - Math.max(0, Math.min(4, lvl())) / 4 * 130), 14, Math.max(0, Math.min(4, lvl())) / 4 * 130);
+      // boat
+      const bx = 170, by = yOf(lvl()) + 2; ctx.save(); ctx.translate(bx, by); ctx.rotate(Math.sin(G.t * 2) * 0.03); ctx.fillStyle = "#e84b4b"; ctx.beginPath(); ctx.moveTo(-34, -6); ctx.lineTo(34, -6); ctx.lineTo(24, 12); ctx.lineTo(-26, 12); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillRect(-10, -22, 22, 16); ctx.fillStyle = "#35a0d9"; ctx.fillRect(-6, -19, 6, 7); ctx.fillRect(3, -19, 6, 7); ctx.fillStyle = "#333"; ctx.fillRect(14, -34, 3, 28); ctx.restore();
+      G.bubbles.forEach(p => { ctx.fillStyle = `rgba(255,255,255,${p.l})`; ctx.beginPath(); ctx.arc(170 + (p.x - G.x) * PX + p.vx * (1 - p.l) * 30, yOf(p.y) - (1 - p.l) * p.vy * 30, 3, 0, TAU); ctx.fill(); p.l -= 0.02; }); G.bubbles = G.bubbles.filter(p => p.l > 0);
+      requestAnimationFrame(draw);   // rAF is cosmetic only
+    }
+    requestAnimationFrame(draw); hud();
+    function finish() {
+      if (G.over) return; G.over = true; clearInterval(timer); window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku);
+      const acc = G.asked ? Math.round(G.correct / G.asked * 100) : 0, bonus = G.passed >= bars.length ? Math.round(Math.max(0, G.left)) * 2 : 0; G.score += bonus;
+      wrap.innerHTML = `<h3>${L("Tide Pilot — voyage complete!", "Piloto de Mareas — ¡viaje completo!")}</h3><p>${L(`You crossed ${G.passed} of ${bars.length} sandbars. Score ${G.score}. Spring/neap answers right: ${G.correct} of ${G.asked} (${acc}%).`, `Cruzaste ${G.passed} de ${bars.length} bancos. Puntos ${G.score}. Respuestas viva/muerta correctas: ${G.correct} de ${G.asked} (${acc}%).`)}</p><p>${L("Remember: new and full Moon = big spring tides; quarter Moons = small neap tides.", "Recuerda: luna nueva y llena = mareas vivas grandes; cuartos = mareas muertas pequeñas.")}</p><div class="ssl-row"><button type="button" class="ssl-btn" id="tp-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="ssl-btn ssl-btn--ghost" id="tp-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#tp-again").addEventListener("click", () => { bars.forEach(b => { b.quizzed = b.passed = false; }); start(); });
+      wrap.querySelector("#tp-close").addEventListener("click", () => { wrap.remove(); });
+      onExit && onExit({ score: G.score, accuracy: acc });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({
+    variables: L(
+      "Independent: the time of day, the date and Earth's tilt, and the Moon's day in its orbit. Dependent: whether a city is in day or night, how many hours of daylight it gets, and how big the tides are. Controlled: the same cities, the same Sun, and the same size of orbit every time you test.",
+      "Independiente: la hora del día, la fecha y la inclinación de la Tierra, y el día de la Luna en su órbita. Dependiente: si una ciudad está de día o de noche, cuántas horas de luz recibe y qué tan grandes son las mareas. Controladas: las mismas ciudades, el mismo Sol y el mismo tamaño de órbita cada vez que pruebas.")
+  });
+  const done = { n: 0 };
+  const check = () => { if (sim.state.st1 && sim.state.st1.idx >= 4 && sim.state.st2 && sim.state.st2.idx >= 4 && sim.state.st3 && sim.state.st3.idx >= 4 && !host.querySelector(".ssl-complete")) { const c = document.createElement("div"); c.className = "ssl-complete"; c.textContent = L("Observatory complete! You spun the Earth, orbited the Sun and steered the tides. Now explain what you found.", "¡Observatorio completo! Giraste la Tierra, orbitaste el Sol y dirigiste las mareas. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  const bonusHost = document.createElement("div");
+  buildSpin(host, sim, check); buildSeasons(host, sim, check); buildTides(host, sim, check);
+  host.append(bonusHost);
+
+  const reflect = document.createElement("div"); reflect.className = "ssl-station";
+  reflect.innerHTML = `<div class="ssl-head"><h3 class="ssl-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="ssl-reflect">
+    <p class="q__hint" style="margin:0">${L("How confident do you feel explaining why we have seasons?", "¿Qué tan seguro te sientes explicando por qué hay estaciones?")}</p><div class="ssl-chiprow" id="ssl-r-conf"></div>
+    <p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to investigate next?", "¿Qué te gustaría investigar a continuación?")}</p><div class="ssl-chiprow" id="ssl-r-next"></div></div>`;
+  host.append(reflect);
+  const rs = sim.state.reflect || {};
+  function row(sel, opts, key) {
+    const el = reflect.querySelector(sel);
+    opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "ssl-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+      b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState();
+        sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); });
+      el.append(b); });
+  }
+  row("#ssl-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#ssl-r-next", [{ id: "eclipse", label: L("Why eclipses happen", "Por qué ocurren los eclipses") }, { id: "poles", label: L("Why the poles have months of daylight", "Por qué los polos tienen meses de luz") }, { id: "moons", label: L("Tides on other planets", "Mareas en otros planetas") }], "next");
+
+  const cr = document.createElement("p"); cr.className = "ssl-credit";
+  cr.innerHTML = L(
+    'Image credits (Wikimedia Commons): Earth map — Reto Stöckli/NASA GSFC (public domain); Moon — NASA/GSFC/Arizona State University, LRO (public domain); Sun — NASA/SDO; Earth — NASA/Apollo 17; harbour at high and low tide — Dylan Kereluk, <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>; winter lake — Brian Deegan, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>; autumn lake — Holly’s Coastal View, CC0.',
+    'Créditos de imágenes (Wikimedia Commons): mapa de la Tierra — Reto Stöckli/NASA GSFC (dominio público); Luna — NASA/GSFC/Universidad Estatal de Arizona, LRO (dominio público); Sol — NASA/SDO; Tierra — NASA/Apolo 17; puerto con marea alta y baja — Dylan Kereluk, <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>; lago en invierno — Brian Deegan, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>; lago en otoño — Holly’s Coastal View, CC0.');
+  host.append(cr);
+
+  let bonusRendered = false;
+  function paintBonus() {
+    if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true;
+    mountTidePilot(bonusHost, sim, stats => { if (stats) sim.toast(L(`Bonus complete — score ${stats.score}, ${stats.accuracy}% right.`, `Bonus completo — ${stats.score} puntos, ${stats.accuracy}% correctas.`), "info"); });
+  }
+  check();
+}
+
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
