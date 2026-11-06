@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6 - Term 2 - Module 2 Ecosystems - Ecosystem Ranger.
+     Content lives here + config.json/marking.json only. Hyper-real 3D meadow food web (CLAUDE.md 18); bonus: grow-by-collecting arena (Niche Nibbler). -->
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ecosystem Ranger: Keep the Web Alive - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .eco-fwstage.cyc-shake, .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  /* ---- Ecosystem Ranger extras ---- */
+  .eco-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slot { border: 2px dashed var(--line); border-radius: 12px; min-height: 7.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: .78rem; color: var(--ink-3); position: relative; overflow: hidden; background: var(--surface); }
+  .eco-slot[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); }
+  .eco-slot img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-slot b { display: block; padding: .15rem .3rem 0; font-size: .8rem; }
+  .eco-slot__n { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font: 800 .75rem var(--font-data); display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .eco-slot.eco-pop { animation: eco-pop .45s ease; }
+  @keyframes eco-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .eco-pop { animation: none !important; }
+  .eco-tab-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+  .eco-card { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); font: inherit; display: flex; flex-direction: column; }
+  .eco-card:hover, .eco-card:focus-visible { border-color: var(--accent); outline: none; }
+  .eco-card[data-used="true"] { opacity: .35; }
+  .eco-card[aria-pressed="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px #ffd24d88; }
+  .eco-card img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-card span { padding: .3rem .45rem; font-size: .76rem; font-weight: 700; }
+  .eco-fact { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; min-height: 2.4rem; }
+
+  .eco-fwstage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; background: linear-gradient(#8fd0ff, #d8f0c8); }
+  @media (max-width: 640px) { .eco-fwstage { aspect-ratio: 1/1; } }
+  .eco-fwstage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .eco-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-top: .45rem; }
+  .eco-chips > b { font-size: .78rem; min-width: 8.2rem; }
+  .eco-tok { display: inline-flex; align-items: center; gap: .35rem; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .15rem .65rem .15rem .2rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .eco-tok img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+  .eco-tok[aria-pressed="true"][data-side="from"] { border-color: #e8a400; background: #fff3c4; }
+  .eco-tok[aria-pressed="true"][data-side="to"] { border-color: #1d9bd6; background: #d7f0ff; }
+  .eco-arrows { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; min-height: 1.6rem; }
+  .eco-arrows span { font-size: .74rem; font-weight: 700; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: .15rem .6rem; }
+
+  .eco-pop-stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #0e2a1a; }
+  .eco-pop-stage canvas { display: block; width: 100%; height: auto; }
+  .eco-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .eco-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .3rem; }
+  .eco-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .eco-readout div { border: 1px solid var(--line); border-radius: 10px; padding: .35rem .6rem; background: var(--surface); font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .eco-readout div b { display: block; font: 800 1.15rem var(--font-data); color: var(--accent); }
+
+  .eco-bonus canvas { cursor: crosshair; touch-action: none; }
+  .eco-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-role { border: 2px solid #ffffff33; background: #ffffff10; color: #fff; border-radius: 12px; padding: 0; cursor: pointer; font: inherit; overflow: hidden; text-align: left; }
+  .eco-role:hover, .eco-role:focus-visible { border-color: #ffd24d; outline: none; }
+  .eco-role img { width: 100%; height: 4.6rem; object-fit: cover; display: block; }
+  .eco-role span { display: block; padding: .3rem .5rem; font-size: .76rem; font-weight: 700; }
+  .eco-q { margin-top: .5rem; border: 2px solid #ffd24d; border-radius: 12px; padding: .55rem .75rem; background: #1b2a10; font-size: .9rem; }
+  .eco-q .cyc-row { margin-top: .4rem; }
+  .eco-board { display: flex; flex-wrap: wrap; gap: .6rem; font: 700 .76rem var(--font-data); color: #cfe8ff; margin-top: .3rem; }
+  .eco-board span[data-me="true"] { color: #ffe08a; }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const PH = k => `photos/${k}.jpg`;
+const PA = (k, en, es) => `<img src="${PH(k)}" alt="${L(en, es)}" loading="lazy">`;
+let CREDITS = null;
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit";
+  cr.textContent = L("Photo credits loading...", "Cargando créditos de fotos...");
+  (CREDITS ? Promise.resolve(CREDITS) : fetch("photos/credits.json").then(r => r.json()).then(j => (CREDITS = j))).then(j => {
+    const seen = {}, bits = [];
+    Object.keys(j).forEach(k => { const c = j[k], key = c.author + "|" + c.license; if (seen[key]) return; seen[key] = 1; bits.push(`<a href="${c.page}">${c.author.split(" from ")[0].replace(/\s*\(.*$/, "")}</a> (${c.licenseUrl ? `<a href="${c.licenseUrl}">${c.license}</a>` : c.license})`); });
+    cr.innerHTML = L("Real photos via Wikimedia Commons / Copernicus: ", "Fotos reales vía Wikimedia Commons / Copernicus: ") + bits.join("; ") + ".";
+  }).catch(() => { cr.textContent = L("Photos via Wikimedia Commons (credits on each photo's page).", "Fotos vía Wikimedia Commons (créditos en la página de cada foto)."); });
+  return cr;
+}
+
+/* Orders queue (persisted in sim.state - CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete - keep exploring, or lock in more readings.", "Todos los pedidos completos - sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    if (card.__onOrder) card.__onOrder(st.idx);
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" - order met", " - pedido cumplido") : t ? L(" - not the order yet", " - todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("eco-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#7be08a", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged - but that is not the order. Re-read it and try again.", "Registrado - pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st, paint };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+const shuffled = (a, seed) => { const r = a.slice(); let s = seed || 7; for (let i = r.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor(s / 233280 * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Welcome, Ranger! Tap each real photo to meet four big ideas you will use to protect an ecosystem.", "¡Bienvenido, Guardabosques! Toca cada foto real para conocer cuatro grandes ideas que usarás para proteger un ecosistema.");
+  host.append(p);
+  const items = [
+    { f: "adult", en: "Metamorphosis", es: "Metamorfosis", t: { en: "Metamorphosis means \"changing form\": a butterfly changes from caterpillar to winged adult. Different life stages use different food, so young and adults do not compete.", es: "Metamorfosis significa \"cambiar de forma\": una mariposa pasa de oruga a adulto con alas. Las distintas etapas usan distinta comida, así que jóvenes y adultos no compiten." } },
+    { f: "raccoon", en: "Ecological niche", es: "Nicho ecológico", t: { en: "A niche is an animal's role: what it eats, where it lives and how it interacts. The habitat is its address; the niche is its job. Raccoons are generalists (broad niche).", es: "Un nicho es el papel de un animal: qué come, dónde vive y cómo interactúa. El hábitat es su dirección; el nicho es su trabajo. Los mapaches son generalistas (nicho amplio)." } },
+    { f: "fungus", en: "Decomposers", es: "Descomponedores", t: { en: "Fungi and worms eat dead matter and return nutrients to the soil. Without decomposers, dead things would pile up and plants would run out of nutrients.", es: "Los hongos y las lombrices comen materia muerta y devuelven nutrientes al suelo. Sin descomponedores, lo muerto se acumularía y las plantas se quedarían sin nutrientes." } },
+    { f: "bridge", en: "Saving biodiversity", es: "Salvar la biodiversidad", t: { en: "This green bridge lets animals cross a motorway safely. Wildlife corridors, planting trees and clean energy are design solutions that protect the variety of life.", es: "Este puente verde permite a los animales cruzar una autopista con seguridad. Los corredores de fauna, plantar árboles y la energía limpia son soluciones que protegen la variedad de la vida." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo">${PA(it.f, it.en, it.es)}</span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at this real photo from a pond before you learn any names. Then play photo detective: tap what each clue describes.", "Mira de cerca esta foto real de un estanque antes de aprender ningún nombre. Luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo";
+  wrap.innerHTML = `<img src="${PH("frog")}" alt="${L("A green frog sitting on a floating lily pad", "Una rana verde sentada sobre un nenúfar flotante")}">`;
+  const targets = [
+    { x: 55, y: 45, en: "the animal that hunts insects - a CONSUMER", es: "el animal que caza insectos - un CONSUMIDOR" },
+    { x: 86, y: 16, en: "the green leaf that makes its own food from sunlight - a PRODUCER", es: "la hoja verde que fabrica su propio alimento con la luz del sol - un PRODUCTOR" },
+    { x: 11, y: 85, en: "the tiny drops of water - a NON-LIVING (abiotic) part of this ecosystem", es: "las gotitas de agua - una parte NO VIVA (abiótica) de este ecosistema" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one - read the clue again.", "Esa no - vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! One small pond already holds a producer, a consumer and non-living factors - that is an ecosystem.", "¡Detective de fotos completado! Un pequeño estanque ya tiene un productor, un consumidor y factores no vivos - eso es un ecosistema.") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("Living things depend on each other and on the non-living world. What happens to the others when one part changes? Keep that in mind for your hypothesis.", "Los seres vivos dependen unos de otros y del mundo no vivo. ¿Qué les pasa a los demás cuando una parte cambia? Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   STATION 1 - LIFE CYCLE STUDIO (real photos, sequence builder)
+   ============================================================ */
+const STAGE = {
+  egg: { en: "Egg", es: "Huevo", fact: { en: "Every butterfly begins as a tiny egg laid on the plant its young will eat.", es: "Toda mariposa empieza como un huevito puesto en la planta que comerán sus crías." } },
+  larva: { en: "Larva (caterpillar)", es: "Larva (oruga)", fact: { en: "The larva does nothing but eat and grow, shedding its skin as it gets bigger.", es: "La larva solo come y crece, cambiando de piel a medida que se hace más grande." } },
+  pupa: { en: "Pupa (chrysalis)", es: "Pupa (crisálida)", fact: { en: "The pupa looks still, but inside the body is being completely rebuilt.", es: "La pupa parece quieta, pero por dentro el cuerpo se reconstruye por completo." } },
+  adult: { en: "Adult butterfly", es: "Mariposa adulta", fact: { en: "The winged adult can fly, feed on nectar and reproduce.", es: "El adulto con alas puede volar, alimentarse de néctar y reproducirse." } },
+  "hopper-egg": { en: "Egg (laid in soil)", es: "Huevo (puesto en la tierra)", fact: { en: "A grasshopper lays her eggs in the ground; there is no pupa stage to come.", es: "Un saltamontes pone sus huevos en la tierra; después no habrá etapa de pupa." } },
+  nymph: { en: "Nymph", es: "Ninfa", fact: { en: "A nymph looks like a tiny adult without full wings and molts (sheds its skin) many times.", es: "Una ninfa parece un adulto diminuto sin alas completas y muda de piel muchas veces." } },
+  hopper: { en: "Adult grasshopper", es: "Saltamontes adulto", fact: { en: "The adult has full wings and can reproduce. The change was gradual: incomplete metamorphosis.", es: "El adulto tiene alas completas y puede reproducirse. El cambio fue gradual: metamorfosis incompleta." } },
+};
+const SEQ = { butterfly: ["egg", "larva", "pupa", "adult"], grasshopper: ["hopper-egg", "nymph", "hopper"] };
+function buildLifeCycle(mount, sim, onDone) {
+  const card = stationShell("1", "Life Cycle Studio", "Estudio de Ciclos de Vida", "Use the real photos to build each life cycle in order, then compare complete and incomplete metamorphosis.", "Usa las fotos reales para construir cada ciclo de vida en orden, y luego compara la metamorfosis completa e incompleta.");
+  mount.append(card);
+  const S = { tab: sim.state.lcTab || "butterfly", placed: [], sel: null };
+  const tasks = [
+    { mode: "build", tab: "butterfly", en: "Build the butterfly's life cycle: tap the photos in the right order, then lock it in.", es: "Construye el ciclo de vida de la mariposa: toca las fotos en el orden correcto y fíjalo.", test: r => r.mode === "build" && r.tab === "butterfly" && r.seq.join() === SEQ.butterfly.join() },
+    { mode: "build", tab: "grasshopper", en: "Switch to Grasshopper and build its life cycle (it has only THREE stages).", es: "Cambia a Saltamontes y construye su ciclo de vida (¡solo tiene TRES etapas!).", test: r => r.mode === "build" && r.tab === "grasshopper" && r.seq.join() === SEQ.grasshopper.join() },
+    { mode: "pick", deck: ["adult", "pupa", "egg", "larva"], en: "Complete metamorphosis has a stage that incomplete metamorphosis skips entirely. Tap that stage.", es: "La metamorfosis completa tiene una etapa que la incompleta se salta por completo. Toca esa etapa.", test: r => r.mode === "pick" && r.sel === "pupa" },
+    { mode: "pick", deck: ["larva", "hopper", "nymph", "pupa"], en: "Tap the photo that shows a NYMPH: a young animal that looks like a tiny adult without full wings.", es: "Toca la foto que muestra una NINFA: un animal joven que parece un adulto diminuto sin alas completas.", test: r => r.mode === "pick" && r.sel === "nymph" },
+  ];
+  const tabs = document.createElement("div"); tabs.className = "eco-tab-row"; card.append(tabs);
+  const slotsEl = document.createElement("div"); slotsEl.className = "eco-slots";
+  const deckEl = document.createElement("div"); deckEl.className = "eco-deck";
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Tap a photo card to start.", "Toca una tarjeta de foto para empezar.");
+  const undo = document.createElement("button"); undo.type = "button"; undo.className = "cyc-btn cyc-btn--ghost"; undo.textContent = L("Undo last", "Deshacer último");
+  const ord = makeOrders(card, sim, "st1", tasks, () => {
+    const t = tasks[Math.min(ord.st.idx, tasks.length - 1)], isBuild = t.mode === "build";
+    const names = isBuild ? S.placed.map(k => STAGE[k].en).join(" > ") : (S.sel ? STAGE[S.sel].en : "-");
+    return { mode: t.mode, tab: S.tab, seq: S.placed.slice(), sel: S.sel, setting: isBuild ? L(`${S.tab === "butterfly" ? "Butterfly" : "Grasshopper"} - build order`, `${S.tab === "butterfly" ? "Mariposa" : "Saltamontes"} - construir orden`) : L("Photo pick", "Elegir foto"), reading: names, result: isBuild ? L(`${S.placed.length} stage(s) placed`, `${S.placed.length} etapa(s) colocada(s)`) : (S.sel ? L("Picked " + STAGE[S.sel].en, "Elegida " + STAGE[S.sel].es) : L("Nothing picked", "Nada elegido")) };
+  }, L("Life Cycle Studio", "Estudio de Ciclos de Vida"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("lifecycle", L("Life Cycle Expert", "Experto en Ciclos de Vida")); onDone(); });
+  card.__onOrder = () => { const t = tasks[Math.min(ord.st.idx, tasks.length - 1)]; if (t.tab) { S.tab = t.tab; } S.placed = []; S.sel = null; paint(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(undo, ord.lock);
+  card.append(ord.bar, slotsEl, deckEl, fact, row);
+  const nm = k => L(STAGE[k].en, STAGE[k].es);
+  function paint() {
+    const t = tasks[Math.min(ord.st.idx, tasks.length - 1)], build = t.mode === "build";
+    tabs.innerHTML = ""; tabs.style.display = build ? "flex" : "none";
+    [["butterfly", L("Butterfly (4 stages?)", "Mariposa (¿4 etapas?)")], ["grasshopper", L("Grasshopper (3 stages?)", "Saltamontes (¿3 etapas?)")]].forEach(([k, lab]) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = lab; b.setAttribute("aria-pressed", String(S.tab === k));
+      b.addEventListener("click", () => { S.tab = k; S.placed = []; sim.state.lcTab = k; paint(); }); tabs.append(b);
+    });
+    slotsEl.innerHTML = ""; slotsEl.style.display = build ? "grid" : "none"; undo.style.display = build ? "" : "none";
+    const need = SEQ[S.tab].length;
+    for (let i = 0; i < need; i++) {
+      const k = S.placed[i], s = document.createElement("div"); s.className = "eco-slot"; s.dataset.full = String(!!k);
+      s.innerHTML = `<span class="eco-slot__n">${i + 1}</span>` + (k ? `${PA(k, STAGE[k].en, STAGE[k].es)}<b>${nm(k)}</b>` : L("Stage " + (i + 1), "Etapa " + (i + 1)));
+      if (k && i === S.placed.length - 1 && S.justPlaced) s.classList.add("eco-pop");
+      slotsEl.append(s);
+    }
+    S.justPlaced = false;
+    deckEl.innerHTML = "";
+    const deck = build ? shuffled(SEQ[S.tab], S.tab === "butterfly" ? 3 : 11) : t.deck;
+    deck.forEach(k => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "eco-card"; b.dataset.used = String(build && S.placed.includes(k)); b.setAttribute("aria-pressed", String(!build && S.sel === k));
+      b.innerHTML = `${PA(k, STAGE[k].en, STAGE[k].es)}<span>${nm(k)}</span>`;
+      b.addEventListener("click", () => {
+        if (build) { if (S.placed.includes(k) || S.placed.length >= need) return; S.placed.push(k); S.justPlaced = true; burst(card, 50, 38, ["#7be08a", "#ffd24d", "#fff"], 8); }
+        else { S.sel = k; burst(card, 50, 55, ["#ffd24d", "#fff"], 6); }
+        fact.textContent = L(STAGE[k].fact.en, STAGE[k].fact.es); paint();
+      });
+      deckEl.append(b);
+    });
+  }
+  undo.addEventListener("click", () => { S.placed.pop(); paint(); });
+  paint();
+}
+
+/* ============================================================
+   STATION 2 - FOOD WEB BUILDER (hyper-real 3D meadow)
+   ============================================================ */
+const FWT = [
+  { k: "grass", en: "Grass", es: "Hierba", x: -3.0, z: 0.6, h: 1.0 },
+  { k: "hopper", en: "Grasshopper", es: "Saltamontes", x: -1.7, z: -2.2, h: 1.1 },
+  { k: "rabbit", en: "Rabbit", es: "Conejo", x: -2.1, z: 2.5, h: 1.1 },
+  { k: "frog", en: "Frog", es: "Rana", x: 0.1, z: -3.1, h: 1.1 },
+  { k: "snake", en: "Snake", es: "Serpiente", x: 2.2, z: -1.6, h: 1.1 },
+  { k: "hawk", en: "Hawk", es: "Halcón", x: 3.0, z: 1.3, h: 2.2 },
+  { k: "fox", en: "Fox", es: "Zorro", x: 0.5, z: 3.1, h: 1.1 },
+  { k: "worm", en: "Earthworm", es: "Lombriz", x: 0.2, z: 0.1, h: 0.9 },
+];
+const FWK = {}; FWT.forEach(t => FWK[t.k] = t);
+const VALID = {
+  "grass>hopper": { en: "Grasshoppers eat grass, so energy flows from the grass INTO the grasshopper.", es: "Los saltamontes comen hierba, así que la energía fluye de la hierba AL saltamontes." },
+  "grass>rabbit": { en: "Rabbits graze on grass: the energy goes into the rabbit.", es: "Los conejos pastan hierba: la energía pasa al conejo." },
+  "hopper>frog": { en: "Frogs catch grasshoppers: energy moves from grasshopper to frog.", es: "Las ranas atrapan saltamontes: la energía pasa del saltamontes a la rana." },
+  "frog>snake": { en: "Snakes eat frogs: energy moves from frog to snake.", es: "Las serpientes comen ranas: la energía pasa de la rana a la serpiente." },
+  "snake>hawk": { en: "Hawks hunt snakes: energy moves from snake to hawk.", es: "Los halcones cazan serpientes: la energía pasa de la serpiente al halcón." },
+  "rabbit>hawk": { en: "Hawks also hunt rabbits - a second path makes this a food WEB.", es: "Los halcones también cazan conejos - un segundo camino hace de esto una RED alimentaria." },
+  "rabbit>fox": { en: "Foxes hunt rabbits: energy moves from rabbit to fox.", es: "Los zorros cazan conejos: la energía pasa del conejo al zorro." },
+  "hopper>snake": { en: "Some snakes also snap up grasshoppers.", es: "Algunas serpientes también atrapan saltamontes." },
+  "hawk>worm": { en: "When the hawk dies, decomposers like earthworms feed on it and recycle its nutrients.", es: "Cuando el halcón muere, descomponedores como las lombrices se alimentan de él y reciclan sus nutrientes." },
+  "fox>worm": { en: "Dead foxes feed decomposers too.", es: "Los zorros muertos también alimentan a los descomponedores." },
+  "frog>worm": { en: "Dead frogs feed decomposers.", es: "Las ranas muertas también alimentan a los descomponedores." },
+  "snake>worm": { en: "Dead snakes feed decomposers.", es: "Las serpientes muertas también alimentan a los descomponedores." },
+};
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+function hgt(x, z) { return 0.28 * Math.sin(x * 0.7) * Math.cos(z * 0.6) + 0.12 * Math.sin(x * 2.1 + z * 1.3); }
+function labelSprite(text, color) {
+  const c = document.createElement("canvas"); c.width = 256; c.height = 64; const x = c.getContext("2d");
+  x.font = "bold 30px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; const w = Math.min(246, x.measureText(text).width + 28);
+  x.fillStyle = "rgba(10,25,12,.72)"; x.beginPath(); x.roundRect ? x.roundRect(128 - w / 2, 8, w, 48, 24) : x.rect(128 - w / 2, 8, w, 48); x.fill(); x.fillStyle = color || "#fff"; x.fillText(text, 128, 33);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false })); sp.scale.set(1.5, 0.375, 1); sp.renderOrder = 5; sp.userData = { c, t }; return sp;
+}
+function setLabel(sp, text, color) { const c = sp.userData.c, x = c.getContext("2d"); x.clearRect(0, 0, 256, 64); x.font = "bold 30px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; const w = Math.min(246, x.measureText(text).width + 28); x.fillStyle = "rgba(10,25,12,.72)"; x.beginPath(); x.roundRect ? x.roundRect(128 - w / 2, 8, w, 48, 24) : x.rect(128 - w / 2, 8, w, 48); x.fill(); x.fillStyle = color || "#fff"; x.fillText(text, 128, 33); sp.userData.t.needsUpdate = true; }
+function groundTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 256; const x = c.getContext("2d"); x.fillStyle = "#4f8a3a"; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) { x.fillStyle = ["#3f7a2e", "#5fa044", "#6aa84a", "#437a30"][i % 4]; x.globalAlpha = 0.35; x.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 2 + Math.random() * 5); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(5, 5); t.encoding = THREE.sRGBEncoding; return t;
+}
+function skyTexture() {
+  const c = document.createElement("canvas"); c.width = 8; c.height = 256; const x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, "#5aa7ff"); g.addColorStop(0.55, "#bfe3ff"); g.addColorStop(1, "#f6f0d0"); x.fillStyle = g; x.fillRect(0, 0, 8, 256);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function buildFoodWeb(mount, sim, onDone) {
+  const card = stationShell("2", "Food Web Builder", "Constructor de Redes Alimentarias", "A real-photo meadow in 3D. Draw an arrow from the FOOD to the EATER: arrows show where the energy goes. Drag the scene to turn it.", "Un prado en 3D con fotos reales. Dibuja una flecha de la COMIDA al COMEDOR: las flechas muestran adónde va la energía. Arrastra la escena para girarla.");
+  mount.append(card);
+  const stage = document.createElement("div"); stage.className = "eco-fwstage"; card.append(stage);
+  const S = { arrows: (sim.state.fw && sim.state.fw.arrows) || [], from: null, to: null, removed: false, sel: null };
+  const tasks = [
+    { en: "Build a food CHAIN: grass > grasshopper > frog > snake > hawk. Draw all four arrows.", es: "Construye una CADENA alimentaria: hierba > saltamontes > rana > serpiente > halcón. Dibuja las cuatro flechas.", test: r => ["grass>hopper", "hopper>frog", "frog>snake", "snake>hawk"].every(a => r.arrows.includes(a)) },
+    { en: "Turn it into a food WEB: add a second path - rabbits eat grass AND hawks hunt rabbits.", es: "Conviértela en una RED alimentaria: añade un segundo camino - los conejos comen hierba Y los halcones cazan conejos.", test: r => ["grass>hopper", "snake>hawk", "grass>rabbit", "rabbit>hawk"].every(a => r.arrows.includes(a)) },
+    { en: "Add the decomposers: when the hawk dies, the earthworm feeds on it. Draw that arrow.", es: "Añade los descomponedores: cuando el halcón muere, la lombriz se alimenta de él. Dibuja esa flecha.", test: r => r.arrows.includes("hawk>worm") },
+    { en: "What if the frogs disappear? Press \"Remove the frogs\", then pick the animal whose numbers will SHOOT UP (use the FROM chips).", es: "¿Y si desaparecen las ranas? Pulsa \"Quitar las ranas\" y elige el animal cuyos números se DISPARARÁN (usa las fichas DE).", test: r => r.removed && r.sel === "hopper" },
+  ];
+  let sp = null, W = null, drawArrow3D = null, clearArrow3D = null, effects = null;
+  const fromRow = document.createElement("div"), toRow = document.createElement("div");
+  fromRow.className = toRow.className = "eco-chips"; fromRow.innerHTML = `<b>${L("FROM (the food):", "DE (la comida):")}</b>`; toRow.innerHTML = `<b>${L("TO (the eater):", "A (el comedor):")}</b>`;
+  const list = document.createElement("div"); list.className = "eco-arrows";
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Pick a FROM and a TO animal (tap them in the 3D scene or use the chips) and an arrow will grow between them.", "Elige un animal DE y uno A (tócalos en la escena 3D o usa las fichas) y crecerá una flecha entre ellos.");
+  const chips = {};
+  function mkChip(row, side, t) { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok"; b.dataset.side = side; b.innerHTML = `${PA(t.k, t.en, t.es)}${L(t.en, t.es)}`; b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => pick(side, t.k)); row.append(b); (chips[side] = chips[side] || {})[t.k] = b; }
+  FWT.forEach(t => { mkChip(fromRow, "from", t); mkChip(toRow, "to", t); });
+  const btnRow = document.createElement("div"); btnRow.className = "cyc-row"; btnRow.style.marginTop = ".6rem";
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bUndo = mkBtn(L("Undo last arrow", "Deshacer última flecha"), true), bClear = mkBtn(L("Clear all arrows", "Borrar todas las flechas"), true), bFrog = mkBtn(L("Remove the frogs", "Quitar las ranas"), true);
+  const ord = makeOrders(card, sim, "st2", tasks, () => {
+    const t = Math.min(ord.st.idx, tasks.length - 1);
+    return { arrows: S.arrows, removed: S.removed, sel: S.from, setting: t === 3 ? L("Frogs removed: " + (S.removed ? "yes" : "no"), "Ranas quitadas: " + (S.removed ? "sí" : "no")) : L(`${S.arrows.length} arrow(s) drawn`, `${S.arrows.length} flecha(s) dibujada(s)`), reading: t === 3 ? (S.from ? L("Predicted increase: " + FWK[S.from].en, "Aumento previsto: " + FWK[S.from].es) : "-") : (S.arrows.map(a => { const [x, y] = a.split(">"); return FWK[x].en + " > " + FWK[y].en; }).join("; ") || "-"), result: t === 3 ? (S.removed ? L("Observed what happens without frogs", "Observado qué pasa sin ranas") : L("Frogs still there", "Las ranas siguen ahí")) : L(`${S.arrows.length} valid arrow(s)`, `${S.arrows.length} flecha(s) válida(s)`) };
+  }, L("Food Web", "Red Alimentaria"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("foodweb", L("Web Weaver", "Tejedor de Redes")); onDone(); });
+  btnRow.append(bUndo, bClear, bFrog, ord.lock);
+  card.append(fromRow, toRow, list, fact, ord.bar, btnRow);
+  function saveFw() { sim.state.fw = { arrows: S.arrows.slice() }; sim.saveState(); }
+  function paintChips() {
+    ["from", "to"].forEach(side => FWT.forEach(t => chips[side][t.k].setAttribute("aria-pressed", String(S[side] === t.k))));
+    list.innerHTML = ""; S.arrows.forEach(a => { const [x, y] = a.split(">"), s = document.createElement("span"); s.textContent = L(FWK[x].en + " → " + FWK[y].en, FWK[x].es + " → " + FWK[y].es); list.append(s); });
+    if (!S.arrows.length) list.innerHTML = `<small style="color:var(--ink-3)">${L("No arrows yet.", "Aún no hay flechas.")}</small>`;
+  }
+  function pick(side, k) {
+    if (S.removed && k === "frog") return;
+    if (side === "from") S.from = S.from === k ? null : k; else S.to = S.to === k ? null : k;
+    if (effects) effects.ring(S.from, S.to);
+    paintChips();
+    if (S.from && S.to) tryArrow();
+  }
+  function tryArrow() {
+    const a = S.from + ">" + S.to;
+    if (S.from === S.to) { fact.textContent = L("An animal cannot feed itself with an arrow! Pick two different organisms.", "¡Un animal no puede alimentarse con una flecha! Elige dos organismos distintos."); S.to = null; paintChips(); return; }
+    if (S.arrows.includes(a)) { fact.textContent = L("That arrow is already drawn.", "Esa flecha ya está dibujada."); S.from = S.to = null; if (effects) effects.ring(null, null); paintChips(); return; }
+    if (VALID[a]) {
+      S.arrows.push(a); saveFw(); fact.textContent = L(VALID[a].en, VALID[a].es);
+      if (drawArrow3D) drawArrow3D(a, true); burst(stage, 50, 50, ["#ffe08a", "#7be08a", "#fff"], 14);
+      document.dispatchEvent(new CustomEvent("eco-arrow"));
+    } else {
+      const rev = S.to + ">" + S.from;
+      fact.textContent = VALID[rev] ? L("Wrong way round! Arrows point INTO the eater: energy goes from the food to the animal that eats it.", "¡Al revés! Las flechas apuntan HACIA el comedor: la energía va de la comida al animal que se la come.") : L("Those two do not have a feeding link in this meadow. Think: who eats whom?", "Esos dos no tienen una relación de alimentación en este prado. Piensa: ¿quién come a quién?");
+      stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); if (drawArrow3D) drawArrow3D(a, false); burst(stage, 50, 50, ["#ff8a8a", "#fff"], 10);
+    }
+    S.from = S.to = null; if (effects) effects.ring(null, null); paintChips();
+  }
+  bUndo.addEventListener("click", () => { S.arrows.pop(); saveFw(); if (clearArrow3D) clearArrow3D(S.arrows); paintChips(); });
+  bClear.addEventListener("click", () => { S.arrows = []; saveFw(); if (clearArrow3D) clearArrow3D(S.arrows); paintChips(); });
+  bFrog.addEventListener("click", () => {
+    S.removed = !S.removed; bFrog.textContent = S.removed ? L("Bring the frogs back", "Devolver las ranas") : L("Remove the frogs", "Quitar las ranas");
+    if (effects) effects.frogs(S.removed); burst(stage, 50, 50, S.removed ? ["#ffb35a", "#fff"] : ["#7be08a", "#fff"], 16);
+    fact.textContent = S.removed ? L("The frogs are gone! Watch the labels: nothing is eating the grasshoppers now, and the snakes lose food.", "¡Las ranas se fueron! Mira las etiquetas: ahora nadie come saltamontes y las serpientes pierden comida.") : L("The frogs are back and the web is balanced again.", "Las ranas volvieron y la red vuelve a estar equilibrada.");
+    if (S.removed && S.from === "frog") S.from = null; paintChips();
+  });
+  /* 3D scene */
+  sp = makeSpace(stage, { fov: 40, dist: 10.5, pitch: 0.5, yaw: 0.35, ty: 0.7 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "4rem"; }
+  else {
+    const { scene, camera, hooks, renderer } = sp; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMappingExposure = 1.05;
+    scene.background = skyTexture(); scene.fog = new THREE.Fog(0xcfe9ff, 12, 26);
+    scene.add(new THREE.HemisphereLight(0xcfe8ff, 0x4a6a30, 0.85));
+    const sun = new THREE.DirectionalLight(0xfff0cf, 1.7); sun.position.set(5, 9, 4); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); const sc = sun.shadow.camera; sc.left = -9; sc.right = 9; sc.top = 9; sc.bottom = -9; sc.near = 1; sc.far = 28; scene.add(sun);
+    const gg = new THREE.PlaneGeometry(22, 22, 60, 60); gg.rotateX(-Math.PI / 2); const pa = gg.attributes.position; for (let i = 0; i < pa.count; i++) pa.setY(i, hgt(pa.getX(i), pa.getZ(i))); gg.computeVertexNormals();
+    const ground = new THREE.Mesh(gg, new THREE.MeshStandardMaterial({ map: groundTexture(), roughness: 0.95, metalness: 0 })); ground.receiveShadow = true; scene.add(ground);
+    const bl = new THREE.InstancedMesh(new THREE.ConeGeometry(0.035, 0.42, 3), new THREE.MeshStandardMaterial({ color: C3(0x3f8a2e), roughness: 0.8 }), 1100), m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), e4 = new THREE.Euler();
+    for (let i = 0; i < 1100; i++) { const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * 8.5, x = Math.cos(a) * r, z = Math.sin(a) * r, s = 0.6 + Math.random() * 0.9; e4.set((Math.random() - 0.5) * 0.4, Math.random() * TAU, (Math.random() - 0.5) * 0.4); q4.setFromEuler(e4); m4.compose(new THREE.Vector3(x, hgt(x, z) + 0.17 * s, z), q4, new THREE.Vector3(s, s, s)); bl.setMatrixAt(i, m4); }
+    bl.castShadow = false; scene.add(bl);
+    const loader = new THREE.TextureLoader(), toks = {}, bill = [];
+    FWT.forEach(t => {
+      const g = new THREE.Group(), y0 = hgt(t.x, t.z); g.position.set(t.x, y0, t.z);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, t.h, 8), new THREE.MeshStandardMaterial({ color: C3(0x6b4a2b), roughness: 0.9 })); pole.position.y = t.h / 2; pole.castShadow = true; g.add(pole);
+      const face = new THREE.Group(); face.position.y = t.h + 0.5; g.add(face);
+      const tex = loader.load(PH(t.k)); tex.encoding = THREE.sRGBEncoding;
+      const rim = new THREE.Mesh(new THREE.CircleGeometry(0.64, 40), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 })); face.add(rim);
+      const pic = new THREE.Mesh(new THREE.CircleGeometry(0.58, 40), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.4 })); pic.position.z = 0.01; face.add(pic);
+      const back = new THREE.Mesh(new THREE.CircleGeometry(0.64, 40), new THREE.MeshStandardMaterial({ color: C3(0x244a1e) })); back.rotation.y = Math.PI; back.position.z = -0.01; face.add(back);
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.68, 0.78, 40), new THREE.MeshBasicMaterial({ color: 0xffd24d, transparent: true, opacity: 0, side: THREE.DoubleSide })); ring.position.z = 0.02; face.add(ring);
+      const lab = labelSprite(L(t.en, t.es)); lab.position.set(0, t.h + 1.35, 0); g.add(lab);
+      g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+      scene.add(g); toks[t.k] = { g, face, ring, lab, t, base: t.h + 0.5, scale: 1, target: 1, hit: pic }; bill.push(toks[t.k]);
+    });
+    const tip = k => { const tk = toks[k]; return new THREE.Vector3(tk.t.x, hgt(tk.t.x, tk.t.z) + tk.base, tk.t.z); };
+    const arrowObjs = {};
+    function mkArrow(a, ok) {
+      const [f, t] = a.split(">"), A = tip(f), B = tip(t), dir = B.clone().sub(A), len = dir.length(); dir.normalize();
+      const A2 = A.clone().add(dir.clone().multiplyScalar(0.75)), B2 = B.clone().sub(dir.clone().multiplyScalar(0.8)), mid = A2.clone().lerp(B2, 0.5); mid.y += 0.9 + len * 0.12;
+      const curve = new THREE.QuadraticBezierCurve3(A2, mid, B2), col = ok ? C3(0xffb400) : C3(0xff3a3a), grp = new THREE.Group();
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 28, 0.055, 8), new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.9, roughness: 0.3 })); grp.add(tube);
+      const tan = curve.getTangent(1), cone = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.4, 14), new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.9 })); cone.position.copy(B2); cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tan); cone.position.add(tan.clone().multiplyScalar(0.12)); grp.add(cone);
+      const sparks = []; for (let i = 0; i < 4; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfffbe0 })); s.userData.o = i / 4; grp.add(s); sparks.push(s); }
+      grp.userData = { curve, sparks, born: performance.now() / 1000, ok }; scene.add(grp); return grp;
+    }
+    drawArrow3D = (a, ok) => { if (ok) { arrowObjs[a] = mkArrow(a, true); } else { const g = mkArrow(a, false); setTimeout(() => { scene.remove(g); }, 1100); } };
+    clearArrow3D = list2 => { Object.keys(arrowObjs).forEach(k => { if (!list2.includes(k)) { scene.remove(arrowObjs[k]); delete arrowObjs[k]; } }); };
+    S.arrows.forEach(a => { arrowObjs[a] = mkArrow(a, true); });
+    effects = {
+      ring(f, t) { Object.values(toks).forEach(tk => { tk.ring.material.opacity = 0; }); if (f) { toks[f].ring.material.color.set(0xffd24d); toks[f].ring.material.opacity = 1; } if (t) { toks[t].ring.material.color.set(0x35b6ff); toks[t].ring.material.opacity = 1; } },
+      frogs(rm) {
+        toks.frog.target = rm ? 0.001 : 1; toks.hopper.target = rm ? 1.5 : 1; toks.snake.target = rm ? 0.65 : 1;
+        setLabel(toks.hopper.lab, rm ? L("Grasshopper ▲ MORE", "Saltamontes ▲ MÁS") : L("Grasshopper", "Saltamontes"), rm ? "#ffd24d" : "#fff");
+        setLabel(toks.snake.lab, rm ? L("Snake ▼ less food", "Serpiente ▼ menos comida") : L("Snake", "Serpiente"), rm ? "#ff9a9a" : "#fff");
+      },
+    };
+    if (S.removed) effects.frogs(true);
+    hooks.push((dt, t) => {
+      Object.values(toks).forEach(tk => { tk.scale += (tk.target - tk.scale) * Math.min(1, dt * 4); tk.face.scale.setScalar(tk.scale); tk.lab.visible = tk.scale > 0.05; tk.g.children[0].visible = tk.scale > 0.05;
+        tk.face.position.y = tk.base + (reducedMotion() ? 0 : Math.sin(t * 1.6 + tk.t.x) * 0.06); tk.face.rotation.y = Math.atan2(camera.position.x - tk.t.x, camera.position.z - tk.t.z); });
+      Object.values(arrowObjs).forEach(g => { const pop = Math.min(1, (t - g.userData.born) / 0.4); g.scale.setScalar(0.6 + 0.4 * pop); g.userData.sparks.forEach(s => { const u = (t * 0.45 + s.userData.o) % 1; s.position.copy(g.userData.curve.getPoint(u)); }); });
+    });
+    /* pointer pick: cumulative travel threshold, pick on the native click (CLAUDE.md section 4) */
+    const cv = renderer.domElement, ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let tr = null;
+    cv.addEventListener("pointerdown", e => { tr = { x: e.clientX, y: e.clientY, d: 0 }; });
+    cv.addEventListener("pointermove", e => { if (tr) { tr.d += Math.hypot(e.clientX - tr.x, e.clientY - tr.y); tr.x = e.clientX; tr.y = e.clientY; } });
+    cv.addEventListener("click", e => {
+      if (tr && tr.d > 8) return; const r = cv.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, camera);
+      const hits = ray.intersectObjects(Object.values(toks).filter(tk => tk.scale > 0.1).map(tk => tk.hit), false);
+      if (hits.length) { const k = Object.keys(toks).find(kk => toks[kk].hit === hits[0].object); pick(S.from ? "to" : "from", k); }
+    });
+  }
+  paintChips();
+}
+
+/* ============================================================
+   STATION 3 - POPULATION BALANCE (live ecosystem model, setInterval)
+   Grass > rabbits > foxes. Rain sets how much grass the land can hold;
+   forest cover sets the ceiling (carrying capacity).
+   ============================================================ */
+function popStep(s, dt) {
+  const Ke = s.K * (0.12 + 0.88 * s.rain), g = 0.10 + 0.30 * s.rain;
+  const dG = g * s.G * (1 - s.G / Ke) - 0.0010 * s.R * s.G;
+  const dR = s.R * (0.13 * s.G / 100 - 0.040) - 0.0042 * s.R * s.F;
+  const dF = s.F * (0.00085 * s.R - 0.030);
+  s.G = Math.max(0.5, s.G + dG * dt); s.R = Math.max(0, s.R + dR * dt); s.F = Math.max(0, s.F + dF * dt);
+  if (s.R < 0.6 && dR < 0) s.R = Math.max(0, s.R - 0.02 * dt);
+}
+function buildPopulation(mount, sim, onDone) {
+  const card = stationShell("3", "Population Balance", "Equilibrio de Poblaciones", "Run a live meadow. Change the rainfall, clear or replant the forest, and watch grass, rabbits and foxes rise and fall together.", "Dirige un prado en vivo. Cambia la lluvia, tala o replanta el bosque, y mira cómo la hierba, los conejos y los zorros suben y bajan juntos.");
+  mount.append(card);
+  const P = sim.state.pop || (sim.state.pop = { G: 75, R: 45, F: 6, rain: 0.7, K: 100, t: 0, hist: [] });
+  const stage = document.createElement("div"); stage.className = "eco-pop-stage"; const cv = document.createElement("canvas"); cv.width = 680; cv.height = 250; cv.setAttribute("aria-label", L("Live meadow: grass, rabbits and foxes", "Prado en vivo: hierba, conejos y zorros")); stage.append(cv); card.append(stage);
+  const gcv = document.createElement("canvas"); gcv.width = 680; gcv.height = 150; gcv.style.cssText = "width:100%;height:auto;border:1px solid var(--line);border-radius:12px;margin-top:.5rem;background:#0b1d12;display:block"; card.append(gcv);
+  const leg = document.createElement("div"); leg.className = "eco-legend"; leg.innerHTML = `<span><i style="border-color:#7be08a"></i>${L("Grass", "Hierba")}</span><span><i style="border-color:#e9e3d5"></i>${L("Rabbits (1 icon = 2)", "Conejos (1 icono = 2)")}</span><span><i style="border-color:#ff9a3c"></i>${L("Foxes (1 icon = 1)", "Zorros (1 icono = 1)")}</span>`; card.append(leg);
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Grass supply", "Hierba")}<b id="po-g"></b></div><div>${L("Rabbits", "Conejos")}<b id="po-r"></b></div><div>${L("Foxes", "Zorros")}<b id="po-f"></b></div><div>${L("Forest cover", "Bosque")}<b id="po-k"></b></div>`; card.append(ro);
+  const ctr = document.createElement("div"); ctr.className = "cyc-controls";
+  ctr.innerHTML = `<div class="cyc-row"><label for="po-rain">${L("Rainfall", "Lluvia")}</label><input id="po-rain" type="range" min="0" max="100" value="${Math.round(P.rain * 100)}"><span class="cyc-val" id="po-rv"></span></div>
+  <div class="cyc-row"><button type="button" class="cyc-chip" id="po-dry">${L("Drought", "Sequía")}</button><button type="button" class="cyc-chip" id="po-wet">${L("Rain returns", "Vuelve la lluvia")}</button><button type="button" class="cyc-chip" id="po-cut">${L("Clear the forest", "Talar el bosque")}</button><button type="button" class="cyc-chip" id="po-plant">${L("Plant trees", "Plantar árboles")}</button></div>`;
+  card.append(ctr);
+  const tasks = [
+    { en: "Keep it balanced: with rainfall between 50% and 80%, lock in when there are between 30 and 90 rabbits.", es: "Mantén el equilibrio: con la lluvia entre 50% y 80%, fija la lectura cuando haya entre 30 y 90 conejos.", test: r => r.rain >= 0.5 && r.rain <= 0.8 && r.R >= 30 && r.R <= 90 },
+    { en: "Drought! Set rainfall to 20% or less and wait until the rabbits fall below 30. Watch the grass go first.", es: "¡Sequía! Pon la lluvia en 20% o menos y espera a que los conejos bajen de 30. Mira cómo la hierba baja primero.", test: r => r.rain <= 0.2 && r.R < 30 },
+    { en: "Clear the forest (keep rainfall at 50% or more) and lock in when the grass supply has dropped below 45.", es: "Tala el bosque (con la lluvia en 50% o más) y fija la lectura cuando la hierba haya bajado de 45.", test: r => r.K <= 40 && r.rain >= 0.5 && r.G < 45 },
+    { en: "Restore the ecosystem: plant trees, raise rainfall to 60% or more, and lock in when grass is above 50 and rabbits are back above 60.", es: "Restaura el ecosistema: planta árboles, sube la lluvia al 60% o más y fija la lectura cuando la hierba pase de 50 y los conejos vuelvan a superar 60.", test: r => r.K >= 100 && r.rain >= 0.6 && r.G > 50 && r.R > 60 },
+  ];
+  const rain = ctr.querySelector("#po-rain"), rv = ctr.querySelector("#po-rv");
+  const ord = makeOrders(card, sim, "st3", tasks, () => ({ rain: P.rain, R: P.R, G: P.G, K: P.K, setting: L(`Rain ${Math.round(P.rain * 100)}% · forest ${Math.round(P.K)}%`, `Lluvia ${Math.round(P.rain * 100)}% · bosque ${Math.round(P.K)}%`), reading: L(`Grass ${Math.round(P.G)} · rabbits ${Math.round(P.R)} · foxes ${Math.round(P.F)}`, `Hierba ${Math.round(P.G)} · conejos ${Math.round(P.R)} · zorros ${Math.round(P.F)}`), result: P.R < 15 ? L("Rabbit numbers crashed", "Los conejos se desplomaron") : P.R > 90 ? L("Rabbit boom", "Auge de conejos") : L("Rabbits stable", "Conejos estables") }),
+    L("Population Balance", "Equilibrio de Poblaciones"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("balance", L("Balance Keeper", "Guardián del Equilibrio")); onDone(); });
+  const bar = document.createElement("div"); bar.className = "cyc-row"; bar.style.marginTop = ".6rem"; bar.append(ord.lock); card.append(ord.bar, bar);
+  const note = document.createElement("div"); note.className = "eco-fact"; note.textContent = L("Watch the order: first the grass changes, then the rabbits, then the foxes - the effect moves up the food chain.", "Mira el orden: primero cambia la hierba, luego los conejos y luego los zorros - el efecto sube por la cadena alimentaria."); card.append(note);
+  const setRain = v => { P.rain = Math.max(0, Math.min(1, v)); rain.value = Math.round(P.rain * 100); rv.textContent = Math.round(P.rain * 100) + "%"; };
+  setRain(P.rain);
+  rain.addEventListener("input", () => setRain(rain.value / 100));
+  const say = (en, es) => { note.textContent = L(en, es); burst(stage, 50, 50, ["#7be08a", "#ffd24d", "#fff"], 10); };
+  ctr.querySelector("#po-dry").addEventListener("click", () => { setRain(0.05); say("Drought: with little water the grass cannot grow. Water is the limiting factor - it caps how many animals the land can feed (its carrying capacity).", "Sequía: con poca agua la hierba no crece. El agua es el factor limitante - fija cuántos animales puede alimentar la tierra (su capacidad de carga)."); });
+  ctr.querySelector("#po-wet").addEventListener("click", () => { setRain(0.85); say("The rain is back: grass regrows first, and the rabbits follow once there is food.", "Vuelve la lluvia: la hierba rebrota primero y los conejos la siguen cuando hay comida."); });
+  ctr.querySelector("#po-cut").addEventListener("click", () => { P.K = 40; sim.saveState(); say("Deforestation: less forest means less food and less shelter, so the whole land holds fewer animals.", "Deforestación: menos bosque significa menos comida y refugio, así que la tierra mantiene menos animales."); });
+  ctr.querySelector("#po-plant").addEventListener("click", () => { P.K = 100; sim.saveState(); say("Reforestation: planted trees rebuild the habitat, so the ceiling for grass and animals rises again.", "Reforestación: los árboles plantados reconstruyen el hábitat, así que el techo para hierba y animales vuelve a subir."); });
+  /* wandering sprites */
+  const rab = [], fox = [];
+  const mk = (n, arr) => { while (arr.length < n) arr.push({ x: 20 + Math.random() * 640, y: 120 + Math.random() * 105, vx: (Math.random() - 0.5) * 24, vy: (Math.random() - 0.5) * 8, ph: Math.random() * 6 }); arr.length = n; };
+  function drawRabbit(c, x, y, s, dir) { c.save(); c.translate(x, y); c.scale(dir * s, s); c.fillStyle = "#eee7da"; c.beginPath(); c.ellipse(0, 0, 9, 6, 0, 0, TAU); c.fill(); c.beginPath(); c.arc(8, -4, 5, 0, TAU); c.fill(); c.beginPath(); c.ellipse(7, -12, 2, 6, -0.2, 0, TAU); c.fill(); c.beginPath(); c.ellipse(11, -11, 2, 5.5, 0.25, 0, TAU); c.fill(); c.fillStyle = "#fff"; c.beginPath(); c.arc(-9, 0, 3, 0, TAU); c.fill(); c.fillStyle = "#222"; c.beginPath(); c.arc(10, -5, 1, 0, TAU); c.fill(); c.restore(); }
+  function drawFox(c, x, y, s, dir) { c.save(); c.translate(x, y); c.scale(dir * s, s); c.fillStyle = "#e0701c"; c.beginPath(); c.ellipse(0, 0, 13, 6.5, 0, 0, TAU); c.fill(); c.beginPath(); c.arc(12, -4, 5.5, 0, TAU); c.fill(); c.beginPath(); c.moveTo(9, -8); c.lineTo(11, -15); c.lineTo(14, -8); c.fill(); c.beginPath(); c.moveTo(-12, 0); c.quadraticCurveTo(-26, -8, -24, 6); c.quadraticCurveTo(-18, 4, -12, 3); c.fill(); c.fillStyle = "#fff"; c.beginPath(); c.ellipse(-23, 3, 3, 2.2, 0, 0, TAU); c.fill(); c.fillStyle = "#222"; c.beginPath(); c.arc(14, -5, 1.2, 0, TAU); c.fill(); c.restore(); }
+  const tufts = Array.from({ length: 150 }, () => ({ x: Math.random() * 680, y: 110 + Math.random() * 135, s: 0.6 + Math.random() * 0.9, p: Math.random() }));
+  let lastT = performance.now(), saveT = 0, alive = true;
+  const timer = setInterval(() => {
+    if (!card.isConnected) { clearInterval(timer); alive = false; return; }
+    const now = performance.now(), dt = Math.min(1, (now - lastT) / 1000); lastT = now; popStep(P, dt); P.t += dt;
+    P.hist.push([P.G, P.R, P.F]); if (P.hist.length > 170) P.hist.shift();
+    ro.querySelector("#po-g").textContent = Math.round(P.G); ro.querySelector("#po-r").textContent = Math.round(P.R); ro.querySelector("#po-f").textContent = Math.round(P.F); ro.querySelector("#po-k").textContent = Math.round(P.K) + "%";
+    saveT += dt; if (saveT > 3) { saveT = 0; sim.saveState(); }
+  }, 250);
+  function draw(now) {
+    if (!alive || !card.isConnected) return; const c = cv.getContext("2d"), t = now / 1000;
+    const sky = c.createLinearGradient(0, 0, 0, 250); sky.addColorStop(0, "#7cc4ff"); sky.addColorStop(0.45, "#cfeaff"); sky.addColorStop(0.46, "#5fa044"); sky.addColorStop(1, "#2f6a28"); c.fillStyle = sky; c.fillRect(0, 0, 680, 250);
+    const dry = 1 - Math.min(1, P.G / 80); c.fillStyle = `rgba(190,150,70,${dry * 0.6})`; c.fillRect(0, 112, 680, 138);
+    c.fillStyle = "#fff"; [60, 250, 480].forEach((x, i) => { const cx = (x + t * (6 + i * 2)) % 760 - 40; c.globalAlpha = 0.85 - P.rain * 0.0; c.beginPath(); c.ellipse(cx, 36 + i * 14, 34, 11, 0, 0, TAU); c.ellipse(cx + 20, 32 + i * 14, 24, 9, 0, 0, TAU); c.fill(); }); c.globalAlpha = 1;
+    const nT = Math.round(P.K / 100 * 7); for (let i = 0; i < 7; i++) { const x = 30 + i * 100, on = i < nT; c.globalAlpha = on ? 1 : 0.0; if (on) { c.fillStyle = "#5a3a1e"; c.fillRect(x - 3, 70, 6, 46); c.fillStyle = "#2f8a3a"; [[x, 62, 26], [x - 14, 76, 18], [x + 14, 76, 18]].forEach(a => { c.beginPath(); c.arc(a[0], a[1], a[2], 0, TAU); c.fill(); }); } else { c.globalAlpha = 1; c.fillStyle = "#6b4a2b"; c.fillRect(x - 5, 106, 10, 8); c.fillStyle = "#8a6a40"; c.beginPath(); c.ellipse(x, 106, 5, 2, 0, 0, TAU); c.fill(); } } c.globalAlpha = 1;
+    const nG = Math.round(P.G / 100 * tufts.length); c.strokeStyle = "#3f9a36"; c.lineWidth = 1.6;
+    for (let i = 0; i < nG; i++) { const g = tufts[i], sw = Math.sin(t * 1.5 + g.p * 9) * 2; c.beginPath(); c.moveTo(g.x, g.y); c.lineTo(g.x + sw, g.y - 9 * g.s); c.moveTo(g.x + 2, g.y); c.lineTo(g.x + 4 + sw, g.y - 7 * g.s); c.stroke(); }
+    mk(Math.min(40, Math.round(P.R / 2)), rab); mk(Math.min(14, Math.round(P.F)), fox);
+    const move = (a, spd) => a.forEach(o => { o.x += o.vx * 0.016 * spd; o.y += o.vy * 0.016 * spd; if (o.x < 14 || o.x > 666) o.vx *= -1; if (o.y < 118 || o.y > 232) o.vy *= -1; if (Math.random() < 0.01) { o.vx = (Math.random() - 0.5) * 30; o.vy = (Math.random() - 0.5) * 9; } });
+    move(rab, reducedMotion() ? 0 : 1); move(fox, reducedMotion() ? 0 : 1.5);
+    const all = rab.map(o => [o, 0]).concat(fox.map(o => [o, 1])).sort((a, b) => a[0].y - b[0].y);
+    all.forEach(([o, k]) => { const hop = reducedMotion() ? 0 : Math.abs(Math.sin(t * 6 + o.ph)) * (k ? 2 : 5), sc = 0.85 + (o.y - 118) / 114 * 0.55; (k ? drawFox : drawRabbit)(c, o.x, o.y - hop, sc, o.vx >= 0 ? 1 : -1); });
+    if (P.rain > 0.55) { c.strokeStyle = "rgba(255,255,255,.45)"; c.lineWidth = 1; for (let i = 0; i < Math.round(P.rain * 50); i++) { const rx = (i * 53 + t * 140) % 680, ry = (i * 29 + t * 320) % 250; c.beginPath(); c.moveTo(rx, ry); c.lineTo(rx - 3, ry + 9); c.stroke(); } }
+    /* graph */
+    const g = gcv.getContext("2d"); g.clearRect(0, 0, 680, 150); g.fillStyle = "#0b1d12"; g.fillRect(0, 0, 680, 150); g.strokeStyle = "#ffffff18"; for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, i * 37); g.lineTo(680, i * 37); g.stroke(); }
+    const line = (idx, col, mx) => { g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath(); P.hist.forEach((h, i) => { const x = i / 170 * 676, y = 142 - Math.min(1, h[idx] / mx) * 130; i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); };
+    line(0, "#7be08a", 110); line(1, "#e9e3d5", 140); line(2, "#ff9a3c", 30);
+    g.fillStyle = "#9fb4a0"; g.font = "11px sans-serif"; g.fillText(L("Numbers over the last ~40 seconds (grass 0-100 · rabbits 0-140 · foxes 0-30)", "Números de los últimos ~40 segundos (hierba 0-100 · conejos 0-140 · zorros 0-30)"), 8, 14);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+/* ============================================================
+   BONUS - NICHE NIBBLER (grow-by-collecting arena, .io-style)
+   Pick a diet, steer your animal, eat only what is on YOUR menu, answer
+   glowing "?" orbs. 120 s on setInterval. Silent. No lives, no fail state.
+   ============================================================ */
+const ROLES = {
+  herb: { img: "rabbit", en: "Herbivore", es: "Herbívoro", eats: ["plant"], hook: { en: "Herbivores eat only plants.", es: "Los herbívoros comen solo plantas." } },
+  carn: { img: "fox", en: "Carnivore", es: "Carnívoro", eats: ["animal"], hook: { en: "Carnivores eat only meat (other animals).", es: "Los carnívoros comen solo carne (otros animales)." } },
+  omni: { img: "bear", en: "Omnivore", es: "Omnívoro", eats: ["plant", "animal"], hook: { en: "Omnivores eat both plants and animals.", es: "Los omnívoros comen plantas y animales." } },
+  detr: { img: "worm", en: "Detritivore", es: "Detritívoro", eats: ["dead"], hook: { en: "Detritivores and decomposers eat dead matter.", es: "Los detritívoros y descomponedores comen materia muerta." } },
+};
+const FOODS = [
+  { img: "leaf", cat: "plant", en: "Leaf", es: "Hoja" }, { img: "grass", cat: "plant", en: "Grass", es: "Hierba" },
+  { img: "hopper", cat: "animal", en: "Grasshopper", es: "Saltamontes" }, { img: "fish", cat: "animal", en: "Fish", es: "Pez" },
+  { img: "fungus", cat: "dead", en: "Dead log", es: "Tronco muerto" }, { img: "worm", cat: "animal", en: "Worm", es: "Lombriz" },
+];
+const ORBQ = [
+  { en: "A baby sea turtle crawls to the ocean without being taught. This behaviour is...", es: "Una tortuga marina bebé se arrastra hasta el océano sin que nadie le enseñe. Este comportamiento es...", o: [["instinctive (born knowing it)", "instintivo (se nace sabiéndolo)"], ["learned from experience", "aprendido por experiencia"], ["a niche", "un nicho"]], a: 0, hook: { en: "Instinct is inherited, like a spider spinning its web.", es: "El instinto es heredado, como una araña tejiendo su tela." } },
+  { en: "A lion cub learns to hunt by watching its mother. This behaviour is...", es: "Un cachorro de león aprende a cazar viendo a su madre. Este comportamiento es...", o: [["instinctive", "instintivo"], ["learned", "aprendido"], ["a food web", "una red alimentaria"]], a: 1, hook: { en: "Learned behaviour comes from experience or observation.", es: "El comportamiento aprendido viene de la experiencia o la observación." } },
+  { en: "All the rabbits living in one meadow are a...", es: "Todos los conejos que viven en un prado son una...", o: [["population", "población"], ["community", "comunidad"], ["biosphere", "biosfera"]], a: 0, hook: { en: "Population = one species in one area.", es: "Población = una especie en un área." } },
+  { en: "Sharks, fish and coral living together on a reef are a...", es: "Tiburones, peces y corales que viven juntos en un arrecife son una...", o: [["population", "población"], ["community", "comunidad"], ["single organism", "solo organismo"]], a: 1, hook: { en: "Community = all the species (populations) in an area.", es: "Comunidad = todas las especies (poblaciones) de un área." } },
+  { en: "Which of these is ABIOTIC (non-living)?", es: "¿Cuál de estos es ABIÓTICO (no vivo)?", o: [["a deer", "un ciervo"], ["sunlight", "la luz del sol"], ["bacteria", "las bacterias"]], a: 1, hook: { en: "Abiotic: sunlight, water, soil, temperature. Biotic: living things.", es: "Abióticos: luz solar, agua, suelo, temperatura. Bióticos: seres vivos." } },
+  { en: "In a food web the arrows point...", es: "En una red alimentaria las flechas apuntan...", o: [["toward the eater (energy flow)", "hacia el comedor (flujo de energía)"], ["toward the food", "hacia la comida"], ["toward the sun", "hacia el sol"]], a: 0, hook: { en: "Arrows follow the energy: into the stomach of the eater.", es: "Las flechas siguen la energía: hacia el estómago de quien come." } },
+  { en: "Which human activity adds extra CO2 to the air?", es: "¿Qué actividad humana añade CO2 extra al aire?", o: [["planting trees", "plantar árboles"], ["burning coal, oil and gas", "quemar carbón, petróleo y gas"], ["using wind turbines", "usar turbinas eólicas"]], a: 1, hook: { en: "Burning fossil fuels releases CO2 that traps extra heat.", es: "Quemar combustibles fósiles libera CO2 que atrapa calor extra." } },
+  { en: "The dodo no longer exists anywhere on Earth. It is...", es: "El dodo ya no existe en ningún lugar de la Tierra. Es...", o: [["endangered", "una especie en peligro"], ["extinct", "una especie extinta"], ["a generalist", "generalista"]], a: 1, hook: { en: "Endangered = at serious risk. Extinct = gone forever.", es: "En peligro = en riesgo serio. Extinta = desaparecida para siempre." } },
+  { en: "Why build a wildlife bridge over a motorway?", es: "¿Por qué construir un puente de fauna sobre una autopista?", o: [["to let animals cross safely", "para que los animales crucen con seguridad"], ["to make cars faster", "para que los coches vayan más rápido"], ["to cut down trees", "para talar árboles"]], a: 0, hook: { en: "Wildlife corridors reconnect habitats and protect biodiversity.", es: "Los corredores de fauna reconectan hábitats y protegen la biodiversidad." } },
+  { en: "A koala eats only eucalyptus leaves. It is a...", es: "Un koala come solo hojas de eucalipto. Es un...", o: [["specialist (narrow niche)", "especialista (nicho estrecho)"], ["generalist (broad niche)", "generalista (nicho amplio)"], ["decomposer", "descomponedor"]], a: 0, hook: { en: "Specialists have narrow niches; raccoons are generalists.", es: "Los especialistas tienen nichos estrechos; los mapaches son generalistas." } },
+  { en: "Anything that slows or stops a population growing (food, water, space) is a...", es: "Todo lo que frena o detiene el crecimiento de una población (comida, agua, espacio) es un...", o: [["limiting factor", "factor limitante"], ["niche", "nicho"], ["metamorphosis", "metamorfosis"]], a: 0, hook: { en: "Limiting factors set the carrying capacity.", es: "Los factores limitantes fijan la capacidad de carga." } },
+  { en: "A nymph sheds its skin as it grows. This is called...", es: "Una ninfa cambia de piel al crecer. Esto se llama...", o: [["molting", "muda"], ["pupation", "pupación"], ["migration", "migración"]], a: 0, hook: { en: "Incomplete metamorphosis: egg, nymph (molting), adult.", es: "Metamorfosis incompleta: huevo, ninfa (muda), adulto." } },
+  { en: "Which life stage is puberty part of?", es: "¿De qué etapa de la vida forma parte la pubertad?", o: [["infancy", "la infancia"], ["adolescence", "la adolescencia"], ["old age", "la vejez"]], a: 1, hook: { en: "Adolescence: the physical change to maturity.", es: "Adolescencia: el cambio físico hacia la madurez." } },
+];
+function mountNicheNibbler(host, sim, onExit) {
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus eco-bonus"; host.append(wrap);
+  const images = {}; const loadImg = k => { if (!images[k]) { const im = new Image(); im.src = PH(k); images[k] = im; } return images[k]; };
+  Object.keys(ROLES).forEach(k => loadImg(ROLES[k].img)); FOODS.forEach(f => loadImg(f.img));
+  wrap.innerHTML = `<h3>${L("Bonus: Niche Nibbler", "Bonus: Niche Nibbler")}</h3><p>${L("Pick a diet, then steer your animal around the arena. Eat only the foods on YOUR menu to grow, and tap the glowing ? orbs to answer a quick question. Two minutes, no lives, nothing can go wrong. A silent game.", "Elige una dieta y guía a tu animal por la arena. Come solo los alimentos de TU menú para crecer y toca los orbes ? brillantes para responder una pregunta rápida. Dos minutos, sin vidas, nada puede salir mal. Un juego silencioso.")}</p><div class="eco-roles" id="nn-roles"></div><div class="cyc-row" style="margin-top:.6rem"><button type="button" class="cyc-btn cyc-btn--ghost" id="nn-skip">${L("Skip", "Omitir")}</button></div>`;
+  const rolesEl = wrap.querySelector("#nn-roles");
+  Object.keys(ROLES).forEach(k => { const r = ROLES[k], b = document.createElement("button"); b.type = "button"; b.className = "eco-role"; b.innerHTML = `${PA(r.img, r.en, r.es)}<span>${L(r.en, r.es)}<br><small>${L(r.hook.en, r.hook.es)}</small></span>`; b.addEventListener("click", () => start(k)); rolesEl.append(b); });
+  wrap.querySelector("#nn-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  function start(role) {
+    const R = ROLES[role];
+    wrap.innerHTML = `<h3>${L("Niche Nibbler", "Niche Nibbler")} - ${L(R.en, R.es)}</h3><div class="cyc-hud"><span id="nn-time"></span><span id="nn-score"></span><span id="nn-streak"></span></div><div class="eco-board" id="nn-board"></div>
+      <canvas width="680" height="400" id="nn-cv" aria-label="${L("Arena: steer your animal with the arrow keys, WASD or by dragging", "Arena: guía a tu animal con las flechas, WASD o arrastrando")}" tabindex="0"></canvas>
+      <div class="eco-q" id="nn-q" hidden></div><div class="cyc-toast" id="nn-toast">${L("Your menu: " + R.hook.en, "Tu menú: " + R.hook.es)}</div>
+      <p class="cyc-credit" style="color:#9fb4a0">${L("Move: arrow keys / WASD, or press and drag on the arena. Orb questions: tap an answer or press 1-3.", "Moverse: flechas / WASD, o mantén pulsado y arrastra en la arena. Preguntas de los orbes: toca una respuesta o pulsa 1-3.")}</p>`;
+    const cv = wrap.querySelector("#nn-cv"), c = cv.getContext("2d"), qEl = wrap.querySelector("#nn-q"), toast = wrap.querySelector("#nn-toast");
+    const G = { left: 120, score: 0, streak: 0, best: 0, r: 26, x: 340, y: 200, tx: null, ty: null, over: false, eaten: { right: 0, wrong: 0 }, orb: null, orbT: 12, qs: shuffled(ORBQ.map((_, i) => i), Date.now() % 997), qi: 0, qRight: 0, miss: [], keys: {}, bots: [{ n: "Fern", s: 0, v: 0.55 }, { n: "Rex", s: 0, v: 0.7 }, { n: "Pip", s: 0, v: 0.4 }], items: [], flash: 0 };
+    const spawn = () => { const wantRight = Math.random() < 0.55, pool = FOODS.filter(f => R.eats.includes(f.cat) === wantRight), f = pool[Math.floor(Math.random() * pool.length)], a = Math.random() * TAU; return { f, x: 30 + Math.random() * 620, y: 30 + Math.random() * 340, vx: Math.cos(a) * 26, vy: Math.sin(a) * 26, r: 21, spin: Math.random() * 6 }; };
+    for (let i = 0; i < 12; i++) G.items.push(spawn());
+    const say = (t, col) => { toast.textContent = t; toast.style.color = col || "#ffe08a"; };
+    const kd = e => { const k = e.key.toLowerCase(); if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(k)) { G.keys[k] = true; G.tx = null; if (document.activeElement === cv || e.target === document.body) e.preventDefault(); } if (G.orb && G.orb.open && "123".includes(k) && k) answer(+k - 1); };
+    const ku = e => { G.keys[e.key.toLowerCase()] = false; };
+    window.addEventListener("keydown", kd); window.addEventListener("keyup", ku);
+    const toWorld = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 680, (e.clientY - r.top) / r.height * 400]; };
+    let down = false;
+    cv.addEventListener("pointerdown", e => { down = true; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); [G.tx, G.ty] = toWorld(e); });
+    cv.addEventListener("pointermove", e => { if (down) [G.tx, G.ty] = toWorld(e); }); cv.addEventListener("pointerup", () => { down = false; G.tx = null; }); cv.addEventListener("pointercancel", () => { down = false; G.tx = null; });
+    function answer(i) {
+      const o = G.orb; if (!o || !o.open) return; const q = ORBQ[o.q], ok = i === q.a; o.open = false; qEl.hidden = true;
+      if (ok) { G.qRight++; G.score += 40; G.r = Math.min(52, G.r + 5); say(L("Correct! +40 and you grew. " + q.hook.en, "¡Correcto! +40 y creciste. " + q.hook.es), "#9dffb0"); burst(wrap, 50, 60, ["#9dffb0", "#ffe08a", "#fff"], 18); }
+      else { G.miss.push(o.q); say(L("Answer: " + q.o[q.a][0] + ". " + q.hook.en, "Respuesta: " + q.o[q.a][1] + ". " + q.hook.es), "#ffb3a0"); burst(wrap, 50, 60, ["#ffb3a0", "#fff"], 8); }
+      G.orb = null; G.orbT = 14;
+    }
+    function openOrb() {
+      const qi = G.qs[G.qi++ % G.qs.length], q = ORBQ[qi]; G.orb.q = qi; G.orb.open = true; qEl.hidden = false;
+      qEl.innerHTML = `<b>${L(q.en, q.es)}</b><div class="cyc-row"></div>`; const row = qEl.querySelector(".cyc-row");
+      q.o.forEach((o, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn cyc-btn--ghost"; b.style.background = "#ffffff1c"; b.style.color = "#fff"; b.textContent = (i + 1) + ". " + L(o[0], o[1]); b.addEventListener("click", () => answer(i)); row.append(b); });
+    }
+    const last = { v: performance.now() };
+    const timer = setInterval(() => {   // wall-clock game state; rAF only draws
+      const now = performance.now(), dt = Math.min(0.25, (now - last.v) / 1000); last.v = now; if (G.over) return;
+      G.left -= dt; if (G.left <= 0) { finish(); return; }
+      const sp = 150; let dx = 0, dy = 0; const K = G.keys; if (K.arrowleft || K.a) dx -= 1; if (K.arrowright || K.d) dx += 1; if (K.arrowup || K.w) dy -= 1; if (K.arrowdown || K.s) dy += 1;
+      if (G.tx != null) { const ex = G.tx - G.x, ey = G.ty - G.y, d = Math.hypot(ex, ey); if (d > 6) { dx = ex / d; dy = ey / d; } }
+      const m = Math.hypot(dx, dy) || 1; G.x = Math.max(G.r, Math.min(680 - G.r, G.x + dx / m * sp * dt * (dx || dy ? 1 : 0))); G.y = Math.max(G.r, Math.min(400 - G.r, G.y + dy / m * sp * dt * (dx || dy ? 1 : 0)));
+      G.items.forEach((it, i) => { it.x += it.vx * dt; it.y += it.vy * dt; if (it.x < it.r || it.x > 680 - it.r) it.vx *= -1; if (it.y < it.r || it.y > 400 - it.r) it.vy *= -1;
+        if (Math.hypot(it.x - G.x, it.y - G.y) < it.r + G.r * 0.8) {
+          const ok = R.eats.includes(it.f.cat); G.items[i] = spawn();
+          if (ok) { G.eaten.right++; G.streak++; G.best = Math.max(G.best, G.streak); G.score += 10 + Math.min(10, G.streak); G.r = Math.min(52, G.r + 1.2); say(L("Yum! " + it.f.en + " is on your menu. +" + (10 + Math.min(10, G.streak)), "¡Rico! " + it.f.es + " está en tu menú. +" + (10 + Math.min(10, G.streak))), "#9dffb0"); G.flash = 0.2; burst(wrap, 50, 45, ["#9dffb0", "#ffe08a"], 8); }
+          else { G.eaten.wrong++; G.streak = 0; say(L(it.f.en + " is not on your menu. " + R.hook.en, it.f.es + " no está en tu menú. " + R.hook.es), "#ffb3a0"); G.flash = -0.2; }
+        } });
+      G.orbT -= dt; if (!G.orb && G.orbT <= 0) G.orb = { x: 60 + Math.random() * 560, y: 50 + Math.random() * 300, open: false, q: 0, life: 14 };
+      if (G.orb && !G.orb.open) { if (Math.hypot(G.orb.x - G.x, G.orb.y - G.y) < G.r + 20) openOrb(); else { G.orb.life -= dt; if (G.orb.life <= 0) { G.orb = null; G.orbT = 8; } } }
+      G.bots.forEach(b => { b.s += b.v * dt * (4 + Math.random() * 3); });
+      if (G.flash) G.flash += (G.flash > 0 ? -dt : dt) * 1; if (Math.abs(G.flash) < 0.02) G.flash = 0;
+      hud();
+    }, 100);
+    function hud() {
+      wrap.querySelector("#nn-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(G.left)) + " s"; wrap.querySelector("#nn-score").textContent = L("Score ", "Puntos ") + Math.round(G.score); wrap.querySelector("#nn-streak").textContent = L("Streak ", "Racha ") + G.streak;
+      const all = [{ n: L("You", "Tú"), s: G.score, me: true }].concat(G.bots.map(b => ({ n: b.n, s: b.s }))).sort((a, b) => b.s - a.s);
+      wrap.querySelector("#nn-board").innerHTML = all.map((p, i) => `<span data-me="${!!p.me}">${i + 1}. ${p.n} ${Math.round(p.s)}</span>`).join("");
+    }
+    function draw(now) {
+      if (!cv.isConnected || G.over) return; const t = now / 1000;
+      const bg = c.createRadialGradient(340, 200, 40, 340, 200, 420); bg.addColorStop(0, "#2f7a3a"); bg.addColorStop(1, "#143a22"); c.fillStyle = bg; c.fillRect(0, 0, 680, 400);
+      c.strokeStyle = "#ffffff10"; c.lineWidth = 1; for (let x = 0; x < 680; x += 40) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 400); c.stroke(); } for (let y = 0; y < 400; y += 40) { c.beginPath(); c.moveTo(0, y); c.lineTo(680, y); c.stroke(); }
+      if (G.flash) { c.fillStyle = G.flash > 0 ? "rgba(120,255,160,.12)" : "rgba(255,120,120,.12)"; c.fillRect(0, 0, 680, 400); }
+      G.items.forEach(it => { const im = images[it.f.img]; c.save(); c.beginPath(); c.arc(it.x, it.y, it.r, 0, TAU); c.clip(); if (im && im.complete && im.naturalWidth) { const s = Math.max(it.r * 2 / im.naturalWidth, it.r * 2 / im.naturalHeight); c.drawImage(im, it.x - im.naturalWidth * s / 2, it.y - im.naturalHeight * s / 2, im.naturalWidth * s, im.naturalHeight * s); } else { c.fillStyle = "#cfe"; c.fill(); } c.restore(); c.strokeStyle = "#fff"; c.lineWidth = 2; c.beginPath(); c.arc(it.x, it.y, it.r, 0, TAU); c.stroke(); });
+      if (G.orb) { const o = G.orb, pr = 16 + (reducedMotion() ? 0 : Math.sin(t * 4) * 3); const g2 = c.createRadialGradient(o.x, o.y, 2, o.x, o.y, 34); g2.addColorStop(0, "rgba(255,230,120,.95)"); g2.addColorStop(1, "rgba(255,230,120,0)"); c.fillStyle = g2; c.beginPath(); c.arc(o.x, o.y, 34, 0, TAU); c.fill(); c.fillStyle = "#ffd24d"; c.beginPath(); c.arc(o.x, o.y, pr, 0, TAU); c.fill(); c.fillStyle = "#3a2a00"; c.font = "bold 20px sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("?", o.x, o.y + 1); }
+      const im = images[R.img]; c.save(); c.beginPath(); c.arc(G.x, G.y, G.r, 0, TAU); c.clip(); if (im && im.complete && im.naturalWidth) { const s = Math.max(G.r * 2 / im.naturalWidth, G.r * 2 / im.naturalHeight); c.drawImage(im, G.x - im.naturalWidth * s / 2, G.y - im.naturalHeight * s / 2, im.naturalWidth * s, im.naturalHeight * s); } c.restore();
+      c.strokeStyle = "#ffe08a"; c.lineWidth = 4; c.beginPath(); c.arc(G.x, G.y, G.r, 0, TAU); c.stroke();
+      c.fillStyle = "#fff"; c.font = "bold 12px sans-serif"; c.textAlign = "center"; c.fillText(L(R.en, R.es), G.x, G.y - G.r - 8);
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw); hud(); cv.focus();
+    function finish() {
+      if (G.over) return; G.over = true; clearInterval(timer); window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku);
+      const miss = G.miss.map(i => `<li>${L(ORBQ[i].en, ORBQ[i].es)} → <b>${L(ORBQ[i].o[ORBQ[i].a][0], ORBQ[i].o[ORBQ[i].a][1])}</b>. ${L(ORBQ[i].hook.en, ORBQ[i].hook.es)}</li>`).join("");
+      wrap.innerHTML = `<h3>${L("Nibbling complete!", "¡Nibbling completado!")}</h3><p>${L(`Role: ${R.en}. Right foods eaten: ${G.eaten.right}. Not on your menu: ${G.eaten.wrong}. Orb questions right: ${G.qRight}. Best streak: ${G.best}. Score ${Math.round(G.score)}.`, `Rol: ${R.es}. Alimentos correctos: ${G.eaten.right}. Fuera de tu menú: ${G.eaten.wrong}. Preguntas de orbes correctas: ${G.qRight}. Mejor racha: ${G.best}. Puntos ${Math.round(G.score)}.`)}</p>${miss ? `<p>${L("Worth another look:", "Para repasar:")}</p><ul>${miss}</ul>` : `<p>${L("No missed questions - a true Ranger!", "Ninguna pregunta fallada - ¡un verdadero Guardabosques!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="nn-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="nn-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#nn-again").addEventListener("click", () => { wrap.remove(); mountNicheNibbler(host, sim, onExit); }); wrap.querySelector("#nn-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: Math.round(G.score), right: G.eaten.right, q: G.qRight });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the order of life-cycle photos you place, the feeding arrows you draw, the rainfall level and the forest cover you choose. Dependent: whether the sequence is right, how many valid arrows the web has, and the numbers of grass, rabbits and foxes. Controlled: the same meadow, the same animals and the same starting numbers each time.",
+    "Independiente: el orden de las fotos del ciclo de vida, las flechas de alimentación que dibujas, el nivel de lluvia y la cobertura de bosque que eliges. Dependiente: si la secuencia es correcta, cuántas flechas válidas tiene la red y los números de hierba, conejos y zorros. Controladas: el mismo prado, los mismos animales y los mismos números iniciales cada vez.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (s.st1 && s.st1.idx >= 4 && s.st2 && s.st2.idx >= 4 && s.st3 && s.st3.idx >= 4 && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Ranger mission complete! You built life cycles, wove a food web and balanced a living meadow. Now explain what you found.", "¡Misión de Guardabosques completada! Construiste ciclos de vida, tejiste una red alimentaria y equilibraste un prado vivo. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildLifeCycle(host, sim, check); buildFoodWeb(host, sim, check); buildPopulation(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining how a change in one species affects the rest of an ecosystem?", "¿Qué tan seguro te sientes explicando cómo el cambio en una especie afecta al resto de un ecosistema?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "climate", label: L("How climate change affects ecosystems", "Cómo el cambio climático afecta a los ecosistemas") }, { id: "endangered", label: L("How we save endangered species", "Cómo salvamos especies en peligro") }, { id: "behaviour", label: L("Animal behaviour: instinct and learning", "Comportamiento animal: instinto y aprendizaje") }], "next");
+  host.append(creditLine());
+  document.addEventListener("eco-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountNicheNibbler(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete - score ${st.score}.`, `Bonus completo - ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
