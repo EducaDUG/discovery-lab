@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<!-- Lower Secondary Stage 2 Biology - Puberty and the Menstrual Cycle - Cycle Lab.
+     Content lives here + config.json/marking.json only. Hyper-real 3D cutaway (CLAUDE.md 18); bonus: precision-instrument challenge (Hormone Monitor). -->
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Cycle Lab: Hormones, Ovulation and Periods - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+/* ============================================================
+   CYCLE MODEL — one idealised 28-day cycle (day 1 = first day of bleeding).
+   Levels are relative (0-1), shaped like the standard textbook graph.
+   ============================================================ */
+const gs = (d, m, s) => Math.exp(-Math.pow((d - m) / s, 2));
+const HORM = [
+  { k: "fsh", en: "FSH", es: "FSH", c: "#f5a623", dash: [] },
+  { k: "lh", en: "LH", es: "LH", c: "#ff5fa2", dash: [7, 4] },
+  { k: "oes", en: "Oestrogen", es: "Estrógeno", c: "#4cc9f0", dash: [] },
+  { k: "pro", en: "Progesterone", es: "Progesterona", c: "#a98bff", dash: [2, 3] },
+];
+const HFN = {
+  fsh: d => 0.12 + 0.42 * gs(d, 4, 4.2) + 0.26 * gs(d, 13.6, 1.1),
+  lh: d => 0.08 + 0.92 * gs(d, 13.6, 0.9),
+  oes: d => 0.12 + 0.82 * gs(d, 12.4, 2.5) + 0.30 * gs(d, 21, 3.4),
+  pro: d => d < 14 ? 0.04 : 0.04 + 0.9 * gs(d, 21.5, 3.6),
+};
+function lining(d) {
+  if (d <= 5) return 0.30 - 0.05 * (d - 1);
+  if (d <= 14) return 0.10 + 0.40 * (d - 5) / 9;
+  if (d <= 22) return 0.5 + 0.5 * (d - 14) / 8;
+  if (d <= 24) return 1;
+  return 1 - 0.55 * (d - 24) / 4;
+}
+const follicle = d => d >= 14 ? 0 : Math.min(1, 0.12 + 0.88 * Math.pow(Math.max(0, d - 1) / 12.5, 1.5));
+const corpus = d => d < 14 ? 0 : d <= 23 ? (d - 14) / 9 : Math.max(0, 1 - (d - 23) / 5);
+const mmOf = l => 1 + 11 * l;
+function phaseOf(d) {
+  if (d < 6) return { id: "period", en: "Period (menstruation)", es: "Período (menstruación)" };
+  if (d < 13.5) return { id: "egg", en: "Egg maturing", es: "El óvulo madura" };
+  if (d < 14.6) return { id: "ovul", en: "Ovulation", es: "Ovulación" };
+  return { id: "after", en: "After ovulation", es: "Después de la ovulación" };
+}
+function eggState(d) {
+  if (d < 13.6) return L("maturing inside the follicle", "madurando dentro del folículo");
+  if (d < 17.5) return L("released and travelling down the tube", "liberado y viajando por la trompa");
+  return L("gone (not fertilised)", "desaparecido (no fecundado)");
+}
+
+/* Chart: hormone curves + lining area + phase bands + day cursor. opts: show{}, letters{}, lining, onlyKey */
+function drawChart(cv, day, opts) {
+  opts = opts || {}; const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, X0 = 36, X1 = W - 12, Y0 = 30, Y1 = H - 30;
+  const px = d => X0 + (d - 1) / 27 * (X1 - X0), py = v => Y1 - v * (Y1 - Y0);
+  ctx.clearRect(0, 0, W, H);
+  const bands = [[1, 5.5, "#d63a4b22", L("Period", "Período")], [5.5, 13.5, "#4cc9f016", L("Egg maturing", "Madura el óvulo")], [13.5, 14.6, "#ff5fa244", ""], [14.6, 28.5, "#a98bff16", L("After ovulation", "Tras la ovulación")]];
+  bands.forEach(b => { ctx.fillStyle = b[2]; ctx.fillRect(px(b[0]), Y0, px(b[1]) - px(b[0]), Y1 - Y0); if (b[3]) { ctx.fillStyle = "#cfd8f0"; ctx.font = "11px sans-serif"; ctx.fillText(b[3], px(b[0]) + 4, Y0 + 12); } });
+  ctx.strokeStyle = "#ffffff22"; ctx.lineWidth = 1; ctx.fillStyle = "#9fb0d8"; ctx.font = "10px sans-serif";
+  for (let d = 1; d <= 28; d += (28 > 20 ? 3 : 1)) { ctx.beginPath(); ctx.moveTo(px(d), Y0); ctx.lineTo(px(d), Y1); ctx.stroke(); ctx.fillText(d, px(d) - 4, Y1 + 12); }
+  ctx.fillText(L("Day of cycle →", "Día del ciclo →"), X1 - 78, Y1 + 24);
+  if (opts.lining) { ctx.fillStyle = "#e5484d55"; ctx.beginPath(); ctx.moveTo(px(1), Y1); for (let d = 1; d <= 28.01; d += 0.25) ctx.lineTo(px(d), py(lining(d) * 0.55)); ctx.lineTo(px(28), Y1); ctx.fill(); ctx.fillStyle = "#ffb3b8"; ctx.fillText(L("uterus lining", "capa del útero"), px(23.5), py(0.06) - 4); }
+  HORM.forEach((h, i) => {
+    if (opts.show && opts.show[h.k] === false) return;
+    ctx.strokeStyle = h.c; ctx.lineWidth = opts.hi === h.k ? 4.5 : 2.6; ctx.setLineDash(h.dash); ctx.beginPath();
+    for (let d = 1; d <= 28.01; d += 0.2) { const v = HFN[h.k](d); d === 1 ? ctx.moveTo(px(d), py(v)) : ctx.lineTo(px(d), py(v)); }
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = h.c; ctx.font = "bold 12px sans-serif";
+    const lab = opts.letters ? opts.letters[h.k] : L(h.en, h.es), pos = { fsh: [4, -14], lh: [13.6, 8], oes: [12.4, -64], pro: [21.5, -34] }[h.k];
+    ctx.fillText(lab, px(pos[0]) + pos[1], py(HFN[h.k](pos[0])) - 8);
+    ctx.beginPath(); ctx.arc(px(day), py(HFN[h.k](day)), 4, 0, TAU); ctx.fill();
+  });
+  ctx.strokeStyle = "#ffe38a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px(day), Y0); ctx.lineTo(px(day), Y1); ctx.stroke();
+  ctx.fillStyle = "#ffe38a"; ctx.font = "bold 12px sans-serif"; ctx.fillText(L("Day ", "Día ") + (Math.round(day * 10) / 10), Math.min(px(day) + 4, W - 60), Y1 + 24);
+}
+function makeChartCanvas() { const c = document.createElement("canvas"); c.width = 680; c.height = 230; c.style.cssText = "width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#0d1330;margin-top:.5rem"; return c; }
+
+/* ============================================================
+   3D SCENE KIT
+   ============================================================ */
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function wallR(y) { let r = 0.16 + 0.66 * sstep(-1.2, 0.3, y); if (y > 0.3) r *= Math.sqrt(Math.max(0, 1 - Math.pow((y - 0.3) / 0.6, 2))); return Math.max(0.01, r); }
+function liningGeometry(l) {
+  const pts = [], ys = []; for (let i = 0; i <= 36; i++) ys.push(-1.2 + (0.88 - -1.2) * i / 36);
+  ys.forEach(y => { pts.push(new THREE.Vector2(Math.max(0.02, wallR(y) - 0.1), y)); });
+  for (let i = ys.length - 1; i >= 0; i--) { const y = ys[i], rw = Math.max(0.02, wallR(y) - 0.1), t = Math.min(rw - 0.006, l * 0.8 * rw + 0.012); pts.push(new THREE.Vector2(Math.max(0.006, rw - t), y)); }
+  return new THREE.LatheGeometry(pts, 56);
+}
+function buildAnatomy(sp) {
+  const root = new THREE.Group(); sp.scene.add(root);
+  sp.scene.add(new THREE.HemisphereLight(0xffe9f0, 0x2a1030, 0.9));
+  const key = new THREE.DirectionalLight(0xfff0e8, 2.2); key.position.set(3, 4, 6); sp.scene.add(key);
+  const rim = new THREE.DirectionalLight(0xc080ff, 1.4); rim.position.set(-4, 2, -3); sp.scene.add(rim);
+  const clip = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.0);
+  const flesh = new THREE.MeshPhysicalMaterial({ color: 0xe08a94, roughness: 0.42, clearcoat: 0.6, clearcoatRoughness: 0.25, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false, clippingPlanes: [clip] });
+  const outerPts = []; for (let i = 0; i <= 40; i++) { const y = -1.25 + 2.15 * i / 40; outerPts.push(new THREE.Vector2(wallR(y), y)); }
+  const uterus = new THREE.Mesh(new THREE.LatheGeometry(outerPts, 56), flesh); uterus.scale.z = 0.66; root.add(uterus);
+  const linMat = new THREE.MeshPhysicalMaterial({ color: 0xb01c33, roughness: 0.55, clearcoat: 0.3, side: THREE.DoubleSide, clippingPlanes: [clip], emissive: 0x2a0409 });
+  let linMesh = new THREE.Mesh(liningGeometry(0.3), linMat); linMesh.scale.z = 0.66; root.add(linMesh); let lastL = 0.3;
+  const tubeMat = new THREE.MeshPhysicalMaterial({ color: 0xe9a1a8, roughness: 0.4, clearcoat: 0.5 });
+  const bump = makeBumpTexture();
+  const ovMat = new THREE.MeshPhysicalMaterial({ color: 0xe6b3a6, roughness: 0.6, bumpMap: bump, bumpScale: 0.2, clearcoat: 0.3 });
+  [-1, 1].forEach(sg => {
+    const tc = new THREE.CatmullRomCurve3([new THREE.Vector3(sg * 0.55, 0.7, 0), new THREE.Vector3(sg * 0.8, 1.04, 0.0), new THREE.Vector3(sg * 1.1, 1.14, 0.03), new THREE.Vector3(sg * 1.34, 1.0, 0.06)]);
+    root.add(new THREE.Mesh(new THREE.TubeGeometry(tc, 40, 0.055, 12), tubeMat));
+    for (let k = 0; k < 6; k++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.2, 8), tubeMat); const a = k / 6 * TAU; f.position.set(sg * 1.38 + Math.cos(a) * 0.05 * sg, 0.94 + Math.sin(a) * 0.05, 0.06); f.rotation.z = sg * -2.2; root.add(f); }
+    const ov = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), ovMat); ov.position.set(sg * 1.62, 0.66, 0); ov.scale.set(0.46, 0.32, 0.3); root.add(ov);
+    const lig = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.0, 6), new THREE.MeshStandardMaterial({ color: 0xd9a0a8 })); lig.position.set(sg * 1.0, 0.64, 0); lig.rotation.z = Math.PI / 2; root.add(lig);
+  });
+  const OV = new THREE.Vector3(1.55, 0.78, 0.26);
+  const fol = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshPhysicalMaterial({ color: 0xcfeaff, roughness: 0.05, clearcoat: 1, transparent: true, opacity: 0.55, depthWrite: false }));
+  fol.position.copy(OV); root.add(fol);
+  const egg = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 18), new THREE.MeshPhysicalMaterial({ color: 0xfff1c9, emissive: 0xffb84a, emissiveIntensity: 0.55, roughness: 0.3, transparent: true }));
+  root.add(egg); const eggGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#ffd27a"), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); root.add(eggGlow);
+  const cl = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 18), new THREE.MeshStandardMaterial({ color: 0xf2c230, roughness: 0.7, emissive: 0x4a3200 })); cl.position.copy(OV).add(new THREE.Vector3(-0.05, -0.02, 0.0)); root.add(cl);
+  const eggPath = new THREE.CatmullRomCurve3([OV.clone(), new THREE.Vector3(1.4, 1.0, 0.1), new THREE.Vector3(1.1, 1.14, 0.03), new THREE.Vector3(0.8, 1.04, 0.0), new THREE.Vector3(0.56, 0.7, 0), new THREE.Vector3(0.2, 0.15, 0)]);
+  // blood + dust particles
+  const NB = 70, bp = new Float32Array(NB * 3), bseed = []; for (let i = 0; i < NB; i++) { bseed.push(Math.random()); bp[i * 3 + 1] = -9; }
+  const bg = new THREE.BufferGeometry(); bg.setAttribute("position", new THREE.BufferAttribute(bp, 3));
+  const blood = new THREE.Points(bg, new THREE.PointsMaterial({ color: 0xb0122a, size: 0.07, sizeAttenuation: true, map: makeGlowTexture("#ff3b55"), transparent: true, depthWrite: false })); root.add(blood);
+  const ND = 120, dp = new Float32Array(ND * 3); for (let i = 0; i < ND; i++) { dp[i * 3] = (Math.random() - 0.5) * 7; dp[i * 3 + 1] = (Math.random() - 0.5) * 5; dp[i * 3 + 2] = (Math.random() - 0.5) * 4; }
+  const dg = new THREE.BufferGeometry(); dg.setAttribute("position", new THREE.BufferAttribute(dp, 3));
+  const dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: 0xffd0e0, size: 0.05, map: makeGlowTexture("#ffd0e0"), transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); sp.scene.add(dust);
+  // labels
+  const lbl = [
+    { en: "Uterus (womb)", es: "Útero", p: new THREE.Vector3(0.0, -0.55, 0.55) }, { en: "Lining", es: "Capa interna", p: new THREE.Vector3(0.0, 0.25, 0.05) },
+    { en: "Cervix", es: "Cuello uterino", p: new THREE.Vector3(0.0, -1.35, 0.35) }, { en: "Fallopian tube", es: "Trompa de Falopio", p: new THREE.Vector3(-1.05, 1.42, 0.0) },
+    { en: "Ovary with follicle", es: "Ovario con folículo", p: new THREE.Vector3(1.62, 0.2, 0.3) },
+  ].map(l => { const e = document.createElement("span"); e.className = "cyc-lbl"; sp.renderer.domElement.parentNode.append(e); l.el = e; return l; });
+  const v = new THREE.Vector3();
+  function update(d, t, flowing) {
+    const f = follicle(d), c = corpus(d), l = lining(d);
+    fol.visible = f > 0; fol.scale.setScalar(0.04 + 0.11 * f); fol.position.copy(OV);
+    const inFol = d < 13.6;
+    egg.visible = d < 17.8; const ep = Math.max(0, Math.min(1, (d - 13.6) / 3.9));
+    if (inFol) { egg.position.copy(OV); egg.scale.setScalar(0.028); egg.material.opacity = 1; }
+    else { eggPath.getPoint(ep, v); egg.position.copy(v); egg.scale.setScalar(0.034); egg.material.opacity = Math.max(0, d < 16.5 ? 1 : 1 - (d - 16.5) / 1.3); }
+    eggGlow.position.copy(egg.position); eggGlow.visible = egg.visible; eggGlow.scale.setScalar(0.22 + 0.05 * Math.sin(t * 5)); eggGlow.material.opacity = egg.material.opacity;
+    cl.visible = c > 0.02; cl.scale.setScalar(0.03 + 0.1 * c);
+    if (Math.abs(l - lastL) > 0.012) { linMesh.geometry.dispose(); linMesh.geometry = liningGeometry(l); lastL = l; }
+    const flow = d <= 5.5 ? 1 - (d - 1) / 6 : 0; blood.visible = flow > 0.05 && !reducedMotion();
+    if (blood.visible) { const a = bg.attributes.position.array; for (let i = 0; i < NB; i++) { const ph = (t * (0.5 + bseed[i] * 0.4) + bseed[i] * 7) % 1; if (bseed[i] > flow) { a[i * 3 + 1] = -9; continue; } a[i * 3] = (bseed[i] - 0.5) * 0.12; a[i * 3 + 1] = -1.3 - ph * 1.3; a[i * 3 + 2] = (bseed[(i * 7) % NB] - 0.5) * 0.1; } bg.attributes.position.needsUpdate = true; }
+    const br = reducedMotion() ? 0 : Math.sin(t * 1.4) * 0.008; root.scale.setScalar(1 + br);
+    const w = sp.renderer.domElement.clientWidth, h = sp.renderer.domElement.clientHeight;
+    lbl.forEach(q => { v.copy(q.p).project(sp.camera); q.el.style.left = (v.x * 0.5 + 0.5) * w + "px"; q.el.style.top = (-v.y * 0.5 + 0.5) * h + "px"; q.el.textContent = L(q.en, q.es); });
+  }
+  sp.hooks.push((dt, t) => { const pos = dust.geometry.attributes.position.array; if (!reducedMotion()) for (let i = 0; i < ND; i++) { pos[i * 3 + 1] += dt * 0.05; if (pos[i * 3 + 1] > 2.5) pos[i * 3 + 1] = -2.5; } dust.geometry.attributes.position.needsUpdate = true; });
+  return { update };
+}
+
+/* Orders queue (persisted in sim.state — CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete — keep exploring, or lock in more readings.", "Todos los pedidos completos — sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" — order met", " — pedido cumplido") : t ? L(" — not the order yet", " — todavía no es el pedido") : "") });
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#ff7aa8", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged — but that is not the order. Re-read it and try again.", "Registrado — pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("This is normal, healthy biology — and understanding it helps everyone. Tap each real photo to meet three things you'll investigate. If you ever have questions or worries, a parent or carer, the school nurse or a doctor is always a good person to ask.", "Esto es biología normal y saludable — y entenderla ayuda a todos. Toca cada foto real para conocer tres cosas que investigarás. Si alguna vez tienes dudas o preocupaciones, un familiar, la enfermera del colegio o un médico son siempre buenas personas a quienes preguntar.");
+  host.append(p);
+  const items = [
+    { f: "photos/pad.jpg", en: "A period product", es: "Un producto para el período", t: { en: "A period is when blood and tissue from the uterus lining leave the body for about 3 to 7 days. It is healthy and normal, and there are many products to choose from.", es: "Un período es cuando sangre y tejido del revestimiento del útero salen del cuerpo durante unos 3 a 7 días. Es sano y normal, y hay muchos productos para elegir." } },
+    { f: "photos/follicle.jpg", en: "An egg in its follicle", es: "Un óvulo en su folículo", t: { en: "Under the microscope: the big round cell in the middle is a human egg, sitting inside a follicle in the ovary. It is the biggest cell in the body.", es: "Al microscopio: la célula redonda grande del centro es un óvulo humano, dentro de un folículo del ovario. Es la célula más grande del cuerpo." } },
+    { f: "photos/endometrium.jpg", en: "The uterus lining", es: "El revestimiento del útero", t: { en: "Under the microscope: the lining of the uterus is soft tissue full of tiny glands and blood vessels. It gets thicker and thinner during the cycle.", es: "Al microscopio: el revestimiento del útero es un tejido blando lleno de pequeñas glándulas y vasos sanguíneos. Se hace más grueso y más delgado durante el ciclo." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo"><img src="${it.f}" alt="${L(it.en, it.es)}" loading="lazy"></span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit"; cr.innerHTML = L(
+    'Photos via Wikimedia Commons: egg in follicle — Ed Uthman (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>); uterus lining — Jpogi (public domain); period product — Donald Trung Quoc Don (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>).',
+    'Fotos vía Wikimedia Commons: óvulo en folículo — Ed Uthman (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>); revestimiento del útero — Jpogi (dominio público); producto para el período — Donald Trung Quoc Don (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>).'); return cr;
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at this real microscope photo of a human ovary before you learn any names. Then play photo detective: tap what each clue describes.", "Mira de cerca esta foto real al microscopio de un ovario humano antes de aprender ningún nombre. Luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo";
+  wrap.innerHTML = `<img src="photos/follicle.jpg" alt="${L("Microscope photo of a human ovary showing an egg cell inside a follicle", "Foto al microscopio de un ovario humano que muestra un óvulo dentro de un folículo")}">`;
+  const targets = [
+    { x: 49, y: 53, en: "the egg cell — the big round pink cell in the middle", es: "el óvulo — la célula redonda rosada grande del centro" },
+    { x: 80, y: 30, en: "the small purple helper cells that surround and feed the egg", es: "las pequeñas células moradas que rodean y alimentan al óvulo" },
+    { x: 46, y: 91, en: "the pink fluid-filled space of the follicle", es: "el espacio rosado lleno de líquido del folículo" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one — read the clue again.", "Esa no — vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! Each month in the cycle, an egg like this one matures in the ovary and is released.", "¡Detective de fotos completado! Cada mes del ciclo, un óvulo como este madura en el ovario y se libera.") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("Something in the body must control when an egg matures and when the uterus lining changes. Keep that in mind for your hypothesis.", "Algo en el cuerpo debe controlar cuándo madura un óvulo y cuándo cambia el revestimiento del útero. Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   STATION 1 — CYCLE EXPLORER (3D cutaway)
+   ============================================================ */
+function buildExplorer(mount, sim, onDone) {
+  const card = stationShell(1, "Cycle Explorer: Inside the Uterus", "Explorador del Ciclo: Dentro del Útero", "Scrub through the 28 days. Watch the egg, the lining and the hormones change together. Drag the model to turn it.", "Recorre los 28 días. Mira cómo cambian juntos el óvulo, la capa interna y las hormonas. Arrastra el modelo para girarlo.");
+  const stage = document.createElement("div"); stage.className = "cyc-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 6.6, yaw: 0.0, pitch: 0.08, ty: 0.0 });
+  const S = { d: sim.state.exD || 3, play: false };
+  const an = sp ? buildAnatomy(sp) : null;
+  if (sp) sp.hooks.push((dt, t) => { an.update(S.d, t); });
+  const ctrl = document.createElement("div"); ctrl.className = "cyc-controls"; card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row"><label for="cyc-d">${L("Day of the cycle", "Día del ciclo")}</label><input id="cyc-d" type="range" min="1" max="28" step="0.5"><span class="cyc-val" id="cyc-dv"></span><button type="button" class="cyc-btn cyc-btn--ghost" id="cyc-play">${L("Play a whole cycle", "Reproducir un ciclo entero")}</button></div>
+    <div class="cyc-row" id="cyc-jumps"></div>
+    <div class="cyc-gauges">
+      <div class="cyc-gauge"><div class="cyc-gauge__label">${L("Stage", "Etapa")}</div><div class="cyc-stagename" id="cyc-ph"></div></div>
+      <div class="cyc-gauge"><div class="cyc-gauge__label">${L("Uterus lining thickness", "Grosor de la capa del útero")}</div><div class="cyc-gauge__val" id="cyc-lin"></div><div class="cyc-bar"><i id="cyc-lbar"></i></div></div>
+      <div class="cyc-gauge"><div class="cyc-gauge__label">${L("The egg", "El óvulo")}</div><div class="cyc-gauge__val" style="font-size:.9rem" id="cyc-egg"></div></div>
+    </div>`;
+  const chart = makeChartCanvas(); ctrl.append(chart);
+  const show = { fsh: true, lh: true, oes: true, pro: true };
+  const tg = document.createElement("div"); tg.className = "cyc-row"; ctrl.append(tg);
+  HORM.forEach(hm => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.setAttribute("aria-pressed", "true"); b.innerHTML = `<span class="cyc-swatch" style="border-color:${hm.c};border-top-style:${hm.dash.length ? "dashed" : "solid"}"></span>${L(hm.en, hm.es)}`; b.addEventListener("click", () => { show[hm.k] = !show[hm.k]; b.setAttribute("aria-pressed", String(show[hm.k])); render(); }); tg.append(b); });
+  const dS = ctrl.querySelector("#cyc-d");
+  [[1, "Day 1", "Día 1"], [6, "Day 6", "Día 6"], [14, "Day 14", "Día 14"], [22, "Day 22", "Día 22"], [28, "Day 28", "Día 28"]].forEach(([d, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(en, es);
+    b.addEventListener("click", () => { const from = S.d; tween(800, e => { S.d = from + (d - from) * e; render(); }, () => { S.d = d; sim.state.exD = d; sim.saveState(); render(); }); }); ctrl.querySelector("#cyc-jumps").append(b); });
+  function render() {
+    dS.value = S.d; ctrl.querySelector("#cyc-dv").textContent = L("Day ", "Día ") + (Math.round(S.d * 10) / 10);
+    const ph = phaseOf(S.d), l = lining(S.d); ctrl.querySelector("#cyc-ph").textContent = L(ph.en, ph.es);
+    ctrl.querySelector("#cyc-lin").textContent = "≈ " + mmOf(l).toFixed(1) + " mm"; ctrl.querySelector("#cyc-lbar").style.width = Math.round(l * 100) + "%";
+    ctrl.querySelector("#cyc-egg").textContent = eggState(S.d); drawChart(chart, S.d, { show, lining: true });
+  }
+  dS.addEventListener("input", () => { S.d = +dS.value; render(); }); dS.addEventListener("change", () => { sim.state.exD = S.d; sim.saveState(); });
+  const playB = ctrl.querySelector("#cyc-play");
+  playB.addEventListener("click", () => {
+    S.play = !S.play; playB.textContent = S.play ? L("Pause", "Pausa") : L("Play a whole cycle", "Reproducir un ciclo entero");
+    if (S.play) { let lt = performance.now(); (function step(now) { if (!S.play || !card.isConnected) return; S.d += (now - lt) / 1000 * 1.6; lt = now; if (S.d > 28) S.d = 1; render(); requestAnimationFrame(step); })(lt); } else { sim.state.exD = S.d; sim.saveState(); }
+  });
+  const tasks = [
+    { en: "Find a day when the PERIOD is happening (the lining is thin and leaving the body).", es: "Encuentra un día en que ocurre el PERÍODO (la capa es delgada y sale del cuerpo).", test: r => r.d <= 5.5 },
+    { en: "Find the day the egg is released from the ovary (OVULATION).", es: "Encuentra el día en que el óvulo sale del ovario (OVULACIÓN).", test: r => r.d >= 13 && r.d <= 15 },
+    { en: "Find a day when the uterus lining is at its THICKEST.", es: "Encuentra un día en que la capa del útero es MÁS GRUESA.", test: r => lining(r.d) >= 0.97 },
+    { en: "Find the day when LH (the pink dashed line) is at its highest.", es: "Encuentra el día en que la LH (línea rosa discontinua) es más alta.", test: r => HFN.lh(r.d) >= 0.95 },
+  ];
+  const q = makeOrders(card, sim, "st1", tasks, () => { const d = S.d, l = lining(d); return { d, setting: L(`Day ${d}`, `Día ${d}`),
+    reading: L(`Lining ≈ ${mmOf(l).toFixed(1)} mm (${Math.round(l * 100)}%) · egg ${eggState(d)} · LH ${Math.round(HFN.lh(d) * 100)}%, oestrogen ${Math.round(HFN.oes(d) * 100)}%, progesterone ${Math.round(HFN.pro(d) * 100)}%`, `Capa ≈ ${mmOf(l).toFixed(1)} mm (${Math.round(l * 100)}%) · óvulo ${eggState(d)} · LH ${Math.round(HFN.lh(d) * 100)}%, estrógeno ${Math.round(HFN.oes(d) * 100)}%, progesterona ${Math.round(HFN.pro(d) * 100)}%`),
+    result: L(phaseOf(d).en, phaseOf(d).es) }; }, L("Explorer", "Explorador"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("explorer", L("Cycle Explorer", "Explorador del Ciclo")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "cyc-note"; note.textContent = L("The egg leaves the ovary around day 14. If it is not fertilised it disappears, the hormones drop, and the lining that was built up leaves the body as a period — and a new cycle begins.", "El óvulo sale del ovario hacia el día 14. Si no es fecundado desaparece, bajan las hormonas y la capa que se había formado sale del cuerpo como un período — y empieza un nuevo ciclo.");
+  card.append(note); render(); mount.append(card);
+}
+
+/* ============================================================
+   STATION 2 — PERIOD TRACKER (calendar)
+   ============================================================ */
+const PROFILES = [
+  { id: "A", starts: [3, 31, 59], dur: 5 }, { id: "B", starts: [3, 35, 67], dur: 5 }, { id: "C", starts: [5, 29, 53], dur: 4 },
+];
+function buildTracker(mount, sim, onDone) {
+  const card = stationShell(2, "Period Tracker: Is Everyone the Same?", "Registro del Período: ¿Somos Todos Iguales?", "Real people track their periods on a calendar to spot their own pattern. Choose a profile, measure the cycle length, and tap the day you predict.", "Las personas reales anotan sus períodos en un calendario para ver su propio patrón. Elige un perfil, mide la longitud del ciclo y toca el día que predices.");
+  const S = { prof: "A", pick: null };
+  const ctrl = document.createElement("div"); ctrl.className = "cyc-controls"; card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row"><label>${L("Profile (not real people)", "Perfil (no son personas reales)")}</label><span id="cyc-prof"></span></div>
+    <div class="cyc-legend"><span><i style="background:#d63a4b"></i>${L("first day of a period", "primer día de un período")}</span><span><i style="background:#f7b8bf"></i>${L("other bleeding days", "otros días de sangrado")}</span><span><i style="background:#ffe38a"></i>${L("your pick", "tu elección")}</span></div>
+    <div class="cyc-cal" id="cyc-cal"></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Cycle lengths (days from one period start to the next)", "Longitudes del ciclo (días de un inicio de período al siguiente)")}</div><div class="cyc-gauge__val" style="font-size:.95rem" id="cyc-lens"></div></div>`;
+  const cal = ctrl.querySelector("#cyc-cal"), cells = [];
+  for (let d = 1; d <= 100; d++) { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-cell"; b.textContent = d; b.setAttribute("aria-label", L("Day " + d, "Día " + d));
+    b.addEventListener("click", () => { S.pick = d; paint(); burst(card, 50, 40, ["#ffe38a", "#d63a4b", "#fff"], 6); }); cal.append(b); cells.push(b); }
+  PROFILES.forEach(p => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L("Profile ", "Perfil ") + p.id; b.dataset.v = p.id;
+    b.addEventListener("click", () => { S.prof = p.id; S.pick = null; paint(true); }); ctrl.querySelector("#cyc-prof").append(b); });
+  const cur = () => PROFILES.find(p => p.id === S.prof);
+  function paint(anim) {
+    const p = cur(); ctrl.querySelectorAll("#cyc-prof .cyc-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === S.prof)));
+    cells.forEach((c, i) => { const d = i + 1; let t = ""; p.starts.forEach(s => { if (d === s) t = "start"; else if (d > s && d < s + p.dur && t !== "start") t = "bleed"; }); c.dataset.p = t; c.dataset.pick = String(S.pick === d); if (anim && !reducedMotion()) c.animate([{ transform: "scale(.7)" }, { transform: "scale(1)" }], { duration: 250, delay: i * 4 }); });
+    const lens = []; for (let i = 1; i < p.starts.length; i++) lens.push(p.starts[i] - p.starts[i - 1]);
+    ctrl.querySelector("#cyc-lens").textContent = lens.map((x, i) => L(`day ${p.starts[i]} → day ${p.starts[i + 1]} = ${x} days`, `día ${p.starts[i]} → día ${p.starts[i + 1]} = ${x} días`)).join("  ·  ");
+  }
+  const nextOf = p => p.starts[p.starts.length - 1] + (p.starts[1] - p.starts[0]);
+  const lenOf = p => p.starts[1] - p.starts[0];
+  const within = (v, t) => v != null && Math.abs(v - t) <= 1;
+  const tasks = [
+    { en: "Profile A: tap the day you predict her NEXT period will start.", es: "Perfil A: toca el día en que predices que empezará su PRÓXIMO período.", test: () => S.prof === "A" && within(S.pick, nextOf(PROFILES[0])) },
+    { en: "Profile B: predict the day her next period will start (her cycle is a different length!).", es: "Perfil B: predice el día en que empezará su próximo período (¡su ciclo tiene otra longitud!).", test: () => S.prof === "B" && within(S.pick, nextOf(PROFILES[1])) },
+    { en: "Profile C: predict the day her next period will start.", es: "Perfil C: predice el día en que empezará su próximo período.", test: () => S.prof === "C" && within(S.pick, nextOf(PROFILES[2])) },
+    { en: "Profile B: the egg is released about 14 days BEFORE the next period. Tap the day of her next ovulation.", es: "Perfil B: el óvulo se libera unos 14 días ANTES del próximo período. Toca el día de su próxima ovulación.", test: () => S.prof === "B" && within(S.pick, nextOf(PROFILES[1]) - 14) },
+  ];
+  const q = makeOrders(card, sim, "st2", tasks, () => { const p = cur(); return { setting: L(`Profile ${p.id}`, `Perfil ${p.id}`),
+    reading: L(`Period starts on days ${p.starts.join(", ")} · cycle length ${lenOf(p)} days · you picked day ${S.pick == null ? "none" : S.pick}`, `Los períodos empiezan los días ${p.starts.join(", ")} · ciclo de ${lenOf(p)} días · elegiste el día ${S.pick == null ? "ninguno" : S.pick}`),
+    result: S.pick == null ? L("No day picked", "Ningún día elegido") : L(`Picked day ${S.pick} (next period expected day ${nextOf(p)})`, `Día elegido ${S.pick} (próximo período esperado el día ${nextOf(p)})`) }; }, L("Tracker", "Registro"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("tracker", L("Pattern Spotter", "Detective de Patrones")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "cyc-note"; note.textContent = L("28 days is just an average. Healthy cycles are often anywhere from about 21 to 35 days, and in the first few years after periods start they can be quite irregular. Everyone's body keeps its own pattern.", "28 días es solo un promedio. Los ciclos sanos suelen durar entre unos 21 y 35 días, y en los primeros años después de que empiezan los períodos pueden ser bastante irregulares. El cuerpo de cada persona tiene su propio patrón.");
+  card.append(note); paint(); mount.append(card);
+}
+
+/* ============================================================
+   STATION 3 — HORMONE MESSENGER LAB
+   ============================================================ */
+function buildHormoneLab(mount, sim, onDone) {
+  const card = stationShell(3, "Hormone Messenger Lab", "Laboratorio de Mensajeros Hormonales", "Hormones are chemical messengers in the blood. Four unlabelled curves are drawn below — use the clues and scrub through the days to work out which is which.", "Las hormonas son mensajeros químicos en la sangre. Abajo hay cuatro curvas sin etiqueta — usa las pistas y recorre los días para descubrir cuál es cuál.");
+  if (!sim.state.letters) { const L4 = ["W", "X", "Y", "Z"].sort(() => Math.random() - 0.5); sim.state.letters = { fsh: L4[0], lh: L4[1], oes: L4[2], pro: L4[3] }; sim.saveState(); }
+  const letters = sim.state.letters, S = { d: 14, sel: null };
+  const msg = document.createElement("div"); msg.className = "cyc-stage"; msg.style.aspectRatio = "16/6"; card.append(msg);
+  const mc = document.createElement("canvas"); mc.width = 640; mc.height = 240; mc.style.cssText = "width:100%;height:100%;display:block"; msg.append(mc);
+  const ctrl = document.createElement("div"); ctrl.className = "cyc-controls"; card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row"><label for="cyc-hd">${L("Day of the cycle", "Día del ciclo")}</label><input id="cyc-hd" type="range" min="1" max="28" step="0.5"><span class="cyc-val" id="cyc-hdv"></span></div><div class="cyc-row" id="cyc-curves"></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Selected curve", "Curva seleccionada")}</div><div class="cyc-gauge__val" style="font-size:.95rem" id="cyc-sel"></div></div>`;
+  const chart = makeChartCanvas(); ctrl.append(chart);
+  const dS = ctrl.querySelector("#cyc-hd");
+  HORM.forEach(hm => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.dataset.k = hm.k; b.innerHTML = `<span class="cyc-swatch" style="border-color:${hm.c};border-top-style:${hm.dash.length ? "dashed" : "solid"}"></span>${L("Curve ", "Curva ")}${letters[hm.k]}`; b.addEventListener("click", () => { S.sel = hm.k; render(); }); ctrl.querySelector("#cyc-curves").append(b); });
+  const peakDay = k => { let best = 1, bv = -1; for (let d = 1; d <= 28; d += 0.5) { const v = HFN[k](d); if (v > bv) { bv = v; best = d; } } return best; };
+  function render() {
+    dS.value = S.d; ctrl.querySelector("#cyc-hdv").textContent = L("Day ", "Día ") + S.d;
+    ctrl.querySelectorAll("#cyc-curves .cyc-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === S.sel)));
+    ctrl.querySelector("#cyc-sel").textContent = S.sel ? L(`Curve ${letters[S.sel]}: level on day ${S.d} = ${Math.round(HFN[S.sel](S.d) * 100)}% · its highest point is on day ${peakDay(S.sel)}`, `Curva ${letters[S.sel]}: nivel el día ${S.d} = ${Math.round(HFN[S.sel](S.d) * 100)}% · su punto más alto es el día ${peakDay(S.sel)}`) : L("Tap a curve button first.", "Toca primero un botón de curva.");
+    drawChart(chart, S.d, { letters, hi: S.sel });
+  }
+  dS.addEventListener("input", () => { S.d = +dS.value; render(); });
+  /* animated messenger map */
+  const dots = []; let lastSpawn = 0;
+  function node(ctx, x, y, w, h, color, label, kind) {
+    ctx.fillStyle = color; ctx.strokeStyle = "#ffffff66"; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x, y, w, h, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center"; ctx.fillText(label, x, y + h + 16);
+    ctx.strokeStyle = "#ffffff88"; ctx.lineWidth = 1.5;
+    if (kind === "brain") { ctx.beginPath(); ctx.arc(x - 12, y - 4, 10, 3.3, 5.6); ctx.arc(x + 10, y - 2, 11, 3.6, 6); ctx.stroke(); }
+    if (kind === "ovary") { [[-14, -4, 6], [6, 6, 5], [12, -8, 4]].forEach(a => { ctx.beginPath(); ctx.arc(x + a[0], y + a[1], a[2], 0, TAU); ctx.stroke(); }); }
+    if (kind === "uterus") { ctx.beginPath(); ctx.moveTo(x - 22, y - 12); ctx.quadraticCurveTo(x, y + 22, x + 22, y - 12); ctx.stroke(); }
+  }
+  const NODES = { brain: [90, 105], ovary: [320, 105], uterus: [550, 105] };
+  function frame(now) {
+    if (!mc.isConnected) return; const ctx = mc.getContext("2d"); ctx.clearRect(0, 0, 640, 240);
+    node(ctx, 90, 105, 52, 38, "#7a4fa8", L("Brain (pituitary gland)", "Cerebro (glándula pituitaria)"), "brain"); node(ctx, 320, 105, 52, 38, "#c8707e", L("Ovary", "Ovario"), "ovary"); node(ctx, 550, 105, 52, 38, "#b23a55", L("Uterus", "Útero"), "uterus");
+    ctx.textAlign = "center"; ctx.fillStyle = "#cfd8f0"; ctx.font = "11px sans-serif"; ctx.fillText(L("FSH + LH travel in the blood →", "FSH + LH viajan por la sangre →"), 205, 70); ctx.fillText(L("Oestrogen + progesterone →", "Estrógeno + progesterona →"), 435, 70);
+    if (now - lastSpawn > 90 && !reducedMotion()) { lastSpawn = now; HORM.forEach(hm => { if (Math.random() < HFN[hm.k](S.d) * 0.9) dots.push({ k: hm, t: 0, y: (hm.k === "fsh" ? -14 : hm.k === "lh" ? -4 : hm.k === "oes" ? -14 : -4), seg: (hm.k === "fsh" || hm.k === "lh") ? 0 : 1 }); }); }
+    for (let i = dots.length - 1; i >= 0; i--) { const q = dots[i]; q.t += 0.012; if (q.t >= 1) { dots.splice(i, 1); continue; } const a = q.seg === 0 ? NODES.brain : NODES.ovary, b = q.seg === 0 ? NODES.ovary : NODES.uterus; const x = a[0] + 55 + (b[0] - a[0] - 110) * q.t; ctx.fillStyle = q.k.c; ctx.beginPath(); ctx.arc(x, 105 + q.y + Math.sin(q.t * 9) * 3, 4, 0, TAU); ctx.fill(); }
+    ctx.textAlign = "left"; requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const clues = {
+    lh: { en: "Order: Find the hormone that TRIGGERS OVULATION. It spikes very sharply to its highest level just before the egg is released (around day 14).", es: "Pedido: Encuentra la hormona que DESENCADENA LA OVULACIÓN. Se dispara muy bruscamente hasta su nivel más alto justo antes de que se libere el óvulo (hacia el día 14)." },
+    fsh: { en: "Order: Find the hormone that helps the egg MATURE in its follicle. It is already high in the first days of the cycle, when follicles start to grow.", es: "Pedido: Encuentra la hormona que ayuda a MADURAR al óvulo en su folículo. Ya está alta en los primeros días del ciclo, cuando los folículos empiezan a crecer." },
+    oes: { en: "Order: Find the hormone that REBUILDS and thickens the uterus lining in the first half. It rises steadily and peaks just before ovulation.", es: "Pedido: Encuentra la hormona que RECONSTRUYE y engrosa la capa del útero en la primera mitad. Sube de forma constante y alcanza su máximo justo antes de la ovulación." },
+    pro: { en: "Order: Find the hormone that KEEPS the lining thick after ovulation. It stays very low until the egg is released, peaks around day 21, then falls before the period.", es: "Pedido: Encuentra la hormona que MANTIENE gruesa la capa después de la ovulación. Se mantiene muy baja hasta que se libera el óvulo, alcanza su máximo hacia el día 21 y luego baja antes del período." },
+  };
+  const order = ["lh", "fsh", "oes", "pro"];
+  const tasks = order.map(k => ({ en: clues[k].en, es: clues[k].es, test: r => r.sel === k }));
+  const nameOf = k => HORM.find(h => h.k === k);
+  const q = makeOrders(card, sim, "st3", tasks, () => { const k = S.sel; return { sel: k, setting: k ? L(`Curve ${letters[k]} chosen`, `Curva ${letters[k]} elegida`) : L("No curve chosen", "Ninguna curva elegida"),
+    reading: k ? L(`Highest on day ${peakDay(k)} (${Math.round(HFN[k](peakDay(k)) * 100)}%); level on day ${S.d} = ${Math.round(HFN[k](S.d) * 100)}%`, `Máxima el día ${peakDay(k)} (${Math.round(HFN[k](peakDay(k)) * 100)}%); nivel el día ${S.d} = ${Math.round(HFN[k](S.d) * 100)}%`) : "-",
+    result: k ? L(`Identified as ${nameOf(k).en}`, `Identificada como ${nameOf(k).es}`) : "-" }; }, L("Hormones", "Hormonas"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("hormones", L("Hormone Decoder", "Decodificador de Hormonas")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  q.lock.addEventListener("click", () => { if (q.st.idx > 0 && S.sel && order[q.st.idx - 1] === S.sel) { const hm = nameOf(S.sel); sim.toast(L(`Yes — that is ${hm.en}!`, `¡Sí — esa es ${hm.es}!`), "correct"); } });
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "cyc-note"; note.textContent = L("Hormones are made in one place and act in another. The brain's pituitary gland sends FSH and LH to the ovary; the ovary sends oestrogen and progesterone to the uterus. Watch the moving dots: more dots means a higher level that day.", "Las hormonas se producen en un lugar y actúan en otro. La glándula pituitaria del cerebro envía FSH y LH al ovario; el ovario envía estrógeno y progesterona al útero. Mira los puntos que se mueven: más puntos significa un nivel más alto ese día.");
+  card.append(note); render(); mount.append(card);
+}
+
+/* ============================================================
+   BONUS — HORMONE MONITOR (precision-instrument challenge; no fail state)
+   ============================================================ */
+function mountHormoneMonitor(host, sim, onExit) {
+  const TARGETS = [
+    { k: "lh", fn: HFN.lh, day: 13.5, en: "Park the needle on the day LH is at its HIGHEST.", es: "Coloca la aguja en el día en que la LH es MÁS ALTA.", hook: { en: "LH spikes right before ovulation — it triggers the egg's release.", es: "La LH se dispara justo antes de la ovulación — desencadena la liberación del óvulo." } },
+    { k: "oes", fn: HFN.oes, day: 12.5, en: "Find the day oestrogen first PEAKS.", es: "Encuentra el día en que el estrógeno alcanza su primer MÁXIMO.", hook: { en: "Oestrogen peaks just before ovulation after rebuilding the lining.", es: "El estrógeno alcanza su máximo justo antes de la ovulación, tras reconstruir la capa." } },
+    { k: "pro", fn: HFN.pro, day: 21.5, en: "Find the day progesterone PEAKS.", es: "Encuentra el día en que la progesterona alcanza su MÁXIMO.", hook: { en: "Progesterone peaks about a week after ovulation, keeping the lining thick.", es: "La progesterona alcanza su máximo una semana después de la ovulación, manteniendo gruesa la capa." } },
+    { k: "fsh", fn: HFN.fsh, day: 4, en: "Find the day FSH is HIGHEST in the first half of the cycle.", es: "Encuentra el día en que la FSH es MÁS ALTA en la primera mitad del ciclo.", hook: { en: "FSH is high early on: it gets follicles (and their eggs) growing.", es: "La FSH está alta al principio: hace crecer los folículos (y sus óvulos)." } },
+    { k: "lin", fn: d => lining(d), day: 22.5, en: "Find the day the uterus LINING is THICKEST.", es: "Encuentra el día en que la CAPA del útero es MÁS GRUESA.", hook: { en: "The lining is thickest in the second half, ready in case an egg is fertilised.", es: "La capa es más gruesa en la segunda mitad, lista por si se fecunda un óvulo." } },
+    { k: "pro", fn: HFN.pro, day: 28, en: "Find a day when progesterone has FALLEN to its lowest at the end of the cycle.", es: "Encuentra un día en que la progesterona ha BAJADO a su nivel más bajo al final del ciclo.", hook: { en: "When progesterone falls the lining breaks down — the next period is about to start.", es: "Cuando baja la progesterona la capa se deshace — el próximo período está por empezar." } },
+    { k: "lin", fn: d => lining(d), day: 5, en: "Find the day the lining is at its THINNEST (late in the period).", es: "Encuentra el día en que la capa es MÁS DELGADA (al final del período).", hook: { en: "At the end of the period the lining is thin; oestrogen then starts rebuilding it.", es: "Al final del período la capa es delgada; luego el estrógeno empieza a reconstruirla." } },
+    { k: "lh", fn: HFN.lh, day: 14, en: "Find the day the egg is usually RELEASED (ovulation).", es: "Encuentra el día en que normalmente se LIBERA el óvulo (ovulación).", hook: { en: "Ovulation follows the LH spike by about a day — around day 14 of a 28-day cycle.", es: "La ovulación llega aproximadamente un día después del pico de LH — hacia el día 14 de un ciclo de 28 días." } },
+  ];
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus cyc-mon"; host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: Hormone Monitor", "Bonus: Monitor de Hormonas")}</h3><p>${L("You are the lab technician. Turn the dial to park the needle on the day each question asks about — the closer you are, the more points. Eight readings in two minutes. Nothing here can go wrong: a miss just scores fewer points. A silent game.", "Eres el técnico de laboratorio. Gira el dial para colocar la aguja en el día que pide cada pregunta — cuanto más cerca, más puntos. Ocho lecturas en dos minutos. Aquí nada puede salir mal: fallar solo da menos puntos. Un juego silencioso.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="mn-start">${L("Play (2 minutes)", "Jugar (2 minutos)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="mn-skip">${L("Skip", "Omitir")}</button></div>`;
+  wrap.querySelector("#mn-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#mn-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Hormone Monitor", "Monitor de Hormonas")}</h3><div class="cyc-hud"><span id="mn-time"></span><span id="mn-n"></span><span id="mn-score"></span></div><div class="cyc-target" id="mn-target"></div>
+      <canvas width="680" height="220" id="mn-cv" aria-label="${L("Hormone monitor chart: drag the needle along the 28 days", "Gráfico del monitor de hormonas: arrastra la aguja a lo largo de los 28 días")}"></canvas>
+      <div class="cyc-row" style="margin-top:.6rem"><button type="button" class="cyc-btn cyc-btn--ghost" id="mn-m">−1</button><input id="mn-dial" type="range" min="1" max="28" step="0.25" value="14" aria-label="${L("Day dial", "Dial de día")}" style="flex:1"><button type="button" class="cyc-btn cyc-btn--ghost" id="mn-p">+1</button><button type="button" class="cyc-btn" id="mn-lock">${L("Lock reading (Enter)", "Fijar lectura (Enter)")}</button></div>
+      <div class="cyc-toast" id="mn-toast"></div>`;
+    const cv = wrap.querySelector("#mn-cv"), ctx = cv.getContext("2d"), dial = wrap.querySelector("#mn-dial"), toast = wrap.querySelector("#mn-toast");
+    const G = { i: 0, left: 120, score: 0, near: 0, over: false, day: 14, wait: 0, results: [] };
+    const px = d => 36 + (d - 1) / 27 * 620;
+    function setDay(d) { G.day = Math.max(1, Math.min(28, d)); dial.value = G.day; }
+    dial.addEventListener("input", () => setDay(+dial.value));
+    wrap.querySelector("#mn-m").addEventListener("click", () => setDay(G.day - 1)); wrap.querySelector("#mn-p").addEventListener("click", () => setDay(G.day + 1));
+    let dragging = false; const fromEvt = e => { const r = cv.getBoundingClientRect(); setDay(1 + ((e.clientX - r.left) / r.width * 680 - 36) / 620 * 27); };
+    cv.addEventListener("pointerdown", e => { dragging = true; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); fromEvt(e); }); cv.addEventListener("pointermove", e => { if (dragging) fromEvt(e); }); cv.addEventListener("pointerup", () => dragging = false);
+    const kd = e => { if (e.key === "Enter") { e.preventDefault(); lockIt(); } };
+    window.addEventListener("keydown", kd);
+    function lockIt() {
+      if (G.over || G.wait > 0) return; const t = TARGETS[G.i], err = Math.abs(G.day - t.day), pts = err <= 0.5 ? 100 : err <= 1 ? 75 : err <= 2 ? 40 : 10; G.score += pts; if (err <= 1) G.near++;
+      G.results.push({ q: t, err, pts }); burst(wrap, 50, 55, err <= 1 ? ["#5ee08a", "#ffd24d", "#fff"] : ["#ffb3b8", "#fff"], 12);
+      toast.textContent = L(`Day ${G.day} — ${err <= 0.5 ? "bullseye!" : err <= 1 ? "very close!" : err <= 2 ? "close" : "off target (answer ≈ day " + t.day + ")"} +${pts}. ${t.hook.en}`, `Día ${G.day} — ${err <= 0.5 ? "¡en el blanco!" : err <= 1 ? "¡muy cerca!" : err <= 2 ? "cerca" : "fuera del blanco (respuesta ≈ día " + t.day + ")"} +${pts}. ${t.hook.es}`);
+      G.wait = 1.4; G.i++; if (G.i >= TARGETS.length) setTimeout(finish, 1400);
+    }
+    wrap.querySelector("#mn-lock").addEventListener("click", lockIt);
+    const lastT = { v: performance.now() };
+    const timer = setInterval(() => {   // wall-clock game state; rAF is cosmetic only
+      const now = performance.now(), dt = (now - lastT.v) / 1000; lastT.v = now; if (G.over) return; G.left -= dt; if (G.wait > 0) G.wait -= dt; if (G.left <= 0) finish(); hud();
+    }, 100);
+    function hud() { wrap.querySelector("#mn-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(G.left)) + " s"; wrap.querySelector("#mn-n").textContent = L("Reading ", "Lectura ") + Math.min(G.i + 1, TARGETS.length) + "/" + TARGETS.length; wrap.querySelector("#mn-score").textContent = L("Score ", "Puntos ") + G.score;
+      const t = TARGETS[Math.min(G.i, TARGETS.length - 1)]; wrap.querySelector("#mn-target").textContent = L(t.en, t.es); }
+    function draw() {
+      if (!cv.isConnected || G.over) return; const t = TARGETS[Math.min(G.i, TARGETS.length - 1)];
+      const hm = HORM.find(h => h.k === t.k), col = hm ? hm.c : "#ff7a85", py = v => 190 - v * 165;
+      ctx.clearRect(0, 0, 680, 220); const bg = ctx.createLinearGradient(0, 0, 0, 220); bg.addColorStop(0, "#101a3d"); bg.addColorStop(1, "#070b1e"); ctx.fillStyle = bg; ctx.fillRect(0, 0, 680, 220);
+      ctx.strokeStyle = "#ffffff1c"; ctx.fillStyle = "#9fb0d8"; ctx.font = "10px sans-serif"; for (let d = 1; d <= 28; d += 3) { ctx.beginPath(); ctx.moveTo(px(d), 20); ctx.lineTo(px(d), 192); ctx.stroke(); ctx.fillText(d, px(d) - 4, 206); }
+      ctx.fillStyle = "#ffd9a0"; ctx.font = "bold 12px sans-serif"; ctx.fillText((hm ? L(hm.en, hm.es) : L("Uterus lining", "Capa del útero")) + L(" — relative level", " — nivel relativo"), 40, 16);
+      ctx.strokeStyle = col; ctx.lineWidth = 3.5; ctx.setLineDash(hm ? hm.dash : []); ctx.beginPath(); for (let d = 1; d <= 28.01; d += 0.2) { const v = t.fn(d); d === 1 ? ctx.moveTo(px(d), py(v)) : ctx.lineTo(px(d), py(v)); } ctx.stroke(); ctx.setLineDash([]);
+      const nx = px(G.day); ctx.strokeStyle = "#ffe38a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(nx, 22); ctx.lineTo(nx, 192); ctx.stroke(); ctx.fillStyle = "#ffe38a"; ctx.beginPath(); ctx.moveTo(nx - 8, 20); ctx.lineTo(nx + 8, 20); ctx.lineTo(nx, 32); ctx.fill(); ctx.beginPath(); ctx.arc(nx, py(t.fn(G.day)), 5, 0, TAU); ctx.fill();
+      ctx.font = "bold 13px sans-serif"; ctx.fillText(L("Day ", "Día ") + (Math.round(G.day * 4) / 4) + " · " + Math.round(t.fn(G.day) * 100) + "%", Math.min(nx + 10, 560), 50);
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw); hud(); setDay(14);
+    function finish() {
+      if (G.over) return; G.over = true; clearInterval(timer); window.removeEventListener("keydown", kd);
+      const miss = G.results.filter(r => r.err > 1).map(r => `<li>${L(r.q.en, r.q.es)} → ${L("day", "día")} ≈ ${r.q.day}. ${L(r.q.hook.en, r.q.hook.es)}</li>`).join("");
+      wrap.innerHTML = `<h3>${L("Monitor shift complete!", "¡Turno del monitor completado!")}</h3><p>${L(`Readings within 1 day: ${G.near} of ${G.results.length}. Score ${G.score}.`, `Lecturas a menos de 1 día: ${G.near} de ${G.results.length}. Puntos ${G.score}.`)}</p>${miss ? `<p>${L("Worth another look:", "Para repasar:")}</p><ul>${miss}</ul>` : `<p>${L("A perfect shift — you read every curve like a pro!", "¡Un turno perfecto — leíste todas las curvas como un profesional!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="mn-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="mn-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#mn-again").addEventListener("click", start); wrap.querySelector("#mn-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: G.score, near: G.near, total: G.results.length });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the day of the cycle you select, the profile you choose and the curve you test. Dependent: the thickness of the uterus lining, where the egg is, the hormone levels, the cycle length and which hormone each curve is. Controlled: the same idealised 28-day cycle and the same scale for every reading.",
+    "Independiente: el día del ciclo que seleccionas, el perfil que eliges y la curva que pruebas. Dependiente: el grosor de la capa del útero, dónde está el óvulo, los niveles hormonales, la longitud del ciclo y qué hormona es cada curva. Controladas: el mismo ciclo idealizado de 28 días y la misma escala en cada lectura.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (s.st1 && s.st1.idx >= 4 && s.st2 && s.st2.idx >= 4 && s.st3 && s.st3.idx >= 4 && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Cycle Lab complete! You explored the cycle day by day, spotted patterns and decoded the hormones. Now explain what you found.", "¡Laboratorio del Ciclo completo! Exploraste el ciclo día a día, detectaste patrones y decodificaste las hormonas. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildExplorer(host, sim, check); buildTracker(host, sim, check); buildHormoneLab(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining the stages of the menstrual cycle?", "¿Qué tan seguro te sientes explicando las etapas del ciclo menstrual?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "fert", label: L("What happens if an egg IS fertilised", "Qué pasa si un óvulo SÍ es fecundado") }, { id: "pub", label: L("Other changes in puberty", "Otros cambios en la pubertad") }, { id: "horm", label: L("How the brain controls hormones", "Cómo el cerebro controla las hormonas") }], "next");
+  host.append(creditLine());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountHormoneMonitor(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete — score ${st.score}.`, `Bonus completo — ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
