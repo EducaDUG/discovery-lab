@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6, Term 2 Module 1 - Heredity and Adaptation - Gene Quest. Content lives here + config.json/marking.json only. Hyper-real 3D (CLAUDE.md 18); mechanic: genetic-cross-breeding (Punnett Garden + Mutation Lab + Moth Island); bonus: Finch Feast (beak lab, real-photo precision/peck rounds). -->
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gene Quest: Heredity and Adaptation - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #1e4a5e 0%, #0e2433 62%, #07121b 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  .gq-pun { margin-top:.2rem; } .gq-pun__grid { display:grid; grid-template-columns: 2.4rem repeat(2, minmax(4.2rem, 6.5rem)); gap:5px; align-items:center; justify-items:center; }
+  .gq-pun__grid > b { font-family: var(--font-data); font-size: 1.15rem; color: var(--accent); }
+  .gq-cell { width:100%; min-height:3.4rem; border-radius:10px; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; gap:.4rem; font-family: var(--font-data); font-weight:800; animation: gq-pop .45s ease both; }
+  .gq-cell--empty { background: var(--surface); color: var(--ink-3); animation:none; }
+  .gq-cell--purple { background:#e9d6fa; border-color:#8a3fd0; } .gq-cell--white { background:#fffdf6; border-color:#bdb59e; }
+  .gq-cell i { width:14px; height:14px; border-radius:50%; display:inline-block; } .gq-cell--purple i { background:#8a3fd0; } .gq-cell--white i { background:#fff; border:2px solid #9a927c; }
+  .gq-cell b { color:#222; font-size:1.05rem; }
+  @keyframes gq-pop { 0% { transform: scale(.4); opacity:0; } 70% { transform: scale(1.08); opacity:1; } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .gq-cell { animation:none; }
+  .gq-mcard { border:2px dashed var(--accent); border-radius:12px; padding:.7rem .9rem; background: var(--accent-wash); font-size:.92rem; line-height:1.45; }
+  .gq-mcard[data-empty="true"] { color: var(--ink-3); border-color: var(--line); background: var(--surface); }
+  .gq-fb { min-height:1.4rem; font-size:.86rem; font-weight:700; } .gq-fb[data-k="ok"] { color:#1f8f46; } .gq-fb[data-k="bad"] { color:#b4372d; }
+  .gq-food { display:flex; gap:.8rem; align-items:center; margin:.5rem 0; font-size:.9rem; } .gq-food img { width:92px; height:68px; object-fit:cover; border-radius:10px; border:1px solid #ffffff44; }
+  .gq-beaks { display:grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap:.6rem; }
+  .gq-beak { border:2px solid #ffffff33; background:#ffffff12; color:#fff; border-radius:12px; padding:.4rem; cursor:pointer; font: inherit; font-size:.8rem; display:flex; flex-direction:column; gap:.3rem; align-items:center; text-align:center; min-height:44px; }
+  .gq-beak:hover, .gq-beak:focus-visible { border-color:#ffe08a; outline:none; }
+  .gq-beak__img { width:100%; aspect-ratio: 4/3; border-radius:8px; background-size:300% auto; background-repeat:no-repeat; display:block; }
+  .gq-arena { position:relative; height:260px; border-radius:14px; border:1px solid #ffffff2a; overflow:hidden; background: linear-gradient(180deg,#7dbbe6 0%,#bfe0ee 40%,#9bbf6b 41%,#6f9a48 100%); }
+  .gq-item { position:absolute; width:84px; height:64px; padding:0; border:3px solid #fff; border-radius:12px; overflow:hidden; cursor:pointer; background:#222; box-shadow:0 4px 10px #0006; animation: gq-in .25s ease both; }
+  .gq-item img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+  .gq-item i { position:absolute; right:3px; bottom:3px; font-style:normal; font-weight:800; font-family: var(--font-data); background:#000c; color:#ffe08a; border-radius:999px; min-width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:.78rem; }
+  .gq-item:focus-visible { outline:3px solid #ffe08a; }
+  @keyframes gq-in { from { transform: scale(.4); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .gq-tab { width:100%; border-collapse:collapse; font-size:.82rem; margin:.5rem 0; } .gq-tab th, .gq-tab td { border:1px solid #ffffff2a; padding:.35rem .5rem; text-align:left; vertical-align:top; } .gq-tab small { color:#c8d7f5; }
+  .cyc-stagename { font-weight:800; font-size:1rem; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+/* ============================================================
+   3D SCENE KIT
+   ============================================================ */
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+/* Orders queue (persisted in sim.state — CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete — keep exploring, or lock in more readings.", "Todos los pedidos completos — sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" — order met", " — pedido cumplido") : t ? L(" — not the order yet", " — todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("cyc-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#ff7aa8", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged — but that is not the order. Re-read it and try again.", "Registrado — pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+
+const C = h => new THREE.Color(h).convertSRGBToLinear();
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const spin = (node, cls) => { node.classList.remove(cls); void node.offsetWidth; node.classList.add(cls); };
+function canvasTex(w, h, draw, repeat) { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; } return t; }
+function shadows(sp) { sp.renderer.shadowMap.enabled = true; sp.renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+function sunlight(sp, tint) {
+  sp.scene.add(new THREE.HemisphereLight(0xdff0ff, 0x4a5a30, 0.95));
+  const k = new THREE.DirectionalLight(tint || 0xfff1d0, 2.4); k.position.set(5, 9, 6); k.castShadow = true; k.shadow.mapSize.set(1024, 1024);
+  Object.assign(k.shadow.camera, { left: -9, right: 9, top: 8, bottom: -8, near: 1, far: 30 }); sp.scene.add(k);
+}
+const dayStage = st => { st.style.setProperty("background", "linear-gradient(180deg,#8fc6ee 0%,#cfe9f7 55%,#a7c97a 100%)", "important"); };
+
+/* ============================================================
+   PEA PLANTS (Station 1)
+   ============================================================ */
+const PURPLE = "#8a3fd0", WHITE = "#f6f2ea";
+const phenoOf = g => g.indexOf("B") >= 0 ? "purple" : "white";
+const phenoName = p => p === "purple" ? L("purple", "morada") : L("white", "blanca");
+const sortG = (a, b) => (a === "B" || b === "b") ? a + b : b + a;
+function makePlant(hex) {
+  const g = new THREE.Group();
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.075, 1.4, 8), new THREE.MeshStandardMaterial({ color: C("#3f8f3a"), roughness: 0.8 })); stem.position.y = 0.7; stem.castShadow = true; g.add(stem);
+  for (let i = 0; i < 5; i++) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), new THREE.MeshStandardMaterial({ color: C("#4aa347"), roughness: 0.7 })); lf.scale.set(1, 0.14, 0.55); const a = i * 2.4; lf.position.set(Math.cos(a) * 0.3, 0.35 + i * 0.2, Math.sin(a) * 0.3); lf.rotation.y = -a; lf.castShadow = true; g.add(lf); }
+  const fl = new THREE.Group(); fl.position.y = 1.5; g.add(fl);
+  const pm = new THREE.MeshPhysicalMaterial({ color: C(hex), roughness: 0.45, clearcoat: 0.3, side: THREE.DoubleSide });
+  for (let i = 0; i < 5; i++) { const pt = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 10), pm); pt.scale.set(0.9, 0.2, 0.62); const a = i * TAU / 5; pt.position.set(Math.cos(a) * 0.27, 0, Math.sin(a) * 0.27); pt.rotation.set(0.35 * Math.sin(a), -a, -0.35 * Math.cos(a)); pt.castShadow = true; fl.add(pt); }
+  const ctr = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshStandardMaterial({ color: C("#f2c230"), roughness: 0.5 })); ctr.position.y = 0.05; fl.add(ctr);
+  g.userData.fl = fl; g.userData.pm = pm; return g;
+}
+function buildGarden(sp) {
+  shadows(sp); sunlight(sp);
+  const soil = new THREE.Mesh(new THREE.PlaneGeometry(40, 20), new THREE.MeshStandardMaterial({ color: C("#6a4a30"), roughness: 1, bumpMap: makeBumpTexture(), bumpScale: 1.2 })); soil.rotation.x = -Math.PI / 2; soil.receiveShadow = true; sp.scene.add(soil);
+  const lawn = new THREE.Mesh(new THREE.PlaneGeometry(40, 14), new THREE.MeshStandardMaterial({ color: C("#79ad4f"), roughness: 1 })); lawn.rotation.x = -Math.PI / 2; lawn.position.set(0, 0.01, -9); lawn.receiveShadow = true; sp.scene.add(lawn);
+  const fence = new THREE.Mesh(new THREE.BoxGeometry(24, 1.6, 0.15), new THREE.MeshStandardMaterial({ color: C("#b98f5b"), roughness: 0.8 })); fence.position.set(0, 0.8, -5); fence.castShadow = true; sp.scene.add(fence);
+  const mkPot = x => { const g = new THREE.Group(); g.position.set(x, 0, 0); const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.72, 0.9, 24), new THREE.MeshStandardMaterial({ color: C("#c4693c"), roughness: 0.8 })); pot.position.y = 0.45; pot.castShadow = true; g.add(pot); const dirt = new THREE.Mesh(new THREE.CylinderGeometry(0.88, 0.88, 0.05, 24), new THREE.MeshStandardMaterial({ color: C("#4a3220"), roughness: 1 })); dirt.position.y = 0.9; g.add(dirt); sp.scene.add(g); return g; };
+  const potA = mkPot(-4.6), potB = mkPot(4.6);
+  const parents = [null, null], kids = [], petals = [];
+  function setParent(i, geno) {
+    const pot = i ? potB : potA; if (parents[i]) pot.remove(parents[i]);
+    const p = makePlant(phenoOf(geno) === "purple" ? PURPLE : WHITE); p.position.y = 0.9; p.scale.setScalar(1.15); pot.add(p); parents[i] = p;
+  }
+  function clearKids() { kids.forEach(k => sp.scene.remove(k)); kids.length = 0; }
+  function addKid(idx, geno) {
+    const x = (idx % 4 - 1.5) * 1.5, z = idx < 4 ? 1.5 : 3.1; const k = makePlant(phenoOf(geno) === "purple" ? PURPLE : WHITE); k.position.set(x, 0, z); k.scale.setScalar(0.001); sp.scene.add(k); kids.push(k);
+    const d = 90 * idx; setTimeout(() => tween(520, e => k.scale.setScalar(0.12 + 0.88 * e)), reducedMotion() ? 0 : d);
+  }
+  sp.hooks.push((dt, t) => { if (reducedMotion()) return; [...parents, ...kids].forEach((p, i) => { if (p) p.rotation.z = Math.sin(t * 1.1 + i * 0.9) * 0.035; if (p && p.userData.fl) p.userData.fl.rotation.y = t * 0.2 + i; }); });
+  return { setParent, clearKids, addKid };
+}
+
+/* ============================================================
+   STATION 1 — PUNNETT GARDEN
+   ============================================================ */
+function buildPunnett(mount, sim, onDone) {
+  const card = stationShell(1, "Punnett Garden: Cross the Pea Plants", "Jardín de Punnett: Cruza las plantas de guisante", "Pick a genotype for each parent plant, then cross them. B (purple) is dominant, b (white) is recessive. Watch the Punnett square fill and the seedlings sprout.", "Elige un genotipo para cada planta madre/padre y crúzalas. B (morada) es dominante, b (blanca) es recesiva. Mira cómo se llena el cuadro de Punnett y brotan las plántulas.");
+  const stage = el("div", "cyc-stage"); card.append(stage); dayStage(stage);
+  const sp = makeSpace(stage, { dist: 12.5, yaw: 0, pitch: 0.33, ty: 1.4, fov: 40 });
+  const st = sim.state.gq1 || (sim.state.gq1 = { p1: "BB", p2: "bb" });
+  const S = { crossed: false, cells: [] };
+  const gd = sp ? buildGarden(sp) : null;
+  const ctrl = el("div", "cyc-controls"); card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row"><b>${L("Parent 1", "Madre/Padre 1")}</b><span class="cyc-row" id="gq-c1"></span></div><div class="cyc-row"><b>${L("Parent 2", "Madre/Padre 2")}</b><span class="cyc-row" id="gq-c2"></span></div>
+    <div class="cyc-row"><button type="button" class="cyc-btn" id="gq-go">${L("Cross them! (pollinate)", "¡Cruzarlas! (polinizar)")}</button></div>
+    <div class="gq-pun" id="gq-pun"></div>
+    <div class="cyc-gauges"><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Offspring (the 4 boxes)", "Descendencia (las 4 casillas)")}</div><div class="cyc-gauge__val" id="gq-cnt">-</div></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Chance of white (bb)", "Probabilidad de blanca (bb)")}</div><div class="cyc-gauge__val" id="gq-pct">-</div></div></div>`;
+  ["gq-c1", "gq-c2"].forEach((id, k) => ["BB", "Bb", "bb"].forEach(g => { const b = el("button", "cyc-chip", g + " · " + phenoName(phenoOf(g))); b.type = "button"; b.dataset.g = g;
+    b.addEventListener("click", () => { st[k ? "p2" : "p1"] = g; sim.saveState(); S.crossed = false; paint(); }); ctrl.querySelector("#" + id).append(b); }));
+  const pun = ctrl.querySelector("#gq-pun");
+  const alle = g => [g[0], g[1]];
+  function paint() {
+    ["p1", "p2"].forEach((k, i) => ctrl.querySelector("#gq-c" + (i + 1)).querySelectorAll(".cyc-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.g === st[k]))));
+    if (gd) { gd.setParent(0, st.p1); gd.setParent(1, st.p2); }
+    if (!S.crossed) { pun.innerHTML = `<div class="gq-pun__grid"><i></i><b>${alle(st.p2)[0]}</b><b>${alle(st.p2)[1]}</b><b>${alle(st.p1)[0]}</b><span class="gq-cell gq-cell--empty">?</span><span class="gq-cell gq-cell--empty">?</span><b>${alle(st.p1)[1]}</b><span class="gq-cell gq-cell--empty">?</span><span class="gq-cell gq-cell--empty">?</span></div><p class="q__hint" style="margin:.3rem 0 0">${L("Parent 1's alleles run down the side, Parent 2's across the top. Press Cross to fill the boxes.", "Los alelos de la madre/padre 1 van al lado, los de la 2 arriba. Pulsa Cruzar para llenar las casillas.")}</p>`; ctrl.querySelector("#gq-cnt").textContent = "-"; ctrl.querySelector("#gq-pct").textContent = "-"; }
+  }
+  function cross() {
+    const a = alle(st.p1), b = alle(st.p2), cells = [];
+    a.forEach(x => b.forEach(y => cells.push(sortG(x, y)))); S.cells = cells; S.crossed = true;
+    pun.innerHTML = `<div class="gq-pun__grid"><i></i><b>${b[0]}</b><b>${b[1]}</b><b>${a[0]}</b>${[0, 1].map(j => cellHtml(cells[j])).join("")}<b>${a[1]}</b>${[2, 3].map(j => cellHtml(cells[j])).join("")}</div>`;
+    pun.querySelectorAll(".gq-cell").forEach((c, i) => { c.style.animationDelay = (i * 160) + "ms"; });
+    if (gd) { gd.clearKids(); cells.forEach((g, i) => { gd.addKid(i, g); gd.addKid(i + 4, g); }); }
+    const nW = cells.filter(g => g === "bb").length, nP = 4 - nW;
+    ctrl.querySelector("#gq-cnt").textContent = L(`${nP} purple : ${nW} white`, `${nP} moradas : ${nW} blancas`); ctrl.querySelector("#gq-pct").textContent = (nW * 25) + "%";
+    burst(stage, 50, 70, [PURPLE, "#fff", "#f2c230"], 16);
+  }
+  const cellHtml = g => `<span class="gq-cell gq-cell--${phenoOf(g)}" title="${phenoName(phenoOf(g))}"><b>${g}</b><i></i></span>`;
+  ctrl.querySelector("#gq-go").addEventListener("click", cross);
+  const reading = () => {
+    if (!S.crossed) return { setting: `${st.p1} × ${st.p2}`, reading: L("Not crossed yet", "Aún sin cruzar"), result: "-", crossed: false };
+    const c = {}; S.cells.forEach(g => c[g] = (c[g] || 0) + 1); const nW = c.bb || 0;
+    return { setting: `${st.p1} × ${st.p2}`, reading: L(`${c.BB || 0} BB, ${c.Bb || 0} Bb, ${nW} bb → ${4 - nW} purple : ${nW} white (${nW * 25}% white)`, `${c.BB || 0} BB, ${c.Bb || 0} Bb, ${nW} bb → ${4 - nW} moradas : ${nW} blancas (${nW * 25}% blancas)`), result: nW === 0 ? L("All purple — dominant B always shows", "Todas moradas — el B dominante siempre se muestra") : nW === 4 ? L("All white", "Todas blancas") : L("Purple AND white — recessive b hidden in a parent", "Moradas Y blancas — b recesivo oculto en un progenitor"), crossed: true };
+  };
+  const same = (a, b) => (st.p1 === a && st.p2 === b) || (st.p1 === b && st.p2 === a);
+  const tasks = [
+    { en: "Cross two HOMOZYGOUS parents: BB × bb. Cross them, then lock in. What colour are ALL the offspring?", es: "Cruza dos progenitores HOMOCIGOTOS: BB × bb. Crúzalos y fija la lectura. ¿De qué color son TODOS los descendientes?", test: r => r.crossed && same("BB", "bb") },
+    { en: "Cross two HETEROZYGOUS parents: Bb × Bb. Cross, then lock in. Count the purple : white ratio.", es: "Cruza dos progenitores HETEROCIGOTOS: Bb × Bb. Cruza y fija la lectura. Cuenta la proporción moradas : blancas.", test: r => r.crossed && st.p1 === "Bb" && st.p2 === "Bb" },
+    { en: "Make a cross with a 50% chance of white (bb) offspring. Cross, then lock in.", es: "Haz un cruce con 50% de probabilidad de descendencia blanca (bb). Cruza y fija la lectura.", test: r => r.crossed && same("Bb", "bb") },
+    { en: "Find a cross where white flowers are IMPOSSIBLE even though one parent is heterozygous (Bb). Cross, then lock in.", es: "Encuentra un cruce donde las flores blancas sean IMPOSIBLES aunque un progenitor sea heterocigoto (Bb). Cruza y fija la lectura.", test: r => r.crossed && same("BB", "Bb") },
+  ];
+  const q = makeOrders(card, sim, "gqo1", tasks, reading, L("Punnett", "Punnett"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("punnett", L("Punnett Pro", "Experto en Punnett")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = el("p", "cyc-note"); note.textContent = L("Each parent gives ONE allele to each offspring, so a Bb parent can pass on B or b. A recessive trait (white) only shows when the offspring gets b from BOTH parents (bb). A Punnett square shows probability — real offspring numbers can vary.", "Cada progenitor da UN alelo a cada descendiente, así que un progenitor Bb puede dar B o b. Un rasgo recesivo (blanco) solo se muestra cuando la descendencia recibe b de AMBOS progenitores (bb). Un cuadro de Punnett muestra probabilidad — los números reales pueden variar.");
+  card.append(note); paint(); mount.append(card);
+}
+
+/* ============================================================
+   STATION 2 — MUTATION LAB (3D DNA)
+   ============================================================ */
+const BASES = ["A", "T", "C", "G"], PAIR = { A: "T", T: "A", C: "G", G: "C" }, BCOL = { A: "#ff5a5a", T: "#ffb03a", C: "#4aa3ff", G: "#5ee08a" };
+const MUTS = {
+  copy: [
+    { t: "B", en: "A copying error in a bacterium's DNA makes it able to survive an antibiotic that kills the other bacteria.", es: "Un error de copia en el ADN de una bacteria la hace capaz de sobrevivir a un antibiótico que mata a las demás.", hook: { en: "Beneficial: it helps the bacterium survive and reproduce (this is how antibiotic resistance starts).", es: "Beneficiosa: ayuda a la bacteria a sobrevivir y reproducirse (así empieza la resistencia a los antibióticos)." } },
+    { t: "H", en: "A copying error in a gene for a blood protein means the protein cannot do its job properly.", es: "Un error de copia en un gen de una proteína de la sangre hace que la proteína no pueda hacer bien su trabajo.", hook: { en: "Harmful: the protein stops working, which can cause a genetic illness.", es: "Dañina: la proteína deja de funcionar, lo que puede causar una enfermedad genética." } },
+    { t: "N", en: "A copying error swaps one DNA letter, but the protein it codes for works exactly the same.", es: "Un error de copia cambia una letra del ADN, pero la proteína que codifica funciona exactamente igual.", hook: { en: "Neutral: nothing changes in how the organism looks or survives.", es: "Neutra: no cambia nada en cómo se ve u sobrevive el organismo." } },
+  ],
+  uv: [
+    { t: "H", en: "UV rays from the Sun damage the DNA in a skin cell, and the cell starts to divide out of control.", es: "Los rayos UV del Sol dañan el ADN de una célula de la piel y la célula empieza a dividirse sin control.", hook: { en: "Harmful: this is how skin cancer can start. Sunscreen blocks UV mutagens.", es: "Dañina: así puede empezar el cáncer de piel. El protector solar bloquea los mutágenos UV." } },
+    { t: "N", en: "UV changes one DNA letter in a hair cell, but the hair looks and grows exactly the same.", es: "La radiación UV cambia una letra del ADN en una célula del cabello, pero el pelo se ve y crece igual.", hook: { en: "Neutral: the change has no effect you could notice.", es: "Neutra: el cambio no tiene ningún efecto que se note." } },
+    { t: "H", en: "Strong UV breaks DNA bonds in a skin cell so badly that the cell dies.", es: "Una radiación UV fuerte rompe los enlaces del ADN en una célula de la piel tan mal que la célula muere.", hook: { en: "Harmful to that cell: damaged DNA can stop the cell working at all.", es: "Dañina para esa célula: el ADN dañado puede impedir que la célula funcione." } },
+  ],
+  chem: [
+    { t: "H", en: "A toxic chemical in cigarette smoke changes the DNA in lung cells and raises the risk of cancer.", es: "Una sustancia tóxica del humo del cigarrillo cambia el ADN de las células de los pulmones y aumenta el riesgo de cáncer.", hook: { en: "Harmful: chemical mutagens interfere with DNA copying.", es: "Dañina: los mutágenos químicos interfieren en la copia del ADN." } },
+    { t: "B", en: "Plant breeders use a chemical to cause a mutation in a rice plant that makes its grains bigger and the plant healthier.", es: "Los fitomejoradores usan un químico para causar una mutación en una planta de arroz que hace sus granos más grandes y la planta más sana.", hook: { en: "Beneficial: farmers can keep and grow the improved rice.", es: "Beneficiosa: los agricultores pueden conservar y cultivar el arroz mejorado." } },
+    { t: "N", en: "A chemical changes one DNA letter in a moth's wing-colour gene, but the wings stay exactly the same colour.", es: "Un químico cambia una letra del ADN en el gen del color de las alas de una polilla, pero las alas siguen del mismo color.", hook: { en: "Neutral: the mutation makes no visible or useful difference.", es: "Neutra: la mutación no produce ninguna diferencia visible ni útil." } },
+  ],
+  virus: [
+    { t: "H", en: "A virus inserts its own code into a human cell's DNA, and the cell is forced to make new viruses and is damaged.", es: "Un virus inserta su propio código en el ADN de una célula humana y la célula es obligada a fabricar nuevos virus y queda dañada.", hook: { en: "Harmful: the virus uses the cell's own copying machinery.", es: "Dañina: el virus usa la maquinaria de copia de la propia célula." } },
+    { t: "N", en: "A virus inserts a short piece of code into a part of a cell's DNA that does nothing, so nothing changes.", es: "Un virus inserta un trozo corto de código en una parte del ADN de una célula que no hace nada, así que nada cambia.", hook: { en: "Neutral: the change lands where it does no harm and gives no benefit.", es: "Neutra: el cambio cae donde no hace daño ni da beneficio." } },
+  ],
+};
+const MUT_SRC = { copy: { en: "copying error", es: "error de copia" }, uv: { en: "UV radiation", es: "radiación UV" }, chem: { en: "chemical", es: "químico" }, virus: { en: "virus", es: "virus" } };
+const TYPE_N = { B: { en: "BENEFICIAL", es: "BENEFICIOSA" }, H: { en: "HARMFUL", es: "DAÑINA" }, N: { en: "NEUTRAL", es: "NEUTRA" } };
+function buildHelix(sp) {
+  const N = 14, grp = new THREE.Group(); grp.position.y = 0; sp.scene.add(grp);
+  sp.scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x140a30, 1.1)); const k = new THREE.DirectionalLight(0xffffff, 2.2); k.position.set(4, 6, 6); sp.scene.add(k); const r = new THREE.PointLight(0x7a5cff, 25, 30); r.position.set(-5, 2, 3); sp.scene.add(r);
+  const rungs = [], orig = [];
+  const sphereG = new THREE.SphereGeometry(0.3, 20, 14), rodG = new THREE.CylinderGeometry(0.07, 0.07, 1, 10), bbG = new THREE.SphereGeometry(0.16, 12, 8);
+  const mats = {}; BASES.forEach(b => mats[b] = new THREE.MeshPhysicalMaterial({ color: C(BCOL[b]), roughness: 0.3, clearcoat: 0.7 }));
+  for (let i = 0; i < N; i++) {
+    const b = BASES[Math.floor(Math.random() * 4)]; orig.push(b);
+    const g = new THREE.Group(); g.position.y = (i - (N - 1) / 2) * 0.46; g.rotation.y = i * 0.55; grp.add(g);
+    const l = new THREE.Mesh(sphereG, mats[b].clone()), rr = new THREE.Mesh(sphereG, mats[PAIR[b]].clone()); l.position.x = -1.05; rr.position.x = 1.05; g.add(l, rr);
+    const rl = new THREE.Mesh(rodG, mats[b]); rl.rotation.z = Math.PI / 2; rl.scale.y = 0.85; rl.position.x = -0.5; const rrr = new THREE.Mesh(rodG, mats[PAIR[b]]); rrr.rotation.z = Math.PI / 2; rrr.scale.y = 0.85; rrr.position.x = 0.5; g.add(rl, rrr);
+    const bl = new THREE.Mesh(bbG, new THREE.MeshStandardMaterial({ color: C("#e8eef8"), roughness: 0.4 })), br = bl.clone(); bl.position.x = -1.4; br.position.x = 1.4; g.add(bl, br);
+    rungs.push({ g, l, r: rr, rl, rr: rrr, b });
+  }
+  const sc = canvasTex(64, 64, (c) => { const gr = c.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "#fff"); gr.addColorStop(1, "#fff0"); c.fillStyle = gr; c.fillRect(0, 0, 64, 64); });
+  const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: sc, color: 0xff3030, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); flash.scale.setScalar(2.4); sp.scene.add(flash);
+  const dust = new Float32Array(160 * 3); for (let i = 0; i < 160; i++) { dust[i * 3] = (Math.random() - 0.5) * 14; dust[i * 3 + 1] = (Math.random() - 0.5) * 9; dust[i * 3 + 2] = -2 - Math.random() * 6; }
+  const dg = new THREE.BufferGeometry(); dg.setAttribute("position", new THREE.BufferAttribute(dust, 3)); const pts = new THREE.Points(dg, new THREE.PointsMaterial({ size: 0.1, map: makeGlowTexture("#9fb4ff"), transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending })); sp.scene.add(pts);
+  sp.hooks.push((dt, t) => { if (!reducedMotion()) { grp.rotation.y += dt * 0.35; pts.rotation.y = t * 0.02; } });
+  const api = {
+    mutate(src) {
+      const rg = rungs[Math.floor(Math.random() * N)]; const nb = BASES.filter(x => x !== rg.b)[Math.floor(Math.random() * 3)];
+      rg.l.material.color.copy(C(BCOL[nb])); rg.rl.material = rg.l.material; rg.l.material.emissive = C("#ff2020"); rg.l.material.emissiveIntensity = 0.9; rg.mut = true;
+      const wp = new THREE.Vector3(); rg.l.getWorldPosition(wp); flash.position.copy(wp); flash.material.color.set(src === "uv" ? 0xffe14a : src === "chem" ? 0x58f0a0 : src === "virus" ? 0xff5a5a : 0xffffff);
+      const s0 = rg.l.scale.x; tween(700, e => { flash.material.opacity = 1 - e; flash.scale.setScalar(1.2 + e * 3); rg.l.scale.setScalar(s0 * (1 + 0.6 * Math.sin(e * Math.PI))); });
+    },
+    unzip() { if (reducedMotion()) return; rungs.forEach((rg, i) => setTimeout(() => tween(500, e => { const d = Math.sin(e * Math.PI) * 0.7; rg.l.position.x = -1.05 - d; rg.r.position.x = 1.05 + d; rg.rl.position.x = -0.5 - d; rg.rr.position.x = 0.5 + d; }), i * 40)); },
+    reset() { rungs.forEach((rg, i) => { rg.mut = false; rg.l.material.color.copy(C(BCOL[orig[i]])); rg.l.material.emissive = new THREE.Color(0); rg.rl.material = mats[orig[i]]; }); },
+  };
+  return api;
+}
+function buildMutation(mount, sim, onDone) {
+  const card = stationShell(2, "Mutation Lab: Change the Code", "Laboratorio de Mutaciones: Cambia el código", "A strand of DNA is turning in 3D. Trigger a mutation from a cause below, then decide: is that mutation harmful, beneficial or neutral?", "Una hebra de ADN gira en 3D. Provoca una mutación con una de las causas de abajo y decide: ¿esa mutación es dañina, beneficiosa o neutra?");
+  const stage = el("div", "cyc-stage"); card.append(stage);
+  const sp = makeSpace(stage, { dist: 10.5, yaw: 0.3, pitch: 0.12, ty: 0, fov: 40 });
+  const hx = sp ? buildHelix(sp) : null; const S = { idx: { copy: 0, uv: 0, chem: 0, virus: 0 }, cur: null, last: null, count: 0 };
+  const ctrl = el("div", "cyc-controls"); card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row"><b>${L("Cause a mutation:", "Provoca una mutación:")}</b></div><div class="cyc-row" id="mu-src"></div>
+    <div class="gq-mcard" id="mu-card" data-empty="true">${L("No mutation yet — pick a cause above.", "Aún no hay mutación — elige una causa arriba.")}</div>
+    <div class="cyc-row" id="mu-cls" hidden></div><div class="gq-fb" id="mu-fb" aria-live="polite"></div>
+    <div class="cyc-gauges"><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Mutations classified correctly", "Mutaciones clasificadas bien")}</div><div class="cyc-gauge__val" id="mu-n">0</div></div></div>`;
+  const srcRow = ctrl.querySelector("#mu-src"), cardEl = ctrl.querySelector("#mu-card"), clsRow = ctrl.querySelector("#mu-cls"), fb = ctrl.querySelector("#mu-fb");
+  [["copy", "Copying error", "Error de copia", "#ffffff"], ["uv", "UV radiation", "Radiación UV", "#ffe14a"], ["chem", "Chemical", "Químico", "#58f0a0"], ["virus", "Virus", "Virus", "#ff5a5a"]].forEach(([id, en, es]) => {
+    const b = el("button", "cyc-btn cyc-btn--ghost", L(en, es)); b.type = "button"; b.addEventListener("click", () => {
+      const bank = MUTS[id], c = bank[S.idx[id] % bank.length]; S.idx[id]++; S.cur = { src: id, c, done: false }; if (hx) { hx.reset(); if (id === "copy") hx.unzip(); setTimeout(() => hx.mutate(id), id === "copy" && !reducedMotion() ? 450 : 0); }
+      cardEl.dataset.empty = "false"; cardEl.innerHTML = `<b>${L("Cause: ", "Causa: ")}${L(MUT_SRC[id].en, MUT_SRC[id].es)}</b><br>${L(c.en, c.es)}`; fb.textContent = ""; fb.dataset.k = ""; clsRow.hidden = false; burst(stage, 50, 50, ["#ff5a5a", "#fff", "#ffd24d"], 12); });
+    srcRow.append(b); });
+  ["N", "B", "H"].forEach(t => { const b = el("button", "cyc-chip", L(TYPE_N[t].en, TYPE_N[t].es)); b.type = "button"; b.addEventListener("click", () => {
+    if (!S.cur || S.cur.done) return; const ok = S.cur.c.t === t; const c = S.cur.c;
+    if (ok) { S.cur.done = true; S.count++; ctrl.querySelector("#mu-n").textContent = S.count; fb.dataset.k = "ok"; fb.textContent = L("✓ Correct — ", "✓ Correcto — ") + L(c.hook.en, c.hook.es); burst(stage, 50, 50, ["#5ee08a", "#fff", "#ffd24d"], 16); S.last = { src: S.cur.src, type: t, correct: true, text: L(c.en, c.es) }; }
+    else { spin(b, "cyc-shake"); fb.dataset.k = "bad"; fb.textContent = L(`Not quite — this one is ${TYPE_N[c.t].en}. `, `No del todo — esta es ${TYPE_N[c.t].es}. `) + L(c.hook.en, c.hook.es); S.last = { src: S.cur.src, type: t, correct: false, actual: c.t, text: L(c.en, c.es) }; S.cur.done = true; }
+  }); clsRow.append(b); });
+  const reading = () => { const l = S.last; if (!l) return { setting: "-", reading: L("No mutation classified yet", "Aún sin mutación clasificada"), result: "-" };
+    return { setting: L(MUT_SRC[l.src].en, MUT_SRC[l.src].es), reading: L(`Student said ${TYPE_N[l.type].en}`, `El estudiante dijo ${TYPE_N[l.type].es}`) + " · " + (l.text.length > 70 ? l.text.slice(0, 70) + "…" : l.text), result: l.correct ? L("Correct classification", "Clasificación correcta") : L(`Incorrect (it was ${TYPE_N[l.actual].en})`, `Incorrecta (era ${TYPE_N[l.actual].es})`), l }; };
+  const tasks = [
+    { en: "Zap the DNA with UV radiation, classify the mutation correctly, then lock it in.", es: "Golpea el ADN con radiación UV, clasifica bien la mutación y fíjala.", test: r => r.l && r.l.src === "uv" && r.l.correct },
+    { en: "Trigger a COPYING ERROR (the cell copies its DNA before dividing), classify it correctly and lock it in.", es: "Provoca un ERROR DE COPIA (la célula copia su ADN antes de dividirse), clasifícalo bien y fíjalo.", test: r => r.l && r.l.src === "copy" && r.l.correct },
+    { en: "Find a BENEFICIAL mutation (try copying errors and chemicals), classify it correctly and lock it in.", es: "Encuentra una mutación BENEFICIOSA (prueba errores de copia y químicos), clasifícala bien y fíjala.", test: r => r.l && r.l.type === "B" && r.l.correct },
+    { en: "Find a NEUTRAL mutation, classify it correctly and lock it in.", es: "Encuentra una mutación NEUTRA, clasifícala bien y fíjala.", test: r => r.l && r.l.type === "N" && r.l.correct },
+  ];
+  const q = makeOrders(card, sim, "gqo2", tasks, reading, L("Mutation", "Mutación"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("mutation", L("Mutation Master", "Maestro de Mutaciones")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = el("p", "cyc-note"); note.textContent = L("A mutation is a permanent change in the DNA sequence. Causes: copying errors and mutagens (UV, some chemicals, some viruses). Most are neutral or harmful, but a few are beneficial — and without mutations there would be no new variety for evolution.", "Una mutación es un cambio permanente en la secuencia del ADN. Causas: errores de copia y mutágenos (UV, algunos químicos, algunos virus). La mayoría son neutras o dañinas, pero unas pocas son beneficiosas — y sin mutaciones no habría variedad nueva para la evolución.");
+  card.append(note); mount.append(card);
+}
+
+/* ============================================================
+   STATION 3 — MOTH ISLAND (natural selection)
+   ============================================================ */
+function barkTex(env) {
+  return canvasTex(512, 512, (c, w, h) => {
+    const light = env === "clean"; c.fillStyle = light ? "#d9d3c4" : "#3d3730"; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 160; i++) { c.strokeStyle = light ? `rgba(40,36,30,${0.12 + Math.random() * 0.28})` : `rgba(10,8,6,${0.2 + Math.random() * 0.35})`; c.lineWidth = 1 + Math.random() * 3; const y = Math.random() * h, x = Math.random() * w; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 20 + Math.random() * 70, y + (Math.random() - 0.5) * 6); c.stroke(); }
+    for (let i = 0; i < 260; i++) { c.fillStyle = light ? `rgba(${150 + Math.random() * 40},${160 + Math.random() * 40},${110 + Math.random() * 30},${Math.random() * 0.25})` : `rgba(${60 + Math.random() * 30},${55 + Math.random() * 25},${45},${Math.random() * 0.3})`; c.beginPath(); c.arc(Math.random() * w, Math.random() * h, 2 + Math.random() * 9, 0, TAU); c.fill(); }
+  }, true);
+}
+function mothTex(dark) {
+  return canvasTex(96, 64, (c) => {
+    c.clearRect(0, 0, 96, 64); const col = dark ? "#2b2723" : "#e0dac9"; c.fillStyle = col;
+    [[-1, 1]].forEach(() => { c.beginPath(); c.moveTo(48, 30); c.bezierCurveTo(30, 6, 6, 8, 4, 28); c.bezierCurveTo(8, 48, 30, 54, 48, 36); c.fill(); c.beginPath(); c.moveTo(48, 30); c.bezierCurveTo(66, 6, 90, 8, 92, 28); c.bezierCurveTo(88, 48, 66, 54, 48, 36); c.fill(); });
+    c.fillStyle = dark ? "#1b1815" : "#cfc8b6"; c.beginPath(); c.ellipse(48, 33, 4, 14, 0, 0, TAU); c.fill();
+    c.fillStyle = dark ? "#1b1815" : "#bdb6a4"; for (let i = 0; i < 26; i++) { c.beginPath(); c.arc(10 + Math.random() * 76, 12 + Math.random() * 34, 1 + Math.random() * 1.6, 0, TAU); c.fill(); }
+  });
+}
+function buildMothIsland(sp) {
+  shadows(sp); sunlight(sp, 0xfff1d6);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 24), new THREE.MeshStandardMaterial({ color: C("#4c6a38"), roughness: 1, bumpMap: makeBumpTexture(), bumpScale: 1 })); ground.rotation.x = -Math.PI / 2; ground.position.y = -3; ground.receiveShadow = true; sp.scene.add(ground);
+  for (let i = 0; i < 7; i++) { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 14, 14), new THREE.MeshStandardMaterial({ color: C("#4b4033"), roughness: 1 })); t.position.set(-11 + i * 3.7, 3, -6 - (i % 2) * 2); sp.scene.add(t); const lv = new THREE.Mesh(new THREE.SphereGeometry(2.8, 14, 10), new THREE.MeshStandardMaterial({ color: C("#3f7a3a"), roughness: 1 })); lv.position.set(t.position.x, 9.4, t.position.z); sp.scene.add(lv); }
+  const trunkM = new THREE.MeshBasicMaterial({ map: barkTex("clean") }); const trunk = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 1.55, 9, 40, 1), trunkM); trunk.position.y = 1.5; sp.scene.add(trunk); trunkM.map.repeat.set(2, 2);
+  const mothGroup = new THREE.Group(); sp.scene.add(mothGroup); const tL = mothTex(false), tD = mothTex(true), meshes = [];
+  const api = { meshes,
+    setEnv(env) { trunkM.map = barkTex(env); trunkM.map.repeat.set(2, 2); trunkM.needsUpdate = true; },
+    spawn(nL, nD) {
+      while (mothGroup.children.length) mothGroup.remove(mothGroup.children[0]); meshes.length = 0; const used = [];
+      const place = (dark) => { let th, y, tries = 0; do { th = (Math.random() - 0.5) * 2.0; y = -2 + Math.random() * 7.6; tries++; } while (tries < 40 && used.some(u => Math.hypot((u[0] - th) * 1.45, u[1] - y) < 0.85)); used.push([th, y]);
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.63), new THREE.MeshBasicMaterial({ map: dark ? tD : tL, transparent: true, alphaTest: 0.1 })); const r = 1.5; m.position.set(Math.sin(th) * r, 1.5 + y, Math.cos(th) * r); m.rotation.y = th; m.rotation.z = (Math.random() - 0.5) * 1.2; m.userData.dark = dark; mothGroup.add(m); meshes.push(m); m.scale.setScalar(0.01); setTimeout(() => tween(380, e => m.scale.setScalar(e)), reducedMotion() ? 0 : 60 + Math.random() * 400); };
+      for (let i = 0; i < nL; i++) place(false); for (let i = 0; i < nD; i++) place(true);
+    } };
+  return api;
+}
+function buildMoths(mount, sim, onDone) {
+  const card = stationShell(3, "Moth Island: Be the Bird", "Isla de las Polillas: Sé el pájaro", "You are a hungry bird. Tap moths to eat them — you will naturally spot some better than others. Eat 10 and the survivors breed. Can the moth colours change over generations?", "Eres un pájaro hambriento. Toca polillas para comerlas — verás algunas mejor que otras. Come 10 y las supervivientes se reproducen. ¿Pueden cambiar los colores de las polillas con las generaciones?");
+  const stage = el("div", "cyc-stage"); card.append(stage); dayStage(stage);
+  const sp = makeSpace(stage, { dist: 11.5, yaw: 0, pitch: 0.05, ty: 1.6, fov: 38 });
+  const st = sim.state.gq3 || (sim.state.gq3 = { env: "clean", gen: 1, light: 10, dark: 10, hist: [[10, 10]] });
+  const S = { eatL: 0, eatD: 0 }; const mi = sp ? buildMothIsland(sp) : null;
+  const ctrl = el("div", "cyc-controls"); card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row"><b>${L("Habitat:", "Hábitat:")}</b><button type="button" class="cyc-chip" data-env="clean">${L("Clean forest (pale bark)", "Bosque limpio (corteza clara)")}</button><button type="button" class="cyc-chip" data-env="sooty">${L("Sooty city (dark bark)", "Ciudad con hollín (corteza oscura)")}</button></div>
+    <div class="cyc-gauges"><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Generation", "Generación")}</div><div class="cyc-gauge__val" id="mo-gen"></div></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("You have eaten", "Has comido")}</div><div class="cyc-gauge__val" id="mo-eat"></div></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Light moths · Dark moths", "Polillas claras · oscuras")}</div><div class="cyc-gauge__val" id="mo-pop"></div></div></div>
+    <div class="cyc-row"><button type="button" class="cyc-btn cyc-btn--ghost" id="mo-peck">${L("Peck the moth I can see best", "Picotear la polilla que mejor veo")}</button><span class="q__hint" style="margin:0">${L("Or tap a moth in the picture.", "O toca una polilla en la imagen.")}</span></div>
+    <canvas id="mo-hist" width="680" height="96" style="width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#f4efe3"></canvas>`;
+  const hist = ctrl.querySelector("#mo-hist");
+  function drawHist() { const c = hist.getContext("2d"); c.clearRect(0, 0, 680, 96); c.fillStyle = "#555"; c.font = "11px sans-serif"; c.fillText(L("Moth population by generation (pale = light moths, dark = dark moths, 20 per generation)", "Población de polillas por generación (claro = polillas claras, oscuro = polillas oscuras, 20 por generación)"), 8, 12);
+    st.hist.forEach((h, i) => { const x = 14 + i * 44, tot = Math.max(1, h[0] + h[1]), hL = 56 * h[0] / tot, hD = 56 * h[1] / tot; c.fillStyle = "#e6dfc9"; c.fillRect(x, 20, 34, hL); c.strokeStyle = "#999"; c.strokeRect(x, 20, 34, hL); c.fillStyle = "#2b2723"; c.fillRect(x, 20 + hL, 34, hD); c.fillStyle = "#555"; c.fillText("G" + (i + 1), x + 8, 88); }); }
+  function paint() {
+    ctrl.querySelectorAll("[data-env]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.env === st.env)));
+    ctrl.querySelector("#mo-gen").textContent = st.gen; ctrl.querySelector("#mo-eat").textContent = (S.eatL + S.eatD) + " / 10"; ctrl.querySelector("#mo-pop").textContent = st.light + " · " + st.dark; drawHist(); }
+  function respawn() { if (mi) { mi.setEnv(st.env); mi.spawn(st.light, st.dark); } S.eatL = S.eatD = 0; paint(); }
+  function eat(dark, px, py) {
+    if (dark) S.eatD++; else S.eatL++; burst(stage, px, py, ["#ff7a5a", "#ffd24d", "#fff"], 10); paint();
+    if (S.eatL + S.eatD >= 10) { setTimeout(breed, 350); }
+  }
+  function breed() {
+    const aL = Math.max(0, st.light - S.eatL), aD = Math.max(0, st.dark - S.eatD); st.light = aL * 2; st.dark = aD * 2; st.gen++; st.hist.push([st.light, st.dark]); sim.saveState();
+    sim.toast(L(`The survivors bred! Generation ${st.gen}: ${st.light} light, ${st.dark} dark moths.`, `¡Las supervivientes se reprodujeron! Generación ${st.gen}: ${st.light} claras, ${st.dark} oscuras.`), "correct"); burst(stage, 50, 50, ["#5ee08a", "#fff", "#ffd24d"], 18); respawn(); }
+  if (sp && mi) {
+    const cv = sp.renderer.domElement, ray = new THREE.Raycaster(), v2 = new THREE.Vector2(); let down = null, travel = 0;
+    cv.addEventListener("pointerdown", e => { down = { x: e.clientX, y: e.clientY }; travel = 0; }); cv.addEventListener("pointermove", e => { if (down) travel = Math.max(travel, Math.hypot(e.clientX - down.x, e.clientY - down.y)); });
+    cv.addEventListener("click", e => { if (travel > 6) return; const r = cv.getBoundingClientRect(); v2.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(v2, sp.camera);
+      const hit = ray.intersectObjects(mi.meshes.filter(m => m.visible), false)[0], px = (e.clientX - r.left) / r.width * 100, py = (e.clientY - r.top) / r.height * 100;
+      if (hit) { hit.object.visible = false; eat(hit.object.userData.dark, px, py); } else { burst(stage, px, py, ["#9aa0a6"], 4); } });
+  }
+  ctrl.querySelector("#mo-peck").addEventListener("click", () => {
+    if (!mi) { const dark = Math.random() < 0.5; eat(dark, 50, 50); return; }
+    const vis = mi.meshes.filter(m => m.visible); if (!vis.length) return; const seen = vis.filter(m => st.env === "clean" ? m.userData.dark : !m.userData.dark), best = (seen.length && Math.random() < 0.75) ? seen[Math.floor(Math.random() * seen.length)] : vis[Math.floor(Math.random() * vis.length)]; best.visible = false; eat(best.userData.dark, 50, 50); });
+  ctrl.querySelectorAll("[data-env]").forEach(b => b.addEventListener("click", () => { if (st.env === b.dataset.env) return; st.env = b.dataset.env; st.gen = 1; st.light = 10; st.dark = 10; st.hist = [[10, 10]]; sim.saveState(); respawn(); }));
+  const reading = () => ({ setting: L(st.env === "clean" ? "Clean forest · generation " + st.gen : "Sooty city · generation " + st.gen, st.env === "clean" ? "Bosque limpio · generación " + st.gen : "Ciudad con hollín · generación " + st.gen), reading: L(`${st.light} light moths, ${st.dark} dark moths (of 20)`, `${st.light} polillas claras, ${st.dark} oscuras (de 20)`), result: st.light > st.dark ? L("Light moths are the majority", "Las polillas claras son la mayoría") : st.dark > st.light ? L("Dark moths are the majority", "Las polillas oscuras son la mayoría") : L("Equal numbers", "Cantidades iguales"), env: st.env, gen: st.gen, light: st.light, dark: st.dark });
+  const tasks = [
+    { en: "In the CLEAN FOREST, eat 10 moths (one generation) so the survivors breed, then lock in your reading.", es: "En el BOSQUE LIMPIO, come 10 polillas (una generación) para que las supervivientes se reproduzcan y fija tu lectura.", test: r => r.env === "clean" && r.gen >= 2 },
+    { en: "Keep going on clean bark until LIGHT moths are the big majority (14 or more of 20), then lock in.", es: "Sigue en corteza clara hasta que las polillas CLARAS sean una gran mayoría (14 o más de 20) y fija la lectura.", test: r => r.env === "clean" && r.light >= 14 },
+    { en: "Switch to the SOOTY CITY. Eat generations until DARK moths are the big majority (14 or more of 20), then lock in.", es: "Cambia a la CIUDAD CON HOLLÍN. Come generaciones hasta que las polillas OSCURAS sean una gran mayoría (14 o más de 20) y fija la lectura.", test: r => r.env === "sooty" && r.dark >= 14 },
+    { en: "Switch BACK to the clean forest and run the generations until light moths win again (14 or more of 20), then lock in. The environment decides who survives!", es: "Vuelve al bosque limpio y corre las generaciones hasta que ganen otra vez las polillas claras (14 o más de 20) y fija la lectura. ¡El ambiente decide quién sobrevive!", test: r => r.env === "clean" && r.light >= 14 },
+  ];
+  const q = makeOrders(card, sim, "gqo3", tasks, reading, L("Moth Island", "Isla de las Polillas"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("selection", L("Natural Selector", "Selector Natural")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = el("p", "cyc-note"); note.textContent = L("Natural selection: moths that blend in survive and breed more, and pass their colour on to their offspring. Over many generations the population changes. Individual moths never change colour to match — only the proportions change.", "Selección natural: las polillas que se camuflan sobreviven y se reproducen más, y pasan su color a sus crías. Tras muchas generaciones, la población cambia. Las polillas individuales nunca cambian de color — solo cambian las proporciones.");
+  card.append(note); respawn(); mount.append(card);
+}
+
+/* ============================================================
+   BONUS — FINCH FEAST (the beak lab, three real-photo rounds)
+   ============================================================ */
+const TOOLS = [
+  { id: "sp", en: "Medium beak (spoon)", es: "Pico mediano (cuchara)", pos: "17% 7%" },
+  { id: "pl", en: "Thick beak (pliers)", es: "Pico grueso (alicates)", pos: "50% 22%" },
+  { id: "tw", en: "Thin beak (tweezers)", es: "Pico fino (pinzas)", pos: "98% 44%" },
+];
+const FOODS = [
+  { id: "seed", f: "photos/seed.jpg", en: "small seeds", es: "semillas pequeñas", need: { tw: 1, sp: 2, pl: 3 }, best: "tw", hook: { en: "Thin, precise beaks pick up small seeds quickly.", es: "Los picos finos y precisos recogen semillas pequeñas rápido." } },
+  { id: "nut", f: "photos/nut.jpg", en: "big hard nuts", es: "nueces grandes y duras", need: { pl: 1, sp: 3, tw: 4 }, best: "pl", hook: { en: "Thick, strong beaks crack hard nuts — other beaks struggle.", es: "Los picos gruesos y fuertes rompen nueces duras — los demás sufren." } },
+  { id: "bug", f: "photos/bug.jpg", en: "insects in cracks", es: "insectos en grietas", need: { tw: 1, sp: 4, pl: 4 }, best: "tw", hook: { en: "Thin, pointed beaks can probe into cracks to reach insects.", es: "Los picos finos y puntiagudos se meten en las grietas para alcanzar insectos." } },
+];
+function mountFinchFeast(host, sim, onExit) {
+  const wrap = el("div", "cyc-bonus"); host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: Finch Feast", "Bonus: Banquete de Pinzones")}</h3><p>${L("This is the real beak lab! For each of three rounds pick a beak, then peck as much food as you can in 40 seconds. Items that need more pecks take longer — which beak is best for which food? No lives, no penalties, and a silent game.", "¡Es el laboratorio de picos de verdad! En cada una de tres rondas elige un pico y picotea toda la comida que puedas en 40 segundos. Lo que necesita más picotazos tarda más — ¿qué pico es mejor para cada comida? Sin vidas ni penalizaciones, y un juego silencioso.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="ff-start">${L("Play (about 2 minutes)", "Jugar (unos 2 minutos)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ff-skip">${L("Skip", "Omitir")}</button></div>`;
+  wrap.querySelector("#ff-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#ff-start").addEventListener("click", () => round(0, []));
+  function round(ri, results) {
+    if (ri >= FOODS.length) return summary(results);
+    const fd = FOODS[ri];
+    wrap.innerHTML = `<h3>${L(`Round ${ri + 1} of 3: ${fd.en}`, `Ronda ${ri + 1} de 3: ${fd.es}`)}</h3><div class="gq-food"><img src="${fd.f}" alt="${L(fd.en, fd.es)}"><span>${L("The finches must eat", "Los pinzones deben comer")} <b>${L(fd.en, fd.es)}</b>. ${L("Choose your beak:", "Elige tu pico:")}</span></div><div class="gq-beaks" id="ff-beaks"></div>`;
+    TOOLS.forEach((tl, i) => { const b = el("button", "gq-beak"); b.type = "button"; b.innerHTML = `<span class="gq-beak__img" style="background-image:url(photos/finches.jpg);background-position:${tl.pos}"></span><b>${i + 1} · ${L(tl.en, tl.es)}</b>`; b.addEventListener("click", () => play(ri, results, tl)); wrap.querySelector("#ff-beaks").append(b); });
+  }
+  function play(ri, results, tl) {
+    const fd = FOODS[ri], need = fd.need[tl.id];
+    wrap.innerHTML = `<h3>${L(`Round ${ri + 1}: ${tl.en} on ${fd.en}`, `Ronda ${ri + 1}: ${tl.es} con ${fd.es}`)}</h3><div class="cyc-hud"><span id="ff-t"></span><span id="ff-s"></span><span>${L("Pecks needed per item: ", "Picotazos por pieza: ")}<b>${need}</b></span></div><div class="gq-arena" id="ff-ar" aria-label="${L("Feeding ground: tap each food item to peck it", "Zona de comida: toca cada pieza para picotearla")}"></div><div class="cyc-toast" id="ff-toast"></div>`;
+    const ar = wrap.querySelector("#ff-ar"), toast = wrap.querySelector("#ff-toast"); const G = { t0: performance.now(), got: 0, items: [], next: 0, over: false };
+    function spawn() { const b = el("button", "gq-item"); b.type = "button"; b.setAttribute("aria-label", L(fd.en, fd.es)); b.style.left = (4 + Math.random() * 78) + "%"; b.style.top = (4 + Math.random() * 62) + "%"; b.innerHTML = `<img src="${fd.f}" alt=""><i>${need}</i>`; const it = { b, left: need, born: performance.now() };
+      b.addEventListener("click", () => { if (G.over) return; it.left--; b.querySelector("i").textContent = Math.max(0, it.left); spin(b, "cyc-shake"); if (it.left <= 0) { G.got++; burst(ar, parseFloat(b.style.left) + 6, parseFloat(b.style.top) + 8, ["#ffd24d", "#fff", "#5ee08a"], 8); b.remove(); G.items = G.items.filter(x => x !== it); hud(); } }); ar.append(b); G.items.push(it); }
+    const timer = setInterval(() => { if (G.over) return; const now = performance.now(), left = 40 - (now - G.t0) / 1000;
+      if (now >= G.next && G.items.length < 4) { G.next = now + 1100; spawn(); }
+      G.items.filter(it => now - it.born > 4800).forEach(it => { it.b.remove(); G.items = G.items.filter(x => x !== it); toast.textContent = L("One got away — a beak that fits the food is faster.", "Una se escapó — un pico que encaje con la comida es más rápido."); });
+      if (left <= 0) { G.over = true; clearInterval(timer); toast.textContent = ""; results.push({ ri, tl, got: G.got }); setTimeout(() => round(ri + 1, results), 500); wrap.querySelector("#ff-t").textContent = ""; }
+      hud(left); }, 100);
+    function hud(left) { wrap.querySelector("#ff-t").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(left == null ? 40 - (performance.now() - G.t0) / 1000 : left)) + " s"; wrap.querySelector("#ff-s").textContent = L("Collected ", "Recogidas ") + G.got; }
+    hud(40);
+  }
+  function summary(results) {
+    const rows = results.map(r => { const fd = FOODS[r.ri], best = TOOLS.find(t => t.id === fd.best); return `<tr><td>${L(fd.en, fd.es)}</td><td>${L(r.tl.en, r.tl.es)}</td><td><b>${r.got}</b></td><td>${L(best.en, best.es)}<br><small>${L(fd.hook.en, fd.hook.es)}</small></td></tr>`; }).join("");
+    wrap.innerHTML = `<h3>${L("Feast over!", "¡Banquete terminado!")}</h3><table class="gq-tab"><thead><tr><th>${L("Food", "Comida")}</th><th>${L("Your beak", "Tu pico")}</th><th>${L("Collected", "Recogidas")}</th><th>${L("Best-adapted beak", "Pico mejor adaptado")}</th></tr></thead><tbody>${rows}</tbody></table><p>${L("Different beaks suit different foods: that is adaptation. In the wild the finches whose beaks fit the food available survive and breed — natural selection.", "Distintos picos sirven para distintas comidas: eso es adaptación. En la naturaleza sobreviven y se reproducen los pinzones cuyos picos encajan con la comida disponible — selección natural.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="ff-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ff-close">${L("Close", "Cerrar")}</button></div>`;
+    wrap.querySelector("#ff-again").addEventListener("click", () => round(0, [])); wrap.querySelector("#ff-close").addEventListener("click", () => wrap.remove());
+    sim.setResult("finch_feast", results.map(r => ({ food: FOODS[r.ri].en, beak: r.tl.en, collected: r.got }))); onExit && onExit({ results });
+  }
+}
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function creditLine() {
+  const cr = el("p", "cyc-credit"); cr.innerHTML = L(
+    'Photos via Wikimedia Commons: Mendel pea traits chart — Bioanthropologist1 (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>); giraffes — Rasheedhrasheed (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>); light and dark peppered moths — Martinowksy (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>); finch specimens — Emőke Dénes (CC BY-SA 4.0); millet seed — Jon Zander (CC BY-SA 3.0); black walnut — Leslie Seaton (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>); caterpillar — Sabina Bajracharya (CC BY-SA 4.0).',
+    'Fotos vía Wikimedia Commons: tabla de rasgos de guisantes de Mendel — Bioanthropologist1 (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>); jirafas — Rasheedhrasheed (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>); polillas moteadas clara y oscura — Martinowksy (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>); especímenes de pinzones — Emőke Dénes (CC BY-SA 4.0); semilla de mijo — Jon Zander (CC BY-SA 3.0); nuez negra — Leslie Seaton (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>); oruga — Sabina Bajracharya (CC BY-SA 4.0).'); return cr;
+}
+const TERMS = [
+  { en: "DNA", es: "ADN", t: { en: "The molecule that carries your biological instructions. Uncoiled, the DNA in just one cell would be about 2 metres long!", es: "La molécula que lleva tus instrucciones biológicas. Desenrollado, ¡el ADN de una sola célula mediría unos 2 metros!" } },
+  { en: "Gene", es: "Gen", t: { en: "A specific segment of DNA. A gene holds the instructions for building one protein.", es: "Un segmento específico de ADN. Un gen guarda las instrucciones para fabricar una proteína." } },
+  { en: "Chromosome", es: "Cromosoma", t: { en: "A bundle of coiled DNA — from Greek khroma + soma, 'coloured body'. Offspring get half their chromosomes from each parent.", es: "Un paquete de ADN enrollado — del griego khroma + soma, 'cuerpo coloreado'. La descendencia recibe la mitad de sus cromosomas de cada progenitor." } },
+  { en: "Allele", es: "Alelo", t: { en: "One version of a gene, such as the 'blue-eyes' or 'brown-eyes' version.", es: "Una versión de un gen, como la versión de 'ojos azules' o de 'ojos marrones'." } },
+  { en: "Dominant / recessive", es: "Dominante / recesivo", t: { en: "A dominant allele (B, the 'loud' one) shows whenever it is present. A recessive allele (b, the 'quiet' one) only shows when there is NO dominant allele.", es: "Un alelo dominante (B, el 'fuerte') se muestra siempre que está presente. Un alelo recesivo (b, el 'callado') solo se muestra cuando NO hay alelo dominante." } },
+  { en: "Homozygous / heterozygous", es: "Homocigoto / heterocigoto", t: { en: "Homozygous = two SAME alleles (BB or bb). Heterozygous = two DIFFERENT alleles (Bb).", es: "Homocigoto = dos alelos IGUALES (BB o bb). Heterocigoto = dos alelos DISTINTOS (Bb)." } },
+  { en: "Genotype vs phenotype", es: "Genotipo y fenotipo", t: { en: "Genotype = the genetic code (the letters, like Bb). Phenotype = the trait you can see (like purple flowers).", es: "Genotipo = el código genético (las letras, como Bb). Fenotipo = el rasgo que puedes ver (como flores moradas)." } },
+  { en: "Mutation", es: "Mutación", t: { en: "A permanent change in the DNA sequence. It can be neutral, beneficial or harmful.", es: "Un cambio permanente en la secuencia del ADN. Puede ser neutra, beneficiosa o dañina." } },
+];
+function orient(host) {
+  host.innerHTML = "";
+  const p = el("p", "q__hint", L("Heredity is the passing of traits from parents to offspring — and adaptation is how living things change to survive. Tap each real photo, then each key word, to meet the big ideas before you start.", "La herencia es el paso de rasgos de padres a hijos — y la adaptación es cómo cambian los seres vivos para sobrevivir. Toca cada foto real y luego cada palabra clave para conocer las grandes ideas antes de empezar."));
+  host.append(p);
+  const items = [
+    { f: "photos/peas.jpg", en: "Mendel's pea plants", es: "Los guisantes de Mendel", t: { en: "Gregor Mendel, the 'Father of Genetics', bred pea plants and found each trait has two versions — like purple or white flowers, round or wrinkled peas.", es: "Gregor Mendel, el 'Padre de la genética', cruzó plantas de guisante y descubrió que cada rasgo tiene dos versiones — como flores moradas o blancas, guisantes lisos o rugosos." } },
+    { f: "photos/giraffes.jpg", en: "Giraffes feeding", es: "Jirafas comiendo", t: { en: "Why do giraffes have long necks? Lamarck thought they stretched and passed it on. Darwin showed that giraffes born with longer necks reached more food, survived and had babies.", es: "¿Por qué las jirafas tienen el cuello largo? Lamarck pensó que se estiraban y lo transmitían. Darwin mostró que las jirafas nacidas con cuellos más largos alcanzaban más comida, sobrevivían y tenían crías." } },
+    { f: "photos/moths.jpg", en: "Light and dark moths", es: "Polillas clara y oscura", t: { en: "One species, two colours. Which one a hungry bird spots first depends on the tree bark — that is natural selection at work.", es: "Una especie, dos colores. Cuál ve primero un pájaro hambriento depende de la corteza del árbol — eso es la selección natural en acción." } },
+    { f: "photos/finches.jpg", en: "Finch specimens", es: "Especímenes de pinzones", t: { en: "Darwin studied finches with different beak shapes. Each beak suits a different food — an adaptation.", es: "Darwin estudió pinzones con picos de formas distintas. Cada pico sirve para una comida diferente — una adaptación." } },
+  ];
+  const grid = el("div", "cyc-grid");
+  items.forEach(it => { const c = el("button", "cyc-card"); c.type = "button"; c.innerHTML = `<span class="cyc-card__photo"><img src="${it.f}" alt="${L(it.en, it.es)}" loading="lazy"></span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); }); grid.append(c); });
+  host.append(grid);
+  const kw = el("p", "cyc-prompt", L("Key words — tap one:", "Palabras clave — toca una:")); host.append(kw);
+  const row = el("div", "cyc-chiprow"), out = el("p", "cyc-note", L("Tap a key word to read what it means.", "Toca una palabra clave para leer qué significa.")); 
+  TERMS.forEach(t => { const b = el("button", "cyc-chip", L(t.en, t.es)); b.type = "button"; b.addEventListener("click", () => { row.querySelectorAll(".cyc-chip").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); out.innerHTML = `<b>${L(t.en, t.es)}:</b> ${L(t.t.en, t.t.es)}`; }); row.append(b); });
+  host.append(row, out, creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = el("p", "q__hint", L("Look closely at these two real photos before you learn any names, then play photo detective: tap what each clue describes.", "Mira de cerca estas dos fotos reales antes de aprender ningún nombre, y luego juega a detective de fotos: toca lo que describe cada pista."));
+  host.append(intro);
+  const h = el("p", "cyc-prompt"); host.append(h);
+  const photos = [
+    { src: "photos/finches.jpg", alt: L("Four preserved finches side by side, each with a different beak", "Cuatro pinzones conservados uno al lado de otro, cada uno con un pico distinto"), spots: [
+      { x: 53, y: 21, en: "the finch with the THICKEST, strongest-looking beak (second from the left)", es: "el pinzón con el pico MÁS GRUESO y fuerte (el segundo desde la izquierda)" },
+      { x: 93, y: 43, en: "the pale brown finch with a SMALL, thin, pointed beak (far right)", es: "el pinzón marrón claro con un pico PEQUEÑO, fino y puntiagudo (a la derecha del todo)" } ] },
+    { src: "photos/moths.jpg", alt: L("Two moths on a birch tree trunk, one dark and one pale", "Dos polillas en el tronco de un abedul, una oscura y otra pálida"), spots: [
+      { x: 49, y: 44, en: "the moth a hungry bird would spot EASILY against the pale bark", es: "la polilla que un pájaro hambriento vería FÁCILMENTE contra la corteza clara" },
+      { x: 69, y: 62, en: "the moth that is HARDER to see because it blends in with the moss and bark", es: "la polilla MÁS DIFÍCIL de ver porque se confunde con el musgo y la corteza" } ] },
+  ];
+  const targets = [];
+  photos.forEach(ph => { const wrap = el("div", "cyc-photo"); wrap.innerHTML = `<img src="${ph.src}" alt="${ph.alt}">`; ph.spots.forEach(s => { const idx = targets.length; targets.push(s); const b = el("button", "cyc-spot"); b.type = "button"; b.style.left = s.x + "%"; b.style.top = s.y + "%"; b.style.width = "11%"; b.setAttribute("aria-label", L("Photo spot ", "Zona de la foto ") + (idx + 1));
+    b.addEventListener("click", () => { if (step >= targets.length) return; if (idx === step) { burst(wrap, s.x, s.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); } else { spin(b, "cyc-shake"); h.textContent = L("Not that one — read the clue again.", "Esa no — vuelve a leer la pista."); } }); wrap.append(b); }); host.append(wrap); });
+  let step = sim.state.detective | 0;
+  function paint() { host.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! Living things of the same kind differ — and those differences can matter. How do they get passed on?", "¡Detective de fotos completado! Los seres vivos de una misma clase son distintos — y esas diferencias pueden importar. ¿Cómo se transmiten?") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`); }
+  paint(); host.append(creditLine());
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the parents' genotypes (Punnett Garden), the cause of the mutation (Mutation Lab), and the habitat bark colour (Moth Island). Dependent: the offspring ratio, whether the mutation was harmful, beneficial or neutral, and the numbers of light and dark moths each generation. Controlled: 4 Punnett boxes per cross, the same size of DNA strand, and 10 moths eaten per generation with 20 moths in each generation.",
+    "Independiente: los genotipos de los progenitores (Jardín de Punnett), la causa de la mutación (Laboratorio de Mutaciones) y el color de la corteza del hábitat (Isla de las Polillas). Dependiente: la proporción de la descendencia, si la mutación fue dañina, beneficiosa o neutra, y el número de polillas claras y oscuras en cada generación. Controladas: 4 casillas de Punnett por cruce, la misma hebra de ADN y 10 polillas comidas por generación con 20 polillas en cada generación.") });
+  const bonusHost = el("div");
+  const done = () => { const s = sim.state; if (s.gqo1 && s.gqo1.idx >= 4 && s.gqo2 && s.gqo2.idx >= 4 && s.gqo3 && s.gqo3.idx >= 4 && !host.querySelector(".cyc-complete")) { const c = el("div", "cyc-complete", L("Gene Quest complete! You crossed, mutated and selected. Now explain what you found.", "¡Gene Quest completo! Cruzaste, mutaste y seleccionaste. Ahora explica lo que descubriste.")); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildPunnett(host, sim, done); buildMutation(host, sim, done); buildMoths(host, sim, done); host.append(bonusHost);
+  const reflect = el("div", "cyc-station");
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining natural selection?", "¿Qué tan seguro te sientes explicando la selección natural?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const e = reflect.querySelector(sel); opts.forEach(o => { const b = el("button", "cyc-chip", o.label); b.type = "button"; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { e.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); e.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "crispr", label: L("Genetic engineering and CRISPR", "Ingeniería genética y CRISPR") }, { id: "evo", label: L("How whole species evolve", "Cómo evolucionan especies enteras") }, { id: "human", label: L("Inherited traits in humans", "Rasgos heredados en humanos") }], "next");
+  host.append(creditLine());
+  document.addEventListener("cyc-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountFinchFeast(bonusHost, sim, r => { if (r) sim.toast(L("Bonus complete — nice feasting!", "Bonus completo — ¡buen banquete!"), "info"); }); }
+  done();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+
+</script>
+</body>
+</html>
