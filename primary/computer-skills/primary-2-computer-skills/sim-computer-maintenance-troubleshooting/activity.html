@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="computing" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computer Maintenance and Troubleshooting — Discovery Lab</title>
+<meta name="description" content="Run a computer repair shop: clean a keyboard, mouse and screen safely, keep air flowing in a 3D computer, power-proof it, label real photos and diagnose faults.">
+<link rel="stylesheet" href="../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+#badge-shelf{display:none !important;}
+.phase-tabs{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-4);}
+.phase-tab{display:flex;align-items:center;gap:.4em;padding:.5em .9em;border-radius:999px;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink-2);font:inherit;font-size:var(--step--1);font-weight:700;cursor:pointer;touch-action:manipulation;transition:all var(--dur-fast) var(--ease);}
+.phase-tab:hover{border-color:var(--accent);}
+.phase-tab.is-active{border-color:var(--accent);background:var(--accent-wash);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.phase-tab__mark{width:1.1rem;height:1.1rem;border-radius:50%;display:grid;place-items:center;font-size:.62rem;flex:none;background:var(--line-strong);color:var(--ink-3);}
+.phase-tab.is-done .phase-tab__mark{background:var(--positive);color:#fff;}
+.shopbar{display:flex;flex-wrap:wrap;gap:var(--sp-3);align-items:center;justify-content:space-between;margin-bottom:var(--sp-3);font-weight:800;font-size:var(--step--1);}
+.shopbar span{background:var(--accent-wash);color:var(--accent);border-radius:999px;padding:.3em .9em;}
+.st-lede{color:var(--ink-2);margin:0 0 var(--sp-3);}
+.pick-row{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-3);}
+.pick{position:relative;display:flex;align-items:center;gap:.5em;padding:.5em .9em;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;font-weight:700;color:var(--ink);cursor:pointer;touch-action:manipulation;min-height:44px;}
+.pick.is-active{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent);background:var(--accent-wash);}
+.pick.is-done::after{content:"✓";color:#fff;background:var(--positive);border-radius:50%;width:1.2rem;height:1.2rem;display:grid;place-items:center;font-size:.7rem;}
+.bench{display:grid;gap:var(--sp-4);grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;}
+@media (max-width:760px){.bench{grid-template-columns:1fr;}}
+.devbox{border-radius:var(--radius-lg);padding:var(--sp-3);border:1px solid #0c1520;background:radial-gradient(120% 100% at 50% 0%,#233447 0%,#101a26 70%);}
+.devbox svg{width:100%;height:auto;display:block;}
+.dev [data-gone]{transition:opacity .5s ease,transform .6s ease;}
+.dev .gone{opacity:0;transform:translateY(34px);}
+.dev .plug{transition:transform .5s ease;}
+.dev[data-pw=off] .plug{transform:translate(-42px,-10px);}
+.dev .led{fill:#37d67a;}
+.dev[data-pw=off] .led{fill:#555;}
+.dev .oops-fx{opacity:0;transition:opacity .3s;}
+.dev.oops .oops-fx{opacity:.9;}
+.dev.oops svg{filter:drop-shadow(0 0 8px var(--negative));}
+.dev .sparkle{opacity:0;transition:opacity .8s;}
+.dev.is-clean .sparkle{opacity:1;}
+.step{background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-4);}
+.step__n{font-family:var(--font-data);font-size:.72rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;}
+.step__q{font-weight:800;margin:.2em 0 var(--sp-3);}
+.opt{display:flex;align-items:center;gap:var(--sp-3);width:100%;text-align:left;padding:.6em .8em;margin-bottom:var(--sp-2);border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer;touch-action:manipulation;min-height:48px;transition:border-color var(--dur-fast),transform var(--dur-fast);}
+.opt:hover{border-color:var(--accent);transform:translateX(2px);}
+.opt svg,.opt__e{flex:none;width:2.2rem;height:2.2rem;font-size:1.6rem;display:grid;place-items:center;}
+.opt.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);background:color-mix(in srgb,var(--negative) 10%,var(--paper));}
+.opt.is-right{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 12%,var(--paper));}
+@keyframes spotshake{0%,100%{transform:translateX(0);}30%{transform:translateX(-6px);}60%{transform:translateX(6px);}}
+[data-reduced-motion=on] .opt.is-wrong{animation:none;}
+.fb{min-height:3.2rem;padding:var(--sp-3);border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);font-size:var(--step--1);margin-top:var(--sp-2);}
+.fb.bad{border-color:var(--negative);}
+.fb.good{border-color:var(--positive);}
+.dots{display:flex;gap:6px;margin-bottom:var(--sp-2);}
+.dots i{width:.8rem;height:.8rem;border-radius:50%;background:var(--line-strong);}
+.dots i.on{background:var(--positive);}
+.done-card{margin-top:var(--sp-3);padding:var(--sp-4);border-radius:var(--radius-lg);border:2px solid var(--positive);background:color-mix(in srgb,var(--positive) 10%,var(--paper));font-weight:700;}
+.stage3d{position:relative;width:100%;aspect-ratio:16/10;min-height:260px;border-radius:var(--radius-lg);overflow:hidden;background:#101a26;border:1px solid #0c1520;}
+.stage3d canvas{width:100%;height:100%;display:block;}
+.stage3d__msg{position:absolute;inset:0;display:grid;place-items:center;color:#eaf6ff;text-align:center;padding:var(--sp-4);}
+.hudline{position:absolute;left:10px;top:10px;right:10px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none;}
+.hudline b{background:rgba(8,14,22,.78);color:#eaf6ff;padding:.3em .8em;border-radius:999px;font-size:.78rem;}
+.gauge{height:.9rem;border-radius:999px;background:var(--line);overflow:hidden;margin:var(--sp-2) 0;}
+.gauge i{display:block;height:100%;width:30%;background:#2fa86a;transition:width .3s,background .3s;}
+.toggles{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-3);}
+.tg{padding:.55em 1em;border-radius:var(--radius);border:1px solid var(--line-strong);background:var(--paper);font:inherit;font-weight:700;color:var(--ink);cursor:pointer;min-height:44px;touch-action:manipulation;}
+.tg[aria-pressed=true]{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 12%,var(--paper));}
+.tg.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+.power svg{width:100%;height:auto;display:block;background:radial-gradient(120% 100% at 50% 0%,#233447 0%,#101a26 70%);border-radius:var(--radius-lg);}
+.gearrow{display:grid;gap:var(--sp-2);grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));margin:var(--sp-3) 0;}
+.gear{padding:.6em;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer;text-align:center;font-weight:700;min-height:48px;touch-action:manipulation;}
+.gear[aria-pressed=true]{border-color:var(--accent);background:var(--accent-wash);box-shadow:inset 0 0 0 1.5px var(--accent);}
+.matrix{font-size:.78rem;border-collapse:collapse;margin-top:var(--sp-3);width:100%;}
+.matrix td,.matrix th{border:1px solid var(--line);padding:.35em .5em;text-align:center;}
+.box{position:relative;border:2px dashed var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-3);min-height:7rem;background:repeating-linear-gradient(45deg,#d9b27a22,#d9b27a22 10px,transparent 10px,transparent 20px);}
+.box__items{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
+.tile{display:flex;flex-direction:column;align-items:center;gap:.2em;width:6.4rem;padding:.5em;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;font-size:.72rem;font-weight:700;color:var(--ink);cursor:pointer;touch-action:manipulation;text-align:center;}
+.tile span{font-size:1.8rem;}
+.tile.is-wrong{animation:spotshake .32s ease;border-color:var(--negative);}
+.tile.is-in{opacity:.5;pointer-events:none;border-color:var(--positive);}
+.diagram-wrap{position:relative;width:100%;border-radius:var(--radius-lg);overflow:hidden;background:var(--paper);border:1px solid var(--line);}
+.diagram-wrap img{width:100%;height:auto;display:block;}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:2.8rem;height:2.8rem;border:none;background:transparent;cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation;}
+.hotspot__dot{width:1.2rem;height:1.2rem;border-radius:50%;background:var(--signal);box-shadow:0 0 0 5px color-mix(in srgb,var(--signal) 25%,transparent),0 0 14px var(--signal);animation:hotspotpulse 1.6s ease-in-out infinite;}
+@keyframes hotspotpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+[data-reduced-motion=on] .hotspot__dot{animation:none;}
+.hotspot.is-seen .hotspot__dot{background:var(--positive);animation:none;}
+.hotspot.is-wrong{animation:spotshake .32s ease;}
+.hotspot__tag{position:absolute;top:100%;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:.7rem;font-weight:800;background:rgba(8,14,22,.85);color:#fff;padding:.1em .6em;border-radius:999px;}
+.diagram-credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right;}
+.diagram-credit a{color:inherit;}
+.reveal-panel{margin-top:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);min-height:3.4rem;font-size:var(--step--1);}
+.toolgrid{display:grid;gap:var(--sp-3);grid-template-columns:repeat(auto-fill,minmax(8rem,1fr));}
+.toolcard{display:flex;flex-direction:column;align-items:center;gap:.3em;padding:var(--sp-3);border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--paper);font:inherit;font-weight:800;font-size:var(--step--1);color:var(--ink);cursor:pointer;touch-action:manipulation;}
+.toolcard svg{width:3rem;height:3rem;}
+.toolcard.is-seen{border-color:var(--positive);}
+.case{background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--sp-4);}
+.case__sym{display:flex;gap:var(--sp-3);align-items:center;font-weight:800;margin-bottom:var(--sp-3);}
+.case__sym span{font-size:2.4rem;}
+.hunt-list{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-2);}
+.hunt-list button{font:inherit;font-size:.78rem;font-weight:700;padding:.4em .8em;border-radius:999px;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink);cursor:pointer;min-height:40px;}
+.hunt-list button.is-found{border-color:var(--positive);background:color-mix(in srgb,var(--positive) 14%,var(--paper));}
+.prompt{background:var(--accent-wash);color:var(--accent);font-weight:800;padding:var(--sp-3);border-radius:var(--radius);margin:var(--sp-2) 0;}
+.float-pop{position:absolute;pointer-events:none;font-weight:900;color:#7bf0a8;font-size:1.2rem;animation:flup 1s ease forwards;z-index:5;}
+@keyframes flup{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-40px);}}
+[data-reduced-motion=on] .float-pop{animation:none;opacity:.9;}
+.burst{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4;}
+.burst i{position:absolute;width:8px;height:8px;border-radius:50%;animation:bpop .7s ease-out forwards;}
+@keyframes bpop{from{opacity:1;transform:translate(0,0);}to{opacity:0;transform:translate(var(--dx),var(--dy));}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/><circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/><path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/><circle cx="45" cy="22" r="5" fill="var(--signal)"/><circle cx="32" cy="32" r="2.5" fill="currentColor"/></svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+<main id="main" class="shell"><div id="lab-root"></div></main>
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../engine/i18n.js?v=10";
+const L = (en, es) => getLang() === "es" ? es : en;
+const THREE_URL = "../../../../engine/vendor/three.min.js";
+const REDUCED = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* ---------- helpers ---------- */
+function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+const shuffled = a => [...a].sort(() => Math.random() - 0.5);
+function burstAt(host){
+  if (REDUCED()) return;
+  const b = el("div","burst"); const cols = ["#37d67a","#ffd23f","#4aa3ff","#ff7a59"];
+  for (let i=0;i<14;i++){ const p=el("i"); const a=Math.random()*6.28, d=40+Math.random()*60;
+    p.style.cssText=`left:50%;top:50%;background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`; b.append(p); }
+  host.style.position = host.style.position || "relative"; host.append(b); setTimeout(()=>b.remove(),800);
+}
+function shake(node){ node.classList.remove("is-wrong"); void node.offsetWidth; node.classList.add("is-wrong"); setTimeout(()=>node.classList.remove("is-wrong"),500); }
+function loadThree(){
+  if (window.THREE) return Promise.resolve(window.THREE);
+  return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=THREE_URL;
+    s.onload=()=>window.THREE?res(window.THREE):rej(new Error("THREE missing")); s.onerror=()=>rej(new Error("three failed")); document.head.append(s); });
+}
+
+/* ---------- small drawn icons for tools (viewBox 48) ---------- */
+const ICO = {
+  alcohol:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="15" y="14" width="18" height="30" rx="4" fill="#4aa3ff"/><rect x="19" y="6" width="10" height="9" rx="2" fill="#2f5d8a"/><rect x="18" y="24" width="12" height="10" rx="2" fill="#fff"/><text x="24" y="32" font-size="7" text-anchor="middle" font-weight="800" fill="#2f5d8a">70%</text></svg>`,
+  air:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="12" width="16" height="32" rx="4" fill="#9aa8b8"/><rect x="18" y="6" width="8" height="7" fill="#cf3f3f"/><rect x="26" y="7" width="12" height="3" fill="#cf3f3f"/><path d="M40 6l5 -2M40 9l6 0M40 12l5 2" stroke="#7fd0ff" stroke-width="2" stroke-linecap="round"/></svg>`,
+  swab:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="22" width="36" height="4" rx="2" fill="#d9b27a"/><ellipse cx="9" cy="24" rx="7" ry="5" fill="#fff" stroke="#c9d2dc"/><ellipse cx="39" cy="24" rx="7" ry="5" fill="#fff" stroke="#c9d2dc"/></svg>`,
+  anti:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 14q9 -6 18 0t18 0v22q-9 6 -18 0t-18 0z" fill="#b48cf0"/><path d="M26 16l-6 10h6l-4 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  micro:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 14q9 -6 18 0t18 0v22q-9 6 -18 0t-18 0z" fill="#2fb7a6"/><path d="M12 22h24M12 28h24" stroke="#fff" stroke-opacity=".5" stroke-width="2"/></svg>`,
+  towel:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="12" width="24" height="26" rx="4" fill="#f4f1e8" stroke="#c9c2ac"/><circle cx="20" cy="25" r="6" fill="#d8d2bd"/><path d="M32 18h10v18h-10" fill="#fff" stroke="#c9c2ac"/></svg>`,
+  plug:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="13" y="16" width="22" height="16" rx="4" fill="#4a5568"/><rect x="18" y="6" width="3" height="11" fill="#c9d2dc"/><rect x="27" y="6" width="3" height="11" fill="#c9d2dc"/><path d="M24 32v10" stroke="#4a5568" stroke-width="4"/></svg>`,
+  shake:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="18" width="36" height="14" rx="3" fill="#6b7a8c" transform="rotate(-14 24 25)"/><circle cx="16" cy="40" r="2" fill="#b5803b"/><circle cx="26" cy="43" r="2" fill="#b5803b"/><circle cx="35" cy="39" r="2" fill="#b5803b"/></svg>`,
+  water:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6c8 11 12 16 12 23a12 12 0 0 1-24 0c0-7 4-12 12-23z" fill="#4aa3ff"/></svg>`,
+  spray:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="20" width="18" height="24" rx="4" fill="#58c26a"/><rect x="18" y="12" width="14" height="9" rx="2" fill="#2d6b3a"/><rect x="30" y="13" width="9" height="4" fill="#2d6b3a"/><path d="M42 12l4 -2M42 16l5 0" stroke="#7fd0ff" stroke-width="2"/></svg>`,
+  hand:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 40V22a3 3 0 0 1 6 0v-8a3 3 0 0 1 6 0v8a3 3 0 0 1 6 0v18z" fill="#f0c9a0"/></svg>`,
+  power:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26" r="14" fill="none" stroke="#2f8a5c" stroke-width="4"/><path d="M24 8v18" stroke="#2f8a5c" stroke-width="4" stroke-linecap="round"/></svg>`,
+  check:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="17" fill="#37d67a"/><path d="M15 25l6 6 12-13" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+};
+
+/* ======================================================================
+   CLEAN BENCH DATA — three devices, five ordered steps each
+   ====================================================================== */
+const STEP = (q, ok, bad) => ({ q, ok, bad });
+const O = (ico, t, hook) => ({ ico, t, hook });
+
+const DEVICES = [
+  { id:"kb", name:L("Keyboard","Teclado"), svg:()=>kbSVG(), steps:[
+    STEP(L("The keyboard has sticky keys and crumbs. What do you do FIRST?","El teclado tiene teclas pegajosas y migas. ¿Qué haces PRIMERO?"),
+      O("plug",L("Turn the computer off and unplug the keyboard","Apago el ordenador y desconecto el teclado"),L("Right — never clean any part of a computer while it has power. That could damage the computer or hurt you.","Correcto: nunca limpies una parte del ordenador con corriente. Podría dañarlo o hacerte daño.")),
+      [O("alcohol",L("Pour rubbing alcohol on the keys","Echo alcohol sobre las teclas"),L("Never pour liquid onto a keyboard — it seeps into the electronics. Power off first, too.","Nunca eches líquido sobre un teclado: se cuela en la electrónica. Y apaga primero.")),
+       O("hand",L("Start wiping while it is still plugged in","Empiezo a limpiar con el teclado enchufado"),L("Cleaning with power on is risky. Switch off and unplug first.","Limpiar con corriente es peligroso. Apaga y desconecta primero."))]),
+    STEP(L("It is unplugged. Loose crumbs are rattling inside. Next?","Ya está desconectado. Hay migas sueltas dentro. ¿Ahora?"),
+      O("shake",L("Turn it upside down and gently shake it","Lo pongo boca abajo y lo sacudo con suavidad"),L("Yes! Gently shaking lets the loose dirt fall out.","¡Sí! Sacudirlo con suavidad hace caer la suciedad suelta.")),
+      [O("water",L("Rinse it under the tap","Lo enjuago bajo el grifo"),L("Water and electronics do not mix! Keep keyboards dry.","¡El agua y la electrónica no se mezclan! Mantén el teclado seco.")),
+       O("hand",L("Bang it hard on the desk","Lo golpeo fuerte contra la mesa"),L("Banging can break the keys. Shake gently.","Golpearlo puede romper las teclas. Sacúdelo con suavidad."))]),
+    STEP(L("Dust is still stuck deep under the keys. Which supply helps?","Aún hay polvo atascado bajo las teclas. ¿Qué material ayuda?"),
+      O("air",L("Compressed air, in short bursts, can held upright","Aire comprimido, en ráfagas cortas y con la lata en vertical"),L("Great — compressed air blows dust from hard-to-reach places. Short bursts, can upright.","¡Genial! El aire comprimido saca el polvo de sitios difíciles. Ráfagas cortas y lata en vertical.")),
+      [O("water",L("A dripping wet sponge","Una esponja chorreando"),L("Too wet! Electronics must not get soaked.","¡Demasiado mojada! La electrónica no debe empaparse.")),
+       O("towel",L("Poke it with a paper towel corner","Pincho con la esquina de un papel de cocina"),L("A towel cannot reach under the keys. Compressed air can.","El papel no llega bajo las teclas. El aire comprimido sí."))]),
+    STEP(L("The key tops and case are sticky. How do you clean them?","Las teclas y la carcasa están pegajosas. ¿Cómo las limpias?"),
+      O("alcohol",L("Wipe with a paper towel dampened with rubbing alcohol","Limpio con un papel humedecido con alcohol isopropílico"),L("Yes. Rubbing alcohol evaporates fast so nothing stays wet, and it disinfects shared keyboards too.","Sí. El alcohol se evapora rápido y no deja humedad, y además desinfecta teclados compartidos.")),
+      [O("alcohol",L("Pour rubbing alcohol onto the keyboard","Echo alcohol directamente sobre el teclado"),L("Never pour liquid directly on top. Dampen the towel instead.","Nunca eches líquido directamente. Humedece el papel en su lugar.")),
+       O("spray",L("Spray soapy water over the keys","Rocío agua con jabón sobre las teclas"),L("Soapy water is far too wet for a keyboard.","El agua con jabón moja demasiado un teclado."))]),
+    STEP(L("The keyboard is clean and dry. Last step?","El teclado está limpio y seco. ¿Último paso?"),
+      O("power",L("Reconnect it and turn the computer back on to test it","Lo reconecto y enciendo el ordenador para probarlo"),L("Perfect. Only reconnect once it is clean AND dry, then test that every key works.","Perfecto. Reconecta solo cuando esté limpio Y seco, y prueba que todas las teclas funcionen.")),
+      [O("water",L("Plug it in while it is still damp","Lo enchufo aunque siga húmedo"),L("Wait until it is completely dry before reconnecting.","Espera a que esté completamente seco antes de reconectar.")),
+       O("hand",L("Put it away without testing","Lo guardo sin probarlo"),L("Always test your repair — did the sticky keys get fixed?","Prueba siempre tu reparación: ¿se arreglaron las teclas pegajosas?"))]) ]},
+  { id:"mouse", name:L("Optical mouse","Ratón óptico"), svg:()=>mouseSVG(), steps:[
+    STEP(L("The cursor is jumpy. First, you…","El cursor salta. Primero…"),
+      O("plug",L("Disconnect the mouse (or switch off a wireless one)","Desconecto el ratón (o apago uno inalámbrico)"),L("Right — never clean a mouse that is still connected to a power source.","Correcto: nunca limpies un ratón conectado a una fuente de energía.")),
+      [O("alcohol",L("Wipe it with alcohol while it is plugged in","Lo limpio con alcohol estando enchufado"),L("Disconnect first. Liquid plus power is a bad mix.","Desconecta primero. Líquido y corriente no se mezclan.")),
+       O("hand",L("Shake it hard and keep using it","Lo sacudo fuerte y sigo usándolo"),L("The real problem is dirt on the light — it needs cleaning.","El problema real es la suciedad en la luz: hay que limpiarla."))]),
+    STEP(L("An optical mouse tracks movement with a light underneath. How do you clean that tiny light emitter?","Un ratón óptico detecta el movimiento con una luz en la base. ¿Cómo limpias ese pequeño emisor de luz?"),
+      O("swab",L("A cotton swab with a little rubbing alcohol","Un bastoncillo de algodón con un poco de alcohol"),L("Yes — a cotton swab fits small spaces, and alcohol dries quickly.","Sí: un bastoncillo cabe en espacios pequeños y el alcohol se seca rápido.")),
+      [O("towel",L("A big paper towel scrubbed hard","Un papel grande frotando fuerte"),L("Too big to reach the small emitter, and scrubbing is unnecessary.","Es demasiado grande para el emisor y no hace falta frotar.")),
+       O("water",L("Drop it into a bowl of water","Lo meto en un cuenco con agua"),L("Never soak electronics!","¡Nunca empapes la electrónica!"))]),
+    STEP(L("The bottom of the mouse is dirty and sticky. You use…","La base del ratón está sucia y pegajosa. Usas…"),
+      O("towel",L("A paper towel with rubbing alcohol","Un papel con alcohol isopropílico"),L("Yes. Gently wipe the bottom surface with a damp towel.","Sí. Limpia con suavidad la base con un papel húmedo.")),
+      [O("spray",L("Spray cleaner right onto the mouse","Rocío limpiador directamente sobre el ratón"),L("Dampen the towel, never spray directly onto electronics.","Humedece el papel; nunca rocíes directamente sobre la electrónica.")),
+       O("hand",L("Leave it — sticky is fine","Lo dejo: lo pegajoso no importa"),L("Stickiness collects more dirt and makes the cursor misbehave.","Lo pegajoso atrae más suciedad y hace que el cursor falle."))]),
+    STEP(L("What else could be making the mouse misbehave?","¿Qué más podría hacer que el ratón falle?"),
+      O("micro",L("Dirt or crumbs on the desk or mouse pad — clear them away","Suciedad o migas en la mesa o la alfombrilla: las quito"),L("Right! The light reads the surface, so keep the desk or mouse pad clear of debris.","¡Correcto! La luz lee la superficie, así que mantén la mesa o alfombrilla sin restos.")),
+      [O("hand",L("Nothing — only the mouse matters","Nada: solo importa el ratón"),L("The surface under the mouse matters too.","La superficie bajo el ratón también importa.")),
+       O("water",L("Pour water on the mouse pad","Echo agua en la alfombrilla"),L("Water is not needed — just clear the debris away.","No hace falta agua: solo quita los restos."))]),
+    STEP(L("The mouse is clean and dry. Finish by…","El ratón está limpio y seco. Termina…"),
+      O("power",L("Reconnecting it and checking the cursor moves smoothly","Reconectándolo y comprobando que el cursor se mueve con suavidad"),L("Smooth movement again — job done!","¡Movimiento suave otra vez: tarea hecha!")),
+      [O("water",L("Reconnecting it while still wet","Reconectándolo aún mojado"),L("Make sure it is completely dry first.","Asegúrate de que esté completamente seco antes.")),
+       O("hand",L("Hiding it in a drawer","Escondiéndolo en un cajón"),L("Reconnect and test it — that is how you know it works.","Reconéctalo y pruébalo: así sabes que funciona."))]) ]},
+  { id:"mon", name:L("Monitor","Monitor"), svg:()=>monSVG(), steps:[
+    STEP(L("The screen is smeared with fingerprints and dust. First…","La pantalla tiene huellas y polvo. Primero…"),
+      O("plug",L("Turn off the computer","Apago el ordenador"),L("Right — we do not work on a monitor that is connected to power.","Correcto: no trabajamos en un monitor conectado a la corriente.")),
+      [O("spray",L("Spray cleaner straight onto the screen","Rocío limpiador directamente en la pantalla"),L("Never spray liquid directly onto a screen. Turn it off first.","Nunca rocíes líquido directamente en la pantalla. Apágala primero.")),
+       O("towel",L("Start scrubbing with a paper towel","Empiezo a frotar con papel de cocina"),L("Paper towels can scratch, and the screen should be off first.","El papel puede rayar, y la pantalla debe estar apagada antes."))]),
+    STEP(L("It is off. Which cloth do you wipe with first?","Está apagada. ¿Con qué paño limpias primero?"),
+      O("micro",L("A soft, dry microfiber cloth","Un paño de microfibra suave y seco"),L("Yes — microfiber is soft and will not scratch. A dry wipe removes the dust.","Sí: la microfibra es suave y no raya. Un pasada en seco quita el polvo.")),
+      [O("towel",L("A paper towel","Un papel de cocina"),L("Do not use paper towels on a screen — the fibers can scratch the surface.","No uses papel de cocina en una pantalla: las fibras pueden rayarla.")),
+       O("anti",L("An anti-static cloth made for cases","Un paño antiestático para carcasas"),L("The anti-static cloth is for the computer case. Use microfiber on screens.","El paño antiestático es para la carcasa. Usa microfibra en las pantallas."))]),
+    STEP(L("Fingerprints remain. Dry wiping isn't enough. What now?","Quedan huellas. Limpiar en seco no basta. ¿Ahora?"),
+      O("alcohol",L("Lightly dampen the cloth with rubbing alcohol (after checking the device's cleaning instructions)","Humedezco ligeramente el paño con alcohol (tras revisar las instrucciones del aparato)"),L("Good. Dampen the cloth, never the screen — and check instructions, since some screen coatings can be damaged by alcohol.","Bien. Humedece el paño, nunca la pantalla, y revisa las instrucciones: algunos recubrimientos pueden dañarse con alcohol.")),
+      [O("spray",L("Spray alcohol onto the screen","Rocío alcohol sobre la pantalla"),L("Never spray liquid directly onto the screen itself.","Nunca rocíes líquido directamente sobre la propia pantalla.")),
+       O("water",L("Pour water over it","Echo agua por encima"),L("Water and electronics do not mix!","¡El agua y la electrónica no se mezclan!"))]),
+    STEP(L("A tough smear is in the corner. You grab…","Hay una mancha difícil en la esquina. Coges…"),
+      O("micro",L("The same soft microfiber cloth","El mismo paño de microfibra suave"),L("Correct. Stay with microfiber — gentle wiping is enough.","Correcto. Quédate con la microfibra: limpiar con suavidad basta.")),
+      [O("towel",L("A paper towel to rub harder","Un papel para frotar más fuerte"),L("Paper towel fibers scratch screens — and scratches are permanent.","Las fibras del papel rayan las pantallas, y los arañazos son permanentes.")),
+       O("hand",L("My fingernail","Mi uña"),L("Never scratch at a screen.","Nunca rasques una pantalla."))]),
+    STEP(L("Streaks are left. To finish you…","Quedan marcas. Para terminar…"),
+      O("micro",L("Finish with a dry microfiber cloth, then turn the computer on","Termino con un paño de microfibra seco y enciendo el ordenador"),L("Sparkling clean! A dry finish removes streaks.","¡Reluciente! Un último pasada en seco quita las marcas.")),
+      [O("water",L("Leave it damp to dry by itself","La dejo húmeda para que se seque sola"),L("Dry it with a clean dry microfiber cloth to prevent streaks.","Sécala con un paño de microfibra limpio y seco para evitar marcas.")),
+       O("hand",L("Turn it on at once while wet","La enciendo ya, aún mojada"),L("Wait until it is clean and dry before turning on.","Espera a que esté limpia y seca antes de encender."))]) ]}
+];
+
+function kbSVG(){
+  let keys = "", crumbs = "", dust = "", sticky = "";
+  for (let r=0;r<4;r++) for (let c=0;c<12;c++) keys += `<rect x="${32+c*22.2}" y="${72+r*23}" width="19" height="19" rx="4" fill="#e9eef5"/>`;
+  keys += `<rect x="90" y="164" width="130" height="14" rx="4" fill="#e9eef5"/>`;
+  for (let i=0;i<16;i++) crumbs += `<circle cx="${40+((i*53)%240)}" cy="${86+((i*37)%70)}" r="${2.4+(i%3)}" fill="#b5803b"/>`;
+  for (let i=0;i<8;i++) dust += `<ellipse cx="${45+((i*71)%230)}" cy="${80+((i*29)%80)}" rx="9" ry="4" fill="#9aa3ad" opacity=".7"/>`;
+  for (let i=0;i<6;i++) sticky += `<ellipse cx="${55+((i*47)%210)}" cy="${95+((i*31)%60)}" rx="11" ry="7" fill="#e0a23a" opacity=".55"/>`;
+  return `<svg viewBox="0 0 320 200" role="img" aria-label="${L("A dirty keyboard","Un teclado sucio")}"><rect x="18" y="58" width="284" height="130" rx="12" fill="#2c3440"/>${keys}
+  <g data-gone="2">${crumbs}</g><g data-gone="3">${dust}</g><g data-gone="4">${sticky}</g>
+  <ellipse class="oops-fx" cx="160" cy="118" rx="95" ry="34" fill="#4aa3ff" opacity=".8"/>
+  <g class="plug"><path d="M160 58 C160 30 160 22 160 14" stroke="#555" stroke-width="5" fill="none"/><rect x="148" y="2" width="24" height="16" rx="3" fill="#aab"/></g>
+  <circle class="led" cx="292" cy="68" r="4"/>
+  <g class="sparkle" fill="#ffe66d"><path d="M40 70l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M280 150l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></g></svg>`;
+}
+function mouseSVG(){
+  let deb = "", sticky = "", dust = "";
+  for (let i=0;i<12;i++) deb += `<circle cx="${20+((i*83)%280)}" cy="${20+((i*61)%160)}" r="3" fill="#b5803b"/>`;
+  for (let i=0;i<5;i++) sticky += `<ellipse cx="${130+((i*37)%60)}" cy="${140+((i*17)%36)}" rx="11" ry="7" fill="#e0a23a" opacity=".6"/>`;
+  for (let i=0;i<6;i++) dust += `<circle cx="${150+((i*13)%24)}" cy="${98+((i*11)%22)}" r="${4+i%3}" fill="#8f98a3" opacity=".8"/>`;
+  return `<svg viewBox="0 0 320 200" role="img" aria-label="${L("The underside of an optical mouse on a mouse pad","La base de un ratón óptico sobre una alfombrilla")}"><rect x="6" y="6" width="308" height="188" rx="14" fill="#3b4656"/><g data-gone="5">${deb}</g>
+  <ellipse cx="160" cy="112" rx="62" ry="82" fill="#dde3ea"/><rect x="140" y="26" width="40" height="28" rx="8" fill="#b8c2cf"/>
+  <circle cx="160" cy="108" r="18" fill="#1b222c"/><circle class="led" cx="160" cy="108" r="8" style="fill:#ff3b3b"/>
+  <g data-gone="3">${dust}</g><g data-gone="4">${sticky}</g>
+  <ellipse class="oops-fx" cx="160" cy="108" rx="40" ry="36" fill="#4aa3ff" opacity=".7"/>
+  <g class="plug"><path d="M160 26 C160 14 200 14 240 10" stroke="#555" stroke-width="5" fill="none"/><rect x="238" y="2" width="22" height="14" rx="3" fill="#aab"/></g>
+  <g class="sparkle" fill="#ffe66d"><path d="M100 70l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></g></svg>`;
+}
+function monSVG(){
+  return `<svg viewBox="0 0 320 200" role="img" aria-label="${L("A smeared monitor","Un monitor manchado")}"><rect x="40" y="10" width="240" height="150" rx="10" fill="#1d2430"/>
+  <rect x="50" y="20" width="220" height="128" rx="4" fill="url(#sg)"/><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a8bd8"/><stop offset="1" stop-color="#7bd3a3"/></linearGradient></defs>
+  <rect class="scr-off" x="50" y="20" width="220" height="128" rx="4" fill="#06090d" opacity="0"/>
+  <g data-gone="2"><circle cx="90" cy="50" r="5" fill="#d9d2c0" opacity=".7"/><circle cx="220" cy="120" r="6" fill="#d9d2c0" opacity=".7"/><circle cx="150" cy="80" r="4" fill="#d9d2c0" opacity=".7"/><circle cx="240" cy="40" r="4" fill="#d9d2c0" opacity=".7"/></g>
+  <g data-gone="3"><ellipse cx="120" cy="100" rx="16" ry="11" fill="#fff" opacity=".35"/><ellipse cx="190" cy="60" rx="14" ry="10" fill="#fff" opacity=".35"/><ellipse cx="230" cy="100" rx="15" ry="10" fill="#fff" opacity=".35"/></g>
+  <g data-gone="4"><ellipse cx="256" cy="132" rx="14" ry="7" fill="#fff" opacity=".45"/></g>
+  <g data-gone="5" stroke="#fff" stroke-opacity=".35" stroke-width="3"><path d="M70 30L120 140M160 25L210 140"/></g>
+  <g class="oops-fx" stroke="#fff" stroke-width="2"><path d="M70 40L240 130M80 120L200 40M150 30L170 140"/></g>
+  <rect x="140" y="160" width="40" height="22" fill="#5a6574"/><rect x="108" y="182" width="104" height="8" rx="4" fill="#4a5462"/>
+  <circle class="led" cx="262" cy="154" r="4"/>
+  <g class="sparkle" fill="#ffe66d"><path d="M70 40l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M250 110l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></g></svg>`;
+}
+
+/* ======================================================================
+   POWER BENCH, STORAGE, PHOTO, DETECTIVE DATA
+   ====================================================================== */
+const GEARS = [
+  { id:"wall",  name:L("Wall socket","Enchufe de pared"), blocksSpike:false, keepsOn:false,
+    d:L("Computer plugged straight into the wall.","Ordenador enchufado directamente a la pared.") },
+  { id:"strip", name:L("Power strip","Regleta"),           blocksSpike:false, keepsOn:false,
+    d:L("Splits one socket into many. No surge protection or battery.","Divide un enchufe en varios. Sin protección ni batería.") },
+  { id:"surge", name:L("Surge protector","Protector de sobretensión"), blocksSpike:true, keepsOn:false,
+    d:L("Blocks power spikes. No battery.","Bloquea picos de corriente. Sin batería.") },
+  { id:"ups",   name:L("UPS","SAI (UPS)"),                 blocksSpike:true, keepsOn:true,
+    d:L("Power strip + surge protector + battery backup.","Regleta + protector + batería de respaldo.") }
+];
+const PACK = [
+  { id:"clean", e:"🧼", t:L("Hardware cleaned and working","Equipo limpio y funcionando"), ok:true,  hook:L("Clean it and check it works before storing it.","Límpialo y comprueba que funciona antes de guardarlo.") },
+  { id:"cord",  e:"🔌", t:L("Power cord packed with it","Cable de corriente guardado con él"), ok:true,  hook:L("Store cords with the hardware — you don't want to lose the printer's cord!","Guarda los cables con el equipo: ¡no quieras perder el cable de la impresora!") },
+  { id:"half",  e:"🔋", t:L("Laptop battery charged to about half","Batería del portátil cargada a la mitad"), ok:true, hook:L("Charge a battery to about half before long storage.","Carga la batería a la mitad antes de guardarla mucho tiempo.") },
+  { id:"wrap",  e:"📦", t:L("Bubble wrap in a sturdy box","Plástico de burbujas en una caja resistente"), ok:true, hook:L("Protective covering keeps bumps away.","Una protección evita los golpes.") },
+  { id:"label", e:"🏷️", t:L("Label on the outside of the box","Etiqueta en el exterior de la caja"), ok:true, hook:L("Label the box so you can find it later.","Etiqueta la caja para encontrarla después.") },
+  { id:"cool",  e:"❄️", t:L("Stored somewhere cool and dry","Guardado en un sitio fresco y seco"), ok:true, hook:L("Heat shortens battery life, so store it cool and dry.","El calor acorta la vida de la batería: guárdalo fresco y seco.") },
+  { id:"attic", e:"🔥", t:L("Left in a hot attic","Dejado en un desván caluroso"), ok:false, hook:L("Heat shortens battery life — choose somewhere cool and dry.","El calor acorta la vida de la batería: elige un sitio fresco y seco.") },
+  { id:"full",  e:"🪫", t:L("Battery drained to 0%","Batería gastada al 0 %"), ok:false, hook:L("Charge to about half, not empty.","Cárgala a la mitad, no vacía.") },
+  { id:"open",  e:"🔧", t:L("Prying the sealed battery out","Sacar a la fuerza la batería sellada"), ok:false, hook:L("Most modern batteries are sealed inside — don't remove them yourself.","La mayoría de las baterías modernas van selladas: no las saques tú.") },
+  { id:"dusty", e:"🌫️", t:L("Dusty, dirty, uncleaned","Sucio y con polvo, sin limpiar"), ok:false, hook:L("Clean it first so dust doesn't sit inside for months.","Límpialo primero para que el polvo no se quede meses dentro.") },
+  { id:"nocord", e:"❓", t:L("Leave the cord somewhere else","Dejar el cable en otro sitio"), ok:false, hook:L("Keep cords with the hardware or you'll lose them.","Guarda los cables con el equipo o los perderás.") },
+  { id:"loose", e:"🎒", t:L("Toss it in loose, no cover","Tirarlo suelto, sin protección"), ok:false, hook:L("Use bubble wrap or a sturdy box to protect it.","Usa plástico de burbujas o una caja resistente.") }
+];
+const STATIC_QS = [
+  { q:L("You shuffled across a carpet and now must touch the parts inside a computer. What do you do first?","Has caminado por una alfombra y ahora debes tocar piezas del ordenador. ¿Qué haces primero?"),
+    ok:L("Touch a metal object, like a lamp base, to ground myself","Toco un objeto metálico, como la base de una lámpara, para descargarme"), okh:L("Better to zap a lamp than zap your computer! Grounding releases static safely.","¡Mejor descargar en una lámpara que en el ordenador! Así se libera la estática."),
+    bad:[[L("Touch the processor to check it is okay","Toco el procesador para ver si está bien"),L("Touching components is how static damage happens (ESD).","Tocar los componentes es como se produce el daño por estática (ESD).")],[L("Rub my feet on the carpet again","Froto otra vez los pies en la alfombra"),L("That builds up MORE static.","Eso acumula MÁS estática.")]] },
+  { q:L("A technician fixes computers all day. What gives constant protection from static?","Un técnico arregla ordenadores todo el día. ¿Qué le protege constantemente de la estática?"),
+    ok:L("A wrist strap connected to a grounded object","Una pulsera antiestática conectada a un objeto con toma de tierra"), okh:L("A wrist strap keeps discharging static through the grounded cord, so it never builds up.","Una pulsera descarga la estática de forma continua, así que nunca se acumula."),
+    bad:[[L("A thick woolly jumper","Un jersey de lana gordo"),L("Wool can build up even more static.","La lana puede acumular aún más estática.")],[L("Nothing — static is harmless","Nada: la estática es inofensiva"),L("Static (ESD) can seriously damage components.","La estática (ESD) puede dañar gravemente los componentes.")]] },
+  { q:L("What is electrostatic discharge (ESD)?","¿Qué es la descarga electrostática (ESD)?"),
+    ok:L("A small electrical jolt jumping from a person into a component","Una pequeña descarga eléctrica que salta de una persona a un componente"), okh:L("Exactly — the same thing as the shock you feel from a doorknob after walking on carpet.","Exacto: es lo mismo que la chispa que sientes en un pomo tras caminar por una alfombra."),
+    bad:[[L("A way of cleaning a keyboard","Una forma de limpiar un teclado"),L("No — ESD is a shock that can damage parts.","No: la ESD es una descarga que puede dañar piezas.")],[L("A type of computer fan","Un tipo de ventilador"),L("No — it is an electric shock jumping into a part.","No: es una descarga eléctrica que salta a una pieza.")]] }
+];
+const PHOTOS = [
+  { id:"fan", src:"photos/fan.jpg", w:960, h:1280, alt:L("A real CPU fan covered in dust","Un ventilador de procesador real cubierto de polvo"), cr:"credit-fan",
+    parts:[
+      { id:"blade", fx:.50, fy:.37, n:L("Fan blade","Aspa del ventilador"), d:L("Blades spin to pull cool air in and push warm air out. Dust makes them heavier and weaker.","Las aspas giran para meter aire fresco y sacar aire caliente. El polvo las hace más pesadas y débiles.") },
+      { id:"dust",  fx:.24, fy:.35, n:L("Dust build-up","Acumulación de polvo"), d:L("Thick dust blocks airflow, so parts overheat. Clean it with short bursts of compressed air while holding the blades still.","El polvo grueso bloquea el aire y las piezas se calientan. Límpialo con ráfagas cortas de aire comprimido sujetando las aspas.") },
+      { id:"cable", fx:.33, fy:.90, n:L("Fan power cable","Cable de alimentación del ventilador"), d:L("This cable carries power to the fan — one more reason to switch the computer off before cleaning inside.","Este cable lleva corriente al ventilador: otra razón para apagar el ordenador antes de limpiar por dentro.") } ] },
+  { id:"strap", src:"photos/strap.jpg", w:960, h:720, alt:L("A real anti-static wrist strap","Una pulsera antiestática real"), cr:"credit-strap",
+    parts:[
+      { id:"band", fx:.31, fy:.60, n:L("Wrist band","Pulsera"), d:L("It sits against your skin so static can leave your body all the time.","Va pegada a la piel para que la estática salga de tu cuerpo continuamente.") },
+      { id:"cord", fx:.50, fy:.81, n:L("Coiled cord","Cable en espiral"), d:L("The coiled cord is the electrical link between you and the grounded object.","El cable en espiral es el enlace eléctrico entre tú y el objeto con toma de tierra.") },
+      { id:"clip", fx:.66, fy:.14, n:L("Ground clip","Pinza de toma de tierra"), d:L("Clip this to a grounded metal object. The static drains away through it instead of into your computer.","Se engancha a un objeto metálico con toma de tierra. La estática se va por ahí en vez de al ordenador.") } ] },
+  { id:"surge", src:"photos/surge.jpg", w:960, h:640, alt:L("A real surge protector power strip","Una regleta protectora de sobretensión real"), cr:"credit-surge",
+    parts:[
+      { id:"outlets", fx:.83, fy:.74, n:L("Power outlets","Tomas de corriente"), d:L("Several outlets from one wall socket, each protected from spikes.","Varias tomas desde un solo enchufe de pared, todas protegidas de picos.") },
+      { id:"ports", fx:.45, fy:.85, n:L("Network and phone ports","Puertos de red y teléfono"), d:L("Spikes can also travel through cables, so this surge protector guards these ports as well.","Los picos también viajan por cables, así que este protector también cuida estos puertos.") },
+      { id:"plug", fx:.74, fy:.40, n:L("Plug and power cord","Enchufe y cable"), d:L("A computer's cord plugs in here, so the surge protector sits between the wall and the computer.","El cable del ordenador se conecta aquí: el protector queda entre la pared y el ordenador.") } ] },
+  { id:"kbd", src:"photos/keyboard.jpg", w:960, h:720, alt:L("A real keyboard with some keys removed, showing dust underneath","Un teclado real con algunas teclas quitadas que muestra polvo debajo"), cr:"credit-keyboard",
+    parts:[
+      { id:"cap", fx:.16, fy:.60, n:L("Key top","Tecla (tapa)"), d:L("The part you press. Dirt hides underneath it.","La parte que pulsas. Debajo se esconde la suciedad.") },
+      { id:"stem", fx:.69, fy:.43, n:L("Key switch","Mecanismo de la tecla"), d:L("The little post that springs the key back up. Crumbs here make keys stick.","El pivote que hace volver la tecla. Las migas aquí hacen que se pegue.") },
+      { id:"dirt", fx:.62, fy:.74, n:L("Dust, hair and crumbs","Polvo, pelo y migas"), d:L("This is what builds up under the keys. Shake, then compressed air, clears it.","Esto se acumula bajo las teclas. Sacudir y usar aire comprimido lo limpia.") } ] }
+];
+const CASES = [
+  { id:"d1", e:"⌨️", sym:L("Some keys are sticky and one doesn't work at all.","Algunas teclas están pegajosas y una no funciona."),
+    cause:{ ok:L("Dirt, crumbs or spills under the keys","Suciedad, migas o líquidos bajo las teclas"), bad:[L("The monitor is too bright","El monitor brilla demasiado"),L("The fan is spinning too slowly","El ventilador gira muy despacio")] },
+    fix:{ ok:L("Power off and unplug, shake, compressed air, wipe with a damp alcohol towel","Apagar y desconectar, sacudir, aire comprimido y pasar un papel húmedo con alcohol"), bad:[L("Pour water over it while it is on","Echarle agua mientras está encendido"),L("Hit every key harder","Pulsar todas las teclas más fuerte")] },
+    hook:L("Keys stick when dirt builds up beneath them — and cleaning always starts with power off.","Las teclas se pegan cuando se acumula suciedad debajo, y limpiar siempre empieza con la corriente apagada.") },
+  { id:"d2", e:"🖱️", sym:L("The mouse cursor jumps around the screen and sometimes freezes.","El cursor salta por la pantalla y a veces se congela."),
+    cause:{ ok:L("The light emitter under the mouse (or the desk) is dusty or sticky","El emisor de luz del ratón (o la mesa) está con polvo o pegajoso"), bad:[L("The keyboard is unplugged","El teclado está desconectado"),L("The case needs an anti-static wipe","La carcasa necesita un paño antiestático")] },
+    fix:{ ok:L("Disconnect it, clean the emitter with a cotton swab and alcohol, and clear the desk or mouse pad","Desconectarlo, limpiar el emisor con bastoncillo y alcohol y despejar la mesa o alfombrilla"), bad:[L("Spray cleaner onto the mouse","Rociar limpiador sobre el ratón"),L("Press the buttons faster","Pulsar los botones más rápido")] },
+    hook:L("An optical mouse reads the surface with a light, so a dirty light or dirty desk confuses it.","Un ratón óptico lee la superficie con una luz, así que una luz sucia o una mesa sucia lo confunde.") },
+  { id:"d3", e:"🔥", sym:L("The tower is very hot, its fans roar, and it shuts down. Books are piled against its sides.","La torre está muy caliente, sus ventiladores rugen y se apaga. Hay libros apilados contra sus lados."),
+    cause:{ ok:L("Blocked airflow and dusty fans, so heat can't escape","Aire bloqueado y ventiladores con polvo: el calor no escapa"), bad:[L("Not enough static electricity","Falta electricidad estática"),L("The mouse pad is too small","La alfombrilla es demasiado pequeña")] },
+    fix:{ ok:L("Move the books away and clean the fan slots with compressed air, holding the blades still","Quitar los libros y limpiar las rejillas con aire comprimido sujetando las aspas"), bad:[L("Wrap the tower in a blanket","Envolver la torre en una manta"),L("Put an ice cube inside","Meter un cubito de hielo dentro")] },
+    hook:L("Fans pull cool air in and push warm air out, so give them room and keep them clean.","Los ventiladores meten aire fresco y sacan aire caliente: dales espacio y mantenlos limpios.") },
+  { id:"d4", e:"🖥️", sym:L("The screen is smeary and hard to read.","La pantalla está manchada y cuesta leerla."),
+    cause:{ ok:L("Fingerprints and dust on the screen","Huellas y polvo en la pantalla"), bad:[L("The computer has too much memory","El ordenador tiene demasiada memoria"),L("The surge protector is full","El protector está lleno")] },
+    fix:{ ok:L("Turn it off, wipe with a soft microfiber cloth (lightly damp if needed), finish dry","Apagarla, limpiar con microfibra suave (algo húmeda si hace falta) y secar al final"), bad:[L("Scrub with a paper towel","Frotar con papel de cocina"),L("Spray cleaner straight on the glass","Rociar limpiador directamente en el cristal")] },
+    hook:L("Microfiber is gentle; paper fibers scratch and sprays can leak behind the screen.","La microfibra es suave; las fibras del papel rayan y los aerosoles se cuelan tras la pantalla.") },
+  { id:"d5", e:"⚡", sym:L("The power cuts out. The computer was plugged straight into the wall and the student's work vanished.","Se va la luz. El ordenador estaba enchufado directamente a la pared y el trabajo del estudiante desapareció."),
+    cause:{ ok:L("No battery backup — nothing kept the computer running","Sin batería de respaldo: nada mantuvo el ordenador encendido"), bad:[L("The keys were dusty","Las teclas tenían polvo"),L("The wrist strap was loose","La pulsera estaba floja")] },
+    fix:{ ok:L("Plug it into a UPS, which has a battery backup and surge protection","Enchufarlo a un SAI, que tiene batería de respaldo y protección contra picos"), bad:[L("Plug it into a plain power strip","Enchufarlo a una regleta sencilla"),L("Clean the monitor","Limpiar el monitor")] },
+    hook:L("Only a UPS keeps things running (and protected) when the building's electricity fails.","Solo un SAI mantiene todo funcionando (y protegido) cuando falla la luz del edificio.") }
+];
+const TOOLS = [
+  { k:"alcohol", n:L("Rubbing alcohol","Alcohol isopropílico"), d:L("60% or more isopropyl alcohol. It evaporates much faster than water, so parts don't stay wet. Safe for keyboards, mice and many surfaces.","60 % o más de alcohol isopropílico. Se evapora mucho más rápido que el agua, así que las piezas no quedan mojadas. Es seguro para teclados, ratones y muchas superficies.") },
+  { k:"air", n:L("Compressed air","Aire comprimido"), d:L("A can that sprays strong air to blow dust from hard-to-reach places. Hold it upright and use short bursts.","Una lata que lanza aire fuerte para sacar polvo de sitios difíciles. Sujétala en vertical y usa ráfagas cortas.") },
+  { k:"swab", n:L("Cotton swab","Bastoncillo"), d:L("Perfect for tight, small spaces like a mouse's light emitter.","Perfecto para espacios pequeños y estrechos, como el emisor de luz de un ratón.") },
+  { k:"anti", n:L("Anti-static cloth","Paño antiestático"), d:L("Made of a special material that won't gather a static charge. Use it dry on the computer case.","De un material especial que no acumula carga estática. Úsalo seco en la carcasa del ordenador.") },
+  { k:"micro", n:L("Microfiber cloth","Paño de microfibra"), d:L("Soft, so it won't scratch. The right cloth for screens.","Suave, no raya. El paño correcto para las pantallas.") },
+  { k:"towel", n:L("Paper towel","Papel de cocina"), d:L("Fine (damp with alcohol) for keyboards and mouse bottoms — but never on a screen, where fibers can scratch.","Sirve (húmedo con alcohol) para teclados y bases de ratón, pero nunca en una pantalla, donde las fibras rayan.") }
+];
+
+/* ======================================================================
+   3D HELPERS
+   ====================================================================== */
+let cur3d = null;
+function stop3d(){ if (cur3d){ cur3d.dispose(); cur3d = null; } }
+
+function makeScene(THREE, stage, { cam=[2.6,1.9,3.4], look=[0,0.7,0], onFrame }){
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.append(renderer.domElement);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0c141d).convertSRGBToLinear(); scene.fog = new THREE.Fog(0x0c141d, 8, 18);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 50);
+  const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x2a2f38, 0.7); scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xfff1dc, 1.1); sun.position.set(3,5,3); sun.castShadow = true; sun.shadow.mapSize.set(1024,1024);
+  Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:1,far:14}); scene.add(sun);
+  const clock = { t0: performance.now() }; let raf = 0, alive = true;
+  function size(){ const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix(); }
+  size(); window.addEventListener("resize", size);
+  function loop(){ if (!alive) return; raf = requestAnimationFrame(loop);
+    const t = (performance.now()-clock.t0)/1000;
+    const sway = REDUCED() ? 0 : Math.sin(t*0.25)*0.9;
+    camera.position.set(cam[0]+sway, cam[1], cam[2]); camera.lookAt(look[0],look[1],look[2]);
+    if (onFrame) onFrame(t); renderer.render(scene,camera); }
+  raf = requestAnimationFrame(loop);
+  return { scene, camera, renderer, dispose(){ alive=false; cancelAnimationFrame(raf); window.removeEventListener("resize",size); renderer.dispose(); renderer.domElement.remove(); } };
+}
+function mats(THREE){
+  const C = h => new THREE.Color(h).convertSRGBToLinear();
+  const M = (h, r=0.6, m=0.05, extra={}) => new THREE.MeshStandardMaterial(Object.assign({ color:C(h), roughness:r, metalness:m }, extra));
+  return { C, M };
+}
+function noiseTex(THREE, base, speck, n=900){
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d");
+  x.fillStyle = base; x.fillRect(0,0,128,128);
+  for (let i=0;i<n;i++){ x.fillStyle = speck; x.globalAlpha = Math.random()*.25; x.fillRect(Math.random()*128, Math.random()*128, 1+Math.random()*2, 1+Math.random()*2); }
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function pointer3d(renderer, camera, THREE, targets, onHit){
+  const ray = new THREE.Raycaster(), v = new THREE.Vector2();
+  renderer.domElement.addEventListener("click", ev => {
+    const r = renderer.domElement.getBoundingClientRect();
+    v.set(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1);
+    ray.setFromCamera(v, camera);
+    const hits = ray.intersectObjects(targets(), true);
+    if (hits.length){ let o = hits[0].object; while (o && !o.userData.pick) o = o.parent; onHit(o ? o.userData.pick : null, ev); } else onHit(null, ev);
+  });
+}
+function addTower(THREE, g, { M, C }, opts={}){
+  // cutaway PC tower: open side showing CPU fan; returns fan group
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.7,1.3,1.2), M("#27303c",0.5,0.4)); body.position.set(0,0.65,0); body.castShadow = true; g.add(body);
+  const grille = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.9,0.02), M("#0e141b",0.9,0.1)); grille.position.set(0,0.7,0.61); g.add(grille);
+  for (let i=0;i<9;i++){ const s = new THREE.Mesh(new THREE.BoxGeometry(0.48,0.015,0.03), M("#58687c",0.4,0.6)); s.position.set(0,0.3+i*0.1,0.62); g.add(s); }
+  const fan = new THREE.Group(); fan.position.set(0,0.75,-0.1);
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.04,24), M("#101418",0.4,0.5)); hub.rotation.x = Math.PI/2; fan.add(hub);
+  const bladeMat = M(opts.dusty ? "#9c8a6d" : "#3a4658", 0.8, 0.1);
+  for (let i=0;i<7;i++){ const b = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.28,0.012), bladeMat); const a = i/7*Math.PI*2; b.position.set(Math.sin(a)*0.17, Math.cos(a)*0.17, 0); b.rotation.z = -a; b.rotation.y = 0.4; fan.add(b); }
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34,0.025,10,40), M("#6d7a8b",0.5,0.5)); fan.add(ring);
+  g.add(fan);
+  const cpu = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.1), M("#7d8794",0.4,0.8)); cpu.position.set(0,0.75,-0.3); g.add(cpu);
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(0.01,1.1,1.0), new THREE.MeshPhysicalMaterial({ color:C("#a8cdf0"), transparent:true, opacity:0.12, roughness:0.05, metalness:0, clearcoat:1 })); glass.position.set(0.355,0.65,0); g.add(glass);
+  return fan;
+}
+
+/* ======================================================================
+   THE ACTIVITY
+   ====================================================================== */
+let sim = null;
+
+const simulation = {
+  orient(host, api){
+    host.innerHTML = "";
+    const intro = el("p","q__hint", L("A technician's toolbox holds the right tool for every job. Tap each supply to find out what it is for — and which one must NEVER touch a screen.","La caja de un técnico tiene la herramienta adecuada para cada tarea. Toca cada material para saber para qué sirve, y cuál NUNCA debe tocar una pantalla."));
+    const grid = el("div","toolgrid"); const reveal = el("div","reveal-panel", `<span style="color:var(--ink-3)">${L("Tap a supply ↑","Toca un material ↑")}</span>`);
+    let seen = 0; const cap = el("p","progress-note","0 / "+TOOLS.length);
+    TOOLS.forEach(t => {
+      const b = el("button","toolcard", ICO[t.k]+`<span>${t.n}</span>`); b.type = "button";
+      b.addEventListener("click", () => {
+        reveal.innerHTML = `<b>${t.n}</b><br>${t.d}`;
+        if (!b.classList.contains("is-seen")){ b.classList.add("is-seen"); seen++; cap.textContent = seen+" / "+TOOLS.length; burstAt(b); }
+        if (api && api.ttsEnabled && api.ttsEnabled()) api.speak(t.n+". "+t.d);
+      });
+      grid.append(b);
+    });
+    const quick = el("div","reveal-panel"); quick.style.marginTop = "var(--sp-4)";
+    quick.innerHTML = `<div style="width:100%"><b>${L("Quick check: water and electronics…","Comprobación rápida: el agua y la electrónica…")}</b><div class="pick-row" style="margin-top:8px"></div><div class="fb">${L("Pick one.","Elige una.")}</div></div>`;
+    const row = quick.querySelector(".pick-row"), fb = quick.querySelector(".fb");
+    [[L("mix well","se llevan bien"),false,L("Not at all! That's why we use rubbing alcohol, which dries fast, and never pour liquid on parts.","¡Para nada! Por eso usamos alcohol, que se seca rápido, y nunca echamos líquido sobre las piezas.")],
+     [L("do NOT mix","NO se mezclan"),true,L("Correct! Water and electronics do not mix, so keep parts dry and clean with damp cloths only.","¡Correcto! El agua y la electrónica no se mezclan: mantén las piezas secas y limpia solo con paños húmedos.")]].forEach(([t,ok,h]) => {
+      const b = el("button","pick",t); b.type = "button";
+      b.addEventListener("click", () => { fb.textContent = h; fb.className = "fb "+(ok?"good":"bad"); if (ok) burstAt(quick); else shake(b); });
+      row.append(b);
+    });
+    host.append(intro, grid, reveal, cap, quick);
+  },
+
+  investigate(host, api){
+    sim = api; host.innerHTML = ""; stop3d();
+    const game = sim.state.game || (sim.state.game = { tab:"clean", done:{}, xp:0 });
+    const save = () => sim.saveState();
+
+    const STATIONS = [
+      { id:"clean",  label:L("Clean Bench","Banco de Limpieza"),  keys:["k_kb","k_mouse","k_mon"] },
+      { id:"air",    label:L("Airflow Lab","Laboratorio de Aire"), keys:["a_cool","a_fan"] },
+      { id:"power",  label:L("Power Bench","Banco de Energía"),   keys:["p_all","p_best"] },
+      { id:"store",  label:L("Safe Storage","Almacén Seguro"),     keys:["s_static","s_box"] },
+      { id:"photo",  label:L("Photo Lab","Laboratorio de Fotos"),  keys:["ph_fan","ph_strap","ph_surge","ph_kbd"] },
+      { id:"detect", label:L("Symptom Detective","Detective de Síntomas"), keys:["d1","d2","d3","d4","d5"] },
+      { id:"bonus",  label:L("Bonus: Hazard Hunt","Bonus: Caza de Peligros"), keys:[] }
+    ];
+    const tabs = el("div","phase-tabs"); tabs.setAttribute("role","tablist");
+    const bar = el("div","shopbar"); const finish = el("div"); const phaseHost = el("div");
+    host.append(bar, tabs, phaseHost, finish);
+
+    const isDone = s => s.keys.length && s.keys.every(k => game.done[k]);
+    const totalJobs = STATIONS.reduce((n,s)=>n+s.keys.length,0);
+    function rank(){ const n = Object.keys(game.done).length; return n>=totalJobs?L("Master Technician","Técnico Maestro"):n>=14?L("Senior Technician","Técnico Sénior"):n>=7?L("Technician","Técnico"):L("Apprentice","Aprendiz"); }
+    function paintBar(){ const n = Object.keys(game.done).length;
+      bar.innerHTML = `<span>${L("Jobs","Tareas")} ${n} / ${totalJobs}</span><span>XP ${game.xp||0}</span><span>${rank()}</span>`; }
+    function paintTabs(){
+      tabs.innerHTML = "";
+      STATIONS.forEach(s => {
+        const b = el("button","phase-tab"+(game.tab===s.id?" is-active":"")+(isDone(s)?" is-done":""), `<span class="phase-tab__mark">${isDone(s)?"✓":"•"}</span>${s.label}`);
+        b.type = "button"; b.setAttribute("role","tab"); b.setAttribute("aria-selected", game.tab===s.id);
+        b.addEventListener("click", () => { game.tab = s.id; save(); go(); });
+        tabs.append(b);
+      });
+      paintBar();
+      if (STATIONS.filter(s=>s.keys.length).every(isDone)){
+        if (!game.done._all){ game.done._all = 1; sim.mark("repair_shop_complete", true); save(); }
+        finish.innerHTML = `<div class="done-card">${ICO.check.replace("<svg","<svg width='36' height='36' style='vertical-align:middle;margin-right:8px'")} ${L("Repair Shop complete!","¡Taller de Reparación completado!")} ${L(`Rank: ${rank()} · ${game.xp} XP. Now scroll on to Record, Explain and Apply.`,`Rango: ${rank()} · ${game.xp} XP. Sigue con Registro, Explicar y Aplicar.`)}</div>`;
+      }
+    }
+    function job(key, station, task, result, tries){
+      if (game.done[key]) return;
+      game.done[key] = 1; game.xp = (game.xp||0) + Math.max(10, 30 - tries*5);
+      sim.recordTrial({ station, task, result, tries });
+      sim.mark(key, tries === 0);
+      save(); paintTabs();
+    }
+    const RENDER = { clean:renderClean, air:renderAir, power:renderPower, store:renderStore, photo:renderPhoto, detect:renderDetect, bonus:renderBonus };
+    function go(){ stop3d(); phaseHost.innerHTML = ""; paintTabs(); RENDER[game.tab](phaseHost); }
+
+    /* =========================== CLEAN BENCH =========================== */
+    function renderClean(h){
+      const st = game.clean || (game.clean = {});
+      h.append(el("p","st-lede", L("Pick a device, then choose the right next action for each of its five cleaning steps. Wrong choices show you why — nothing breaks for real.","Elige un aparato y escoge la acción correcta en cada uno de sus cinco pasos de limpieza. Los errores te explican por qué; nada se rompe de verdad.")));
+      const row = el("div","pick-row"); const body = el("div"); h.append(row, body);
+      let cur = DEVICES.find(d => !game.done["k_"+d.id]) || DEVICES[0];
+      function paintRow(){ row.innerHTML = "";
+        DEVICES.forEach(d => { const b = el("button","pick"+(d===cur?" is-active":"")+(game.done["k_"+d.id]?" is-done":""), d.name); b.type = "button";
+          b.addEventListener("click", () => { cur = d; paintRow(); paintDev(); }); row.append(b); }); }
+      function paintDev(){
+        body.innerHTML = "";
+        const s = st[cur.id] || (st[cur.id] = { i:0, m:0 });
+        const wrap = el("div","bench"); const left = el("div","devbox"); const dev = el("div","dev"); dev.innerHTML = cur.svg(); left.append(dev);
+        const right = el("div","step"); wrap.append(left, right); body.append(wrap);
+        const apply = () => {
+          dev.querySelectorAll("[data-gone]").forEach(n => n.classList.toggle("gone", s.i >= +n.dataset.gone));
+          dev.dataset.pw = (s.i>=1 && s.i<5) ? "off" : "on";
+          dev.classList.toggle("is-clean", s.i >= 5);
+          const so = dev.querySelector(".scr-off"); if (so) so.setAttribute("opacity", dev.dataset.pw==="off" ? "1" : "0");
+        };
+        apply();
+        function paintStep(){
+          right.innerHTML = "";
+          const dots = el("div","dots"); cur.steps.forEach((_,i)=>dots.append(el("i", i<s.i?"on":""))); right.append(dots);
+          if (s.i >= cur.steps.length){
+            right.append(el("div","done-card", `${L("Job done:","Tarea hecha:")} ${cur.name} ${L("is clean, dry and safe. Mistakes:","está limpio, seco y seguro. Errores:")} ${s.m}.`));
+            job("k_"+cur.id, L("Clean Bench","Banco de Limpieza"), cur.name, L("Clean and safe","Limpio y seguro"), s.m);
+            const nx = DEVICES.find(d => !game.done["k_"+d.id]);
+            if (nx){ const b = el("button","btn btn--signal",L("Next device →","Siguiente aparato →")); b.type="button"; b.style.marginTop="12px"; b.addEventListener("click",()=>{cur=nx;paintRow();paintDev();}); right.append(b); }
+            paintRow(); return;
+          }
+          const stp = cur.steps[s.i];
+          right.append(el("div","step__n",L("Step ","Paso ")+(s.i+1)+" / "+cur.steps.length), el("div","step__q",stp.q));
+          const fb = el("div","fb"); fb.textContent = L("Choose carefully.","Elige con cuidado.");
+          const opts = shuffled([{...stp.ok, ok:true}, ...stp.bad.map(b=>({...b, ok:false}))]);
+          opts.forEach(o => {
+            const b = el("button","opt", `${ICO[o.ico]||""}<span>${o.t}</span>`); b.type = "button";
+            b.addEventListener("click", () => {
+              if (o.ok){ b.classList.add("is-right"); fb.className = "fb good"; fb.textContent = o.hook; s.i++; save(); burstAt(left); apply();
+                if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(o.hook);
+                setTimeout(paintStep, 1500);
+              } else { s.m++; save(); shake(b); fb.className = "fb bad"; fb.textContent = o.hook;
+                dev.classList.add("oops"); setTimeout(()=>dev.classList.remove("oops"), 1400); }
+            });
+            right.append(b);
+          });
+          right.append(fb);
+        }
+        paintStep();
+      }
+      paintRow(); paintDev();
+    }
+
+    /* =========================== AIRFLOW LAB (3D) =========================== */
+    function renderAir(h){
+      const air = game.air || (game.air = { books:1, papers:1, box:1, dust:1, started:false });
+      h.append(el("p","st-lede", L("This computer is overheating! Tap objects in the 3D scene (or use the buttons) to clear its vents, then clean the dusty fan. Cool air flows in the front (blue) and warm air leaves the back (orange).","¡Este ordenador se sobrecalienta! Toca objetos en la escena 3D (o usa los botones) para despejar sus rejillas y limpia el ventilador con polvo. El aire fresco entra por delante (azul) y el caliente sale por detrás (naranja).")));
+      const stage = el("div","stage3d"); const hud = el("div","hudline"); const msg = el("div","stage3d__msg", L("Loading 3D scene…","Cargando escena 3D…"));
+      stage.append(msg); stage.append(hud);
+      const gauge = el("div","gauge","<i></i>"); const gi = gauge.firstChild;
+      const tgl = el("div","toggles"); const status = el("div","fb"); status.textContent = L("Temperature is rising.","La temperatura está subiendo.");
+      const fanRow = el("div","toggles");
+      h.append(stage, gauge, tgl, fanRow, status);
+
+      let temp = 45, shut = false, coolFor = 0, holdBlades = false, shownHook = 0;
+      const OBJ = [
+        { id:"books",  n:L("Books at the front intake","Libros en la entrada frontal"), hook:L("Books block the intake, so cool air can't get in.","Los libros bloquean la entrada, así que no entra aire fresco.") },
+        { id:"papers", n:L("Papers over the top vent","Papeles sobre la rejilla superior"), hook:L("Papers on top stop warm air escaping.","Los papeles encima impiden que escape el aire caliente.") },
+        { id:"box",    n:L("Box behind the exhaust","Caja detrás de la salida"), hook:L("A box behind the case blocks the exhaust fan.","Una caja detrás bloquea la salida del ventilador.") }
+      ];
+      const blocked = () => OBJ.filter(o => air[o.id]).length;
+      const target = () => 36 + 10*blocked() + 10*air.dust;
+      let view = null;
+      OBJ.forEach(o => {
+        const b = el("button","tg"); b.type = "button";
+        const paint = () => { b.setAttribute("aria-pressed", !air[o.id]); b.textContent = (air[o.id]? L("Move away: ","Quitar: ") : L("Put back: ","Volver a poner: ")) + o.n; };
+        paint(); o.paint = paint;
+        b.addEventListener("click", () => toggle(o.id)); tgl.append(b);
+      });
+      function toggle(id){
+        const o = OBJ.find(x => x.id===id); air[id] = air[id] ? 0 : 1; save(); o.paint();
+        if (view) view.sync();
+        status.className = "fb "+(air[id]?"bad":"good"); status.textContent = air[id] ? L("Back in the way! ","¡De nuevo estorbando! ")+o.hook : L("Cleared. ","Despejado. ")+o.hook;
+        if (!air[id]) burstAt(stage);
+      }
+      /* fan cleaning: hold blades, then short burst */
+      const holdB = el("button","tg"); holdB.type = "button"; holdB.setAttribute("aria-pressed","false"); holdB.textContent = L("1. Hold the fan blades still","1. Sujetar las aspas del ventilador");
+      const sprayB = el("button","tg"); sprayB.type = "button"; sprayB.textContent = L("2. Short burst of compressed air","2. Ráfaga corta de aire comprimido");
+      const resB = el("button","tg"); resB.type = "button"; resB.textContent = L("Restart computer","Reiniciar el ordenador"); resB.hidden = true;
+      let fanMistakes = 0;
+      holdB.addEventListener("click", () => { holdBlades = !holdBlades; holdB.setAttribute("aria-pressed", holdBlades); if (view) view.hold(holdBlades); });
+      sprayB.addEventListener("click", () => {
+        if (!air.dust){ status.className="fb good"; status.textContent = L("The fan is already clean!","¡El ventilador ya está limpio!"); return; }
+        if (!holdBlades){ fanMistakes++; shake(sprayB); status.className = "fb bad";
+          status.textContent = L("Careful! Air can spin the fan far too fast and damage it. Hold the blades still first.","¡Cuidado! El aire puede hacer girar el ventilador demasiado rápido y dañarlo. Sujeta primero las aspas."); return; }
+        air.dust = 0; save(); status.className = "fb good"; status.textContent = L("Dust blown away safely — holding the blades still protected the fan.","Polvo eliminado con seguridad: sujetar las aspas protegió el ventilador.");
+        burstAt(stage); if (view) view.sync();
+        job("a_fan", L("Airflow Lab","Laboratorio de Aire"), L("Clean the dusty fan","Limpiar el ventilador con polvo"), L("Fan cleaned safely","Ventilador limpiado"), fanMistakes);
+      });
+      resB.addEventListener("click", () => { if (target() < 62){ shut = false; temp = 55; resB.hidden = true; status.className="fb good"; status.textContent = L("Computer restarted safely.","Ordenador reiniciado.");} else { shake(resB); status.className="fb bad"; status.textContent=L("Still too hot to restart — clear more airflow first.","Aún hace demasiado calor para reiniciar: despeja más el aire."); } });
+      fanRow.append(holdB, sprayB, resB);
+
+      const tick = setInterval(() => {
+        if (!document.body.contains(stage)){ clearInterval(tick); return; }
+        temp += (target() - temp) * 0.08;
+        if (temp >= 70 && !shut){ shut = true; resB.hidden = false; status.className="fb bad"; status.textContent = L("It got so hot the computer shut itself down to protect its parts! Clear the airflow, then restart it.","¡Se calentó tanto que el ordenador se apagó para proteger sus piezas! Despeja el aire y reinícialo."); }
+        const T = Math.round(temp);
+        hud.innerHTML = `<b>CPU ${T}°C</b><b>${L("Blocked","Bloqueos")}: ${blocked()}${air.dust?" + "+L("dusty fan","ventilador con polvo"):""}</b>${shut?`<b style="background:#b3261e">${L("SHUT DOWN","APAGADO")}</b>`:""}`;
+        gi.style.width = Math.min(100, Math.max(8,(temp-30)/50*100))+"%"; gi.style.background = temp>=62?"#d9534f":temp>=50?"#e0a23a":"#2fa86a";
+        if (!shut && temp <= 45 && !air.books && !air.papers && !air.box && !air.dust) { coolFor += 0.25; } else coolFor = 0;
+        if (coolFor >= 4 && !game.done.a_cool){
+          status.className="fb good"; status.textContent = L(`Cool at ${T}°C! Clear airflow keeps a computer healthy.`,`¡Fresco a ${T} °C! El aire despejado mantiene sano un ordenador.`);
+          job("a_cool", L("Airflow Lab","Laboratorio de Aire"), L("Clear the vents and cool the CPU","Despejar las rejillas y enfriar el procesador"), L(`CPU cooled to ${T}°C`,`Procesador a ${T} °C`), blocked()===0?0:1);
+        }
+        if (view) view.state({ temp, shut });
+      }, 250);
+
+      loadThree().then(THREE => {
+        msg.remove(); const { C, M } = mats(THREE);
+        const S = makeScene(THREE, stage, { cam:[2.4,1.7,3.3], look:[0,0.7,0], onFrame:t => frame(t) });
+        cur3d = S; const g = new THREE.Group(); S.scene.add(g);
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(14,14), new THREE.MeshStandardMaterial({ map:noiseTex(THREE,"#2b3441","#cfd8e6"), roughness:.95 })); floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; g.add(floor);
+        const wall = new THREE.Mesh(new THREE.PlaneGeometry(14,5), M("#1c2530",.9)); wall.position.set(0,2.5,-1.9); g.add(wall);
+        const tw = new THREE.Group(); g.add(tw); const fan = addTower(THREE, tw, { M, C }, { dusty:true });
+        const dustMat = fan.children[2].material;
+        /* blockers */
+        const mk = (id, build) => { const gr = new THREE.Group(); gr.userData.pick = id; build(gr); g.add(gr); return gr; };
+        const books = mk("books", gr => { ["#c0392b","#2e86c1","#27ae60","#f1c40f"].forEach((c,i)=>{ const b = new THREE.Mesh(new THREE.BoxGeometry(0.55-i*0.03,0.12,0.38), M(c,.8)); b.position.set(0,0.06+i*0.125,0); b.rotation.y=i*0.2; b.castShadow = true; gr.add(b); }); });
+        const papers = mk("papers", gr => { for (let i=0;i<6;i++){ const p = new THREE.Mesh(new THREE.BoxGeometry(0.62,0.012,0.45), M("#f2f2ee",.9)); p.position.set(0,i*0.014,0); p.rotation.y=(i%3-1)*0.15; p.castShadow = true; gr.add(p); } });
+        const box = mk("box", gr => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.7,0.5), M("#b98a54",.9)); b.position.y = 0.35; b.castShadow = true; gr.add(b); const tape = new THREE.Mesh(new THREE.BoxGeometry(0.82,0.02,0.1), M("#e6d3a8",.5)); tape.position.y = 0.71; gr.add(tape); });
+        const home = { books:[0,0,1.05], papers:[0,1.3,0], box:[0,0,-1.5] }, away = { books:[-2.2,0,1.6], papers:[2,0,1.7], box:[2.4,0,-1.2] };
+        const pos = { books:books, papers:papers, box:box }, cur = {};
+        OBJ.forEach(o => { cur[o.id] = (air[o.id]?home:away)[o.id].slice(); pos[o.id].position.set(...cur[o.id]); });
+        /* air particles */
+        const N = 260, pg = new THREE.BufferGeometry(), pp = new Float32Array(N*3), pc = new Float32Array(N*3), pt = new Float32Array(N), pj = new Float32Array(N*2);
+        for (let i=0;i<N;i++){ pt[i]=Math.random(); pj[i*2]=(Math.random()-.5)*0.5; pj[i*2+1]=(Math.random()-.5)*0.5; }
+        pg.setAttribute("position", new THREE.BufferAttribute(pp,3)); pg.setAttribute("color", new THREE.BufferAttribute(pc,3));
+        const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size:0.05, vertexColors:true, transparent:true, opacity:.85, depthWrite:false })); g.add(pts);
+        const glow = new THREE.PointLight(0xff5a3c, 0, 3); glow.position.set(0,0.75,-0.2); g.add(glow);
+        let temp3 = 45, shut3 = false, hold3 = false, last = 0;
+        view = {
+          sync(){ },
+          hold(v){ hold3 = v; },
+          state(s){ temp3 = s.temp; shut3 = s.shut; }
+        };
+        pointer3d(S.renderer, S.camera, THREE, () => [books,papers,box], id => { if (id) toggle(id); });
+        function frame(t){
+          const dt = Math.min(0.05, t-last); last = t;
+          OBJ.forEach(o => { const tgt = (air[o.id]?home:away)[o.id]; for (let k=0;k<3;k++) cur[o.id][k] += (tgt[k]-cur[o.id][k])*Math.min(1,dt*5); pos[o.id].position.set(...cur[o.id]); });
+          const heat = Math.min(1, Math.max(0,(temp3-40)/35));
+          const spin = shut3 ? 0 : (hold3 ? 0 : (2 + heat*14) * (air.dust?0.7:1));
+          fan.rotation.z += spin*dt;
+          dustMat.color.set(air.dust ? 0x8d7b5d : 0x3a4658);
+          glow.intensity = heat*2.4;
+          const open = 1 - (air.books?0.8:0), outo = 1 - ((air.box?0.6:0) + (air.papers?0.35:0)), speed = 0.18*(0.3+0.7*open*outo);
+          for (let i=0;i<N;i++){
+            pt[i] += dt*speed*(0.6+((i*7)%10)/10); if (pt[i]>1) pt[i]-=1; const u = pt[i];
+            const z = 1.5 - u*3.2, x = pj[i*2]*(1-Math.abs(u-.5)), y = 0.75+pj[i*2+1]+ (u>.5?(u-.5)*0.4:0);
+            pp[i*3]=x; pp[i*3+1]=y; pp[i*3+2]=z;
+            const w = u; pc[i*3]=0.25+0.75*w; pc[i*3+1]=0.6-0.2*w; pc[i*3+2]=1-0.9*w;
+            if (u<0.25 && air.books && (i%5)) { pp[i*3+2] = 1.5; } // blocked at intake
+          }
+          pg.attributes.position.needsUpdate = true; pg.attributes.color.needsUpdate = true;
+        }
+      }).catch(e => { console.warn("3D unavailable", e); msg.textContent = L("3D view unavailable on this device — the buttons below still work the same way.","La vista 3D no está disponible en este dispositivo: los botones funcionan igual."); });
+    }
+
+    /* =========================== POWER BENCH =========================== */
+    function renderPower(h){
+      const pw = game.power || (game.power = { gear:"wall", tested:{}, pm:0, q:0 });
+      h.append(el("p","st-lede", L("Choose what the computer is plugged into, then hit it with a power spike or a power cut. Test all four pieces of equipment against both events.","Elige a qué está enchufado el ordenador y luego lánzale un pico de corriente o un corte de luz. Prueba los cuatro equipos con ambos sucesos.")));
+      const scene = el("div","power");
+      scene.innerHTML = `<svg viewBox="0 0 400 200" role="img" aria-label="${L("Wall socket, power equipment and a computer","Enchufe, equipo de energía y ordenador")}">
+        <rect x="14" y="60" width="46" height="70" rx="6" fill="#d9dee6"/><rect x="26" y="78" width="6" height="14" fill="#444"/><rect x="42" y="78" width="6" height="14" fill="#444"/><rect x="30" y="102" width="14" height="6" rx="3" fill="#444"/>
+        <text x="37" y="148" text-anchor="middle" font-size="10" fill="#cfe3f5">${L("Wall","Pared")}</text>
+        <path id="wire1" d="M60 95 H150" stroke="#8fa3b8" stroke-width="5"/><path d="M250 95 H300" stroke="#8fa3b8" stroke-width="5"/>
+        <rect x="150" y="62" width="100" height="66" rx="8" fill="#2f4a66" stroke="#4aa3ff" stroke-width="2"/>
+        <text id="gname" x="200" y="100" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">${L("Wall socket","Enchufe")}</text>
+        <g id="pc"><rect x="300" y="52" width="86" height="60" rx="6" fill="#1d2430"/><rect id="pcscr" x="306" y="58" width="74" height="46" rx="3" fill="#3a8bd8"/>
+        <text id="pctxt" x="343" y="86" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">${L("ON","ENCENDIDO")}</text>
+        <rect x="330" y="112" width="26" height="12" fill="#5a6574"/><rect x="318" y="124" width="50" height="6" rx="3" fill="#4a5462"/>
+        <g id="crack" opacity="0" stroke="#fff" stroke-width="2"><path d="M312 62L340 84L322 100M340 84L372 70"/></g></g>
+        <polygon id="bolt" points="0,0 10,0 4,10 12,10 0,26 4,14 -3,14" fill="#ffd23f" transform="translate(40,82)" opacity="0"/>
+        <text id="shield" x="200" y="54" text-anchor="middle" font-size="12" font-weight="800" fill="#7bf0a8" opacity="0">${L("BLOCKED!","¡BLOQUEADO!")}</text>
+        <rect x="300" y="146" width="86" height="12" rx="6" fill="#26323f"/><rect id="batt" x="302" y="148" width="0" height="8" rx="4" fill="#37d67a"/>
+        <text x="343" y="174" text-anchor="middle" font-size="9" fill="#cfe3f5">${L("battery","batería")}</text></svg>`;
+      const gearRow = el("div","gearrow"); const acts = el("div","toggles"); const fb = el("div","fb"); fb.textContent = L("Pick a piece of equipment, then test it.","Elige un equipo y pruébalo.");
+      const matrix = el("table","matrix"); const qHost = el("div");
+      h.append(scene, gearRow, acts, fb, matrix, qHost);
+      const $ = id => scene.querySelector("#"+id);
+      GEARS.forEach(g => { const b = el("button","gear", `${g.name}<div style="font-weight:500;font-size:.72rem">${g.d}</div>`); b.type="button"; b.setAttribute("aria-pressed", pw.gear===g.id);
+        b.addEventListener("click", () => { pw.gear = g.id; save(); gearRow.querySelectorAll(".gear").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); $("gname").textContent = g.name; resetPC(); }); b.dataset.id = g.id; gearRow.append(b); });
+      $("gname").textContent = GEARS.find(g=>g.id===pw.gear).name;
+      const spike = el("button","btn btn--signal","⚡ "+L("Power spike","Pico de corriente")), cut = el("button","btn","🔌 "+L("Power cut","Corte de luz"));
+      spike.type = cut.type = "button"; acts.append(spike, cut);
+      let busy = false;
+      function resetPC(){ $("pcscr").setAttribute("fill","#3a8bd8"); $("pctxt").textContent = L("ON","ENCENDIDO"); $("crack").setAttribute("opacity","0"); $("shield").setAttribute("opacity","0"); $("bolt").setAttribute("opacity","0"); $("batt").setAttribute("width","0"); $("pctxt").setAttribute("fill","#fff"); }
+      function paintMatrix(){
+        matrix.innerHTML = `<tr><th></th><th>${L("Spike","Pico")}</th><th>${L("Power cut","Corte")}</th></tr>` + GEARS.map(g => `<tr><th>${g.name}</th><td>${pw.tested[g.id+"_spike"]||"—"}</td><td>${pw.tested[g.id+"_cut"]||"—"}</td></tr>`).join("");
+      }
+      function test(kind){
+        if (busy) return; busy = true; const g = GEARS.find(x=>x.id===pw.gear); resetPC();
+        const bolt = $("bolt");
+        let res;
+        if (kind === "spike"){
+          const dur = REDUCED() ? 0 : 900;
+          bolt.setAttribute("opacity","1");
+          const stopX = g.blocksSpike ? 150 : 296; const t0 = performance.now();
+          (function step(){ const p = dur ? Math.min(1,(performance.now()-t0)/dur) : 1; bolt.setAttribute("transform",`translate(${40+(stopX-40)*p},82)`);
+            if (p<1) requestAnimationFrame(step); else done(); })();
+          function done(){
+            if (g.blocksSpike){ $("shield").setAttribute("opacity","1"); res = L("Spike blocked","Pico bloqueado"); fb.className="fb good"; fb.textContent = L(`${g.name}: the spike was stopped before reaching the computer.`,`${g.name}: el pico se detuvo antes de llegar al ordenador.`); burstAt(scene); }
+            else { $("pcscr").setAttribute("fill","#555"); $("pctxt").textContent = L("DAMAGED","DAÑADO"); $("crack").setAttribute("opacity","1"); bolt.setAttribute("opacity","0"); res = L("Computer damaged","Ordenador dañado"); fb.className="fb bad"; fb.textContent = L(`${g.name} has no surge protection, so the spike reached the computer and damaged it.`,`${g.name} no tiene protección contra picos, así que el pico llegó al ordenador y lo dañó.`); }
+            record("spike", res); setTimeout(()=>{ resetPC(); busy=false; }, 2200);
+          }
+        } else {
+          if (g.keepsOn){ $("batt").setAttribute("width","82"); setTimeout(()=>{ if(document.body.contains(scene)) $("batt").setAttribute("width","58"); }, 1500);
+            res = L("Kept running","Siguió encendido"); fb.className="fb good"; fb.textContent = L("The UPS battery keeps the computer running so you can save your work and shut down safely.","La batería del SAI mantiene el ordenador encendido para guardar el trabajo y apagarlo con seguridad."); burstAt(scene); }
+          else { $("pcscr").setAttribute("fill","#06090d"); $("pctxt").textContent = L("OFF","APAGADO"); $("pctxt").setAttribute("fill","#789"); res = L("Shut off, work lost","Se apagó, trabajo perdido"); fb.className="fb bad"; fb.textContent = L(`${g.name} has no battery, so the computer lost power at once and unsaved work was lost.`,`${g.name} no tiene batería, así que el ordenador se quedó sin corriente al instante y se perdió el trabajo sin guardar.`); }
+          record("cut", res); setTimeout(()=>{ resetPC(); busy=false; }, 2600);
+        }
+      }
+      function record(kind, res){
+        const key = pw.gear+"_"+kind;
+        if (!pw.tested[key]){ pw.tested[key] = res; save();
+          sim.recordTrial({ station:L("Power Bench","Banco de Energía"), task:GEARS.find(g=>g.id===pw.gear).name+" + "+(kind==="spike"?L("spike","pico"):L("power cut","corte")), result:res, tries:0 }); paintMatrix(); }
+        if (GEARS.every(g => pw.tested[g.id+"_spike"] && pw.tested[g.id+"_cut"])){ game.done.p_all = 1; sim.mark("p_all", true); save(); paintTabs(); askBuy(); }
+      }
+      spike.addEventListener("click", ()=>test("spike")); cut.addEventListener("click", ()=>test("cut"));
+      const QS = [
+        { q:L("A hospital desk computer must never lose power or work. Which do you buy?","Un ordenador de un hospital no puede perder corriente ni trabajo. ¿Cuál compras?"), ok:"ups", h:L("A UPS blocks spikes AND keeps running in a power cut.","Un SAI bloquea picos Y sigue funcionando en un corte.") },
+        { q:L("You want protection from spikes, but short power cuts don't matter and you want the cheaper option. Which do you buy?","Quieres protección contra picos, pero los cortes cortos no importan y prefieres lo más barato. ¿Cuál compras?"), ok:"surge", h:L("A surge protector blocks spikes and costs less than a UPS.","Un protector bloquea picos y cuesta menos que un SAI.") }
+      ];
+      function askBuy(){
+        if (game.done.p_best || qHost.firstChild) { if (game.done.p_best) qHost.innerHTML=`<div class="done-card">${L("Buyer's check complete.","Comprobación de compra completada.")}</div>`; return; }
+        function ask(){ qHost.innerHTML = ""; const q = QS[pw.q]; if (!q){ qHost.innerHTML = `<div class="done-card">${L("Buyer's check complete — you picked the right protection every time.","Comprobación de compra completada: elegiste la protección adecuada.")}</div>`; job("p_best", L("Power Bench","Banco de Energía"), L("Choose the right protection","Elegir la protección adecuada"), L("Chose correctly","Elección correcta"), pw.pm); return; }
+          const c = el("div","step"); c.append(el("div","step__q",L("Buyer's check: ","Comprobación de compra: ")+q.q)); const f = el("div","fb");
+          GEARS.forEach(g => { const b = el("button","opt",`<span>${g.name}</span>`); b.type="button"; b.addEventListener("click",()=>{ if (g.id===q.ok){ f.className="fb good"; f.textContent=q.h; burstAt(c); pw.q++; save(); setTimeout(ask,1300);} else { pw.pm++; save(); shake(b); f.className="fb bad"; f.textContent=L("Not quite — think about spikes and battery backup.","No exactamente: piensa en picos y en batería de respaldo."); } }); c.append(b); });
+          c.append(f); qHost.append(c); }
+        ask();
+      }
+      paintMatrix(); resetPC(); if (GEARS.every(g => pw.tested[g.id+"_spike"] && pw.tested[g.id+"_cut"])) askBuy();
+    }
+
+    /* =========================== SAFE STORAGE =========================== */
+    function renderStore(h){
+      const s = game.store || (game.store = { sq:0, sm:0, packed:[], pm:0 });
+      h.append(el("p","st-lede", L("Part 1: stay static-safe. Part 2: pack a computer away for a long time.","Parte 1: mantente libre de estática. Parte 2: guarda un ordenador durante mucho tiempo.")));
+      const a = el("div","step"), b = el("div","step"); b.style.marginTop = "var(--sp-4)"; h.append(a, b);
+      function paintStatic(){
+        a.innerHTML = ""; a.append(el("div","step__n",L("Part 1 · Static-safe","Parte 1 · Sin estática")));
+        const q = STATIC_QS[s.sq];
+        if (!q){ a.append(el("div","done-card", L("You know how to stay static-safe: ground yourself, wear a strap, and avoid touching parts you don't need to.","Sabes cómo evitar la estática: descárgate, usa pulsera y no toques piezas innecesarias."))); job("s_static", L("Safe Storage","Almacén Seguro"), L("Prevent static damage (ESD)","Evitar daños por estática (ESD)"), L("All scenarios correct","Todos correctos"), s.sm); return; }
+        a.append(el("div","dots", STATIC_QS.map((_,i)=>`<i class="${i<s.sq?"on":""}"></i>`).join("")), el("div","step__q",q.q));
+        const fb = el("div","fb");
+        shuffled([{t:q.ok,ok:true,h:q.okh}, ...q.bad.map(x=>({t:x[0],ok:false,h:x[1]}))]).forEach(o => {
+          const btn = el("button","opt",`<span class="opt__e">${o.ok?"⚡":"❔"}</span><span>${o.t}</span>`); btn.type="button";
+          btn.addEventListener("click", () => { fb.textContent = o.h; if (o.ok){ fb.className="fb good"; btn.classList.add("is-right"); burstAt(a); s.sq++; save(); setTimeout(paintStatic,1500); } else { fb.className="fb bad"; s.sm++; save(); shake(btn); } });
+          a.append(btn);
+        });
+        a.append(fb);
+      }
+      function paintBox(){
+        b.innerHTML = ""; b.append(el("div","step__n",L("Part 2 · Pack the box","Parte 2 · Empaqueta la caja")), el("div","step__q",L("Tap only the things that belong in a safe, long-term storage box.","Toca solo lo que pertenece a una caja de almacenamiento segura a largo plazo.")));
+        const need = PACK.filter(p=>p.ok);
+        const grid = el("div","box__items"); const box = el("div","box"); const inb = el("div","box__items"); box.append(inb);
+        const fb = el("div","fb"); fb.textContent = L(`Packed ${s.packed.length} / ${need.length}`,`Empaquetado ${s.packed.length} / ${need.length}`);
+        shuffled(PACK).forEach(p => {
+          const t = el("button","tile"+(s.packed.includes(p.id)?" is-in":""),`<span>${p.e}</span>${p.t}`); t.type="button"; t.dataset.id = p.id;
+          t.addEventListener("click", () => {
+            if (p.ok){ if (!s.packed.includes(p.id)) s.packed.push(p.id); save(); t.classList.add("is-in"); burstAt(box); fb.className="fb good"; fb.textContent = p.hook+` (${s.packed.length}/${need.length})`; addIn(p);
+              if (s.packed.length >= need.length){ b.append(el("div","done-card", L("Box sealed, labelled and stored cool and dry. Perfect packing!","Caja sellada, etiquetada y guardada en un sitio fresco y seco. ¡Empaquetado perfecto!"))); job("s_box", L("Safe Storage","Almacén Seguro"), L("Pack hardware for storage","Empaquetar hardware para almacenar"), L("Packed correctly","Empaquetado correctamente"), s.pm); }
+            } else { s.pm++; save(); shake(t); fb.className="fb bad"; fb.textContent = p.hook; }
+          });
+          grid.append(t);
+        });
+        function addIn(p){ const m = el("span","tile",`<span>${p.e}</span>${p.t}`); m.style.width="5.2rem"; inb.append(m); }
+        s.packed.forEach(id => addIn(PACK.find(p=>p.id===id)));
+        b.append(grid, el("div","",`<p class="eyebrow" style="margin:var(--sp-3) 0 4px">${L("Your storage box","Tu caja de almacenamiento")}</p>`), box, fb);
+        if (s.packed.length >= need.length) b.append(el("div","done-card", L("Box sealed, labelled and stored cool and dry. Perfect packing!","Caja sellada, etiquetada y guardada en un sitio fresco y seco. ¡Empaquetado perfecto!")));
+      }
+      paintStatic(); paintBox();
+    }
+
+    /* =========================== PHOTO LAB =========================== */
+    function renderPhoto(h){
+      const ph = game.photo || (game.photo = {});
+      h.append(el("p","st-lede", L("Real photos of real hardware. Read the prompt, then tap the matching part of the photo.","Fotos reales de hardware real. Lee la pregunta y toca la parte correspondiente de la foto.")));
+      const row = el("div","pick-row"); const body = el("div"); h.append(row, body);
+      const names = { fan:L("Dusty CPU fan","Ventilador con polvo"), strap:L("Wrist strap","Pulsera antiestática"), surge:L("Surge protector","Protector de sobretensión"), kbd:L("Dirty keyboard","Teclado sucio") };
+      let cur = PHOTOS.find(p => !game.done["ph_"+p.id]) || PHOTOS[0];
+      function paintRow(){ row.innerHTML=""; PHOTOS.forEach(p => { const b = el("button","pick"+(p===cur?" is-active":"")+(game.done["ph_"+p.id]?" is-done":""), names[p.id]); b.type="button"; b.addEventListener("click",()=>{cur=p;paintRow();paintPhoto();}); row.append(b); }); }
+      let CREDITS = null;
+      fetch("photos/credits.json").then(r=>r.json()).then(c=>{ CREDITS = c; paintPhoto(); }).catch(()=>{});
+      function paintPhoto(){
+        body.innerHTML = "";
+        const s = ph[cur.id] || (ph[cur.id] = { found:[], m:0 });
+        const wrap = el("div","diagram-wrap"); wrap.style.maxWidth = cur.h>cur.w ? "420px" : "100%";
+        wrap.innerHTML = `<img src="${cur.src}" width="${cur.w}" height="${cur.h}" alt="${cur.alt}">`;
+        const prompt = el("div","prompt"); const reveal = el("div","reveal-panel", `<span style="color:var(--ink-3)">${L("Tap a glowing dot.","Toca un punto brillante.")}</span>`);
+        const remaining = () => cur.parts.filter(p => !s.found.includes(p.id));
+        let target = null;
+        function pickTarget(){ const r = remaining(); target = r.length ? r[Math.floor(Math.random()*r.length)] : null;
+          prompt.textContent = target ? L("Find and tap: ","Busca y toca: ")+target.n : L("All parts labelled!","¡Todas las partes etiquetadas!"); }
+        cur.parts.forEach(p => {
+          const b = el("button","hotspot"+(s.found.includes(p.id)?" is-seen":""),`<span class="hotspot__dot"></span>${s.found.includes(p.id)?`<span class="hotspot__tag">${p.n}</span>`:""}`); b.type="button";
+          b.style.left = p.fx*100+"%"; b.style.top = p.fy*100+"%"; b.setAttribute("aria-label", L("Hotspot ","Punto ")+(cur.parts.indexOf(p)+1));
+          b.addEventListener("click", () => {
+            if (s.found.includes(p.id)){ reveal.innerHTML = `<b>${p.n}</b><br>${p.d}`; return; }
+            if (target && p.id === target.id){ s.found.push(p.id); save(); b.classList.add("is-seen"); b.append(el("span","hotspot__tag",p.n)); reveal.innerHTML = `<b>✓ ${p.n}</b><br>${p.d}`; burstAt(wrap);
+              if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(p.n+". "+p.d);
+              pickTarget();
+              if (!remaining().length){ job("ph_"+cur.id, L("Photo Lab","Laboratorio de Fotos"), names[cur.id]+L(" labelling"," etiquetado"), L("3 / 3 parts labelled","3 / 3 partes"), s.m); paintRow(); }
+            } else { s.m++; save(); shake(b); reveal.innerHTML = `<b>${L("That's the "+p.n.toLowerCase()+" — but it isn't what we're looking for. Try another dot.","Eso es: "+p.n.toLowerCase()+", pero no es lo que buscamos. Prueba otro punto.")}</b>`; }
+          });
+          wrap.append(b);
+        });
+        pickTarget();
+        const cr = el("p","diagram-credit"); const c = CREDITS && CREDITS[{fan:"fan",strap:"strap",surge:"surge",kbd:"keyboard"}[cur.id]];
+        cr.innerHTML = c ? `${L("Photo","Foto")}: ${c.author} — <a href="${c.page}" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>, <a href="${c.licenseUrl}" target="_blank" rel="noopener noreferrer">${c.license}</a> (${L("resized","redimensionada")})` : "";
+        body.append(prompt, wrap, reveal, cr);
+      }
+      paintRow(); paintPhoto();
+    }
+
+    /* =========================== SYMPTOM DETECTIVE =========================== */
+    function renderDetect(h){
+      const dt = game.detect || (game.detect = {});
+      h.append(el("p","st-lede", L("Customers bring in broken computers. For each case, read the symptom, find the likely cause, then choose the safest fix.","Los clientes traen ordenadores averiados. En cada caso, lee el síntoma, encuentra la causa probable y elige la solución más segura.")));
+      const row = el("div","pick-row"); const body = el("div"); h.append(row, body);
+      let cur = CASES.find(c => !game.done[c.id]) || CASES[0];
+      function paintRow(){ row.innerHTML=""; CASES.forEach((c,i) => { const b = el("button","pick"+(c===cur?" is-active":"")+(game.done[c.id]?" is-done":""), `${c.e} ${L("Case","Caso")} ${i+1}`); b.type="button"; b.addEventListener("click",()=>{cur=c;paintRow();paintCase();}); row.append(b); }); }
+      function paintCase(){
+        body.innerHTML = ""; const s = dt[cur.id] || (dt[cur.id] = { stage:0, m:0 });
+        const c = el("div","case"); body.append(c);
+        c.append(el("div","case__sym",`<span>${cur.e}</span><div>${cur.sym}</div>`));
+        const fb = el("div","fb");
+        if (s.stage >= 2){ c.append(el("div","done-card",`${L("Case solved!","¡Caso resuelto!")} ${cur.hook}`)); job(cur.id, L("Symptom Detective","Detective de Síntomas"), cur.sym.slice(0,48)+"…", L("Cause and fix found","Causa y solución"), s.m); paintRow();
+          const nx = CASES.find(x=>!game.done[x.id]); if (nx){ const b = el("button","btn btn--signal",L("Next case →","Siguiente caso →")); b.type="button"; b.style.marginTop="12px"; b.addEventListener("click",()=>{cur=nx;paintRow();paintCase();}); c.append(b);} return; }
+        const part = s.stage===0 ? cur.cause : cur.fix;
+        c.append(el("div","step__q", s.stage===0 ? L("1. What is the most likely cause?","1. ¿Cuál es la causa más probable?") : L("2. What is the best, safest fix?","2. ¿Cuál es la mejor solución, la más segura?")));
+        shuffled([{t:part.ok,ok:true}, ...part.bad.map(t=>({t,ok:false}))]).forEach(o => {
+          const b = el("button","opt",`<span class="opt__e">${o.ok?"🔍":"❔"}</span><span>${o.t}</span>`); b.type="button";
+          b.addEventListener("click", () => { if (o.ok){ b.classList.add("is-right"); burstAt(c); s.stage++; save(); fb.className="fb good"; fb.textContent = s.stage===1 ? L("Good detective work! Now choose the fix.","¡Buen trabajo de detective! Ahora elige la solución.") : cur.hook; setTimeout(paintCase,1400); }
+            else { s.m++; save(); shake(b); fb.className="fb bad"; fb.textContent = s.stage===0 ? L("That wouldn't cause this symptom. Look at the clues again.","Eso no causaría este síntoma. Mira otra vez las pistas.") : L("That is unsafe or wouldn't fix the cause. Think about the safest way.","Eso es inseguro o no arregla la causa. Piensa en la forma más segura."); } });
+          c.append(b);
+        });
+        c.append(fb);
+      }
+      paintRow(); paintCase();
+    }
+
+    /* =========================== BONUS: HAZARD HUNT =========================== */
+    function renderBonus(h){
+      const card = el("div","step");
+      card.innerHTML = `<p class="eyebrow">${L("Bonus round · optional","Ronda bonus · opcional")}</p><h3>${L("Hazard Hunt","Caza de Peligros")}</h3>
+        <p>${L("Inspect a messy workstation in 3D. Read the clue, then tap the matching hazard (or press its button). You have two minutes — there is no losing, only learning.","Inspecciona un puesto de trabajo desordenado en 3D. Lee la pista y toca el peligro correspondiente (o pulsa su botón). Tienes dos minutos: no se pierde, solo se aprende.")}</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap"><button type="button" class="btn btn--signal" id="hh-play">${L("Play Hazard Hunt","Jugar Caza de Peligros")}</button><button type="button" class="btn" id="hh-skip">${L("Skip bonus round","Saltar ronda bonus")}</button></div>`;
+      h.append(card);
+      card.querySelector("#hh-skip").addEventListener("click", () => { card.innerHTML = `<p>${L("Skipped — the bonus round is optional.","Omitida: la ronda bonus es opcional.")}</p>`; });
+      card.querySelector("#hh-play").addEventListener("click", () => playHunt(h, card));
+    }
+    const HAZ = [
+      { id:"mug", n:L("Mug of juice","Taza de zumo"), haz:true, clue:L("Something that could spill LIQUID into the keyboard","Algo que podría derramar LÍQUIDO en el teclado"), hook:L("Drinks near a keyboard can spill into the electronics.","Las bebidas junto al teclado pueden derramarse en la electrónica.") },
+      { id:"books", n:L("Books against the vents","Libros contra las rejillas"), haz:true, clue:L("Something blocking the computer's AIRFLOW","Algo que bloquea el AIRE del ordenador"), hook:L("Blocked vents trap heat and the computer overheats.","Las rejillas tapadas atrapan calor y el ordenador se sobrecalienta.") },
+      { id:"crumbs", n:L("Crumbs on the keyboard","Migas en el teclado"), haz:true, clue:L("Something that makes keys STICK","Algo que hace que las teclas se PEGUEN"), hook:L("Crumbs fall under the keys — shake and use compressed air.","Las migas caen bajo las teclas: sacude y usa aire comprimido.") },
+      { id:"plug", n:L("Computer plugged straight into the wall","Ordenador enchufado directo a la pared"), haz:true, clue:L("Something with NO surge protection or battery backup","Algo SIN protección contra picos ni batería"), hook:L("Plug into a surge protector or UPS instead.","Enchúfalo a un protector de sobretensión o a un SAI.") },
+      { id:"spray", n:L("Spray bottle aimed at the screen","Pulverizador apuntando a la pantalla"), haz:true, clue:L("Something you should NEVER spray straight onto a screen","Algo que NUNCA debes rociar directamente sobre una pantalla"), hook:L("Dampen a microfiber cloth instead of spraying the screen.","Humedece un paño de microfibra en vez de rociar la pantalla.") },
+      { id:"fan", n:L("Dust-clogged fan","Ventilador lleno de polvo"), haz:true, clue:L("Something full of DUST that needs compressed air","Algo lleno de POLVO que necesita aire comprimido"), hook:L("Hold the blades still and use short bursts of air.","Sujeta las aspas y usa ráfagas cortas de aire.") },
+      { id:"sun", n:L("Laptop baking in the sun","Portátil achicharrándose al sol"), haz:true, clue:L("Something where HEAT will shorten the battery's life","Algo donde el CALOR acortará la vida de la batería"), hook:L("Keep devices somewhere cool and dry.","Mantén los aparatos en un sitio fresco y seco.") },
+      { id:"lamp", n:L("Metal lamp base","Base metálica de la lámpara"), haz:false, hook:L("Safe! Touching a metal lamp base grounds you before handling parts.","¡Seguro! Tocar una base metálica te descarga antes de manipular piezas.") },
+      { id:"ups", n:L("UPS under the desk","SAI bajo la mesa"), haz:false, hook:L("Safe! A UPS protects from spikes and power cuts.","¡Seguro! Un SAI protege de picos y cortes de luz.") },
+      { id:"cloth", n:L("Microfiber cloth","Paño de microfibra"), haz:false, hook:L("Safe! The right cloth for screens.","¡Seguro! El paño correcto para pantallas.") }
+    ];
+    function playHunt(h, card){
+      stop3d(); card.innerHTML = "";
+      const stage = el("div","stage3d"); const hud = el("div","hudline"); stage.append(el("div","stage3d__msg",L("Loading 3D scene…","Cargando escena 3D…")), hud);
+      const prompt = el("div","prompt","…"); const fb = el("div","fb"); fb.textContent = L("Tap a hazard in the scene.","Toca un peligro en la escena.");
+      const list = el("div","hunt-list"); card.append(stage, prompt, fb, list);
+      const st = { t:120, score:0, found:{}, order:[], cur:null, ended:false, hits:0 };
+      const hz = HAZ.filter(x=>x.haz);
+      function nextClue(){ if (!st.order.length) st.order = shuffled(hz).map(x=>x.id); const nid = st.order.pop(); st.cur = hz.find(x=>x.id===nid); st.found = {}; prompt.textContent = L("Find: ","Busca: ")+st.cur.clue; refresh(); }
+      function hudDraw(){ hud.innerHTML = `<b>${L("Time","Tiempo")} ${st.t}s</b><b>${L("Score","Puntos")} ${st.score}</b><b>${L("Found","Hallados")} ${st.hits}</b>`; }
+      let sceneApi = null;
+      function pick(id){
+        if (st.ended) return; const o = HAZ.find(x=>x.id===id); if (!o) return;
+        if (o.id === st.cur.id){ st.score += 10; st.hits++; fb.className="fb good"; fb.textContent = "✓ "+o.n+" — "+o.hook; burstAt(stage); const pop = el("div","float-pop","+10"); pop.style.left="45%"; pop.style.top="40%"; stage.append(pop); setTimeout(()=>pop.remove(),1000);
+          if (sceneApi) sceneApi.glow(o.id); nextClue(); }
+        else if (o.haz){ fb.className="fb bad"; fb.textContent = L(`"${o.n}" is a hazard too, but not the one in the clue. `,`"${o.n}" también es un peligro, pero no el de la pista. `)+o.hook; shake(prompt); }
+        else { fb.className="fb bad"; fb.textContent = o.hook; shake(prompt); }
+        hudDraw();
+      }
+      HAZ.forEach((o,i) => { const b = el("button","",`${i<9?i+1:0} ${o.n}`); b.type="button"; b.addEventListener("click",()=>pick(o.id)); b.dataset.id=o.id; list.append(b); });
+      function refresh(){ list.querySelectorAll("button").forEach(b=>b.classList.remove("is-found")); }
+      const key = e => { const i = e.key==="0"?9:(+e.key-1); if (i>=0 && i<HAZ.length && !e.ctrlKey && !e.altKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) pick(HAZ[i].id); };
+      document.addEventListener("keydown", key);
+      nextClue(); hudDraw();
+      const clock = setInterval(() => {
+        if (!document.body.contains(stage)){ clearInterval(clock); document.removeEventListener("keydown",key); return; }
+        st.t--; hudDraw(); if (st.t <= 0){ clearInterval(clock); end(); }
+      }, 1000);
+      function end(){
+        st.ended = true; document.removeEventListener("keydown",key); stop3d();
+        card.innerHTML = `<div class="done-card"><p>${L("Hazard Hunt complete!","¡Caza de Peligros completada!")}</p><p>${L(`Score ${st.score} · Hazards found ${st.hits}`,`Puntos ${st.score} · Peligros hallados ${st.hits}`)}</p></div>
+          <p class="eyebrow" style="margin-top:12px">${L("Remember these:","Recuerda esto:")}</p><ul>${hz.map(x=>`<li><b>${x.n}</b> — ${x.hook}</li>`).join("")}</ul>
+          <button type="button" class="btn btn--signal" id="hh-again">${L("Play again","Jugar otra vez")}</button>`;
+        card.querySelector("#hh-again").addEventListener("click", () => playHunt(h, card));
+        sim.toast(L(`Bonus round complete — score ${st.score}.`,`Ronda bonus completa — puntos ${st.score}.`), "info");
+      }
+      loadThree().then(THREE => {
+        stage.querySelector(".stage3d__msg")?.remove(); const { C, M } = mats(THREE);
+        const S = makeScene(THREE, stage, { cam:[0.4,2.2,4.6], look:[0,0.9,0], onFrame:t => frame(t) }); cur3d = S;
+        const g = new THREE.Group(); S.scene.add(g); const picks = [];
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(16,16), new THREE.MeshStandardMaterial({ map:noiseTex(THREE,"#3a3228","#e8dcc6"), roughness:.9 })); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; g.add(floor);
+        const wall = new THREE.Mesh(new THREE.PlaneGeometry(16,6), M("#26323f",.95)); wall.position.set(0,3,-2.4); g.add(wall);
+        const deskTop = new THREE.Mesh(new THREE.BoxGeometry(4.6,0.12,1.6), M("#8a6a46",.7)); deskTop.position.set(0,0.8,-0.5); deskTop.castShadow = deskTop.receiveShadow = true; g.add(deskTop);
+        [[-2.1,-1.1],[2.1,-1.1],[-2.1,0.1],[2.1,0.1]].forEach(p => { const l = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.8,0.1), M("#5b4630",.8)); l.position.set(p[0],0.4,p[1]); g.add(l); });
+        const reg = (id, grp) => { grp.userData.pick = id; g.add(grp); picks.push(grp); return grp; };
+        const glows = {};
+        const addGlow = (id, grp) => { grp.traverse(o => { if (o.material && o.material.emissive && o.isMesh){ (glows[id] = glows[id]||[]).push(o); } }); };
+        /* monitor */
+        const mon = new THREE.Group(); const sb = new THREE.Mesh(new THREE.BoxGeometry(1.4,0.9,0.06), M("#12161c",.4,.3)); sb.position.set(0,1.55,0); sb.castShadow=true; mon.add(sb);
+        const cv = document.createElement("canvas"); cv.width=256; cv.height=160; const cx = cv.getContext("2d"); const gr = cx.createLinearGradient(0,0,256,160); gr.addColorStop(0,"#3a8bd8"); gr.addColorStop(1,"#7bd3a3"); cx.fillStyle=gr; cx.fillRect(0,0,256,160); cx.fillStyle="rgba(255,255,255,.35)"; [[60,60],[150,90],[200,40]].forEach(p=>{cx.beginPath();cx.ellipse(p[0],p[1],14,9,0,0,7);cx.fill();});
+        const ct = new THREE.CanvasTexture(cv); ct.encoding = THREE.sRGBEncoding; const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.3,0.8), new THREE.MeshBasicMaterial({ map:ct })); scr.position.set(0,1.55,0.04); mon.add(scr);
+        const stand = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.3,0.1), M("#444")); stand.position.set(0,1.0,0); mon.add(stand); mon.position.set(0,0,-0.9); g.add(mon);
+        /* keyboard + crumbs */
+        const kbG = new THREE.Group(); const kb = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.06,0.4), M("#2c3440",.5)); kb.castShadow=true; kbG.add(kb);
+        for (let r=0;r<3;r++) for (let c2=0;c2<10;c2++){ const k = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.03,0.09), M("#e9eef5",.5)); k.position.set(-0.52+c2*0.115,0.05,-0.12+r*0.11); kbG.add(k); }
+        kbG.position.set(0,0.89,-0.2); g.add(kbG);
+        const crumbs = new THREE.Group(); for (let i=0;i<14;i++){ const c3 = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.04,0.05), new THREE.MeshStandardMaterial({ color:C("#b5803b"), emissive:C("#000000") })); c3.position.set(-0.5+Math.random()*1,0.08,-0.15+Math.random()*0.3); crumbs.add(c3); } crumbs.position.copy(kbG.position); reg("crumbs", crumbs); addGlow("crumbs", crumbs);
+        /* mug */
+        const mug = new THREE.Group(); const mb = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.09,0.2,24), new THREE.MeshStandardMaterial({ color:C("#d6453d"), roughness:.4, emissive:C("#000000") })); mb.castShadow = true; mug.add(mb); const mh = new THREE.Mesh(new THREE.TorusGeometry(0.06,0.015,8,16), new THREE.MeshStandardMaterial({ color:C("#d6453d"), emissive:C("#000000") })); mh.position.x = 0.12; mug.add(mh);
+        mug.position.set(0.8,0.99,-0.1); reg("mug", mug); addGlow("mug", mug);
+        /* tower with books + fan + sun laptop etc. */
+        const tw = new THREE.Group(); const fanG = addTower(THREE, tw, { M, C }, { dusty:true }); tw.scale.setScalar(0.85); tw.position.set(-2.9,0,-0.8); tw.rotation.y = -0.5; g.add(tw);
+        const fanPick = new THREE.Mesh(new THREE.SphereGeometry(0.45,10,10), new THREE.MeshBasicMaterial({ transparent:true, opacity:0 })); fanPick.position.set(-2.55,0.62,-0.4); const fg = new THREE.Group(); fg.add(fanPick); reg("fan", fg);
+        const fanEm = new THREE.Mesh(new THREE.TorusGeometry(0.3,0.03,8,24), new THREE.MeshStandardMaterial({ color:C("#6d7a8b"), emissive:C("#000000") })); fanEm.position.copy(fanPick.position); fanEm.rotation.y = -0.5; fg.add(fanEm); addGlow("fan", fg);
+        const bk = new THREE.Group(); ["#c0392b","#2e86c1","#27ae60","#f1c40f","#8e44ad"].forEach((c,i)=>{ const b = new THREE.Mesh(new THREE.BoxGeometry(0.55,0.13,0.4), new THREE.MeshStandardMaterial({ color:C(c), roughness:.8, emissive:C("#000000") })); b.position.set(0,0.065+i*0.135,0); b.rotation.y = i*0.25; b.castShadow = true; bk.add(b); }); bk.position.set(-2.1,0,0.2); reg("books", bk); addGlow("books", bk);
+        /* wall socket with direct plug */
+        const sock = new THREE.Group(); const sp = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.3,0.04), new THREE.MeshStandardMaterial({ color:C("#e8e8e8"), emissive:C("#000000") })); sp.position.set(1.9,0.5,-2.36); sock.add(sp);
+        const pl = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.14,0.14), new THREE.MeshStandardMaterial({ color:C("#222"), emissive:C("#000000") })); pl.position.set(1.9,0.5,-2.25); sock.add(pl);
+        const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,1.4,8), M("#111")); cord.position.set(1.9,0.5,-1.55); cord.rotation.x = Math.PI/2; cord.rotation.z = 0; sock.add(cord);
+        const plb = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,0.4), new THREE.MeshStandardMaterial({ color:C("#222"), emissive:C("#000000") })); plb.position.set(1.9,0.55,-2.1); sock.add(plb); reg("plug", sock); addGlow("plug", sock);
+        /* spray bottle */
+        const spr = new THREE.Group(); const sbd = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.28,16), new THREE.MeshStandardMaterial({ color:C("#58c26a"), roughness:.4, emissive:C("#000000") })); sbd.castShadow = true; spr.add(sbd); const sh = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.07,0.06), new THREE.MeshStandardMaterial({ color:C("#2d6b3a"), emissive:C("#000000") })); sh.position.set(0,0.17,-0.04); spr.add(sh); spr.position.set(-0.95,1.02,-0.7); spr.rotation.y = 0.5; reg("spray", spr); addGlow("spray", spr);
+        /* laptop in sunbeam */
+        const lap = new THREE.Group(); const lb = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.04,0.5), new THREE.MeshStandardMaterial({ color:C("#9aa4b0"), metalness:.5, roughness:.4, emissive:C("#000000") })); lap.add(lb); const ls = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.46,0.03), new THREE.MeshStandardMaterial({ color:C("#1d2430"), emissive:C("#000000") })); ls.position.set(0,0.25,-0.24); ls.rotation.x = -0.2; lap.add(ls);
+        const beam = new THREE.Mesh(new THREE.ConeGeometry(0.7,2.6,24,1,true), new THREE.MeshBasicMaterial({ color:0xffd36b, transparent:true, opacity:0.12, side:THREE.DoubleSide, depthWrite:false })); beam.position.set(1.7,2.1,0.5); beam.rotation.z = 0.5; g.add(beam);
+        lap.position.set(1.7,0.88,0.5); reg("sun", lap); addGlow("sun", lap);
+        /* decoys */
+        const lamp = new THREE.Group(); const lbase = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.2,0.05,24), new THREE.MeshStandardMaterial({ color:C("#b8c0cc"), metalness:.9, roughness:.25, emissive:C("#000000") })); lamp.add(lbase); const lpole = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.6,10), new THREE.MeshStandardMaterial({ color:C("#b8c0cc"), metalness:.9, emissive:C("#000000") })); lpole.position.y = 0.3; lamp.add(lpole); const lsh = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.2,20,1,true), new THREE.MeshStandardMaterial({ color:C("#f3e2b3"), side:THREE.DoubleSide, emissive:C("#000000") })); lsh.position.y = 0.65; lamp.add(lsh); lamp.position.set(-1.7,0.86,-0.9); reg("lamp", lamp); addGlow("lamp", lamp);
+        const ups = new THREE.Group(); const ub = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.4), new THREE.MeshStandardMaterial({ color:C("#1b1f26"), roughness:.5, emissive:C("#000000") })); ub.position.y = 0.15; ups.add(ub); const ul = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.03,0.01), new THREE.MeshBasicMaterial({ color:0x37d67a })); ul.position.set(0.12,0.2,0.21); ups.add(ul); ups.position.set(0.9,0,-1.1); reg("ups", ups); addGlow("ups", ups);
+        const cl = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.02,0.25), new THREE.MeshStandardMaterial({ color:C("#2fb7a6"), emissive:C("#000000") })); cl.position.set(1.4,0.88,-0.35); const clg = new THREE.Group(); clg.add(cl); reg("cloth", clg); addGlow("cloth", clg);
+        /* dust motes */
+        const N = 120, mg = new THREE.BufferGeometry(), mp = new Float32Array(N*3); for (let i=0;i<N;i++){ mp[i*3]=(Math.random()-.5)*8; mp[i*3+1]=Math.random()*3.5; mp[i*3+2]=(Math.random()-.5)*5; }
+        mg.setAttribute("position", new THREE.BufferAttribute(mp,3)); const motes = new THREE.Points(mg, new THREE.PointsMaterial({ size:0.025, color:0xfff1dc, transparent:true, opacity:.5, depthWrite:false })); g.add(motes);
+        pointer3d(S.renderer, S.camera, THREE, () => picks, id => { if (id) pick(id); });
+        sceneApi = { glow(id){ (glows[id]||[]).forEach(o => o.material.emissive.set(0x1fa05a)); setTimeout(()=>{ (glows[id]||[]).forEach(o => o.material.emissive.set(0x000000)); }, 1800); } };
+        function frame(t){ fanG.rotation.z = t*1.2; if (!REDUCED()) motes.rotation.y = t*0.02; mug.rotation.y = t*0.2; }
+      }).catch(e => { console.warn("3D unavailable", e); const m = stage.querySelector(".stage3d__msg"); if (m) m.textContent = L("3D view unavailable on this device — use the buttons below.","La vista 3D no está disponible: usa los botones de abajo."); });
+    }
+
+    /* ---- start ---- */
+    if (!STATIONS.some(s => s.id === game.tab)) game.tab = "clean";
+    go();
+  }
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Discovery Lab activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong starting this lab. Please refresh the page.</p>';
+});
+</script>
+</body>
+</html>
