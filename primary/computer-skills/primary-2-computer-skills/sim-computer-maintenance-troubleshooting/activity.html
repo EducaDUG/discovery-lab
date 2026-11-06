@@ -784,7 +784,7 @@ const simulation = {
         a.append(el("div","dots", STATIC_QS.map((_,i)=>`<i class="${i<s.sq?"on":""}"></i>`).join("")), el("div","step__q",q.q));
         const fb = el("div","fb");
         shuffled([{t:q.ok,ok:true,h:q.okh}, ...q.bad.map(x=>({t:x[0],ok:false,h:x[1]}))]).forEach(o => {
-          const btn = el("button","opt",`<span class="opt__e">${o.ok?"⚡":"❔"}</span><span>${o.t}</span>`); btn.type="button";
+          const btn = el("button","opt",`<span class="opt__e">▶</span><span>${o.t}</span>`); btn.type="button";
           btn.addEventListener("click", () => { fb.textContent = o.h; if (o.ok){ fb.className="fb good"; btn.classList.add("is-right"); burstAt(a); s.sq++; save(); setTimeout(paintStatic,1500); } else { fb.className="fb bad"; s.sm++; save(); shake(btn); } });
           a.append(btn);
         });
@@ -870,7 +870,7 @@ const simulation = {
         const part = s.stage===0 ? cur.cause : cur.fix;
         c.append(el("div","step__q", s.stage===0 ? L("1. What is the most likely cause?","1. ¿Cuál es la causa más probable?") : L("2. What is the best, safest fix?","2. ¿Cuál es la mejor solución, la más segura?")));
         shuffled([{t:part.ok,ok:true}, ...part.bad.map(t=>({t,ok:false}))]).forEach(o => {
-          const b = el("button","opt",`<span class="opt__e">${o.ok?"🔍":"❔"}</span><span>${o.t}</span>`); b.type="button";
+          const b = el("button","opt",`<span class="opt__e">🔎</span><span>${o.t}</span>`); b.type="button";
           b.addEventListener("click", () => { if (o.ok){ b.classList.add("is-right"); burstAt(c); s.stage++; save(); fb.className="fb good"; fb.textContent = s.stage===1 ? L("Good detective work! Now choose the fix.","¡Buen trabajo de detective! Ahora elige la solución.") : cur.hook; setTimeout(paintCase,1400); }
             else { s.m++; save(); shake(b); fb.className="fb bad"; fb.textContent = s.stage===0 ? L("That wouldn't cause this symptom. Look at the clues again.","Eso no causaría este síntoma. Mira otra vez las pistas.") : L("That is unsafe or wouldn't fix the cause. Think about the safest way.","Eso es inseguro o no arregla la causa. Piensa en la forma más segura."); } });
           c.append(b);

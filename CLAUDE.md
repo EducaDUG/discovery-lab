@@ -2011,3 +2011,8 @@ Diego: from now on simulations are built **hyper-real and in 3D, so they feel mo
 
 ### 18.1 Orchard Market (Primary 2 Maths M9 Sim 1, 2026-10-28) - hyper-real 3D gotchas
 `sim-orchard-market-fraction-review/orchard3d.js` is a reusable local hyper-real stall kit (ACES, soft shadows, procedural wood/grass/apple textures, physically based apples, dust motes, tween + burst engines). Lessons: (1) vendored Three is r13x with `outputEncoding = sRGBEncoding`, so plain `color: 0x...` on materials renders washed-out pastel - convert with `new THREE.Color(hex).convertSRGBToLinear()` (`C()` in that file); canvas textures need `encoding = sRGBEncoding`. (2) A tween helper must cancel any running tween on the same object, or the older tween's end-position overwrites the newer one. (3) Fit the camera to aspect (`dist * 1.7/aspect` when narrow) or phones crop the scene. (4) Bonus mechanic used: hidden-object crate hunt (3D tap-to-pick plus a button/number-key route). Core mechanic id `negotiation-market` (customer orders).
+
+### 12.17 Lesson from `sim-computer-maintenance-troubleshooting` feedback - icons must never reveal the answer (2026-11-06, standing rule)
+
+Diego: the Symptom Detective showed a magnifying glass on the correct option and a question mark on wrong ones, making answers too easy. **In any multiple-choice or option list, every option gets an identical neutral marker (or none); never vary an icon, colour, emoji or style by correctness before the student answers.** Correct/incorrect styling appears only after a click. Check every option renderer (`o.ok ? A : B` in a template string is the tell).
+
