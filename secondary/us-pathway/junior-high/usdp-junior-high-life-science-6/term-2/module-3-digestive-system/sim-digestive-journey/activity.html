@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6 - Term 2 - Module 3 Digestive System - Digestive Journey.
+     Content lives here + config.json/marking.json only. Hyper-real 3D digestive tract (CLAUDE.md 18); bonus: lock-and-key lane defence (Enzyme Defence). -->
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digestive Journey: Fuel the Body - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .eco-fwstage.cyc-shake, .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  /* ---- Ecosystem Ranger extras ---- */
+  .eco-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slot { border: 2px dashed var(--line); border-radius: 12px; min-height: 7.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: .78rem; color: var(--ink-3); position: relative; overflow: hidden; background: var(--surface); }
+  .eco-slot[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); }
+  .eco-slot img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-slot b { display: block; padding: .15rem .3rem 0; font-size: .8rem; }
+  .eco-slot__n { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font: 800 .75rem var(--font-data); display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .eco-slot.eco-pop { animation: eco-pop .45s ease; }
+  @keyframes eco-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .eco-pop { animation: none !important; }
+  .eco-tab-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+  .eco-card { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); font: inherit; display: flex; flex-direction: column; }
+  .eco-card:hover, .eco-card:focus-visible { border-color: var(--accent); outline: none; }
+  .eco-card[data-used="true"] { opacity: .35; }
+  .eco-card[aria-pressed="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px #ffd24d88; }
+  .eco-card img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-card span { padding: .3rem .45rem; font-size: .76rem; font-weight: 700; }
+  .eco-fact { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; min-height: 2.4rem; }
+
+  .eco-fwstage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; background: linear-gradient(#8fd0ff, #d8f0c8); }
+  @media (max-width: 640px) { .eco-fwstage { aspect-ratio: 1/1; } }
+  .eco-fwstage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .eco-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-top: .45rem; }
+  .eco-chips > b { font-size: .78rem; min-width: 8.2rem; }
+  .eco-tok { display: inline-flex; align-items: center; gap: .35rem; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .15rem .65rem .15rem .2rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .eco-tok img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+  .eco-tok[aria-pressed="true"][data-side="from"] { border-color: #e8a400; background: #fff3c4; }
+  .eco-tok[aria-pressed="true"][data-side="to"] { border-color: #1d9bd6; background: #d7f0ff; }
+  .eco-arrows { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; min-height: 1.6rem; }
+  .eco-arrows span { font-size: .74rem; font-weight: 700; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: .15rem .6rem; }
+
+  .eco-pop-stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #0e2a1a; }
+  .eco-pop-stage canvas { display: block; width: 100%; height: auto; }
+  .eco-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .eco-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .3rem; }
+  .eco-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .eco-readout div { border: 1px solid var(--line); border-radius: 10px; padding: .35rem .6rem; background: var(--surface); font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .eco-readout div b { display: block; font: 800 1.15rem var(--font-data); color: var(--accent); }
+
+  .eco-bonus canvas { cursor: crosshair; touch-action: none; }
+  .eco-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-role { border: 2px solid #ffffff33; background: #ffffff10; color: #fff; border-radius: 12px; padding: 0; cursor: pointer; font: inherit; overflow: hidden; text-align: left; }
+  .eco-role:hover, .eco-role:focus-visible { border-color: #ffd24d; outline: none; }
+  .eco-role img { width: 100%; height: 4.6rem; object-fit: cover; display: block; }
+  .eco-role span { display: block; padding: .3rem .5rem; font-size: .76rem; font-weight: 700; }
+  .eco-q { margin-top: .5rem; border: 2px solid #ffd24d; border-radius: 12px; padding: .55rem .75rem; background: #1b2a10; font-size: .9rem; }
+  .eco-q .cyc-row { margin-top: .4rem; }
+  .eco-board { display: flex; flex-wrap: wrap; gap: .6rem; font: 700 .76rem var(--font-data); color: #cfe8ff; margin-top: .3rem; }
+  .eco-board span[data-me="true"] { color: #ffe08a; }
+
+  .dg-stage { aspect-ratio: 4/5; max-height: 640px; background: radial-gradient(120% 120% at 50% 30%, #1d4a5a 0%, #0a1c2a 70%) !important; }
+  @media (max-width: 640px) { .dg-stage { aspect-ratio: 3/4; } }
+  .dg-tok { padding-left: .8rem; }
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const PH = k => `photos/${k}.jpg`;
+const PA = (k, en, es) => `<img src="${PH(k)}" alt="${L(en, es)}" loading="lazy">`;
+let CREDITS = null;
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit";
+  cr.textContent = L("Photo credits loading...", "Cargando créditos de fotos...");
+  (CREDITS ? Promise.resolve(CREDITS) : fetch("photos/credits.json").then(r => r.json()).then(j => (CREDITS = j))).then(j => {
+    const seen = {}, bits = [];
+    Object.keys(j).forEach(k => { const c = j[k], key = c.author + "|" + c.license; if (seen[key]) return; seen[key] = 1; bits.push(`<a href="${c.page}">${c.author.split(" from ")[0].replace(/\s*\(.*$/, "")}</a> (${c.licenseUrl ? `<a href="${c.licenseUrl}">${c.license}</a>` : c.license})`); });
+    cr.innerHTML = L("Real photos via Wikimedia Commons / OpenStax: ", "Fotos reales vía Wikimedia Commons / OpenStax: ") + bits.join("; ") + ".";
+  }).catch(() => { cr.textContent = L("Photos via Wikimedia Commons (credits on each photo's page).", "Fotos vía Wikimedia Commons (créditos en la página de cada foto)."); });
+  return cr;
+}
+
+/* Orders queue (persisted in sim.state - CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete - keep exploring, or lock in more readings.", "Todos los pedidos completos - sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    if (card.__onOrder) card.__onOrder(st.idx);
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" - order met", " - pedido cumplido") : t ? L(" - not the order yet", " - todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("eco-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#7be08a", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged - but that is not the order. Re-read it and try again.", "Registrado - pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st, paint };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+const shuffled = (a, seed) => { const r = a.slice(); let s = seed || 7; for (let i = r.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor(s / 233280 * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Welcome, Fuel Engineer! Tap each real photo to meet four big ideas about how your body turns food into power.", "¡Bienvenido, Ingeniero de Combustible! Toca cada foto real para conocer cuatro grandes ideas sobre cómo tu cuerpo convierte la comida en energía.");
+  host.append(p);
+  const items = [
+    { f: "villi", en: "The nutrient filter", es: "El filtro de nutrientes", t: { en: "These microscope pictures show the lining of the small intestine, covered in millions of tiny fingers called villi. They catch nutrients and pass them into your blood.", es: "Estas imágenes al microscopio muestran el revestimiento del intestino delgado, cubierto de millones de deditos llamados vellosidades. Atrapan nutrientes y los pasan a tu sangre." } },
+    { f: "meal", en: "The big three", es: "Los tres grandes", t: { en: "Carbohydrates give quick energy, fats store energy and protect organs, and proteins build and repair muscle. You need these macronutrients in large amounts.", es: "Los carbohidratos dan energía rápida, las grasas almacenan energía y protegen órganos, y las proteínas construyen y reparan músculos. Necesitas estos macronutrientes en grandes cantidades." } },
+    { f: "orange", en: "Tiny but vital", es: "Pequeños pero vitales", t: { en: "Vitamins (like vitamin C in oranges) and minerals (like calcium in milk) are micronutrients. You need only a tiny amount, but you cannot live without them.", es: "Las vitaminas (como la vitamina C de las naranjas) y los minerales (como el calcio de la leche) son micronutrientes. Necesitas muy poco, pero no puedes vivir sin ellos." } },
+    { f: "broccoli", en: "The digestive broom", es: "La escoba digestiva", t: { en: "Fibre is a carbohydrate your body cannot digest. It passes straight through, sweeping the digestive tract clean as it goes.", es: "La fibra es un carbohidrato que tu cuerpo no puede digerir. Pasa directamente, barriendo el tracto digestivo a su paso." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo">${PA(it.f, it.en, it.es)}</span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at this real photo of a meal before you learn any names. Then play photo detective: tap what each clue describes.", "Mira de cerca esta foto real de una comida antes de aprender ningún nombre. Luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo"; wrap.style.maxWidth = "24rem";
+  wrap.innerHTML = `<img src="${PH("meal")}" alt="${L("A plate with rice, broccoli, carrots and a meat dish", "Un plato con arroz, brócoli, zanahorias y un plato de carne")}">`;
+  const targets = [
+    { x: 62, y: 80, en: "the main source of PROTEIN, which builds and repairs muscle", es: "la fuente principal de PROTEÍNA, que construye y repara los músculos" },
+    { x: 72, y: 24, en: "the starchy CARBOHYDRATE that gives quick energy", es: "el CARBOHIDRATO con almidón que da energía rápida" },
+    { x: 22, y: 25, en: "the green vegetables rich in FIBRE and vitamins", es: "las verduras verdes ricas en FIBRA y vitaminas" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one - read the clue again.", "Esa no - vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! One plate already holds the three big nutrients. Your digestive system must break all of it down.", "¡Detective de fotos completado! Un solo plato ya contiene los tres grandes nutrientes. Tu sistema digestivo debe descomponerlo todo.") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("Food is made of large molecules that are too big to enter your blood. How does your body turn this meal into usable power? Keep that in mind for your hypothesis.", "La comida está hecha de moléculas grandes que no caben en tu sangre. ¿Cómo convierte tu cuerpo esta comida en energía utilizable? Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   STATION 1 - THE FOOD JOURNEY (hyper-real 3D digestive tract)
+   ============================================================ */
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+const ORG = {
+  mouth: { en: "Mouth", es: "Boca", acc: false, fact: { en: "Mouth: the entrance and crushing station. Teeth crush food into smaller chunks (mechanical digestion) and saliva begins chemical digestion.", es: "Boca: la entrada y estación de trituración. Los dientes trituran la comida en trozos pequeños (digestión mecánica) y la saliva empieza la digestión química." } },
+  esoph: { en: "Esophagus", es: "Esófago", acc: false, fact: { en: "Esophagus: the food elevator. Muscles squeeze in waves to push food down to the stomach.", es: "Esófago: el ascensor de la comida. Los músculos aprietan en oleadas para empujar la comida hasta el estómago." } },
+  stomach: { en: "Stomach", es: "Estómago", acc: false, fact: { en: "Stomach: the acid-filled mixing bag. It churns food (mechanical) and acid and enzymes (chemical) turn it into a thick liquid called chyme.", es: "Estómago: la bolsa de mezcla llena de ácido. Revuelve la comida (mecánico) y el ácido y las enzimas (químico) la convierten en un líquido espeso llamado quimo." } },
+  small: { en: "Small intestine", es: "Intestino delgado", acc: false, fact: { en: "Small intestine: the nutrient filter. Millions of tiny villi catch nutrients, which pass through the wall straight into your blood.", es: "Intestino delgado: el filtro de nutrientes. Millones de diminutas vellosidades atrapan nutrientes, que pasan por la pared directamente a tu sangre." } },
+  large: { en: "Large intestine", es: "Intestino grueso", acc: false, fact: { en: "Large intestine: the water recycling plant. It takes back water from what is left and forms waste.", es: "Intestino grueso: la planta de reciclaje de agua. Recupera el agua de lo que sobra y forma los desechos." } },
+  liver: { en: "Liver", es: "Hígado", acc: true, fact: { en: "Liver (accessory organ): makes bile to break down fats. Food never passes through it, but digestion is impossible without it.", es: "Hígado (órgano accesorio): produce bilis para descomponer las grasas. La comida nunca pasa por él, pero la digestión es imposible sin él." } },
+  gall: { en: "Gallbladder", es: "Vesícula biliar", acc: true, fact: { en: "Gallbladder (accessory organ): stores bile until it is needed. Food never passes through it.", es: "Vesícula biliar (órgano accesorio): almacena la bilis hasta que se necesita. La comida nunca pasa por ella." } },
+  pancreas: { en: "Pancreas", es: "Páncreas", acc: true, fact: { en: "Pancreas (accessory organ): makes enzymes and neutralises stomach acid. Food never passes through it.", es: "Páncreas (órgano accesorio): produce enzimas y neutraliza el ácido del estómago. La comida nunca pasa por él." } },
+};
+const ORGK = Object.keys(ORG);
+function noiseTex() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 900; i++) { x.fillStyle = Math.random() > 0.5 ? "#b0b0b0" : "#505050"; x.globalAlpha = 0.28; x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+function buildTract(mount, sim, onDone) {
+  const card = stationShell("1", "The Food Journey", "El Viaje de la Comida", "A hyper-real 3D digestive tract. Tap organs to learn what they do, send a meal on its journey, and answer the orders. Drag to turn the body.", "Un tracto digestivo 3D hiperrealista. Toca los órganos para saber qué hacen, envía una comida en su viaje y responde los pedidos. Arrastra para girar el cuerpo.");
+  mount.append(card);
+  const stage = document.createElement("div"); stage.className = "cyc-stage dg-stage"; card.append(stage);
+  const cap = document.createElement("div"); cap.className = "eco-fact"; cap.textContent = L("Tap an organ (in 3D or with the buttons below) to read what it does.", "Toca un órgano (en 3D o con los botones de abajo) para leer qué hace.");
+  const S = { picks: [] };
+  const tasks = [
+    { en: "Trace the path of food: select the organs in the order food travels - mouth first, large intestine last (5 organs). Food never enters the helper organs.", es: "Traza el camino de la comida: selecciona los órganos en el orden en que viaja la comida - primero la boca, al final el intestino grueso (5 órganos). La comida nunca entra en los órganos auxiliares.", test: r => r.picks.slice(-5).join() === "mouth,esoph,stomach,small,large" },
+    { en: "Select the ONE organ where nutrients pass through the wall into the blood.", es: "Selecciona el ÚNICO órgano donde los nutrientes pasan por la pared a la sangre.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "small" },
+    { en: "Select the THREE accessory organs - the helpers that food never passes through.", es: "Selecciona los TRES órganos accesorios - los ayudantes por los que la comida nunca pasa.", test: r => { const l = r.picks.slice(-3); return l.length === 3 && new Set(l).size === 3 && l.every(k => ORG[k].acc); } },
+    { en: "Select the organ that works as the water recycling plant.", es: "Selecciona el órgano que funciona como planta de reciclaje de agua.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "large" },
+  ];
+  const chipRow = document.createElement("div"); chipRow.className = "eco-chips"; chipRow.innerHTML = `<b>${L("Organs:", "Órganos:")}</b>`;
+  const picksEl = document.createElement("div"); picksEl.className = "eco-arrows";
+  const chips = {};
+  ORGK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(ORG[k].en, ORG[k].es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => pick(k)); chipRow.append(b); chips[k] = b; });
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bSend = mkBtn(L("Send a meal on its journey", "Enviar una comida en su viaje"), true), bClear = mkBtn(L("Clear my picks", "Borrar mis selecciones"), true);
+  const ord = makeOrders(card, sim, "st1", tasks, () => ({ picks: S.picks.slice(), setting: L(`Selected ${S.picks.length} organ(s)`, `Seleccionados ${S.picks.length} órgano(s)`), reading: S.picks.map(k => ORG[k].en).join(" > ") || "-", result: S.picks.length ? L("Last pick: " + ORG[S.picks[S.picks.length - 1]].en, "Última selección: " + ORG[S.picks[S.picks.length - 1]].es) : L("Nothing selected", "Nada seleccionado") }),
+    L("Food Journey", "Viaje de la Comida"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("tract", L("Gut Guide", "Guía del Intestino")); onDone(); });
+  const btnRow = document.createElement("div"); btnRow.className = "cyc-row"; btnRow.style.marginTop = ".6rem"; btnRow.append(bSend, bClear, ord.lock);
+  card.append(chipRow, picksEl, cap, ord.bar, btnRow);
+  card.__onOrder = () => { S.picks = []; paintPicks(); };
+  let fx = null;
+  function paintPicks() {
+    ORGK.forEach(k => chips[k].setAttribute("aria-pressed", String(S.picks[S.picks.length - 1] === k)));
+    picksEl.innerHTML = S.picks.length ? "" : `<small style="color:var(--ink-3)">${L("No picks yet.", "Aún no hay selecciones.")}</small>`;
+    S.picks.forEach((k, i) => { const s = document.createElement("span"); s.textContent = (i + 1) + ". " + L(ORG[k].en, ORG[k].es); picksEl.append(s); });
+    if (fx) fx.hi(S.picks[S.picks.length - 1]);
+  }
+  function pick(k) { S.picks.push(k); if (S.picks.length > 8) S.picks.shift(); cap.textContent = L(ORG[k].fact.en, ORG[k].fact.es); burst(stage, 50, 50, ["#ffb3c1", "#ffe08a", "#fff"], 10); paintPicks(); }
+  bClear.addEventListener("click", () => { S.picks = []; paintPicks(); });
+  const sp = makeSpace(stage, { fov: 38, dist: 10.8, pitch: 0.1, yaw: 0, ty: 0.7 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; bSend.disabled = true; }
+  else {
+    const { scene, camera, hooks, renderer, ob } = sp; renderer.shadowMap.enabled = true; renderer.toneMappingExposure = 1.15;
+    scene.add(new THREE.HemisphereLight(0xffe8f0, 0x2a1030, 0.9)); const key = new THREE.DirectionalLight(0xfff2e6, 1.6); key.position.set(3, 5, 6); scene.add(key); const rim = new THREE.PointLight(0x66ccff, 1.2, 14); rim.position.set(-4, 2, -3); scene.add(rim);
+    const bump = noiseTex(), meshes = [];
+    const mat = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.42, clearcoat: 0.7, clearcoatRoughness: 0.25, bumpMap: bump, bumpScale: 0.6, emissive: C3(hex), emissiveIntensity: 0.12 }, o || {}));
+    const reg = (m, k) => { m.userData.k = k; meshes.push(m); scene.add(m); return m; };
+    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), new THREE.MeshPhysicalMaterial({ color: C3(0x9fd8ff), transparent: true, opacity: 0.08, roughness: 0.1, side: THREE.DoubleSide, depthWrite: false })); body.scale.set(2.1, 2.95, 1.05); body.position.set(0, 0.7, 0); scene.add(body);
+    /* mouth */
+    const mouth = reg(new THREE.Mesh(new THREE.SphereGeometry(0.5, 28, 20), mat(0xd9556a)), "mouth"); mouth.scale.set(1.15, 0.65, 0.9); mouth.position.set(0, 3.45, 0);
+    const tongue = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 14), mat(0xe58a98)); tongue.scale.set(1.2, 0.5, 0.9); tongue.position.set(0, 3.38, 0.05); scene.add(tongue); tongue.userData.k = "mouth"; meshes.push(tongue);
+    for (let i = 0; i < 8; i++) { const t = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.13, 0.08), new THREE.MeshPhysicalMaterial({ color: C3(0xfff8ea), roughness: 0.2, clearcoat: 1 })); t.position.set(-0.33 + i * 0.094, 3.6, 0.28); scene.add(t); t.userData.k = "mouth"; meshes.push(t); const t2 = t.clone(); t2.position.y = 3.3; scene.add(t2); t2.userData.k = "mouth"; meshes.push(t2); }
+    /* esophagus */
+    const esC = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 3.2, 0), new THREE.Vector3(0.02, 2.5, 0), new THREE.Vector3(0.12, 1.9, 0), new THREE.Vector3(0.3, 1.5, 0)]);
+    reg(new THREE.Mesh(new THREE.TubeGeometry(esC, 24, 0.1, 14), mat(0xe0707f)), "esoph");
+    /* stomach */
+    const stomach = reg(new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 24), mat(0xe58a6a)), "stomach"); stomach.scale.set(1.05, 0.78, 0.7); stomach.position.set(0.55, 1.1, 0); stomach.rotation.z = -0.5;
+    /* liver / gallbladder / pancreas */
+    const liver = reg(new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 24), mat(0x8a3020)), "liver"); liver.scale.set(1.35, 0.7, 0.75); liver.position.set(-0.75, 1.5, 0.05); liver.rotation.z = 0.2;
+    const gall = reg(new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 16), mat(0x3f9a4a)), "gall"); gall.scale.set(0.8, 1.2, 0.8); gall.position.set(-0.28, 0.95, 0.25);
+    const panc = reg(new THREE.Mesh(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.16, 1.05, 8, 16) : new THREE.CylinderGeometry(0.16, 0.16, 1.2, 16), mat(0xe8c27a)), "pancreas"); panc.rotation.z = Math.PI / 2 - 0.15; panc.position.set(0.15, 0.55, -0.12);
+    /* small intestine coil */
+    const sp0 = [new THREE.Vector3(0.35, 0.78, 0)]; for (let i = 0; i < 16; i++) sp0.push(new THREE.Vector3((i % 2 ? 0.62 : -0.62) * (0.9 + 0.1 * Math.sin(i)), 0.4 - i * 0.115, 0.22 * Math.sin(i * 1.7)));
+    sp0.push(new THREE.Vector3(0.55, -1.55, 0)); const siC = new THREE.CatmullRomCurve3(sp0, false, "catmullrom", 0.5);
+    reg(new THREE.Mesh(new THREE.TubeGeometry(siC, 220, 0.115, 12), mat(0xe8908a, { bumpScale: 1.1 })), "small");
+    /* large intestine frame */
+    const lgC = new THREE.CatmullRomCurve3([new THREE.Vector3(0.62, -1.62, 0), new THREE.Vector3(1.0, -1.55, 0), new THREE.Vector3(1.05, -0.6, 0), new THREE.Vector3(1.0, 0.0, 0), new THREE.Vector3(0.2, 0.18, 0), new THREE.Vector3(-1.0, 0.0, 0), new THREE.Vector3(-1.08, -0.7, 0), new THREE.Vector3(-1.0, -1.5, 0), new THREE.Vector3(-0.55, -1.95, 0), new THREE.Vector3(-0.3, -2.3, 0)], false, "catmullrom", 0.3);
+    reg(new THREE.Mesh(new THREE.TubeGeometry(lgC, 160, 0.2, 14), mat(0xc96f5e, { bumpScale: 1.4 })), "large");
+    /* food path */
+    const path = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 3.45, 0.1), new THREE.Vector3(0.02, 2.5, 0), new THREE.Vector3(0.3, 1.5, 0), new THREE.Vector3(0.55, 1.1, 0.05), ...sp0.slice(1), new THREE.Vector3(0.62, -1.62, 0), new THREE.Vector3(1.0, -1.55, 0), new THREE.Vector3(1.05, -0.6, 0), new THREE.Vector3(1.0, 0.0, 0), new THREE.Vector3(0.2, 0.18, 0), new THREE.Vector3(-1.0, 0.0, 0), new THREE.Vector3(-1.08, -0.7, 0), new THREE.Vector3(-1.0, -1.5, 0), new THREE.Vector3(-0.55, -1.95, 0), new THREE.Vector3(-0.3, -2.3, 0)], false, "catmullrom", 0.35);
+    const food = new THREE.Mesh(new THREE.SphereGeometry(0.17, 20, 16), new THREE.MeshStandardMaterial({ color: C3(0xe2c07a), roughness: 0.6, emissive: C3(0xe2c07a), emissiveIntensity: 0.25 })); food.visible = false; scene.add(food);
+    /* nutrient sparks + floating motes */
+    const spark = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(60 * 3), 3)), new THREE.PointsMaterial({ size: 0.09, color: 0xffe08a, transparent: true, opacity: 0.0, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(spark);
+    const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(160 * 3).map((_, i) => (i % 3 === 1 ? (Math.random() - 0.3) * 6 : (Math.random() - 0.5) * 5)), 3)), new THREE.PointsMaterial({ size: 0.04, color: 0x9fe6ff, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(motes);
+    const stageNames = [[0.07, L("MOUTH: teeth crush the food (mechanical) and saliva starts chemical digestion", "BOCA: los dientes trituran la comida (mecánico) y la saliva inicia la digestión química")], [0.2, L("ESOPHAGUS: muscle waves push the food down", "ESÓFAGO: ondas musculares empujan la comida hacia abajo")], [0.38, L("STOMACH: churning (mechanical) and acid + enzymes (chemical) make chyme", "ESTÓMAGO: batido (mecánico) y ácido + enzimas (químico) forman el quimo")], [0.76, L("SMALL INTESTINE: nutrients pass through the villi into the blood", "INTESTINO DELGADO: los nutrientes pasan por las vellosidades a la sangre")], [1.01, L("LARGE INTESTINE: water is recycled and waste is formed", "INTESTINO GRUESO: se recicla el agua y se forman los desechos")]];
+    let run = null, hiK = null;
+    bSend.addEventListener("click", () => { run = { t: 0 }; food.visible = true; bSend.disabled = true; sim.state.sentMeal = true; });
+    fx = { hi(k) { hiK = k; } };
+    const base = {}; meshes.forEach(m => { if (!base[m.userData.k]) base[m.userData.k] = m.material.emissiveIntensity; });
+    hooks.push((dt, t) => {
+      meshes.forEach(m => { const k = m.userData.k, on = k === hiK; m.material.emissiveIntensity = (m.material.emissive ? (on ? 0.55 + 0.25 * Math.sin(t * 5) : 0.12) : 0); });
+      stomach.scale.set(1.05 + (reducedMotion() ? 0 : Math.sin(t * 2.2) * 0.04), 0.78 + (reducedMotion() ? 0 : Math.sin(t * 2.2 + 1) * 0.03), 0.7);
+      const mp = motes.geometry.attributes.position; for (let i = 0; i < 160; i++) { let y = mp.getY(i) + dt * 0.12; if (y > 4) y = -2.6; mp.setY(i, y); } mp.needsUpdate = true;
+      if (run) {
+        run.t += dt / 17; const u = Math.min(1, run.t); const p = path.getPoint(u); food.position.copy(p);
+        const sz = u < 0.07 ? 1 - u * 3 : u < 0.38 ? 0.8 + Math.sin(t * 9) * 0.06 : u < 0.76 ? 0.8 - (u - 0.38) * 1.4 : 0.3; food.scale.setScalar(Math.max(0.25, sz));
+        food.material.color.copy(u < 0.07 ? C3(0xe2c07a) : u < 0.38 ? C3(0xc8a050) : u < 0.76 ? C3(0xa9742e) : C3(0x7a5a2a));
+        const nm = stageNames.find(s => u < s[0]); cap.textContent = nm ? nm[1] : "";
+        if (u > 0.4 && u < 0.78) { spark.material.opacity = 0.9; const sa = spark.geometry.attributes.position; for (let i = 0; i < 60; i++) { const ph = (t * 0.8 + i / 60) % 1; sa.setXYZ(i, p.x + (Math.sin(i * 12.3) * 0.5) * (1 - ph) + (i % 2 ? 1 : -1) * ph * 0.3, p.y + (Math.cos(i * 7.7)) * 0.25 * (1 - ph), 0.2 + ph * 0.6); } sa.needsUpdate = true; } else spark.material.opacity = 0;
+        if (u >= 1) { run = null; food.visible = false; spark.material.opacity = 0; bSend.disabled = false; cap.textContent = L("Journey complete: about 30 feet of tube, from mouth to waste. Now answer the orders.", "Viaje completo: unos 9 metros de tubo, de la boca a los desechos. Ahora responde los pedidos."); burst(stage, 50, 50, ["#ffe08a", "#7be08a", "#fff"], 16); }
+      }
+    });
+    const cv = renderer.domElement, ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let tr = null;
+    cv.addEventListener("pointerdown", e => { tr = { x: e.clientX, y: e.clientY, d: 0 }; });
+    cv.addEventListener("pointermove", e => { if (tr) { tr.d += Math.hypot(e.clientX - tr.x, e.clientY - tr.y); tr.x = e.clientX; tr.y = e.clientY; } });
+    cv.addEventListener("click", e => {
+      if (tr && tr.d > 8) return; const r = cv.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, camera);
+      const hits = ray.intersectObjects(meshes, false); if (hits.length) pick(hits[0].object.userData.k);
+    });
+  }
+  paintPicks();
+}
+
+/* ============================================================
+   STATION 2 - NUTRIENT LAB (real food photos + protein chain)
+   ============================================================ */
+const FOOD = {
+  bread: { en: "Bread", es: "Pan", n: "carb" }, rice: { en: "Rice", es: "Arroz", n: "carb" }, egg: { en: "Eggs", es: "Huevos", n: "protein" }, chicken: { en: "Chicken", es: "Pollo", n: "protein" },
+  butter: { en: "Butter", es: "Mantequilla", n: "fat" }, oil: { en: "Olive oil", es: "Aceite de oliva", n: "fat" }, milk: { en: "Milk", es: "Leche" }, orange: { en: "Orange", es: "Naranja" },
+  cheese: { en: "Cheese", es: "Queso" }, broccoli: { en: "Broccoli", es: "Brócoli" },
+};
+const NUT = { carb: { en: "Carbohydrates: quick fuel", es: "Carbohidratos: combustible rápido" }, fat: { en: "Fats: stored energy", es: "Grasas: energía almacenada" }, protein: { en: "Proteins: build and repair", es: "Proteínas: construir y reparar" } };
+function buildNutrients(mount, sim, onDone) {
+  const card = stationShell("2", "Nutrient Lab", "Laboratorio de Nutrientes", "Use real foods to sort the big three nutrients, find micronutrients and take a protein chain apart and rebuild it.", "Usa alimentos reales para clasificar los tres grandes nutrientes, encontrar micronutrientes y desarmar y reconstruir una cadena de proteína.");
+  mount.append(card);
+  const S = { sel: null, sorted: {}, digested: false, rebuilt: false, pickSel: null };
+  const FOODS6 = ["bread", "egg", "butter", "rice", "chicken", "oil"];
+  const tasks = [
+    { mode: "sort", en: "Sort all six foods into the nutrient each one mainly provides: tap a food, then tap its bin.", es: "Clasifica los seis alimentos en el nutriente que aporta principalmente cada uno: toca un alimento y luego su cubo.", test: r => r.mode === "sort" && FOODS6.every(f => r.sorted[f] === FOOD[f].n) },
+    { mode: "pick", deck: ["orange", "milk", "bread", "butter"], en: "Pick the food that is the best source of CALCIUM, a mineral that builds strong bones.", es: "Elige el alimento que es la mejor fuente de CALCIO, un mineral que forma huesos fuertes.", test: r => r.mode === "pick" && r.pickSel === "milk" },
+    { mode: "pick", deck: ["cheese", "orange", "rice", "oil"], en: "Pick the food richest in VITAMIN C, a vitamin that helps your body heal.", es: "Elige el alimento más rico en VITAMINA C, una vitamina que ayuda a tu cuerpo a sanar.", test: r => r.mode === "pick" && r.pickSel === "orange" },
+    { mode: "chain", en: "Proteins are chains of amino acids. Press Digest to break the chain into single amino acids, then Rebuild to make your own muscle protein. Lock in when you have done both.", es: "Las proteínas son cadenas de aminoácidos. Pulsa Digerir para romper la cadena en aminoácidos sueltos y luego Reconstruir para hacer tu propia proteína muscular. Fija cuando hayas hecho ambas cosas.", test: r => r.mode === "chain" && r.digested && r.rebuilt },
+  ];
+  const body = document.createElement("div"); card.append(body);
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Tap a food photo to start.", "Toca la foto de un alimento para empezar.");
+  const ord = makeOrders(card, sim, "st2", tasks, () => {
+    const t = tasks[Math.min(ord.st.idx, tasks.length - 1)];
+    if (t.mode === "sort") return { mode: "sort", sorted: S.sorted, setting: L("Sorting six foods", "Clasificando seis alimentos"), reading: FOODS6.map(f => FOOD[f].en + "=" + (S.sorted[f] ? S.sorted[f] : "?")).join("; "), result: L(`${FOODS6.filter(f => S.sorted[f] === FOOD[f].n).length}/6 in the right bin`, `${FOODS6.filter(f => S.sorted[f] === FOOD[f].n).length}/6 en el cubo correcto`) };
+    if (t.mode === "pick") return { mode: "pick", pickSel: S.pickSel, setting: L("Micronutrient pick", "Elección de micronutriente"), reading: S.pickSel ? FOOD[S.pickSel].en : "-", result: S.pickSel ? L("Picked " + FOOD[S.pickSel].en, "Elegido " + FOOD[S.pickSel].es) : L("Nothing picked", "Nada elegido") };
+    return { mode: "chain", digested: S.digested, rebuilt: S.rebuilt, setting: L("Protein chain", "Cadena de proteína"), reading: L(`Digested: ${S.digested ? "yes" : "no"}; rebuilt: ${S.rebuilt ? "yes" : "no"}`, `Digerida: ${S.digested ? "sí" : "no"}; reconstruida: ${S.rebuilt ? "sí" : "no"}`), result: S.rebuilt ? L("Amino acids rebuilt into new protein", "Aminoácidos reconstruidos en nueva proteína") : L("Chain not finished", "Cadena sin terminar") };
+  }, L("Nutrient Lab", "Laboratorio de Nutrientes"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("nutrients", L("Nutrient Detective", "Detective de Nutrientes")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(ord.lock);
+  card.append(ord.bar, body, fact, row);
+  card.__onOrder = () => { S.sel = null; S.pickSel = null; if (!S.sorted) S.sorted = {}; paint(); };
+  const AA = ["#e8604c", "#f2a541", "#f5d442", "#6fcf6a", "#3fb6c9", "#4c7be8", "#9a5ce8", "#e85ca8"];
+  function chainSVG(state) {
+    const spread = state === "digested" ? 1 : 0; let s = `<svg viewBox="0 0 520 110" style="width:100%;max-width:34rem;display:block" role="img" aria-label="${L("A protein chain of eight amino acid beads", "Una cadena de proteína de ocho aminoácidos")}">`;
+    if (!spread) s += `<path d="M30 55 Q 100 20 170 55 T 310 55 T 490 55" fill="none" stroke="#999" stroke-width="3"/>`;
+    AA.forEach((c, i) => { const x = 40 + i * 62, y = spread ? 25 + (i % 2) * 52 : 55 + Math.sin(i * 1.5) * 22; s += `<g style="transition:transform .9s ease"><circle cx="${x}" cy="${y}" r="17" fill="${c}" stroke="#fff" stroke-width="3"/><circle cx="${x - 5}" cy="${y - 6}" r="4" fill="#fff" opacity=".55"/></g>`; });
+    return s + `</svg>`;
+  }
+  function paint() {
+    const t = tasks[Math.min(ord.st.idx, tasks.length - 1)]; body.innerHTML = "";
+    if (t.mode === "sort") {
+      const bins = document.createElement("div"); bins.className = "eco-slots"; bins.style.marginBottom = ".5rem";
+      Object.keys(NUT).forEach(n => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-slot"; b.style.cursor = "pointer"; b.dataset.full = "true"; b.innerHTML = `<b>${L(NUT[n].en, NUT[n].es)}</b><div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;padding:.3rem">${FOODS6.filter(f => S.sorted[f] === n).map(f => `<img src="${PH(f)}" alt="${FOOD[f].en}" style="width:34px;height:34px;border-radius:50%;object-fit:cover">`).join("")}</div>`;
+        b.addEventListener("click", () => { if (!S.sel) { fact.textContent = L("Tap a food photo first, then tap its bin.", "Primero toca la foto de un alimento y luego su cubo."); b.classList.remove("eco-pop"); void b.offsetWidth; b.classList.add("eco-pop"); return; }
+          const ok = FOOD[S.sel].n === n; S.sorted[S.sel] = n; fact.textContent = ok ? L(`${FOOD[S.sel].en} is mainly ${n === "carb" ? "carbohydrate" : n}. Correct!`, `${FOOD[S.sel].es} es principalmente ${n === "carb" ? "carbohidrato" : n === "fat" ? "grasa" : "proteína"}. ¡Correcto!`) : L(`Hmm, ${FOOD[S.sel].en} is mainly ${FOOD[S.sel].n === "carb" ? "carbohydrate" : FOOD[S.sel].n}. It is in the wrong bin - you can move it.`, `Hmm, ${FOOD[S.sel].es} es principalmente ${FOOD[S.sel].n === "carb" ? "carbohidrato" : FOOD[S.sel].n === "fat" ? "grasa" : "proteína"}. Está en el cubo equivocado - puedes moverlo.`);
+          burst(card, 50, 30, ok ? ["#7be08a", "#ffd24d", "#fff"] : ["#ff9a9a", "#fff"], 10); S.sel = null; sim.state.sorted = S.sorted; sim.saveState(); paint(); });
+        bins.append(b); }); body.append(bins);
+      const deck = document.createElement("div"); deck.className = "eco-deck";
+      FOODS6.forEach(f => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-card"; b.setAttribute("aria-pressed", String(S.sel === f)); b.dataset.used = String(!!S.sorted[f]); b.innerHTML = `${PA(f, FOOD[f].en, FOOD[f].es)}<span>${L(FOOD[f].en, FOOD[f].es)}</span>`; b.addEventListener("click", () => { S.sel = f; paint(); }); deck.append(b); }); body.append(deck);
+    } else if (t.mode === "pick") {
+      const deck = document.createElement("div"); deck.className = "eco-deck";
+      t.deck.forEach(f => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-card"; b.setAttribute("aria-pressed", String(S.pickSel === f)); b.innerHTML = `${PA(f, FOOD[f].en, FOOD[f].es)}<span>${L(FOOD[f].en, FOOD[f].es)}</span>`; b.addEventListener("click", () => { S.pickSel = f; burst(card, 50, 40, ["#ffd24d", "#fff"], 6); paint(); }); deck.append(b); }); body.append(deck);
+    } else {
+      const holder = document.createElement("div"); holder.innerHTML = chainSVG(S.digested && !S.rebuilt ? "digested" : "chain"); body.append(holder);
+      const r = document.createElement("div"); r.className = "cyc-row"; r.style.marginTop = ".5rem";
+      const bd = document.createElement("button"); bd.type = "button"; bd.className = "cyc-btn cyc-btn--ghost"; bd.textContent = L("Digest the protein", "Digerir la proteína"); bd.disabled = S.digested && !S.rebuilt;
+      const br = document.createElement("button"); br.type = "button"; br.className = "cyc-btn cyc-btn--ghost"; br.textContent = L("Rebuild into muscle", "Reconstruir en músculo"); br.disabled = !S.digested || S.rebuilt;
+      bd.addEventListener("click", () => { S.digested = true; S.rebuilt = false; fact.textContent = L("Enzymes cut the protein into its single amino acids - the pieces small enough to be absorbed into your blood.", "Las enzimas cortan la proteína en aminoácidos sueltos - las piezas lo bastante pequeñas para absorberse en tu sangre."); burst(card, 50, 40, ["#e8604c", "#f5d442", "#4c7be8", "#fff"], 16); paint(); });
+      br.addEventListener("click", () => { S.rebuilt = true; fact.textContent = L("Your body picks up the amino acids and links them into new protein: skin, hair and muscle. Nine are essential - you must eat them.", "Tu cuerpo toma los aminoácidos y los une en proteína nueva: piel, pelo y músculo. Nueve son esenciales - debes comerlos."); burst(card, 50, 40, ["#7be08a", "#ffd24d", "#fff"], 16); paint(); });
+      r.append(bd, br); body.append(r);
+    }
+  }
+  S.sorted = sim.state.sorted || {}; paint();
+}
+
+/* ============================================================
+   STATION 3 - THE ENERGY LOOP (cellular respiration)
+   Energy = the smaller of sugar and oxygen (you need BOTH).
+   ============================================================ */
+function buildEnergy(mount, sim, onDone) {
+  const card = stationShell("3", "The Energy Loop", "El Ciclo de la Energía", "Plants charge the battery, cells burn the sugar. Feed a living cell with sugar from food and oxygen from breathing, and watch how much power it makes.", "Las plantas cargan la batería, las células queman el azúcar. Alimenta una célula viva con azúcar de la comida y oxígeno de la respiración, y mira cuánta energía produce.");
+  mount.append(card);
+  const E = sim.state.en || (sim.state.en = { sugar: 70, oxy: 70, power: 0 });
+  const stage = document.createElement("div"); stage.className = "eco-pop-stage"; const cv = document.createElement("canvas"); cv.width = 680; cv.height = 300; cv.setAttribute("aria-label", L("A cell burning sugar with oxygen to release energy", "Una célula quemando azúcar con oxígeno para liberar energía")); stage.append(cv); card.append(stage);
+  const ctr = document.createElement("div"); ctr.className = "cyc-controls";
+  ctr.innerHTML = `<div class="cyc-row"><label for="en-sg">${L("Sugar from food", "Azúcar de la comida")}</label><input id="en-sg" type="range" min="0" max="100" value="${E.sugar}"><span class="cyc-val" id="en-sgv"></span></div><div class="cyc-row"><label for="en-ox">${L("Oxygen from breathing", "Oxígeno de la respiración")}</label><input id="en-ox" type="range" min="0" max="100" value="${E.oxy}"><span class="cyc-val" id="en-oxv"></span></div>`;
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Energy released", "Energía liberada")}<b id="en-p"></b></div><div>${L("Heart & brain power", "Energía de corazón y cerebro")}<b id="en-hb"></b></div><div>${L("CO2 + water made", "CO2 + agua producidos")}<b id="en-co"></b></div>`;
+  card.append(ctr, ro);
+  const tasks = [
+    { en: "Power up: set BOTH sugar and oxygen to 80% or more, then lock in when the energy released is at least 75%.", es: "A toda energía: pon AMBOS, azúcar y oxígeno, en 80% o más, y fija cuando la energía liberada sea al menos 75%.", test: r => r.s >= 80 && r.o >= 80 && r.p >= 75 },
+    { en: "Now cut the OXYGEN to 10% or less while keeping sugar at 60% or more. Wait for the energy to drop, then lock in.", es: "Ahora baja el OXÍGENO a 10% o menos manteniendo el azúcar en 60% o más. Espera a que baje la energía y fija.", test: r => r.o <= 10 && r.s >= 60 && r.p <= 20 },
+    { en: "Next cut the SUGAR to 10% or less while keeping oxygen at 60% or more. Wait for the energy to drop, then lock in.", es: "Luego baja el AZÚCAR a 10% o menos manteniendo el oxígeno en 60% o más. Espera a que baje la energía y fija.", test: r => r.s <= 10 && r.o >= 60 && r.p <= 20 },
+    { en: "Challenge: with sugar at 95% or more, find the oxygen level that makes the cell release about 50% energy (between 40% and 60%), then lock in.", es: "Desafío: con el azúcar en 95% o más, encuentra el nivel de oxígeno con el que la célula libera cerca de 50% de energía (entre 40% y 60%) y fija.", test: r => r.s >= 95 && r.p >= 40 && r.p <= 60 },
+  ];
+  const ord = makeOrders(card, sim, "st3", tasks, () => ({ s: E.sugar, o: E.oxy, p: Math.round(E.power), setting: L(`Sugar ${Math.round(E.sugar)}% · oxygen ${Math.round(E.oxy)}%`, `Azúcar ${Math.round(E.sugar)}% · oxígeno ${Math.round(E.oxy)}%`), reading: L(`Energy released ${Math.round(E.power)}%`, `Energía liberada ${Math.round(E.power)}%`), result: E.power >= 75 ? L("High energy - both ingredients present", "Mucha energía - ambos ingredientes presentes") : E.power <= 15 ? L(E.oxy < E.sugar ? "Almost no energy - oxygen is missing" : "Almost no energy - sugar is missing", E.oxy < E.sugar ? "Casi sin energía - falta oxígeno" : "Casi sin energía - falta azúcar") : L("Medium energy - one ingredient is limiting", "Energía media - un ingrediente limita") }),
+    L("Energy Loop", "Ciclo de la Energía"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("energy", L("Power Cell Pro", "Pro de la Célula de Energía")); onDone(); });
+  const bar = document.createElement("div"); bar.className = "cyc-row"; bar.style.marginTop = ".6rem"; bar.append(ord.lock);
+  const note = document.createElement("div"); note.className = "eco-fact"; note.textContent = L("Respiration is a controlled slow burn: Sugar + Oxygen → Energy + CO2 + Water. Remove either ingredient and the fire goes out.", "La respiración es una combustión lenta y controlada: Azúcar + Oxígeno → Energía + CO2 + Agua. Quita cualquiera de los ingredientes y el fuego se apaga.");
+  card.append(ord.bar, bar, note);
+  const sg = ctr.querySelector("#en-sg"), ox = ctr.querySelector("#en-ox");
+  const sync = () => { ctr.querySelector("#en-sgv").textContent = Math.round(E.sugar) + "%"; ctr.querySelector("#en-oxv").textContent = Math.round(E.oxy) + "%"; };
+  sg.addEventListener("input", () => { E.sugar = +sg.value; sync(); }); ox.addEventListener("input", () => { E.oxy = +ox.value; sync(); });
+  [sg, ox].forEach(el => el.addEventListener("change", () => sim.saveState())); sync();
+  const parts = []; let last = performance.now(), alive = true, spawnT = 0, co = 0;
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); alive = false; return; } const now = performance.now(), dt = Math.min(0.5, (now - last) / 1000); last = now; const target = Math.min(E.sugar, E.oxy); E.power += (target - E.power) * Math.min(1, dt * 1.6); co += E.power * dt * 0.05; ro.querySelector("#en-p").textContent = Math.round(E.power) + "%"; ro.querySelector("#en-hb").textContent = E.power >= 70 ? L("Strong", "Fuerte") : E.power >= 30 ? L("Weak", "Débil") : L("Shutting down", "Apagándose"); ro.querySelector("#en-co").textContent = Math.round(co); }, 200);
+  function draw(now) {
+    if (!alive || !card.isConnected) return; const c = cv.getContext("2d"), t = now / 1000, dt = 1 / 60;
+    c.fillStyle = "#0e1a2e"; c.fillRect(0, 0, 680, 300); const g = c.createRadialGradient(480, 150, 20, 480, 150, 190); g.addColorStop(0, "#5a2a6a"); g.addColorStop(1, "#1a1030"); c.fillStyle = g; c.beginPath(); c.ellipse(480, 150, 190, 130, 0, 0, TAU); c.fill(); c.strokeStyle = "#c9a0e0"; c.lineWidth = 3; c.stroke();
+    c.fillStyle = "#fff8"; c.font = "12px sans-serif"; c.fillText(L("Living cell", "Célula viva"), 400, 36);
+    const mx = 470, my = 150, mp = E.power / 100; c.fillStyle = `rgb(${200 + mp * 55},${90 + mp * 90},${60})`; c.beginPath(); c.ellipse(mx, my, 70, 38, 0, 0, TAU); c.fill(); c.strokeStyle = "#ffd9a0"; c.lineWidth = 2; c.beginPath(); for (let i = 0; i < 5; i++) { const x = mx - 48 + i * 24; c.moveTo(x, my - 22); c.quadraticCurveTo(x + 12, my, x, my + 22); } c.stroke(); c.fillStyle = "#fff"; c.font = "bold 11px sans-serif"; c.fillText(L("Mitochondrion", "Mitocondria"), mx - 36, my + 58);
+    /* left panel: sun, plant, lungs/food */
+    c.fillStyle = "#ffd24d"; c.beginPath(); c.arc(60, 50, 24 + Math.sin(t * 2) * (reducedMotion() ? 0 : 2), 0, TAU); c.fill(); c.fillStyle = "#3fa044"; c.fillRect(56, 160, 8, 90); [[-26, 170], [26, 190], [-22, 210]].forEach(a => { c.beginPath(); c.ellipse(60 + a[0], a[1], 24, 10, a[0] > 0 ? -0.5 : 0.5, 0, TAU); c.fill(); });
+    c.fillStyle = "#fff"; c.font = "11px sans-serif"; c.fillText(L("Plant: sun + CO2 + water → sugar + oxygen", "Planta: sol + CO2 + agua → azúcar + oxígeno"), 12, 275); c.fillText(L("Food (sugar)", "Comida (azúcar)"), 130, 118); c.fillText(L("Breathing (oxygen)", "Respiración (oxígeno)"), 130, 200);
+    spawnT -= dt; if (spawnT <= 0) { spawnT = 0.09; if (Math.random() < E.sugar / 100) parts.push({ k: "s", x: 150, y: 125 + Math.random() * 25, ph: 0 }); if (Math.random() < E.oxy / 100) parts.push({ k: "o", x: 150, y: 175 + Math.random() * 25, ph: 0 }); }
+    for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; const sp = reducedMotion() ? 0 : 1; if (p.ph === 0) { p.x += 170 * dt * (0.7 + 0.3 * sp); p.y += ((my - p.y) * 0.9) * dt; if (p.x > mx - 62) { p.ph = 1; p.life = 0.5; } } else if (p.ph === 1) { p.life -= dt; if (p.life <= 0) { p.ph = 2; p.vx = 120 + Math.random() * 80; p.vy = (Math.random() - 0.5) * 200; p.k2 = Math.random() < 0.5 ? "co" : "h2o"; p.ex = Math.min(E.sugar, E.oxy) / 100 > Math.random(); } } else { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.99; p.alpha = (p.alpha == null ? 1 : p.alpha) - dt * 0.8; if (p.alpha <= 0) { parts.splice(i, 1); continue; } }
+      if (p.ph < 2) { c.fillStyle = p.k === "s" ? "#ffb340" : "#5ab8ff"; c.beginPath(); if (p.k === "s") { for (let a = 0; a < 6; a++) c.lineTo(p.x + Math.cos(a * TAU / 6) * 7, p.y + Math.sin(a * TAU / 6) * 7); c.closePath(); } else { c.arc(p.x, p.y, 5, 0, TAU); c.arc(p.x + 8, p.y, 5, 0, TAU); } c.fill(); }
+      else { c.globalAlpha = Math.max(0, p.alpha); if (p.ex) { c.fillStyle = "#fff176"; c.beginPath(); c.arc(p.x, p.y, 5, 0, TAU); c.fill(); c.fillStyle = "#ffe08a"; c.fillText("⚡", p.x - 6, p.y - 8); } else { c.fillStyle = p.k2 === "co" ? "#aab" : "#9fd8ff"; c.beginPath(); c.arc(p.x, p.y, 4, 0, TAU); c.fill(); } c.globalAlpha = 1; } }
+    if (parts.length > 260) parts.splice(0, parts.length - 260);
+    const bx = 590, by = 250; c.fillStyle = "#fff"; c.font = "bold 11px sans-serif"; c.fillText(L("Power", "Energía"), 560, 270); c.fillStyle = "#2a3556"; c.fillRect(560, 276, 100, 10); c.fillStyle = E.power > 60 ? "#7be08a" : E.power > 25 ? "#ffd24d" : "#ff8a8a"; c.fillRect(560, 276, E.power, 10);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+/* ============================================================
+   BONUS - ENZYME DEFENCE (lock-and-key lane defence)
+   Real foods ride down the gut tube. Press the enzyme that fits each food
+   (1 amylase, 2 protease, 3 lipase) - or let fibre pass (4). 120 s, setInterval,
+   silent, no fail state: an unbroken food just travels on.
+   ============================================================ */
+const ENZ = [
+  { k: "amy", en: "Amylase", es: "Amilasa", dig: "starch", c: "#f5b942", hook: { en: "Amylase breaks starch (carbohydrate) into sugars - it starts in your saliva.", es: "La amilasa descompone el almidón (carbohidrato) en azúcares - empieza en tu saliva." } },
+  { k: "pro", en: "Protease", es: "Proteasa", dig: "protein", c: "#e8604c", hook: { en: "Protease breaks protein into amino acids.", es: "La proteasa descompone la proteína en aminoácidos." } },
+  { k: "lip", en: "Lipase", es: "Lipasa", dig: "fat", c: "#4cb8e8", hook: { en: "Lipase breaks fat into fatty acids (bile from the liver helps it).", es: "La lipasa descompone la grasa en ácidos grasos (la bilis del hígado ayuda)." } },
+  { k: "pass", en: "Let it pass", es: "Dejar pasar", dig: "fibre", c: "#7be08a", hook: { en: "Fibre cannot be digested - it passes through and sweeps the gut clean.", es: "La fibra no se puede digerir - pasa y barre el intestino." } },
+];
+const ENZFOODS = [
+  { img: "bread", t: "starch", en: "Bread", es: "Pan" }, { img: "rice", t: "starch", en: "Rice", es: "Arroz" }, { img: "egg", t: "protein", en: "Eggs", es: "Huevos" }, { img: "chicken", t: "protein", en: "Chicken", es: "Pollo" },
+  { img: "butter", t: "fat", en: "Butter", es: "Mantequilla" }, { img: "oil", t: "fat", en: "Olive oil", es: "Aceite de oliva" }, { img: "broccoli", t: "fibre", en: "Broccoli (fibre)", es: "Brócoli (fibra)" },
+];
+function mountEnzymeDefence(host, sim, onExit) {
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus eco-bonus"; host.append(wrap);
+  const images = {}; ENZFOODS.forEach(f => { const im = new Image(); im.src = PH(f.img); images[f.img] = im; });
+  wrap.innerHTML = `<h3>${L("Bonus: Enzyme Defence", "Bonus: Defensa de Enzimas")}</h3><p>${L("Real foods ride down the gut. Match each one with the enzyme that fits it like a key in a lock: amylase for starch, protease for protein, lipase for fat - and let fibre pass. Two minutes, no lives, nothing can go wrong. A silent game.", "Alimentos reales viajan por el intestino. Une cada uno con la enzima que encaja como una llave en su cerradura: amilasa para el almidón, proteasa para la proteína, lipasa para la grasa - y deja pasar la fibra. Dos minutos, sin vidas, nada puede salir mal. Un juego silencioso.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="ed-start">${L("Play (2 minutes)", "Jugar (2 minutos)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ed-skip">${L("Skip", "Omitir")}</button></div>`;
+  wrap.querySelector("#ed-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#ed-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Enzyme Defence", "Defensa de Enzimas")}</h3><div class="cyc-hud"><span id="ed-time"></span><span id="ed-score"></span><span id="ed-streak"></span><span id="ed-abs"></span></div>
+      <canvas width="680" height="260" id="ed-cv" aria-label="${L("Gut tube: foods travel right; press an enzyme button when a food is in the glowing zone", "Tubo intestinal: los alimentos viajan a la derecha; pulsa un botón de enzima cuando un alimento esté en la zona brillante")}"></canvas>
+      <div class="cyc-row" id="ed-btns" style="margin-top:.6rem"></div><div class="cyc-toast" id="ed-toast">${L("Press 1, 2, 3 or 4 (or tap a button) when a food reaches the glowing zone.", "Pulsa 1, 2, 3 o 4 (o toca un botón) cuando un alimento llegue a la zona brillante.")}</div>`;
+    const cv = wrap.querySelector("#ed-cv"), c = cv.getContext("2d"), toast = wrap.querySelector("#ed-toast"), btns = wrap.querySelector("#ed-btns");
+    const G = { left: 120, score: 0, streak: 0, best: 0, abs: 0, items: [], bits: [], spawn: 1.2, t: 0, over: false, right: 0, wrong: 0, passed: 0, miss: {}, pops: [], flash: 0, n: 0 };
+    const ZX0 = 430, ZX1 = 560, PY = 130;
+    ENZ.forEach((e, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn"; b.style.background = e.c; b.style.color = "#1a1200"; b.textContent = (i + 1) + ". " + L(e.en, e.es); b.addEventListener("click", () => fire(i)); btns.append(b); });
+    const say = (en, es, col) => { toast.textContent = L(en, es); toast.style.color = col || "#ffe08a"; };
+    const kd = e => { if ("1234".includes(e.key) && e.key) { e.preventDefault(); fire(+e.key - 1); } };
+    window.addEventListener("keydown", kd);
+    function fire(i) {
+      if (G.over) return; const it = G.items.filter(o => o.x >= ZX0 - 20 && o.x <= ZX1 + 20 && !o.done).sort((a, b) => b.x - a.x)[0]; const e = ENZ[i];
+      if (!it) { say("Nothing in the zone yet - wait for a food to reach the glow.", "Aún no hay nada en la zona - espera a que un alimento llegue al brillo.", "#cfe8ff"); return; }
+      it.done = true; const ok = e.dig === it.f.t;
+      if (ok) { G.right++; G.streak++; G.best = Math.max(G.best, G.streak); G.score += 10 + Math.min(10, G.streak); G.pops.push({ x: it.x, y: PY - 40, t: 1, txt: "+" + (10 + Math.min(10, G.streak)), col: "#9dffb0" }); G.flash = 1;
+        if (e.dig === "fibre") { G.passed++; it.pass = true; say(`${it.f.en} is fibre. ${e.hook.en}`, `${it.f.es} es fibra. ${e.hook.es}`, "#9dffb0"); }
+        else { for (let k = 0; k < 8; k++) G.bits.push({ x: it.x, y: PY, vx: (Math.random() - 0.3) * 60, vy: 40 + Math.random() * 60, a: 1, c: e.c }); G.abs += 1; say(`Perfect fit! ${e.en} broke down the ${it.f.en.toLowerCase()}. ${e.hook.en}`, `¡Encaje perfecto! La ${e.es.toLowerCase()} descompuso: ${it.f.es.toLowerCase()}. ${e.hook.es}`, "#9dffb0"); it.gone = true; } }
+      else { G.wrong++; G.streak = 0; G.miss[it.f.img] = it.f.t; const right = ENZ.find(z => z.dig === it.f.t); G.pops.push({ x: it.x, y: PY - 40, t: 1, txt: "?", col: "#ffb3a0" }); it.done = false; it.shake = 0.4; say(`${it.f.en} needs ${right.en} (the key for ${it.f.t === "fibre" ? "fibre: let it pass" : it.f.t}). ${right.hook.en}`, `${it.f.es} necesita ${right.es} (la llave para ${it.f.t === "starch" ? "el almidón" : it.f.t === "protein" ? "la proteína" : it.f.t === "fat" ? "la grasa" : "la fibra: dejarla pasar"}). ${right.hook.es}`, "#ffb3a0"); }
+    }
+    const last = { v: performance.now() };
+    const timer = setInterval(() => {
+      const now = performance.now(), dt = Math.min(0.25, (now - last.v) / 1000); last.v = now; if (G.over) return; G.left -= dt; G.t += dt; if (G.left <= 0) { finish(); return; }
+      G.spawn -= dt; if (G.spawn <= 0) { const f = ENZFOODS[Math.floor(Math.random() * ENZFOODS.length)]; G.items.push({ f, x: -30, done: false, shake: 0 }); G.spawn = Math.max(1.5, 2.9 - G.t / 90); }
+      const sp = 52 + Math.min(30, G.t * 0.25);
+      G.items.forEach(o => { if (o.pass) o.x += sp * 1.3 * dt; else if (!o.gone) { o.x += sp * dt; if (o.shake > 0) o.shake -= dt; } if (o.x > 500 && !o.done && !o.counted) { } if (o.x > 720) o.rm = true; if (!o.done && !o.counted && o.x > ZX1 + 25 && o.f.t === "fibre") { o.counted = true; G.passed++; say("Fibre passed through untouched - exactly right!", "La fibra pasó intacta - ¡exactamente bien!", "#9dffb0"); } else if (!o.done && !o.counted && o.x > ZX1 + 25) { o.counted = true; G.streak = 0; G.miss[o.f.img] = o.f.t; say(`${o.f.en} went past unprocessed. Match it with the right enzyme next time!`, `${o.f.es} pasó sin procesar. ¡La próxima vez únelo con la enzima correcta!`, "#cfe8ff"); } });
+      G.items = G.items.filter(o => !o.rm && !(o.gone));
+      G.bits.forEach(b => { b.x += b.vx * dt; b.y += b.vy * dt; b.a -= dt * 0.9; }); G.bits = G.bits.filter(b => b.a > 0);
+      G.pops.forEach(p => { p.y -= 28 * dt; p.t -= dt; }); G.pops = G.pops.filter(p => p.t > 0); if (G.flash > 0) G.flash -= dt * 2.5;
+      wrap.querySelector("#ed-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(G.left)) + " s"; wrap.querySelector("#ed-score").textContent = L("Score ", "Puntos ") + G.score; wrap.querySelector("#ed-streak").textContent = L("Streak ", "Racha ") + G.streak; wrap.querySelector("#ed-abs").textContent = L("Nutrients absorbed ", "Nutrientes absorbidos ") + G.abs;
+    }, 100);
+    function draw(now) {
+      if (!cv.isConnected || G.over) return; const t = now / 1000;
+      c.fillStyle = "#1a0f1c"; c.fillRect(0, 0, 680, 260); c.fillStyle = "#3b1d3a"; c.fillRect(0, PY - 48, 680, 96);
+      const wallg = c.createLinearGradient(0, PY - 48, 0, PY + 48); wallg.addColorStop(0, "#d98a8a"); wallg.addColorStop(0.12, "#7a3a4a"); wallg.addColorStop(0.88, "#7a3a4a"); wallg.addColorStop(1, "#d98a8a"); c.fillStyle = wallg; c.fillRect(0, PY - 48, 680, 8); c.fillRect(0, PY + 40, 680, 8);
+      c.fillStyle = "#e8a4a4"; for (let x = 0; x < 680; x += 22) { c.beginPath(); c.ellipse(x + 11 + Math.sin(t + x) * (reducedMotion() ? 0 : 1.5), PY + 48, 6, 14 + Math.sin(t * 2 + x) * 2, 0, 0, TAU); c.fill(); }
+      const zg = c.createLinearGradient(ZX0, 0, ZX1, 0); zg.addColorStop(0, "rgba(255,230,120,0)"); zg.addColorStop(0.5, `rgba(255,230,120,${0.28 + 0.12 * Math.sin(t * 4)})`); zg.addColorStop(1, "rgba(255,230,120,0)"); c.fillStyle = zg; c.fillRect(ZX0 - 20, PY - 44, ZX1 - ZX0 + 40, 88);
+      c.fillStyle = "#ffe08a"; c.font = "bold 11px sans-serif"; c.fillText(L("ENZYME ZONE", "ZONA DE ENZIMAS"), ZX0 + 14, PY - 52 + 4);
+      G.items.forEach(o => { const im = images[o.f.img], r = 27, sx = o.shake > 0 ? Math.sin(o.x * 2) * 4 : 0; c.save(); c.beginPath(); c.arc(o.x + sx, PY, r, 0, TAU); c.clip(); if (im && im.complete && im.naturalWidth) { const s = Math.max(r * 2 / im.naturalWidth, r * 2 / im.naturalHeight); c.drawImage(im, o.x + sx - im.naturalWidth * s / 2, PY - im.naturalHeight * s / 2, im.naturalWidth * s, im.naturalHeight * s); } c.restore(); c.strokeStyle = o.done ? "#9dffb0" : "#fff"; c.lineWidth = 3; c.beginPath(); c.arc(o.x + sx, PY, r, 0, TAU); c.stroke(); c.fillStyle = "#fff"; c.font = "bold 11px sans-serif"; c.textAlign = "center"; c.fillText(L(o.f.en, o.f.es), o.x + sx, PY + r + 14); c.textAlign = "start"; });
+      G.bits.forEach(b => { c.globalAlpha = Math.max(0, b.a); c.fillStyle = b.c; c.beginPath(); c.arc(b.x, b.y, 4, 0, TAU); c.fill(); }); c.globalAlpha = 1;
+      G.pops.forEach(p => { c.globalAlpha = Math.max(0, p.t); c.fillStyle = p.col; c.font = "bold 18px sans-serif"; c.fillText(p.txt, p.x, p.y); }); c.globalAlpha = 1;
+      if (G.flash > 0) { c.fillStyle = `rgba(120,255,160,${G.flash * 0.1})`; c.fillRect(0, 0, 680, 260); }
+      c.fillStyle = "#cfe8ff"; c.font = "11px sans-serif"; c.fillText(L("Stomach →", "Estómago →"), 6, 18); c.fillText(L("→ Large intestine", "→ Intestino grueso"), 560, 18);
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+    function finish() {
+      if (G.over) return; G.over = true; clearInterval(timer); window.removeEventListener("keydown", kd);
+      const miss = Object.keys(G.miss).map(k => { const f = ENZFOODS.find(x => x.img === k), e = ENZ.find(z => z.dig === f.t); return `<li>${L(f.en, f.es)} → <b>${L(e.en, e.es)}</b>. ${L(e.hook.en, e.hook.es)}</li>`; }).join("");
+      wrap.innerHTML = `<h3>${L("Defence complete!", "¡Defensa completada!")}</h3><p>${L(`Perfect matches: ${G.right}. Wrong key: ${G.wrong}. Best streak: ${G.best}. Nutrients absorbed: ${G.abs}. Score ${G.score}.`, `Aciertos: ${G.right}. Llave equivocada: ${G.wrong}. Mejor racha: ${G.best}. Nutrientes absorbidos: ${G.abs}. Puntos ${G.score}.`)}</p>${miss ? `<p>${L("Worth another look:", "Para repasar:")}</p><ul>${miss}</ul>` : `<p>${L("Not one food needed a second try - a true enzyme expert!", "Ningún alimento necesitó un segundo intento - ¡un verdadero experto en enzimas!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="ed-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ed-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#ed-again").addEventListener("click", () => { wrap.remove(); mountEnzymeDefence(host, sim, onExit); }); wrap.querySelector("#ed-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: G.score, right: G.right, abs: G.abs });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the organs you select and the meal you send, the foods you sort, and the levels of sugar and oxygen you give a cell. Dependent: whether the path, bins and picks are correct and the percentage of energy the cell releases. Controlled: the same digestive tract, the same foods and the same cell for every reading.",
+    "Independiente: los órganos que seleccionas y la comida que envías, los alimentos que clasificas y los niveles de azúcar y oxígeno que das a una célula. Dependiente: si el camino, los cubos y las elecciones son correctos y el porcentaje de energía que libera la célula. Controladas: el mismo tracto digestivo, los mismos alimentos y la misma célula en cada lectura.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (s.st1 && s.st1.idx >= 4 && s.st2 && s.st2.idx >= 4 && s.st3 && s.st3.idx >= 4 && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Fuel Engineer mission complete! You followed food through the gut, sorted the nutrients and powered a living cell. Now explain what you found.", "¡Misión de Ingeniero de Combustible completada! Seguiste la comida por el intestino, clasificaste los nutrientes y alimentaste una célula viva. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildTract(host, sim, check); buildNutrients(host, sim, check); buildEnergy(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining how food becomes energy in your cells?", "¿Qué tan seguro te sientes explicando cómo la comida se convierte en energía en tus células?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "resp", label: L("How the lungs and blood deliver oxygen", "Cómo los pulmones y la sangre entregan oxígeno") }, { id: "enz", label: L("How enzymes work", "Cómo funcionan las enzimas") }, { id: "diet", label: L("Planning a balanced diet", "Planificar una dieta equilibrada") }], "next");
+  host.append(creditLine());
+  document.addEventListener("eco-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountEnzymeDefence(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete - score ${st.score}.`, `Bonus completo - ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
