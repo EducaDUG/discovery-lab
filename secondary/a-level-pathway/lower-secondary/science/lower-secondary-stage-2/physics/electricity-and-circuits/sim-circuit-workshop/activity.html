@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<!-- Lower Secondary Stage 2 Science · Physics · Electricity and Circuits · Spark Workshop (Lesson 19: Series and Parallel).
+     Content lives here + config.json/marking.json/bench.js/brigade.js only. Never edit the shared engine for a content change.
+     Hyper-real 3D (CLAUDE.md §18): vendored Three.js, ACES tone mapping, soft shadows, PBR brass/glass/wood, glowing charge carriers.
+     Core mechanic: physics-sandbox (3 persisted order-queue stations). Bonus mechanic: speech-bubble shooting gallery ("Blackout Brigade"). -->
+<html lang="en" data-theme="physics" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spark Workshop: Series and Parallel Circuits — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Spark Workshop scoped visual treatment (content-vs-engine rule). */
+  .sp-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .sp-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .sp-n { font-family: var(--font-data); font-size: .72rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .65rem; letter-spacing: .04em; }
+  .sp-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .sp-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; align-items: center; gap: .3rem; }
+  .sp-done[data-show="true"] { display: inline-flex; }
+  .sp-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .sp-credit--dark { color: #9fb4e6; }
+  .sp-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+  .sp-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin: .5rem 0; }
+  .sp-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; white-space: nowrap; }
+  .sp-order__t { flex: 1 1 14rem; }
+  .sp-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .sp-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .sp-dots i[data-on="true"] { background: var(--accent); }
+  .sp-seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; margin: .2rem 0 .4rem; }
+  .sp-seg button { border: 0; background: var(--surface); color: var(--ink); font: inherit; font-size: .78rem; font-weight: 700; padding: .4rem .9rem; cursor: pointer; min-height: 40px; }
+  .sp-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .sp-seg button:disabled { opacity: .45; cursor: default; }
+  .sp-stage { position: relative; border-radius: 14px; overflow: hidden; background: #0b1220; border: 1px solid var(--line); aspect-ratio: 16/9; }
+  @media (max-width: 640px) { .sp-stage { aspect-ratio: 1/1; } .sp-dg svg { margin-top: 0; } }
+  .sp-3d, .sp-dg { position: absolute; inset: 0; }
+  .sp-dg { overflow: auto; background: #f4f8ff; display: block; }
+  .sp-dg svg { width: 100%; height: auto; display: block; min-width: 640px; margin-top: 4%; }
+  .sp-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; outline-offset: -3px; }
+  .sp-gl:active { cursor: grabbing; }
+  .sp-hintdrag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #b9c9ea; font-family: var(--font-data); z-index: 3; pointer-events: none; background: #0b1220aa; padding: .1rem .5rem; border-radius: 999px; }
+  @keyframes sp-dash { to { stroke-dashoffset: -16; } }
+  .sp-flow { animation: sp-dash 0.4s linear infinite; }
+  [data-reduced-motion="on"] .sp-flow { animation: none !important; }
+
+  .sp-tele { margin-top: .7rem; display: grid; gap: .5rem; }
+  .sp-meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .sp-m { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--paper); }
+  .sp-m span { display: block; font-size: .68rem; color: var(--ink-3); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .sp-m b { font-family: var(--font-data); font-size: 1.15rem; color: var(--accent); }
+  .sp-bars { display: grid; gap: .3rem; }
+  .sp-bar { display: grid; grid-template-columns: 5.2rem 1fr 4.6rem; align-items: center; gap: .5rem; font-size: .8rem; }
+  .sp-bar__t { height: 12px; background: var(--line); border-radius: 999px; overflow: hidden; display: block; }
+  .sp-bar__t i { display: block; height: 100%; background: linear-gradient(90deg, #ffb703, #fff1a8); border-radius: 999px; transition: width .35s ease; }
+  .sp-bar b { font-family: var(--font-data); text-align: right; }
+  .sp-bar--dead b { color: #c9302a; }
+
+  .sp-ctl { margin-top: .7rem; display: grid; gap: .6rem; }
+  .sp-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .sp-row > label, .sp-lab { font-weight: 700; font-size: .84rem; }
+  .sp-count { font-family: var(--font-data); font-weight: 700; min-width: 2.2rem; text-align: center; color: var(--accent); font-size: 1rem; }
+  .sp-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .85rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 44px; }
+  .sp-chip:hover, .sp-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .sp-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sp-chip[data-state="tested"] { background: #e9f7ee; border-color: #3aa76d; color: #14633a; }
+  .sp-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .sp-btn:disabled { opacity: .5; cursor: default; }
+  .sp-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .sp-shake { animation: sp-shake .35s ease; }
+  [data-reduced-motion="on"] .sp-shake { animation: none !important; }
+  @keyframes sp-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .sp-feed { margin: .6rem 0 0; min-height: 1.4em; font-size: .88rem; color: var(--ink-2); }
+  .sp-feed b { color: var(--accent); }
+
+  .sp-mats { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.4rem, 1fr)); gap: .45rem; }
+  .sp-mat { border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; font: inherit; text-align: center; color: var(--ink); }
+  .sp-mat img { display: block; width: 100%; height: 3.6rem; object-fit: cover; }
+  .sp-mat span { display: block; font-size: .72rem; font-weight: 700; padding: .25rem .2rem; min-height: 2.1rem; }
+  .sp-mat:hover, .sp-mat:focus-visible { border-color: var(--accent); outline: none; }
+  .sp-mat[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .sp-mat[data-res="cond"] { border-color: #3aa76d; }
+  .sp-mat[data-res="ins"] { border-color: #8a8f99; }
+  .sp-mat em { display: block; font-style: normal; font-size: .64rem; font-weight: 800; padding-bottom: .2rem; }
+  .sp-mat[data-res="cond"] em { color: #14633a; } .sp-mat[data-res="ins"] em { color: #555b66; }
+
+  .sp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .sp-card { border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); padding: 0; cursor: pointer; text-align: left; font: inherit; color: var(--ink); overflow: hidden; display: flex; flex-direction: column; }
+  .sp-card:hover, .sp-card:focus-visible { border-color: var(--accent); outline: none; }
+  .sp-card[data-done="true"] { border-color: #3aa76d; background: #f1faf4; }
+  .sp-card__photo { display: block; height: 8.5rem; overflow: hidden; background: #e9edf4; }
+  .sp-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sp-card__text { display: block; padding: .55rem .7rem .7rem; font-size: .82rem; }
+  .sp-card__text b { display: block; font-size: .9rem; margin-bottom: .15rem; }
+  .sp-prompt { font-weight: 800; margin: 1rem 0 .4rem; }
+  .sp-photo { position: relative; border-radius: 14px; overflow: hidden; max-width: 560px; border: 1px solid var(--line); background: #fff; }
+  .sp-photo img { display: block; width: 100%; height: auto; }
+  .sp-spot { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 3px solid #fff; background: #ffb703aa; font-weight: 800; color: #1a2540; cursor: pointer; box-shadow: 0 0 0 2px #1a254088; }
+  .sp-spot[data-ok="true"] { background: #3aa76daa; }
+  .sp-complete { margin-top: var(--sp-5); border-radius: 14px; padding: 1rem 1.1rem; background: linear-gradient(135deg, #0f2b57, #1a4fa0); color: #fff; font-weight: 700; }
+  .sp-complete b { color: #ffd24d; }
+  .sp-progress { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .6rem; font-size: .85rem; font-weight: 700; }
+  .sp-progress .sp-spark { background: #ffd24d; color: #3a2a00; border-radius: 999px; padding: .15rem .7rem; font-family: var(--font-data); }
+  .sp-jobs { font-size: .8rem; color: var(--ink-2); margin: .3rem 0 0; }
+  .sp-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; margin: .3rem 0; }
+
+  /* bonus round */
+  .sp-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .sp-bonus__eyebrow { font-family: var(--font-data); font-size: .7rem; letter-spacing: .08em; color: #ffd24d; margin: 0 0 .2rem; }
+  .sp-bonus__h { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .sp-bonus__p { color: #c8d7f5; }
+  .sp-bonus__row { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .6rem; }
+  .sp-bonus .sp-btn--ghost { background: #ffffff1c; color: #fff; }
+  .sp-g__hud { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: .85rem; color: #c8d7f5; }
+  .sp-g__hud b { color: #fff; font-family: var(--font-data); font-size: 1rem; }
+  .sp-g__bubble { display: flex; gap: .8rem; align-items: center; background: #f4f8ff; color: #14213d; border-radius: 16px; padding: .6rem .8rem; margin: .6rem 0; position: relative; }
+  .sp-g__bubble::after { content: ""; position: absolute; left: 2.2rem; bottom: -12px; border: 12px solid transparent; border-top-color: #f4f8ff; border-bottom: 0; }
+  .sp-g__bubble img { width: 5.2rem; height: 4rem; object-fit: cover; border-radius: 10px; flex: none; background: #cfd8e8; }
+  .sp-g__q { margin: 0; font-weight: 800; font-size: .95rem; }
+  .sp-g__hook { margin: .3rem 0 0; font-size: .8rem; color: #0f5132; font-weight: 700; min-height: 1.1em; }
+  .sp-g__track { position: relative; height: 9.5rem; border-radius: 12px; background: radial-gradient(120% 140% at 50% 0%, #1b3a6e 0%, #0a1226 70%); border: 1px solid #ffffff22; margin-top: 1rem; overflow: hidden; }
+  @keyframes sp-glide { from { transform: translateX(-6%); } to { transform: translateX(16%); } }
+  .sp-g__tgt { position: absolute; top: .5rem; width: 31%; height: 8.2rem; border: 0; background: transparent; cursor: pointer; color: #fff; font: inherit; padding: 0; display: flex; flex-direction: column; align-items: center; }
+  .sp-g__glass { width: 3.4rem; height: 3.4rem; border-radius: 50% 50% 46% 46%; background: radial-gradient(circle at 35% 30%, #8fb2e8, #2b4d86 70%); box-shadow: inset 0 0 12px #0008; transition: background .3s, box-shadow .3s; position: relative; }
+  .sp-g__glass::after { content: ""; position: absolute; left: 50%; bottom: -.55rem; width: 1.5rem; height: .7rem; margin-left: -.75rem; background: #c8a24a; border-radius: 3px; }
+  .sp-g__key { position: absolute; top: .1rem; left: 22%; font-family: var(--font-data); font-size: .72rem; background: #ffd24d; color: #3a2a00; border-radius: 999px; padding: 0 .45rem; font-weight: 800; }
+  .sp-g__lab { margin-top: .9rem; font-size: .76rem; font-weight: 700; line-height: 1.2; text-shadow: 0 1px 3px #000; padding: 0 .3rem; }
+  .sp-g__tgt:hover .sp-g__glass, .sp-g__tgt:focus-visible .sp-g__glass { background: radial-gradient(circle at 35% 30%, #ffe9a0, #d28f1c 70%); outline: none; }
+  .sp-g__tgt.is-hit .sp-g__glass, .sp-g__tgt.is-right .sp-g__glass { background: radial-gradient(circle at 35% 30%, #fffbe0, #ffc83a 60%); box-shadow: 0 0 28px 8px #ffcf4a99; }
+  .sp-g__tgt.is-dim { opacity: .45; }
+  .sp-g__pop { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-weight: 800; font-size: 1.4rem; color: #ffe27a; animation: sp-pop 1s ease-out forwards; pointer-events: none; text-shadow: 0 2px 6px #000; }
+  .sp-g__pop--no { color: #ff9a8f; }
+  @keyframes sp-pop { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -2.4rem; } }
+  [data-reduced-motion="on"] .sp-g__pop { animation: none; }
+  .sp-g__bar { height: 6px; border-radius: 99px; background: #ffffff22; margin-top: .6rem; overflow: hidden; } .sp-g__bar i { display: block; height: 100%; width: 100%; background: #4cc0db; }
+  .sp-g__stats { display: flex; gap: 1rem; flex-wrap: wrap; margin: .6rem 0; }
+  .sp-g__stats div { background: #ffffff14; border-radius: 12px; padding: .5rem .9rem; text-align: center; min-width: 5.5rem; }
+  .sp-g__stats b { display: block; font-size: 1.5rem; font-family: var(--font-data); color: #ffd24d; } .sp-g__stats span { font-size: .72rem; color: #c8d7f5; }
+  .sp-g__miss { font-size: .8rem; color: #dce7ff; padding-left: 1.1rem; } .sp-g__miss li { margin-bottom: .4rem; }
+  @media (max-width: 640px) { .sp-meters { grid-template-columns: 1fr 1fr 1fr; } .sp-bar { grid-template-columns: 4.2rem 1fr 3.6rem; } .sp-g__lab { font-size: .68rem; } .sp-g__bubble img { width: 3.6rem; height: 3rem; } }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../../engine/i18n.js?v=10";
+import { createBench, renderDiagram, solve, brightnessPct, BURN_P } from "./bench.js?v=4";
+import { mountBrigade } from "./brigade.js?v=1";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+const ICO_CHECK = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6"/></svg>`;
+function burst(container, xPct, yPct, colors, count) {
+  if (reduced()) return; count = count || 12;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "sp-particle"; const size = 4 + Math.random() * 6;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%"; p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.append(p); const ang = Math.random() * TAU, dist = 30 + Math.random() * 60;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+function shake(el) { el.classList.remove("sp-shake"); void el.offsetWidth; el.classList.add("sp-shake"); }
+const SP = sim => (sim.state.sp = sim.state.sp || {});
+
+/* ============================================================ shared station kit */
+function shell(host, n, title, intro, total) {
+  const root = document.createElement("section"); root.className = "sp-station";
+  root.innerHTML = `<div class="sp-head"><span class="sp-n">${L("STATION", "ESTACIÓN")} ${n}</span><h3 class="sp-title">${title}</h3><span class="sp-done" data-show="false">${ICO_CHECK} ${L("Complete", "Completa")}</span></div>
+    <p class="q__hint">${intro}</p>
+    <div class="sp-order"><span class="sp-order__n"></span><span class="sp-order__t"></span><span class="sp-dots">${"<i></i>".repeat(total)}</span></div>
+    <div class="sp-seg" role="group" aria-label="${L("View", "Vista")}"><button type="button" data-v="3d" aria-pressed="true">${L("3D bench", "Banco 3D")}</button><button type="button" data-v="dg" aria-pressed="false">${L("Circuit diagram", "Diagrama del circuito")}</button></div>
+    <div class="sp-stage"><div class="sp-3d"></div><div class="sp-dg" hidden></div><span class="sp-hintdrag">${L("Drag to orbit · scroll to zoom · tap bulbs and the switch", "Arrastra para girar · rueda para acercar · toca bombillas e interruptor")}</span></div>
+    <div class="sp-tele"></div><div class="sp-ctl"></div><p class="sp-feed" role="status" aria-live="polite"></p>`;
+  host.append(root);
+  return { root, el: q => root.querySelector(q) };
+}
+function paintOrder(S, idx, list) {
+  const done = idx >= list.length;
+  S.el(".sp-order__n").textContent = done ? L("ALL DONE", "TODO LISTO") : L(`ORDER ${idx + 1}/${list.length}`, `PEDIDO ${idx + 1}/${list.length}`);
+  S.el(".sp-order__t").textContent = done ? L("Station complete - you can keep experimenting and logging readings.", "Estación completa - puedes seguir experimentando y anotando lecturas.") : L(list[idx].en, list[idx].es);
+  S.root.querySelectorAll(".sp-dots i").forEach((d, i) => d.dataset.on = String(i < idx));
+  S.el(".sp-done").dataset.show = String(done);
+}
+function makeView(S, handlers) {
+  const g3 = S.el(".sp-3d"), dg = S.el(".sp-dg"), seg = S.root.querySelectorAll(".sp-seg button");
+  let bench = null, mode = "3d", last = null, lastRes = null;
+  try { bench = createBench(g3, { onBulb: i => handlers.onBulb && handlers.onBulb(i), onSwitch: () => handlers.onSwitch && handlers.onSwitch(), onGap: () => handlers.onGap && handlers.onGap(), onLost: () => { bench = null; setMode("dg"); seg[0].disabled = true; } }); } catch (e) { bench = null; }
+  function setMode(m) { mode = m; g3.hidden = m !== "3d"; dg.hidden = m !== "dg"; seg.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === m))); if (bench) { bench.setPaused(m !== "3d"); S.el(".sp-hintdrag").hidden = m !== "3d"; } if (m === "dg" && last) renderDiagram(dg, last, lastRes, handlers); }
+  if (!bench) { seg[0].disabled = true; S.el(".sp-hintdrag").hidden = true; setMode("dg"); }
+  seg.forEach(b => b.addEventListener("click", () => { if (!b.disabled) setMode(b.dataset.v); }));
+  return {
+    set(cfg) { last = cfg; lastRes = bench ? bench.set(cfg) : solve(cfg); if (mode === "dg") renderDiagram(dg, cfg, lastRes, handlers); return lastRes; },
+    punch() { if (bench) bench.punch(); }
+  };
+}
+function paintTele(S, cfg, res, brokenLabel) {
+  const volts = cfg.volts || cfg.cells * 1.5, life = res.I > 0 ? (res.life >= 99 ? ">99" : res.life.toFixed(1)) + " h" : "—";
+  let bars = "";
+  for (let i = 0; i < cfg.n; i++) {
+    const dead = !res.alive[i], pct = brightnessPct(res.P[i] || 0);
+    bars += `<div class="sp-bar${dead ? " sp-bar--dead" : ""}"><span>${L("Bulb", "Bombilla")} ${i + 1}</span><span class="sp-bar__t"><i style="width:${dead ? 0 : Math.min(100, pct)}%"></i></span><b>${dead ? (brokenLabel || L("broken", "fundida")) : pct + "%"}</b></div>`;
+  }
+  S.el(".sp-tele").innerHTML = `<div class="sp-meters"><div class="sp-m"><span>${L("Cell push", "Empuje de la pila")}</span><b>${volts.toFixed(1)} V</b></div><div class="sp-m"><span>${L("Cell current", "Corriente de la pila")}</span><b>${res.I.toFixed(2)} A</b></div><div class="sp-m"><span>${L("Cells would last", "Las pilas durarían")}</span><b>${life}</b></div></div><div class="sp-bars" aria-label="${L("Brightness of each bulb", "Brillo de cada bombilla")}">${bars}</div>`;
+}
+const feed = (S, html) => { S.el(".sp-feed").innerHTML = html; };
+
+/* ============================================================ ORIENT — meet the parts (real photos) */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("A circuit is a loop that electric current can flow round. Tap each real photo to meet its job.", "Un circuito es un camino cerrado por el que puede circular la corriente eléctrica. Toca cada foto real para conocer su función.");
+  host.append(p);
+  const items = [
+    { f: "cell.jpg", en: "A cell", es: "Una pila", t: { en: "The pusher. It gives the current a push round the loop. (Two or more cells together make a battery.)", es: "Quien empuja. Da a la corriente un empuje por el camino. (Dos o más pilas juntas forman una batería.)" } },
+    { f: "wire.jpg", en: "Copper wire", es: "Cable de cobre", t: { en: "A conductor - current flows through metals like copper. Plastic round the outside is an insulator.", es: "Un conductor - la corriente pasa por metales como el cobre. El plástico por fuera es un aislante." } },
+    { f: "switch.jpg", en: "A switch", es: "Un interruptor", t: { en: "A gate in the loop. Closed lets current through (ON). Open makes a gap and stops it (OFF).", es: "Una puerta en el camino. Cerrado deja pasar la corriente (ENCENDIDO). Abierto crea un hueco y la detiene (APAGADO)." } },
+    { f: "torch.jpg", en: "A torch", es: "Una linterna", t: { en: "All the parts in one: cells inside, a switch button, and a bulb that turns electrical energy into light.", es: "Todas las partes en una: pilas dentro, un botón interruptor y una bombilla que transforma energía eléctrica en luz." } }
+  ];
+  const grid = document.createElement("div"); grid.className = "sp-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "sp-card";
+    c.innerHTML = `<span class="sp-card__photo"><img src="photos/${it.f}" alt="${L(it.en, it.es)}" loading="lazy"></span><span class="sp-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out its job", "Toca para saber su función")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".sp-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid);
+  const cr = document.createElement("p"); cr.className = "sp-credit"; cr.textContent = L("Real photos from Wikimedia Commons - full credits at the end of the Workshop.", "Fotos reales de Wikimedia Commons - créditos completos al final del Taller.");
+  host.append(cr);
+}
+
+/* ============================================================ OBSERVATION — notice real circuits + torch photo detective */
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at these real photos before you learn any rules. Tap each one to notice something.", "Mira de cerca estas fotos reales antes de aprender ninguna regla. Toca cada una para observar algo.");
+  host.append(intro);
+  const obs = [
+    { f: "torch.jpg", en: "A torch", es: "Una linterna", n: { en: "Press the button and the light comes on; let go and it goes off. Something inside is closing and opening.", es: "Pulsas el botón y se enciende; sueltas y se apaga. Algo dentro se cierra y se abre." } },
+    { f: "xmas.jpg", en: "A string of fairy lights", es: "Una tira de luces de hadas", n: { en: "On some old strings, when ONE bulb dies, the whole string goes dark. Why would they all depend on each other?", es: "En algunas tiras antiguas, cuando se apaga UNA bombilla, se apaga toda la tira. ¿Por qué dependerían todas entre sí?" } },
+    { f: "room.jpg", en: "A lamp in a room", es: "Una lámpara en una habitación", n: { en: "In a house, if this lamp blows, the other lamps in the house carry on shining. Why are they different from the fairy lights?", es: "En una casa, si esta lámpara se funde, las otras lámparas siguen encendidas. ¿Por qué son distintas de las luces de hadas?" } },
+    { f: "breaker.jpg", en: "A switchboard", es: "Un cuadro eléctrico", n: { en: "Lots of switches in a row - one for each part of the house. Each looks like its own separate loop.", es: "Muchos interruptores en fila - uno para cada parte de la casa. Cada uno parece su propio camino separado." } }
+  ];
+  const grid = document.createElement("div"); grid.className = "sp-grid";
+  obs.forEach(o => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "sp-card";
+    c.innerHTML = `<span class="sp-card__photo"><img src="photos/${o.f}" alt="${L(o.en, o.es)}"></span><span class="sp-card__text"><b>${L(o.en, o.es)}</b><span>${L("Tap to notice something", "Toca para observar algo")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".sp-card__text span").textContent = L(o.n.en, o.n.es); if (sim.ttsEnabled && sim.ttsEnabled()) sim.speak(L(o.n.en, o.n.es)); });
+    grid.append(c);
+  });
+  host.append(grid);
+
+  const h = document.createElement("p"); h.className = "sp-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "sp-photo";
+  wrap.innerHTML = `<img src="photos/torch.jpg" alt="${L("A real black torch with its lens, button and body", "Una linterna negra real con su lente, botón y cuerpo")}">`;
+  const targets = [
+    { x: 14, y: 67, en: "the part where the light comes from (the lamp behind the lens)", es: "la parte de donde sale la luz (la lámpara detrás de la lente)" },
+    { x: 55, y: 30, en: "the push-button switch that opens and closes the loop", es: "el botón interruptor que abre y cierra el camino" },
+    { x: 85, y: 16, en: "the tube that holds the cells (the pushers)", es: "el tubo que guarda las pilas (quienes empujan)" }
+  ];
+  let step = (SP(sim).detective | 0);
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "sp-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.textContent = i + 1;
+    b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { b.dataset.ok = "true"; burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; SP(sim).detective = step; sim.saveState(); paint(); }
+      else { shake(b); wrap.dataset.msg = "1"; sim.toast(L("Not that one - read the instruction and try again.", "Esa no - lee la instrucción e inténtalo de nuevo."), "info"); }
+    });
+    wrap.append(b);
+  });
+  function paint() {
+    wrap.querySelectorAll(".sp-spot").forEach((b, i) => { if (i < step) b.dataset.ok = "true"; });
+    h.textContent = step >= targets.length ? L("Photo detective complete - you found the lamp, the switch and the cells.", "Detective de fotos completado - encontraste la lámpara, el interruptor y las pilas.") : L("Photo detective: tap on the real torch ", "Detective de fotos: toca en la linterna real ") + L(targets[step].en, targets[step].es) + ".";
+    sim.mark && sim.mark("observation_photo_detective", step >= targets.length);
+  }
+  host.append(wrap); paint();
+  const cr = document.createElement("p"); cr.className = "sp-credit"; cr.textContent = L("Photos: torch, fairy lights, living room and switchboard from Wikimedia Commons (credits at the end of the Workshop).", "Fotos: linterna, luces de hadas, salón y cuadro eléctrico de Wikimedia Commons (créditos al final del Taller).");
+  host.append(cr);
+}
+
+/* ============================================================ STATION 1 — Close the Loop */
+const MATS = [
+  { k: "wire", en: "Copper wire", es: "Cable de cobre", cond: true, f: "wire.jpg" },
+  { k: "coin", en: "Coins", es: "Monedas", cond: true, f: "coins.jpg" },
+  { k: "clip", en: "Paper clip", es: "Clip", cond: true, f: "clip.jpg" },
+  { k: "foil", en: "Aluminium foil", es: "Papel de aluminio", cond: true, f: "foil.jpg" },
+  { k: "eraser", en: "Rubber eraser", es: "Goma de borrar", cond: false, f: "eraser.jpg" },
+  { k: "ruler", en: "Plastic ruler", es: "Regla de plástico", cond: false, f: "ruler.jpg" },
+  { k: "spoon", en: "Wooden spoon", es: "Cuchara de madera", cond: false, f: "spoon.jpg" }
+];
+const ORD1 = [
+  { en: "Light the bulb. The wire has a gap in it, so the loop is open. Fill the gap with the copper wire.", es: "Enciende la bombilla. El cable tiene un hueco, así que el camino está abierto. Rellena el hueco con el cable de cobre." },
+  { en: "Now open the switch and watch what happens to the glow and the moving charges.", es: "Ahora abre el interruptor y observa qué pasa con el brillo y las cargas en movimiento." },
+  { en: "Light the bulb again using a METAL object from the toolbox instead of the wire (coins, paper clip or foil).", es: "Enciende de nuevo la bombilla usando un objeto de METAL de la caja de herramientas en lugar del cable (monedas, clip o papel de aluminio)." },
+  { en: "Find an INSULATOR: put the eraser, ruler or spoon in the gap with the switch closed. The bulb must stay dark.", es: "Encuentra un AISLANTE: pon la goma, la regla o la cuchara en el hueco con el interruptor cerrado. La bombilla debe seguir apagada." }
+];
+function buildStation1(host, sim, onChange) {
+  const st = SP(sim).s1 = SP(sim).s1 || { idx: 0, tested: {}, closed: true, kind: null };
+  const S = shell(host, 1, L("Close the Loop", "Cerrar el circuito"), L("A circuit needs a complete loop. Test what can fill the gap, and use the switch.", "Un circuito necesita un camino completo. Prueba qué puede rellenar el hueco y usa el interruptor."), ORD1.length);
+  const cfg = { mode: "series", n: 1, cells: 2, closed: st.closed !== false, broken: [false], gap: "open", gapKind: null };
+  if (st.kind) { cfg.gapKind = st.kind; cfg.gap = MATS.find(m => m.k === st.kind).cond ? "cond" : "ins"; }
+  let wasLit = false, lastLogged = null;
+  const view = makeView(S, { onSwitch: toggleSwitch, onGap: () => { shake(S.el(".sp-mats")); feed(S, L("Pick something from the toolbox below to fill the gap.", "Elige algo de la caja de herramientas de abajo para rellenar el hueco.")); } });
+  S.el(".sp-ctl").innerHTML = `<div class="sp-row"><span class="sp-lab">${L("Switch:", "Interruptor:")}</span><button type="button" class="sp-chip" id="s1-sw" aria-pressed="true"></button><button type="button" class="sp-chip" id="s1-clear">${L("Empty the gap", "Vaciar el hueco")}</button></div>
+    <p class="sp-lab" style="margin:.2rem 0 0">${L("Toolbox - tap one to put it in the gap:", "Caja de herramientas - toca uno para ponerlo en el hueco:")}</p><div class="sp-mats" role="group" aria-label="${L("Materials", "Materiales")}"></div>`;
+  const mats = S.el(".sp-mats");
+  MATS.forEach(m => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "sp-mat"; b.dataset.k = m.k;
+    b.innerHTML = `<img src="photos/${m.f}" alt="${L(m.en, m.es)}" loading="lazy"><span>${L(m.en, m.es)}</span><em></em>`;
+    b.addEventListener("click", () => place(m)); mats.append(b);
+  });
+  function paintMats() { mats.querySelectorAll(".sp-mat").forEach(b => { const k = b.dataset.k; b.setAttribute("aria-pressed", String(cfg.gapKind === k)); const t = st.tested[k]; if (t) { b.dataset.res = t; b.querySelector("em").textContent = t === "cond" ? L("conductor ✓", "conductor ✓") : L("insulator ✗", "aislante ✗"); } }); }
+  function paintSw() { const b = S.el("#s1-sw"); b.textContent = cfg.closed ? L("ON (closed)", "ENCENDIDO (cerrado)") : L("OFF (open)", "APAGADO (abierto)"); b.setAttribute("aria-pressed", String(cfg.closed)); }
+  function refresh(opts) {
+    const res = view.set(cfg), lit = res.I > 0; paintTele(S, cfg, res); paintMats(); paintSw(); paintOrder(S, st.idx, ORD1);
+    st.closed = cfg.closed; st.kind = cfg.gapKind; sim.saveState();
+    const o = st.idx;
+    const next = () => { st.idx++; sim.saveState(); paintOrder(S, st.idx, ORD1); burst(S.el(".sp-stage"), 50, 55, ["#ffd24d", "#7fe6ff", "#fff"], 26); view.punch(); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); onChange(); };
+    if (o === 0 && lit && cfg.gapKind === "wire") { feed(S, L("<b>The bulb lights.</b> The charges flow round the complete loop - cell, wire, bulb, switch, back to the cell.", "<b>La bombilla se enciende.</b> Las cargas circulan por el camino completo - pila, cable, bombilla, interruptor, de vuelta a la pila.")); next(); }
+    else if (o === 1 && opts && opts.switched && wasLit && !lit && !cfg.closed) { feed(S, L("<b>The glow stops everywhere</b> at once - opening the switch broke the loop, so the charges stopped moving.", "<b>El brillo se detiene en todas partes</b> a la vez - abrir el interruptor rompió el camino, así que las cargas dejaron de moverse.")); sim.recordTrial({ station: L("1 Close the loop", "1 Cerrar el circuito"), setup: L("Switch opened", "Interruptor abierto"), bulbs: 1, cells: 2, bright: "0", current: "0.00", result: L("Bulb went dark - loop open", "Bombilla apagada - camino abierto") }); next(); }
+    else if (o === 2 && lit && ["coin", "clip", "foil"].includes(cfg.gapKind)) { feed(S, L("<b>Metals are conductors.</b> Any metal in the gap completes the loop.", "<b>Los metales son conductores.</b> Cualquier metal en el hueco completa el camino.")); next(); }
+    else if (o === 3 && !lit && cfg.closed && ["eraser", "ruler", "spoon"].includes(cfg.gapKind)) { feed(S, L("<b>Insulators block the current.</b> Rubber, plastic and wood leave the loop open, so the bulb stays dark.", "<b>Los aislantes bloquean la corriente.</b> La goma, el plástico y la madera dejan el camino abierto, así que la bombilla sigue apagada.")); next(); }
+    wasLit = lit;
+  }
+  function place(m) {
+    if (cfg.gapKind === m.k) return;
+    cfg.gapKind = m.k; cfg.gap = m.cond ? "cond" : "ins"; st.tested[m.k] = m.cond ? "cond" : "ins";
+    const lit = cfg.closed && m.cond;
+    if (lastLogged !== m.k + cfg.closed) { lastLogged = m.k + cfg.closed;
+      sim.recordTrial({ station: L("1 Close the loop", "1 Cerrar el circuito"), setup: L("Gap filled with: ", "Hueco con: ") + L(m.en, m.es) + (cfg.closed ? "" : L(" (switch off)", " (interruptor apagado)")), bulbs: 1, cells: 2, bright: lit ? "100" : "0", current: lit ? "0.30" : "0.00", result: !cfg.closed ? L("Dark - switch open", "Apagada - interruptor abierto") : m.cond ? L("Bulb lit - conductor", "Bombilla encendida - conductor") : L("Stayed dark - insulator", "Siguió apagada - aislante") }); }
+    if (lit) { burst(S.el(".sp-stage"), 50, 50, ["#ffd24d", "#fff"], 10); view.punch(); } else feed(S, cfg.closed ? L(`<b>${m.en}</b> is an insulator - the loop is still open and the bulb stays dark.`, `<b>${m.es}</b> es un aislante - el camino sigue abierto y la bombilla sigue apagada.`) : L("The switch is off, so nothing can flow.", "El interruptor está apagado, así que no puede circular nada."));
+    refresh();
+  }
+  function toggleSwitch() { cfg.closed = !cfg.closed; view.punch(); refresh({ switched: true }); if (!cfg.closed && st.idx !== 1) feed(S, L("Switch open: there is a gap, so the current stops.", "Interruptor abierto: hay un hueco, así que la corriente se detiene.")); }
+  S.el("#s1-sw").addEventListener("click", toggleSwitch);
+  S.el("#s1-clear").addEventListener("click", () => { cfg.gapKind = null; cfg.gap = "open"; refresh(); feed(S, L("The gap is empty - the loop is open.", "El hueco está vacío - el camino está abierto.")); });
+  refresh(); wasLit = solve(cfg).I > 0;
+  if (st.idx === 0) feed(S, L("The loop has a gap, so the bulb is dark and no charges move. Fill the gap!", "El camino tiene un hueco, así que la bombilla está apagada y no se mueven cargas. ¡Rellena el hueco!"));
+  return { done: () => st.idx >= ORD1.length };
+}
+
+/* ============================================================ STATION 2 — Series vs Parallel builder */
+const ORD2 = [
+  { en: "Build a SERIES circuit with 3 bulbs and get them all glowing.", es: "Construye un circuito en SERIE con 3 bombillas y haz que brillen todas.", t: c => c.mode === "series" && c.n >= 3 },
+  { en: "Now build a PARALLEL circuit with 3 bulbs. Compare how bright they are with the series circuit.", es: "Ahora construye un circuito en PARALELO con 3 bombillas. Compara su brillo con el del circuito en serie.", t: c => c.mode === "parallel" && c.n >= 3 },
+  { en: "In your PARALLEL circuit, tap one bulb to break it. Keep the others glowing.", es: "En tu circuito en PARALELO, toca una bombilla para romperla. Mantén las demás encendidas.", t: c => c.mode === "parallel" && c.n >= 3 },
+  { en: "Switch to SERIES with 3 bulbs and break one. What happens to the other two?", es: "Cambia a SERIE con 3 bombillas y rompe una. ¿Qué les pasa a las otras dos?", t: c => c.mode === "series" && c.n >= 3 },
+  { en: "Challenge: make 3 bulbs all shine at full brightness (80% or more) without any burning out. Hint: watch the Cell push and bulb brightness.", es: "Desafío: haz que 3 bombillas brillen a pleno brillo (80% o más) sin que ninguna se queme. Pista: observa el Empuje de la pila y el brillo.", t: c => c.n >= 3 }
+];
+function buildStation2(host, sim, onChange) {
+  const st = SP(sim).s2 = SP(sim).s2 || { idx: 0, mode: "series", n: 1, cells: 2, closed: true, broken: [false, false, false, false] };
+  const S = shell(host, 2, L("Series or Parallel?", "¿Serie o paralelo?"), L("Build your own circuits. Add bulbs and cells, flip the switch, and tap a bulb to break it. Read the meters - they are your evidence.", "Construye tus propios circuitos. Añade bombillas y pilas, acciona el interruptor y toca una bombilla para romperla. Lee los medidores - son tu evidencia."), ORD2.length);
+  const cfg = { mode: st.mode, n: st.n, cells: st.cells, closed: st.closed !== false, broken: (st.broken || []).slice(0, 4) };
+  while (cfg.broken.length < 4) cfg.broken.push(false);
+  const view = makeView(S, { onBulb: toggleBulb, onSwitch: toggleSwitch });
+  S.el(".sp-ctl").innerHTML = `<div class="sp-row"><span class="sp-lab">${L("Wiring:", "Cableado:")}</span><div class="sp-seg" role="group" aria-label="${L("Wiring", "Cableado")}" style="margin:0"><button type="button" id="s2-ser" data-m="series">${L("Series", "Serie")}</button><button type="button" id="s2-par" data-m="parallel">${L("Parallel", "Paralelo")}</button></div>
+      <span class="sp-lab" style="margin-left:.6rem">${L("Switch:", "Interruptor:")}</span><button type="button" class="sp-chip" id="s2-sw"></button></div>
+    <div class="sp-row"><span class="sp-lab">${L("Bulbs", "Bombillas")}</span><button type="button" class="sp-chip" id="s2-bm" aria-label="${L("Remove a bulb", "Quitar una bombilla")}">−</button><span class="sp-count" id="s2-bn"></span><button type="button" class="sp-chip" id="s2-bp" aria-label="${L("Add a bulb", "Añadir una bombilla")}">+</button>
+      <span class="sp-lab" style="margin-left:.8rem">${L("Cells", "Pilas")}</span><button type="button" class="sp-chip" id="s2-cm" aria-label="${L("Remove a cell", "Quitar una pila")}">−</button><span class="sp-count" id="s2-cn"></span><button type="button" class="sp-chip" id="s2-cp" aria-label="${L("Add a cell", "Añadir una pila")}">+</button></div>
+    <div class="sp-row"><span class="sp-lab">${L("Break / fix:", "Romper / arreglar:")}</span><span class="sp-chiprow" id="s2-brk"></span><button type="button" class="sp-btn sp-btn--ghost" id="s2-fix">${L("Replace all bulbs", "Cambiar todas las bombillas")}</button><button type="button" class="sp-btn" id="s2-log">${L("Log this reading", "Anotar esta lectura")}</button></div>`;
+  let burning = false;
+  const resultNote = (c, res) => !res.loop ? L("All dark - no complete loop", "Todo apagado - sin camino completo") : c.broken.slice(0, c.n).some(Boolean) ? L("Broken bulb - others stayed lit", "Bombilla rota - las otras siguieron encendidas") : Math.min(...res.P) >= 0.8 ? L("All bulbs bright", "Todas brillantes") : L("Bulbs dim (shared push)", "Bombillas tenues (empuje compartido)");
+  function row(c, res, note) {
+    const brokenIdx = c.broken.slice(0, c.n).map((b, i) => b ? i + 1 : 0).filter(Boolean);
+    return { station: L("2 Series vs parallel", "2 Serie vs paralelo"), setup: (c.mode === "series" ? L("Series", "Serie") : L("Parallel", "Paralelo")) + (c.closed ? "" : L(", switch off", ", interruptor apagado")) + (brokenIdx.length ? L(", broken bulb ", ", fundida: ") + brokenIdx.join("+") : ""), bulbs: c.n, cells: c.cells, bright: res.P.slice(0, c.n).map((p, i) => c.broken[i] ? 0 : brightnessPct(p)).join(", "), current: res.I.toFixed(2), result: note };
+  }
+  function paintBroken() {
+    const el = S.el("#s2-brk"); el.innerHTML = "";
+    for (let i = 0; i < cfg.n; i++) { const b = document.createElement("button"); b.type = "button"; b.className = "sp-chip"; b.setAttribute("aria-pressed", String(!!cfg.broken[i])); b.textContent = (cfg.broken[i] ? L("Fix ", "Arreglar ") : L("Break ", "Romper ")) + (i + 1); b.addEventListener("click", () => toggleBulb(i)); el.append(b); }
+  }
+  function refresh(noCheck) {
+    let res = view.set(cfg);
+    const burn = []; for (let i = 0; i < cfg.n; i++) if (res.alive[i] && res.P[i] > BURN_P) burn.push(i);
+    paintTele(S, cfg, res, L("burned out", "quemada")); paintBroken(); paintOrder(S, st.idx, ORD2);
+    S.el("#s2-ser").setAttribute("aria-pressed", String(cfg.mode === "series")); S.el("#s2-par").setAttribute("aria-pressed", String(cfg.mode === "parallel"));
+    S.el("#s2-sw").textContent = cfg.closed ? L("ON (closed)", "ENCENDIDO (cerrado)") : L("OFF (open)", "APAGADO (abierto)"); S.el("#s2-sw").setAttribute("aria-pressed", String(cfg.closed));
+    S.el("#s2-bn").textContent = cfg.n; S.el("#s2-cn").textContent = cfg.cells;
+    Object.assign(st, { mode: cfg.mode, n: cfg.n, cells: cfg.cells, closed: cfg.closed, broken: cfg.broken.slice() }); sim.saveState();
+    if (burn.length && !burning) {
+      burning = true; view.punch();
+      setTimeout(() => { burn.forEach(i => { cfg.broken[i] = true; }); burning = false; sim.toast(L(`Bulb ${burn.map(i => i + 1).join(" and ")} burned out! Too much push for one bulb - remove a cell or share the push across more bulbs.`, `¡Se quemó la bombilla ${burn.map(i => i + 1).join(" y ")}! Demasiado empuje para una bombilla - quita una pila o reparte el empuje entre más bombillas.`), "info"); refresh(); }, 520);
+      return;
+    }
+    liveNote(res); if (noCheck !== true) checkOrder(res);
+  }
+  function liveNote(res) {
+    if (!res.loop) feed(S, L("<b>No current.</b> The loop is broken (a switch is open, or a bulb in a series circuit is broken).", "<b>Sin corriente.</b> El camino está roto (hay un interruptor abierto, o una bombilla de un circuito en serie está rota)."));
+    else if (cfg.mode === "series") feed(S, L(`<b>Series:</b> one path. Watch the charges - they move at the same speed everywhere. Each bulb is at ${brightnessPct(res.P[0])}%.`, `<b>Serie:</b> un solo camino. Mira las cargas - se mueven a la misma velocidad en todas partes. Cada bombilla está al ${brightnessPct(res.P[0])}%.`));
+    else feed(S, L(`<b>Parallel:</b> a path for each bulb. Watch the charges speed up where the paths meet, near the cells. The cells supply ${res.I.toFixed(2)} A.`, `<b>Paralelo:</b> un camino para cada bombilla. Mira cómo las cargas se aceleran donde se juntan los caminos, cerca de las pilas. Las pilas suministran ${res.I.toFixed(2)} A.`));
+  }
+  function checkOrder(res) {
+    const o = st.idx; if (o >= ORD2.length) return; let ok = false, insight = "";
+    const c = cfg, alive = res.alive.slice(0, c.n), brokenAny = c.broken.slice(0, c.n).some(Boolean);
+    if (o === 0) { ok = c.mode === "series" && c.n >= 3 && c.closed && res.loop; insight = L("Series: bulbs share the cell's push, so each one is dim.", "Serie: las bombillas comparten el empuje de la pila, así que cada una brilla poco."); }
+    else if (o === 1) { ok = c.mode === "parallel" && c.n >= 3 && c.closed && res.branch.slice(0, c.n).every(x => x > 0); insight = L("Parallel: each bulb has its own path, so all are brighter than in series.", "Paralelo: cada bombilla tiene su propio camino, así que todas brillan más que en serie."); }
+    else if (o === 2) { ok = c.mode === "parallel" && c.n >= 3 && c.closed && brokenAny && res.branch.slice(0, c.n).some(x => x > 0); insight = L("Parallel: the other bulbs keep glowing - each has its own complete loop.", "Paralelo: las otras bombillas siguen encendidas - cada una tiene su propio camino completo."); }
+    else if (o === 3) { ok = c.mode === "series" && c.n >= 3 && c.closed && brokenAny && !res.loop; insight = L("Series: one broken bulb breaks the only loop, so ALL bulbs go out.", "Serie: una bombilla rota rompe el único camino, así que TODAS se apagan."); }
+    else if (o === 4) { ok = c.n >= 3 && c.closed && !brokenAny && res.P.slice(0, c.n).every(p => p >= 0.8 && p <= BURN_P); insight = L("Parallel with 2 cells gives every bulb the full push without burning any out.", "Paralelo con 2 pilas da a cada bombilla el empuje completo sin quemar ninguna."); }
+    if (!ok) return;
+    sim.recordTrial(row(c, res, insight));
+    st.idx++; sim.saveState(); paintOrder(S, st.idx, ORD2);
+    burst(S.el(".sp-stage"), 50, 50, ["#ffd24d", "#7fe6ff", "#fff"], 28); view.punch();
+    sim.toast(L("Order complete - logged in your Investigation Record.", "Pedido completado - anotado en tu Registro de investigación."), "correct");
+    feed(S, "<b>" + L("You found: ", "Descubriste: ") + "</b>" + insight); onChange();
+  }
+  function toggleBulb(i) { if (i >= cfg.n) return; cfg.broken[i] = !cfg.broken[i]; view.punch(); refresh(); }
+  function toggleSwitch() { cfg.closed = !cfg.closed; refresh(); }
+  S.el("#s2-ser").addEventListener("click", () => { cfg.mode = "series"; refresh(); });
+  S.el("#s2-par").addEventListener("click", () => { cfg.mode = "parallel"; refresh(); });
+  S.el("#s2-sw").addEventListener("click", toggleSwitch);
+  const bump = (k, d, lo, hi, btn) => { const v = cfg[k] + d; if (v < lo || v > hi) { shake(S.el(btn)); sim.toast(k === "n" ? L("This bench holds 1 to 4 bulbs.", "Este banco admite de 1 a 4 bombillas.") : L("Use 1 to 3 cells.", "Usa de 1 a 3 pilas."), "info"); return; } cfg[k] = v; refresh(); };
+  S.el("#s2-bm").addEventListener("click", () => bump("n", -1, 1, 4, "#s2-bm")); S.el("#s2-bp").addEventListener("click", () => bump("n", 1, 1, 4, "#s2-bp"));
+  S.el("#s2-cm").addEventListener("click", () => bump("cells", -1, 1, 3, "#s2-cm")); S.el("#s2-cp").addEventListener("click", () => bump("cells", 1, 1, 3, "#s2-cp"));
+  S.el("#s2-fix").addEventListener("click", () => { cfg.broken = [false, false, false, false]; refresh(); });
+  S.el("#s2-log").addEventListener("click", () => { const res = solve(cfg); sim.recordTrial(row(cfg, res, resultNote(cfg, res))); burst(S.el(".sp-stage"), 12, 85, ["#7fe6ff", "#fff"], 8); sim.toast(L("Reading logged.", "Lectura anotada."), "correct"); });
+  refresh(true);
+  return { done: () => st.idx >= ORD2.length };
+}
+
+/* ============================================================ STATION 3 — Fault Finder */
+const JOBS = [{ m: "series", n: 6 }, { m: "parallel", n: 6 }, { m: "series", n: 8 }, { m: "parallel", n: 8 }];
+function buildStation3(host, sim, onChange) {
+  const st = SP(sim).s3 = SP(sim).s3 || { idx: 0, faulty: JOBS.map(j => Math.floor(Math.random() * j.n)), swaps: [], tested: [] };
+  const ordText = i => JOBS[i].m === "series"
+    ? { en: `Job ${i + 1}: A string of ${JOBS[i].n} old fairy lights is completely dark - one bulb is faulty. Swap in a spare (tap a bulb) until the string lights. Use as few swaps as you can.`, es: `Trabajo ${i + 1}: Una tira de ${JOBS[i].n} luces de hadas antiguas está totalmente apagada - una bombilla está averiada. Cambia por una de repuesto (toca una bombilla) hasta que se encienda. Usa los menos cambios posibles.` }
+    : { en: `Job ${i + 1}: A house has ${JOBS[i].n} lamps and one is dead. Find it and swap in a spare. Use as few swaps as you can.`, es: `Trabajo ${i + 1}: Una casa tiene ${JOBS[i].n} lámparas y una está apagada. Encuéntrala y cámbiala por una de repuesto. Usa los menos cambios posibles.` };
+  const list = JOBS.map((_, i) => ordText(i));
+  const S = shell(host, 3, L("Fault Finder", "Buscador de averías"), L("Fix the fault. In which kind of circuit is it harder to find the broken bulb?", "Arregla la avería. ¿En qué tipo de circuito es más difícil encontrar la bombilla rota?"), JOBS.length);
+  const cfg = { mode: "series", n: 6, cells: 3, volts: 18, hasSwitch: false, closed: true, broken: [], hideBroken: true };
+  const view = makeView(S, { onBulb: swap });
+  S.el(".sp-ctl").innerHTML = `<div class="sp-row"><span class="sp-lab">${L("Swap in a spare for bulb:", "Cambiar por una de repuesto la bombilla:")}</span><span class="sp-chiprow" id="s3-chips"></span></div><p class="sp-jobs" id="s3-jobs"></p>`;
+  function loadJob() {
+    const j = JOBS[Math.min(st.idx, JOBS.length - 1)], f = st.faulty[Math.min(st.idx, JOBS.length - 1)];
+    Object.assign(cfg, { mode: j.m, n: j.n, volts: j.m === "series" ? j.n * 3 : 3 });
+    cfg.broken = Array.from({ length: j.n }, (_, i) => i === f && !(st.idx >= JOBS.length || (st.fixed && st.fixed[st.idx])));
+    st.tested = st.tested || [];
+  }
+  function paint() {
+    const idx = Math.min(st.idx, JOBS.length - 1), done = st.idx >= JOBS.length, res = view.set(cfg);
+    paintOrder(S, st.idx, list);
+    S.el(".sp-tele").innerHTML = `<div class="sp-meters"><div class="sp-m"><span>${L("Swaps this job", "Cambios este trabajo")}</span><b>${(st.cur | 0)}</b></div><div class="sp-m"><span>${L("Circuit", "Circuito")}</span><b>${cfg.mode === "series" ? L("Series", "Serie") : L("Parallel", "Paralelo")}</b></div><div class="sp-m"><span>${L("Lights on", "Luces encendidas")}</span><b>${res.branch.slice(0, cfg.n).filter(x => x > 0).length}/${cfg.n}</b></div></div>`;
+    const chips = S.el("#s3-chips"); chips.innerHTML = "";
+    for (let i = 0; i < cfg.n; i++) { const b = document.createElement("button"); b.type = "button"; b.className = "sp-chip"; b.textContent = String(i + 1); b.setAttribute("aria-label", L("Swap bulb " + (i + 1), "Cambiar bombilla " + (i + 1))); if ((st.tested || []).includes(i)) b.dataset.state = "tested"; b.disabled = done || !!(st.fixed && st.fixed[idx]); b.addEventListener("click", () => swap(i)); chips.append(b); }
+    const prev = (st.log || []).map(l => `${l.m === "series" ? L("Series", "Serie") : L("Parallel", "Paralelo")} ${l.n}: ${l.s} ${l.s === 1 ? L("swap", "cambio") : L("swaps", "cambios")}`);
+    S.el("#s3-jobs").textContent = prev.length ? L("Finished jobs - ", "Trabajos terminados - ") + prev.join(" · ") : "";
+  }
+  function swap(i) {
+    if (st.idx >= JOBS.length || i >= cfg.n) return; const idx = st.idx;
+    if (st.fixed && st.fixed[idx]) return;
+    st.cur = (st.cur | 0) + 1; st.tested = st.tested || [];
+    if (i === st.faulty[idx]) {
+      st.fixed = st.fixed || []; st.fixed[idx] = true; cfg.broken[i] = false;
+      st.log = st.log || []; st.log.push({ m: cfg.mode, n: cfg.n, s: st.cur });
+      const res = view.set(cfg); view.punch(); burst(S.el(".sp-stage"), 50, 50, ["#ffd24d", "#7fe6ff", "#fff"], 30);
+      sim.recordTrial({ station: L("3 Fault finder", "3 Buscador de averías"), setup: cfg.mode === "series" ? L("Series string", "Tira en serie") : L("Parallel house", "Casa en paralelo"), bulbs: cfg.n, cells: "-", bright: "100", current: "-", result: L(`Fault found after ${st.cur} swap${st.cur === 1 ? "" : "s"}`, `Avería hallada tras ${st.cur} cambio${st.cur === 1 ? "" : "s"}`) });
+      feed(S, cfg.mode === "series" ? L(`<b>Fixed in ${st.cur} swap${st.cur === 1 ? "" : "s"}.</b> In a series string every bulb looks the same - you have to test them one by one.`, `<b>Arreglado en ${st.cur} cambio${st.cur === 1 ? "" : "s"}.</b> En una tira en serie todas las bombillas parecen iguales - hay que probarlas una a una.`) : L(`<b>Fixed in ${st.cur} swap${st.cur === 1 ? "" : "s"}.</b> In a parallel circuit the dead lamp is the one that is dark - the rest keep working.`, `<b>Arreglado en ${st.cur} cambio${st.cur === 1 ? "" : "s"}.</b> En un circuito en paralelo la lámpara averiada es la que está apagada - las demás siguen funcionando.`));
+      st.idx++; st.cur = 0; st.tested = []; sim.saveState(); sim.toast(L("Job complete!", "¡Trabajo completado!"), "correct");
+      setTimeout(() => { if (st.idx < JOBS.length) { st.fixed = st.fixed; loadJob(); paint(); } else { paint(); } onChange(); }, 1700); paint(); return;
+    }
+    if (!st.tested.includes(i)) st.tested.push(i); shake(S.el(".sp-meters"));
+    feed(S, cfg.mode === "series" ? L(`Bulb ${i + 1} was fine, so the string is still dark. Which one next? (${st.cur} swap${st.cur === 1 ? "" : "s"} so far)`, `La bombilla ${i + 1} estaba bien, así que la tira sigue apagada. ¿Cuál es la siguiente? (${st.cur} cambio${st.cur === 1 ? "" : "s"} hasta ahora)`) : L(`Lamp ${i + 1} was working fine - look for the one that is DARK instead.`, `La lámpara ${i + 1} funcionaba bien - busca la que está APAGADA.`));
+    sim.saveState(); paint();
+  }
+  loadJob(); paint();
+  if (st.idx === 0 && !(st.cur | 0)) feed(S, L("Every bulb in the string looks the same and the whole string is dark. Where do you begin?", "Todas las bombillas de la tira se ven iguales y toda la tira está apagada. ¿Por dónde empiezas?"));
+  return { done: () => st.idx >= JOBS.length };
+}
+
+/* ============================================================ INVESTIGATE */
+function investigate(host, sim) {
+  sim.setScienceMethod({
+    variables: L(
+      "Independent: whether the bulbs are wired in series or in parallel, the number of bulbs, the number of cells, the switch, and the material in the gap. Dependent: the brightness of each bulb, the current from the cells, whether the circuit works, and the number of swaps needed to find a fault. Controlled: identical bulbs and cells, the same bench and the same 2-cell supply for the main series and parallel trials.",
+      "Independiente: si las bombillas están en serie o en paralelo, el número de bombillas, el número de pilas, el interruptor y el material del hueco. Dependiente: el brillo de cada bombilla, la corriente de las pilas, si el circuito funciona y el número de cambios para encontrar una avería. Controladas: bombillas y pilas idénticas, el mismo banco y la misma alimentación de 2 pilas en las pruebas principales en serie y en paralelo.") });
+  host.innerHTML = "";
+  const prog = document.createElement("div"); prog.className = "sp-progress"; host.append(prog);
+  const stations = [];
+  const bonusHost = document.createElement("div");
+  const paintProg = () => {
+    const s = SP(sim), total = ORD1.length + ORD2.length + JOBS.length, got = (s.s1 ? s.s1.idx : 0) + (s.s2 ? s.s2.idx : 0) + (s.s3 ? s.s3.idx : 0);
+    prog.innerHTML = `<span>${L("Workshop progress", "Progreso del Taller")}</span><span class="sp-spark">⚡ ${got * 100} ${L("sparks", "chispas")}</span><span>${got}/${total} ${L("orders done", "pedidos hechos")}</span>`;
+  };
+  const check = () => {
+    paintProg();
+    if (stations.length === 3 && stations.every(s => s.done()) && !host.querySelector(".sp-complete")) {
+      const c = document.createElement("div"); c.className = "sp-complete";
+      c.innerHTML = L(`<b>Workshop complete!</b> You closed the loop, tested conductors and insulators, built and broke series and parallel circuits and hunted faults. Now explain what your evidence shows.`, `<b>¡Taller completo!</b> Cerraste el circuito, probaste conductores y aislantes, construiste y rompiste circuitos en serie y en paralelo y buscaste averías. Ahora explica lo que muestra tu evidencia.`);
+      host.insertBefore(c, bonusHost);
+    }
+  };
+  stations.push(buildStation1(host, sim, check)); stations.push(buildStation2(host, sim, check)); stations.push(buildStation3(host, sim, check));
+  host.append(bonusHost);
+  mountBrigade(bonusHost, L, stats => { if (stats) sim.toast(L(`Bonus complete — score ${stats.score}, ${stats.accuracy}% right.`, `Bonus completo — ${stats.score} puntos, ${stats.accuracy}% correctas.`), "info"); });
+
+  const reflect = document.createElement("div"); reflect.className = "sp-station";
+  reflect.innerHTML = `<div class="sp-head"><h3 class="sp-title">${L("Quick Reflection", "Reflexión rápida")}</h3></div>
+    <p class="q__hint" style="margin:0">${L("How confident do you feel explaining series and parallel circuits?", "¿Qué tan seguro te sientes explicando los circuitos en serie y en paralelo?")}</p><div class="sp-chiprow" id="sp-r-conf"></div>
+    <p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to investigate next?", "¿Qué te gustaría investigar a continuación?")}</p><div class="sp-chiprow" id="sp-r-next"></div>`;
+  host.append(reflect);
+  const rs = SP(sim).reflect || {};
+  function row(sel, opts, key) {
+    const el = reflect.querySelector(sel);
+    opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "sp-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+      b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; SP(sim).reflect = rs; sim.saveState();
+        sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); });
+      el.append(b); });
+  }
+  row("#sp-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#sp-r-next", [{ id: "volt", label: L("What voltage really is", "Qué es realmente el voltaje") }, { id: "res", label: L("Why some bulbs are brighter", "Por qué algunas bombillas brillan más") }, { id: "mix", label: L("Circuits with series AND parallel", "Circuitos con serie Y paralelo") }], "next");
+
+  const cr = document.createElement("p"); cr.className = "sp-credit"; cr.id = "sp-credits"; host.append(cr);
+  fetch("photos/credits.json").then(r => r.json()).then(j => {
+    const parts = Object.values(j).map(c => `${c.title.replace(/\.[a-z]+$/i, "")} — ${c.author}, <a href="${c.licenseUrl || c.source}" target="_blank" rel="noopener">${c.license}</a>`);
+    cr.innerHTML = L("Image credits (Wikimedia Commons): ", "Créditos de imágenes (Wikimedia Commons): ") + parts.join("; ") + ". " + L("The 3D bench, bulbs and cells are drawn in code.", "El banco 3D, las bombillas y las pilas están dibujados con código.");
+  }).catch(() => { cr.textContent = L("Image credits: see photos/credits.json", "Créditos de imágenes: ver photos/credits.json"); });
+  paintProg(); check();
+}
+
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
