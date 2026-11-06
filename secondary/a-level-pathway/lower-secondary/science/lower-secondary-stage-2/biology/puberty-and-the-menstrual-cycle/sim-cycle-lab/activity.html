@@ -381,6 +381,7 @@ function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
   lock.addEventListener("click", () => {
     const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
     sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" — order met", " — pedido cumplido") : t ? L(" — not the order yet", " — todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("cyc-trial"));
     if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#ff7aa8", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
     else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged — but that is not the order. Re-read it and try again.", "Registrado — pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
     else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
@@ -696,6 +697,7 @@ function investigate(host, sim) {
   row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
   row("#cyc-r-next", [{ id: "fert", label: L("What happens if an egg IS fertilised", "Qué pasa si un óvulo SÍ es fecundado") }, { id: "pub", label: L("Other changes in puberty", "Otros cambios en la pubertad") }, { id: "horm", label: L("How the brain controls hormones", "Cómo el cerebro controla las hormonas") }], "next");
   host.append(creditLine());
+  document.addEventListener("cyc-trial", () => paintBonus());
   let bonusRendered = false;
   function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountHormoneMonitor(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete — score ${st.score}.`, `Bonus completo — ${st.score} puntos.`), "info"); }); }
   check();

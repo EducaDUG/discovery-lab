@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<!-- Lower Secondary Stage 2 Chemistry - Acids and Bases - pH Lab. Content lives here + config.json/marking.json only. Hyper-real 3D lab (CLAUDE.md 18); mechanic: titration; bonus: sorting conveyor (pH Sorting Belt) with real photos. -->
+<html lang="en" data-theme="chemistry" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The pH Lab: Acids, Bases and Neutralisation - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=12">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #1e4a5e 0%, #0e2433 62%, #07121b 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+/* ============================================================
+   3D SCENE KIT
+   ============================================================ */
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+/* Orders queue (persisted in sim.state — CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete — keep exploring, or lock in more readings.", "Todos los pedidos completos — sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" — order met", " — pedido cumplido") : t ? L(" — not the order yet", " — todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("cyc-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#ff7aa8", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged — but that is not the order. Re-read it and try again.", "Registrado — pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+
+
+/* ============================================================
+   pH MODEL
+   ============================================================ */
+const IND = [[0, "#e0202b"], [1, "#e5242f"], [2, "#ec4a25"], [3, "#f26a21"], [4, "#f79a1c"], [5, "#f5d523"], [6, "#c3d63a"], [7, "#3cb44b"], [8, "#2fae9a"], [9, "#2a7fd6"], [10, "#3a56c8"], [11, "#5b3fb5"], [12, "#6d2a9d"], [13, "#59208d"], [14, "#43186f"]];
+function hexRGB(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+function indColor(pH) {
+  pH = Math.max(0, Math.min(14, pH)); const i = Math.min(13, Math.floor(pH)), t = pH - i, a = hexRGB(IND[i][1]), b = hexRGB(IND[i + 1][1]);
+  return "#" + a.map((v, k) => Math.round(v + (b[k] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+const verdict = pH => pH < 6.5 ? { id: "acid", en: "ACID", es: "ÁCIDO" } : pH > 7.5 ? { id: "base", en: "BASE (alkali if it dissolves)", es: "BASE (álcali si se disuelve)" } : { id: "neutral", en: "NEUTRAL", es: "NEUTRO" };
+const colourName = pH => pH < 1.5 ? L("deep red", "rojo intenso") : pH < 2.5 ? L("red", "rojo") : pH < 3.5 ? L("orange-red", "rojo anaranjado") : pH < 4.5 ? L("orange", "naranja") : pH < 5.5 ? L("yellow", "amarillo") : pH < 6.5 ? L("yellow-green", "amarillo verdoso") : pH < 7.5 ? L("green", "verde") : pH < 8.5 ? L("blue-green", "verde azulado") : pH < 10 ? L("blue", "azul") : pH < 11.5 ? L("indigo", "añil") : L("purple", "morado");
+const SUBS = [
+  { id: "stomach", en: "Stomach acid", es: "Ácido del estómago", pH: 1 },
+  { id: "lemon", en: "Lemon juice", es: "Zumo de limón", pH: 2 },
+  { id: "vinegar", en: "Vinegar", es: "Vinagre", pH: 3 },
+  { id: "milk", en: "Milk", es: "Leche", pH: 6.5 },
+  { id: "water", en: "Pure water", es: "Agua pura", pH: 7 },
+  { id: "bicarb", en: "Baking soda solution", es: "Disolución de bicarbonato", pH: 8.5 },
+  { id: "soap", en: "Soap solution", es: "Disolución de jabón", pH: 9 },
+  { id: "naoh", en: "Sodium hydroxide (drain cleaner)", es: "Hidróxido de sodio (desatascador)", pH: 13 },
+];
+const SC = [
+  { id: "stomach", en: "stomach acid (indigestion)", es: "ácido del estómago (indigestión)", s: 1, Veq: 25 },
+  { id: "lemon", en: "lemon juice", es: "zumo de limón", s: 2, Veq: 18 },
+  { id: "vinegar", en: "vinegar", es: "vinagre", s: 3, Veq: 12 },
+];
+function titrationPH(V, sc) { const x = (V - sc.Veq) / sc.Veq; if (x < 0) return 7 - (7 - sc.s) * Math.tanh(5 * -x) / Math.tanh(5); return 7 + 6 * Math.tanh(5 * x) / Math.tanh(5); }
+
+function glassMat(op) { return new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: op || 0.2, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.05, side: THREE.DoubleSide, depthWrite: false }); }
+function liquidMat(hex) { const m = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.15, clearcoat: 0.6, transparent: true, opacity: 0.88 }); setLiquid(m, hex); return m; }
+function setLiquid(m, hex) { m.color.set(hex); m.color.convertSRGBToLinear(); }
+function lightLab(sp) {
+  sp.scene.add(new THREE.HemisphereLight(0xe8f4ff, 0x20303a, 0.95));
+  const k = new THREE.DirectionalLight(0xffffff, 2.2); k.position.set(4, 8, 7); sp.scene.add(k);
+  const r = new THREE.DirectionalLight(0x6fd0ff, 1.2); r.position.set(-6, 3, -5); sp.scene.add(r);
+  const wood = document.createElement("canvas"); wood.width = 256; wood.height = 128; const c = wood.getContext("2d"); c.fillStyle = "#8d6b4a"; c.fillRect(0, 0, 256, 128);
+  for (let i = 0; i < 90; i++) { c.strokeStyle = `rgba(${60 + Math.random() * 40},${40 + Math.random() * 30},20,${0.1 + Math.random() * 0.2})`; c.lineWidth = 1 + Math.random() * 2; c.beginPath(); const y = Math.random() * 128; c.moveTo(0, y); c.bezierCurveTo(80, y + 6, 170, y - 6, 256, y); c.stroke(); }
+  const wt = new THREE.CanvasTexture(wood); wt.encoding = THREE.sRGBEncoding;
+  const bench = new THREE.Mesh(new THREE.BoxGeometry(24, 0.4, 7), new THREE.MeshStandardMaterial({ map: wt, roughness: 0.55 })); bench.position.y = -0.2; sp.scene.add(bench);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 16), new THREE.MeshStandardMaterial({ color: 0x1b3a4a, roughness: 0.9 })); wall.position.set(0, 7, -3.4); sp.scene.add(wall);
+}
+
+/* ---- Station 1 bench: eight test tubes + a dropper ---- */
+function buildBench(sp) {
+  lightLab(sp);
+  const tubes = [], dx = 1.55;
+  const rack = new THREE.Mesh(new THREE.BoxGeometry(SUBS.length * dx + 0.6, 0.18, 1.1), new THREE.MeshStandardMaterial({ color: 0x3f5c70, roughness: 0.5 })); rack.position.set(0, 0.09, 0); sp.scene.add(rack);
+  SUBS.forEach((s, i) => {
+    const x = (i - (SUBS.length - 1) / 2) * dx, g = new THREE.Group(); g.position.set(x, 0.18, 0); sp.scene.add(g);
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 2.3, 28, 1, true), glassMat(0.22)); cyl.position.y = 1.5; g.add(cyl);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.4, 28, 16, 0, TAU, Math.PI / 2, Math.PI / 2), glassMat(0.22)); cap.position.y = 0.35; g.add(cap);
+    const liq = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 1.45, 28), liquidMat("#e9e3c0")); liq.position.y = 1.05; g.add(liq);
+    const lc = new THREE.Mesh(new THREE.SphereGeometry(0.36, 28, 16, 0, TAU, Math.PI / 2, Math.PI / 2), liq.material); lc.position.y = 0.35; g.add(lc);
+    const lab = document.createElement("canvas"); lab.width = 256; lab.height = 96; const cx = lab.getContext("2d"); cx.fillStyle = "#f4f7fa"; cx.fillRect(0, 0, 256, 96); cx.fillStyle = "#123"; cx.font = "bold 24px sans-serif"; cx.textAlign = "center";
+    const words = L(s.en, s.es).split(" "), lines = []; let cur = ""; words.forEach(w => { if ((cur + " " + w).length > 14) { lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }); lines.push(cur);
+    lines.slice(0, 3).forEach((ln, k) => cx.fillText(ln, 128, 30 + k * 28 - (lines.length > 2 ? 10 : 0)));
+    const lt = new THREE.CanvasTexture(lab); lt.encoding = THREE.sRGBEncoding; const lp = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.5), new THREE.MeshBasicMaterial({ map: lt })); lp.position.set(x, 0.45, 0.65); sp.scene.add(lp);
+    tubes.push({ x, liq, lc, color: "#e9e3c0" });
+  });
+  const dropper = new THREE.Group(); sp.scene.add(dropper);
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 16), new THREE.MeshPhysicalMaterial({ color: 0xcc2233, roughness: 0.4, clearcoat: 0.6 })); bulb.position.y = 1.55; dropper.add(bulb);
+  const pip = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.03, 1.6, 14), glassMat(0.4)); pip.position.y = 0.55; dropper.add(pip);
+  dropper.position.set(0, 3.8, 0);
+  const dropM = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffe08a })); dropM.visible = false; sp.scene.add(dropM);
+  return { tubes, dropper, bulb, dropM, dx, setColor(i, hex) { tubes[i].color = hex; setLiquid(tubes[i].liq.material, hex); } };
+}
+
+/* ---- Station 2 beaker: H+ and OH- particles ---- */
+function buildBeaker(sp) {
+  lightLab(sp);
+  const prof = []; for (let i = 0; i <= 10; i++) prof.push(new THREE.Vector2(2.1, i * 0.34));
+  const beaker = new THREE.Mesh(new THREE.LatheGeometry(prof, 48), glassMat(0.16)); sp.scene.add(beaker);
+  const bot = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.1, 0.08, 48), glassMat(0.3)); bot.position.y = 0.04; sp.scene.add(bot);
+  const liq = new THREE.Mesh(new THREE.CylinderGeometry(2.04, 2.04, 2.7, 48), liquidMat("#3cb44b")); liq.position.y = 1.45; liq.material.opacity = 0.42; sp.scene.add(liq);
+  const MAX = 90, mk = (hex) => { const pos = new Float32Array(MAX * 3), vel = []; for (let i = 0; i < MAX; i++) { const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * 1.8; pos[i * 3] = Math.cos(a) * r; pos[i * 3 + 1] = 0.3 + Math.random() * 2.4; pos[i * 3 + 2] = Math.sin(a) * r; vel.push([Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5]); }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.34, map: makeGlowTexture(hex), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true })); sp.scene.add(p); return { p, pos, vel, g }; };
+  const H = mk("#ff5a5a"), OH = mk("#5ab0ff");
+  const sc = document.createElement("canvas"); sc.width = sc.height = 64; const x = sc.getContext("2d"); x.fillStyle = "rgba(255,255,255,.55)"; x.beginPath(); x.arc(32, 32, 14, 0, TAU); x.fill();
+  const WN = 70, wpos = new Float32Array(WN * 3); for (let i = 0; i < WN; i++) { const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * 1.9; wpos[i * 3] = Math.cos(a) * r; wpos[i * 3 + 1] = 0.3 + Math.random() * 2.4; wpos[i * 3 + 2] = Math.sin(a) * r; }
+  const wg = new THREE.BufferGeometry(); wg.setAttribute("position", new THREE.BufferAttribute(wpos, 3)); sp.scene.add(new THREE.Points(wg, new THREE.PointsMaterial({ size: 0.12, color: 0xcfe8ff, transparent: true, opacity: 0.5, depthWrite: false })));
+  let nH = 17, nOH = 17;
+  function step(arr) { const a = arr.pos; for (let i = 0; i < MAX; i++) { for (let k = 0; k < 3; k++) { arr.vel[i][k] += (Math.random() - 0.5) * 0.12; arr.vel[i][k] *= 0.96; a[i * 3 + k] += arr.vel[i][k] * 0.03; }
+    const r = Math.hypot(a[i * 3], a[i * 3 + 2]); if (r > 1.85) { a[i * 3] *= 1.85 / r; a[i * 3 + 2] *= 1.85 / r; arr.vel[i][0] *= -1; arr.vel[i][2] *= -1; } if (a[i * 3 + 1] < 0.25) { a[i * 3 + 1] = 0.25; arr.vel[i][1] *= -1; } if (a[i * 3 + 1] > 2.7) { a[i * 3 + 1] = 2.7; arr.vel[i][1] *= -1; } } arr.g.attributes.position.needsUpdate = true; }
+  sp.hooks.push(() => { if (!reducedMotion()) { step(H); step(OH); } });
+  return { counts: pH => ({ h: Math.round(2 + 70 * Math.pow((14 - pH) / 14, 2.2)), oh: Math.round(2 + 70 * Math.pow(pH / 14, 2.2)) }), set(pH) { const c = this.counts(pH); nH = Math.min(MAX, c.h); nOH = Math.min(MAX, c.oh); H.g.setDrawRange(0, nH); OH.g.setDrawRange(0, nOH); setLiquid(liq.material, indColor(pH)); } };
+}
+
+/* ---- Station 3: burette + conical flask ---- */
+function buildTitration(sp) {
+  lightLab(sp);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.2, 2.2), new THREE.MeshStandardMaterial({ color: 0x35424c, roughness: 0.5, metalness: 0.4 })); base.position.set(0, 0.1, 0); sp.scene.add(base);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 7, 12), new THREE.MeshStandardMaterial({ color: 0xb8c0c8, metalness: 0.8, roughness: 0.3 })); rod.position.set(-1.2, 3.6, -0.3); sp.scene.add(rod);
+  const clamp = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 0.2), new THREE.MeshStandardMaterial({ color: 0xb8c0c8, metalness: 0.8, roughness: 0.3 })); clamp.position.set(-0.55, 5.6, -0.2); sp.scene.add(clamp);
+  const bur = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 4.2, 24, 1, true), glassMat(0.25)); bur.position.set(0, 5.0, 0); sp.scene.add(bur);
+  const bliq = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 4.0, 24), liquidMat("#3a56c8")); bliq.position.set(0, 5.0, 0); sp.scene.add(bliq); bliq.material.opacity = 0.75;
+  const tap = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.5, 12), new THREE.MeshStandardMaterial({ color: 0xe8e8e8, metalness: 0.5, roughness: 0.3 })); tap.rotation.z = Math.PI / 2; tap.position.set(0.0, 2.85, 0); sp.scene.add(tap);
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.015, 0.5, 10), glassMat(0.4)); tip.position.set(0, 2.55, 0); sp.scene.add(tip);
+  const prof = [new THREE.Vector2(1.35, 0), new THREE.Vector2(1.3, 0.1), new THREE.Vector2(0.95, 1.2), new THREE.Vector2(0.45, 2.0), new THREE.Vector2(0.38, 2.4), new THREE.Vector2(0.42, 2.5)];
+  const flask = new THREE.Mesh(new THREE.LatheGeometry(prof, 40), glassMat(0.22)); flask.position.set(0, 0.2, 0); sp.scene.add(flask);
+  const fl = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 1.28, 1.0, 40), liquidMat("#ec4a25")); fl.position.set(0, 0.7, 0); sp.scene.add(fl);
+  const drop = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), new THREE.MeshBasicMaterial({ color: 0xa8c8ff })); drop.visible = false; sp.scene.add(drop);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.05, 0.08, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.set(0, 1.2, 0); sp.scene.add(ring);
+  return { fl, bliq, drop, ring, setFlask(hex, vol) { setLiquid(fl.material, hex); const h = 0.8 + Math.min(0.5, vol / 70); fl.scale.y = h; fl.position.y = 0.2 + 0.25 + 0.25 * h; }, setBurette(frac) { const f = Math.max(0.02, frac); bliq.scale.y = f; bliq.position.y = 3.0 + 2.0 * f; },
+    dropAnim() { if (reducedMotion()) { ring.material.opacity = 0; return; } drop.visible = true; drop.position.set(0, 2.3, 0); tween(380, e => { drop.position.y = 2.3 - e * 1.1; }, () => { drop.visible = false; ring.material.opacity = 0.8; ring.scale.setScalar(1); tween(450, e => { ring.scale.setScalar(1 + e * 8); ring.material.opacity = 0.8 * (1 - e); }); }); } };
+}
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit"; cr.innerHTML = L(
+    'Photos via Wikimedia Commons: lemon — ulleo/Pixabay (CC0); vinegar — Sgroey (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>); tomato juice — VSerebrenikov (CC BY-SA 4.0); orange juice — Corn cheese (CC BY-SA 4.0); soap — public domain; toothpaste — Steve Buissinne (CC0); baking soda — Thavox (public domain); antacid tablets — Midnightcomm (<a href="https://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a>).',
+    'Fotos vía Wikimedia Commons: limón — ulleo/Pixabay (CC0); vinagre — Sgroey (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>); jugo de tomate — VSerebrenikov (CC BY-SA 4.0); jugo de naranja — Corn cheese (CC BY-SA 4.0); jabón — dominio público; pasta de dientes — Steve Buissinne (CC0); bicarbonato — Thavox (dominio público); antiácido — Midnightcomm (<a href="https://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a>).'); return cr;
+}
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Everyday things are acids or bases — and chemists have a number for it, the pH scale. Tap each real photo to meet three of them. (Safety: in real life never taste or touch unknown liquids — in this lab it is all simulated.)", "Las cosas cotidianas son ácidos o bases — y los químicos tienen un número para ello, la escala de pH. Toca cada foto real para conocer tres. (Seguridad: en la vida real nunca pruebes ni toques líquidos desconocidos — en este laboratorio todo es simulado.)");
+  host.append(p);
+  const items = [
+    { f: "photos/lemon.jpg", en: "Lemon", es: "Limón", t: { en: "Lemon juice is an ACID with a pH of about 2. That is why it tastes so sour.", es: "El zumo de limón es un ÁCIDO con un pH de unos 2. Por eso sabe tan agrio." } },
+    { f: "photos/soap.jpg", en: "Soap", es: "Jabón", t: { en: "Soap is a BASE with a pH of about 9 to 10. Bases often feel slippery.", es: "El jabón es una BASE con un pH de unos 9 a 10. Las bases suelen sentirse resbaladizas." } },
+    { f: "photos/antacid.jpg", en: "Antacid tablets", es: "Pastillas antiácidas", t: { en: "Antacid tablets contain a base. They calm indigestion by reacting with extra stomach acid — that reaction is called NEUTRALISATION.", es: "Las pastillas antiácidas contienen una base. Calman la indigestión al reaccionar con el exceso de ácido del estómago — esa reacción se llama NEUTRALIZACIÓN." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo"><img src="${it.f}" alt="${L(it.en, it.es)}" loading="lazy"></span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at this real photo of a kitchen scene before you learn any names, then play photo detective: tap what each clue describes.", "Mira de cerca esta foto real de una escena de cocina antes de aprender ningún nombre, y luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo";
+  wrap.innerHTML = `<img src="photos/tomato.jpg" alt="${L("A glass of tomato juice with a cut lime and cherry tomatoes on a plate", "Un vaso de jugo de tomate con una lima cortada y tomates cherry en un plato")}">`;
+  const targets = [
+    { x: 51, y: 40, en: "the glass of tomato juice (pH about 4 — a mild acid)", es: "el vaso de jugo de tomate (pH de unos 4 — un ácido débil)" },
+    { x: 30, y: 56, en: "the cut lime — a citrus fruit full of citric acid, so it tastes sour", es: "la lima cortada — una fruta cítrica llena de ácido cítrico, por eso sabe agria" },
+    { x: 61, y: 66, en: "the cherry tomatoes — they contain acids too", es: "los tomates cherry — también contienen ácidos" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => { if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one — read the clue again.", "Esa no — vuelve a leer la pista."); } });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! Sour-tasting foods are usually acids — but is there a way to measure it?", "¡Detective de fotos completado! Los alimentos de sabor agrio suelen ser ácidos — ¿pero hay una forma de medirlo?") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("You cannot tell how strong an acid is by looking. Chemists use a colour-changing indicator and the pH scale from 0 to 14.", "No puedes saber lo fuerte que es un ácido solo mirándolo. Los químicos usan un indicador que cambia de color y la escala de pH de 0 a 14."); host.append(sub);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   STATION 1 — INDICATOR BENCH
+   ============================================================ */
+function buildIndicator(mount, sim, onDone) {
+  const card = stationShell(1, "Indicator Bench: Which Are Acids?", "Banco de Indicadores: ¿Cuáles son ácidos?", "Choose a liquid, add universal indicator, and read the colour and the pH. Compare with the colour chart.", "Elige un líquido, añade indicador universal y lee el color y el pH. Compáralo con la tabla de colores.");
+  const stage = document.createElement("div"); stage.className = "cyc-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 12.2, yaw: 0, pitch: 0.22, ty: 1.5, fov: 40 });
+  const S = { sel: null, busy: false, tested: new Set(sim.state.tested || []) };
+  const bench = sp ? buildBench(sp) : null;
+  const ctrl = document.createElement("div"); ctrl.className = "cyc-controls"; card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row" id="ph-chips"></div><div class="cyc-row"><button type="button" class="cyc-btn" id="ph-test">${L("Add indicator drops", "Añadir gotas de indicador")}</button><span class="cyc-val" id="ph-tested" style="min-width:8rem"></span></div>
+    <div class="cyc-gauges"><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Liquid", "Líquido")}</div><div class="cyc-stagename" id="ph-name">-</div></div>
+    <div class="cyc-gauge"><div class="cyc-gauge__label">${L("Indicator colour", "Color del indicador")}</div><div class="cyc-gauge__val" id="ph-col">-</div></div>
+    <div class="cyc-gauge"><div class="cyc-gauge__label">pH</div><div class="cyc-gauge__val" id="ph-val">-</div><div class="cyc-gauge__label" id="ph-ver"></div></div></div>
+    <canvas id="ph-chart" width="680" height="70" style="width:100%;height:auto;border-radius:10px;border:1px solid var(--line)"></canvas>`;
+  const chips = ctrl.querySelector("#ph-chips");
+  SUBS.forEach((s, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(s.en, s.es); b.dataset.id = s.id;
+    b.addEventListener("click", () => { S.sel = i; render(); if (sp) tween(600, e => { sp.ob.target.x += (bench.tubes[i].x * 0.25 - sp.ob.target.x) * e * 0.5; }); }); chips.append(b); });
+  const chart = ctrl.querySelector("#ph-chart");
+  function drawLegend(mark) {
+    const c = chart.getContext("2d"); c.clearRect(0, 0, 680, 70); for (let k = 0; k <= 14; k++) { c.fillStyle = IND[k][1]; c.fillRect(10 + k * 44.5, 8, 44, 34); c.fillStyle = "#fff"; c.font = "bold 13px sans-serif"; c.textAlign = "center"; c.fillText(k, 32 + k * 44.5, 29); }
+    c.fillStyle = "#555"; c.font = "11px sans-serif"; c.textAlign = "left"; c.fillText(L("← acids (pH below 7)", "← ácidos (pH menor que 7)"), 10, 62); c.textAlign = "center"; c.fillText(L("neutral 7", "neutro 7"), 10 + 7 * 44.5 + 22, 62); c.textAlign = "right"; c.fillText(L("bases (pH above 7) →", "bases (pH mayor que 7) →"), 670, 62);
+    if (mark != null) { c.strokeStyle = "#111"; c.lineWidth = 3; c.strokeRect(10 + mark * 44.5 - 2 + 22 - 22 + 0.0, 6, 44 + 4 - 2, 38); }
+  }
+  function render() {
+    chips.querySelectorAll(".cyc-chip").forEach((b, i) => { b.setAttribute("aria-pressed", String(i === S.sel)); b.style.borderColor = S.tested.has(SUBS[i].id) ? indColor(SUBS[i].pH) : ""; });
+    ctrl.querySelector("#ph-tested").textContent = L(`Tested ${S.tested.size} of ${SUBS.length}`, `Probados ${S.tested.size} de ${SUBS.length}`);
+    const s = S.sel == null ? null : SUBS[S.sel], tested = s && S.tested.has(s.id);
+    ctrl.querySelector("#ph-name").textContent = s ? L(s.en, s.es) : L("Pick a liquid", "Elige un líquido");
+    ctrl.querySelector("#ph-col").textContent = tested ? colourName(s.pH) : "-"; ctrl.querySelector("#ph-val").textContent = tested ? s.pH : "-";
+    const v = tested ? verdict(s.pH) : null; ctrl.querySelector("#ph-ver").textContent = v ? L(v.en, v.es) : L("not tested yet", "aún sin probar");
+    drawLegend(tested ? Math.round(s.pH) : null);
+  }
+  if (bench) S.tested.forEach(id => { const i = SUBS.findIndex(s => s.id === id); bench.setColor(i, indColor(SUBS[i].pH)); });
+  ctrl.querySelector("#ph-test").addEventListener("click", () => {
+    if (S.sel == null) { const b = ctrl.querySelector("#ph-test"); b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); sim.toast(L("Pick a liquid first.", "Elige primero un líquido."), "info"); return; }
+    if (S.busy) return; const s = SUBS[S.sel], i = S.sel; S.busy = true;
+    const finish = () => { S.tested.add(s.id); sim.state.tested = [...S.tested]; sim.saveState(); S.busy = false; burst(stage, 50, 55, [indColor(s.pH), "#fff"], 14); render(); };
+    if (!bench) { finish(); return; }
+    const d = bench.dropper, x0 = d.position.x, x1 = bench.tubes[i].x;
+    tween(500, e => { d.position.x = x0 + (x1 - x0) * e; }, () => {
+      bench.bulb.scale.setScalar(0.8); bench.dropM.visible = true; bench.dropM.position.set(x1, 3.3, 0);
+      tween(420, e => { bench.dropM.position.y = 3.3 - e * 1.8; }, () => { bench.dropM.visible = false; bench.bulb.scale.setScalar(1);
+        const from = new THREE.Color(bench.tubes[i].color), to = new THREE.Color(indColor(s.pH)); tween(800, e => { const c = from.clone().lerp(to, e); bench.setColor(i, "#" + c.getHexString()); }, finish); });
+    });
+  });
+  const reading = () => { const s = SUBS[S.sel]; return { s, setting: s ? L(s.en, s.es) : "-", reading: s ? L(`Indicator colour ${colourName(s.pH)} · pH ${s.pH}`, `Color del indicador ${colourName(s.pH)} · pH ${s.pH}`) : "-", result: s ? L(verdict(s.pH).en, verdict(s.pH).es) : "-" }; };
+  const tasks = [
+    { en: "Test a liquid that is an ACID (pH below 7) and lock in the reading.", es: "Prueba un líquido que sea un ÁCIDO (pH menor que 7) y fija la lectura.", test: r => r.s && S.tested.has(r.s.id) && r.s.pH < 6.5 },
+    { en: "Test a liquid that is a BASE (pH above 7) and lock in the reading.", es: "Prueba un líquido que sea una BASE (pH mayor que 7) y fija la lectura.", test: r => r.s && S.tested.has(r.s.id) && r.s.pH > 7.5 },
+    { en: "Test the NEUTRAL liquid (pH 7) and lock in the reading.", es: "Prueba el líquido NEUTRO (pH 7) y fija la lectura.", test: r => r.s && S.tested.has(r.s.id) && r.s.pH === 7 },
+    { en: "Test all eight liquids, then lock in the STRONGEST ACID (the lowest pH).", es: "Prueba los ocho líquidos y luego fija el ÁCIDO MÁS FUERTE (el pH más bajo).", test: r => r.s && S.tested.size >= SUBS.length && r.s.id === "stomach" },
+  ];
+  const q = makeOrders(card, sim, "st1", tasks, () => { const r = reading(); if (r.s && !S.tested.has(r.s.id)) { r.reading = L("Not tested yet", "Aún sin probar"); r.result = "-"; } return r; }, L("Indicator", "Indicador"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("indicator", L("Indicator Expert", "Experto en Indicadores")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "cyc-note"; note.textContent = L("Acids have a pH below 7 and bases have a pH above 7. A base that dissolves in water is called an alkali. Pure water is neutral: pH 7. The further from 7, the stronger the acid or base.", "Los ácidos tienen un pH menor que 7 y las bases un pH mayor que 7. Una base que se disuelve en agua se llama álcali. El agua pura es neutra: pH 7. Cuanto más lejos de 7, más fuerte es el ácido o la base.");
+  card.append(note); render(); mount.append(card);
+}
+
+/* ============================================================
+   STATION 2 — PARTICLE VIEWER
+   ============================================================ */
+function buildParticles(mount, sim, onDone) {
+  const card = stationShell(2, "Particle Viewer: What Makes an Acid?", "Visor de Partículas: ¿Qué hace a un ácido?", "Zoom into the liquid. Acids have extra hydrogen ions (H⁺, red). Bases have extra hydroxide ions (OH⁻, blue). Move the pH and watch the particles.", "Acércate al líquido. Los ácidos tienen iones de hidrógeno extra (H⁺, rojo). Las bases tienen iones de hidróxido extra (OH⁻, azul). Mueve el pH y mira las partículas.");
+  const stage = document.createElement("div"); stage.className = "cyc-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 10.8, yaw: 0.2, pitch: 0.28, ty: 1.5, fov: 40 });
+  const S = { pH: sim.state.partPH == null ? 7 : sim.state.partPH };
+  const bk = sp ? buildBeaker(sp) : null;
+  const ctrl = document.createElement("div"); ctrl.className = "cyc-controls"; card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-row"><label for="ph-s">pH</label><input id="ph-s" type="range" min="0" max="14" step="0.5"><span class="cyc-val" id="ph-sv"></span></div><div class="cyc-row" id="ph-pre"></div>
+    <div class="cyc-row"><button type="button" class="cyc-btn cyc-btn--ghost" id="ph-acid">${L("+ Add a splash of acid", "+ Añadir un chorrito de ácido")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ph-alk">${L("+ Add a splash of alkali", "+ Añadir un chorrito de álcali")}</button></div>
+    <div class="cyc-gauges"><div class="cyc-gauge"><div class="cyc-gauge__label" style="color:#d33">H⁺ ${L("particles", "partículas")}</div><div class="cyc-gauge__val" id="ph-nh"></div></div>
+    <div class="cyc-gauge"><div class="cyc-gauge__label" style="color:#27c">OH⁻ ${L("particles", "partículas")}</div><div class="cyc-gauge__val" id="ph-noh"></div></div>
+    <div class="cyc-gauge"><div class="cyc-gauge__label">${L("The liquid is", "El líquido es")}</div><div class="cyc-stagename" id="ph-v2"></div></div></div>`;
+  const sl = ctrl.querySelector("#ph-s");
+  [["stomach", 1], ["lemon", 2], ["vinegar", 3], ["water", 7], ["soap", 9], ["naoh", 13]].forEach(([id, v]) => { const s = SUBS.find(x => x.id === id), b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(s.en.split(" (")[0], s.es.split(" (")[0]) + " · " + v; b.addEventListener("click", () => { const from = S.pH; tween(700, e => { S.pH = from + (v - from) * e; render(); }, () => { S.pH = v; sim.state.partPH = v; sim.saveState(); render(); }); }); ctrl.querySelector("#ph-pre").append(b); });
+  function render() {
+    S.pH = Math.max(0, Math.min(14, S.pH)); sl.value = S.pH; ctrl.querySelector("#ph-sv").textContent = "pH " + (Math.round(S.pH * 10) / 10);
+    const c = bk ? bk.counts(S.pH) : { h: Math.round(2 + 70 * Math.pow((14 - S.pH) / 14, 2.2)), oh: Math.round(2 + 70 * Math.pow(S.pH / 14, 2.2)) };
+    ctrl.querySelector("#ph-nh").textContent = c.h; ctrl.querySelector("#ph-noh").textContent = c.oh;
+    const v = verdict(S.pH); ctrl.querySelector("#ph-v2").textContent = L(v.en, v.es) + (Math.abs(c.h - c.oh) <= 2 ? L(" (equal H⁺ and OH⁻)", " (H⁺ y OH⁻ iguales)") : "");
+    if (bk) bk.set(S.pH);
+  }
+  sl.addEventListener("input", () => { S.pH = +sl.value; render(); }); sl.addEventListener("change", () => { sim.state.partPH = S.pH; sim.saveState(); });
+  const nudge = d => { const from = S.pH; const to = Math.max(0, Math.min(14, from + d)); tween(400, e => { S.pH = from + (to - from) * e; render(); }, () => { sim.state.partPH = S.pH; sim.saveState(); burst(stage, 50, 30, d < 0 ? ["#ff5a5a", "#fff"] : ["#5ab0ff", "#fff"], 10); }); };
+  ctrl.querySelector("#ph-acid").addEventListener("click", () => nudge(-1)); ctrl.querySelector("#ph-alk").addEventListener("click", () => nudge(1));
+  const tasks = [
+    { en: "Make a STRONG ACID: set the pH to 2 or lower and see the sea of red H⁺.", es: "Haz un ÁCIDO FUERTE: pon el pH en 2 o menos y mira el mar de H⁺ rojos.", test: () => S.pH <= 2 },
+    { en: "Make the liquid exactly NEUTRAL (pH 7): the red and blue particles must be equal.", es: "Haz que el líquido sea exactamente NEUTRO (pH 7): las partículas rojas y azules deben ser iguales.", test: () => S.pH === 7 },
+    { en: "Make a WEAK BASE: choose a pH between 8 and 10.", es: "Haz una BASE DÉBIL: elige un pH entre 8 y 10.", test: () => S.pH >= 8 && S.pH <= 10 },
+    { en: "Make a STRONG BASE: set the pH to 13 or higher.", es: "Haz una BASE FUERTE: pon el pH en 13 o más.", test: () => S.pH >= 13 },
+  ];
+  const q = makeOrders(card, sim, "st2", tasks, () => { const c = bk ? bk.counts(S.pH) : { h: 0, oh: 0 }; return { setting: "pH " + S.pH, reading: L(`H⁺ particles ${c.h}, OH⁻ particles ${c.oh}`, `Partículas H⁺ ${c.h}, partículas OH⁻ ${c.oh}`), result: L(verdict(S.pH).en, verdict(S.pH).es) }; }, L("Particles", "Partículas"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("particles", L("Ion Spotter", "Detective de Iones")); onDone(); });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "cyc-note"; note.textContent = L("Particle counts are drawn on a simple scale so you can see the pattern: in a real pH 1 acid there are millions of times more H⁺ than at pH 7. Every step of 1 on the pH scale means 10 times more or fewer H⁺.", "Los recuentos de partículas se dibujan en una escala sencilla para que veas el patrón: en un ácido real de pH 1 hay millones de veces más H⁺ que a pH 7. Cada paso de 1 en la escala de pH significa 10 veces más o menos H⁺.");
+  card.append(note); render(); mount.append(card);
+}
+
+/* ============================================================
+   STATION 3 — NEUTRALISATION (titration)
+   ============================================================ */
+function buildNeutralise(mount, sim, onDone) {
+  const card = stationShell(3, "Neutralisation Station: Fix the Acid", "Estación de Neutralización: Arregla el Ácido", "Add alkali from the burette to the acid in the flask, a little at a time. Watch the indicator and the pH graph — stop when it turns green.", "Añade álcali desde la bureta al ácido del matraz, poco a poco. Mira el indicador y el gráfico de pH — para cuando se ponga verde.");
+  const stage = document.createElement("div"); stage.className = "cyc-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 12.5, yaw: 0.15, pitch: 0.12, ty: 3.4, fov: 40 });
+  const tb = sim.state.titr || (sim.state.titr = { sc: 0 }); const S = { V: 0 };
+  const t3 = sp ? buildTitration(sp) : null; const pts = [];
+  const ctrl = document.createElement("div"); ctrl.className = "cyc-controls"; card.append(ctrl);
+  ctrl.innerHTML = `<div class="cyc-gauges"><div class="cyc-gauge"><div class="cyc-gauge__label">${L("In the flask: 25 mL of", "En el matraz: 25 mL de")}</div><div class="cyc-stagename" id="ph-sc"></div></div>
+    <div class="cyc-gauge"><div class="cyc-gauge__label">${L("Alkali added", "Álcali añadido")}</div><div class="cyc-gauge__val" id="ph-vol"></div></div>
+    <div class="cyc-gauge"><div class="cyc-gauge__label">pH · ${L("indicator", "indicador")}</div><div class="cyc-gauge__val" id="ph-now"></div><div class="cyc-gauge__label" id="ph-ver3"></div></div></div>
+    <div class="cyc-row"><button type="button" class="cyc-btn cyc-btn--ghost" id="ph-d1">${L("Add 1 drop (0.1 mL)", "Añadir 1 gota (0,1 mL)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ph-d5">${L("Add 1 mL", "Añadir 1 mL")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ph-rs">${L("Start again", "Empezar de nuevo")}</button></div>
+    <canvas id="ph-curve" width="680" height="200" style="width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#0d1330"></canvas>`;
+  const cv = ctrl.querySelector("#ph-curve");
+  const sc = () => SC[Math.min(tb.sc, SC.length - 1)], phNow = () => titrationPH(S.V, sc());
+  function drawCurve() {
+    const c = cv.getContext("2d"), W = 680, H = 200, X0 = 40, Y0 = 12, Y1 = 168, Vmax = sc().Veq * 1.6, px = v => X0 + v / Vmax * (W - X0 - 14), py = p => Y1 - p / 14 * (Y1 - Y0);
+    c.clearRect(0, 0, W, H); c.strokeStyle = "#ffffff22"; c.fillStyle = "#9fb0d8"; c.font = "10px sans-serif"; c.textAlign = "left";
+    for (let p = 0; p <= 14; p += 2) { c.beginPath(); c.moveTo(X0, py(p)); c.lineTo(W - 14, py(p)); c.stroke(); c.fillText(p, 14, py(p) + 3); }
+    c.fillStyle = "#3cb44b33"; c.fillRect(X0, py(7.5), W - X0 - 14, py(6.5) - py(7.5)); c.fillStyle = "#9fdc9f"; c.fillText(L("neutral zone", "zona neutra"), W - 90, py(7.5) - 3);
+    c.fillStyle = "#9fb0d8"; c.fillText(L("Alkali added (mL) →", "Álcali añadido (mL) →"), W - 130, H - 6); for (let v = 0; v <= Vmax; v += 5) c.fillText(v, px(v) - 4, Y1 + 14);
+    c.strokeStyle = "#ffe38a"; c.lineWidth = 2.5; c.beginPath(); for (let v = 0; v <= S.V + 0.001; v += 0.25) { const p = titrationPH(v, sc()); v === 0 ? c.moveTo(px(v), py(p)) : c.lineTo(px(v), py(p)); } c.lineTo(px(S.V), py(phNow())); c.stroke();
+    c.fillStyle = indColor(phNow()); c.beginPath(); c.arc(px(S.V), py(phNow()), 6, 0, TAU); c.fill(); c.strokeStyle = "#fff"; c.lineWidth = 1.5; c.stroke();
+  }
+  function render() {
+    const p = phNow(), s = sc(); ctrl.querySelector("#ph-sc").textContent = L(s.en, s.es); ctrl.querySelector("#ph-vol").textContent = S.V.toFixed(1) + " mL";
+    ctrl.querySelector("#ph-now").textContent = "pH " + p.toFixed(1) + " · " + colourName(p); const v = verdict(p); ctrl.querySelector("#ph-ver3").textContent = L(v.en, v.es);
+    if (t3) { t3.setFlask(indColor(p), S.V); t3.setBurette(1 - S.V / (s.Veq * 1.6)); } drawCurve();
+  }
+  const add = dv => { S.V = Math.min(sc().Veq * 1.6, Math.round((S.V + dv) * 10) / 10); if (t3) t3.dropAnim(); burst(stage, 50, 60, [indColor(phNow()), "#fff"], 6); render(); };
+  ctrl.querySelector("#ph-d1").addEventListener("click", () => add(0.1)); ctrl.querySelector("#ph-d5").addEventListener("click", () => add(1));
+  ctrl.querySelector("#ph-rs").addEventListener("click", () => { S.V = 0; render(); });
+  const tasks = [
+    { en: "Neutralise the STOMACH ACID: add alkali until the pH is between 6.5 and 7.5 (green), then lock in.", es: "Neutraliza el ÁCIDO DEL ESTÓMAGO: añade álcali hasta que el pH esté entre 6,5 y 7,5 (verde) y fija la lectura.", sc: 0, test: () => tb.sc === 0 && phNow() >= 6.5 && phNow() <= 7.5 },
+    { en: "Neutralise the LEMON JUICE (it needs a different amount!) and lock in when the pH is between 6.5 and 7.5.", es: "Neutraliza el ZUMO DE LIMÓN (¡necesita otra cantidad!) y fija la lectura cuando el pH esté entre 6,5 y 7,5.", sc: 1, test: () => tb.sc === 1 && phNow() >= 6.5 && phNow() <= 7.5 },
+    { en: "Neutralise the VINEGAR and lock in when the pH is between 6.5 and 7.5.", es: "Neutraliza el VINAGRE y fija la lectura cuando el pH esté entre 6,5 y 7,5.", sc: 2, test: () => tb.sc === 2 && phNow() >= 6.5 && phNow() <= 7.5 },
+    { en: "Too much alkali! Add alkali past neutral until the pH is above 10 (blue/purple) and lock in to see what overshooting does.", es: "¡Demasiado álcali! Añade álcali pasando el punto neutro hasta que el pH supere 10 (azul/morado) y fija la lectura para ver qué pasa al pasarse.", sc: 2, test: () => phNow() > 10 },
+  ];
+  const q = makeOrders(card, sim, "st3", tasks, () => { const p = phNow(); return { setting: L(`25 mL ${sc().en}`, `25 mL de ${sc().es}`), reading: L(`Alkali added ${S.V.toFixed(1)} mL · pH ${p.toFixed(1)} (${colourName(p)})`, `Álcali añadido ${S.V.toFixed(1)} mL · pH ${p.toFixed(1)} (${colourName(p)})`), result: L(verdict(p).en, verdict(p).es) }; }, L("Neutralise", "Neutralizar"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("neutralise", L("Neutralisation Ace", "As de la Neutralización")); onDone(); });
+  const origLock = q.lock; origLock.addEventListener("click", () => { const need = tasks[Math.min(q.st.idx, tasks.length - 1)].sc; if (q.st.idx < tasks.length && need !== tb.sc) { tb.sc = need; sim.saveState(); S.V = 0; t3 && t3.dropAnim(); render(); } });
+  ctrl.prepend(q.bar); ctrl.append(q.lock);
+  tb.sc = Math.min(q.st.idx < tasks.length ? tasks[q.st.idx].sc : 2, 2);
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  const note = document.createElement("p"); note.className = "cyc-note"; note.textContent = L("Neutralisation: an acid reacts with a base (alkali) and they cancel each other out, moving the pH toward 7. Add too much alkali and the liquid becomes a base. (This graph is a simplified model.)", "Neutralización: un ácido reacciona con una base (álcali) y se anulan mutuamente, acercando el pH a 7. Si añades demasiado álcali, el líquido se vuelve una base. (Este gráfico es un modelo simplificado.)");
+  card.append(note); render(); mount.append(card);
+}
+
+/* ============================================================
+   BONUS — pH SORTING BELT (sorting conveyor, real photos)
+   ============================================================ */
+const BELT = [
+  { f: "photos/lemon.jpg", en: "Lemon", es: "Limón", pH: 2, hook: { en: "Lemons contain citric acid — pH about 2.", es: "Los limones contienen ácido cítrico — pH de unos 2." } },
+  { f: "photos/vinegar.jpg", en: "Vinegar", es: "Vinagre", pH: 3, hook: { en: "Vinegar contains ethanoic (acetic) acid — pH about 3.", es: "El vinagre contiene ácido etanoico (acético) — pH de unos 3." } },
+  { f: "photos/tomato.jpg", en: "Tomato juice", es: "Jugo de tomate", pH: 4.3, hook: { en: "Tomatoes are a mild acid — pH about 4.", es: "Los tomates son un ácido débil — pH de unos 4." } },
+  { f: "photos/orange.jpg", en: "Orange juice", es: "Jugo de naranja", pH: 3.5, hook: { en: "Citrus juices are acids — pH about 3 to 4.", es: "Los jugos cítricos son ácidos — pH de 3 a 4." } },
+  { f: "photos/soap.jpg", en: "Soap", es: "Jabón", pH: 9.5, hook: { en: "Soap is a base — pH about 9 to 10.", es: "El jabón es una base — pH de 9 a 10." } },
+  { f: "photos/toothpaste.jpg", en: "Toothpaste", es: "Pasta de dientes", pH: 8.5, hook: { en: "Toothpaste is a mild base that helps neutralise mouth acids.", es: "La pasta de dientes es una base débil que ayuda a neutralizar los ácidos de la boca." } },
+  { f: "photos/bicarb.jpg", en: "Baking soda", es: "Bicarbonato", pH: 8.3, hook: { en: "Baking soda is a base — pH about 8 to 9.", es: "El bicarbonato es una base — pH de 8 a 9." } },
+  { f: "photos/antacid.jpg", en: "Antacid tablets", es: "Pastillas antiácidas", pH: 9, hook: { en: "Antacids are bases that neutralise stomach acid.", es: "Los antiácidos son bases que neutralizan el ácido del estómago." } },
+];
+function mountPhBelt(host, sim, onExit) {
+  const W = 680, H = 280, BEL_Y = 150, SPAWN = 2.6, TRAVEL = 8.2;
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus"; host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: pH Sorting Belt", "Bonus: Cinta Clasificadora de pH")}</h3><p>${L("Real everyday items roll along the belt. Send each one to the ACID bin or the BASE bin before it reaches the end. A late or wrong choice just scores nothing — no penalties. Two minutes. A silent game.", "Objetos cotidianos reales avanzan por la cinta. Envía cada uno al contenedor de ÁCIDOS o al de BASES antes de que llegue al final. Una elección tardía o equivocada solo no suma — sin penalizaciones. Dos minutos. Un juego silencioso.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="bt-start">${L("Play (2 minutes)", "Jugar (2 minutos)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="bt-skip">${L("Skip", "Omitir")}</button></div>`;
+  wrap.querySelector("#bt-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#bt-start").addEventListener("click", start);
+  const imgs = BELT.map(b => { const i = new Image(); i.src = b.f; return i; });
+  function start() {
+    wrap.innerHTML = `<h3>${L("pH Sorting Belt", "Cinta Clasificadora de pH")}</h3><div class="cyc-hud"><span id="bt-time"></span><span id="bt-score"></span><span id="bt-streak"></span></div><canvas id="bt-cv" width="${W}" height="${H}" aria-label="${L("Conveyor belt with everyday items to sort into acid and base bins", "Cinta con objetos cotidianos para clasificar en contenedores de ácido y base")}"></canvas>
+      <div class="cyc-row" style="margin-top:.6rem"><button type="button" class="cyc-btn" id="bt-a" style="flex:1;background:#d94a3a">1 · ${L("ACID (pH below 7)", "ÁCIDO (pH menor que 7)")}</button><button type="button" class="cyc-btn" id="bt-b" style="flex:1;background:#2a6fd0">2 · ${L("BASE (pH above 7)", "BASE (pH mayor que 7)")}</button></div><div class="cyc-toast" id="bt-toast"></div>`;
+    const cv = wrap.querySelector("#bt-cv"), ctx = cv.getContext("2d"), toast = wrap.querySelector("#bt-toast");
+    const G = { left: 120, score: 0, streak: 0, best: 0, ok: 0, tot: 0, over: false, items: [], flying: [], next: 0, order: [], oi: 0, missed: [], t0: performance.now() };
+    const take = () => { if (G.oi >= G.order.length) { G.order = BELT.map((_, i) => i).sort(() => Math.random() - 0.5); G.oi = 0; } return G.order[G.oi++]; };
+    function spawn() { const i = take(); G.items.push({ i, t: performance.now(), done: false }); }
+    function sortFront(bin) {
+      if (G.over) return; const it = G.items.find(x => !x.done); if (!it) return; const b = BELT[it.i], isAcid = b.pH < 7, ok = (bin === "acid") === isAcid; it.done = true; G.tot++;
+      const xNow = 40 + ((performance.now() - it.t) / 1000) / TRAVEL * (W - 80);
+      G.flying.push({ i: it.i, x: xNow, y: BEL_Y, tx: bin === "acid" ? 150 : 520, ty: H - 40, t: performance.now(), ok });
+      if (ok) { G.ok++; G.streak++; G.best = Math.max(G.best, G.streak); G.score += 100 + Math.min(G.streak, 5) * 10; toast.textContent = L(`${b.en}: pH about ${b.pH} — ${isAcid ? "acid" : "base"} ✓ ${b.hook.en}`, `${b.es}: pH de unos ${b.pH} — ${isAcid ? "ácido" : "base"} ✓ ${b.hook.es}`); burst(wrap, bin === "acid" ? 22 : 77, 88, ["#5ee08a", "#fff", "#ffd24d"], 10); }
+      else { G.streak = 0; toast.textContent = L(`Answer: ${isAcid ? "ACID" : "BASE"} · ${b.en} has a pH of about ${b.pH}. ${b.hook.en}`, `Respuesta: ${isAcid ? "ÁCIDO" : "BASE"} · ${b.es} tiene un pH de unos ${b.pH}. ${b.hook.es}`); }
+    }
+    wrap.querySelector("#bt-a").addEventListener("click", () => sortFront("acid")); wrap.querySelector("#bt-b").addEventListener("click", () => sortFront("base"));
+    const kd = e => { if (e.key === "1") sortFront("acid"); else if (e.key === "2") sortFront("base"); }; window.addEventListener("keydown", kd);
+    const timer = setInterval(() => {   // wall-clock state; rAF only paints
+      if (G.over) return; const now = performance.now(); G.left = 120 - (now - G.t0) / 1000;
+      if (now - G.next >= SPAWN * 1000 && G.left > TRAVEL * 0.4) { G.next = now; spawn(); }
+      G.items.forEach(it => { if (!it.done && (now - it.t) / 1000 > TRAVEL) { it.done = true; G.tot++; G.streak = 0; const b = BELT[it.i]; G.missed.push(b); toast.textContent = L(`Too late for ${b.en} — it was a${b.pH < 7 ? "n acid" : " base"}. ${b.hook.en}`, `Muy tarde para ${b.es} — era ${b.pH < 7 ? "un ácido" : "una base"}. ${b.hook.es}`); } });
+      G.items = G.items.filter(it => !it.done || now - it.t < 400 * 0 + 1);
+      if (G.left <= 0) finish(); hud();
+    }, 100);
+    function hud() { wrap.querySelector("#bt-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(G.left)) + " s"; wrap.querySelector("#bt-score").textContent = L("Score ", "Puntos ") + G.score; wrap.querySelector("#bt-streak").textContent = L("Streak ", "Racha ") + G.streak; }
+    function card(x, y, i, sc) { const im = imgs[i], w = 110 * sc, h = 82 * sc; ctx.save(); ctx.translate(x, y); ctx.fillStyle = "#fff"; ctx.shadowColor = "#0006"; ctx.shadowBlur = 8; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-w / 2, -h / 2, w, h, 10) : ctx.rect(-w / 2, -h / 2, w, h); ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
+      if (im.complete && im.naturalWidth) { const r = Math.max(w / im.naturalWidth, h / im.naturalHeight); ctx.drawImage(im, -im.naturalWidth * r / 2, -im.naturalHeight * r / 2, im.naturalWidth * r, im.naturalHeight * r); } ctx.restore(); ctx.fillStyle = "#000b"; ctx.fillRect(x - w / 2, y + h / 2 - 17, w, 17); ctx.fillStyle = "#fff"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center"; ctx.fillText(L(BELT[i].en, BELT[i].es), x, y + h / 2 - 5); }
+    function draw() {
+      if (!cv.isConnected || G.over) return; const now = performance.now();
+      ctx.clearRect(0, 0, W, H); const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#cfe3f1"); bg.addColorStop(1, "#8fb0c8"); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#3b4752"; ctx.fillRect(10, BEL_Y + 44, W - 20, 22); ctx.fillStyle = "#566573"; const off = reducedMotion() ? 0 : ((now / 25) % 30); for (let x = 10 - off; x < W - 10; x += 30) ctx.fillRect(Math.max(10, x), BEL_Y + 48, 14, 14);
+      [[150, "#d94a3a", L("ACID", "ÁCIDO"), L("pH below 7", "pH menor que 7")], [520, "#2a6fd0", L("BASE", "BASE"), L("pH above 7", "pH mayor que 7")]].forEach(b => { ctx.fillStyle = b[1]; ctx.fillRect(b[0] - 80, H - 62, 160, 52); ctx.fillStyle = "#fff"; ctx.font = "bold 16px sans-serif"; ctx.textAlign = "center"; ctx.fillText(b[2], b[0], H - 38); ctx.font = "11px sans-serif"; ctx.fillText(b[3], b[0], H - 20); });
+      G.items.forEach(it => { if (it.done) return; const x = 40 + ((now - it.t) / 1000) / TRAVEL * (W - 80); card(x, BEL_Y, it.i, 1); });
+      const front = G.items.find(x => !x.done); if (front) { const x = 40 + ((now - front.t) / 1000) / TRAVEL * (W - 80); ctx.strokeStyle = "#ffe38a"; ctx.lineWidth = 3; ctx.strokeRect(x - 58, BEL_Y - 45, 116, 90); }
+      G.flying = G.flying.filter(f => { const t = Math.min(1, (now - f.t) / 500); if (t >= 1) return false; const x = f.x + (f.tx - f.x) * t, y = f.y + (f.ty - f.y) * t * t - Math.sin(t * Math.PI) * 30; card(x, y, f.i, 1 - t * 0.5); ctx.fillStyle = f.ok ? "#5ee08a" : "#ff8a8a"; ctx.font = "bold 22px sans-serif"; ctx.fillText(f.ok ? "✓" : "✗", x + 40, y - 20); return true; });
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw); hud();
+    function finish() {
+      if (G.over) return; G.over = true; clearInterval(timer); window.removeEventListener("keydown", kd);
+      const acc = G.tot ? Math.round(G.ok / G.tot * 100) : 0;
+      wrap.innerHTML = `<h3>${L("Belt shift complete!", "¡Turno en la cinta completado!")}</h3><p>${L(`Sorted correctly: ${G.ok} of ${G.tot} (${acc}%). Best streak ${G.best}. Score ${G.score}.`, `Clasificados bien: ${G.ok} de ${G.tot} (${acc}%). Mejor racha ${G.best}. Puntos ${G.score}.`)}</p><p>${L("Remember: acids have a pH below 7, bases above 7, and neutral water is exactly 7.", "Recuerda: los ácidos tienen un pH menor que 7, las bases mayor que 7, y el agua neutra es exactamente 7.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="bt-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="bt-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#bt-again").addEventListener("click", start); wrap.querySelector("#bt-close").addEventListener("click", () => wrap.remove()); onExit && onExit({ score: G.score, accuracy: acc });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the liquid tested, the pH you set, and the amount of alkali added. Dependent: the indicator colour, the number of H⁺ and OH⁻ particles, and the pH of the mixture. Controlled: the same universal indicator, the same 25 mL of acid in the flask and the same alkali every time.",
+    "Independiente: el líquido probado, el pH que fijas y la cantidad de álcali añadida. Dependiente: el color del indicador, el número de partículas H⁺ y OH⁻, y el pH de la mezcla. Controladas: el mismo indicador universal, los mismos 25 mL de ácido en el matraz y el mismo álcali cada vez.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (s.st1 && s.st1.idx >= 4 && s.st2 && s.st2.idx >= 4 && s.st3 && s.st3.idx >= 4 && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("pH Lab complete! You tested, measured and neutralised. Now explain what you found.", "¡Laboratorio de pH completo! Probaste, mediste y neutralizaste. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildIndicator(host, sim, check); buildParticles(host, sim, check); buildNeutralise(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining neutralisation?", "¿Qué tan seguro te sientes explicando la neutralización?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "salts", label: L("What is made when an acid and base react", "Qué se forma cuando reaccionan un ácido y una base") }, { id: "soil", label: L("Soil and ocean pH", "El pH del suelo y del océano") }, { id: "weak", label: L("Weak vs strong acids", "Ácidos débiles y fuertes") }], "next");
+  host.append(creditLine());
+  document.addEventListener("cyc-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountPhBelt(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete — score ${st.score}.`, `Bonus completo — ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
