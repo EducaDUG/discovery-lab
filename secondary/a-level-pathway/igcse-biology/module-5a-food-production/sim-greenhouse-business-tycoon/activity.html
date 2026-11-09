@@ -17,7 +17,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <style>
 /* ---- Greenhouse Business Tycoon: dark glass HUD over a real-time 3D farm ---- */
 .simonly{--g1:#7dff9a;--cash:#ffd166;--lite:#ffe36b;--tmp:#ff7a59;--co2:#7fd6ff;--wat:#4aa8ff;--bad:#ff5468;
-  padding:0 !important;overflow:hidden;border-radius:22px;border:1px solid #1f3a2c;background:#06100b;color:#e6fff0;
+  padding:0 !important;overflow:clip;border-radius:22px;border:1px solid #1f3a2c;background:#06100b;color:#e6fff0;
   box-shadow:0 20px 60px -20px rgba(20,140,70,.5);}
 .simonly *{box-sizing:border-box;}
 .gh-top{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,#0e2218,#09160f);border-bottom:1px solid #1b3a29;}
@@ -36,7 +36,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .gh-stat small{display:block;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7fb596;}
 .gh-stat b{font-family:var(--font-data);font-size:1.25rem;font-weight:900;color:#eafff2;} .gh-stat b.cash{color:var(--cash);} .gh-stat b.neg{color:var(--bad);}
 .gh-stat .bar{height:7px;border-radius:6px;background:#14301f;margin-top:5px;overflow:hidden;} .gh-stat .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8d5c,#7dff9a);transition:width .4s;}
-.gh-view{position:relative;height:clamp(300px,54vh,540px);background:radial-gradient(ellipse at 50% 30%,#1b4a6b,#06100b 75%);}
+.gh-view{position:relative;height:clamp(250px,48vh,480px);background:radial-gradient(ellipse at 50% 30%,#1b4a6b,#06100b 75%);}
 .gh-view canvas{display:block;touch-action:pan-y;cursor:grab;}
 .gh-nogl{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:2rem;color:#9fd8b3;font-weight:700;}
 .gh-msg{position:absolute;left:12px;right:12px;bottom:12px;padding:.7em 1em;border-radius:14px;font-weight:800;font-size:.9rem;background:rgba(5,16,10,.8);border:1px solid #2a5a3b;backdrop-filter:blur(8px);color:#dcffe8;pointer-events:none;}
@@ -52,9 +52,25 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .gh-cams{display:flex;gap:8px;padding:8px 12px;background:#08140d;flex-wrap:wrap;}
 .gh-cam{flex:1 1 7rem;min-height:42px;border-radius:12px;border:1px solid #1f4630;background:#0d2015;color:#a7dcbc;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;touch-action:manipulation;}
 .gh-cam[aria-pressed=true]{color:#05180e;background:var(--g1);border-color:var(--g1);}
-.gh-dock{padding:6px 14px 16px;background:#08140d;}
-.gh-panel{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start;}
-@media(max-width:820px){.gh-panel{grid-template-columns:1fr;}}
+.gh-main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr);align-items:start;background:#08140d;}
+.gh-left{position:sticky;top:4px;z-index:6;background:#08140d;min-width:0;box-shadow:0 8px 20px -10px #000;}
+.gh-right{padding:10px 12px 16px;min-width:0;}
+@media(max-width:900px){.gh-main{grid-template-columns:1fr;} .gh-left{top:0;} .gh-view{height:clamp(180px,27vh,260px);}
+  .gh-strip{grid-template-columns:repeat(4,1fr);gap:4px;padding:5px;} .gh-strip .gh-stat:nth-child(4),.gh-strip .gh-stat:nth-child(6){display:none;} .gh-burn{font-size:.58rem;} .gh-stat{padding:3px 8px;} .gh-stat small{font-size:.56rem;} .gh-stat b{font-size:.92rem;} .gh-hint{display:none;} .gh-msg{font-size:.76rem;padding:.4em .7em;bottom:6px;left:6px;right:6px;} .gh-cams{padding:4px 6px;} .gh-cam{min-height:34px;font-size:.64rem;flex-basis:4rem;padding:0 .2em;}}
+.gh-act{display:grid;grid-template-columns:1.5fr 1fr;gap:8px;padding:6px 12px 10px;align-items:stretch;}
+.gh-act .gh-go{margin:0;min-height:46px;font-size:.88rem;} .gh-act__r{display:grid;grid-template-columns:1fr 1fr;gap:6px;} .gh-act__r .gh-go{min-height:21px;font-size:.7rem;padding:.1em .3em;box-shadow:none;border-radius:10px;}
+.gh-act__r button[hidden]{display:none;}
+.gh-prog{height:7px;border-radius:5px;background:#14301f;overflow:hidden;margin-top:5px;} .gh-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7dff9a,#ffd166);transition:width .3s;}
+.gh-q{display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;min-width:1.45rem;margin-left:.45em;border-radius:50%;border:1px solid #4a8f66;background:#0f2a1b;color:var(--g1);font:inherit;font-weight:900;font-size:.8rem;cursor:pointer;line-height:1;padding:0;vertical-align:middle;touch-action:manipulation;}
+.gh-q[aria-expanded=true]{background:var(--g1);color:#05180e;}
+.gh-help{display:block;margin:6px 0;padding:8px 10px;border-radius:10px;border:1px solid #2f6a46;background:#0c2216;color:#d3f5e0;font-size:.78rem;font-weight:600;line-height:1.4;}
+.gh-help[hidden]{display:none;}
+.gh-burn{display:block;font-size:.7rem;font-weight:800;color:#ff9aa8;font-family:var(--font-data);min-height:1em;} .gh-burn.hit{animation:ghburn .5s;}
+@keyframes ghburn{0%{color:#fff;transform:scale(1.15);}100%{color:#ff9aa8;transform:none;}}
+.gh-cpop{position:absolute;left:10px;top:8px;font-weight:900;font-size:1.05rem;color:#ff8d9c;text-shadow:0 0 10px rgba(255,84,104,.7);pointer-events:none;animation:ghcp .9s ease-out forwards;}
+@keyframes ghcp{0%{opacity:0;transform:translateY(-4px);}20%{opacity:1;}100%{opacity:0;transform:translateY(26px);}}
+.gh-stat.alert b{color:var(--bad);}
+.gh-seg--s button{flex:1 1 3rem;min-height:40px;justify-content:center;font-size:1rem;}
 .gh-card{border-radius:16px;border:1px solid #1f4630;background:linear-gradient(180deg,#0e2318,#0a1a11);padding:12px 14px;margin-bottom:12px;}
 .gh-card h3{margin:0 0 8px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#8fd0a8;}
 .gh-seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;}
@@ -88,7 +104,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .gh-dim{opacity:.4;pointer-events:none;filter:saturate(.5);}
 .gh-panel>*,.gh-card,.gh-seg button{min-width:0;}
 @media(max-width:560px){.gh-seg button{flex-basis:100%;} .gh-big{font-size:1.7rem;}}
-[data-reduced-motion=on] .gh-pop{animation:none;}
+[data-reduced-motion=on] .gh-pop,[data-reduced-motion=on] .gh-cpop,[data-reduced-motion=on] .gh-burn.hit{animation:none;}
 </style>
 <!-- seo:start -->
 <meta name="description" content="Students run a greenhouse business for a year and discover that food production is a system where biology, technology, economics and society meet. They control the four factors that limit photosynthesis (light, temperature, carbon dioxide and water), see how the limiting factor decides yield,...">
@@ -240,7 +256,7 @@ async function initScene(view, g, rt) {
     grp.userData = { leaves, fruits, ph: rand() * 6.3 }; farm.add(grp); plants.push(grp); } });
   /* lamps */
   const glowTex = tex(128, 128, (x, w, h) => { const gr = x.createRadialGradient(64, 64, 2, 64, 64, 62); gr.addColorStop(0, "rgba(255,244,190,1)"); gr.addColorStop(.35, "rgba(255,225,140,.55)"); gr.addColorStop(1, "rgba(255,200,100,0)"); x.fillStyle = gr; x.fillRect(0,0,w,h); });
-  const lamps = [-4, 0, 4].map(x => { const gp = new THREE.Group(); gp.position.set(x, 3.0, 0);
+  const lamps = [-4, 0, 4].map(x => { const gp = new THREE.Group(); gp.position.set(x, 2.55, 0);
     const shade = new THREE.Mesh(new THREE.ConeGeometry(.6, .45, 16, 1, true), M_({ color: C(0x2c3038), metalness: .8, roughness: .35, side: THREE.DoubleSide })); gp.add(shade);
     const bulb = new THREE.Mesh(new THREE.SphereGeometry(.17, 12, 8), new THREE.MeshBasicMaterial({ color: 0x555555 })); bulb.position.y = -.12; gp.add(bulb);
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0 })); sp.scale.set(3.4, 3.4, 1); sp.position.y = -.2; gp.add(sp);
@@ -253,7 +269,7 @@ async function initScene(view, g, rt) {
   /* CO2 pipe + sprinkler pipe */
   const pipeMat = M_({ color: C(0x7b8591), metalness: .8, roughness: .35 });
   const co2pipe = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 11, 8), pipeMat); co2pipe.rotation.z = Math.PI/2; co2pipe.position.set(0, .15, -3.1); farm.add(co2pipe);
-  const wpipe = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 11, 8), pipeMat); wpipe.rotation.z = Math.PI/2; wpipe.position.set(0, 2.7, 1.0); farm.add(wpipe);
+  const wpipe = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 11, 8), pipeMat); wpipe.rotation.z = Math.PI/2; wpipe.position.set(0, 2.5, 1.0); farm.add(wpipe);
   const tank = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, 1.1, 14), M_({ color: C(0x4aa8ff), metalness: .3, roughness: .4 })); tank.position.set(5.5, .55, 3.1); farm.add(tank);
   const co2tank = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, 1.2, 14), M_({ color: C(0x9fb0c0), metalness: .8, roughness: .3 })); co2tank.position.set(5.5, .6, -3.1); farm.add(co2tank);
   /* particles */
@@ -273,7 +289,7 @@ async function initScene(view, g, rt) {
   { const tr = new THREE.Group(); const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, .8, 1), M_({ color: C(0x2f9e44), roughness: .4 })); body.position.y = .9; body.castShadow = true; tr.add(body);
     const cab = new THREE.Mesh(new THREE.BoxGeometry(.8, .8, .9), M_({ color: C(0x37b24d), roughness: .4 })); cab.position.set(-.4, 1.6, 0); cab.castShadow = true; tr.add(cab);
     [[-.6, .45, .6, .55], [.7, .35, .6, .35]].forEach(w => [-1, 1].forEach(s => { const wh = new THREE.Mesh(new THREE.CylinderGeometry(w[3], w[3], .3, 16), M_({ color: C(0x1c1c1c), roughness: .9 })); wh.rotation.x = Math.PI/2; wh.position.set(w[0], w[1] + .1, s * w[2]); tr.add(wh); }));
-    tr.position.set(4, 0, 2); props.inorg.add(tr); }
+    tr.position.set(4, 0, 1); props.inorg.add(tr); }
   props.inorg.position.set(0, 0, 7.5);
   { const heap = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 10, 0, 6.3, 0, 1.4), M_({ map: soilTex, color: C(0x7a5a3a), roughness: 1 })); heap.scale.y = .7; props.org.add(heap);
     for (let i = 0; i < 5; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(.12, 6, 5), M_({ color: C(0xc8a05a) })); s.position.set(Math.cos(i * 1.3) * 1.2, .35, Math.sin(i * 1.3) * 1.2); props.org.add(s); } }
@@ -287,9 +303,43 @@ async function initScene(view, g, rt) {
     const cr = new THREE.Mesh(new THREE.SphereGeometry(1.5 + rand(), 10, 8), M_({ color: C(0x2f7a34), roughness: 1 })); cr.position.y = 3; cr.castShadow = true; t.add(cr);
     const a = rand() * 6.3; t.position.set(-40 + i * 6 + rand() * 3, 0, -22 - rand() * 10); scene.add(t); }
 
+
+  /* ---------- road, farm shop, collection van, customers, gardeners ---------- */
+  const road = new THREE.Mesh(new THREE.PlaneGeometry(140, 2.4), M_({ color: C(0x3a3d42), roughness: .95 })); road.rotation.x = -Math.PI/2; road.position.set(0, .045, 10); road.receiveShadow = true; scene.add(road);
+  for (let i = -30; i <= 30; i += 4) { const d = new THREE.Mesh(new THREE.PlaneGeometry(1.6, .12), new THREE.MeshBasicMaterial({ color: 0xe8e2c0 })); d.rotation.x = -Math.PI/2; d.position.set(i, .05, 10); scene.add(d); }
+  const woodTex = tex(256, 256, (x, w, h) => { x.fillStyle = "#9c6b3c"; x.fillRect(0, 0, w, h); for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${70 + rand() * 50},${40 + rand() * 30},20,.35)`; x.fillRect(rand() * w, rand() * h, 40, 2); } for (let k = 0; k < 8; k++) { x.fillStyle = "rgba(0,0,0,.3)"; x.fillRect(0, k * 32, w, 2); } });
+  const awnTex = tex(256, 64, (x, w, h) => { for (let i = 0; i < 8; i++) { x.fillStyle = i % 2 ? "#ffffff" : "#d93a3a"; x.fillRect(i * 32, 0, 32, h); } });
+  const signTex = tex(512, 128, (x, w, h) => { x.fillStyle = "#1f5d33"; x.fillRect(0, 0, w, h); x.strokeStyle = "#ffd166"; x.lineWidth = 6; x.strokeRect(6, 6, w - 12, h - 12); x.fillStyle = "#fff"; x.font = "bold 62px Arial"; x.textAlign = "center"; x.fillText("FARM SHOP", w / 2, 84); });
+  const vanTex = tex(512, 128, (x, w, h) => { x.fillStyle = "#ffffff"; x.fillRect(0, 0, w, h); x.fillStyle = "#2f9e44"; x.fillRect(0, 84, w, 44); x.fillStyle = "#1f5d33"; x.font = "bold 54px Arial"; x.textAlign = "center"; x.fillText("FARM TO MARKET", w / 2, 66); });
+  const shop = new THREE.Group(); shop.position.set(12.5, 0, 3.4); scene.add(shop);
+  const wood = M_({ map: woodTex, roughness: .85 }), bx = (w, h, d, m, x, y, z, par) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; (par || shop).add(o); return o; };
+  bx(4.2, 1.1, 1.2, wood, 0, .55, .2); bx(4.4, 2.5, .15, wood, 0, 1.25, -.7); bx(.14, 2.7, .14, wood, -2.1, 1.35, .75); bx(.14, 2.7, .14, wood, 2.1, 1.35, .75);
+  const awn = bx(4.8, .1, 2.4, M_({ map: awnTex, roughness: .8 }), 0, 2.75, .1); awn.rotation.x = .22;
+  bx(3.4, .7, .1, M_({ map: signTex, roughness: .7 }), 0, 3.45, -.55);
+  const goods = []; for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(.16, 10, 8), M_({ color: C(0xd63b2a), roughness: .35 })); m.position.set(-1.5 + (i % 5) * .6 + (i > 4 ? .3 : 0), 1.2 + (i > 4 ? .25 : 0), .1 + (i > 4 ? .1 : 0)); m.castShadow = true; shop.add(m); goods.push(m); }
+  for (let i = 0; i < 3; i++) bx(.9, .3, .6, M_({ color: C(0xc8a05a), roughness: 1 }), -1.4 + i * 1.4, 1.2, .2);
+  const skins = [0xf1c27d, 0xc68642, 0x8d5524, 0xe0ac69], shirts = [0x3b82f6, 0xef4444, 0xf59e0b, 0x8b5cf6, 0x10b981, 0xec4899, 0x14b8a6, 0xf97316];
+  const person = (shirt, skin, par) => { const gp = new THREE.Group(); const body = new THREE.Mesh(new THREE.CylinderGeometry(.2, .26, .8, 10), M_({ color: C(shirt), roughness: .8 })); body.position.y = .85; body.castShadow = true; gp.add(body);
+    const legs = new THREE.Mesh(new THREE.CylinderGeometry(.17, .17, .45, 8), M_({ color: C(0x2d3748) })); legs.position.y = .23; gp.add(legs);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(.19, 12, 10), M_({ color: C(skin), roughness: .6 })); head.position.y = 1.43; head.castShadow = true; gp.add(head); (par || scene).add(gp); return gp; };
+  const custs = Array.from({ length: 8 }, (_, i) => { const gp = person(shirts[i], skins[i % 4]); const bag = new THREE.Mesh(new THREE.BoxGeometry(.28, .3, .16), M_({ color: C(0x2f9e44), roughness: .9 })); bag.position.set(.3, .75, .08); bag.visible = false; gp.add(bag); gp.visible = false; gp.userData = { st: "idle", t: 0, tx: 0, tz: 0, cb: null, bag }; return gp; });
+  rt.sendCustomer = cb => { const c = custs.find(x => x.userData.st === "idle"); if (!c) { cb(); return; } const u = c.userData; c.position.set(30, 0, 7.2 + (Math.random() - .5) * .8); u.tx = 12.2 + (Math.random() - .5) * 2.6; u.tz = 5.3; u.st = "in"; u.cb = cb; u.bag.visible = false; c.visible = true; };
+  const van = new THREE.Group(); van.position.set(-48, 0, 10.4); scene.add(van); const vst = { st: "idle", t: 0, cb: null };
+  { const vb = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.6, 1.5), M_({ color: C(0xffffff), roughness: .35, metalness: .2 })); vb.position.set(0, 1.2, 0); vb.castShadow = true; van.add(vb);
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.2, 1.5), M_({ color: C(0x2f9e44), roughness: .3, metalness: .3 })); cab.position.set(2.15, 1.0, 0); cab.castShadow = true; van.add(cab);
+    const win = new THREE.Mesh(new THREE.BoxGeometry(.05, .6, 1.2), M_({ color: C(0x9bd6ff), roughness: .1, metalness: .6 })); win.position.set(2.72, 1.25, 0); van.add(win);
+    [.76, -.76].forEach((z, k) => { const pl = new THREE.Mesh(new THREE.PlaneGeometry(2.9, .72), new THREE.MeshBasicMaterial({ map: vanTex })); pl.position.set(-.1, 1.3, z); if (k) pl.rotation.y = Math.PI; van.add(pl); });
+    [[-1, .78], [-1, -.78], [2, .78], [2, -.78]].forEach(w => { const wh = new THREE.Mesh(new THREE.CylinderGeometry(.38, .38, .25, 16), M_({ color: C(0x1c1c1c), roughness: .9 })); wh.rotation.x = Math.PI/2; wh.position.set(w[0], .4, w[1]); van.add(wh); }); }
+  rt.sendVan = cb => { if (vst.st !== "idle") { cb(); return; } vst.st = "arrive"; vst.cb = cb; vst.t = 0; van.position.x = -48; crateGroup.position.set(0, 0, 5.5); crateGroup.scale.setScalar(1); };
+  const gardeners = [0, 1, 2].map(i => { const gp = person(0x2f7a34, skins[(i + 1) % 4], farm); const hat = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, .04, 14), M_({ color: C(0xe3c16f), roughness: 1 })); hat.position.y = 1.58; gp.add(hat);
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(.18, .2, .18, 12), M_({ color: C(0xe3c16f), roughness: 1 })); crown.position.y = 1.67; gp.add(crown);
+    const pack = new THREE.Mesh(new THREE.CylinderGeometry(.13, .13, .5, 10), M_({ color: C(0x2b6fd6), roughness: .5 })); pack.position.set(0, .95, -.3); gp.add(pack);
+    const basket = new THREE.Mesh(new THREE.BoxGeometry(.32, .2, .32), M_({ color: C(0xc8a05a), roughness: 1 })); basket.position.set(.3, .75, .12); gp.add(basket);
+    gp.rotation.order = "YXZ"; gp.visible = false; gp.position.set(-5 + i * 1.8, 0, 3.3); gp.userData = { st: "walk", tx: -2 + i * 2, tz: 3.3, t: 0, pack, basket }; return gp; });
+
   /* ---------- camera orbit (drag / wheel / presets) ---------- */
   const cam = { az: .75, pol: 1.12, dist: 25, tx: 0, ty: 1.4, tz: 2 }; const camGoal = { ...cam }; let userTouched = false, dragging = false, last = null, travel = 0, pinch = 0;
-  const PRESETS = { overview: { az: .75, pol: 1.12, dist: 25, tx: 0, ty: 1.4, tz: 2 }, inside: { az: .2, pol: 1.28, dist: 11.5, tx: 0, ty: 1.3, tz: 0 }, river: { az: 1.15, pol: 1.15, dist: 24, tx: 0, ty: 0, tz: 12 } };
+  const PRESETS = { overview: { az: .75, pol: 1.12, dist: 25, tx: 0, ty: 1.4, tz: 2 }, inside: { az: .2, pol: 1.28, dist: 11.5, tx: 0, ty: 1.3, tz: 0 }, shop: { az: .35, pol: 1.2, dist: 21, tx: 6, ty: 1, tz: 6 }, river: { az: 1.15, pol: 1.15, dist: 24, tx: 0, ty: 0, tz: 12 } };
   const cv = renderer.domElement;
   cv.addEventListener("pointerdown", e => { dragging = true; travel = 0; last = [e.clientX, e.clientY]; userTouched = true; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
   cv.addEventListener("pointermove", e => { if (!dragging) return; const dx = e.clientX - last[0], dy = e.clientY - last[1]; last = [e.clientX, e.clientY]; travel += Math.abs(dx) + Math.abs(dy);
@@ -316,7 +366,7 @@ async function initScene(view, g, rt) {
   rt.setCrates(0);
 
   function frame(now) {
-    const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; t += dt; const rm = reduced();
+    const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; t += dt; const rm = reduced(); rt.pulse = Math.max(0, (rt.pulse || 0) - dt * 2.5);
     const cs = g.house ? M.cur(g) : { w: M.weather(g.day, g.seed), d: null }; const w = cs.w, d = cs.d, b = g.batch;
     /* day cycle: ~26 s */
     tod = (tod + dt / 26) % 1; const ang = tod * Math.PI * 2, sunH = Math.sin(ang), dayK = Math.max(0, Math.min(1, sunH * 1.6 + .25));
@@ -337,10 +387,10 @@ async function initScene(view, g, rt) {
     fish.forEach((f, i) => { f.position.x += Math.sin(t * .4 + i) * dt * .5 * (riverV > .5 ? 0 : 1); f.rotation.z = riverV > .6 ? Math.PI : 0; f.position.y = riverV > .6 ? .12 : .08 + Math.sin(t * 2 + i) * .02; f.material.color.set(riverV > .6 ? C(0xeeeeee) : C(0xff9a3c)); });
     /* plants */
     const prog = b ? b.d / b.days : 0, gNow = d ? d.g : .6; gSmooth += (gNow - gSmooth) * Math.min(1, dt * 1.5); const crop = M.CROPS[g.crop], fcol = C(crop.col), isLet = g.crop === "lettuce";
-    plants.forEach((p, i) => { const u = p.userData; const base = b ? .22 + .78 * prog : .2; const sc = isLet ? base * .8 : base; p.scale.set(sc * (isLet ? 1.5 : 1), sc * (isLet ? .55 : 1), sc * (isLet ? 1.5 : 1));
+    plants.forEach((p, i) => { const u = p.userData; const base = (b ? .13 + 1.2 * Math.pow(prog, .85) : .13) * (1 + .09 * (rt.pulse || 0)); const sc = isLet ? base * .8 : base; p.scale.set(sc * (isLet ? 1.5 : 1), sc * (isLet ? .55 : 1), sc * (isLet ? 1.5 : 1));
       p.rotation.z = rm ? 0 : Math.sin(t * 1.3 + u.ph) * .025; p.rotation.x = rm ? 0 : Math.cos(t * 1.1 + u.ph) * .02;
       const col = tmpC.copy(cdead).lerp(cyellow, Math.min(1, gSmooth * 2)).lerp(cgreen, Math.max(0, Math.min(1, (gSmooth - .4) * 1.8)));
-      u.leaves.forEach(l => l.material.color.copy(col)); const fr = b ? Math.max(0, (prog - .62) / .38) : 0;
+      u.leaves.forEach((l, k) => { l.material.color.copy(col); l.visible = k < 2 + Math.round(prog * 5); }); const fr = b ? Math.max(0, (prog - .62) / .38) : 0;
       u.fruits.forEach((f, k) => { f.visible = !isLet && fr > .02 && k < 1 + Math.round(fr * 3); f.scale.setScalar(.4 + fr * .9); f.scale.y *= g.crop === "pepper" ? 1.6 : 1; f.material.color.copy(cgreen).lerp(fcol, Math.min(1, fr * 1.4)); }); });
     /* lamps */
     const L = g.s.lamp / 100; lamps.forEach(l => { l.userData.sp.material.opacity = L * (.7 + .3 * Math.sin(t * 3)) * (rm ? 1 : 1); l.userData.bulb.material.color.set(L > .02 ? 0xfff0b0 : 0x555555); });
@@ -350,7 +400,7 @@ async function initScene(view, g, rt) {
     const co2K = d ? Math.max(0, (d.co2 - 420) / 980) : 0, watK = g.s.water / 10;
     const upd = (p, k, fn) => { const a = p.geometry.attributes.position, u = p.userData; for (let i = 0; i < u.n; i++) { const on = (i / u.n) < k; if (!on) { a.array[i*3+1] = -50; continue; } fn(a.array, i, u, dt); } a.needsUpdate = true; };
     upd(bubbles, co2K * 1.6, (a, i, u, dt) => { u.v[i] += dt * (.4 + u.seed[i] * .5); if (u.v[i] > 3 || a[i*3+1] < -10) { u.v[i] = 0; a[i*3] = -5.5 + u.seed[(i * 7) % u.n] * 11; a[i*3+2] = -3.1 + (u.seed[(i * 3) % u.n] - .5) * .3; } a[i*3+1] = .2 + u.v[i] + Math.sin(t * 2 + i) * .04; });
-    upd(drops, watK, (a, i, u, dt) => { u.v[i] += dt * 3.6; if (u.v[i] > 2.4 || a[i*3+1] < -10) { u.v[i] = 0; a[i*3] = -5.2 + ((i * 53) % 100) / 100 * 10.4; a[i*3+2] = 1.0 + (u.seed[i] - .5) * 1.6; } a[i*3+1] = 2.65 - u.v[i] * u.v[i] * .35 - u.v[i] * .1; });
+    upd(drops, watK, (a, i, u, dt) => { u.v[i] += dt * 3.6; if (u.v[i] > 2.4 || a[i*3+1] < -10) { u.v[i] = 0; a[i*3] = -5.2 + ((i * 53) % 100) / 100 * 10.4; a[i*3+2] = 1.0 + (u.seed[i] - .5) * 1.6; } a[i*3+1] = 2.45 - u.v[i] * u.v[i] * .35 - u.v[i] * .1; });
     upd(heat, heatK * 1.4, (a, i, u, dt) => { u.v[i] += dt * (.6 + u.seed[i] * .5); if (u.v[i] > 2.8 || a[i*3+1] < -10) { u.v[i] = 0; a[i*3] = -5.4 + (u.seed[i] - .5) * .9; a[i*3+2] = 3.1 + u.seed[(i * 5) % u.n] * .6; } a[i*3+1] = 1.1 + u.v[i]; a[i*3] += Math.sin(t * 3 + i) * .004; });
     updateBurst(dt);
     /* pests + ladybirds + spray mist */
@@ -360,6 +410,21 @@ async function initScene(view, g, rt) {
     ladies.forEach((m, i) => { m.visible = i < ladyN; if (m.visible) { const p = plants[(i * 5 + 1) % plants.length]; m.position.set(p.position.x + Math.cos(t * .8 + i) * .5, p.position.y + .5 + .3 * Math.abs(Math.sin(t * 2 + i)), p.position.z + Math.sin(t * .8 + i) * .5); } });
     if (rt.sprayT > 0) { rt.sprayT -= dt; const a = mist.geometry.attributes.position, u = mist.userData; for (let i = 0; i < u.n; i++) { if (rt.sprayInit) { a.array[i*3] = -4.8 + u.seed[i] * 9.6; a.array[i*3+1] = 2.2; a.array[i*3+2] = -2.5 + u.seed[(i * 3) % u.n] * 5; u.v[i] = 0; } u.v[i] += dt; a.array[i*3+1] = 2.2 - u.v[i] * 1.0; a.array[i*3] += Math.sin(t * 4 + i) * .01; } rt.sprayInit = false; a.needsUpdate = true; mist.visible = true; mist.material.opacity = Math.min(.8, rt.sprayT); } else mist.visible = false;
     if (crateGroup.children.length !== rt.crateN * 2) rt.setCrates(rt.crateN);
+    /* farm shop goods, customers, van, gardeners */
+    goods.forEach(m => m.material.color.copy(fcol));
+    custs.forEach(c => { const u = c.userData; if (u.st === "idle") return;
+      if (u.st === "buy") { u.t += dt; c.rotation.y = Math.PI; c.position.y = 0; if (u.t > 1.1) { u.cb && u.cb(); u.cb = null; u.bag.visible = true; u.st = "out"; u.tx = 31; u.tz = 7.4; } return; }
+      const dx = u.tx - c.position.x, dz = u.tz - c.position.z, dist = Math.hypot(dx, dz);
+      if (dist < .12) { if (u.st === "in") { u.st = "buy"; u.t = 0; } else { u.st = "idle"; c.visible = false; } return; }
+      const sp = 3.4 * dt; c.position.x += dx / dist * Math.min(sp, dist); c.position.z += dz / dist * Math.min(sp, dist); c.rotation.y = Math.atan2(dx, dz); c.position.y = rm ? 0 : Math.abs(Math.sin(t * 11 + c.id)) * .06; });
+    if (vst.st !== "idle") { vst.t += dt;
+      if (vst.st === "arrive") { van.position.x += dt * 11 * Math.max(.25, Math.min(1, (0 - van.position.x) / 8)); if (van.position.x >= -.15) { van.position.x = 0; vst.st = "load"; vst.t = 0; } }
+      else if (vst.st === "load") { const k = Math.min(1, vst.t / 1.8); crateGroup.position.set(0, k * .9, 5.5 + k * 3.4); crateGroup.scale.setScalar(1 - k * .75); if (k >= 1) { vst.st = "leave"; vst.t = 0; crateGroup.visible = false; const cb = vst.cb; vst.cb = null; cb && cb(); } }
+      else if (vst.st === "leave") { van.position.x += dt * (2 + vst.t * 7); if (van.position.x > 52) { vst.st = "idle"; van.position.x = -48; crateGroup.visible = true; crateGroup.position.set(0, 0, 5.5); crateGroup.scale.setScalar(1); } } }
+    { const nG = g.house ? (g.gardeners || 0) : 0, orgM = g.method === "organic", pestOn = !!(b && b.pest && !b.pest.done);
+      gardeners.forEach((gp, i) => { gp.visible = i < nG; if (!gp.visible) return; const u = gp.userData; u.pack.visible = !orgM; u.basket.visible = orgM;
+        if (u.st === "walk") { const dx = u.tx - gp.position.x, dz = u.tz - gp.position.z, dist = Math.hypot(dx, dz); if (dist < .1) { u.st = "work"; u.t = 2 + Math.random() * 2.5; } else { const sp = (pestOn ? 2.2 : 1.4) * dt; gp.position.x += dx / dist * Math.min(sp, dist); gp.position.z += dz / dist * Math.min(sp, dist); gp.rotation.y = Math.atan2(dx, dz); gp.rotation.x = 0; gp.position.y = rm ? 0 : Math.abs(Math.sin(t * 8 + i)) * .04; } }
+        else { u.t -= dt; gp.rotation.x = rm ? .3 : .45 + Math.sin(t * 5 + i) * .12; gp.position.y = 0; if (u.t <= 0) { const pl = plants[Math.floor(Math.random() * plants.length)]; u.tx = pl.position.x; u.tz = [-3.3, -1, 1, 3.3][Math.floor(Math.random() * 4)]; u.st = "walk"; } } }); }
     /* camera */
     if (!userTouched && !rm && !dragging) camGoal.az += dt * .05;
     ["az", "pol", "dist", "tx", "ty", "tz"].forEach(k => cam[k] += (camGoal[k] - cam[k]) * Math.min(1, dt * (rm ? 30 : 5)));
@@ -387,16 +452,25 @@ function mkSim(host, api) {
   const labels = { limiting: L("Limiting factor","Factor limitante"), inorganic: L("Inorganic farm","Cultivo inorgánico"), organic: L("Organic farm","Cultivo orgánico"), pest: L("Beat the pests","Vence a las plagas"), year: L("Year report","Informe anual") };
   const top = $(`<div class="gh-top"><div class="gh-rank"><div class="gh-rank__badge">1</div><div><div class="gh-rank__name"></div><div class="gh-xpbar"><i></i></div><div class="gh-xp"></div></div></div><div class="gh-miss" aria-live="polite"></div></div>`);
   const strip = $(`<div class="gh-strip" aria-live="off">
-    <div class="gh-stat"><small>${L("Cash","Dinero")}</small><b class="cash" id="s-cash"></b></div>
+    <div class="gh-stat"><small>${L("Cash","Dinero")}</small><b class="cash" id="s-cash"></b><span class="gh-burn" id="s-burn"></span></div>
     <div class="gh-stat"><small>${L("Reputation","Reputación")}</small><b id="s-rep"></b><div class="bar"><i id="s-repbar"></i></div></div>
     <div class="gh-stat"><small>${L("Year / month","Año / mes")}</small><b id="s-day"></b></div>
     <div class="gh-stat"><small>${L("Outside","Fuera")}</small><b id="s-out"></b></div>
+    <div class="gh-stat" id="st-pest"><small>${L("Pests","Plagas")}</small><b id="s-pest"></b></div>
     <div class="gh-stat"><small>${L("Soil minerals","Minerales del suelo")}</small><b id="s-min"></b><div class="bar"><i id="s-minbar"></i></div></div></div>`);
   const view = $(`<div class="gh-view"><div class="gh-hint">${L("Drag to look around · scroll to zoom","Arrastra para mirar · rueda para acercar")}</div><div class="gh-msg" role="status"></div></div>`);
   const msgEl = view.querySelector(".gh-msg");
   const cams = $(`<div class="gh-cams" role="group" aria-label="${L("Camera","Cámara")}"></div>`);
-  const dock = $(`<div class="gh-dock"></div>`);
-  root.append(top, strip, view, cams, dock);
+  const act = $(`<div class="gh-act"><div><button class="gh-go" id="go"></button><div class="gh-prog" aria-hidden="true"><i id="b-prog"></i></div></div>
+    <div class="gh-act__r"><button class="gh-go gh-go--ghost" id="pause" hidden>${L("Pause","Pausa")}</button><button class="gh-go gh-go--ghost" id="speed" hidden>1×</button><button class="gh-go gh-go--ghost" id="wait">${L("Rest 10 days","Descansar 10 días")}</button><button class="gh-go gh-go--ghost" id="fin">${L("Finish year","Terminar el año")}</button></div></div>`);
+  const main = $(`<div class="gh-main"><div class="gh-left"></div><div class="gh-right"></div></div>`);
+  const left = main.querySelector(".gh-left"), right = main.querySelector(".gh-right");
+  left.append(strip, view, cams, act); root.append(top, main);
+  const hid = (() => { let n = 0; return () => "h" + (++n); })();
+  const H = t => { const id = hid(); return `<button type="button" class="gh-q" data-h="${id}" aria-expanded="false" aria-label="${L("What does this mean?","¿Qué significa esto?")}">?</button><span class="gh-help" id="${id}" hidden>${t}</span>`; };
+  const Hq = t => { const id = hid(); return [`<button type="button" class="gh-q" data-h="${id}" aria-expanded="false" aria-label="${L("What does this mean?","¿Qué significa esto?")}">?</button>`, `<span class="gh-help" id="${id}" hidden>${t}</span>`]; };
+  const sh = document.querySelector(".site-head"); const setTop = () => { left.style.top = ((sh && getComputedStyle(sh).position === "sticky") ? sh.getBoundingClientRect().height : 0) + 4 + "px"; }; setTop(); addEventListener("resize", setTop);
+  root.addEventListener("click", e => { const b = e.target.closest(".gh-q"); if (!b) return; const h = root.querySelector("#" + b.dataset.h); if (!h) return; h.hidden = !h.hidden; b.setAttribute("aria-expanded", String(!h.hidden)); });
   let scene3d = null;
 
   const say = (tx, k = "") => { msgEl.className = "gh-msg " + k; msgEl.textContent = tx; };
@@ -431,37 +505,36 @@ function mkSim(host, api) {
     { k: "fert", c: "#c9a063", f: null, name: L("Fertiliser doses (per batch)","Dosis de fertilizante (por cosecha)"), min: 0, max: 3, step: 1, fmt: v => v + "×",
       note: L("Harvesting removes minerals from the soil, so farmers replace them. Inorganic fertiliser is concentrated, cheap and fast; organic manure is slower and less concentrated. Too much inorganic can wash into rivers.", "La cosecha retira minerales del suelo, así que los agricultores los reponen. El fertilizante inorgánico es concentrado, barato y rápido; el abono orgánico es más lento y menos concentrado. Demasiado inorgánico puede arrastrarse a los ríos.") },
   ];
-  const sliderHtml = SL.map(s => `<div class="gh-row" data-k="${s.k}" style="--c:${s.c}"><div class="gh-row__head"><label for="in-${s.k}">${s.name}</label><output id="o-${s.k}"></output></div>
+  const sliderHtml = SL.map(s => { const [qb, qh] = Hq(s.note); return `<div class="gh-row" data-k="${s.k}" style="--c:${s.c}"><div class="gh-row__head"><span><label for="in-${s.k}">${s.name}</label>${qb}</span><output id="o-${s.k}"></output></div>${qh}
     <input type="range" id="in-${s.k}" min="${s.min}" max="${s.max}" step="${s.step}" value="${g.s[s.k]}">
     ${s.f ? `<div class="gh-fac"><span>${L("Plant growth rate","Ritmo de crecimiento")}</span><span class="bar"><i></i></span><b class="pc"></b><span class="lim">${L("LIMITING","LIMITA")}</span></div>` : ""}
-    <small>${s.note}</small></div>`).join("");
+    </div>`; }).join("");
   const plan = $(`<div class="gh-card" id="plan"><h3>${L("1 · Your farm plan","1 · Tu plan de granja")}</h3>
-    <div class="gh-note">${L("House","Invernadero")}</div>
+    <div class="gh-note">${L("House","Invernadero")}${H(L("A polytunnel is a cheap plastic arch: it loses heat quickly and strong wind can damage it. A glass greenhouse costs more but traps heat (the greenhouse effect) and shelters crops from wind and frost.","Un túnel es un arco de plástico barato: pierde calor rápido y el viento fuerte puede dañarlo. Un invernadero de cristal cuesta más pero retiene el calor (efecto invernadero) y protege los cultivos del viento y las heladas."))}</div>
     <div class="gh-seg" id="seg-house"><button data-v="poly" aria-pressed="false">${ICO.poly}<span>${L("Polytunnel","Túnel de plástico")} <small>$${M.HOUSES.poly.cost} · ${L("cheap, loses heat, wind risk","barato, pierde calor, riesgo de viento")}</small></span></button>
       <button data-v="glass" aria-pressed="false">${ICO.glass}<span>${L("Greenhouse","Invernadero de cristal")} <small>$${M.HOUSES.glass.cost} · ${L("keeps heat, blocks wind & frost","retiene calor, bloquea viento y heladas")}</small></span></button></div>
     <div id="plan-rest">
-    <div class="gh-note">${L("Crop","Cultivo")}</div>
+    <div class="gh-note">${L("Crop","Cultivo")}${H(L("Each crop has an optimum temperature where its enzymes work best. Lettuce likes it cool, tomatoes warm and peppers warmer still.","Cada cultivo tiene una temperatura óptima donde sus enzimas trabajan mejor. A la lechuga le gusta el fresco, al tomate el calor y al pimiento aún más."))}</div>
     <div class="gh-seg" id="seg-crop">${Object.keys(crops).map(k => `<button data-v="${k}" aria-pressed="false">${ICO[k]}<span>${CN[k]} <small>${L("best " + crops[k].lo + "–" + crops[k].hi + " °C", "mejor " + crops[k].lo + "–" + crops[k].hi + " °C")}</small></span></button>`).join("")}</div>
-    <div class="gh-note">${L("Growing method","Método de cultivo")}</div>
+    <div class="gh-note">${L("Growing method","Método de cultivo")}${H('<span id="method-help"></span>')}</div>
     <div class="gh-seg" id="seg-method"><button data-v="inorganic" aria-pressed="false">${ICO.inorg}<span>${L("Inorganic","Inorgánico")} <small>${L("fast · cheap · chemicals","rápido · barato · químicos")}</small></span></button>
       <button data-v="organic" aria-pressed="false">${ICO.org}<span>${L("Organic","Orgánico")} <small>${L("slower · higher price · loyal customers","más lento · mejor precio · clientes fieles")}</small></span></button></div>
-    <div class="gh-note" id="method-note"></div>
+    <div class="gh-note">${L("Gardeners","Jardineros")} <b id="gard-cost"></b>${H(L("Each gardener is paid a salary every day. Gardeners look after the house, so yield is higher (but each extra one helps less). On an inorganic farm they spray pesticide and herbicide; on an organic farm they weed by hand and release ladybirds. With none, you must answer every pest alert yourself and an organic farm is overrun by weeds.","A cada jardinero se le paga un sueldo diario. Cuidan el invernadero, así la cosecha es mayor (pero cada uno extra ayuda menos). En una granja inorgánica rocían pesticida y herbicida; en una orgánica deshierban a mano y sueltan mariquitas. Sin jardineros, debes responder tú a cada alerta de plagas y una granja orgánica se llena de malas hierbas."))}</div>
+    <div class="gh-seg gh-seg--s" id="seg-gard">${[0, 1, 2, 3].map(n => `<button data-v="${n}" aria-pressed="false">${n}</button>`).join("")}</div>
     ${sliderHtml}</div></div>`);
   const board = $(`<div class="gh-card" id="board"><h3>${L("2 · Today's greenhouse","2 · El invernadero hoy")}</h3>
-    <div class="gh-2"><div><div class="gh-note">${L("Growth rate","Ritmo de crecimiento")}</div><div class="gh-big" id="b-g"></div></div><div><div class="gh-note">${L("Inside temperature","Temperatura interior")}</div><div class="gh-big" id="b-t" style="color:var(--tmp)"></div></div></div>
+    <div class="gh-2"><div><div class="gh-note">${L("Growth rate","Ritmo de crecimiento")}${H(L("Plants can only grow as fast as the scarcest factor allows (the limiting factor). Spending more on a factor that is not limiting just wastes money.","Las plantas solo pueden crecer tan rápido como permite el factor más escaso (el factor limitante). Gastar más en un factor que no es limitante solo desperdicia dinero."))}</div><div class="gh-big" id="b-g"></div></div><div><div class="gh-note">${L("Inside temperature","Temperatura interior")}</div><div class="gh-big" id="b-t" style="color:var(--tmp)"></div></div></div>
     <div class="gh-note" id="b-lim"></div><div class="gh-spark" id="b-spark" aria-hidden="true"></div>
     <table class="gh-cost" id="b-cost"></table>
-    <div class="gh-note" id="b-market"></div>
-    <button class="gh-go" id="go"></button>
-    <div class="gh-2"><button class="gh-go gh-go--ghost" id="wait">${L("Rest 10 days","Descansar 10 días")}</button><button class="gh-go gh-go--ghost" id="fin">${L("Finish year","Terminar el año")}</button></div>
-    <div class="gh-2" id="speedrow" hidden><button class="gh-go gh-go--ghost" id="pause">${L("Pause","Pausa")}</button><button class="gh-go gh-go--ghost" id="speed">1×</button></div></div>`);
+    <div class="gh-note" id="b-spent"></div>
+    <div class="gh-note"><span id="b-market"></span>${H(L("Organic customers pay a higher price and your reputation grows each batch, which brings more customers. Inorganic sells cheaper and in larger volume, but chemicals slowly cost reputation. Unsold vegetables spoil.","Los clientes orgánicos pagan más y tu reputación crece con cada cosecha, lo que trae más clientes. Lo inorgánico se vende más barato y en mayor volumen, pero los químicos restan reputación poco a poco. Las verduras sin vender se echan a perder."))}</div></div>`);
   const ledCard = $(`<div class="gh-card" id="ledcard" hidden><h3>${L("Business ledger","Libro de cuentas")}</h3><div class="gh-tbl"><table class="gh-led" id="led"></table></div></div>`);
-  const panel = $(`<div class="gh-panel"></div>`); const colB = $(`<div></div>`); colB.append(board, ledCard); panel.append(plan, colB); dock.append(panel);
+  right.append(plan, board, ledCard);
   const q = id => root.querySelector(id);
   const fact = $(`<div class="gh-fact"><button>${L("Fun fact","Dato curioso")}</button><p hidden>${L("Greenhouse tomatoes are often grown with extra CO₂ piped in. Some farms even capture CO₂ from their own heaters, so the same fuel warms the air and feeds the plants.","Los tomates de invernadero suelen cultivarse con CO₂ extra. Algunas granjas incluso capturan el CO₂ de sus propios calefactores, así el mismo combustible calienta el aire y alimenta las plantas.")}</p></div>`);
   fact.querySelector("button").addEventListener("click", () => { fact.querySelector("p").hidden = false; fact.querySelector("button").hidden = true; gain(5); });
   root.append(fact);
-  [["overview", L("Farm view","Vista de la granja")], ["inside", L("Inside the house","Dentro del invernadero")], ["river", L("River","Río")]].forEach(([id, n]) => { const b = $(`<button class="gh-cam" aria-pressed="${st.cam === id}">${n}</button>`); b.addEventListener("click", () => { st.cam = id; cams.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); scene3d?.goto(id); }); cams.append(b); });
+  [["overview", L("Farm view","Vista de la granja")], ["inside", L("Inside the house","Dentro del invernadero")], ["shop", L("Farm shop & van","Tienda y furgoneta")], ["river", L("River","Río")]].forEach(([id, n]) => { const b = $(`<button class="gh-cam" aria-pressed="${st.cam === id}">${n}</button>`); b.addEventListener("click", () => { st.cam = id; cams.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); scene3d?.goto(id); }); cams.append(b); });
 
   /* ---------- sync: paint the model onto the HUD ---------- */
   const sparkG = []; let lastLim = null;
@@ -477,7 +550,10 @@ function mkSim(host, api) {
     q("#seg-crop").querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", String(g.crop === b.dataset.v)); b.disabled = !!g.batch; });
     q("#seg-method").querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", String(g.method === b.dataset.v)); b.disabled = !!g.batch; });
     const days = M.batchDays(g.method, g.crop), mk = M.market(g);
-    q("#method-note").textContent = g.method === "organic"
+    q("#seg-gard").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === g.gardeners)));
+    q("#gard-cost").textContent = `(${GBP(M.WAGE)}/${L("day each","día c/u")})`;
+    const pst = g.batch && g.batch.pest; const pe = q("#s-pest"); pe.textContent = !pst ? L("None","Ninguna") : (pst.done ? L("Treated","Tratadas") : L("ALERT","ALERTA")); q("#st-pest").classList.toggle("alert", !!pst && !pst.done);
+    q("#method-help").textContent = g.method === "organic"
       ? L(`Organic: ${days}-day batches, manure fertiliser, ladybirds instead of pesticide. Price $${mk.price.toFixed(2)}/kg and you can sell about ${Math.round(mk.demand)} kg. Each batch builds your reputation.`, `Orgánico: cosechas de ${days} días, abono natural, mariquitas en vez de pesticida. Precio $${mk.price.toFixed(2)}/kg y puedes vender unos ${Math.round(mk.demand)} kg. Cada cosecha mejora tu reputación.`)
       : L(`Inorganic: ${days}-day batches, NPK fertiliser, pesticide and herbicide. Price $${mk.price.toFixed(2)}/kg and you can sell about ${Math.round(mk.demand)} kg. Chemicals slowly cost you reputation.`, `Inorgánico: cosechas de ${days} días, fertilizante NPK, pesticida y herbicida. Precio $${mk.price.toFixed(2)}/kg y puedes vender unos ${Math.round(mk.demand)} kg. Los químicos te restan reputación poco a poco.`);
     SL.forEach(s => { const inp = q("#in-" + s.k); if (+inp.value !== g.s[s.k]) inp.value = g.s[s.k]; q("#o-" + s.k).textContent = s.fmt(g.s[s.k]); });
@@ -485,10 +561,10 @@ function mkSim(host, api) {
     SL.forEach(s => { const row = q(`.gh-row[data-k="${s.k}"]`); if (!s.f) return; const f = d ? d.f[s.f] : 0; row.querySelector(".bar i").style.width = (f * 100) + "%"; row.querySelector(".pc").textContent = Math.round(f * 100) + "%"; row.classList.toggle("is-lim", !!d && d.lim === s.f); });
     if (d) { q("#b-g").textContent = Math.round(d.g * 100) + "%"; q("#b-t").textContent = Math.round(d.temp * 10) / 10 + " °C";
       const LN = { light: L("light","la luz"), temp: L("temperature","la temperatura"), co2: L("carbon dioxide","el dióxido de carbono"), water: L("water","el agua") };
-      q("#b-lim").textContent = L(`Limiting factor: ${LN[d.lim]}. Growth can only go as fast as the scarcest factor allows, so spending on the others is wasted.`, `Factor limitante: ${LN[d.lim]}. El crecimiento solo puede ir tan rápido como permite el factor más escaso, así que gastar en los demás es dinero perdido.`) + (d.waterlogged ? " " + L("Waterlogged roots!","¡Raíces encharcadas!") : "");
+      q("#b-lim").textContent = L(`Limiting factor: ${LN[d.lim]}`, `Factor limitante: ${LN[d.lim]}`) + (d.waterlogged ? " · " + L("Waterlogged roots!","¡Raíces encharcadas!") : "");
       if (lastLim !== d.lim) { lastLim = d.lim; if (!st.limSeen.includes(d.lim)) { st.limSeen.push(d.lim); if (st.limSeen.length >= 2) mark("limiting"); } }
       const c = d.cost, fc = M.fertCost(g);
-      q("#b-cost").innerHTML = [[L("Lamps","Lámparas"), c.lamp], [L("Heating","Calefacción"), c.heat], [L("CO₂","CO₂"), c.co2], [L("Water","Agua"), c.water], [L("House rent","Alquiler"), c.rent]].map(r => `<tr><td>${r[0]}</td><td>${GBP(r[1])}/${L("day","día")}</td></tr>`).join("") + `<tr class="t"><td>${L("Running cost","Coste diario")}</td><td>${GBP(c.total)}/${L("day","día")}</td></tr><tr><td>${L("Fertiliser + labour (at planting)","Fertilizante + mano de obra (al plantar)")}</td><td>${GBP(fc + (g.method === "organic" ? 125 : 90))}</td></tr>`;
+      q("#b-cost").innerHTML = [[L("Lamps","Lámparas"), c.lamp], [L("Heating","Calefacción"), c.heat], [L("CO₂","CO₂"), c.co2], [L("Water","Agua"), c.water], [L("House rent","Alquiler"), c.rent], [L("Gardeners","Jardineros") + " ×" + g.gardeners, c.wages]].map(r => `<tr><td>${r[0]}</td><td>${GBP(r[1])}/${L("day","día")}</td></tr>`).join("") + `<tr class="t"><td>${L("Running cost","Coste diario")}</td><td>${GBP(c.total)}/${L("day","día")}</td></tr><tr><td>${L("Fertiliser (at planting)","Fertilizante (al plantar)")}</td><td>${GBP(fc)}</td></tr>`;
     } else { q("#b-g").textContent = "–"; q("#b-t").textContent = "–"; q("#b-lim").textContent = L("Build a polytunnel or a greenhouse to begin.", "Construye un túnel de plástico o un invernadero para empezar."); q("#b-cost").innerHTML = ""; }
     q("#b-market").textContent = g.house ? L(`Market today: ${Math.round(mk.demand)} kg wanted at $${mk.price.toFixed(2)}/kg.`, `Mercado hoy: se piden ${Math.round(mk.demand)} kg a $${mk.price.toFixed(2)}/kg.`) : "";
     const go = q("#go"), can = M.canStart(g);
@@ -496,11 +572,14 @@ function mkSim(host, api) {
     if (g.batch) { go.textContent = rt.running ? L(`Growing… day ${g.batch.d} of ${g.batch.days}`, `Creciendo… día ${g.batch.d} de ${g.batch.days}`) : L("Resume growing", "Continuar el cultivo"); go.disabled = rt.running; }
     else go.textContent = !g.house ? L("Build a house first", "Primero construye un invernadero") : (can ? L(`Plant ${CN[g.crop].toLowerCase()} and grow (${days} days)`, `Plantar ${CN[g.crop].toLowerCase()} y cultivar (${days} días)`) : L("Not enough days left this year", "No quedan días suficientes este año"));
     q("#wait").disabled = !g.house || !!g.batch || g.day >= M.YEAR_DAYS; q("#fin").disabled = !g.house || !!g.batch || !g.ledger.length;
-    q("#speedrow").hidden = !g.batch; q("#pause").textContent = rt.running ? L("Pause","Pausa") : L("Resume","Continuar"); q("#speed").textContent = st.speed + "×";
+    q("#wait").hidden = q("#fin").hidden = !!g.batch; q("#pause").hidden = q("#speed").hidden = !g.batch;
+    q("#b-prog").style.width = (g.batch ? g.batch.d / g.batch.days * 100 : 0) + "%";
+    const bs = g.batch ? g.batch.cost.lamp + g.batch.cost.heat + g.batch.cost.co2 + g.batch.cost.water + g.batch.cost.rent + g.batch.cost.wages + g.batch.fert : 0;
+    q("#b-spent").textContent = g.batch ? L(`Spent so far this batch: ${GBP(bs)}`, `Gastado en esta cosecha: ${GBP(bs)}`) : (g.pending ? L(`Waiting to be paid: ${GBP(g.pending.shop + g.pending.van)}`, `Pendiente de cobro: ${GBP(g.pending.shop + g.pending.van)}`) : "");
+    q("#pause").textContent = rt.running ? L("Pause","Pausa") : L("Resume","Continuar"); q("#speed").textContent = st.speed + "×";
     const sp = q("#b-spark"); if (g.batch) { sp.innerHTML = sparkG.map(v => `<i style="height:${Math.max(4, v * 100)}%"></i>`).join(""); }
     if (g.ledger.length) { ledCard.hidden = false; q("#led").innerHTML = `<tr><th>#</th><th>${L("Crop","Cultivo")}</th><th>kg</th><th>${L("Sold","Vend.")}</th><th>${L("Income","Ingreso")}</th><th>${L("Costs","Costes")}</th><th>${L("Profit","Beneficio")}</th></tr>` + g.ledger.map(r => `<tr><td>${r.n}</td><td>${CN[r.crop]} ${r.method === "organic" ? "🌿" : "🧪"}</td><td>${Math.round(r.kg)}</td><td>${Math.round(r.sold)}</td><td>${GBP(r.revenue)}</td><td>${GBP(r.costs)}</td><td class="${r.profit < 0 ? "neg" : "pos"}">${GBP(r.profit)}</td></tr>`).join(""); }
     else ledCard.hidden = true;
-    rt.crateN = Math.min(18, Math.round((g.ledger.length && !g.batch ? g.ledger[g.ledger.length - 1].sold : 0) / 30));
     document.documentElement.dataset.ghPhase = g.batch ? "growing" : "idle";
   }
 
@@ -510,11 +589,15 @@ function mkSim(host, api) {
   q("#seg-method").addEventListener("click", e => { const b = e.target.closest("button"); if (!b || b.disabled || g.method === b.dataset.v) return;
     if (g.ledger.length && g.ledger[g.ledger.length - 1].method === "organic" && b.dataset.v === "inorganic") { g.rep = Math.max(0, g.rep - 8); say(L("Customers noticed you dropped organic. Reputation -8.", "Los clientes notaron que dejaste lo orgánico. Reputación -8."), "bad"); pop(L("Rep -8", "Rep -8"), "neg"); }
     g.method = b.dataset.v; sync(); api.save(); });
+  q("#seg-gard").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; g.gardeners = +b.dataset.v; say(g.gardeners ? L(`${g.gardeners} gardener${g.gardeners > 1 ? "s" : ""} hired: ${GBP(g.gardeners * M.WAGE)} a day in wages. They tend the plants and deal with pests and weeds for you.`, `${g.gardeners} jardinero${g.gardeners > 1 ? "s" : ""} contratado${g.gardeners > 1 ? "s" : ""}: ${GBP(g.gardeners * M.WAGE)} al día en sueldos. Cuidan las plantas y se ocupan de plagas y malas hierbas.`) : L("No gardeners: no wages, but yield suffers and you must answer every pest alert yourself.", "Sin jardineros: no hay sueldos, pero baja la cosecha y debes responder tú a cada alerta de plagas."), ""); sync(); api.save(); });
   SL.forEach(s => q("#in-" + s.k).addEventListener("input", e => { g.s[s.k] = +e.target.value; if (s.k === "heat" && g.s.heat > 0 && g.s.heat < 8) g.s.heat = 0; sync(); api.save(); if (rt.running) return; rt.burst?.(null); }));
 
   function tick() {
     if (!g.batch) { stop(); return; }
     const cs = M.cur(g); sparkG.push(cs.d.g); if (sparkG.length > 30) sparkG.shift();
+    const burn = cs.d.cost.total; rt.pulse = 1;
+    const be = q("#s-burn"); be.textContent = "-" + GBP(burn) + "/" + L("day","día"); be.classList.remove("hit"); void be.offsetWidth; be.classList.add("hit");
+    const cp = $(`<div class="gh-cpop">-${GBP(burn)}</div>`); view.append(cp); setTimeout(() => cp.remove(), 950);
     const ev = M.stepDay(g);
     ev.forEach(e => handle(e));
     sync(); api.save();
@@ -527,35 +610,50 @@ function mkSim(host, api) {
     else if (e.t === "ladybirds-working") { say(L("The ladybirds are eating the aphids. The pests are dropping fast.", "Las mariquitas se comen los pulgones. Las plagas bajan rápido."), "good"); }
     else if (e.t === "storm") { rt.shake?.(); say(g.house === "poly" ? L("Wind storm! The polytunnel plastic flaps and some plants are damaged (-15% yield). A glass greenhouse would have shrugged it off.", "¡Tormenta de viento! El plástico del túnel se agita y algunas plantas se dañan (-15% de cosecha). Un invernadero de cristal lo habría resistido.") : "", "bad"); pop("-15%", "neg"); }
     else if (e.t === "viral") { say(L("A food blogger raves about your organic farm! Reputation +6 and more customers.", "¡Una bloguera de comida elogia tu granja orgánica! Reputación +6 y más clientes."), "good"); pop(L("Viral! Rep +6", "¡Viral! Rep +6")); rt.burst?.("green"); }
+    else if (e.t === "gardener-pest") { view.querySelector(".gh-banner.alert")?.remove(); q("#pestbtn")?.remove(); const org = g.method === "organic"; rt.sprayT = org ? 0 : 2.2; rt.sprayInit = !org;
+      say(org ? L("Your gardener weeded by hand and released ladybirds ($70). No chemicals used; they need about 5 days to clear the aphids.", "Tu jardinero deshierbó a mano y soltó mariquitas ($70). Sin químicos; necesitan unos 5 días para limpiar los pulgones.") : L(`Your gardener sprayed pesticide and herbicide ($30) and it worked ${Math.round(e.r.eff * 100)}% as well as the first spray. Reputation -2.`, `Tu jardinero roció pesticida y herbicida ($30) y funcionó al ${Math.round(e.r.eff * 100)}% del primero. Reputación -2.`), "good");
+      pop(org ? "Rep +1" : "Rep -2", org ? "" : "neg"); gain(15); mark("pest"); }
     else if (e.t === "harvest") { onHarvest(e.row); }
   }
   function showPest() {
     const org = g.method === "organic", n = g.sprays;
     const bn = $(`<div class="gh-banner alert"><div><h3>${L("Pest alert!","¡Alerta de plagas!")}</h3>
-      <p>${L("Aphids and weeds are attacking your crop. Every day you wait, you lose yield. Choose how to respond.", "Pulgones y malas hierbas atacan tu cultivo. Cada día que esperas pierdes cosecha. Elige cómo responder.")}</p>
+      <p>${L("Aphids and weeds are attacking your crop. Every day you wait, you lose yield. Choose how to respond.", "Pulgones y malas hierbas atacan tu cultivo. Cada día que esperas pierdes cosecha. Elige cómo responder.")}${g.gardeners ? " " + L("If you do nothing, a gardener will deal with it in 2 days.", "Si no haces nada, un jardinero se ocupará en 2 días.") : ""}</p>
       <div class="gh-2"><button class="gh-go gh-go--warn" id="r-act">${org ? L("Release ladybirds + hand-weed ($70)", "Soltar mariquitas + deshierbar a mano ($70)") : L("Spray pesticide + herbicide ($30)", "Rociar pesticida + herbicida ($30)")}</button>
       <button class="gh-go gh-go--ghost" id="r-skip">${L("Do nothing", "No hacer nada")}</button></div>
       <p class="gh-note">${org ? L("Biological control: a predator eats the pest. No chemicals and a good story for customers, but it takes about 5 days to work.", "Control biológico: un depredador se come la plaga. Sin químicos y una buena historia para los clientes, pero tarda unos 5 días en funcionar.") : L(`Chemicals work at once and are cheap, but pests can become resistant (spray ${n + 1} will work about ${Math.round(Math.max(.4, 1 - .15 * n) * 100)}% as well as the first), they can kill harmless insects, and they can wash into rivers.`, `Los químicos actúan al instante y son baratos, pero las plagas pueden volverse resistentes (la aplicación ${n + 1} funcionará a un ${Math.round(Math.max(.4, 1 - .15 * n) * 100)}% de la primera), pueden matar insectos inofensivos y pueden llegar a los ríos.`)}</p></div></div>`);
     bn.querySelector("#r-act").addEventListener("click", () => { const r = M.respondPest(g); bn.remove(); rt.sprayT = org ? 0 : 2.2; rt.sprayInit = !org;
       say(org ? L("Ladybirds released and the weeds pulled by hand. They need about 5 days to clear the aphids; no chemicals were used.", "Mariquitas liberadas y malas hierbas arrancadas a mano. Necesitan unos 5 días para limpiar los pulgones; no se usaron químicos.") : L(`Sprayed! Pests dropped at once (${Math.round(r.eff * 100)}% effective). But chemicals cost reputation and weaken next time.`, `¡Rociado! Las plagas bajaron al instante (${Math.round(r.eff * 100)}% efectivo). Pero los químicos cuestan reputación y funcionarán peor la próxima vez.`), "good");
-      pop(org ? L("Rep +1", "Rep +1") : L("Rep -2", "Rep -2"), org ? "" : "neg"); gain(15); mark("pest"); start(); });
+      pop(org ? L("Rep +1", "Rep +1") : L("Rep -2", "Rep -2"), org ? "" : "neg"); gain(15); mark("pest"); rt.alarm?.(); start(); });
     bn.querySelector("#r-skip").addEventListener("click", () => { bn.remove(); say(L("You ignored the pests. Watch the yield drop! You can still respond.", "Ignoraste las plagas. ¡Mira cómo baja la cosecha! Aún puedes responder."), "bad"); st.pestOpen = true; showPestBtn(); start(); });
     view.append(bn);
   }
-  function showPestBtn() { if (q("#pestbtn")) return; const b = $(`<button class="gh-go gh-go--warn" id="pestbtn" style="margin-bottom:8px">${L("Deal with the pests now", "Ocuparme de las plagas ahora")}</button>`); b.addEventListener("click", () => { b.remove(); if (g.batch && g.batch.pest && !g.batch.pest.done) { stop(); showPest(); } }); board.insertBefore(b, q("#go")); }
+  function showPestBtn() { if (q("#pestbtn")) return; const b = $(`<button class="gh-go gh-go--warn" id="pestbtn" style="margin-bottom:6px;min-height:34px">${L("Deal with the pests now", "Ocuparme de las plagas ahora")}</button>`); b.addEventListener("click", () => { b.remove(); if (g.batch && g.batch.pest && !g.batch.pest.done) { stop(); showPest(); } }); act.querySelector("#go").parentElement.prepend(b); }
+  function payPart(kind, amt) { const pd = g.pending; if (!pd) return; amt = Math.min(amt, pd[kind]); if (amt <= 0) return; pd[kind] -= amt; g.cash += amt; if (pd.shop + pd.van < 0.01) g.pending = null; pop("+" + GBP(amt), "cash"); sync(); api.save(); }
+  function settle(r) {
+    const pd = g.pending; rt.crateN = Math.min(18, Math.max(3, Math.round(r.sold / 25))); scene3d?.goto("shop");
+    const finish = () => { M.flush(g, "all"); rt.crateN = 0; scene3d?.goto(st.cam); sync(); api.save(); if (!M.canStart(g) && !g.batch) setTimeout(() => showReport(), 600); };
+    if (!pd) { finish(); return; }
+    const nC = 6, per = pd.shop / nC, vanAmt = pd.van; let nPaid = 0;
+    const need = nC; let guard = setTimeout(finish, 20000);
+    for (let i = 0; i < nC; i++) setTimeout(() => { const go = () => { payPart("shop", per); rt.burst?.("coins"); nPaid++; }; if (scene3d && rt.sendCustomer) rt.sendCustomer(go); else go(); }, i * 900);
+    setTimeout(() => { const go = () => { payPart("van", vanAmt); rt.burst?.("coins"); rt.crateN = 0; clearTimeout(guard); setTimeout(finish, 500); };
+      say(L(`Farm shop sales and the delivery van to the supermarkets and markets are bringing in ${GBP(r.revenue)}.`, `Las ventas de la tienda de la granja y la furgoneta a supermercados y mercados traen ${GBP(r.revenue)}.`), "good");
+      if (scene3d && rt.sendVan) rt.sendVan(go); else setTimeout(go, 1200); }, nC * 900 + 600);
+  }
   function onHarvest(r) {
     q("#pestbtn")?.remove(); sparkG.length = 0;
-    const p = r.profit; pop(`${p >= 0 ? "+" : ""}${GBP(p)}`, p >= 0 ? "cash" : "neg"); rt.burst?.(p >= 0 ? "coins" : "bad");
+    const p = r.profit; rt.burst?.(p >= 0 ? "green" : "bad");
     mark(r.method === "organic" ? "organic" : "inorganic"); gain(20 + (p > 0 ? 25 : 0));
     const LNm = { light: L("light","la luz"), temp: L("temperature","la temperatura"), co2: L("CO₂","el CO₂"), water: L("water","el agua") };
     say(L(`Harvest ${r.n}: ${Math.round(r.kg)} kg grown, ${Math.round(r.sold)} kg sold at $${r.price.toFixed(2)}/kg${r.spoil > 1 ? `, ${Math.round(r.spoil)} kg unsold (waste)` : ""}. Income ${GBP(r.revenue)}, costs ${GBP(r.costs)}, profit ${GBP(p)}. Most limiting factor: ${LNm[r.lim]}.`, `Cosecha ${r.n}: ${Math.round(r.kg)} kg cultivados, ${Math.round(r.sold)} kg vendidos a $${r.price.toFixed(2)}/kg${r.spoil > 1 ? `, ${Math.round(r.spoil)} kg sin vender (desperdicio)` : ""}. Ingresos ${GBP(r.revenue)}, costes ${GBP(r.costs)}, beneficio ${GBP(p)}. Factor más limitante: ${LNm[r.lim]}.`), p >= 0 ? "good" : "bad");
-    if (!M.canStart(g)) setTimeout(() => showReport(), 1400);
+    settle(r);
   }
   q("#go").addEventListener("click", () => {
     if (g.batch) { start(); return; }
     const org = g.method === "organic";
     const ev = M.startBatch(g); if (!ev) return; sparkG.length = 0;
-    rt.crateN = 0; rt.burst?.("green");
+    rt.crateN = 0; rt.burst?.("green"); M.flush(g, "all");
     if (ev.some(e => e.t === "runoff")) { say(L("Heavy rain washed inorganic fertiliser into the river! Algae bloom, so algae block light, plants die, bacteria use up the oxygen and fish die. Reputation -10.", "¡La lluvia arrastró fertilizante inorgánico al río! Florece el alga: bloquea la luz, las plantas mueren, las bacterias gastan el oxígeno y los peces mueren. Reputación -10."), "bad"); pop("Rep -10", "neg"); scene3d?.goto("river"); setTimeout(() => scene3d?.goto(st.cam), 4200); }
     else { g.river = 0; say(org ? L("Organic batch planted. Manure releases minerals slowly, so be patient.", "Cosecha orgánica plantada. El abono libera minerales despacio, ten paciencia.") : L("Inorganic batch planted. NPK fertiliser gives plants minerals fast.", "Cosecha inorgánica plantada. El fertilizante NPK da minerales rápido a las plantas."), "good"); }
     start(); });
@@ -583,7 +681,7 @@ function mkSim(host, api) {
     view.append(bn); rt.burst?.("coins"); api.save();
   }
 
-  host.append(root); renderTop();
+  host.append(root); renderTop(); if (g.pending) { M.flush(g, "all"); }
   if (g.batch) { say(L("Welcome back! Your batch is paused. Press Resume growing to carry on.", "¡Bienvenido de nuevo! Tu cosecha está en pausa. Pulsa Continuar el cultivo para seguir."), ""); if (g.batch.pest && !g.batch.pest.done) showPestBtn(); }
   else say(g.house ? L("Set your plan and press Plant. Watch the limiting-factor bars: they show what is holding growth back.", "Ajusta tu plan y pulsa Plantar. Mira las barras de factor limitante: muestran qué frena el crecimiento.") : L("Welcome, farmer! Build a house to start your business. Money is limited, so every choice must pay for itself.", "¡Bienvenido, agricultor! Construye un invernadero para empezar tu negocio. El dinero es limitado, así que cada decisión debe rentabilizarse."));
   sync();
