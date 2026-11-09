@@ -224,7 +224,7 @@ export async function mountNav() {
     const res = await fetch(`${root}data/subjects.json`, { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
-    try { photos = await (await fetch(`${root}assets/tile-photos/credits.json`)).json(); } catch { photos = {}; }
+    try { photos = await (await fetch(`${root}assets/tile-photos/credits.json`, { cache: "no-cache" })).json(); } catch { photos = {}; }
   } catch {
     mount.append(el("p", "nav-empty", t("site-index-error")));
     return;
