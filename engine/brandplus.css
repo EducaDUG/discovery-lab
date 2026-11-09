@@ -169,3 +169,19 @@ html.bp-js:not([data-reduced-motion="on"]) .tile.bp-tilt, html.bp-js:not([data-r
 .tile__media--photo::after { content: ""; position: absolute; inset: auto 0 0 0; height: 38%; background: linear-gradient(transparent, #14181cb3); pointer-events: none; }
 .tile__credit { position: absolute; left: .6rem; right: .6rem; bottom: .4rem; z-index: 1; font-size: .68rem; line-height: 1.2; color: #ffffffe6;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .01em; }
+
+/* --- 12. Photo tiles come alive: staggered rise, photo settles in, then a very slow drift --- */
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-reveal { transform: translateY(32px) scale(.96); }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-reveal.bp-in { transform: none; }
+html.bp-js:not([data-reduced-motion="on"]) .tile__media--photo .tile__thumb {
+  transform: scale(1.16); transition: transform 1.6s cubic-bezier(.2,.65,.3,1); transition-delay: calc(var(--bp-i, 0) * 90ms); }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__media--photo .tile__thumb {
+  transform: scale(1.03); animation: bp-drift 22s ease-in-out 2s infinite alternate; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in:hover .tile__media--photo .tile__thumb { transform: scale(1.08); animation-play-state: paused; }
+html.bp-js:not([data-reduced-motion="on"]) .tile__credit { opacity: 0; transition: opacity .8s ease 1s; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__credit { opacity: 1; }
+@keyframes bp-drift { from { translate: -1.2% 0; } to { translate: 1.2% -1%; } }
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduced-motion="off"]) .tile__media--photo .tile__thumb { transform: none; animation: none; transition: none; }
+  html:not([data-reduced-motion="off"]) .tile__credit { opacity: 1; transition: none; }
+}

@@ -16,6 +16,8 @@ export const HOUSES = {
 };
 export const PRICE = { lamp: 0.05, heat: 0.30, co2: 0.004, water: 0.25 };
 export const START_CASH = 2500;
+export const WAGE = 6;
+const CARE = [0.75, 1, 1.05, 1.07];
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 function rng(seed) { let a = (seed >>> 0) + 0x6D2B79F5; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -46,17 +48,17 @@ export function dayState(s, w) {
   const fW = Math.min(1, s.water / need) * (waterlogged ? 0.8 : 1);
   const f = { light: fL, temp: fT, co2: fC, water: fW };
   let lim = "light"; for (const k in f) if (f[k] < f[lim] - 1e-9) lim = k;
-  const cost = { lamp: s.lamp * PRICE.lamp, heat: heated * H.loss * PRICE.heat, co2: Math.max(0, s.co2 - 420 - co2Free) * PRICE.co2, water: s.water * PRICE.water, rent: H.rent };
-  cost.total = cost.lamp + cost.heat + cost.co2 + cost.water + cost.rent;
+  const cost = { lamp: s.lamp * PRICE.lamp, heat: heated * H.loss * PRICE.heat, co2: Math.max(0, s.co2 - 420 - co2Free) * PRICE.co2, water: s.water * PRICE.water, rent: H.rent, wages: (s.gardeners || 0) * WAGE };
+  cost.total = cost.lamp + cost.heat + cost.co2 + cost.water + cost.rent + cost.wages;
   return { passive, temp, heated, L, co2, co2Free, need, waterlogged, f, g: f[lim], lim, cost };
 }
 
 export function newGame(seed = 1, crop = "tomato") {
   return { seed, day: 0, cash: START_CASH, rep: 30, minerals: 70, house: null, crop, method: "inorganic",
-    s: { lamp: 0, heat: 0, co2: 420, water: 3, fert: 1 }, batch: null, sprays: 0, ledger: [], river: 0, news: [], over: false, nb: 0 };
+    s: { lamp: 0, heat: 0, co2: 420, water: 3, fert: 1 }, batch: null, gardeners: 1, pending: null, sprays: 0, ledger: [], river: 0, news: [], over: false, nb: 0 };
 }
 export function build(st, house) { if (st.house) return false; st.house = house; st.cash -= HOUSES[house].cost; return true; }
-export function cur(st) { const w = weather(st.day, st.seed); return { w, d: dayState({ ...st.s, house: st.house, crop: st.crop }, w) }; }
+export function cur(st) { const w = weather(st.day, st.seed); return { w, d: dayState({ ...st.s, house: st.house, crop: st.crop, gardeners: st.gardeners || 0 }, w) }; }
 export function fertCost(st) { return st.s.fert * (st.method === "organic" ? 20 : 15); }
 
 export function startBatch(st) {
@@ -65,10 +67,10 @@ export function startBatch(st) {
   const r = rng(st.seed * 97 + st.nb * 13), ev = [];
   const doses = st.s.fert, org = st.method === "organic";
   st.minerals = Math.min(100, st.minerals + doses * (org ? 12 : 20));
-  st.cash -= fertCost(st) + (org ? 125 : 90);
+  st.cash -= fertCost(st);
   const fM = clamp(st.minerals / 70, 0.35, 1);
   if (!org && doses > 0 && r() < 0.08 * doses) { st.rep = Math.max(0, st.rep - 10); st.river = 1; ev.push({ t: "runoff" }); }
-  st.batch = { d: 0, days, sumG: 0, fM, cost: { lamp: 0, heat: 0, co2: 0, water: 0, rent: 0 }, labour: org ? 125 : 90, fert: fertCost(st),
+  st.batch = { d: 0, days, sumG: 0, fM, cost: { lamp: 0, heat: 0, co2: 0, water: 0, rent: 0, wages: 0 }, labour: 0, fert: fertCost(st),
     pestAt: (st.nb === 0 || r() < 0.8) ? Math.floor(days * 0.4) : -1, stormAt: (st.house === "poly" && r() < 0.4) ? Math.floor(days * 0.6) : -1,
     pest: null, loss: { pest: 0, frost: 0, storm: 0 }, lim: { light: 0, temp: 0, co2: 0, water: 0 } };
   st.nb++; return ev;
@@ -81,6 +83,7 @@ export function stepDay(st) {
   if (b.pest) { const p = b.pest; if (p.wait > 0) { p.wait--; if (p.wait === 0) { p.rate = 0.02 * 0.15; ev.push({ t: "ladybirds-working" }); } } b.loss.pest = Math.min(0.35, b.loss.pest + p.rate); }
   if (b.d === b.pestAt) { b.pest = { rate: 0.02, wait: -1, done: false }; ev.push({ t: "pest" }); }
   if (b.d === b.stormAt) { b.loss.storm = 0.15; ev.push({ t: "storm" }); }
+  if (b.pest && !b.pest.done && st.gardeners > 0) { b.pest.idle = (b.pest.idle || 0) + 1; if (b.pest.idle >= 2) { const r = respondPest(st); if (r) ev.push({ t: "gardener-pest", r }); } }
   b.d++; st.day++; if (b.d >= b.days) ev.push(...harvest(st));
   return ev;
 }
@@ -97,18 +100,19 @@ export function market(st) {
 function harvest(st) {
   const b = st.batch, C = CROPS[st.crop], org = st.method === "organic", ev = [];
   const avg = b.sumG / b.days;
-  const kg = AREA * C.kg * avg * (1 - b.loss.pest) * (1 - b.loss.frost) * (1 - b.loss.storm) * b.fM * (org ? 0.8 : 1);
+  const kg = AREA * C.kg * avg * (1 - b.loss.pest) * (1 - b.loss.frost) * (1 - b.loss.storm) * b.fM * (org ? 0.8 : 1) * (CARE[Math.min(3, st.gardeners || 0)]) * ((org && !st.gardeners) ? 0.88 : 1);
   const m = market(st), sold = Math.min(kg, m.demand), spoil = kg - sold;
   const revenue = sold * m.price + spoil * 0.2 * C.price;
-  st.cash += revenue; st.minerals = Math.max(0, st.minerals - 30);
+  const sf = org ? 0.5 : 0.25; st.pending = { shop: revenue * sf, van: revenue * (1 - sf) }; st.minerals = Math.max(0, st.minerals - 30);
   let dRep = org ? 4 : -2; st.rep = clamp(st.rep + dRep, 0, 100);
   if (org && st.rep >= 40 && rng(st.seed * 5 + st.nb)() < 0.25) { st.rep = Math.min(100, st.rep + 6); ev.push({ t: "viral" }); }
   const lim = Object.keys(b.lim).sort((a, c) => b.lim[c] - b.lim[a])[0];
-  const costs = b.cost.lamp + b.cost.heat + b.cost.co2 + b.cost.water + b.cost.rent + b.labour + b.fert + (b.extra || 0);
+  const costs = b.cost.lamp + b.cost.heat + b.cost.co2 + b.cost.water + b.cost.rent + b.cost.wages + b.labour + b.fert + (b.extra || 0);
   const row = { n: st.nb, method: st.method, crop: st.crop, kg, sold, spoil, price: m.price, revenue, costs, profit: revenue - costs, rep: st.rep, avg, lim, loss: { ...b.loss }, cost: { ...b.cost }, day: st.day };
   st.ledger.push(row); st.batch = null; ev.push({ t: "harvest", row }); return ev;
 }
-export function wait(st, n = 10) { const out = []; for (let i = 0; i < n && st.day < YEAR_DAYS && !st.batch; i++) { st.cash -= HOUSES[st.house].rent; st.day++; } return out; }
+export function wait(st, n = 10) { const out = []; for (let i = 0; i < n && st.day < YEAR_DAYS && !st.batch; i++) { st.cash -= HOUSES[st.house].rent + (st.gardeners || 0) * WAGE; st.day++; } return out; }
+export function flush(st, which = "all") { const p = st.pending; if (!p) return 0; let v = 0; if (which === "shop" || which === "all") { v += p.shop; p.shop = 0; } if (which === "van" || which === "all") { v += p.van; p.van = 0; } st.cash += v; if (p.shop + p.van < 0.01) st.pending = null; return v; }
 export function canStart(st) { return !!st.house && !st.batch && st.day + batchDays(st.method, st.crop) <= YEAR_DAYS; }
 export function yearTotals(st) { const p = st.ledger.reduce((a, r) => a + r.profit, 0); return { profit: p, batches: st.ledger.length, rep: st.rep, cash: st.cash }; }
 
