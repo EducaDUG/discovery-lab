@@ -73,12 +73,17 @@
       if (calm() || root.getAttribute('data-dyslexia') === 'on') return;
       splitWords(h); io.observe(h);
     });
+    var fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
     [].forEach.call(document.querySelectorAll('.tile, .choice, .card'), function (c) {
       if (c.dataset.bpSpot) return; c.dataset.bpSpot = '1'; c.classList.add('bp-spot');
+      var tilt = fine && /(^| )(tile|choice)( |$)/.test(c.className);
+      if (tilt) c.classList.add('bp-tilt');
       c.addEventListener('pointermove', function (e) {
-        var r = c.getBoundingClientRect();
+        var r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
         c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        if (tilt) { c.style.setProperty('--ry', (x * 7).toFixed(2) + 'deg'); c.style.setProperty('--rx', (-y * 7).toFixed(2) + 'deg'); }
       }, { passive: true });
+      c.addEventListener('pointerleave', function () { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); });
     });
     [].forEach.call(document.querySelectorAll('img:not([loading])'), function (im) {
       if (im.getBoundingClientRect().top > window.innerHeight) im.loading = 'lazy';
@@ -103,5 +108,47 @@
     document.addEventListener('pointerover', warm, { passive: true });
     document.addEventListener('focusin', warm);
     document.addEventListener('touchstart', warm, { passive: true });
+  }
+
+  // 4. Reader settings panel, only where a page opts in with data-panel (MoreHuman Ed)
+  var me = document.currentScript || document.querySelector('script[src*="brandplus.js"]');
+  if (me && me.hasAttribute('data-panel')) {
+    var KEY = 'dl-a11y-v1';
+    var load = function () { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
+    var save = function (o) { try { localStorage.setItem(KEY, JSON.stringify(Object.assign(load(), o))); } catch (e) {} };
+    var es = document.documentElement.lang === 'es';
+    var L = es ? { b: 'Lectura y movimiento', t: 'Ajustes de lectura', calm: 'Movimiento calmado', dys: 'Letra para dislexia', size: 'Tamaño del texto', tint: 'Fondo' }
+               : { b: 'Reading and motion', t: 'Reading settings', calm: 'Calm motion', dys: 'Dyslexia-friendly font', size: 'Text size', tint: 'Background' };
+    var wrap = document.createElement('div'); wrap.className = 'bp-set';
+    var btn = document.createElement('button'); btn.className = 'bp-set__btn'; btn.type = 'button';
+    btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'bp-set-panel'); btn.textContent = 'Aa  ' + L.b;
+    var pn = document.createElement('section'); pn.className = 'bp-set__panel'; pn.id = 'bp-set-panel'; pn.hidden = true; pn.setAttribute('aria-label', L.t);
+    var h = document.createElement('h2'); h.textContent = L.t; pn.appendChild(h);
+    function check(label, on, fn) {
+      var r = document.createElement('label'); r.className = 'bp-set__row';
+      var c = document.createElement('input'); c.type = 'checkbox'; c.checked = on; c.addEventListener('change', function () { fn(c.checked); });
+      r.appendChild(c); r.appendChild(document.createTextNode(label)); pn.appendChild(r);
+    }
+    function seg(label, opts, cur, fn) {
+      var l = document.createElement('div'); l.textContent = label; l.style.fontWeight = '700'; l.style.marginTop = '.4rem'; pn.appendChild(l);
+      var g = document.createElement('div'); g.className = 'bp-set__seg'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', label);
+      opts.forEach(function (o) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = o[1]; b.setAttribute('aria-pressed', String(cur() === o[0]));
+        b.addEventListener('click', function () { fn(o[0]); [].forEach.call(g.children, function (x) { x.setAttribute('aria-pressed', 'false'); }); b.setAttribute('aria-pressed', 'true'); });
+        g.appendChild(b);
+      });
+      pn.appendChild(g);
+    }
+    var st = load();
+    check(L.calm, st.motion === 'on' || (st.motion !== 'off' && mq && mq.matches), function (v) {
+      save({ motion: v ? 'on' : 'off' }); root.setAttribute('data-reduced-motion', v ? 'on' : 'off'); });
+    check(L.dys, !!st.dyslexia, function (v) { save({ dyslexia: v }); if (v) root.setAttribute('data-dyslexia', 'on'); else root.removeAttribute('data-dyslexia'); });
+    seg(L.size, [['m', 'A'], ['l', 'A+'], ['xl', 'A++']], function () { return root.getAttribute('data-text-size') || 'm'; },
+      function (v) { save({ textSize: v }); root.setAttribute('data-text-size', v); });
+    seg(L.tint, [['paper', 'Paper'], ['warm', 'Warm'], ['cool', 'Cool']], function () { return root.getAttribute('data-tint') || 'paper'; },
+      function (v) { save({ tint: v }); root.setAttribute('data-tint', v); });
+    btn.addEventListener('click', function () { var o = pn.hidden; pn.hidden = !o; btn.setAttribute('aria-expanded', String(o)); });
+    wrap.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pn.hidden) { pn.hidden = true; btn.setAttribute('aria-expanded', 'false'); btn.focus(); } });
+    wrap.appendChild(pn); wrap.appendChild(btn); document.body.appendChild(wrap);
   }
 })();

@@ -15,7 +15,7 @@
    ========================================================================== */
 
 import { t, pl, getLang } from "./i18n.js?v=8";
-import "./brandplus.js?v=1";
+import "./brandplus.js?v=2";
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);

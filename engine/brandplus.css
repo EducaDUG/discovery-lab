@@ -56,24 +56,77 @@ html.bp-js:not([data-reduced-motion="on"]):not([data-dyslexia="on"]) .bp-kinetic
 /* --- 6. Smart rendering: off-screen sections cost nothing until needed --- */
 .nav-sec, .site-foot { content-visibility: auto; contain-intrinsic-size: auto 38rem; }
 
-/* --- 7. Bento + asymmetric broken grid (wide screens only) -------------- */
+/* --- 7. Bento (MoreHuman Ed cards) and side-by-side tiles (Discovery Lab) --- */
 @media (min-width: 900px) {
-  .grid-tiles, .grid-3.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--sp-5); align-items: stretch; }
-  .grid-tiles > :nth-child(5n+1), .grid-tiles > :nth-child(5n+2),
+  .grid-3.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--sp-5); align-items: stretch; }
   .grid-3.bento > :nth-child(5n+1), .grid-3.bento > :nth-child(5n+2) { grid-column: span 3; }
-  .grid-tiles > :nth-child(5n+3), .grid-tiles > :nth-child(5n+4), .grid-tiles > :nth-child(5n),
   .grid-3.bento > :nth-child(5n+3), .grid-3.bento > :nth-child(5n+4), .grid-3.bento > :nth-child(5n) { grid-column: span 2; }
-  .grid-tiles > :nth-child(5n+1):last-child, .grid-3.bento > :nth-child(5n+1):last-child,
-  .grid-tiles > :nth-child(5n+3):last-child, .grid-3.bento > :nth-child(5n+3):last-child { grid-column: span 6; }
-  .grid-tiles > :nth-child(5n+4):last-child, .grid-3.bento > :nth-child(5n+4):last-child { grid-column: span 4; }
-  /* broken grid: some cards sit slightly off the baseline */
-  .grid-tiles > :nth-child(5n+2), .grid-3.bento > :nth-child(5n+2) { margin-top: var(--sp-6); }
-  .grid-tiles > :nth-child(5n+4), .grid-3.bento > :nth-child(5n+4) { margin-top: var(--sp-5); }
-  .choice-grid { grid-template-columns: 1.35fr 1fr; align-items: start; }
-  .choice-grid > :nth-child(2) { margin-top: var(--sp-7); }
+  .grid-3.bento > :nth-child(5n+1):last-child, .grid-3.bento > :nth-child(5n+3):last-child { grid-column: span 6; }
+  .grid-3.bento > :nth-child(5n+4):last-child { grid-column: span 4; }
+  .grid-3.bento > :nth-child(5n+2) { margin-top: var(--sp-6); }
+  .grid-3.bento > :nth-child(5n+4) { margin-top: var(--sp-5); }
 }
+/* Discovery Lab tiles always sit beside each other, never in one tall stack */
+.grid-tiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: clamp(1rem, 2.4vw, 2rem); align-items: stretch; }
+.grid-tiles:has(> :only-child) { grid-template-columns: minmax(0, 30rem); }
+.grid-tiles:has(> :nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-tiles:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 720px) { .grid-tiles, .grid-tiles:has(> :nth-child(2):last-child), .grid-tiles:has(> :nth-child(3):last-child) { grid-template-columns: 1fr; } }
+@media (min-width: 900px) { .grid-tiles > :nth-child(even) { margin-top: var(--sp-5); } }   /* gentle broken grid */
+.choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 720px) { .choice-grid { grid-template-columns: 1fr; } .choice-grid > :nth-child(2) { margin-top: 0; } }
+.tile .badge { align-self: flex-start; }
 /* neo-minimal white space */
 .nav-sec { padding-block: clamp(3rem, 7vw, 6rem); }
 .hero { padding-block: clamp(4rem, 9vw, 8rem) clamp(3rem, 7vw, 6rem); }
 @media (min-width: 900px) { .hero__lede { margin-left: clamp(0px, 6vw, 5rem); max-width: 52ch; } }
 .hero { margin-bottom: var(--sp-7); }
+
+/* --- 8. Reader settings panel (MoreHuman Ed only; Discovery Lab has its own) --- */
+html:not([data-age-band])[data-text-size="l"] { font-size: 115%; }
+html:not([data-age-band])[data-text-size="xl"] { font-size: 132%; }
+html:not([data-age-band])[data-dyslexia="on"] { --font-ui: "Atkinson Hyperlegible", system-ui, sans-serif; --font-display: "Atkinson Hyperlegible", system-ui, sans-serif; letter-spacing: .02em; word-spacing: .1em; line-height: 1.75; }
+html:not([data-age-band])[data-tint="warm"] { --paper: #F6EFDF; --surface: #FFFAF0; }
+html:not([data-age-band])[data-tint="cool"] { --paper: #E7EEF2; --surface: #F5FAFD; }
+html:not([data-age-band])[data-reduced-motion="on"] *, html:not([data-age-band])[data-reduced-motion="on"] *::before, html:not([data-age-band])[data-reduced-motion="on"] *::after {
+  animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
+.bp-set { position: fixed; left: 1rem; bottom: 1rem; z-index: 80; font-family: var(--font-ui); }
+.bp-set__btn { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .5rem 1rem; border-radius: 999px;
+  background: #2B3036; color: #fff; font-weight: 700; font-size: .9rem; border: 2px solid #E3B230; cursor: pointer; }
+.bp-set__panel { position: absolute; left: 0; bottom: 3.4rem; width: min(20rem, 88vw); padding: 1rem 1.1rem; background: #fff; color: #23282D;
+  border: 1px solid #23282D3D; border-radius: 12px; box-shadow: 0 12px 40px -12px #23282D66; }
+.bp-set__panel[hidden] { display: none; }
+.bp-set__panel h2 { font-size: 1rem; margin: 0 0 .6rem; }
+.bp-set__row { display: flex; align-items: center; gap: .6rem; min-height: 44px; font-size: .95rem; }
+.bp-set__row input { width: 1.4rem; height: 1.4rem; accent-color: #2F7F7C; }
+.bp-set__seg { display: flex; gap: .4rem; flex-wrap: wrap; margin: .2rem 0 .5rem; }
+.bp-set__seg button { min-height: 44px; min-width: 44px; padding: .3rem .8rem; border-radius: 8px; border: 2px solid #23282D3D; background: #fff; font-weight: 700; cursor: pointer; }
+.bp-set__seg button[aria-pressed="true"] { border-color: #2F7F7C; background: #2F7F7C1F; }
+
+/* --- 9. Atmosphere: soft, static shades behind everything (no motion, no strobing) --- */
+body { background-color: var(--paper); background-image: none; position: relative; isolation: isolate; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60rem 38rem at 92% -8%, #E3B2302E, transparent 62%),
+    radial-gradient(48rem 34rem at -6% 18%, #3A8C8A26, transparent 60%),
+    radial-gradient(52rem 40rem at 70% 108%, #C9453B1A, transparent 62%),
+    radial-gradient(40rem 30rem at 10% 100%, #2B30361A, transparent 60%); }
+html[data-tint="dark"] body::before { opacity: .55; }
+/* a large soft "sphere" for depth, top right of every page */
+body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; width: 34rem; height: 34rem; right: -10rem; top: 10vh; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #ffffffcc 0%, #E3B23033 22%, #3A8C8A1F 55%, transparent 72%); filter: blur(2px); opacity: .7; }
+@media (max-width: 720px) { body::after { display: none; } }
+
+/* --- 10. Depth: tiles and cards tilt a few degrees toward the pointer, layered like glass --- */
+.tile, .choice { transform-style: preserve-3d; background: linear-gradient(160deg, #ffffff 0%, #FBFCFB 55%, #F1F4F3 100%);
+  box-shadow: 0 1px 0 #ffffff inset, 0 1px 2px #23282D14, 0 14px 30px -14px #23282D40, 0 36px 60px -34px #23282D33;
+  will-change: transform; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-tilt, html.bp-js:not([data-reduced-motion="on"]) .choice.bp-tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+  transition: transform .25s cubic-bezier(.2,.65,.3,1), box-shadow .3s; }
+.tile.bp-tilt:hover, .choice.bp-tilt:hover { --lift: -6px;
+  box-shadow: 0 1px 0 #fff inset, 0 2px 4px #23282D1A, 0 26px 44px -16px #23282D55, 0 50px 80px -40px #23282D40; }
+.tile__media, .choice__mark, .tile__thumb { transform: translateZ(28px); }
+.tile__title, .choice__title { transform: translateZ(16px); }
+.hero__mark { filter: drop-shadow(0 18px 24px #00000066); }
+@media (prefers-reduced-motion: reduce) { html:not([data-reduced-motion="off"]) .tile.bp-tilt, html:not([data-reduced-motion="off"]) .choice.bp-tilt { transform: none; } }
