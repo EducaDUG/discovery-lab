@@ -15,98 +15,72 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 }catch(e){}})();
 </script>
 <style>
-/* ---- Workshop: clean PhET/Gizmos-style lab bench ---- */
-.simonly{--c-cpu:#2b7de9;--c-ram:#f08a24;--c-sto:#8b5cf6;--c-ok:#19a974;--c-bad:#e5484d;
-  padding:0;overflow:hidden;border-radius:18px;border:2px solid #cfe0f5;background:linear-gradient(180deg,#eaf3ff,#f7fbff 60%);}
-.sw-tabs{display:flex;gap:6px;padding:10px 10px 0;background:#d9e9fb;flex-wrap:wrap;}
-.sw-tab{flex:1 1 9rem;display:flex;align-items:center;justify-content:center;gap:.45em;padding:.7em .8em;border:none;cursor:pointer;
-  border-radius:12px 12px 0 0;font:inherit;font-weight:800;font-size:.95rem;color:#35557a;background:#c3d9f3;min-height:44px;touch-action:manipulation;}
-.sw-tab[aria-selected=true]{background:#fff;color:#12365f;box-shadow:0 -3px 0 var(--tabc) inset;}
-.sw-tab svg{width:1.35em;height:1.35em;}
-.sw-checks{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-bottom:1px solid #dbe7f5;align-items:center;}
-.sw-chip{display:inline-flex;align-items:center;gap:.4em;font-size:.78rem;font-weight:800;padding:.3em .8em;border-radius:999px;
-  background:#eef3f9;color:#5b6f86;border:1.5px dashed #b8c8da;}
-.sw-chip.done{background:#dff6ec;color:#0c6b4a;border:1.5px solid var(--c-ok);}
-.sw-chip.done::before{content:"\2713";}
-.sw-panel{padding:16px;background:#fff;}
-.sw-panel[hidden]{display:none;}
-.sw-lede{margin:0 0 12px;font-size:1rem;color:#26405f;font-weight:600;}
-.sw-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;}
-@media(max-width:760px){.sw-grid{grid-template-columns:1fr;}}
-.sw-stage{border-radius:16px;border:2px solid #d3e3f6;background:linear-gradient(180deg,#f2f8ff,#e4f0fd);padding:14px;position:relative;min-height:14rem;}
-.sw-ctrl{border-radius:16px;border:2px solid #d3e3f6;background:#f9fbff;padding:14px;display:flex;flex-direction:column;gap:12px;align-self:start;}
-.sw-ctrl h3{margin:0;font-size:1rem;color:#12365f;}
-.sw-big{font-family:var(--font-data);font-weight:800;font-size:2rem;line-height:1;color:var(--cc);}
-.sw-range{width:100%;height:2.4rem;accent-color:var(--cc);touch-action:manipulation;}
-.sw-scale{display:flex;justify-content:space-between;font-size:.75rem;font-weight:700;color:#5b6f86;margin-top:-6px;}
-.sw-btn{font:inherit;font-weight:800;border:none;cursor:pointer;border-radius:12px;padding:.7em 1.1em;min-height:44px;color:#fff;background:var(--cc);
-  box-shadow:0 4px 0 color-mix(in srgb,var(--cc) 60%,#000);transition:transform .08s;touch-action:manipulation;}
-.sw-btn:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--cc) 60%,#000);}
-.sw-btn:disabled{opacity:.5;cursor:default;}
-.sw-btn--ghost{background:#fff;color:#12365f;border:2px solid #b8c8da;box-shadow:0 3px 0 #b8c8da;}
-.sw-msg{min-height:2.6em;margin:0;font-weight:700;font-size:.92rem;color:#26405f;}
-.sw-msg.bad{color:#b4232a;} .sw-msg.good{color:#0c6b4a;}
-
-/* CPU */
-.cpu-lane{display:flex;align-items:center;gap:10px;}
-.cpu-queue{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;}
-.task{width:3.1rem;height:2.3rem;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:.8rem;
-  background:#fff;border:2px solid #9fbbe0;color:#1d4a85;transition:all .25s;}
-.task.cur{background:#ffe9a8;border-color:#e6a800;transform:scale(1.12);}
-.task.done{background:#d6f5e6;border-color:var(--c-ok);color:#0c6b4a;}
-.task.done::after{content:"\2713";margin-left:2px;}
-.chipwrap{flex:none;width:7.4rem;}
-.fan{transform-origin:50% 50%;}
-.running .fan{animation:spin var(--spd,1.2s) linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-[data-reduced-motion=on] .running .fan{animation:none;}
-.cpu-bars{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
-.bar-row{display:grid;grid-template-columns:4.2rem 1fr 3.4rem;gap:8px;align-items:center;font-size:.82rem;font-weight:800;color:#26405f;}
-.bar-row i{display:block;height:1.1rem;border-radius:6px;background:var(--c-cpu);transition:width .4s;}
-.bar-row.empty{color:#9aabc0;} .bar-row.empty i{background:#dbe5f1;width:6%;}
-
-/* RAM */
-.desk{border-radius:14px;padding:12px;min-height:8.2rem;border:2px solid #c9964f;
-  background:repeating-linear-gradient(90deg,#e9bd7e 0 22px,#e3b377 22px 24px);position:relative;}
-.desk.slow{animation:none;outline:3px dashed var(--c-bad);outline-offset:3px;}
-.sheet{display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0;padding:6px 10px 6px 6px;border-radius:10px;background:#fffdf7;
-  border:2px solid var(--ac);box-shadow:0 3px 0 rgba(0,0,0,.15);font-weight:800;font-size:.8rem;color:#26405f;animation:drop .3s ease-out;}
-.sheet svg{width:1.9rem;height:1.9rem;}
-.sheet.nr::after{content:"\2026";color:var(--c-bad);}
-@keyframes drop{from{transform:translateY(-14px);opacity:0;}to{transform:none;opacity:1;}}
-[data-reduced-motion=on] .sheet{animation:none;}
-.desk-empty{color:#7a5a2c;font-weight:700;font-size:.9rem;}
-.cells{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px;}
-.cell{width:1.35rem;height:1.35rem;border-radius:4px;border:2px solid #b9c9dc;background:#fff;}
-.cell.f{border-color:rgba(0,0,0,.2);}
-.cell.over{border:2px dashed var(--c-bad);background:#ffe3e4;}
-.appgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(7.4rem,1fr));gap:8px;}
-.appbtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:2px solid #b8c8da;background:#fff;
-  cursor:pointer;font:inherit;font-weight:800;font-size:.8rem;color:#26405f;min-height:44px;touch-action:manipulation;}
-.appbtn svg{width:2.4rem;height:2.4rem;}
-.appbtn small{font-weight:700;color:#5b6f86;}
-.appbtn[aria-pressed=true]{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,#fff);box-shadow:inset 0 0 0 1.5px var(--ac);}
-.turtle{position:absolute;right:10px;top:8px;width:3rem;opacity:0;transition:opacity .3s;}
-.desk.slow .turtle{opacity:1;}
-
-/* Storage */
-.cupboard{border-radius:14px;border:3px solid #5f4a9e;background:linear-gradient(180deg,#e9e1fb,#d7ccf5);padding:10px;min-height:9rem;}
-.shelf{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;min-height:6.5rem;}
-.file{display:flex;align-items:center;gap:5px;padding:5px 9px 5px 5px;border-radius:10px;border:2px solid var(--ac);background:#fff;font:inherit;
-  font-weight:800;font-size:.78rem;color:#26405f;cursor:pointer;min-height:44px;animation:drop .3s ease-out;touch-action:manipulation;}
-.file svg{width:1.8rem;height:1.8rem;}
-.file:hover{background:#fff1f1;} .file::after{content:"\00d7";color:#b4232a;font-size:1.1rem;margin-left:2px;}
-.stobar{margin-top:10px;height:1.6rem;border-radius:8px;background:#fff;border:2px solid #5f4a9e;display:flex;overflow:hidden;}
-.stobar.shake{animation:shake .4s;}
-@keyframes shake{25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
-[data-reduced-motion=on] .stobar.shake{animation:none;outline:3px solid var(--c-bad);}
-.stobar span{height:100%;transition:width .3s;}
-.fact{margin-top:14px;padding:10px 14px;border-radius:14px;background:#fff7e6;border:2px dashed #e6a800;display:flex;gap:10px;align-items:center;}
-.fact button{font:inherit;font-weight:800;background:#e6a800;color:#fff;border:none;border-radius:10px;padding:.5em .9em;cursor:pointer;min-height:44px;}
-.fact p{margin:0;font-weight:700;color:#5c3f00;font-size:.9rem;}
-.burst{position:absolute;pointer-events:none;font-weight:900;color:var(--c-ok);animation:rise .9s ease-out forwards;}
-@keyframes rise{to{transform:translateY(-34px);opacity:0;}}
-[data-reduced-motion=on] .burst{animation:none;opacity:0;}
+/* ---- Tech Core Arena: dark glass HUD over a real-time 3D motherboard ---- */
+.simonly{--cpu:#35d0ff;--ram:#ff9a3c;--sto:#a97bff;--ok:#2bf0a0;--bad:#ff5468;
+  padding:0 !important;overflow:hidden;border-radius:22px;border:1px solid #22304d;background:#070b14;color:#e8f0ff;
+  box-shadow:0 20px 60px -20px rgba(20,60,160,.55);}
+.simonly *{box-sizing:border-box;}
+.ar-top{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:12px 16px;
+  background:linear-gradient(180deg,#0f1830,#0a1122);border-bottom:1px solid #1d2a47;}
+.ar-rank{display:flex;align-items:center;gap:12px;min-width:15rem;}
+.ar-rank__badge{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:1.25rem;color:#06101f;
+  background:linear-gradient(135deg,#35d0ff,#a97bff);box-shadow:0 0 18px rgba(80,160,255,.55);}
+.ar-rank__name{font-weight:900;letter-spacing:.04em;text-transform:uppercase;font-size:.78rem;color:#9fb6e6;}
+.ar-xpbar{height:9px;width:11rem;border-radius:9px;background:#18233d;overflow:hidden;margin-top:5px;}
+.ar-xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#35d0ff,#2bf0a0);transition:width .5s;}
+.ar-xp{font-family:var(--font-data);font-size:.8rem;color:#c7d8ff;font-weight:700;}
+.ar-miss{display:flex;gap:7px;flex-wrap:wrap;}
+.ar-m{display:inline-flex;align-items:center;gap:.45em;padding:.38em .85em;border-radius:999px;font-size:.76rem;font-weight:800;
+  background:#121d36;color:#7f95c4;border:1px solid #243457;}
+.ar-m::before{content:"";width:.8em;height:.8em;border-radius:50%;border:2px solid #4a5f8f;}
+.ar-m.done{background:rgba(43,240,160,.12);color:var(--ok);border-color:rgba(43,240,160,.5);}
+.ar-m.done::before{background:var(--ok);border-color:var(--ok);}
+.ar-view{position:relative;height:clamp(300px,52vh,520px);background:radial-gradient(ellipse at 50% 30%,#13203d,#070b14 70%);}
+.ar-view canvas{display:block;touch-action:pan-y;cursor:grab;}
+.ar-nogl{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:2rem;color:#9fb6e6;font-weight:700;}
+.ar-msg{position:absolute;left:12px;right:12px;bottom:12px;padding:.7em 1em;border-radius:14px;font-weight:800;font-size:.92rem;
+  background:rgba(8,14,30,.78);border:1px solid #2a3b60;backdrop-filter:blur(8px);color:#dce8ff;pointer-events:none;}
+.ar-msg.good{border-color:rgba(43,240,160,.6);color:var(--ok);} .ar-msg.bad{border-color:rgba(255,84,104,.7);color:#ff8d9c;}
+.ar-hint{position:absolute;right:12px;top:10px;font-size:.7rem;font-weight:700;color:#6f86b8;pointer-events:none;}
+.ar-pop{position:absolute;left:50%;top:38%;transform:translateX(-50%);font-weight:900;font-size:1.5rem;color:var(--ok);text-shadow:0 0 14px rgba(43,240,160,.8);
+  pointer-events:none;animation:arpop 1.1s ease-out forwards;}
+@keyframes arpop{0%{opacity:0;transform:translate(-50%,10px);}15%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50px);}}
+.ar-banner{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,9,20,.72);backdrop-filter:blur(3px);z-index:3;}
+.ar-banner div{text-align:center;padding:1.4rem 2rem;border-radius:22px;border:1px solid var(--ok);background:#0a1426;box-shadow:0 0 40px rgba(43,240,160,.35);}
+.ar-banner h3{margin:0 0 .3em;font-size:1.6rem;color:var(--ok);} .ar-banner p{margin:0 0 .9em;color:#c7d8ff;font-weight:700;}
+.ar-stations{display:flex;gap:8px;padding:10px 12px;background:#0a1122;flex-wrap:wrap;}
+.ar-st{flex:1 1 9rem;display:flex;align-items:center;justify-content:center;gap:.5em;min-height:46px;padding:.5em .8em;border-radius:14px;border:1px solid #243457;
+  background:#101a31;color:#a9bde6;font:inherit;font-weight:900;font-size:.9rem;cursor:pointer;touch-action:manipulation;transition:all .15s;}
+.ar-st svg{width:1.4em;height:1.4em;}
+.ar-st[aria-selected=true]{color:#fff;border-color:var(--c);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 28%,#101a31),#101a31);box-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);}
+.ar-dock{padding:6px 14px 16px;background:#0a1122;}
+.ar-dock[hidden],.ar-panel[hidden]{display:none;}
+.ar-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px;align-items:start;}
+@media(max-width:760px){.ar-panel{grid-template-columns:1fr;}}
+.ar-card{border-radius:16px;border:1px solid #243457;background:linear-gradient(180deg,#111c35,#0d1630);padding:12px 14px;}
+.ar-card h3{margin:0 0 8px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#8fa7d8;}
+.ar-big{font-family:var(--font-data);font-weight:900;font-size:2.2rem;line-height:1;color:var(--c);text-shadow:0 0 18px color-mix(in srgb,var(--c) 60%,transparent);}
+.ar-seg{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;}
+.ar-seg button{flex:1 1 3.4rem;min-height:44px;border-radius:12px;border:1px solid #2c3f68;background:#14213f;color:#bcd0ff;font:inherit;font-weight:900;cursor:pointer;touch-action:manipulation;}
+.ar-seg button[aria-pressed=true]{background:var(--c);color:#06101f;border-color:var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 55%,transparent);}
+.ar-go{width:100%;min-height:50px;border:none;border-radius:14px;font:inherit;font-weight:900;font-size:1rem;color:#06101f;cursor:pointer;
+  background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#fff));box-shadow:0 5px 0 color-mix(in srgb,var(--c) 45%,#000),0 0 22px color-mix(in srgb,var(--c) 40%,transparent);touch-action:manipulation;}
+.ar-go:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--c) 45%,#000);} .ar-go:disabled{opacity:.5;}
+.ar-go--ghost{background:#14213f;color:#dce8ff;box-shadow:0 4px 0 #0a1226;border:1px solid #2c3f68;margin-top:8px;}
+.ar-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(7.6rem,1fr));gap:8px;}
+.ar-chip{display:flex;align-items:center;gap:8px;min-height:50px;padding:6px 10px 6px 6px;border-radius:14px;border:1px solid #2c3f68;background:#14213f;color:#e8f0ff;font:inherit;font-weight:800;font-size:.82rem;cursor:pointer;text-align:left;touch-action:manipulation;}
+.ar-chip svg{width:2.2rem;height:2.2rem;flex:none;} .ar-chip small{display:block;color:#8fa7d8;font-weight:700;}
+.ar-chip[aria-pressed=true]{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 22%,#14213f);box-shadow:0 0 14px color-mix(in srgb,var(--ac) 50%,transparent);}
+.ar-bars{display:flex;flex-direction:column;gap:7px;margin-top:6px;}
+.ar-bar{display:grid;grid-template-columns:3.6rem 1fr 3.2rem;gap:8px;align-items:center;font-size:.8rem;font-weight:800;color:#c7d8ff;}
+.ar-bar i{display:block;height:.9rem;border-radius:6px;background:linear-gradient(90deg,var(--cpu),#2bf0a0);transition:width .4s;}
+.ar-bar.e{color:#5d7199;} .ar-bar.e i{background:#1b2846;width:6%;}
+.ar-meter{height:14px;border-radius:8px;background:#18233d;overflow:hidden;margin:8px 0;border:1px solid #2c3f68;}
+.ar-meter i{display:block;height:100%;transition:width .3s,background .3s;}
+.ar-fact{margin:12px 14px 14px;padding:10px 14px;border-radius:14px;background:#17130a;border:1px dashed #d9a21b;display:flex;gap:12px;align-items:center;}
+.ar-fact button{font:inherit;font-weight:900;background:#d9a21b;color:#1c1400;border:none;border-radius:10px;padding:.6em 1em;cursor:pointer;min-height:44px;}
+.ar-fact p{margin:0;font-weight:700;color:#ffdf8a;font-size:.9rem;}
+[data-reduced-motion=on] .ar-pop{animation:none;}
 </style>
 </head>
 <body>
@@ -146,246 +120,392 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 import { mountExternalActivity } from "../../../../engine/external-activity.js?v=3";
 import { getLang } from "../../../../engine/i18n.js?v=10";
 const L = (en, es) => getLang() === "es" ? es : en;
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on" ||
+  (document.documentElement.getAttribute("data-reduced-motion") !== "off" && matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-/* ---------- drawn icons (real objects, never bare letters/blocks) ---------- */
+/* ---------- drawn icons (used as HUD chips AND as textures on the 3D blocks) ---------- */
 const ICON = {
-  chat: c => `<svg viewBox="0 0 48 48"><path d="M8 10h32a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H22l-9 8v-8H8a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="${c}"/><circle cx="16" cy="22" r="2.4" fill="#fff"/><circle cx="24" cy="22" r="2.4" fill="#fff"/><circle cx="32" cy="22" r="2.4" fill="#fff"/></svg>`,
-  music: c => `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="${c}"/><path d="M20 14v16.5a4.5 4 0 1 1-3-3.8V16l15-3v13.5a4.5 4 0 1 1-3-3.8V14z" fill="#fff"/></svg>`,
-  browser: c => `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="${c}"/><g fill="none" stroke="#fff" stroke-width="2.4"><ellipse cx="24" cy="24" rx="9" ry="21"/><path d="M4 24h40M7 14h34M7 34h34"/></g></svg>`,
-  photo: c => `<svg viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="5" fill="${c}"/><circle cx="16" cy="19" r="4" fill="#ffe27a"/><path d="M6 36l12-12 8 8 6-6 10 10z" fill="#fff" opacity=".92"/></svg>`,
-  game: c => `<svg viewBox="0 0 48 48"><path d="M12 14h24c6 0 10 8 10 16 0 5-3 7-6 5l-6-5H14l-6 5c-3 2-6 0-6-5 0-8 4-16 10-16z" fill="${c}"/><path d="M15 21v8M11 25h8" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="22" r="2.4" fill="#fff"/><circle cx="37" cy="27" r="2.4" fill="#fff"/></svg>`,
-  video: c => `<svg viewBox="0 0 48 48"><rect x="4" y="9" width="40" height="30" rx="5" fill="${c}"/><path d="M20 17l11 7-11 7z" fill="#fff"/><g fill="#fff"><rect x="7" y="12" width="3" height="3" rx="1"/><rect x="7" y="33" width="3" height="3" rx="1"/><rect x="38" y="12" width="3" height="3" rx="1"/><rect x="38" y="33" width="3" height="3" rx="1"/></g></svg>`,
+  chat: c => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="${c}"/><path d="M10 12h28a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H23l-8 7v-7h-5a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3z" fill="#fff"/><circle cx="17" cy="22" r="2.2" fill="${c}"/><circle cx="24" cy="22" r="2.2" fill="${c}"/><circle cx="31" cy="22" r="2.2" fill="${c}"/></svg>`,
+  music: c => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="${c}"/><path d="M21 11v18.5a5 4.4 0 1 1-3-3.9V16l15-3v14.5a5 4.4 0 1 1-3-3.9V11z" fill="#fff"/></svg>`,
+  browser: c => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="${c}"/><g fill="none" stroke="#fff" stroke-width="2.4"><circle cx="24" cy="24" r="14"/><ellipse cx="24" cy="24" rx="6" ry="14"/><path d="M10 24h28"/></g></svg>`,
+  photo: c => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="${c}"/><rect x="8" y="11" width="32" height="26" rx="4" fill="#fff"/><circle cx="18" cy="20" r="3.6" fill="#ffc83d"/><path d="M9 35l10-10 7 7 5-5 8 8z" fill="${c}"/></svg>`,
+  game: c => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="${c}"/><path d="M13 16h22c5 0 8 7 8 13 0 4-2.5 6-5 4.5L33 30H15l-5 3.5C7.500 35 5 33 5 29c0-6 3-13 8-13z" fill="#fff"/><path d="M16 21v7M12.500 24.500h7" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/><circle cx="31" cy="22" r="2.2" fill="${c}"/><circle cx="36" cy="26" r="2.2" fill="${c}"/></svg>`,
+  video: c => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="${c}"/><rect x="7" y="11" width="34" height="26" rx="4" fill="#fff"/><path d="M20 17.500l10 6.500-10 6.500z" fill="${c}"/></svg>`,
 };
 const APPS = [
-  { id:"chat",    gb:1, c:"#19a974", ico:"chat",    n:()=>L("Chat","Chat") },
-  { id:"music",   gb:1, c:"#e5484d", ico:"music",   n:()=>L("Music","Música") },
-  { id:"browser", gb:2, c:"#2b7de9", ico:"browser", n:()=>L("Browser","Navegador") },
-  { id:"photo",   gb:3, c:"#d6409f", ico:"photo",   n:()=>L("Photo app","Fotos") },
+  { id:"chat",    gb:1, c:"#22c58b", ico:"chat",    n:()=>L("Chat","Chat") },
+  { id:"music",   gb:1, c:"#ff4d6d", ico:"music",   n:()=>L("Music","Música") },
+  { id:"browser", gb:2, c:"#3b8bff", ico:"browser", n:()=>L("Browser","Navegador") },
+  { id:"photo",   gb:3, c:"#e043a8", ico:"photo",   n:()=>L("Photo app","Fotos") },
   { id:"game",    gb:4, c:"#8b5cf6", ico:"game",    n:()=>L("Game","Juego") },
-  { id:"video",   gb:6, c:"#f08a24", ico:"video",   n:()=>L("Video editor","Editor de vídeo") },
+  { id:"video",   gb:6, c:"#ff8a1f", ico:"video",   n:()=>L("Video editor","Editor de vídeo") },
 ];
 const FILES = [
-  { id:"photo", gb:12, c:"#d6409f", ico:"photo", n:()=>L("Photos","Fotos") },
-  { id:"music", gb:8,  c:"#e5484d", ico:"music", n:()=>L("Songs","Canciones") },
+  { id:"photo", gb:12, c:"#e043a8", ico:"photo", n:()=>L("Photos","Fotos") },
+  { id:"music", gb:8,  c:"#ff4d6d", ico:"music", n:()=>L("Songs","Canciones") },
   { id:"game",  gb:30, c:"#8b5cf6", ico:"game",  n:()=>L("Game","Juego") },
-  { id:"video", gb:40, c:"#f08a24", ico:"video", n:()=>L("Video","Vídeo") },
+  { id:"video", gb:40, c:"#ff8a1f", ico:"video", n:()=>L("Video","Vídeo") },
 ];
 const RAMS=[2,4,8,16], STOS=[32,64,128,256,512];
+const RANKS=[[0,L("Rookie","Novato")],[60,L("Technician","Técnico")],[140,L("Engineer","Ingeniero")],[240,L("Architect","Arquitecto")]];
 
-const cpuSVG = `<svg viewBox="0 0 120 120" aria-hidden="true">
-  <g fill="#c9a24a">${[...Array(8)].map((_,i)=>`<rect x="${20+i*11}" y="2" width="6" height="14" rx="1.5"/><rect x="${20+i*11}" y="104" width="6" height="14" rx="1.5"/><rect x="2" y="${20+i*11}" width="14" height="6" rx="1.5"/><rect x="104" y="${20+i*11}" width="14" height="6" rx="1.5"/>`).join("")}</g>
-  <rect x="14" y="14" width="92" height="92" rx="12" fill="#2b4a7a"/><rect x="22" y="22" width="76" height="76" rx="8" fill="#3b6cb3"/>
-  <g class="fan"><circle cx="60" cy="60" r="26" fill="#e9f2ff"/>
-    ${[0,90,180,270].map(a=>`<path transform="rotate(${a} 60 60)" d="M60 60 C60 42 74 38 74 50 C74 58 66 60 60 60z" fill="#2b7de9"/>`).join("")}
-    <circle cx="60" cy="60" r="5" fill="#12365f"/></g></svg>`;
+function loadThree() {
+  if (window.THREE) return Promise.resolve();
+  return new Promise((res, rej) => { const s = document.createElement("script");
+    s.src = "../../../../engine/vendor/three.min.js"; s.onload = res; s.onerror = rej; document.head.append(s); });
+}
 
+/* =====================================================================
+   3D SCENE — a real-time PBR motherboard. It only READS state each frame
+   (st = persisted state, rt = runtime); it never owns game logic.
+   ===================================================================== */
+async function initScene(view, st, rt) {
+  try { await loadThree(); } catch (e) { return null; }
+  const THREE = window.THREE; let gl = null;
+  try { const c = document.createElement("canvas"); gl = c.getContext("webgl2") || c.getContext("webgl"); } catch (e) {}
+  if (!gl) return null;
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  view.prepend(renderer.domElement);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x070b14); scene.fog = new THREE.FogExp2(0x070b14, 0.028);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120);
+  const C = h => new THREE.Color(h).convertSRGBToLinear();
+
+  /* procedural studio environment for reflections */
+  try {
+    const es = new THREE.Scene(); es.background = new THREE.Color(0x0a1224);
+    [[0,9,0,16,.5,16,0xffffff,1.6],[-14,4,2,.5,7,12,0x58b8ff,2.4],[14,4,2,.5,7,12,0xff7ad9,1.8],[0,3,-14,16,5,.5,0xffd9a0,1.2]].forEach(p => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(p[3],p[4],p[5]), new THREE.MeshBasicMaterial({ color: new THREE.Color(p[6]).multiplyScalar(p[7]) })); m.position.set(p[0],p[1],p[2]); es.add(m); });
+    const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(es, 0.04).texture; pm.dispose();
+  } catch (e) {}
+
+  const tex = (w, h, draw, rep) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); } return t; };
+  let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+  /* --- PCB: dark teal board, etched traces, glow layer --- */
+  const glowLayer = document.createElement("canvas"); glowLayer.width = 1024; glowLayer.height = 640;
+  const gctx = glowLayer.getContext("2d"); gctx.fillStyle = "#000"; gctx.fillRect(0,0,1024,640);
+  const pcbTex = tex(1024, 640, (x, w, h) => {
+    const g = x.createLinearGradient(0,0,w,h); g.addColorStop(0,"#0a3a3d"); g.addColorStop(1,"#06232b"); x.fillStyle = g; x.fillRect(0,0,w,h);
+    for (let i = 0; i < 9000; i++) { x.fillStyle = `rgba(255,255,255,${rand()*0.04})`; x.fillRect(rand()*w, rand()*h, 2, 2); }
+    for (let i = 0; i < 150; i++) {
+      let px = Math.floor(rand()*64)*16, py = Math.floor(rand()*40)*16; const path = [[px,py]];
+      for (let s = 0; s < 5; s++) { const dir = Math.floor(rand()*4), len = (2+Math.floor(rand()*8))*16;
+        px += [len,-len,0,0][dir]; py += [0,0,len,-len][dir]; path.push([px,py]); if (rand()<.3){ px+=16; py+=16; path.push([px,py]); } }
+      [[x,"rgba(80,220,205,.32)",3],[gctx,"rgba(60,255,235,.9)",3]].forEach(([c,col,lw]) => { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); path.forEach((p,k)=>k?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])); c.stroke();
+        c.fillStyle = col; c.beginPath(); c.arc(px,py,5,0,6.3); c.fill(); });
+    }
+    x.strokeStyle = "rgba(210,240,235,.5)"; x.lineWidth = 3; x.strokeRect(14,14,w-28,h-28);
+    x.fillStyle = "rgba(210,240,235,.55)"; x.font = "bold 22px monospace"; x.fillText("DISCOVERY-LAB  MAINBOARD  REV 2.0", 40, h-30);
+  });
+  const glowTex = new THREE.CanvasTexture(glowLayer); glowTex.encoding = THREE.sRGBEncoding;
+  const board = new THREE.Mesh(new THREE.BoxGeometry(17, 0.3, 10.4), new THREE.MeshStandardMaterial({ map: pcbTex, emissiveMap: glowTex, emissive: C(0x1fe0d0), emissiveIntensity: 0.42, roughness: 0.55, metalness: 0.25 }));
+  board.position.y = -0.15; board.receiveShadow = true; scene.add(board);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: C(0x0b1222), roughness: 0.35, metalness: 0.6 }));
+  floor.rotation.x = -Math.PI/2; floor.position.y = -0.32; floor.receiveShadow = true; scene.add(floor);
+
+  /* --- lights --- */
+  const hemi = new THREE.HemisphereLight(0x9fc4ff, 0x10203a, 0.55); scene.add(hemi);
+  const key = new THREE.DirectionalLight(0xffffff, 1.35); key.position.set(5, 11, 7); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.03;
+  Object.assign(key.shadow.camera, { left:-11, right:11, top:9, bottom:-9, near:1, far:40 }); scene.add(key);
+  const lamps = [[-4.6,0x35d0ff],[0.4,0xff9a3c],[5.6,0xa97bff]].map(([x,c]) => { const l = new THREE.PointLight(c, 1.6, 9, 2); l.position.set(x, 2.4, 1.6); scene.add(l); return l; });
+
+  const metal = (col, rough = 0.32) => new THREE.MeshStandardMaterial({ color: C(col), roughness: rough, metalness: 1 });
+  const anchors = { cpu:[-4.6,1.4,0], ram:[0.4,1.2,0], sto:[5.6,2.2,0], power:[0,0.6,4.3] };
+
+  /* --- CPU: socket, brushed heat-spreader, finned heatsink, spinning fan --- */
+  const cpuG = new THREE.Group(); cpuG.position.set(-4.6, 0, 0); scene.add(cpuG);
+  const sock = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.16, 3.3), metal(0x2a3550, 0.5)); sock.position.y = 0.08; sock.castShadow = sock.receiveShadow = true; cpuG.add(sock);
+  const cpuTex = tex(512, 512, (x, w, h) => { const g = x.createLinearGradient(0,0,w,0); g.addColorStop(0,"#b9c2d3"); g.addColorStop(.5,"#e8edf6"); g.addColorStop(1,"#a5aec0"); x.fillStyle = g; x.fillRect(0,0,w,h);
+    for (let i = 0; i < 700; i++) { x.fillStyle = `rgba(0,0,0,${rand()*.07})`; x.fillRect(0, rand()*h, w, 1.5); }
+    x.fillStyle = "#1b2744"; x.font = "bold 74px sans-serif"; x.textAlign = "center"; x.fillText("CPU", w/2, h/2+10); x.font = "bold 30px monospace"; x.fillText("CORE-X  8 CORES", w/2, h/2+62);
+    x.strokeStyle = "#1b2744"; x.lineWidth = 5; x.strokeRect(40,40,w-80,h-80); });
+  const spreader = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.26, 2.6), new THREE.MeshStandardMaterial({ map: cpuTex, roughness: 0.28, metalness: 0.95 })); spreader.position.y = 0.3; spreader.castShadow = true; cpuG.add(spreader);
+  const hsMat = metal(0x8c97ad, 0.38);
+  for (let i = 0; i < 13; i++) { const f = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.9, 0.09), hsMat); f.position.set(0, 0.88, -1.08 + i*0.18); f.castShadow = true; cpuG.add(f); }
+  const fan = new THREE.Group(); fan.position.y = 1.5; cpuG.add(fan);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.09, 16, 48), new THREE.MeshStandardMaterial({ color: C(0x101a30), roughness: .4, metalness: .8, emissive: C(0x35d0ff), emissiveIntensity: .9 })); ring.rotation.x = Math.PI/2; cpuG.add(ring); ring.position.y = 1.5;
+  for (let i = 0; i < 7; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.04, 0.5), new THREE.MeshStandardMaterial({ color: C(0x1b2a4a), roughness: .35, metalness: .6, transparent: true, opacity: .92 }));
+    const a = i / 7 * Math.PI * 2; b.position.set(Math.cos(a)*0.62, 0, Math.sin(a)*0.62); b.rotation.y = -a; b.rotation.z = 0.25; b.castShadow = true; fan.add(b); }
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.12,24), new THREE.MeshStandardMaterial({ color: C(0x0c1428), emissive: C(0x35d0ff), emissiveIntensity: .8, metalness: .6, roughness: .3 })); fan.add(hub);
+
+  /* task packets: queue (front) -> through CPU -> done (back) */
+  const taskMats = [], tasks = [];
+  for (let i = 0; i < 10; i++) { const m = new THREE.MeshStandardMaterial({ color: C(0x35d0ff), emissive: C(0x35d0ff), emissiveIntensity: 1.1, roughness: .25, metalness: .2 });
+    const t = new THREE.Mesh(new THREE.BoxGeometry(.3,.3,.3), m); t.castShadow = true; scene.add(t); tasks.push(t); taskMats.push(m); }
+  const qPos = i => new THREE.Vector3(-4.6 + (i-4.5)*0.38, 0.3, 3.7), dPos = i => new THREE.Vector3(-4.6 + (i-4.5)*0.38, 0.3, -3.7);
+  for (let i = 0; i < 10; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(.34,.05,.34), new THREE.MeshStandardMaterial({ color: C(0x16223f), roughness:.5, metalness:.7 })); b.position.copy(qPos(i)).setY(0.03); scene.add(b);
+    const d = b.clone(); d.position.copy(dPos(i)).setY(0.03); scene.add(d); }
+
+  /* --- RAM desk: 16 cells (8x2), lit up to capacity; app blocks drop in --- */
+  const ramG = new THREE.Group(); ramG.position.set(0.4, 0, 0); scene.add(ramG);
+  const deskBase = new THREE.Mesh(new THREE.BoxGeometry(5, 0.22, 1.9), metal(0x1b2742, 0.45)); deskBase.position.y = 0.11; deskBase.castShadow = deskBase.receiveShadow = true; ramG.add(deskBase);
+  const cellPos = k => new THREE.Vector3(((k%8) - 3.5) * 0.58, 0.22, (k<8 ? -0.33 : 0.33));
+  const tileGeo = new THREE.BoxGeometry(.52,.06,.52), tiles = [];
+  for (let k = 0; k < 16; k++) { const m = new THREE.MeshStandardMaterial({ color: C(0x22304f), emissive: C(0xff9a3c), emissiveIntensity: 0, roughness: .4, metalness: .6 });
+    const t = new THREE.Mesh(tileGeo, m); t.position.copy(cellPos(k)).setY(0.25); t.receiveShadow = true; ramG.add(t); tiles.push(m); }
+  for (let i = 0; i < 4; i++) { const d = new THREE.Mesh(new THREE.BoxGeometry(.12, 1, 1.5), new THREE.MeshStandardMaterial({ color: C(0x1d7a4f), roughness: .5, metalness: .4, emissive: C(0xff9a3c), emissiveIntensity: .1 }));
+    d.position.set(-2.3 + i*0.22 - 0.0, 0.7, -1.7); d.castShadow = true; ramG.add(d); }
+  const blocks = new THREE.Group(); ramG.add(blocks); let ramSig = "";
+  const iconCache = {};
+  const iconTex = (ico, c) => { const k = ico + c; if (iconCache[k]) return iconCache[k];
+    const img = new Image(), t = new THREE.Texture(img); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8;
+    img.onload = () => { t.needsUpdate = true; }; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(ICON[ico](c)); return (iconCache[k] = t); };
+  const cellGeo = new THREE.BoxGeometry(.5, .5, .5);
+  const iconMat = (ico, c, over) => new THREE.MeshBasicMaterial({ map: iconTex(ico, c), transparent: true, opacity: over ? 0.7 : 1 });
+
+  /* --- Storage vault: glass case, slabs stack inside --- */
+  const stoG = new THREE.Group(); stoG.position.set(5.6, 0, 0); scene.add(stoG);
+  const stoBase = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.22, 2.4), metal(0x2b2460, 0.4)); stoBase.position.y = 0.11; stoBase.castShadow = stoBase.receiveShadow = true; stoG.add(stoBase);
+  const CASE_H = 3.4, glassMat = new THREE.MeshStandardMaterial({ color: C(0x9ec2ff), roughness: 0.04, metalness: 0.1, transparent: true, opacity: 0.16, depthWrite: false, emissive: C(0xff5468), emissiveIntensity: 0 });
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(2.1, CASE_H, 2.1), glassMat); glass.position.y = 0.22 + CASE_H/2; stoG.add(glass);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(glass.geometry), new THREE.LineBasicMaterial({ color: 0xa97bff })); edges.position.copy(glass.position); stoG.add(edges);
+  [.25,.5,.75].forEach(f => { const l = new THREE.Mesh(new THREE.BoxGeometry(2.14, .02, 2.14), new THREE.MeshBasicMaterial({ color: 0x6d57c9, transparent: true, opacity: .55 })); l.position.y = .22 + CASE_H*f; stoG.add(l); });
+  const slabs = new THREE.Group(); stoG.add(slabs); let stoSig = ""; const pickables = [];
+
+  /* --- Power button --- */
+  const pwG = new THREE.Group(); pwG.position.set(0, 0, 4.3); scene.add(pwG);
+  const pwBase = new THREE.Mesh(new THREE.CylinderGeometry(.62,.7,.18,40), metal(0x2a3550, 0.35)); pwBase.position.y = .09; pwBase.castShadow = true; pwG.add(pwBase);
+  const pwMat = new THREE.MeshStandardMaterial({ color: C(0x0f2a22), emissive: C(0x2bf0a0), emissiveIntensity: 1.2, roughness: .3, metalness: .4 });
+  const pwBtn = new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.16,40), pwMat); pwBtn.position.y = .24; pwG.add(pwBtn); pwBtn.userData.power = true; pickables.push(pwBtn);
+  const pwIcon = new THREE.Mesh(new THREE.PlaneGeometry(.5,.5), new THREE.MeshBasicMaterial({ map: (() => { const img = new Image(), t = new THREE.Texture(img); img.onload = () => { t.needsUpdate = true; };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"><path d="M24 7v17"/><path d="M13 14a15 15 0 1 0 22 0"/></g></svg>`); return t; })(), transparent: true }));
+  pwIcon.rotation.x = -Math.PI/2; pwIcon.position.y = .33; pwG.add(pwIcon);
+
+  /* --- zone labels (sprites) --- */
+  const label = (txt, col, pos) => { const c = document.createElement("canvas"); c.width = 512; c.height = 128; const x = c.getContext("2d");
+    x.fillStyle = "rgba(6,12,28,.7)"; x.beginPath(); x.roundRect ? x.roundRect(6,20,500,88,44) : x.rect(6,20,500,88); x.fill(); x.strokeStyle = col; x.lineWidth = 4; x.stroke();
+    x.fillStyle = col; x.font = "900 54px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(txt, 256, 66);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false })); s.scale.set(2.6, .65, 1); s.position.set(...pos); s.renderOrder = 10; scene.add(s); return s; };
+  label(L("CPU · THINKS","CPU · PIENSA"), "#35d0ff", [-4.6, 3.2, 1.6]); label(L("RAM · DESK","RAM · ESCRITORIO"), "#ff9a3c", [0.4, 2.3, 1.2]); label(L("STORAGE · KEEPS","ALMACÉN · GUARDA"), "#a97bff", [5.6, 4.6, 1.2]);
+
+  /* --- particles: sparks + ambient dust --- */
+  const N = 500, pPos = new Float32Array(N*3), pCol = new Float32Array(N*3), pVel = new Float32Array(N*3), pLife = new Float32Array(N);
+  const pGeo = new THREE.BufferGeometry(); pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3)); pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
+  const sparkTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"); const g = x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,"#fff"); g.addColorStop(.4,"rgba(255,255,255,.5)"); g.addColorStop(1,"rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); })();
+  const sparks = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: .28, map: sparkTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sparks.frustumCulled = false; scene.add(sparks);
+  let pi = 0; for (let i = 0; i < N; i++) pPos[i*3+1] = -50;
+  function burst(a, hex, n = 40) { const c = new THREE.Color(hex), p = anchors[a] || a;
+    for (let k = 0; k < n; k++) { const i = (pi++) % N; pPos.set([p[0],p[1],p[2]], i*3); pVel.set([(Math.random()-.5)*4, Math.random()*4+1, (Math.random()-.5)*4], i*3); pCol.set([c.r,c.g,c.b], i*3); pLife[i] = 1; } }
+  const dustN = 160, dust = new Float32Array(dustN*3); for (let i = 0; i < dustN; i++) dust.set([(Math.random()-.5)*22, Math.random()*7, (Math.random()-.5)*14], i*3);
+  const dustGeo = new THREE.BufferGeometry(); dustGeo.setAttribute("position", new THREE.BufferAttribute(dust, 3));
+  scene.add(new THREE.Points(dustGeo, new THREE.PointsMaterial({ size: .07, map: sparkTex, color: 0x7fb4ff, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending })));
+
+  /* --- camera rig with station presets + drag orbit --- */
+  const presets = { all:{ t:[0,0.4,0], az:0, pol:.8, d:22 }, cpu:{ t:[-4.6,0.3,0], az:.1, pol:.85, d:13.5 }, ram:{ t:[0.4,0.3,-0.4], az:0, pol:.8, d:12 }, sto:{ t:[5.6,1.5,0], az:-.15, pol:.55, d:12.5 } };
+  const cam = { t: new THREE.Vector3(0,.4,0), az: 0, pol: .8, d: 22 }, drag = { az: 0, pol: 0 };
+  let station = "all"; const api = { goto(s) { station = s; drag.az = drag.pol = 0; } };
+  function size() { const w = view.clientWidth || 600, h = view.clientHeight || 400; renderer.setSize(w, h, false); renderer.domElement.style.width = "100%"; renderer.domElement.style.height = "100%";
+    camera.aspect = w / h; camera.updateProjectionMatrix(); aspectBoost = w / h < 1.05 ? 1.5 : (w / h < 1.6 ? 1.18 : 1); }
+  let aspectBoost = 1; new ResizeObserver(size).observe(view); size();
+  const cv = renderer.domElement; let down = false, px = 0, py = 0, travel = 0;
+  cv.addEventListener("pointerdown", e => { down = true; travel = 0; px = e.clientX; py = e.clientY; cv.style.cursor = "grabbing"; });
+  addEventListener("pointermove", e => { if (!down) return; const dx = e.clientX-px, dy = e.clientY-py; px = e.clientX; py = e.clientY; travel += Math.abs(dx)+Math.abs(dy);
+    drag.az = Math.max(-1.1, Math.min(1.1, drag.az - dx*.006)); if (e.pointerType === "mouse") drag.pol = Math.max(-.4, Math.min(.5, drag.pol + dy*.004)); });
+  addEventListener("pointerup", () => { down = false; cv.style.cursor = "grab"; });
+  cv.addEventListener("click", e => { if (travel > 6) return; const r = cv.getBoundingClientRect(); const v = new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+    const rc = new THREE.Raycaster(); rc.setFromCamera(v, camera); const hit = rc.intersectObjects(pickables, false)[0]; if (!hit) return;
+    if (hit.object.userData.power) rt.onPower && rt.onPower(); else if (hit.object.userData.file != null) rt.onDeleteFile && rt.onDeleteFile(hit.object.userData.file); });
+  view.tabIndex = 0;
+  view.addEventListener("keydown", e => { const k = e.key; if (k === "ArrowLeft") drag.az = Math.min(1.1, drag.az + .12); else if (k === "ArrowRight") drag.az = Math.max(-1.1, drag.az - .12); else if (k === "ArrowUp") drag.pol = Math.min(.5, drag.pol + .08); else if (k === "ArrowDown") drag.pol = Math.max(-.4, drag.pol - .08); else return; e.preventDefault(); });
+
+  /* --- per-frame: read state, animate --- */
+  let tNow = 0, running = true, shakeT = 0, dim = 0, last = performance.now();
+  new IntersectionObserver(es => { running = es[0].isIntersecting; last = performance.now(); }).observe(view);
+  const ramBlocks = () => {
+    const sig = st.apps.join(",") + "|" + st.ramGb; if (sig === ramSig) return; ramSig = sig;
+    while (blocks.children.length) blocks.remove(blocks.children[0]);
+    tiles.forEach((m, k) => { m.emissiveIntensity = k < st.ramGb ? 0.55 : 0; m.color.copy(C(k < st.ramGb ? 0x3a2a18 : 0x22304f)); });
+    let k = 0; const hot = new THREE.Color(); st.apps.forEach(id => { const a = APPS.find(x => x.id === id);
+      for (let g = 0; g < a.gb; g++, k++) { const over = k >= st.ramGb; const m = new THREE.Mesh(cellGeo, new THREE.MeshStandardMaterial({ color: C(a.c), roughness: .25, metalness: .35, emissive: C(over ? 0xff2244 : a.c), emissiveIntensity: over ? .65 : .18, transparent: over, opacity: over ? .82 : 1 }));
+        m.castShadow = true; const home = over ? new THREE.Vector3(((k-st.ramGb)%8-3.5)*.58, 1.5, -2.5) : cellPos(k).setY(0.5);
+        m.userData = { home, over, ph: Math.random()*6 }; m.position.copy(home).setY(home.y + 2.2); blocks.add(m);
+        if (g === 0) { const ic = new THREE.Mesh(new THREE.PlaneGeometry(.4,.4), iconMat(a.ico, a.c, over)); ic.rotation.x = -Math.PI/2; ic.position.y = .256; m.add(ic); } } });
+  };
+  const stoSlabs = () => {
+    const sig = st.files.map(f => f.id + f.u).join(",") + "|" + st.stoGb; if (sig === stoSig) return; stoSig = sig;
+    while (slabs.children.length) slabs.remove(slabs.children[0]); pickables.splice(1);
+    let y = 0.22; st.files.forEach(f => { const d = FILES.find(x => x.id === f.id), h = Math.max(.08, d.gb / st.stoGb * CASE_H - .035);
+      const m = new THREE.Mesh(new THREE.BoxGeometry(1.9, h, 1.9), new THREE.MeshStandardMaterial({ color: C(d.c), roughness: .2, metalness: .3, emissive: C(d.c), emissiveIntensity: .3 }));
+      m.castShadow = true; m.userData = { file: f.u, home: y + h/2 + .02 }; m.position.set(0, m.userData.home + 2.6, 0); slabs.add(m); pickables.push(m);
+      const ic = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(h*.8, .9), Math.min(h*.8, .9)), iconMat(d.ico, d.c)); ic.position.set(0, 0, .955); m.add(ic); y += h + .035; });
+  };
+  const frame = now => {
+    requestAnimationFrame(frame); if (!running) return;
+    const dt = Math.min(.05, (now-last)/1000); last = now; tNow += dt; const red = reduced();
+    ramBlocks(); stoSlabs();
+    /* power dimming */
+    dim += ((rt.dim || 0) - dim) * Math.min(1, dt*5); const lit = 1 - .93*dim;
+    key.intensity = 1.35 * lit + .05; hemi.intensity = .55 * lit + .04; lamps.forEach(l => l.intensity = 1.6 * lit);
+    board.material.emissiveIntensity = .42 * lit; ring.material.emissiveIntensity = (.4 + st.cpu.ghz * .35) * lit; hub.material.emissiveIntensity = .8 * lit; pwMat.emissiveIntensity = dim > .5 ? .15 : 1.2;
+    pwMat.emissive.set(dim > .5 ? C(0xff5468) : C(0x2bf0a0));
+    /* fan */
+    const run = rt.run; const spin = dim > .5 ? 0 : (run ? st.cpu.ghz * 7 : st.cpu.ghz * 1.1); fan.rotation.y += spin * dt;
+    /* tasks */
+    tasks.forEach((t, i) => { let p, state = 0;
+      if (run) { const e = (performance.now() - run.t0) / run.per - i; if (e <= 0) { p = qPos(i); state = 0; } else if (e < 1) { const a = e; p = qPos(i).lerp(new THREE.Vector3(-4.6,1.35,0), a < .5 ? a*2 : 1); if (a > .5) p = new THREE.Vector3(-4.6,1.35,0).lerp(dPos(i), (a-.5)*2); p.y += Math.sin(a*Math.PI)*.9; state = 1; } else { p = dPos(i); state = 2; } }
+      else if (rt.doneN > i) { p = dPos(i); state = 2; } else { p = qPos(i); state = 0; }
+      t.position.lerp(p, Math.min(1, dt*14)); t.rotation.y += dt*(state === 1 ? 8 : 1);
+      const col = state === 2 ? 0x2bf0a0 : state === 1 ? 0xffd34d : 0x35d0ff; taskMats[i].color.copy(C(col)); taskMats[i].emissive.copy(C(col)); taskMats[i].emissiveIntensity = (state === 1 ? 2 : 1.1) * lit; });
+    /* ram blocks fall in, overflow wobbles */
+    blocks.children.forEach(m => { const h = m.userData.home; m.position.y += (h.y - m.position.y) * Math.min(1, dt*9); m.position.x += (h.x - m.position.x) * Math.min(1, dt*9); m.position.z += (h.z - m.position.z) * Math.min(1, dt*9);
+      if (m.userData.over && !red) { m.position.y = h.y + Math.sin(tNow*5 + m.userData.ph)*.15; m.rotation.y += dt*1.5; }
+      if (dim > .5) m.scale.setScalar(Math.max(.01, m.scale.x - dt*3)); else m.scale.setScalar(Math.min(1, m.scale.x + dt*4)); });
+    /* slabs */
+    slabs.children.forEach(m => { m.position.y += (m.userData.home - m.position.y) * Math.min(1, dt*8); m.material.emissiveIntensity = .3 * (1 - .4*dim) + (dim > .5 ? .25 : 0); });
+    if (rt.fullFx) { rt.fullFx = false; shakeT = .6; burst("sto", 0xff5468, 40); }
+    shakeT = Math.max(0, shakeT - dt); stoG.position.x = 5.6 + (shakeT > 0 && !red ? Math.sin(tNow*60)*.08*shakeT : 0); glassMat.emissiveIntensity = shakeT > 0 ? .9 : 0; edges.material.color.set(shakeT > 0 ? 0xff5468 : 0xa97bff);
+    if (rt.burst) { rt.burst.forEach(b => burst(b[0], b[1], b[2])); rt.burst = null; }
+    /* particles */
+    for (let i = 0; i < N; i++) { if (pLife[i] <= 0) continue; pLife[i] -= dt*1.1; pVel[i*3+1] -= 6*dt; pPos[i*3] += pVel[i*3]*dt; pPos[i*3+1] += pVel[i*3+1]*dt; pPos[i*3+2] += pVel[i*3+2]*dt;
+      if (pLife[i] <= 0) pPos[i*3+1] = -50; } pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true;
+    /* camera */
+    const pr = presets[station]; cam.t.lerp(new THREE.Vector3(...pr.t), Math.min(1, dt*3)); cam.az += (pr.az + drag.az + (red ? 0 : Math.sin(tNow*.25)*.04) - cam.az) * Math.min(1, dt*3);
+    cam.pol += (pr.pol + drag.pol - cam.pol) * Math.min(1, dt*3); cam.d += (pr.d * aspectBoost - cam.d) * Math.min(1, dt*3);
+    camera.position.set(cam.t.x + cam.d*Math.sin(cam.az)*Math.cos(cam.pol), cam.t.y + cam.d*Math.sin(cam.pol), cam.t.z + cam.d*Math.cos(cam.az)*Math.cos(cam.pol)); camera.lookAt(cam.t);
+    renderer.render(scene, camera);
+  };
+  requestAnimationFrame(frame);
+  return api;
+}
+
+/* =====================================================================
+   GAME LOGIC + HUD
+   ===================================================================== */
 function mkSim(host, api) {
   const st = api.state;
   st.tab ??= "cpu"; st.explored ??= {}; st.cpu ??= { ghz:2, times:{} };
-  st.ramGb ??= 4; st.apps ??= []; st.stoGb ??= 64; st.files ??= []; st.powered ??= false;
-  const $ = (h, tag="div") => { const n=document.createElement(tag); n.innerHTML=h; return n.firstElementChild; };
-  const mark = k => { if (!st.explored[k]) { st.explored[k]=true; renderChecks(); } api.save(); };
-  const burst = (stage, text) => { const b=document.createElement("span"); b.className="burst"; b.textContent=text; b.style.left="50%"; b.style.top="40%"; stage.append(b); setTimeout(()=>b.remove(),950); };
-
-  const tabs = [
-    { id:"cpu", c:"var(--c-cpu)", n:L("CPU Race","Carrera de CPU"), ico:`<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" fill="#2b7de9"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="#fff"/></svg>` },
-    { id:"ram", c:"var(--c-ram)", n:L("RAM Desk","Escritorio de RAM"), ico:`<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" fill="#f08a24"/><g fill="#fff"><rect x="5" y="9" width="3" height="4"/><rect x="10" y="9" width="3" height="4"/><rect x="15" y="9" width="3" height="4"/></g></svg>` },
-    { id:"sto", c:"var(--c-sto)", n:L("Storage Cupboard","Armario de almacenamiento"), ico:`<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3" fill="#8b5cf6"/><path d="M4 12h16" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="7.5" r="1.3" fill="#fff"/><circle cx="12" cy="16.5" r="1.3" fill="#fff"/></svg>` },
-  ];
+  st.ramGb ??= 4; st.apps ??= []; st.stoGb ??= 64; st.files ??= []; st.xp ??= 0;
+  const rt = { dim: 0, run: null, doneN: 0, burst: null };
+  const $ = h => { const n = document.createElement("div"); n.innerHTML = h.trim(); return n.firstElementChild; };
   const root = $(`<div></div>`);
-  const tabRow = $(`<div class="sw-tabs" role="tablist"></div>`);
-  const checks = $(`<div class="sw-checks" aria-live="polite"></div>`);
-  root.append(tabRow, checks);
+  const labels = { cpu:L("CPU Race","Carrera CPU"), ram:L("RAM Crash","Choque RAM"), storage:L("Fill the Vault","Llena la bóveda"), power:L("Power Cycle","Apagar y encender") };
+
+  const top = $(`<div class="ar-top"><div class="ar-rank"><div class="ar-rank__badge">1</div><div><div class="ar-rank__name"></div><div class="ar-xpbar"><i></i></div><div class="ar-xp"></div></div></div><div class="ar-miss" aria-live="polite"></div></div>`);
+  const view = $(`<div class="ar-view"><div class="ar-hint">${L("Drag to orbit · tap the power button · tap a file slab to delete","Arrastra para girar · toca el botón de encendido · toca un archivo para borrarlo")}</div><div class="ar-msg" role="status"></div></div>`);
+  const msgEl = view.querySelector(".ar-msg");
+  const stationsEl = $(`<div class="ar-stations" role="tablist"></div>`);
+  const dock = $(`<div class="ar-dock"></div>`);
+  root.append(top, view, stationsEl, dock);
+
+  const say = (t, k = "") => { msgEl.className = "ar-msg " + k; msgEl.textContent = t; };
+  const pop = text => { const p = $(`<div class="ar-pop">${text}</div>`); view.append(p); setTimeout(() => p.remove(), 1150); };
+  const rankOf = xp => { let r = 0; RANKS.forEach((x, i) => { if (xp >= x[0]) r = i; }); return r; };
+  function renderTop() {
+    const r = rankOf(st.xp), lo = RANKS[r][0], hi = RANKS[r+1] ? RANKS[r+1][0] : lo + 60;
+    top.querySelector(".ar-rank__badge").textContent = r + 1; top.querySelector(".ar-rank__name").textContent = RANKS[r][1];
+    top.querySelector(".ar-xpbar i").style.width = Math.min(100, (st.xp - lo) / (hi - lo) * 100) + "%";
+    top.querySelector(".ar-xp").textContent = `${st.xp} XP` + (RANKS[r+1] ? ` · ${L("next rank at","siguiente rango en")} ${hi}` : ` · ${L("MAX RANK","RANGO MÁXIMO")}`);
+    top.querySelector(".ar-miss").innerHTML = Object.entries(labels).map(([k, l]) => `<span class="ar-m ${st.explored[k] ? "done" : ""}">${l}</span>`).join("");
+  }
+  function gain(n, why) { const before = rankOf(st.xp); st.xp += n; pop(`+${n} XP`); renderTop(); api.save();
+    if (rankOf(st.xp) > before) { setTimeout(() => { pop(`${L("RANK UP","SUBES DE RANGO")}: ${RANKS[rankOf(st.xp)][1]}!`); rt.burst = [["cpu",0x35d0ff,40],["ram",0xff9a3c,40],["sto",0xa97bff,40]]; }, 500); } }
+  function mark(k) { if (st.explored[k]) return false; st.explored[k] = true; gain(30, k); renderTop();
+    if (Object.keys(labels).every(x => st.explored[x]) && !view.querySelector(".ar-banner")) {
+      const b = $(`<div class="ar-banner"><div><h3>${L("MISSION COMPLETE!","¡MISIÓN CUMPLIDA!")}</h3><p>${L("You know how CPU, RAM and storage work. Now prove it in the quiz!","Ya sabes cómo funcionan la CPU, la RAM y el almacenamiento. ¡Demuéstralo en la prueba!")}</p><button class="ar-go" style="--c:var(--ok);padding:0 1.6em">${L("Go to the quiz","Ir a la prueba")}</button></div></div>`);
+      b.querySelector("button").addEventListener("click", () => { b.remove(); document.querySelector(".q")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); });
+      view.append(b); rt.burst = [["cpu",0x2bf0a0,50],["ram",0x2bf0a0,50],["sto",0x2bf0a0,50]]; }
+    return true; }
+
+  const TAB = [
+    { id:"cpu", c:"#35d0ff", n:L("CPU","CPU"), ico:`<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.500" fill="#06101f"/></svg>` },
+    { id:"ram", c:"#ff9a3c", n:L("RAM","RAM"), ico:`<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" fill="currentColor"/><g fill="#06101f"><rect x="5" y="9" width="3" height="4"/><rect x="10" y="9" width="3" height="4"/><rect x="15" y="9" width="3" height="4"/></g></svg>` },
+    { id:"sto", c:"#a97bff", n:L("Storage","Almacenamiento"), ico:`<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3" fill="currentColor"/><path d="M4 12h16" stroke="#06101f" stroke-width="1.500"/></svg>` },
+  ];
+  const pw = `<svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"><path d="M12 3v8M6.500 6.500a8 8 0 1 0 11 0"/></svg>`;
   const panels = {};
-  tabs.forEach(t => {
-    const b = $(`<button class="sw-tab" role="tab" style="--tabc:${t.c}">${t.ico}<span>${t.n}</span></button>`, "div");
-    b.dataset.id = t.id;
-    b.addEventListener("click", () => select(t.id));
-    tabRow.append(b);
-    const p = $(`<section class="sw-panel" role="tabpanel"></section>`);
-    panels[t.id] = p; root.append(p);
-  });
-  function select(id) {
-    st.tab = id; api.save();
-    tabRow.querySelectorAll(".sw-tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.id===id)));
-    Object.entries(panels).forEach(([k,p]) => p.hidden = k!==id);
-  }
-  const labels = { cpu:L("CPU Race","Carrera de CPU"), ram:L("RAM Desk","Escritorio de RAM"), storage:L("Storage","Almacenamiento"), power:L("Power off","Apagar") };
-  function renderChecks() {
-    checks.innerHTML = `<strong style="font-size:.8rem;color:#26405f">${L("Explorer badges:","Insignias de explorador:")}</strong>` +
-      Object.entries(labels).map(([k,l]) => `<span class="sw-chip ${st.explored[k]?"done":""}">${l}</span>`).join("");
-    const n = Object.keys(labels).filter(k=>st.explored[k]).length;
-    if (n === 4) checks.insertAdjacentHTML("beforeend", `<strong style="color:#0c6b4a;font-size:.85rem">${L("All explored! Now scroll down for the quiz.","¡Todo explorado! Baja para hacer la prueba.")}</strong>`);
-  }
+  TAB.forEach(t => { const b = $(`<button class="ar-st" role="tab" style="--c:${t.c}">${t.ico}<span>${t.n}</span></button>`); b.dataset.id = t.id; b.addEventListener("click", () => select(t.id)); stationsEl.append(b);
+    const p = $(`<div class="ar-panel" role="tabpanel" style="--c:${t.c}"></div>`); panels[t.id] = p; dock.append(p); });
+  let scene3d = null;
+  function select(id) { st.tab = id; api.save(); stationsEl.querySelectorAll(".ar-st").forEach(b => b.setAttribute("aria-selected", String(b.dataset.id === id)));
+    Object.entries(panels).forEach(([k, p]) => p.hidden = k !== id); scene3d?.goto(id === "sto" ? "sto" : id); }
+  const seg = (vals, cur, fmt, pick) => { const s = $(`<div class="ar-seg" role="group"></div>`); vals.forEach(v => { const b = $(`<button aria-pressed="${v === cur}">${fmt(v)}</button>`); b.addEventListener("click", () => { pick(v); s.querySelectorAll("button").forEach((x, i) => x.setAttribute("aria-pressed", String(vals[i] === v))); }); s.append(b); }); return s; };
 
-  /* shared power-off: RAM empties, storage keeps */
-  function powerOff(msgEl, stage) {
-    const had = st.apps.length;
-    st.apps = []; renderRam();
-    mark("power");
-    msgEl.className = "sw-msg good";
-    msgEl.textContent = L(`Power off, power on! RAM forgot your ${had} open app${had===1?"":"s"}, but the ${st.files.length} saved file${st.files.length===1?" is":"s are"} still in storage.`,
-      `¡Apagado y encendido! La RAM olvidó tus ${had} app${had===1?"":"s"} abierta${had===1?"":"s"}, pero ${st.files.length===1?"el archivo guardado sigue":"los "+st.files.length+" archivos guardados siguen"} en el almacenamiento.`);
-    burst(stage, "OFF / ON");
-  }
+  /* power cycle: RAM forgets, storage keeps */
+  function powerCycle() { if (rt.dim) return; const had = st.apps.length; rt.dim = 1; rt.run = null;
+    say(L("Powering off… the lights go out.","Apagando… se van las luces."), "bad");
+    setTimeout(() => { st.apps = []; renderRam(); rt.dim = 0; api.save();
+      say(L(`Power back on! RAM forgot your ${had} open app${had===1?"":"s"}, but the ${st.files.length} saved file${st.files.length===1?" is":"s are"} still glowing in storage.`,
+        `¡Encendido otra vez! La RAM olvidó tus ${had} app${had===1?"":"s"} abierta${had===1?"":"s"}, pero ${st.files.length===1?"el archivo guardado sigue":"los "+st.files.length+" archivos guardados siguen"} brillando en el almacenamiento.`), "good");
+      if (mark("power")) {} else gain(5); rt.burst = [["power",0x2bf0a0,40]]; }, 1700); }
+  rt.onPower = powerCycle;
+  const powerBtn = () => { const b = $(`<button class="ar-go ar-go--ghost">${pw} ${L("Power off / on","Apagar / encender")}</button>`); b.addEventListener("click", powerCycle); return b; };
 
-  /* ===== 1. CPU ===== */
+  /* ===== CPU ===== */
   {
     const p = panels.cpu;
-    const tasks = ["7+5","9−4","6×2","8+8","15−6","3×4","9+7","20−8","5×2","12+3"];
-    p.innerHTML = `<p class="sw-lede">${L("The CPU is the computer's brain. Pick a speed, press Run, and watch it work through 10 tasks.","La CPU es el cerebro del ordenador. Elige una velocidad, pulsa Empezar y mira cómo hace 10 tareas.")}</p>
-    <div class="sw-grid"><div class="sw-stage" id="cpustage">
-      <div class="cpu-lane"><div class="cpu-queue"></div><div class="chipwrap">${cpuSVG}</div></div>
-      <div class="cpu-bars"></div></div>
-      <div class="sw-ctrl" style="--cc:var(--c-cpu)"><h3>${L("CPU speed","Velocidad de la CPU")}</h3>
-        <div class="sw-big"><span id="ghz"></span> GHz</div>
-        <input class="sw-range" type="range" min="1" max="4" step="1" aria-label="${L("CPU speed in GHz","Velocidad de la CPU en GHz")}">
-        <div class="sw-scale"><span>${L("slow","lento")}</span><span>${L("fast","rápido")}</span></div>
-        <button class="sw-btn" id="run">${L("Run 10 tasks","Hacer 10 tareas")}</button>
-        <p class="sw-msg" id="cpumsg"></p></div></div>`;
-    const queue = p.querySelector(".cpu-queue"), range = p.querySelector("input"), run = p.querySelector("#run"),
-      msg = p.querySelector("#cpumsg"), bars = p.querySelector(".cpu-bars"), wrap = p.querySelector(".cpu-lane"), stage = p.querySelector("#cpustage");
-    const drawBars = () => { bars.innerHTML = [1,2,3,4].map(g => { const t = st.cpu.times[g];
-      return `<div class="bar-row ${t?"":"empty"}"><span>${g} GHz</span><span><i style="width:${t?Math.max(8,t/6*100):6}%"></i></span><span>${t?t.toFixed(1)+" s":"–"}</span></div>`; }).join(""); };
-    const reset = () => { queue.innerHTML = tasks.map(t=>`<span class="task">${t}</span>`).join(""); };
-    const setGhz = g => { st.cpu.ghz = g; p.querySelector("#ghz").textContent = g; range.value = g; wrap.style.setProperty("--spd", (1.6/g)+"s"); api.save(); };
-    range.addEventListener("input", () => setGhz(+range.value));
-    run.addEventListener("click", () => {
-      const g = st.cpu.ghz, per = 550/g, t0 = performance.now();
-      range.disabled = run.disabled = true; reset(); wrap.classList.add("running"); msg.className="sw-msg"; msg.textContent = L("Working…","Trabajando…");
-      const cards = [...queue.children];
-      const iv = setInterval(() => {
-        const el = performance.now()-t0, n = Math.min(tasks.length, Math.floor(el/per));
-        cards.forEach((c,i)=>{ c.classList.toggle("done", i<n); c.classList.toggle("cur", i===n); });
-        if (n >= tasks.length) {
-          clearInterval(iv); wrap.classList.remove("running");
-          const secs = el/1000; st.cpu.times[g] = Math.min(st.cpu.times[g] ?? 99, secs);
-          range.disabled = run.disabled = false; drawBars(); api.save();
-          msg.className = "sw-msg good"; msg.textContent = L(`Done in ${secs.toFixed(1)} seconds at ${g} GHz.`,`Terminado en ${secs.toFixed(1)} segundos a ${g} GHz.`);
-          burst(stage, "+10");
-          if (Object.keys(st.cpu.times).length >= 3) mark("cpu");
-          else msg.textContent += L(" Try a different speed and compare!"," ¡Prueba otra velocidad y compara!");
-        }
-      }, 60);
-    });
-    reset(); setGhz(st.cpu.ghz); drawBars();
+    p.innerHTML = `<div class="ar-card"><h3>${L("CPU speed","Velocidad de la CPU")}</h3><div class="ar-big"><span class="g"></span> GHz</div></div><div class="ar-card"><h3>${L("Race times","Tiempos de la carrera")}</h3><div class="ar-bars"></div></div>`;
+    const card = p.children[0], bars = p.querySelector(".ar-bars");
+    let running = false;
+    const setG = g => { st.cpu.ghz = g; card.querySelector(".g").textContent = g; api.save(); };
+    const sg = seg([1,2,3,4], st.cpu.ghz, v => v + " GHz", v => { if (!running) setG(v); else sg.querySelectorAll("button").forEach((x,i)=>x.setAttribute("aria-pressed", String([1,2,3,4][i]===st.cpu.ghz))); });
+    const go = $(`<button class="ar-go">${L("Run 10 tasks","Hacer 10 tareas")}</button>`);
+    card.append(sg, go);
+    const drawBars = () => { bars.innerHTML = [1,2,3,4].map(g => { const t = st.cpu.times[g]; return `<div class="ar-bar ${t ? "" : "e"}"><span>${g} GHz</span><span><i style="width:${t ? Math.max(8, t/6*100) : 6}%"></i></span><span>${t ? t.toFixed(1) + " s" : "–"}</span></div>`; }).join(""); };
+    go.addEventListener("click", () => { if (running || rt.dim) return; running = true; go.disabled = true; const g = st.cpu.ghz, per = 550 / g, t0 = performance.now();
+      rt.doneN = 0; rt.run = { t0, per }; say(L("Packets are racing through the CPU…","Los paquetes pasan por la CPU…"));
+      const iv = setInterval(() => { const el = performance.now() - t0; if (el < per * 10 + 350) return; clearInterval(iv);
+        rt.run = null; rt.doneN = 10; running = false; go.disabled = false; const secs = (per * 11) / 1000; const first = st.cpu.times[g] == null;
+        st.cpu.times[g] = Math.min(st.cpu.times[g] ?? 99, secs); drawBars(); api.save();
+        say(L(`Done in ${secs.toFixed(1)} seconds at ${g} GHz!`,`¡Terminado en ${secs.toFixed(1)} segundos a ${g} GHz!`), "good"); rt.burst = [["cpu",0x2bf0a0,45]];
+        gain(first ? 20 : 8);
+        if (Object.keys(st.cpu.times).length >= 3) mark("cpu"); else say(L(`Done in ${secs.toFixed(1)} s at ${g} GHz. Try a different speed and compare!`,`Terminado en ${secs.toFixed(1)} s a ${g} GHz. ¡Prueba otra velocidad y compara!`), "good"); }, 60); });
+    setG(st.cpu.ghz); drawBars();
   }
 
-  /* ===== 2. RAM ===== */
+  /* ===== RAM ===== */
   let renderRam = () => {};
   {
     const p = panels.ram;
-    p.innerHTML = `<p class="sw-lede">${L("RAM is the computer's desk. Every open app takes up space on it. What happens when the desk is too small?","La RAM es el escritorio del ordenador. Cada app abierta ocupa sitio en él. ¿Qué pasa si el escritorio es demasiado pequeño?")}</p>
-    <div class="sw-grid"><div class="sw-stage" id="ramstage">
-      <div class="desk"><svg class="turtle" viewBox="0 0 48 32" aria-hidden="true"><ellipse cx="22" cy="18" rx="16" ry="11" fill="#3f9e5f"/><circle cx="41" cy="16" r="5" fill="#6bc287"/><rect x="10" y="26" width="5" height="5" rx="2" fill="#6bc287"/><rect x="28" y="26" width="5" height="5" rx="2" fill="#6bc287"/></svg><div class="sheets"></div></div>
-      <div class="cells" role="img"></div>
-      <p class="sw-msg" id="rammsg" style="margin-top:10px"></p></div>
-      <div class="sw-ctrl" style="--cc:var(--c-ram)"><h3>${L("RAM size (desk size)","Tamaño de RAM (tamaño del escritorio)")}</h3>
-        <div class="sw-big"><span id="ramgb"></span> GB</div>
-        <input class="sw-range" type="range" min="0" max="3" step="1" aria-label="${L("RAM size in GB","Tamaño de RAM en GB")}">
-        <div class="sw-scale"><span>2</span><span>4</span><span>8</span><span>16</span></div>
-        <h3>${L("Open an app","Abre una app")}</h3><div class="appgrid"></div>
-        <button class="sw-btn sw-btn--ghost" id="pw1"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8M6.5 6.5a8 8 0 1 0 11 0"/></svg> ${L("Power off","Apagar")}</button></div></div>`;
-    const range = p.querySelector("input"), desk = p.querySelector(".desk"), sheets = p.querySelector(".sheets"),
-      cells = p.querySelector(".cells"), msg = p.querySelector("#rammsg"), grid = p.querySelector(".appgrid"), stage = p.querySelector("#ramstage");
-    let over = 0;
-    APPS.forEach(a => {
-      const b = $(`<button class="appbtn" aria-pressed="false" style="--ac:${a.c}">${ICON[a.ico](a.c)}<span>${a.n()}</span><small>${a.gb} GB</small></button>`);
-      b.addEventListener("click", () => {
-        const i = st.apps.indexOf(a.id);
-        if (i >= 0) st.apps.splice(i,1); else st.apps.push(a.id);
-        over = 0; renderRam(); api.save();
-      });
-      b.dataset.id = a.id; grid.append(b);
-    });
-    renderRam = () => {
-      const total = RAMS[RAMS.indexOf(st.ramGb)] ?? 4, list = st.apps.map(id => APPS.find(a=>a.id===id));
-      const used = list.reduce((s,a)=>s+a.gb,0), isOver = used > total;
-      p.querySelector("#ramgb").textContent = total; range.value = RAMS.indexOf(total);
-      grid.querySelectorAll(".appbtn").forEach(b => b.setAttribute("aria-pressed", String(st.apps.includes(b.dataset.id))));
-      sheets.innerHTML = list.length ? "" : `<span class="desk-empty">${L("The desk is empty. Open an app!","El escritorio está vacío. ¡Abre una app!")}</span>`;
-      list.forEach(a => sheets.append($(`<span class="sheet ${isOver?"nr":""}" style="--ac:${a.c}">${ICON[a.ico](a.c)}${a.n()} · ${a.gb} GB</span>`)));
-      desk.classList.toggle("slow", isOver);
-      let html = "", k = 0;
-      list.forEach(a => { for (let i=0;i<a.gb;i++){ k++; html += `<span class="cell ${k>total?"over":"f"}" style="${k>total?"":`background:${a.c}`}"></span>`; } });
-      for (let i=k;i<total;i++) html += `<span class="cell"></span>`;
-      cells.innerHTML = html;
-      cells.setAttribute("aria-label", L(`${used} of ${total} GB used`,`${used} de ${total} GB usados`));
-      if (isOver) { msg.className="sw-msg bad"; msg.textContent = L(`Too full! ${used} GB of apps on a ${total} GB desk. Everything is slow… an app may crash.`,`¡Demasiado lleno! ${used} GB de apps en un escritorio de ${total} GB. Todo va lento… una app puede fallar.`); mark("ram"); }
-      else if (list.length) { msg.className="sw-msg good"; msg.textContent = L(`${used} of ${total} GB used. Everything runs smoothly.`,`${used} de ${total} GB usados. Todo funciona con fluidez.`); }
-      else { msg.className="sw-msg"; msg.textContent = L(`Empty ${total} GB desk.`,`Escritorio de ${total} GB vacío.`); }
-    };
-    range.addEventListener("input", () => { st.ramGb = RAMS[+range.value]; over = 0; renderRam(); api.save(); });
-    p.querySelector("#pw1").addEventListener("click", () => { powerOff(msg, stage); });
-    setInterval(() => {
-      if (panels.ram.hidden) return;
-      const used = st.apps.reduce((s,id)=>s+APPS.find(a=>a.id===id).gb,0);
-      if (used > st.ramGb) {
-        if (++over >= 6) { over = 0; const id = st.apps.pop(), a = APPS.find(x=>x.id===id); renderRam(); api.save();
-          msg.className="sw-msg bad"; msg.textContent = L(`${a.n()} crashed because the desk was too full! Close apps or get more RAM.`,`¡${a.n()} falló porque el escritorio estaba demasiado lleno! Cierra apps o consigue más RAM.`); }
-      } else over = 0;
-    }, 500);
-    renderRam();
+    p.innerHTML = `<div class="ar-card"><h3>${L("RAM size (desk size)","Tamaño de RAM (escritorio)")}</h3><div class="ar-big"><span class="g"></span> GB</div><div class="ar-meter"><i></i></div></div><div class="ar-card"><h3>${L("Open an app","Abre una app")}</h3><div class="ar-chips"></div></div>`;
+    const card = p.children[0], chips = p.querySelector(".ar-chips"); let over = 0;
+    card.append(seg(RAMS, st.ramGb, v => v + " GB", v => { st.ramGb = v; over = 0; renderRam(); api.save(); }), powerBtn());
+    APPS.forEach(a => { const b = $(`<button class="ar-chip" aria-pressed="false" style="--ac:${a.c}">${ICON[a.ico](a.c)}<span>${a.n()}<small>${a.gb} GB</small></span></button>`); b.dataset.id = a.id;
+      b.addEventListener("click", () => { if (rt.dim) return; const i = st.apps.indexOf(a.id); if (i >= 0) st.apps.splice(i, 1); else { st.apps.push(a.id); gain(3); } over = 0; renderRam(); api.save(); }); chips.append(b); });
+    renderRam = () => { const total = st.ramGb, used = st.apps.reduce((s, id) => s + APPS.find(a => a.id === id).gb, 0), isOver = used > total;
+      card.querySelector(".g").textContent = total; const m = card.querySelector(".ar-meter i"); m.style.width = Math.min(100, used / total * 100) + "%"; m.style.background = isOver ? "var(--bad)" : "linear-gradient(90deg,var(--ram),#ffd34d)";
+      chips.querySelectorAll(".ar-chip").forEach(b => b.setAttribute("aria-pressed", String(st.apps.includes(b.dataset.id))));
+      if (isOver) { say(L(`Too full! ${used} GB of apps on a ${total} GB desk. Everything slows down… an app may crash.`,`¡Demasiado lleno! ${used} GB de apps en un escritorio de ${total} GB. Todo va lento… una app puede fallar.`), "bad"); mark("ram"); }
+      else if (st.apps.length && !rt.dim) say(L(`${used} of ${total} GB used. Everything runs smoothly.`,`${used} de ${total} GB usados. Todo funciona con fluidez.`), "good");
+      else if (!rt.dim) say(L(`Empty ${total} GB desk. Open some apps!`,`Escritorio de ${total} GB vacío. ¡Abre apps!`)); };
+    setInterval(() => { if (panels.ram.hidden) return; const used = st.apps.reduce((s, id) => s + APPS.find(a => a.id === id).gb, 0);
+      if (used > st.ramGb) { if (++over >= 6) { over = 0; const id = st.apps.pop(), a = APPS.find(x => x.id === id); rt.burst = [["ram",0xff5468,60]]; renderRam(); api.save(); gain(10);
+        say(L(`${a.n()} crashed because the desk was too full! Close apps or get more RAM.`,`¡${a.n()} falló porque el escritorio estaba demasiado lleno! Cierra apps o consigue más RAM.`), "bad"); } } else over = 0; }, 500);
   }
 
-  /* ===== 3. Storage ===== */
+  /* ===== Storage ===== */
   {
     const p = panels.sto;
-    p.innerHTML = `<p class="sw-lede">${L("Storage is the cupboard where files, videos and apps are kept. Save things in it. Tap a file to delete it.","El almacenamiento es el armario donde se guardan archivos, vídeos y apps. Guarda cosas en él. Toca un archivo para borrarlo.")}</p>
-    <div class="sw-grid"><div class="sw-stage" id="stostage">
-      <div class="cupboard"><div class="shelf"></div></div>
-      <div class="stobar" role="img"></div>
-      <p class="sw-msg" id="stomsg" style="margin-top:10px"></p></div>
-      <div class="sw-ctrl" style="--cc:var(--c-sto)"><h3>${L("Storage size (cupboard size)","Tamaño de almacenamiento (tamaño del armario)")}</h3>
-        <div class="sw-big"><span id="stogb"></span> GB</div>
-        <input class="sw-range" type="range" min="0" max="4" step="1" aria-label="${L("Storage size in GB","Tamaño de almacenamiento en GB")}">
-        <div class="sw-scale"><span>32</span><span>64</span><span>128</span><span>256</span><span>512</span></div>
-        <h3>${L("Save a file","Guarda un archivo")}</h3><div class="appgrid"></div>
-        <button class="sw-btn sw-btn--ghost" id="pw2"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8M6.5 6.5a8 8 0 1 0 11 0"/></svg> ${L("Power off","Apagar")}</button></div></div>`;
-    const range = p.querySelector("input"), shelf = p.querySelector(".shelf"), bar = p.querySelector(".stobar"),
-      msg = p.querySelector("#stomsg"), grid = p.querySelector(".appgrid"), stage = p.querySelector("#stostage");
-    let uid = st.files.reduce((m,f)=>Math.max(m,f.u),0);
-    const used = () => st.files.reduce((s,f)=>s+FILES.find(x=>x.id===f.id).gb,0);
-    const render = () => {
-      const total = st.stoGb, u = used();
-      p.querySelector("#stogb").textContent = total; range.value = STOS.indexOf(total);
-      shelf.innerHTML = st.files.length ? "" : `<span class="desk-empty" style="color:#5f4a9e">${L("The cupboard is empty. Save something!","El armario está vacío. ¡Guarda algo!")}</span>`;
-      st.files.forEach(f => { const d = FILES.find(x=>x.id===f.id);
-        const b = $(`<button class="file" style="--ac:${d.c}" aria-label="${L("Delete","Borrar")} ${d.n()} ${d.gb} GB">${ICON[d.ico](d.c)}${d.n()} · ${d.gb} GB</button>`);
-        b.addEventListener("click", () => { st.files = st.files.filter(x=>x.u!==f.u); render(); api.save();
-          msg.className="sw-msg good"; msg.textContent = L(`Deleted ${d.n()}. ${d.gb} GB free again.`,`${d.n()} borrado. ${d.gb} GB libres otra vez.`); });
-        shelf.append(b); });
-      bar.innerHTML = st.files.map(f => { const d=FILES.find(x=>x.id===f.id); return `<span style="width:${d.gb/total*100}%;background:${d.c};border-right:2px solid #fff"></span>`; }).join("");
-      bar.setAttribute("aria-label", L(`${u} of ${total} GB used`,`${u} de ${total} GB usados`));
-      if (u > total) { msg.className="sw-msg bad"; msg.textContent = L("Full! Delete a file or pick a bigger cupboard.","¡Lleno! Borra un archivo o elige un armario más grande."); }
-      else if (!msg.textContent || msg.classList.contains("bad")) { msg.className="sw-msg"; msg.textContent = L(`${total-u} GB free of ${total} GB.`,`${total-u} GB libres de ${total} GB.`); }
-    };
-    FILES.forEach(d => {
-      const b = $(`<button class="appbtn" style="--ac:${d.c}">${ICON[d.ico](d.c)}<span>${d.n()}</span><small>${d.gb} GB</small></button>`);
-      b.addEventListener("click", () => {
-        if (used() + d.gb > st.stoGb) {
-          bar.classList.remove("shake"); void bar.offsetWidth; bar.classList.add("shake");
-          msg.className="sw-msg bad"; msg.textContent = L(`Storage full! ${d.n()} (${d.gb} GB) does not fit. Delete a file or choose more storage.`,`¡Almacenamiento lleno! ${d.n()} (${d.gb} GB) no cabe. Borra un archivo o elige más almacenamiento.`);
-          mark("storage"); return;
-        }
-        st.files.push({ id:d.id, u:++uid }); msg.textContent = ""; render(); api.save();
-        burst(stage, "+"+d.gb+" GB");
-      });
-      grid.append(b);
-    });
-    range.addEventListener("input", () => { st.stoGb = STOS[+range.value]; msg.textContent = ""; render(); api.save(); });
-    p.querySelector("#pw2").addEventListener("click", () => { powerOff(msg, stage); render(); });
+    p.innerHTML = `<div class="ar-card"><h3>${L("Storage size (vault size)","Tamaño de almacenamiento (bóveda)")}</h3><div class="ar-big"><span class="g"></span> GB</div><div class="ar-meter"><i></i></div></div><div class="ar-card"><h3>${L("Save a file","Guarda un archivo")}</h3><div class="ar-chips save"></div><h3 style="margin-top:12px">${L("Saved (tap to delete)","Guardado (toca para borrar)")}</h3><div class="ar-chips list"></div></div>`;
+    const card = p.children[0], save = p.querySelector(".save"), list = p.querySelector(".list");
+    let uid = st.files.reduce((m, f) => Math.max(m, f.u), 0);
+    const used = () => st.files.reduce((s, f) => s + FILES.find(x => x.id === f.id).gb, 0);
+    const del = u => { const f = st.files.find(x => x.u === u); if (!f || rt.dim) return; const d = FILES.find(x => x.id === f.id); st.files = st.files.filter(x => x.u !== u); gain(3); render(); api.save();
+      say(L(`Deleted ${d.n()}. ${d.gb} GB free again.`,`${d.n()} borrado. ${d.gb} GB libres otra vez.`), "good"); rt.burst = [["sto",0xffffff,25]]; };
+    rt.onDeleteFile = del;
+    const render = () => { const total = st.stoGb, u = used(); card.querySelector(".g").textContent = total; const m = card.querySelector(".ar-meter i"); m.style.width = Math.min(100, u / total * 100) + "%"; m.style.background = "linear-gradient(90deg,var(--sto),#e043a8)";
+      list.innerHTML = ""; if (!st.files.length) list.append($(`<span style="color:#8fa7d8;font-weight:700;font-size:.85rem">${L("The vault is empty.","La bóveda está vacía.")}</span>`));
+      st.files.forEach(f => { const d = FILES.find(x => x.id === f.id); const b = $(`<button class="ar-chip" style="--ac:${d.c}" aria-label="${L("Delete","Borrar")} ${d.n()} ${d.gb} GB">${ICON[d.ico](d.c)}<span>${d.n()}<small>${d.gb} GB ✕</small></span></button>`); b.addEventListener("click", () => del(f.u)); list.append(b); }); };
+    card.append(seg(STOS, st.stoGb, v => v + " GB", v => { st.stoGb = v; render(); api.save(); say(L(`${v - used() < 0 ? 0 : v - used()} GB free of ${v} GB.`,`${v - used() < 0 ? 0 : v - used()} GB libres de ${v} GB.`)); }), powerBtn());
+    FILES.forEach(d => { const b = $(`<button class="ar-chip" style="--ac:${d.c}">${ICON[d.ico](d.c)}<span>${d.n()}<small>${d.gb} GB</small></span></button>`);
+      b.addEventListener("click", () => { if (rt.dim) return;
+        if (used() + d.gb > st.stoGb) { rt.fullFx = true; say(L(`Vault full! ${d.n()} (${d.gb} GB) does not fit. Delete a file or choose more storage.`,`¡Bóveda llena! ${d.n()} (${d.gb} GB) no cabe. Borra un archivo o elige más almacenamiento.`), "bad"); mark("storage"); return; }
+        st.files.push({ id: d.id, u: ++uid }); render(); api.save(); gain(4); say(L(`${d.n()} saved. ${st.stoGb - used()} GB free.`,`${d.n()} guardado. ${st.stoGb - used()} GB libres.`), "good"); rt.burst = [["sto", parseInt(d.c.slice(1), 16), 25]]; }); save.append(b); });
     render();
   }
 
-  /* fun fact tap-card */
-  const fact = $(`<div class="fact"><button>${L("Fun fact","Dato curioso")} 🚀</button><p hidden>${L("Your smartphone today is more powerful than the computers NASA used to land humans on the Moon in 1969!","¡Tu teléfono de hoy es más potente que los ordenadores que usó la NASA para llevar humanos a la Luna en 1969!")}</p></div>`);
-  fact.querySelector("button").addEventListener("click", () => { fact.querySelector("p").hidden = false; fact.querySelector("button").hidden = true; });
-  root.append($(`<div class="sw-panel" style="padding-top:0"></div>`));
-  root.lastChild.append(fact);
+  const fact = $(`<div class="ar-fact"><button>${L("Fun fact","Dato curioso")} 🚀</button><p hidden>${L("Your smartphone today is more powerful than the computers NASA used to land humans on the Moon in 1969!","¡Tu teléfono de hoy es más potente que los ordenadores que usó la NASA para llevar humanos a la Luna en 1969!")}</p></div>`);
+  fact.querySelector("button").addEventListener("click", () => { fact.querySelector("p").hidden = false; fact.querySelector("button").hidden = true; gain(5); });
+  root.append(fact);
 
-  host.append(root);
-  renderChecks(); select(st.tab);
+  host.append(root); renderTop(); renderRam(); select(st.tab); say(L("Welcome to the Tech Core Arena. Pick a station below to start.","Bienvenido a la Arena Tech Core. Elige una estación abajo para empezar."));
+  initScene(view, st, rt).then(s => { scene3d = s; if (s) s.goto(st.tab); else view.prepend($(`<div class="ar-nogl">${L("3D view is not available on this device, but every control below still works.","La vista 3D no está disponible en este dispositivo, pero todos los controles de abajo funcionan.")}</div>`)); })
+    .catch(e => console.error("3D scene failed", e));
 }
 
 mountExternalActivity({ simulation: mkSim }).catch(e => {
