@@ -77,6 +77,10 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .ar-bar.e{color:#5d7199;} .ar-bar.e i{background:#1b2846;width:6%;}
 .ar-meter{height:14px;border-radius:8px;background:#18233d;overflow:hidden;margin:8px 0;border:1px solid #2c3f68;}
 .ar-meter i{display:block;height:100%;transition:width .3s,background .3s;}
+.ar-add{margin-top:12px;padding:10px 12px;border-radius:14px;border:1px dashed #3a5086;background:#0c1630;}
+.ar-add h3{margin:0 0 8px;}
+.ar-add__row{display:flex;gap:8px;} .ar-add__row input{flex:1;min-width:0;min-height:46px;border-radius:12px;border:1px solid #2c3f68;background:#14213f;color:#e8f0ff;font:inherit;font-weight:700;padding:0 .9em;}
+.ar-add__row .ar-go{width:auto;padding:0 1.3em;}
 .ar-fact{margin:12px 14px 14px;padding:10px 14px;border-radius:14px;background:#17130a;border:1px dashed #d9a21b;display:flex;gap:12px;align-items:center;}
 .ar-fact button{font:inherit;font-weight:900;background:#d9a21b;color:#1c1400;border:none;border-radius:10px;padding:.6em 1em;cursor:pointer;min-height:44px;}
 .ar-fact p{margin:0;font-weight:700;color:#ffdf8a;font-size:.9rem;}
@@ -175,6 +179,9 @@ const FILES = [
   { id:"family",   k:"other",  gb:15, c:"#ff8a1f", ico:"video", n:()=>L("Family video","Vídeo familiar") },
 ];
 const CATS = [["games",()=>L("Games","Juegos")],["music",()=>L("Albums","Álbumes")],["movies",()=>L("Movies","Películas")],["other",()=>L("Docs & photos","Documentos y fotos")]];
+const esc = x => String(x).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const PALETTE = ["#e5484d","#ff8a1f","#e6a100","#22c58b","#00b3a4","#3b8bff","#8b5cf6","#e043a8"];
+const KIND_ICO = { games:"game", music:"music", movies:"video", other:"doc" };
 const RAMS=[2,4,8,16], STOS=[32,64,128,256,512];
 const RANKS=[[0,L("Rookie","Novato")],[60,L("Technician","Técnico")],[140,L("Engineer","Ingeniero")],[240,L("Architect","Arquitecto")]];
 
@@ -415,6 +422,10 @@ function mkSim(host, api) {
   const st = api.state;
   st.tab ??= "cpu"; st.explored ??= {}; st.cpu ??= { ghz:2, times:{} };
   st.ramGb ??= 4; st.apps ??= []; st.stoGb ??= 64; st.files ??= []; st.xp ??= 0;
+  /* the student's own choices (typed names), kept only in this browser */
+  st.custom ??= { apps: [], files: [] };
+  st.custom.apps.forEach(x => APPS.push({ id:x.id, gb:x.gb, c:x.c, ico:"game", n:() => x.name }));
+  st.custom.files.forEach(x => FILES.push({ id:x.id, k:x.k, gb:x.gb, c:x.c, ico:KIND_ICO[x.k], n:() => x.name }));
   st.apps = st.apps.filter(id => APPS.some(x => x.id === id)); st.files = st.files.filter(f => FILES.some(x => x.id === f.id)); /* drop ids from older versions */
   const rt = { dim: 0, run: null, doneN: 0, burst: null };
   const $ = h => { const n = document.createElement("div"); n.innerHTML = h.trim(); return n.firstElementChild; };
@@ -500,8 +511,15 @@ function mkSim(host, api) {
     p.innerHTML = `<div class="ar-card"><h3>${L("RAM size (desk size)","Tamaño de RAM (escritorio)")}</h3><div class="ar-big"><span class="g"></span> GB</div><div class="ar-meter"><i></i></div></div><div class="ar-card"><h3>${L("Open an app","Abre una app")}</h3><div class="ar-chips"></div></div>`;
     const card = p.children[0], chips = p.querySelector(".ar-chips"); let over = 0;
     card.append(seg(RAMS, st.ramGb, v => v + " GB", v => { st.ramGb = v; over = 0; renderRam(); api.save(); }), powerBtn());
-    APPS.forEach(a => { const b = $(`<button class="ar-chip" aria-pressed="false" style="--ac:${a.c}">${ICON[a.ico](a.c)}<span>${a.n()}<small>${a.gb} GB</small></span></button>`); b.dataset.id = a.id;
-      b.addEventListener("click", () => { if (rt.dim) return; const i = st.apps.indexOf(a.id); if (i >= 0) st.apps.splice(i, 1); else { st.apps.push(a.id); gain(3); } over = 0; renderRam(); api.save(); }); chips.append(b); });
+    const addApp = a => { const b = $(`<button class="ar-chip" aria-pressed="false" style="--ac:${a.c}">${ICON[a.ico](a.c)}<span>${esc(a.n())}<small>${a.gb} GB</small></span></button>`); b.dataset.id = a.id;
+      b.addEventListener("click", () => { if (rt.dim) return; const i = st.apps.indexOf(a.id); if (i >= 0) st.apps.splice(i, 1); else { st.apps.push(a.id); gain(3); } over = 0; renderRam(); api.save(); }); chips.append(b); };
+    APPS.forEach(addApp);
+    const form = $(`<div class="ar-add"><h3>${L("Add your own game","Añade tu propio juego")}</h3><div class="ar-add__row"><input maxlength="20" placeholder="${L("Type a game name","Escribe el nombre de un juego")}" aria-label="${L("Game name","Nombre del juego")}"><button class="ar-go" style="--c:var(--ram)">${L("Add","Añadir")}</button></div><div class="ar-seg sz"></div></div>`);
+    let newGb = 4; const szs = [2,4,6]; const drawSz = () => { const z = form.querySelector(".sz"); z.innerHTML = ""; szs.forEach(v => { const b = $(`<button aria-pressed="${v === newGb}">${v} GB</button>`); b.addEventListener("click", () => { newGb = v; drawSz(); }); z.append(b); }); }; drawSz();
+    form.querySelector(".ar-go").addEventListener("click", () => { const inp = form.querySelector("input"), name = inp.value.trim(); if (!name) { inp.focus(); say(L("Type a game name first.","Escribe primero el nombre de un juego."), "bad"); return; }
+      const x = { id: "ca" + Date.now(), name, gb: newGb, c: PALETTE[st.custom.apps.length % PALETTE.length] }; st.custom.apps.push(x);
+      const a = { id:x.id, gb:x.gb, c:x.c, ico:"game", n:() => x.name }; APPS.push(a); addApp(a); inp.value = ""; api.save(); gain(5); say(L(`${name} added. Tap it to open it on the RAM desk!`,`${name} añadido. ¡Tócalo para abrirlo en el escritorio de RAM!`), "good"); });
+    card.after(form);
     renderRam = () => { const total = st.ramGb, used = st.apps.reduce((s, id) => s + APPS.find(a => a.id === id).gb, 0), isOver = used > total;
       card.querySelector(".g").textContent = total; const m = card.querySelector(".ar-meter i"); m.style.width = Math.min(100, used / total * 100) + "%"; m.style.background = isOver ? "var(--bad)" : "linear-gradient(90deg,var(--ram),#ffd34d)";
       chips.querySelectorAll(".ar-chip").forEach(b => b.setAttribute("aria-pressed", String(st.apps.includes(b.dataset.id))));
@@ -525,15 +543,23 @@ function mkSim(host, api) {
     rt.onDeleteFile = del;
     const render = () => { const total = st.stoGb, u = used(); card.querySelector(".g").textContent = total; const m = card.querySelector(".ar-meter i"); m.style.width = Math.min(100, u / total * 100) + "%"; m.style.background = "linear-gradient(90deg,var(--sto),#e043a8)";
       list.innerHTML = ""; if (!st.files.length) list.append($(`<span style="color:#8fa7d8;font-weight:700;font-size:.85rem">${L("The vault is empty.","La bóveda está vacía.")}</span>`));
-      st.files.forEach(f => { const d = FILES.find(x => x.id === f.id); const b = $(`<button class="ar-chip" style="--ac:${d.c}" aria-label="${L("Delete","Borrar")} ${d.n()} ${d.gb} GB">${ICON[d.ico](d.c)}<span>${d.n()}<small>${d.gb} GB ✕</small></span></button>`); b.addEventListener("click", () => del(f.u)); list.append(b); }); };
+      st.files.forEach(f => { const d = FILES.find(x => x.id === f.id); const b = $(`<button class="ar-chip" style="--ac:${d.c}" aria-label="${L("Delete","Borrar")} ${esc(d.n())} ${d.gb} GB">${ICON[d.ico](d.c)}<span>${esc(d.n())}<small>${d.gb} GB ✕</small></span></button>`); b.addEventListener("click", () => del(f.u)); list.append(b); }); };
     card.append(seg(STOS, st.stoGb, v => v + " GB", v => { st.stoGb = v; render(); api.save(); say(L(`${v - used() < 0 ? 0 : v - used()} GB free of ${v} GB.`,`${v - used() < 0 ? 0 : v - used()} GB libres de ${v} GB.`)); }), powerBtn());
     const cats = p.querySelector(".cats"); st.cat ??= "games";
-    const drawSave = () => { cats.innerHTML = ""; CATS.forEach(([id, nm]) => { const cb = $(`<button aria-pressed="${st.cat === id}">${nm()}</button>`); cb.addEventListener("click", () => { st.cat = id; api.save(); drawSave(); }); cats.append(cb); });
+    let drawSave = () => { cats.innerHTML = ""; CATS.forEach(([id, nm]) => { const cb = $(`<button aria-pressed="${st.cat === id}">${nm()}</button>`); cb.addEventListener("click", () => { st.cat = id; api.save(); drawSave(); }); cats.append(cb); });
       save.innerHTML = ""; FILES.filter(d => d.k === st.cat).forEach(addChip); };
-    const addChip = d => { const b = $(`<button class="ar-chip" style="--ac:${d.c}">${ICON[d.ico](d.c)}<span>${d.n()}<small>${d.gb} GB</small></span></button>`);
+    const addChip = d => { const b = $(`<button class="ar-chip" style="--ac:${d.c}">${ICON[d.ico](d.c)}<span>${esc(d.n())}<small>${d.gb} GB</small></span></button>`);
       b.addEventListener("click", () => { if (rt.dim) return;
         if (used() + d.gb > st.stoGb) { rt.fullFx = true; say(L(`Vault full! ${d.n()} (${d.gb} GB) does not fit. Delete a file or choose more storage.`,`¡Bóveda llena! ${d.n()} (${d.gb} GB) no cabe. Borra un archivo o elige más almacenamiento.`), "bad"); mark("storage"); return; }
         st.files.push({ id: d.id, u: ++uid }); render(); api.save(); gain(4); say(L(`${d.n()} saved. ${st.stoGb - used()} GB free.`,`${d.n()} guardado. ${st.stoGb - used()} GB libres.`), "good"); rt.burst = [["sto", parseInt(d.c.slice(1), 16), 25]]; }); save.append(b); };
+    const form = $(`<div class="ar-add" style="margin-top:12px"><h3 class="t"></h3><div class="ar-add__row"><input maxlength="20" aria-label="${L("Name","Nombre")}"><button class="ar-go" style="--c:var(--sto)">${L("Add","Añadir")}</button></div><div class="ar-seg sz"></div></div>`);
+    let newGb = 8; const szs = [2,8,20,40];
+    const drawForm = () => { form.querySelector(".t").textContent = L("Add your own in: ","Añade el tuyo en: ") + CATS.find(c => c[0] === st.cat)[1](); form.querySelector("input").placeholder = ({ games:L("Type your favourite game","Tu juego favorito"), music:L("Type an album you love","Un álbum que te guste"), movies:L("Type a movie you like","Una película que te guste"), other:L("Type a file name","Nombre de archivo") })[st.cat];
+      const z = form.querySelector(".sz"); z.innerHTML = ""; szs.forEach(v => { const b = $(`<button aria-pressed="${v === newGb}">${v} GB</button>`); b.addEventListener("click", () => { newGb = v; drawForm(); }); z.append(b); }); };
+    form.querySelector(".ar-go").addEventListener("click", () => { const inp = form.querySelector("input"), name = inp.value.trim(); if (!name) { inp.focus(); say(L("Type a name first.","Escribe primero un nombre."), "bad"); return; }
+      const x = { id: "cf" + Date.now(), k: st.cat, name, gb: newGb, c: PALETTE[st.custom.files.length % PALETTE.length] }; st.custom.files.push(x);
+      FILES.push({ id:x.id, k:x.k, gb:x.gb, c:x.c, ico:KIND_ICO[x.k], n:() => x.name }); inp.value = ""; api.save(); drawSave(); gain(5); say(L(`${name} added to your library. Now tap it to save it in the vault!`,`${name} añadido a tu biblioteca. ¡Ahora tócalo para guardarlo en la bóveda!`), "good"); });
+    list.before(form); const _ds = drawSave; drawSave = () => { _ds(); drawForm(); };
     drawSave(); render();
   }
 
