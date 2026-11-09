@@ -83,7 +83,7 @@ export function stepDay(st) {
   if (b.pest) { const p = b.pest; if (p.wait > 0) { p.wait--; if (p.wait === 0) { p.rate = 0.02 * 0.15; ev.push({ t: "ladybirds-working" }); } } b.loss.pest = Math.min(0.35, b.loss.pest + p.rate); }
   if (b.d === b.pestAt) { b.pest = { rate: 0.02, wait: -1, done: false }; ev.push({ t: "pest" }); }
   if (b.d === b.stormAt) { b.loss.storm = 0.15; ev.push({ t: "storm" }); }
-  if (b.pest && !b.pest.done && st.gardeners > 0) { b.pest.idle = (b.pest.idle || 0) + 1; if (b.pest.idle >= 2) { const r = respondPest(st); if (r) ev.push({ t: "gardener-pest", r }); } }
+  if (b.pest && !b.pest.done && b.pest.delegated && st.gardeners > 0) { b.pest.idle = (b.pest.idle || 0) + 1; if (b.pest.idle >= 2) { const r = respondPest(st); if (r) ev.push({ t: "gardener-pest", r }); } }
   b.d++; st.day++; if (b.d >= b.days) ev.push(...harvest(st));
   return ev;
 }
