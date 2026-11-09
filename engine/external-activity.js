@@ -217,7 +217,15 @@ function toast(msg, kind = "info") {
   setTimeout(() => { card.style.opacity = "0"; setTimeout(() => card.remove(), 300); }, 3400);
 }
 
-export async function mountExternalActivity() {
+/* Simulation-only strings live here (not in i18n.js) so this addition never
+   needs a dictionary version bump for activities already on the old stamp. */
+const S = (en, es) => getLang() === "es" ? es : en;
+
+/* opts.simulation(host, api) — present only for a "simulation-only" activity
+   (config.kind === "simulation-only", CLAUDE.md §19): a quick ~5 minute
+   explore-and-quiz page whose simulation is built in-house, not external.
+   api = { state, save, lang } where state is persisted per activity. */
+export async function mountExternalActivity(opts = {}) {
   const root = document.getElementById("lab-root");
   if (!root) { console.error("Discovery Lab: no #lab-root on the page."); return; }
 
@@ -238,7 +246,9 @@ export async function mountExternalActivity() {
 
   const STORE_KEY = `dl-ext:${config.activityId}:${config.version}`;
   const simURL = window.location.href.split("#")[0].split("?")[0];
+  const simOnly = config.kind === "simulation-only" && typeof opts.simulation === "function";
   let state = load() || { kc: {}, kcMarked: false, kcScore: null, student: "" };
+  if (!state.sim) state.sim = {};
   function load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch { return null; } }
   let saveTimer = null;
   function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {} }, 150); }
@@ -246,6 +256,7 @@ export async function mountExternalActivity() {
   /* --- header ------------------------------------------------------------ */
   const header = el("header", "nav-title");
   header.append(el("p", "eyebrow", `${config.module || ""}`.trim() || config.course || "Discovery Lab"));
+  if (simOnly) header.append(el("span", "ext-portal__badge", S("Simulation-only · quick explore", "Solo simulación · exploración rápida")));
   header.append(el("h1", null, config.title));
   if (config.subtitle) header.append(el("p", "nav-title__blurb", config.subtitle));
   const meta = el("p", "tile__meta");
@@ -259,6 +270,7 @@ export async function mountExternalActivity() {
 
   /* --- 1. the "leaving Discovery Lab" portal card -------------------------- */
   const simCard = el("div", "card ext-portal");
+  if (!simOnly) wrap.append(simCard);
   const head = el("div", "ext-portal__head");
   const iconWrap = el("div", "ext-portal__icon");
   iconWrap.innerHTML = PORTAL_SVG;
@@ -285,7 +297,6 @@ export async function mountExternalActivity() {
   openRow.append(openBtn);
   simCard.append(openRow);
   simCard.append(el("p", "q__hint", t("ext.open-note")));
-  wrap.append(simCard);
 
   /* --- 2. what to do ------------------------------------------------------ */
   if (config.whatToDo?.length) {
@@ -299,6 +310,17 @@ export async function mountExternalActivity() {
     });
     card.append(ol);
     wrap.append(card);
+  }
+
+  if (simOnly) {
+    const simCardHost = el("div", "card simonly");
+    wrap.append(simCardHost);
+    try {
+      opts.simulation(simCardHost, { state: state.sim, save, lang: getLang() });
+    } catch (e) {
+      console.error(e);
+      simCardHost.append(el("p", "nav-empty", t("activity-load-error")));
+    }
   }
 
   /* --- 3. learning focus --------------------------------------------------- */
@@ -397,7 +419,7 @@ export async function mountExternalActivity() {
       const jsPDF = await loadJsPDF();
       const blob = buildExternalPDF(jsPDF, {
         config, simURL, student: state.student,
-        controllers, kcScore: state.kcScore,
+        controllers, kcScore: state.kcScore, simOnly, explored: state.sim.explored || {},
       });
       const base = [sanitize(state.student), sanitize(config.course), sanitize(config.module), sanitize(config.title), dateStamp()].join("_");
       downloadBlob(blob, `${base}.pdf`);
@@ -456,7 +478,7 @@ function wrapUrl(doc, url, maxWidth) {
 }
 
 function buildExternalPDF(jsPDF, p) {
-  const { config, simURL, student, controllers, kcScore } = p;
+  const { config, simURL, student, controllers, kcScore, simOnly, explored } = p;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -489,7 +511,7 @@ function buildExternalPDF(jsPDF, p) {
   }
 
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); setColor(accent);
-  doc.text(t("pdf.ext-masthead"), M, y); y += 6;
+  doc.text(simOnly ? S("DISCOVERY LAB - SIMULATION-ONLY EVIDENCE", "DISCOVERY LAB - EVIDENCIA DE SOLO SIMULACION") : t("pdf.ext-masthead"), M, y); y += 6;
   rule(accent);
   doc.setFont("helvetica", "bold"); doc.setFontSize(20); setColor(ink);
   doc.text(doc.splitTextToSize(pdfSafe(config.title), CW), M, y + 8); y += 30;
@@ -513,7 +535,7 @@ function buildExternalPDF(jsPDF, p) {
   const simLabel = pdfSafe(t("pdf.ext-link")) + "  ";
   const simLabelW = doc.getTextWidth(simLabel);
   doc.setFont("helvetica", "bold");
-  const simUrlLines = wrapUrl(doc, config.externalUrl, availW - simLabelW);
+  const simUrlLines = simOnly ? [] : wrapUrl(doc, config.externalUrl, availW - simLabelW);
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(8);
   const daLabel = pdfSafe(t("pdf.sim-link")) + "  ";
@@ -522,23 +544,30 @@ function buildExternalPDF(jsPDF, p) {
   const daUrlLines = wrapUrl(doc, simURL, availW - daLabelW);
 
   const sourceLineH = 15;
-  const boxH = 6 + sourceLineH + 6 + simUrlLines.length * lineH + 5 + daUrlLines.length * lineH + 8;
+  const boxH = simOnly ? 10 + lineH + 5 + daUrlLines.length * lineH + 8
+    : 6 + sourceLineH + 6 + simUrlLines.length * lineH + 5 + daUrlLines.length * lineH + 8;
   ensure(boxH + 14);
   doc.setFillColor(235, 245, 239); doc.setDrawColor(accent[0], accent[1], accent[2]);
   doc.roundedRect(M, y, CW, boxH, 4, 4, "FD");
 
   let by = y + 6 + sourceLineH;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(accent);
-  doc.text(pdfSafe(`${t("pdf.ext-source")} ${config.source || "-"}`), M + pad, by);
+  if (simOnly) {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(accent);
+    doc.text(pdfSafe(S("Interactive simulation built by Discovery Lab (quick explore + quiz)", "Simulacion interactiva creada por Discovery Lab (exploracion rapida + prueba)")), M + pad, by - 5);
+    by += lineH;
+  } else {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(accent);
+    doc.text(pdfSafe(`${t("pdf.ext-source")} ${config.source || "-"}`), M + pad, by);
 
-  by += lineH + 6;
-  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); setColor(mut);
-  doc.text(simLabel, M + pad, by);
-  doc.setFont("helvetica", "bold"); setColor(accent);
-  simUrlLines.forEach((ln, i) => {
-    doc.textWithLink(ln, i === 0 ? M + pad + simLabelW : M + pad, by + i * lineH, { url: config.externalUrl });
-  });
-  by += simUrlLines.length * lineH + 5;
+    by += lineH + 6;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); setColor(mut);
+    doc.text(simLabel, M + pad, by);
+    doc.setFont("helvetica", "bold"); setColor(accent);
+    simUrlLines.forEach((ln, i) => {
+      doc.textWithLink(ln, i === 0 ? M + pad + simLabelW : M + pad, by + i * lineH, { url: config.externalUrl });
+    });
+    by += simUrlLines.length * lineH + 5;
+  }
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); setColor(mut);
   doc.text(daLabel, M + pad, by);
@@ -563,6 +592,14 @@ function buildExternalPDF(jsPDF, p) {
       setColor(ink);
     }
     if (lf?.summary) para(lf.summary, 9.5, "normal", ink, 8);
+  }
+
+  if (simOnly && config.exploreLabels) {
+    h(S("What the student explored", "Lo que el estudiante exploro"));
+    Object.entries(config.exploreLabels).forEach(([k, label]) => {
+      para(`${explored[k] ? "[x]" : "[ ]"}  ${label}`, 9.5, "normal", explored[k] ? ink : mut, 1);
+    });
+    y += 6;
   }
 
   // Score summary

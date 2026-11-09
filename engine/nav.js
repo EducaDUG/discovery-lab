@@ -44,7 +44,7 @@ const plural = (n, word) => t(n === 1 ? `count.${word}` : `count.${PLURAL_KEY[wo
 
 function metaFor(node) {
   if (node.type === "simulation") {
-    const bits = [node.activityId];
+    const bits = [node.kind === "simulation-only" ? (getLang() === "es" ? "SOLO SIMULACIÓN" : "SIMULATION-ONLY") : null, node.activityId];
     if (node.questionCount) bits.push(plural(node.questionCount, "question"));
     if (node.minutes) bits.push(t("count.min", { n: node.minutes }));
     return bits.filter(Boolean).join(" · ");

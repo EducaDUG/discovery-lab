@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="computing" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CPU, Memory &amp; Storage Workshop — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../engine/style.css?v=12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='14' y='14' width='36' height='36' rx='6' fill='%232b7de9'/><rect x='24' y='24' width='16' height='16' rx='3' fill='%23fff'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Workshop: clean PhET/Gizmos-style lab bench ---- */
+.simonly{--c-cpu:#2b7de9;--c-ram:#f08a24;--c-sto:#8b5cf6;--c-ok:#19a974;--c-bad:#e5484d;
+  padding:0;overflow:hidden;border-radius:18px;border:2px solid #cfe0f5;background:linear-gradient(180deg,#eaf3ff,#f7fbff 60%);}
+.sw-tabs{display:flex;gap:6px;padding:10px 10px 0;background:#d9e9fb;flex-wrap:wrap;}
+.sw-tab{flex:1 1 9rem;display:flex;align-items:center;justify-content:center;gap:.45em;padding:.7em .8em;border:none;cursor:pointer;
+  border-radius:12px 12px 0 0;font:inherit;font-weight:800;font-size:.95rem;color:#35557a;background:#c3d9f3;min-height:44px;touch-action:manipulation;}
+.sw-tab[aria-selected=true]{background:#fff;color:#12365f;box-shadow:0 -3px 0 var(--tabc) inset;}
+.sw-tab svg{width:1.35em;height:1.35em;}
+.sw-checks{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-bottom:1px solid #dbe7f5;align-items:center;}
+.sw-chip{display:inline-flex;align-items:center;gap:.4em;font-size:.78rem;font-weight:800;padding:.3em .8em;border-radius:999px;
+  background:#eef3f9;color:#5b6f86;border:1.5px dashed #b8c8da;}
+.sw-chip.done{background:#dff6ec;color:#0c6b4a;border:1.5px solid var(--c-ok);}
+.sw-chip.done::before{content:"\2713";}
+.sw-panel{padding:16px;background:#fff;}
+.sw-panel[hidden]{display:none;}
+.sw-lede{margin:0 0 12px;font-size:1rem;color:#26405f;font-weight:600;}
+.sw-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;}
+@media(max-width:760px){.sw-grid{grid-template-columns:1fr;}}
+.sw-stage{border-radius:16px;border:2px solid #d3e3f6;background:linear-gradient(180deg,#f2f8ff,#e4f0fd);padding:14px;position:relative;min-height:14rem;}
+.sw-ctrl{border-radius:16px;border:2px solid #d3e3f6;background:#f9fbff;padding:14px;display:flex;flex-direction:column;gap:12px;align-self:start;}
+.sw-ctrl h3{margin:0;font-size:1rem;color:#12365f;}
+.sw-big{font-family:var(--font-data);font-weight:800;font-size:2rem;line-height:1;color:var(--cc);}
+.sw-range{width:100%;height:2.4rem;accent-color:var(--cc);touch-action:manipulation;}
+.sw-scale{display:flex;justify-content:space-between;font-size:.75rem;font-weight:700;color:#5b6f86;margin-top:-6px;}
+.sw-btn{font:inherit;font-weight:800;border:none;cursor:pointer;border-radius:12px;padding:.7em 1.1em;min-height:44px;color:#fff;background:var(--cc);
+  box-shadow:0 4px 0 color-mix(in srgb,var(--cc) 60%,#000);transition:transform .08s;touch-action:manipulation;}
+.sw-btn:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--cc) 60%,#000);}
+.sw-btn:disabled{opacity:.5;cursor:default;}
+.sw-btn--ghost{background:#fff;color:#12365f;border:2px solid #b8c8da;box-shadow:0 3px 0 #b8c8da;}
+.sw-msg{min-height:2.6em;margin:0;font-weight:700;font-size:.92rem;color:#26405f;}
+.sw-msg.bad{color:#b4232a;} .sw-msg.good{color:#0c6b4a;}
+
+/* CPU */
+.cpu-lane{display:flex;align-items:center;gap:10px;}
+.cpu-queue{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;}
+.task{width:3.1rem;height:2.3rem;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:.8rem;
+  background:#fff;border:2px solid #9fbbe0;color:#1d4a85;transition:all .25s;}
+.task.cur{background:#ffe9a8;border-color:#e6a800;transform:scale(1.12);}
+.task.done{background:#d6f5e6;border-color:var(--c-ok);color:#0c6b4a;}
+.task.done::after{content:"\2713";margin-left:2px;}
+.chipwrap{flex:none;width:7.4rem;}
+.fan{transform-origin:50% 50%;}
+.running .fan{animation:spin var(--spd,1.2s) linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+[data-reduced-motion=on] .running .fan{animation:none;}
+.cpu-bars{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.bar-row{display:grid;grid-template-columns:4.2rem 1fr 3.4rem;gap:8px;align-items:center;font-size:.82rem;font-weight:800;color:#26405f;}
+.bar-row i{display:block;height:1.1rem;border-radius:6px;background:var(--c-cpu);transition:width .4s;}
+.bar-row.empty{color:#9aabc0;} .bar-row.empty i{background:#dbe5f1;width:6%;}
+
+/* RAM */
+.desk{border-radius:14px;padding:12px;min-height:8.2rem;border:2px solid #c9964f;
+  background:repeating-linear-gradient(90deg,#e9bd7e 0 22px,#e3b377 22px 24px);position:relative;}
+.desk.slow{animation:none;outline:3px dashed var(--c-bad);outline-offset:3px;}
+.sheet{display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0;padding:6px 10px 6px 6px;border-radius:10px;background:#fffdf7;
+  border:2px solid var(--ac);box-shadow:0 3px 0 rgba(0,0,0,.15);font-weight:800;font-size:.8rem;color:#26405f;animation:drop .3s ease-out;}
+.sheet svg{width:1.9rem;height:1.9rem;}
+.sheet.nr::after{content:"\2026";color:var(--c-bad);}
+@keyframes drop{from{transform:translateY(-14px);opacity:0;}to{transform:none;opacity:1;}}
+[data-reduced-motion=on] .sheet{animation:none;}
+.desk-empty{color:#7a5a2c;font-weight:700;font-size:.9rem;}
+.cells{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px;}
+.cell{width:1.35rem;height:1.35rem;border-radius:4px;border:2px solid #b9c9dc;background:#fff;}
+.cell.f{border-color:rgba(0,0,0,.2);}
+.cell.over{border:2px dashed var(--c-bad);background:#ffe3e4;}
+.appgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(7.4rem,1fr));gap:8px;}
+.appbtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:2px solid #b8c8da;background:#fff;
+  cursor:pointer;font:inherit;font-weight:800;font-size:.8rem;color:#26405f;min-height:44px;touch-action:manipulation;}
+.appbtn svg{width:2.4rem;height:2.4rem;}
+.appbtn small{font-weight:700;color:#5b6f86;}
+.appbtn[aria-pressed=true]{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,#fff);box-shadow:inset 0 0 0 1.5px var(--ac);}
+.turtle{position:absolute;right:10px;top:8px;width:3rem;opacity:0;transition:opacity .3s;}
+.desk.slow .turtle{opacity:1;}
+
+/* Storage */
+.cupboard{border-radius:14px;border:3px solid #5f4a9e;background:linear-gradient(180deg,#e9e1fb,#d7ccf5);padding:10px;min-height:9rem;}
+.shelf{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;min-height:6.5rem;}
+.file{display:flex;align-items:center;gap:5px;padding:5px 9px 5px 5px;border-radius:10px;border:2px solid var(--ac);background:#fff;font:inherit;
+  font-weight:800;font-size:.78rem;color:#26405f;cursor:pointer;min-height:44px;animation:drop .3s ease-out;touch-action:manipulation;}
+.file svg{width:1.8rem;height:1.8rem;}
+.file:hover{background:#fff1f1;} .file::after{content:"\00d7";color:#b4232a;font-size:1.1rem;margin-left:2px;}
+.stobar{margin-top:10px;height:1.6rem;border-radius:8px;background:#fff;border:2px solid #5f4a9e;display:flex;overflow:hidden;}
+.stobar.shake{animation:shake .4s;}
+@keyframes shake{25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+[data-reduced-motion=on] .stobar.shake{animation:none;outline:3px solid var(--c-bad);}
+.stobar span{height:100%;transition:width .3s;}
+.fact{margin-top:14px;padding:10px 14px;border-radius:14px;background:#fff7e6;border:2px dashed #e6a800;display:flex;gap:10px;align-items:center;}
+.fact button{font:inherit;font-weight:800;background:#e6a800;color:#fff;border:none;border-radius:10px;padding:.5em .9em;cursor:pointer;min-height:44px;}
+.fact p{margin:0;font-weight:700;color:#5c3f00;font-size:.9rem;}
+.burst{position:absolute;pointer-events:none;font-weight:900;color:var(--c-ok);animation:rise .9s ease-out forwards;}
+@keyframes rise{to{transform:translateY(-34px);opacity:0;}}
+[data-reduced-motion=on] .burst{animation:none;opacity:0;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountExternalActivity } from "../../../../engine/external-activity.js?v=3";
+import { getLang } from "../../../../engine/i18n.js?v=10";
+const L = (en, es) => getLang() === "es" ? es : en;
+
+/* ---------- drawn icons (real objects, never bare letters/blocks) ---------- */
+const ICON = {
+  chat: c => `<svg viewBox="0 0 48 48"><path d="M8 10h32a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H22l-9 8v-8H8a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="${c}"/><circle cx="16" cy="22" r="2.4" fill="#fff"/><circle cx="24" cy="22" r="2.4" fill="#fff"/><circle cx="32" cy="22" r="2.4" fill="#fff"/></svg>`,
+  music: c => `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="${c}"/><path d="M20 14v16.5a4.5 4 0 1 1-3-3.8V16l15-3v13.5a4.5 4 0 1 1-3-3.8V14z" fill="#fff"/></svg>`,
+  browser: c => `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="${c}"/><g fill="none" stroke="#fff" stroke-width="2.4"><ellipse cx="24" cy="24" rx="9" ry="21"/><path d="M4 24h40M7 14h34M7 34h34"/></g></svg>`,
+  photo: c => `<svg viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="5" fill="${c}"/><circle cx="16" cy="19" r="4" fill="#ffe27a"/><path d="M6 36l12-12 8 8 6-6 10 10z" fill="#fff" opacity=".92"/></svg>`,
+  game: c => `<svg viewBox="0 0 48 48"><path d="M12 14h24c6 0 10 8 10 16 0 5-3 7-6 5l-6-5H14l-6 5c-3 2-6 0-6-5 0-8 4-16 10-16z" fill="${c}"/><path d="M15 21v8M11 25h8" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="22" r="2.4" fill="#fff"/><circle cx="37" cy="27" r="2.4" fill="#fff"/></svg>`,
+  video: c => `<svg viewBox="0 0 48 48"><rect x="4" y="9" width="40" height="30" rx="5" fill="${c}"/><path d="M20 17l11 7-11 7z" fill="#fff"/><g fill="#fff"><rect x="7" y="12" width="3" height="3" rx="1"/><rect x="7" y="33" width="3" height="3" rx="1"/><rect x="38" y="12" width="3" height="3" rx="1"/><rect x="38" y="33" width="3" height="3" rx="1"/></g></svg>`,
+};
+const APPS = [
+  { id:"chat",    gb:1, c:"#19a974", ico:"chat",    n:()=>L("Chat","Chat") },
+  { id:"music",   gb:1, c:"#e5484d", ico:"music",   n:()=>L("Music","Música") },
+  { id:"browser", gb:2, c:"#2b7de9", ico:"browser", n:()=>L("Browser","Navegador") },
+  { id:"photo",   gb:3, c:"#d6409f", ico:"photo",   n:()=>L("Photo app","Fotos") },
+  { id:"game",    gb:4, c:"#8b5cf6", ico:"game",    n:()=>L("Game","Juego") },
+  { id:"video",   gb:6, c:"#f08a24", ico:"video",   n:()=>L("Video editor","Editor de vídeo") },
+];
+const FILES = [
+  { id:"photo", gb:12, c:"#d6409f", ico:"photo", n:()=>L("Photos","Fotos") },
+  { id:"music", gb:8,  c:"#e5484d", ico:"music", n:()=>L("Songs","Canciones") },
+  { id:"game",  gb:30, c:"#8b5cf6", ico:"game",  n:()=>L("Game","Juego") },
+  { id:"video", gb:40, c:"#f08a24", ico:"video", n:()=>L("Video","Vídeo") },
+];
+const RAMS=[2,4,8,16], STOS=[32,64,128,256,512];
+
+const cpuSVG = `<svg viewBox="0 0 120 120" aria-hidden="true">
+  <g fill="#c9a24a">${[...Array(8)].map((_,i)=>`<rect x="${20+i*11}" y="2" width="6" height="14" rx="1.5"/><rect x="${20+i*11}" y="104" width="6" height="14" rx="1.5"/><rect x="2" y="${20+i*11}" width="14" height="6" rx="1.5"/><rect x="104" y="${20+i*11}" width="14" height="6" rx="1.5"/>`).join("")}</g>
+  <rect x="14" y="14" width="92" height="92" rx="12" fill="#2b4a7a"/><rect x="22" y="22" width="76" height="76" rx="8" fill="#3b6cb3"/>
+  <g class="fan"><circle cx="60" cy="60" r="26" fill="#e9f2ff"/>
+    ${[0,90,180,270].map(a=>`<path transform="rotate(${a} 60 60)" d="M60 60 C60 42 74 38 74 50 C74 58 66 60 60 60z" fill="#2b7de9"/>`).join("")}
+    <circle cx="60" cy="60" r="5" fill="#12365f"/></g></svg>`;
+
+function mkSim(host, api) {
+  const st = api.state;
+  st.tab ??= "cpu"; st.explored ??= {}; st.cpu ??= { ghz:2, times:{} };
+  st.ramGb ??= 4; st.apps ??= []; st.stoGb ??= 64; st.files ??= []; st.powered ??= false;
+  const $ = (h, tag="div") => { const n=document.createElement(tag); n.innerHTML=h; return n.firstElementChild; };
+  const mark = k => { if (!st.explored[k]) { st.explored[k]=true; renderChecks(); } api.save(); };
+  const burst = (stage, text) => { const b=document.createElement("span"); b.className="burst"; b.textContent=text; b.style.left="50%"; b.style.top="40%"; stage.append(b); setTimeout(()=>b.remove(),950); };
+
+  const tabs = [
+    { id:"cpu", c:"var(--c-cpu)", n:L("CPU Race","Carrera de CPU"), ico:`<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" fill="#2b7de9"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="#fff"/></svg>` },
+    { id:"ram", c:"var(--c-ram)", n:L("RAM Desk","Escritorio de RAM"), ico:`<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" fill="#f08a24"/><g fill="#fff"><rect x="5" y="9" width="3" height="4"/><rect x="10" y="9" width="3" height="4"/><rect x="15" y="9" width="3" height="4"/></g></svg>` },
+    { id:"sto", c:"var(--c-sto)", n:L("Storage Cupboard","Armario de almacenamiento"), ico:`<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3" fill="#8b5cf6"/><path d="M4 12h16" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="7.5" r="1.3" fill="#fff"/><circle cx="12" cy="16.5" r="1.3" fill="#fff"/></svg>` },
+  ];
+  const root = $(`<div></div>`);
+  const tabRow = $(`<div class="sw-tabs" role="tablist"></div>`);
+  const checks = $(`<div class="sw-checks" aria-live="polite"></div>`);
+  root.append(tabRow, checks);
+  const panels = {};
+  tabs.forEach(t => {
+    const b = $(`<button class="sw-tab" role="tab" style="--tabc:${t.c}">${t.ico}<span>${t.n}</span></button>`, "div");
+    b.dataset.id = t.id;
+    b.addEventListener("click", () => select(t.id));
+    tabRow.append(b);
+    const p = $(`<section class="sw-panel" role="tabpanel"></section>`);
+    panels[t.id] = p; root.append(p);
+  });
+  function select(id) {
+    st.tab = id; api.save();
+    tabRow.querySelectorAll(".sw-tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.id===id)));
+    Object.entries(panels).forEach(([k,p]) => p.hidden = k!==id);
+  }
+  const labels = { cpu:L("CPU Race","Carrera de CPU"), ram:L("RAM Desk","Escritorio de RAM"), storage:L("Storage","Almacenamiento"), power:L("Power off","Apagar") };
+  function renderChecks() {
+    checks.innerHTML = `<strong style="font-size:.8rem;color:#26405f">${L("Explorer badges:","Insignias de explorador:")}</strong>` +
+      Object.entries(labels).map(([k,l]) => `<span class="sw-chip ${st.explored[k]?"done":""}">${l}</span>`).join("");
+    const n = Object.keys(labels).filter(k=>st.explored[k]).length;
+    if (n === 4) checks.insertAdjacentHTML("beforeend", `<strong style="color:#0c6b4a;font-size:.85rem">${L("All explored! Now scroll down for the quiz.","¡Todo explorado! Baja para hacer la prueba.")}</strong>`);
+  }
+
+  /* shared power-off: RAM empties, storage keeps */
+  function powerOff(msgEl, stage) {
+    const had = st.apps.length;
+    st.apps = []; renderRam();
+    mark("power");
+    msgEl.className = "sw-msg good";
+    msgEl.textContent = L(`Power off, power on! RAM forgot your ${had} open app${had===1?"":"s"}, but the ${st.files.length} saved file${st.files.length===1?" is":"s are"} still in storage.`,
+      `¡Apagado y encendido! La RAM olvidó tus ${had} app${had===1?"":"s"} abierta${had===1?"":"s"}, pero ${st.files.length===1?"el archivo guardado sigue":"los "+st.files.length+" archivos guardados siguen"} en el almacenamiento.`);
+    burst(stage, "OFF / ON");
+  }
+
+  /* ===== 1. CPU ===== */
+  {
+    const p = panels.cpu;
+    const tasks = ["7+5","9−4","6×2","8+8","15−6","3×4","9+7","20−8","5×2","12+3"];
+    p.innerHTML = `<p class="sw-lede">${L("The CPU is the computer's brain. Pick a speed, press Run, and watch it work through 10 tasks.","La CPU es el cerebro del ordenador. Elige una velocidad, pulsa Empezar y mira cómo hace 10 tareas.")}</p>
+    <div class="sw-grid"><div class="sw-stage" id="cpustage">
+      <div class="cpu-lane"><div class="cpu-queue"></div><div class="chipwrap">${cpuSVG}</div></div>
+      <div class="cpu-bars"></div></div>
+      <div class="sw-ctrl" style="--cc:var(--c-cpu)"><h3>${L("CPU speed","Velocidad de la CPU")}</h3>
+        <div class="sw-big"><span id="ghz"></span> GHz</div>
+        <input class="sw-range" type="range" min="1" max="4" step="1" aria-label="${L("CPU speed in GHz","Velocidad de la CPU en GHz")}">
+        <div class="sw-scale"><span>${L("slow","lento")}</span><span>${L("fast","rápido")}</span></div>
+        <button class="sw-btn" id="run">${L("Run 10 tasks","Hacer 10 tareas")}</button>
+        <p class="sw-msg" id="cpumsg"></p></div></div>`;
+    const queue = p.querySelector(".cpu-queue"), range = p.querySelector("input"), run = p.querySelector("#run"),
+      msg = p.querySelector("#cpumsg"), bars = p.querySelector(".cpu-bars"), wrap = p.querySelector(".cpu-lane"), stage = p.querySelector("#cpustage");
+    const drawBars = () => { bars.innerHTML = [1,2,3,4].map(g => { const t = st.cpu.times[g];
+      return `<div class="bar-row ${t?"":"empty"}"><span>${g} GHz</span><span><i style="width:${t?Math.max(8,t/6*100):6}%"></i></span><span>${t?t.toFixed(1)+" s":"–"}</span></div>`; }).join(""); };
+    const reset = () => { queue.innerHTML = tasks.map(t=>`<span class="task">${t}</span>`).join(""); };
+    const setGhz = g => { st.cpu.ghz = g; p.querySelector("#ghz").textContent = g; range.value = g; wrap.style.setProperty("--spd", (1.6/g)+"s"); api.save(); };
+    range.addEventListener("input", () => setGhz(+range.value));
+    run.addEventListener("click", () => {
+      const g = st.cpu.ghz, per = 550/g, t0 = performance.now();
+      range.disabled = run.disabled = true; reset(); wrap.classList.add("running"); msg.className="sw-msg"; msg.textContent = L("Working…","Trabajando…");
+      const cards = [...queue.children];
+      const iv = setInterval(() => {
+        const el = performance.now()-t0, n = Math.min(tasks.length, Math.floor(el/per));
+        cards.forEach((c,i)=>{ c.classList.toggle("done", i<n); c.classList.toggle("cur", i===n); });
+        if (n >= tasks.length) {
+          clearInterval(iv); wrap.classList.remove("running");
+          const secs = el/1000; st.cpu.times[g] = Math.min(st.cpu.times[g] ?? 99, secs);
+          range.disabled = run.disabled = false; drawBars(); api.save();
+          msg.className = "sw-msg good"; msg.textContent = L(`Done in ${secs.toFixed(1)} seconds at ${g} GHz.`,`Terminado en ${secs.toFixed(1)} segundos a ${g} GHz.`);
+          burst(stage, "+10");
+          if (Object.keys(st.cpu.times).length >= 3) mark("cpu");
+          else msg.textContent += L(" Try a different speed and compare!"," ¡Prueba otra velocidad y compara!");
+        }
+      }, 60);
+    });
+    reset(); setGhz(st.cpu.ghz); drawBars();
+  }
+
+  /* ===== 2. RAM ===== */
+  let renderRam = () => {};
+  {
+    const p = panels.ram;
+    p.innerHTML = `<p class="sw-lede">${L("RAM is the computer's desk. Every open app takes up space on it. What happens when the desk is too small?","La RAM es el escritorio del ordenador. Cada app abierta ocupa sitio en él. ¿Qué pasa si el escritorio es demasiado pequeño?")}</p>
+    <div class="sw-grid"><div class="sw-stage" id="ramstage">
+      <div class="desk"><svg class="turtle" viewBox="0 0 48 32" aria-hidden="true"><ellipse cx="22" cy="18" rx="16" ry="11" fill="#3f9e5f"/><circle cx="41" cy="16" r="5" fill="#6bc287"/><rect x="10" y="26" width="5" height="5" rx="2" fill="#6bc287"/><rect x="28" y="26" width="5" height="5" rx="2" fill="#6bc287"/></svg><div class="sheets"></div></div>
+      <div class="cells" role="img"></div>
+      <p class="sw-msg" id="rammsg" style="margin-top:10px"></p></div>
+      <div class="sw-ctrl" style="--cc:var(--c-ram)"><h3>${L("RAM size (desk size)","Tamaño de RAM (tamaño del escritorio)")}</h3>
+        <div class="sw-big"><span id="ramgb"></span> GB</div>
+        <input class="sw-range" type="range" min="0" max="3" step="1" aria-label="${L("RAM size in GB","Tamaño de RAM en GB")}">
+        <div class="sw-scale"><span>2</span><span>4</span><span>8</span><span>16</span></div>
+        <h3>${L("Open an app","Abre una app")}</h3><div class="appgrid"></div>
+        <button class="sw-btn sw-btn--ghost" id="pw1"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8M6.5 6.5a8 8 0 1 0 11 0"/></svg> ${L("Power off","Apagar")}</button></div></div>`;
+    const range = p.querySelector("input"), desk = p.querySelector(".desk"), sheets = p.querySelector(".sheets"),
+      cells = p.querySelector(".cells"), msg = p.querySelector("#rammsg"), grid = p.querySelector(".appgrid"), stage = p.querySelector("#ramstage");
+    let over = 0;
+    APPS.forEach(a => {
+      const b = $(`<button class="appbtn" aria-pressed="false" style="--ac:${a.c}">${ICON[a.ico](a.c)}<span>${a.n()}</span><small>${a.gb} GB</small></button>`);
+      b.addEventListener("click", () => {
+        const i = st.apps.indexOf(a.id);
+        if (i >= 0) st.apps.splice(i,1); else st.apps.push(a.id);
+        over = 0; renderRam(); api.save();
+      });
+      b.dataset.id = a.id; grid.append(b);
+    });
+    renderRam = () => {
+      const total = RAMS[RAMS.indexOf(st.ramGb)] ?? 4, list = st.apps.map(id => APPS.find(a=>a.id===id));
+      const used = list.reduce((s,a)=>s+a.gb,0), isOver = used > total;
+      p.querySelector("#ramgb").textContent = total; range.value = RAMS.indexOf(total);
+      grid.querySelectorAll(".appbtn").forEach(b => b.setAttribute("aria-pressed", String(st.apps.includes(b.dataset.id))));
+      sheets.innerHTML = list.length ? "" : `<span class="desk-empty">${L("The desk is empty. Open an app!","El escritorio está vacío. ¡Abre una app!")}</span>`;
+      list.forEach(a => sheets.append($(`<span class="sheet ${isOver?"nr":""}" style="--ac:${a.c}">${ICON[a.ico](a.c)}${a.n()} · ${a.gb} GB</span>`)));
+      desk.classList.toggle("slow", isOver);
+      let html = "", k = 0;
+      list.forEach(a => { for (let i=0;i<a.gb;i++){ k++; html += `<span class="cell ${k>total?"over":"f"}" style="${k>total?"":`background:${a.c}`}"></span>`; } });
+      for (let i=k;i<total;i++) html += `<span class="cell"></span>`;
+      cells.innerHTML = html;
+      cells.setAttribute("aria-label", L(`${used} of ${total} GB used`,`${used} de ${total} GB usados`));
+      if (isOver) { msg.className="sw-msg bad"; msg.textContent = L(`Too full! ${used} GB of apps on a ${total} GB desk. Everything is slow… an app may crash.`,`¡Demasiado lleno! ${used} GB de apps en un escritorio de ${total} GB. Todo va lento… una app puede fallar.`); mark("ram"); }
+      else if (list.length) { msg.className="sw-msg good"; msg.textContent = L(`${used} of ${total} GB used. Everything runs smoothly.`,`${used} de ${total} GB usados. Todo funciona con fluidez.`); }
+      else { msg.className="sw-msg"; msg.textContent = L(`Empty ${total} GB desk.`,`Escritorio de ${total} GB vacío.`); }
+    };
+    range.addEventListener("input", () => { st.ramGb = RAMS[+range.value]; over = 0; renderRam(); api.save(); });
+    p.querySelector("#pw1").addEventListener("click", () => { powerOff(msg, stage); });
+    setInterval(() => {
+      if (panels.ram.hidden) return;
+      const used = st.apps.reduce((s,id)=>s+APPS.find(a=>a.id===id).gb,0);
+      if (used > st.ramGb) {
+        if (++over >= 6) { over = 0; const id = st.apps.pop(), a = APPS.find(x=>x.id===id); renderRam(); api.save();
+          msg.className="sw-msg bad"; msg.textContent = L(`${a.n()} crashed because the desk was too full! Close apps or get more RAM.`,`¡${a.n()} falló porque el escritorio estaba demasiado lleno! Cierra apps o consigue más RAM.`); }
+      } else over = 0;
+    }, 500);
+    renderRam();
+  }
+
+  /* ===== 3. Storage ===== */
+  {
+    const p = panels.sto;
+    p.innerHTML = `<p class="sw-lede">${L("Storage is the cupboard where files, videos and apps are kept. Save things in it. Tap a file to delete it.","El almacenamiento es el armario donde se guardan archivos, vídeos y apps. Guarda cosas en él. Toca un archivo para borrarlo.")}</p>
+    <div class="sw-grid"><div class="sw-stage" id="stostage">
+      <div class="cupboard"><div class="shelf"></div></div>
+      <div class="stobar" role="img"></div>
+      <p class="sw-msg" id="stomsg" style="margin-top:10px"></p></div>
+      <div class="sw-ctrl" style="--cc:var(--c-sto)"><h3>${L("Storage size (cupboard size)","Tamaño de almacenamiento (tamaño del armario)")}</h3>
+        <div class="sw-big"><span id="stogb"></span> GB</div>
+        <input class="sw-range" type="range" min="0" max="4" step="1" aria-label="${L("Storage size in GB","Tamaño de almacenamiento en GB")}">
+        <div class="sw-scale"><span>32</span><span>64</span><span>128</span><span>256</span><span>512</span></div>
+        <h3>${L("Save a file","Guarda un archivo")}</h3><div class="appgrid"></div>
+        <button class="sw-btn sw-btn--ghost" id="pw2"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8M6.5 6.5a8 8 0 1 0 11 0"/></svg> ${L("Power off","Apagar")}</button></div></div>`;
+    const range = p.querySelector("input"), shelf = p.querySelector(".shelf"), bar = p.querySelector(".stobar"),
+      msg = p.querySelector("#stomsg"), grid = p.querySelector(".appgrid"), stage = p.querySelector("#stostage");
+    let uid = st.files.reduce((m,f)=>Math.max(m,f.u),0);
+    const used = () => st.files.reduce((s,f)=>s+FILES.find(x=>x.id===f.id).gb,0);
+    const render = () => {
+      const total = st.stoGb, u = used();
+      p.querySelector("#stogb").textContent = total; range.value = STOS.indexOf(total);
+      shelf.innerHTML = st.files.length ? "" : `<span class="desk-empty" style="color:#5f4a9e">${L("The cupboard is empty. Save something!","El armario está vacío. ¡Guarda algo!")}</span>`;
+      st.files.forEach(f => { const d = FILES.find(x=>x.id===f.id);
+        const b = $(`<button class="file" style="--ac:${d.c}" aria-label="${L("Delete","Borrar")} ${d.n()} ${d.gb} GB">${ICON[d.ico](d.c)}${d.n()} · ${d.gb} GB</button>`);
+        b.addEventListener("click", () => { st.files = st.files.filter(x=>x.u!==f.u); render(); api.save();
+          msg.className="sw-msg good"; msg.textContent = L(`Deleted ${d.n()}. ${d.gb} GB free again.`,`${d.n()} borrado. ${d.gb} GB libres otra vez.`); });
+        shelf.append(b); });
+      bar.innerHTML = st.files.map(f => { const d=FILES.find(x=>x.id===f.id); return `<span style="width:${d.gb/total*100}%;background:${d.c};border-right:2px solid #fff"></span>`; }).join("");
+      bar.setAttribute("aria-label", L(`${u} of ${total} GB used`,`${u} de ${total} GB usados`));
+      if (u > total) { msg.className="sw-msg bad"; msg.textContent = L("Full! Delete a file or pick a bigger cupboard.","¡Lleno! Borra un archivo o elige un armario más grande."); }
+      else if (!msg.textContent || msg.classList.contains("bad")) { msg.className="sw-msg"; msg.textContent = L(`${total-u} GB free of ${total} GB.`,`${total-u} GB libres de ${total} GB.`); }
+    };
+    FILES.forEach(d => {
+      const b = $(`<button class="appbtn" style="--ac:${d.c}">${ICON[d.ico](d.c)}<span>${d.n()}</span><small>${d.gb} GB</small></button>`);
+      b.addEventListener("click", () => {
+        if (used() + d.gb > st.stoGb) {
+          bar.classList.remove("shake"); void bar.offsetWidth; bar.classList.add("shake");
+          msg.className="sw-msg bad"; msg.textContent = L(`Storage full! ${d.n()} (${d.gb} GB) does not fit. Delete a file or choose more storage.`,`¡Almacenamiento lleno! ${d.n()} (${d.gb} GB) no cabe. Borra un archivo o elige más almacenamiento.`);
+          mark("storage"); return;
+        }
+        st.files.push({ id:d.id, u:++uid }); msg.textContent = ""; render(); api.save();
+        burst(stage, "+"+d.gb+" GB");
+      });
+      grid.append(b);
+    });
+    range.addEventListener("input", () => { st.stoGb = STOS[+range.value]; msg.textContent = ""; render(); api.save(); });
+    p.querySelector("#pw2").addEventListener("click", () => { powerOff(msg, stage); render(); });
+    render();
+  }
+
+  /* fun fact tap-card */
+  const fact = $(`<div class="fact"><button>${L("Fun fact","Dato curioso")} 🚀</button><p hidden>${L("Your smartphone today is more powerful than the computers NASA used to land humans on the Moon in 1969!","¡Tu teléfono de hoy es más potente que los ordenadores que usó la NASA para llevar humanos a la Luna en 1969!")}</p></div>`);
+  fact.querySelector("button").addEventListener("click", () => { fact.querySelector("p").hidden = false; fact.querySelector("button").hidden = true; });
+  root.append($(`<div class="sw-panel" style="padding-top:0"></div>`));
+  root.lastChild.append(fact);
+
+  host.append(root);
+  renderChecks(); select(st.tab);
+}
+
+mountExternalActivity({ simulation: mkSim }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>

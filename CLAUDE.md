@@ -2016,3 +2016,15 @@ Diego: from now on simulations are built **hyper-real and in 3D, so they feel mo
 
 Diego: the Symptom Detective showed a magnifying glass on the correct option and a question mark on wrong ones, making answers too easy. **In any multiple-choice or option list, every option gets an identical neutral marker (or none); never vary an icon, colour, emoji or style by correctness before the student answers.** Correct/incorrect styling appears only after a click. Check every option renderer (`o.ok ? A : B` in a template string is the tell).
 
+
+---
+
+## 19. Simulation-only activities - the fourth content type (agreed 2026-11-09, standing rule)
+
+Diego: besides standard Discovery Labs (Sections 3-5, 14) and External Simulation Activities (Section 16), the site now has **"simulation-only"** activities: quick (~5 minute) explore-and-learn simulations with **no** Orient/Hypothesis/Record/Explain/Apply stages and no teacher-marked questions. The student plays with an in-house simulation, then answers an **auto-marked quiz** and downloads a **PDF** (counts towards the grade). Use this type when Diego sends a slide/topic and says "simulation-only".
+
+- **Look: PhET / Gizmos / CK-12 Interactives** - clean, bright, direct-manipulation dioramas with drawn icons of real objects (visual-manipulatives rule applies), sliders that visibly change a live model. Not a form, not arcade chrome.
+- **Mechanics:** `engine/external-activity.js` is shared. `config.kind = "simulation-only"`, and `activity.html` calls `mountExternalActivity({ simulation: (host, api) => ... })`; `api.state` is persisted per activity (round/tab/progress must live there), `api.save()` saves. The sim records `state.explored[key] = true`; `config.exploreLabels` (key -> text, with an `es` mirror) is printed in the PDF as "What the student explored".
+- **Quiz:** 8-10 `mc`/`multi` questions, concept-level (never the interface), age-calibrated, every answer findable in the simulation, correct answers varied in position (this engine does not shuffle). **Spanish is mandatory** (`config.es`, `L(en, es)` in the page script). No `mechanic` field; `subjects.json` node gets `"kind": "simulation-only"` (nav shows a SIMULATION-ONLY meta label).
+- **Not required for this type** (explicit by Diego): hypothesis/results/analysis stages, the 10-stage method rail, a bonus arcade round, the 3-moments floor, a real-photo labelling activity. Still required: Spanish, accessibility (keyboard-operable controls, reduced-motion respected, no flashing), phone/tablet layout, no fail state, evidence PDF, learningFocus.
+- **Reference:** `primary/computer-skills/primary-2-computer-skills/sim-cpu-memory-storage/` (CPU race, RAM desk, storage cupboard, power-off). It is drawn SVG/DOM, not Three.js, by Diego's explicit PhET/Gizmos-look request, which overrides the Section 18 hyper-real-3D default for this type.
