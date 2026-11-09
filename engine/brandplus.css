@@ -112,10 +112,42 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
     radial-gradient(52rem 40rem at 70% 108%, #C9453B1A, transparent 62%),
     radial-gradient(40rem 30rem at 10% 100%, #2B30361A, transparent 60%); }
 html[data-tint="dark"] body::before { opacity: .55; }
-/* a large soft "sphere" for depth, top right of every page */
-body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; width: 34rem; height: 34rem; right: -10rem; top: 10vh; border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #ffffffcc 0%, #E3B23033 22%, #3A8C8A1F 55%, transparent 72%); filter: blur(2px); opacity: .7; }
-@media (max-width: 720px) { body::after { display: none; } }
+/* --- 9b. A notebook in the sky: a faint grid that slowly breathes in and out, and clouds that
+   drift and dissolve. Compositor-only (opacity/transform), very slow (40-120 s), never flashes. --- */
+html::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(#2B30361A 1px, transparent 1px), linear-gradient(90deg, #2B30361A 1px, transparent 1px);
+  background-size: 48px 48px; background-position: -1px -1px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 62% 38%, #000 0%, transparent 78%);
+          mask-image: radial-gradient(ellipse 70% 60% at 62% 38%, #000 0%, transparent 78%);
+  opacity: 0; animation: bp-grid 46s ease-in-out infinite; will-change: opacity; }
+html::after { content: ""; position: fixed; inset: -12% -30%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(22rem 9rem at 18% 22%, #ffffffd9, transparent 70%),
+    radial-gradient(30rem 11rem at 44% 30%, #ffffffb8, transparent 72%),
+    radial-gradient(24rem 9rem at 72% 18%, #ffffffcc, transparent 70%),
+    radial-gradient(34rem 12rem at 60% 62%, #ffffff99, transparent 72%),
+    radial-gradient(26rem 10rem at 24% 76%, #ffffffa6, transparent 72%);
+  filter: blur(22px); opacity: .85; animation: bp-cloud-a 110s ease-in-out infinite alternate; will-change: transform, opacity; }
+body::after { content: ""; position: fixed; inset: -10% -25%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(28rem 10rem at 10% 52%, #ffffff8c, transparent 72%),
+    radial-gradient(20rem 8rem at 52% 12%, #ffffffa0, transparent 70%),
+    radial-gradient(32rem 11rem at 86% 46%, #ffffff8c, transparent 72%),
+    radial-gradient(22rem 9rem at 40% 88%, #E3B23026, transparent 72%);
+  filter: blur(30px); opacity: .75; animation: bp-cloud-b 150s ease-in-out infinite alternate; will-change: transform, opacity; }
+@keyframes bp-grid { 0%, 100% { opacity: 0; } 35%, 65% { opacity: .9; } }
+@keyframes bp-cloud-a { 0% { transform: translate3d(-4%, 0, 0); opacity: .55; } 50% { opacity: .95; } 100% { transform: translate3d(5%, 2%, 0); opacity: .6; } }
+@keyframes bp-cloud-b { 0% { transform: translate3d(5%, 1%, 0); opacity: .45; } 55% { opacity: .85; } 100% { transform: translate3d(-5%, -2%, 0); opacity: .5; } }
+html[data-tint="dark"]::after, html[data-tint="dark"] body::after { opacity: .12; filter: blur(30px) brightness(.6); }
+html[data-tint="dark"]::before { background-image: linear-gradient(#ECEFF114 1px, transparent 1px), linear-gradient(90deg, #ECEFF114 1px, transparent 1px); }
+@media (max-width: 720px) { body::after { display: none; } html::before { animation-duration: 60s; } }
+/* calm motion: clouds stay put, the grid is not shown at all (kinder for visual stress) */
+html[data-reduced-motion="on"]::before { display: none; }
+html[data-reduced-motion="on"]::after, html[data-reduced-motion="on"] body::after { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduced-motion="off"])::before { display: none; }
+  html:not([data-reduced-motion="off"])::after, html:not([data-reduced-motion="off"]) body::after { animation: none; }
+}
 
 /* --- 10. Depth: tiles and cards tilt a few degrees toward the pointer, layered like glass --- */
 .tile, .choice { transform-style: preserve-3d; background: linear-gradient(160deg, #ffffff 0%, #FBFCFB 55%, #F1F4F3 100%);
