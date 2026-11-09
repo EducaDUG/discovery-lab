@@ -1,0 +1,79 @@
+/* ==========================================================================
+   BRAND+ - shared by Discovery Lab and MoreHuman Ed (keep both copies in sync).
+   Neo-minimal white space, asymmetric broken grids, bento layouts,
+   purposeful motion and microinteractions, SEN-safe type.
+   Motion rule: it must direct attention, explain a change, give feedback or
+   help an interaction make sense. Nothing loops, nothing hijacks the scroll.
+   ========================================================================== */
+
+/* --- 1. SEN-safe reading ------------------------------------------------ */
+body { line-height: 1.65; letter-spacing: 0.005em; word-spacing: 0.04em; text-align: left; }
+p, li { max-width: 66ch; }
+em, i, cite { font-style: normal; font-weight: 700; }   /* italics are hard for dyslexic readers */
+.ticker span { font-style: normal !important; }
+a:focus-visible, button:focus-visible, .btn:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--accent, #2F7F7C); outline-offset: 3px; border-radius: 4px; }
+.btn, .tile, .choice, .nav-toggle { min-height: 44px; }
+.lang-switch__btn { padding: .55em .5em; }   /* dyspraxia: generous targets */
+
+/* --- 2. Scroll progress: tells you where you are on the page ------------ */
+.bp-progress { position: fixed; inset: 0 0 auto 0; height: 4px; z-index: 90; pointer-events: none; }
+.bp-progress i { display: block; height: 100%; width: 100%; background: #E3B230;
+  transform: scaleX(var(--p, 0)); transform-origin: left; }
+
+/* --- 3. Reveal: content eases in once, directing the eye down the page --- */
+html.bp-js:not([data-reduced-motion="on"]) .bp-reveal {
+  opacity: 0; transform: translateY(18px);
+  transition: opacity .7s cubic-bezier(.2,.65,.3,1), transform .7s cubic-bezier(.2,.65,.3,1);
+  transition-delay: calc(var(--bp-i, 0) * 70ms);
+}
+html.bp-js:not([data-reduced-motion="on"]) .bp-reveal.bp-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html.bp-js:not([data-reduced-motion="off"]) .bp-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* --- 4. Kinetic typography: words rise into place once, then stay still -- */
+.bp-word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+.bp-word > span { display: inline-block; }
+html.bp-js:not([data-reduced-motion="on"]):not([data-dyslexia="on"]) .bp-kinetic:not(.bp-in) .bp-word > span { transform: translateY(105%); }
+html.bp-js:not([data-reduced-motion="on"]):not([data-dyslexia="on"]) .bp-kinetic .bp-word > span {
+  transition: transform .75s cubic-bezier(.2,.8,.2,1); transition-delay: calc(var(--w, 0) * 55ms); }
+@media (prefers-reduced-motion: reduce) {
+  html.bp-js:not([data-reduced-motion="off"]) .bp-kinetic .bp-word > span { transform: none !important; transition: none !important; }
+}
+
+/* --- 5. Microinteractions: feedback you can feel, never a surprise ------ */
+.btn { transition: transform .18s var(--ease, ease), box-shadow .2s var(--ease, ease), background-color .2s; }
+.btn:active:not(:disabled) { transform: translateY(1px) scale(.985); }
+.btn .arrow, .choice__go, .tile__go { display: inline-block; transition: transform .25s var(--ease, ease); }
+.btn:hover .arrow, .btn:focus-visible .arrow { transform: translateX(5px); }
+.bp-spot { position: relative; }
+.bp-spot::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; opacity: 0;
+  background: radial-gradient(18rem circle at var(--mx, 50%) var(--my, 50%), #E3B2301F, transparent 70%);
+  transition: opacity .3s; }
+.bp-spot:hover::after { opacity: 1; }
+
+/* --- 6. Smart rendering: off-screen sections cost nothing until needed --- */
+.nav-sec, .site-foot { content-visibility: auto; contain-intrinsic-size: auto 38rem; }
+
+/* --- 7. Bento + asymmetric broken grid (wide screens only) -------------- */
+@media (min-width: 900px) {
+  .grid-tiles, .grid-3.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--sp-5); align-items: stretch; }
+  .grid-tiles > :nth-child(5n+1), .grid-tiles > :nth-child(5n+2),
+  .grid-3.bento > :nth-child(5n+1), .grid-3.bento > :nth-child(5n+2) { grid-column: span 3; }
+  .grid-tiles > :nth-child(5n+3), .grid-tiles > :nth-child(5n+4), .grid-tiles > :nth-child(5n),
+  .grid-3.bento > :nth-child(5n+3), .grid-3.bento > :nth-child(5n+4), .grid-3.bento > :nth-child(5n) { grid-column: span 2; }
+  .grid-tiles > :nth-child(5n+1):last-child, .grid-3.bento > :nth-child(5n+1):last-child,
+  .grid-tiles > :nth-child(5n+3):last-child, .grid-3.bento > :nth-child(5n+3):last-child { grid-column: span 6; }
+  .grid-tiles > :nth-child(5n+4):last-child, .grid-3.bento > :nth-child(5n+4):last-child { grid-column: span 4; }
+  /* broken grid: some cards sit slightly off the baseline */
+  .grid-tiles > :nth-child(5n+2), .grid-3.bento > :nth-child(5n+2) { margin-top: var(--sp-6); }
+  .grid-tiles > :nth-child(5n+4), .grid-3.bento > :nth-child(5n+4) { margin-top: var(--sp-5); }
+  .choice-grid { grid-template-columns: 1.35fr 1fr; align-items: start; }
+  .choice-grid > :nth-child(2) { margin-top: var(--sp-7); }
+}
+/* neo-minimal white space */
+.nav-sec { padding-block: clamp(3rem, 7vw, 6rem); }
+.hero { padding-block: clamp(4rem, 9vw, 8rem) clamp(3rem, 7vw, 6rem); }
+@media (min-width: 900px) { .hero__lede { margin-left: clamp(0px, 6vw, 5rem); max-width: 52ch; } }
+.hero { margin-bottom: var(--sp-7); }
