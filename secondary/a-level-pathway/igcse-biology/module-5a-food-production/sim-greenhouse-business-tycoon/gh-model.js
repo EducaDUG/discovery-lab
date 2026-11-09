@@ -1,5 +1,5 @@
 /* Greenhouse Business Tycoon - pure model (no DOM, no THREE). The scene and HUD only READ this state.
-   One "year" = 120 days. A house is 100 m2. Money is in pounds.
+   One "year" = 120 days. A house is 100 m2. Money is in dollars.
    Science kept honest: limiting factors (Blackman), enzyme temperature optimum, greenhouse effect,
    CO2 from burning fuel, transpiration (warmer = thirstier), minerals removed by harvest,
    fertiliser run-off -> eutrophication, pesticide resistance, biological control. */

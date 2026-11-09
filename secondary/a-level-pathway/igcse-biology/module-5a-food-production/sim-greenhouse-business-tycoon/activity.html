@@ -142,7 +142,7 @@ import * as M from "./gh-model.js?v=1";
 const L = (en, es) => getLang() === "es" ? es : en;
 const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on" ||
   (document.documentElement.getAttribute("data-reduced-motion") !== "off" && matchMedia("(prefers-reduced-motion: reduce)").matches);
-const GBP = x => (x < 0 ? "-£" : "£") + Math.abs(Math.round(x)).toLocaleString("en-GB");
+const GBP = x => (x < 0 ? "-$" : "$") + Math.abs(Math.round(x)).toLocaleString("en-GB");
 const MONTHS = () => L(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]);
 const RANKS = [[0, L("Seedling","Plántula")], [80, L("Grower","Cultivador")], [180, L("Farm manager","Gerente de granja")], [300, L("Agri-entrepreneur","Agroemprendedor")]];
 
@@ -212,8 +212,8 @@ async function initScene(view, g, rt) {
 
   /* ---------- the two houses ---------- */
   const frameMat = M_({ color: C(0xf2f5f3), roughness: .4, metalness: .5 });
-  const glassMat = new THREE.MeshPhysicalMaterial({ color: C(0xd6efff), roughness: .04, metalness: 0, transparent: true, opacity: .3, envMapIntensity: 1.6, side: THREE.DoubleSide, depthWrite: false });
-  const polyMat = new THREE.MeshPhysicalMaterial({ color: C(0xffffff), roughness: .5, transparent: true, opacity: .32, envMapIntensity: .7, side: THREE.DoubleSide, depthWrite: false });
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: C(0xd6efff), roughness: .04, metalness: 0, transparent: true, opacity: .4, envMapIntensity: 1.6, side: THREE.DoubleSide, depthWrite: false });
+  const polyMat = new THREE.MeshPhysicalMaterial({ color: C(0xf4f8f4), emissive: C(0x9aa89e), emissiveIntensity: .35, roughness: .3, clearcoat: .6, transparent: true, opacity: .8, envMapIntensity: .9, side: THREE.DoubleSide, depthWrite: false });
   const houses = { glass: new THREE.Group(), poly: new THREE.Group() }; scene.add(houses.glass, houses.poly);
   { const sh = new THREE.Shape(); [[-3.5,0],[3.5,0],[3.5,2.4],[0,3.9],[-3.5,2.4]].forEach((p, i) => i ? sh.lineTo(p[0], p[1]) : sh.moveTo(p[0], p[1]));
     const geo = new THREE.ExtrudeGeometry(sh, { depth: 12, bevelEnabled: false }); geo.translate(0, 0, -6); geo.rotateY(Math.PI/2);
@@ -221,7 +221,7 @@ async function initScene(view, g, rt) {
     const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0xffffff })); houses.glass.add(e);
     for (let i = -5; i <= 5; i += 2.5) { const rib = new THREE.Mesh(new THREE.BoxGeometry(.07, .07, 7), frameMat); rib.position.set(i, 0, 0); }
     for (let i = -6; i <= 6; i += 3) { const post = new THREE.Mesh(new THREE.BoxGeometry(.1, 2.4, .1), frameMat); [-3.5, 3.5].forEach(z => { const p = post.clone(); p.position.set(i, 1.2, z); houses.glass.add(p); }); } }
-  { const geo = new THREE.CylinderGeometry(3.5, 3.5, 12, 28, 1, true, 0, Math.PI); geo.rotateZ(Math.PI/2); geo.rotateX(-Math.PI/2); geo.rotateZ(0);
+  { const sh = new THREE.Shape(); sh.absarc(0, 0, 3.5, 0, Math.PI, false); sh.lineTo(3.5, 0); const geo = new THREE.ExtrudeGeometry(sh, { depth: 12, bevelEnabled: false, curveSegments: 28 }); geo.translate(0, 0, -6); geo.rotateY(Math.PI/2);
     const m = new THREE.Mesh(geo, polyMat); m.scale.set(1, 0.82, 1); m.renderOrder = 2; houses.poly.add(m); houses.poly.userData.shell = m;
     for (let i = -6; i <= 6; i += 2) { const rib = new THREE.Mesh(new THREE.TorusGeometry(3.5, .06, 6, 28, Math.PI), frameMat); rib.position.x = i; rib.rotation.y = Math.PI/2; rib.scale.y = .82; houses.poly.add(rib); }
     const ridge = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, 12, 6), frameMat); ridge.rotation.z = Math.PI/2; ridge.position.y = 2.87; houses.poly.add(ridge); }
@@ -437,8 +437,8 @@ function mkSim(host, api) {
     <small>${s.note}</small></div>`).join("");
   const plan = $(`<div class="gh-card" id="plan"><h3>${L("1 · Your farm plan","1 · Tu plan de granja")}</h3>
     <div class="gh-note">${L("House","Invernadero")}</div>
-    <div class="gh-seg" id="seg-house"><button data-v="poly" aria-pressed="false">${ICO.poly}<span>${L("Polytunnel","Túnel de plástico")} <small>£${M.HOUSES.poly.cost} · ${L("cheap, loses heat, wind risk","barato, pierde calor, riesgo de viento")}</small></span></button>
-      <button data-v="glass" aria-pressed="false">${ICO.glass}<span>${L("Greenhouse","Invernadero de cristal")} <small>£${M.HOUSES.glass.cost} · ${L("keeps heat, blocks wind & frost","retiene calor, bloquea viento y heladas")}</small></span></button></div>
+    <div class="gh-seg" id="seg-house"><button data-v="poly" aria-pressed="false">${ICO.poly}<span>${L("Polytunnel","Túnel de plástico")} <small>$${M.HOUSES.poly.cost} · ${L("cheap, loses heat, wind risk","barato, pierde calor, riesgo de viento")}</small></span></button>
+      <button data-v="glass" aria-pressed="false">${ICO.glass}<span>${L("Greenhouse","Invernadero de cristal")} <small>$${M.HOUSES.glass.cost} · ${L("keeps heat, blocks wind & frost","retiene calor, bloquea viento y heladas")}</small></span></button></div>
     <div id="plan-rest">
     <div class="gh-note">${L("Crop","Cultivo")}</div>
     <div class="gh-seg" id="seg-crop">${Object.keys(crops).map(k => `<button data-v="${k}" aria-pressed="false">${ICO[k]}<span>${CN[k]} <small>${L("best " + crops[k].lo + "–" + crops[k].hi + " °C", "mejor " + crops[k].lo + "–" + crops[k].hi + " °C")}</small></span></button>`).join("")}</div>
@@ -478,8 +478,8 @@ function mkSim(host, api) {
     q("#seg-method").querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", String(g.method === b.dataset.v)); b.disabled = !!g.batch; });
     const days = M.batchDays(g.method, g.crop), mk = M.market(g);
     q("#method-note").textContent = g.method === "organic"
-      ? L(`Organic: ${days}-day batches, manure fertiliser, ladybirds instead of pesticide. Price £${mk.price.toFixed(2)}/kg and you can sell about ${Math.round(mk.demand)} kg. Each batch builds your reputation.`, `Orgánico: cosechas de ${days} días, abono natural, mariquitas en vez de pesticida. Precio £${mk.price.toFixed(2)}/kg y puedes vender unos ${Math.round(mk.demand)} kg. Cada cosecha mejora tu reputación.`)
-      : L(`Inorganic: ${days}-day batches, NPK fertiliser, pesticide and herbicide. Price £${mk.price.toFixed(2)}/kg and you can sell about ${Math.round(mk.demand)} kg. Chemicals slowly cost you reputation.`, `Inorgánico: cosechas de ${days} días, fertilizante NPK, pesticida y herbicida. Precio £${mk.price.toFixed(2)}/kg y puedes vender unos ${Math.round(mk.demand)} kg. Los químicos te restan reputación poco a poco.`);
+      ? L(`Organic: ${days}-day batches, manure fertiliser, ladybirds instead of pesticide. Price $${mk.price.toFixed(2)}/kg and you can sell about ${Math.round(mk.demand)} kg. Each batch builds your reputation.`, `Orgánico: cosechas de ${days} días, abono natural, mariquitas en vez de pesticida. Precio $${mk.price.toFixed(2)}/kg y puedes vender unos ${Math.round(mk.demand)} kg. Cada cosecha mejora tu reputación.`)
+      : L(`Inorganic: ${days}-day batches, NPK fertiliser, pesticide and herbicide. Price $${mk.price.toFixed(2)}/kg and you can sell about ${Math.round(mk.demand)} kg. Chemicals slowly cost you reputation.`, `Inorgánico: cosechas de ${days} días, fertilizante NPK, pesticida y herbicida. Precio $${mk.price.toFixed(2)}/kg y puedes vender unos ${Math.round(mk.demand)} kg. Los químicos te restan reputación poco a poco.`);
     SL.forEach(s => { const inp = q("#in-" + s.k); if (+inp.value !== g.s[s.k]) inp.value = g.s[s.k]; q("#o-" + s.k).textContent = s.fmt(g.s[s.k]); });
     const cs = g.house ? M.cur(g) : null, d = cs && cs.d;
     SL.forEach(s => { const row = q(`.gh-row[data-k="${s.k}"]`); if (!s.f) return; const f = d ? d.f[s.f] : 0; row.querySelector(".bar i").style.width = (f * 100) + "%"; row.querySelector(".pc").textContent = Math.round(f * 100) + "%"; row.classList.toggle("is-lim", !!d && d.lim === s.f); });
@@ -490,7 +490,7 @@ function mkSim(host, api) {
       const c = d.cost, fc = M.fertCost(g);
       q("#b-cost").innerHTML = [[L("Lamps","Lámparas"), c.lamp], [L("Heating","Calefacción"), c.heat], [L("CO₂","CO₂"), c.co2], [L("Water","Agua"), c.water], [L("House rent","Alquiler"), c.rent]].map(r => `<tr><td>${r[0]}</td><td>${GBP(r[1])}/${L("day","día")}</td></tr>`).join("") + `<tr class="t"><td>${L("Running cost","Coste diario")}</td><td>${GBP(c.total)}/${L("day","día")}</td></tr><tr><td>${L("Fertiliser + labour (at planting)","Fertilizante + mano de obra (al plantar)")}</td><td>${GBP(fc + (g.method === "organic" ? 125 : 90))}</td></tr>`;
     } else { q("#b-g").textContent = "–"; q("#b-t").textContent = "–"; q("#b-lim").textContent = L("Build a polytunnel or a greenhouse to begin.", "Construye un túnel de plástico o un invernadero para empezar."); q("#b-cost").innerHTML = ""; }
-    q("#b-market").textContent = g.house ? L(`Market today: ${Math.round(mk.demand)} kg wanted at £${mk.price.toFixed(2)}/kg.`, `Mercado hoy: se piden ${Math.round(mk.demand)} kg a £${mk.price.toFixed(2)}/kg.`) : "";
+    q("#b-market").textContent = g.house ? L(`Market today: ${Math.round(mk.demand)} kg wanted at $${mk.price.toFixed(2)}/kg.`, `Mercado hoy: se piden ${Math.round(mk.demand)} kg a $${mk.price.toFixed(2)}/kg.`) : "";
     const go = q("#go"), can = M.canStart(g);
     go.disabled = !can && !g.batch ? true : false;
     if (g.batch) { go.textContent = rt.running ? L(`Growing… day ${g.batch.d} of ${g.batch.days}`, `Creciendo… día ${g.batch.d} de ${g.batch.days}`) : L("Resume growing", "Continuar el cultivo"); go.disabled = rt.running; }
@@ -533,7 +533,7 @@ function mkSim(host, api) {
     const org = g.method === "organic", n = g.sprays;
     const bn = $(`<div class="gh-banner alert"><div><h3>${L("Pest alert!","¡Alerta de plagas!")}</h3>
       <p>${L("Aphids and weeds are attacking your crop. Every day you wait, you lose yield. Choose how to respond.", "Pulgones y malas hierbas atacan tu cultivo. Cada día que esperas pierdes cosecha. Elige cómo responder.")}</p>
-      <div class="gh-2"><button class="gh-go gh-go--warn" id="r-act">${org ? L("Release ladybirds + hand-weed (£70)", "Soltar mariquitas + deshierbar a mano (£70)") : L("Spray pesticide + herbicide (£30)", "Rociar pesticida + herbicida (£30)")}</button>
+      <div class="gh-2"><button class="gh-go gh-go--warn" id="r-act">${org ? L("Release ladybirds + hand-weed ($70)", "Soltar mariquitas + deshierbar a mano ($70)") : L("Spray pesticide + herbicide ($30)", "Rociar pesticida + herbicida ($30)")}</button>
       <button class="gh-go gh-go--ghost" id="r-skip">${L("Do nothing", "No hacer nada")}</button></div>
       <p class="gh-note">${org ? L("Biological control: a predator eats the pest. No chemicals and a good story for customers, but it takes about 5 days to work.", "Control biológico: un depredador se come la plaga. Sin químicos y una buena historia para los clientes, pero tarda unos 5 días en funcionar.") : L(`Chemicals work at once and are cheap, but pests can become resistant (spray ${n + 1} will work about ${Math.round(Math.max(.4, 1 - .15 * n) * 100)}% as well as the first), they can kill harmless insects, and they can wash into rivers.`, `Los químicos actúan al instante y son baratos, pero las plagas pueden volverse resistentes (la aplicación ${n + 1} funcionará a un ${Math.round(Math.max(.4, 1 - .15 * n) * 100)}% de la primera), pueden matar insectos inofensivos y pueden llegar a los ríos.`)}</p></div></div>`);
     bn.querySelector("#r-act").addEventListener("click", () => { const r = M.respondPest(g); bn.remove(); rt.sprayT = org ? 0 : 2.2; rt.sprayInit = !org;
@@ -548,7 +548,7 @@ function mkSim(host, api) {
     const p = r.profit; pop(`${p >= 0 ? "+" : ""}${GBP(p)}`, p >= 0 ? "cash" : "neg"); rt.burst?.(p >= 0 ? "coins" : "bad");
     mark(r.method === "organic" ? "organic" : "inorganic"); gain(20 + (p > 0 ? 25 : 0));
     const LNm = { light: L("light","la luz"), temp: L("temperature","la temperatura"), co2: L("CO₂","el CO₂"), water: L("water","el agua") };
-    say(L(`Harvest ${r.n}: ${Math.round(r.kg)} kg grown, ${Math.round(r.sold)} kg sold at £${r.price.toFixed(2)}/kg${r.spoil > 1 ? `, ${Math.round(r.spoil)} kg unsold (waste)` : ""}. Income ${GBP(r.revenue)}, costs ${GBP(r.costs)}, profit ${GBP(p)}. Most limiting factor: ${LNm[r.lim]}.`, `Cosecha ${r.n}: ${Math.round(r.kg)} kg cultivados, ${Math.round(r.sold)} kg vendidos a £${r.price.toFixed(2)}/kg${r.spoil > 1 ? `, ${Math.round(r.spoil)} kg sin vender (desperdicio)` : ""}. Ingresos ${GBP(r.revenue)}, costes ${GBP(r.costs)}, beneficio ${GBP(p)}. Factor más limitante: ${LNm[r.lim]}.`), p >= 0 ? "good" : "bad");
+    say(L(`Harvest ${r.n}: ${Math.round(r.kg)} kg grown, ${Math.round(r.sold)} kg sold at $${r.price.toFixed(2)}/kg${r.spoil > 1 ? `, ${Math.round(r.spoil)} kg unsold (waste)` : ""}. Income ${GBP(r.revenue)}, costs ${GBP(r.costs)}, profit ${GBP(p)}. Most limiting factor: ${LNm[r.lim]}.`, `Cosecha ${r.n}: ${Math.round(r.kg)} kg cultivados, ${Math.round(r.sold)} kg vendidos a $${r.price.toFixed(2)}/kg${r.spoil > 1 ? `, ${Math.round(r.spoil)} kg sin vender (desperdicio)` : ""}. Ingresos ${GBP(r.revenue)}, costes ${GBP(r.costs)}, beneficio ${GBP(p)}. Factor más limitante: ${LNm[r.lim]}.`), p >= 0 ? "good" : "bad");
     if (!M.canStart(g)) setTimeout(() => showReport(), 1400);
   }
   q("#go").addEventListener("click", () => {
