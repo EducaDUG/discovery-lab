@@ -66,7 +66,7 @@ function metaFor(node) {
    browsable so a student can see what is coming. A course can be worth opening
    for its own featured game or recommended links even before any of its own
    units are built, so those count as walkable too. */
-function tile(node, href) {
+function tile(node, href, photo, root) {
   const hasExtras = !!node.featuredGame || (node.resources || []).length > 0;
   // A "guide" is a static reference page, not a graded activity with a status —
   // it is always available, the same way a finished simulation always is.
@@ -84,7 +84,18 @@ function tile(node, href) {
   // A moving thumbnail of the activity's best moment — shown before you enter.
   // node.thumbnail is a filename inside the activity folder; derive its src from
   // the tile's own href (…/<id>/activity.html → …/<id>/<thumbnail>).
-  if (node.thumbnail && href) {
+  if (photo) {
+    const media = el("span", "tile__media tile__media--photo");
+    const img = el("img", "tile__thumb");
+    img.src = `${root}assets/tile-photos/${photo.file}`;
+    img.alt = "";
+    img.loading = "lazy"; img.decoding = "async"; img.width = 720; img.height = 480;
+    img.setAttribute("aria-hidden", "true");
+    media.append(img);
+    const who = /^unknown/i.test(photo.author || "") ? "" : (photo.author || "").slice(0, 38) + " · ";
+    media.append(el("span", "tile__credit", `${getLang() === "es" ? "Foto" : "Photo"}: ${who}${photo.license}`));
+    n.append(media);
+  } else if (node.thumbnail && href) {
     const media = el("span", "tile__media");
     const img = el("img", "tile__thumb");
     img.src = href.replace(/[^/]*$/, node.thumbnail);
@@ -208,10 +219,12 @@ export async function mountNav() {
   const ids = (mount.dataset.path || "").split("/").filter(Boolean);
 
   let data;
+  let photos = {};
   try {
     const res = await fetch(`${root}data/subjects.json`, { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     data = await res.json();
+    try { photos = await (await fetch(`${root}assets/tile-photos/credits.json`)).json(); } catch { photos = {}; }
   } catch {
     mount.append(el("p", "nav-empty", t("site-index-error")));
     return;
@@ -245,7 +258,7 @@ export async function mountNav() {
     const grid = el("div", "grid-tiles");
     children.forEach(child => {
       const href = child.url || (child.type === "simulation" ? `./${child.id}/activity.html` : `./${child.id}/`);
-      grid.append(tile(child, href));
+      grid.append(tile(child, href, photos[ids.concat(child.id).join("/")], root));
     });
     mount.append(grid);
   } else {

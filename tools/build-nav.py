@@ -67,8 +67,8 @@ SHELL = """<!DOCTYPE html>
   <div class="shell site-foot__inner">
     <span data-lang="en">Discovery Lab &mdash; <a href="{root}about/">{owner}</a></span>
     <span data-lang="es" hidden>Discovery Lab &mdash; <a href="{root}about/">{owner}</a></span>
-    <span data-lang="en">Your work stays in your browser.</span>
-    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador.</span>
+    <span data-lang="en">Your work stays in your browser. <a href="{root}credits/">Photo credits</a></span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. <a href="{root}credits/">Créditos de fotos</a></span>
   </div>
 </footer>
 <script type="module" src="{root}engine/nav.js?v={v}"></script>
@@ -76,8 +76,8 @@ SHELL = """<!DOCTYPE html>
 </html>
 """
 
-ASSET_VERSION = "16"
-STYLE_VERSION = "22"
+ASSET_VERSION = "18"
+STYLE_VERSION = "24"
 
 
 LEAF_TYPES = {"simulation", "guide"}  # own hand-written page; never gets a generated nav shell
