@@ -16,6 +16,7 @@
 
 import { t, pl, getLang } from "./i18n.js?v=8";
 import "./brandplus.js?v=2";
+import "./weather.js?v=1";
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
