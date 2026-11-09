@@ -16,7 +16,7 @@ import json, pathlib, re, html
 REPO = pathlib.Path(__file__).resolve().parent.parent
 SITE_URL = "https://educadug.github.io/discovery-lab/"
 START, END = "<!-- seo:start -->", "<!-- seo:end -->"
-AGE = {"primary": "Primary (ages 5-11)", "lower-secondary": "Lower secondary (ages 11-14)",
+AGE = {"primary": "Primary (ages 7-11)", "lower-secondary": "Lower secondary (ages 11-14)",
        "secondary": "Secondary (ages 14-18)", "advanced": "Advanced secondary / A-Level (ages 16-18)"}
 data = json.loads((REPO / "data" / "subjects.json").read_text(encoding="utf-8"))
 

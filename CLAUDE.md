@@ -931,7 +931,7 @@ work is **done**. Never brand this site "Learning Lab".
 `data/subjects.json` holds ONE recursive tree. Every node has `id`, `name`, `type` and
 `children`; node ids are folder names, so the URL mirrors the JSON exactly:
 
-- **Primary** (ages 5-11) → Science · Spanish · Computer Skills
+- **Primary** (ages 7-11) → Science · Spanish · Computer Skills
 - **Secondary** (ages 11-18)
   - **US Pathway** *(US System)* → Biology · Spanish · Computer Skills
   - **A-Level Pathway** *(British System)* → Lower Secondary Stage 1 · Lower Secondary Stage 2 ·
@@ -1156,7 +1156,7 @@ activity.
 **When Diego sends a link:** open it in the browser and read it — PhET and similar are
 JS-rendered, so WebFetch returns an empty shell. Pull the real learning goals off the page,
 then write `practises` and `teaches` **pitched at that course's level**. Pre-IG Stage 1 is
-roughly UK Year 9 (ages 13-14); IGCSE is 14-16; A-Level is 16-18; Primary is 5-11. The second
+roughly UK Year 9 (ages 13-14); IGCSE is 14-16; A-Level is 16-18; Primary is 7-11. The second
 line should aim at the idea students usually get wrong, not restate the topic.
 
 Never add a link without opening it first. Run `python tools/check-links.py` afterwards, and
