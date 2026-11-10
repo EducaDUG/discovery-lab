@@ -191,8 +191,8 @@ html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__credit { opacity: 
 html.bp-js:not([data-reduced-motion="on"]) .bp-typing .bp-ch { opacity: 0; transition: opacity .06s linear; }
 html.bp-js:not([data-reduced-motion="on"]) .bp-typing.bp-typed .bp-ch { opacity: 1; }
 html.bp-js:not([data-reduced-motion="on"]) .tile.bp-reveal, html.bp-js:not([data-reduced-motion="on"]) .choice.bp-reveal {
-  opacity: 0; transform: translate(var(--bp-x, 0), var(--bp-y, 32px)) scale(.95);
-  transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform 1s cubic-bezier(.2,.8,.2,1);
+  opacity: 0; transform: translate(var(--bp-x, 0), var(--bp-y, 32px)) rotate(var(--bp-r, 0deg)) scale(.93);
+  transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform 1.15s cubic-bezier(.16,1,.3,1);
   transition-delay: calc(var(--bp-base, 0ms) + var(--bp-i, 0) * 120ms); }
 html.bp-js:not([data-reduced-motion="on"]) .tile.bp-reveal.bp-in, html.bp-js:not([data-reduced-motion="on"]) .choice.bp-reveal.bp-in { opacity: 1; transform: none; }
 /* photos arrive zoomed and off-centre, settle, then pan very slowly (direction varies per photo) */
@@ -212,3 +212,12 @@ html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="in
 @keyframes bp-pan-down  { from { translate: 0 -5.5%; } to { translate: 0 5.5%; } }
 @keyframes bp-pan-up    { from { translate: 0 5%; } to { translate: 0 -5%; } }
 @keyframes bp-pan-in    { from { scale: 1; } to { scale: 1.1; } }
+
+/* --- 14. (section 14) No blink between pages: native cross-fade, a steady header, and no dark flash while photos load --- */
+@view-transition { navigation: auto; }
+.site-head { view-transition-name: site-head; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .3s; animation-timing-function: ease; }
+::view-transition-group(site-head) { animation-duration: 0s; }
+html[data-reduced-motion="on"]::view-transition-group(*), html[data-reduced-motion="on"]::view-transition-old(*), html[data-reduced-motion="on"]::view-transition-new(*) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { html:not([data-reduced-motion="off"])::view-transition-group(*), html:not([data-reduced-motion="off"])::view-transition-old(*), html:not([data-reduced-motion="off"])::view-transition-new(*) { animation: none !important; } }
+.tile__media.tile__media--photo { background: #E4E8E7; }

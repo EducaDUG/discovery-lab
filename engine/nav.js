@@ -15,7 +15,7 @@
    ========================================================================== */
 
 import { t, pl, getLang } from "./i18n.js?v=8";
-import "./brandplus.js?v=3";
+import "./brandplus.js?v=4";
 import "./weather.js?v=1";
 
 const el = (tag, cls, text) => {
@@ -221,11 +221,26 @@ export async function mountNav() {
 
   let data;
   let photos = {};
+  // Instant paint: the site map and photo credits are cached for the session, so a page you open renders in the
+  // same moment the script runs (no blank gap = no "blink"). A background fetch keeps the cache fresh.
+  const KEY = "dl-nav-cache-v1";
+  const fresh = async () => {
+    const [d, ph] = await Promise.all([
+      fetch(`${root}data/subjects.json`, { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch(`${root}assets/tile-photos/credits.json`, { cache: "no-cache" }).then(r => r.json()).catch(() => ({}))
+    ]);
+    try { sessionStorage.setItem(KEY, JSON.stringify({ t: Date.now(), d, ph })); } catch { /* private mode */ }
+    return { d, ph };
+  };
   try {
-    const res = await fetch(`${root}data/subjects.json`, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    data = await res.json();
-    try { photos = await (await fetch(`${root}assets/tile-photos/credits.json`, { cache: "no-cache" })).json(); } catch { photos = {}; }
+    let cached = null;
+    try { cached = JSON.parse(sessionStorage.getItem(KEY) || "null"); } catch { cached = null; }
+    if (cached && cached.d && Date.now() - cached.t < 30 * 60 * 1000) {
+      data = cached.d; photos = cached.ph || {};
+      if (Date.now() - cached.t > 60 * 1000) fresh().catch(() => {});
+    } else {
+      const f = await fresh(); data = f.d; photos = f.ph;
+    }
   } catch {
     mount.append(el("p", "nav-empty", t("site-index-error")));
     return;

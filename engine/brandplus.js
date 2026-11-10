@@ -102,9 +102,9 @@
       var idx = el.parentNode ? [].indexOf.call(el.parentNode.children, el) : 0;
       el.style.setProperty('--bp-i', Math.min(idx, 6));
       if (el.getBoundingClientRect().top < window.innerHeight) el.style.setProperty('--bp-base', tileBase + 'ms');
-      var side = idx % 3;   // left, below, right: cards arrive from different places
-      el.style.setProperty('--bp-x', side === 0 ? '-72px' : side === 2 ? '72px' : '0px');
-      el.style.setProperty('--bp-y', side === 1 ? '72px' : '24px');
+      var D = [[-120, 30, -3], [0, -90, 0], [120, 30, 3], [0, 100, 0]];   // left, above, right, below
+      var d = D[idx % 4];
+      el.style.setProperty('--bp-x', d[0] + 'px'); el.style.setProperty('--bp-y', d[1] + 'px'); el.style.setProperty('--bp-r', d[2] + 'deg');
       var th = el.querySelector('.tile__thumb');
       if (th) th.dataset.pan = th.dataset.pan || PAN[idx % PAN.length];
       el.classList.add('bp-reveal'); io.observe(el);
