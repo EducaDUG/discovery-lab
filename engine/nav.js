@@ -15,7 +15,7 @@
    ========================================================================== */
 
 import { t, pl, getLang } from "./i18n.js?v=8";
-import "./brandplus.js?v=6";
+import "./brandplus.js?v=7";
 import "./weather.js?v=1";
 
 const el = (tag, cls, text) => {
@@ -66,6 +66,7 @@ function metaFor(node) {
    browsable so a student can see what is coming. A course can be worth opening
    for its own featured game or recommended links even before any of its own
    units are built, so those count as walkable too. */
+let photoCount = 0;
 function tile(node, href, photo, root) {
   const hasExtras = !!node.featuredGame || (node.resources || []).length > 0;
   // A "guide" is a static reference page, not a graded activity with a status —
@@ -91,6 +92,10 @@ function tile(node, href, photo, root) {
     img.alt = "";
     img.loading = "lazy"; img.decoding = "async"; img.width = 720; img.height = 480;
     if (photo.pan) img.dataset.pan = photo.pan;
+    photoCount++; if (photoCount <= 6) { img.loading = "eager"; if (photoCount <= 3) img.fetchPriority = "high"; }
+    const ready = () => img.classList.add("is-ready");
+    if (img.complete && img.naturalWidth) ready(); else img.addEventListener("load", ready, { once: true });
+    img.addEventListener("error", ready, { once: true });
     img.setAttribute("aria-hidden", "true");
     media.append(img);
     const who = /^unknown/i.test(photo.author || "") ? "" : (photo.author || "").slice(0, 38) + " · ";

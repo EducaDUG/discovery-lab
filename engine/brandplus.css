@@ -214,7 +214,7 @@ html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="in
 @keyframes bp-pan-in    { from { scale: 1; } to { scale: 1.1; } }
 
 /* --- 14. (section 14) No blink between pages: native cross-fade, a steady header, and no dark flash while photos load --- */
-@view-transition { navigation: auto; }
+@view-transition { navigation: none; }
 .site-head { view-transition-name: site-head; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .3s; animation-timing-function: ease; }
 ::view-transition-group(site-head) { animation-duration: 0s; }
@@ -235,3 +235,12 @@ main#main { view-transition-name: page; }
 html.bp-js:not([data-reduced-motion="on"]) .portrait img { transform: scale(1.22); transition: transform 1.9s cubic-bezier(.2,.8,.2,1) .35s; }
 html.bp-js:not([data-reduced-motion="on"]) .portrait-wrap .portrait img { transform: scale(1.04); animation: bp-pan-soft 32s ease-in-out 2.6s infinite alternate; }
 @keyframes bp-pan-soft { from { scale: 1; translate: -.8% 0; } to { scale: 1.035; translate: .8% -.8%; } }
+
+/* --- 17. (section 17) One continuous choreography instead of a cut: the page leaves, the next one arrives --- */
+html.bp-leaving main#main { opacity: 0; transform: translateY(-14px); transition: opacity .26s ease, transform .26s ease; }
+html.bp-leaving .tile, html.bp-leaving .choice { pointer-events: none; }
+/* photos fade in when ready instead of popping in */
+.tile__thumb { opacity: 0; transition: opacity .7s ease; }
+.tile__thumb.is-ready { opacity: 1; }
+html[data-reduced-motion="on"] .tile__thumb { opacity: 1; transition: none; }
+@media (prefers-reduced-motion: reduce) { html:not([data-reduced-motion="off"]) .tile__thumb { opacity: 1; transition: none; } }

@@ -45,6 +45,8 @@
     '.bp-wx__x{min-width:44px;min-height:44px;border-radius:0 999px 999px 0;font-size:1rem;color:#48515A;opacity:.7}' +
     '.bp-wx__x:hover,.bp-wx__x:focus-visible{opacity:1}' +
     'button.bp-wx__main{cursor:pointer}' +
+    '.bp-wx{animation:bpwx-in .8s ease .5s both}@keyframes bpwx-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}' +
+    'html[data-reduced-motion="on"] .bp-wx{animation:none}' +
     '@media (max-width:720px){.bp-wx{bottom:4.6rem}}';
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
 

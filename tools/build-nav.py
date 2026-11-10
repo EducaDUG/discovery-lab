@@ -38,6 +38,8 @@ SHELL = """<!DOCTYPE html>
 <meta property="og:title" content="{title} &mdash; Discovery Lab">
 <meta property="og:description" content="{description}">
 <meta property="og:url" content="{canonical}">
+<link rel="preload" href="{root}engine/vendor/fonts/public-sans-latin-3.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{root}engine/vendor/fonts/atkinson-latin-7.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{root}engine/style.css?v={sv}">
 </head>
 <body>
@@ -76,8 +78,8 @@ SHELL = """<!DOCTYPE html>
 </html>
 """
 
-ASSET_VERSION = "22"
-STYLE_VERSION = "29"
+ASSET_VERSION = "23"
+STYLE_VERSION = "30"
 
 
 LEAF_TYPES = {"simulation", "guide"}  # own hand-written page; never gets a generated nav shell

@@ -141,6 +141,24 @@
   var t; new MutationObserver(function () { clearTimeout(t); t = setTimeout(enhance, 60); })
     .observe(document.body, { childList: true, subtree: true });
 
+  // 2b. Outro: when a Discovery Lab page is left, its content eases away first, so the next page's entrance
+  //     follows on smoothly instead of the screen cutting from full to empty (that cut reads as a flash).
+  if (root.hasAttribute('data-age-band')) {
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]');
+      if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (a.target === '_blank' || a.hasAttribute('download') || a.origin !== location.origin) return;
+      if (a.pathname === location.pathname && a.search === location.search) return;
+      if (calm()) return;
+      e.preventDefault();
+      root.classList.add('bp-leaving');
+      var go = a.href;
+      setTimeout(function () { location.href = go; }, 260);
+      setTimeout(function () { root.classList.remove('bp-leaving'); }, 4000);
+    });
+    window.addEventListener('pageshow', function () { root.classList.remove('bp-leaving'); });
+  }
+
   // 3. Smart loading: warm up the next page once intent is clear (hover, focus, touch)
   var conn = navigator.connection || {};
   if (!conn.saveData && !/2g/.test(conn.effectiveType || '')) {
