@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microscope Mission Control — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Microscope Mission Control — activity-local styles only ---- */
+.mc-credit{font-size:.68rem;color:var(--ink-3);margin-top:var(--sp-3);line-height:1.5;}
+.mc-credit a{color:inherit;}
+.mc-h{font-family:var(--font-display);font-size:var(--step-1);margin:0 0 var(--sp-2);}
+.mc-h2{font-family:var(--font-display);font-size:var(--step-0);margin:var(--sp-3) 0 var(--sp-2);}
+.mc-big{font-size:1.05rem;font-weight:700;margin:.3em 0;}
+.mc-count{font-family:var(--font-data);font-size:.75rem;color:var(--ink-3);margin:0;}
+.mc-st{border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:var(--sp-4);margin-bottom:var(--sp-4);}
+
+/* HUD + track */
+.mc-hud{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;color:#e9fbff;margin-bottom:var(--sp-3);
+  background:linear-gradient(120deg,#0b2a3a,#124b5e 60%,#1b6f78);box-shadow:0 8px 22px rgba(10,60,80,.25);}
+.mc-hud b{font-family:var(--font-display);}
+.mc-hud__rank{font-weight:800;color:#8ff0d3;}
+.mc-hud__bar{flex:1;min-width:120px;height:10px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;}
+.mc-hud__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6fd6ff,#7dffb4);transition:width .5s;}
+.mc-track{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--sp-3);}
+.mc-track span{padding:6px 12px;border-radius:999px;border:2px solid var(--line-strong);font-size:.8rem;font-weight:700;color:var(--ink-2);background:var(--surface);}
+.mc-track span.done{border-color:#2fbf71;background:#2fbf71;color:#fff;}
+
+/* photo with pins */
+.mc-photo{position:relative;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+.mc-photo>img{display:block;width:100%;height:auto;border-radius:14px;}
+.mc-photo--w{max-width:760px;margin:var(--sp-2) auto;}
+.mc-pins{position:absolute;inset:0;}
+.mc-pin{position:absolute;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;border:3px solid #fff;background:rgba(14,120,110,.9);color:#fff;font:inherit;font-weight:800;cursor:pointer;
+  box-shadow:0 0 0 6px rgba(94,230,200,.35);animation:mc-pin 2.4s ease-in-out infinite;}
+.mc-pin[data-state="ok"]{background:#2fbf71;animation:none;}
+.mc-pin[data-state="bad"]{background:#d9475e;}
+.mc-pin[data-state="seen"]{background:#3a7bd5;animation:none;}
+@keyframes mc-pin{0%,100%{box-shadow:0 0 0 4px rgba(94,230,200,.35);}50%{box-shadow:0 0 0 12px rgba(94,230,200,.08);}}
+[data-reduced-motion="on"] .mc-pin{animation:none;}
+.mc-parts{display:grid;grid-template-columns:minmax(0,340px) 1fr;gap:var(--sp-4);align-items:start;}
+.mc-parts .mc-photo{max-width:340px;}
+@media (max-width:720px){.mc-parts{grid-template-columns:1fr;}.mc-parts .mc-photo{margin:0 auto;}}
+.mc-clue{padding:var(--sp-3);border-radius:14px;background:var(--accent-wash);border:2px solid var(--accent);min-height:180px;}
+.mc-good{padding:8px 10px;border-radius:10px;background:#e3f7ea;color:#14532d;border:1px solid #2fbf71;margin-top:8px;font-size:.88rem;}
+.mc-bad{padding:8px 10px;border-radius:10px;background:#fdeaee;color:#7f1d2d;border:1px solid #d9475e;margin-top:8px;font-size:.88rem;}
+.mc-medal{font-size:2.6rem;}
+.mc-medal-line{font-weight:800;margin:var(--sp-2) 0;}
+
+/* the 3D stage + eyepiece */
+.mc-focus{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:var(--sp-3);align-items:start;}
+@media (max-width:860px){.mc-focus{grid-template-columns:1fr;}}
+.mc-stage{position:relative;height:420px;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 30%,#14323f,#07131a);}
+@media (max-width:640px){.mc-stage{height:330px;}}
+.mc-stage canvas{display:block;width:100%;height:100%;cursor:grab;}
+.mc-lost canvas{visibility:hidden;}
+.mc-lost::after{content:"3D view paused by the browser - reload the page to restore it. Everything else still works.";position:absolute;inset:auto 12px 12px 12px;z-index:2;color:#d9fff5;font-size:.8rem;background:rgba(5,20,24,.8);padding:8px 12px;border-radius:10px;}
+html[lang="es"] .mc-lost::after{content:"El navegador pausó la vista 3D: recarga la página para recuperarla. Todo lo demás sigue funcionando.";}
+.mc-nogl{color:#d9fff5;padding:16px;}
+.mc-bench{display:flex;flex-direction:column;gap:var(--sp-3);}
+.mc-eye{position:relative;width:min(300px,100%);margin:0 auto;aspect-ratio:1;border-radius:50%;background:#05070a;box-shadow:0 0 0 6px #1b232b,0 14px 34px rgba(0,0,0,.4);}
+.mc-eye canvas{display:block;width:100%;height:100%;border-radius:50%;}
+.mc-eye--s{width:min(240px,100%);}
+.mc-eye__hud{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:130%;}
+.mc-eye__hud span{font-family:var(--font-data);font-size:.7rem;padding:3px 9px;border-radius:99px;background:#0b141b;color:#cfe8f5;border:1px solid #2a3b47;white-space:nowrap;}
+.mc-sharp[data-v="hi"]{background:#1f7a4a !important;color:#eafff3 !important;}
+.mc-sharp[data-v="mid"]{background:#8a6a14 !important;color:#fff7dc !important;}
+.mc-ctl{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.mc-row{display:grid;grid-template-columns:150px 1fr 46px;gap:10px;align-items:center;font-size:.82rem;}
+.mc-row input[type=range]{width:100%;accent-color:var(--accent);min-height:30px;}
+.mc-row output{font-family:var(--font-data);font-size:.75rem;}
+.mc-row--objs{display:flex;gap:8px;flex-wrap:wrap;}
+@media (max-width:520px){.mc-row{grid-template-columns:1fr 1fr;}.mc-row input{grid-column:1 / -1;}}
+@media (max-width:640px){.mc-eye{width:210px;}.mc-eye--s{width:190px;}}
+.mc-obj{display:inline-flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;min-height:44px;border-radius:12px;border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);font:inherit;font-weight:800;cursor:pointer;}
+.mc-obj.is-on{border-color:var(--accent);background:var(--accent-wash);}
+.mc-obj:hover{transform:translateY(-2px);}
+.mc-goals{list-style:none;padding:0;margin:var(--sp-3) 0;display:grid;gap:6px;}
+.mc-goals li{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);font-size:.88rem;}
+.mc-goals li.done{background:#e3f7ea;border-color:#2fbf71;color:#14532d;}
+.mc-tick{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--line-strong);}
+.mc-goals li.done .mc-tick{background:#2fbf71;border-color:#2fbf71;position:relative;}
+.mc-goals li.done .mc-tick::after{content:"✓";position:absolute;inset:0;color:#fff;font-size:.8rem;text-align:center;line-height:16px;font-weight:900;}
+.mc-msg{min-height:1.4em;font-size:.88rem;}
+.mc-msg.bad{color:#7f1d2d;background:#fdeaee;border:1px solid #d9475e;border-radius:10px;padding:8px 10px;}
+.mc-opts{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.mc-opt{font:inherit;text-align:left;padding:9px 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);cursor:pointer;}
+.mc-opt:hover{border-color:var(--accent);}
+.mc-opt.good{background:#e3f7ea;border-color:#2fbf71;}
+.mc-opt.bad{background:#fdeaee;border-color:#d9475e;}
+
+/* magnification mission */
+.mc-formula{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:10px;border-radius:14px;background:#fff36b;color:#111;font-weight:800;margin-bottom:var(--sp-3);border:2px solid #111;}
+.mc-formula b{font-size:1.4rem;}
+.mc-mag{display:grid;grid-template-columns:240px 1fr;gap:var(--sp-4);align-items:center;}
+@media (max-width:720px){.mc-mag{grid-template-columns:1fr;}}
+.mc-lenses{display:flex;gap:18px;margin:10px 0;}
+.mc-lens{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);}
+.mc-lens span{display:flex;flex-direction:column;font-size:.75rem;color:var(--ink-3);}
+.mc-lens b{font-size:1.4rem;color:var(--ink);font-family:var(--font-display);}
+.mc-answer{display:flex;gap:8px;align-items:center;margin:8px 0;}
+.mc-answer .input{max-width:140px;font-size:1.1rem;}
+.mc-objs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+
+/* slide prep */
+.mc-steps6{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:0 0 var(--sp-3);}
+.mc-steps6 li{padding:5px 12px;border-radius:99px;border:2px solid var(--line-strong);font-size:.78rem;font-weight:700;color:var(--ink-2);}
+.mc-steps6 li.done{background:#2fbf71;border-color:#2fbf71;color:#fff;}
+.mc-steps6 li.now{border-color:var(--accent);background:var(--accent-wash);color:var(--accent);}
+.mc-onion{position:relative;max-width:300px;margin:8px auto;touch-action:none;cursor:ew-resize;border-radius:14px;overflow:hidden;background:#fff;}
+.mc-onion img{display:block;width:100%;pointer-events:none;}
+.mc-knife{position:absolute;top:8%;left:10%;font-size:2.4rem;transform:translateX(-50%) rotate(-30deg);pointer-events:none;}
+.mc-cutline{position:absolute;left:0;right:0;top:55%;height:4px;background:#fff;box-shadow:0 0 0 2px #333;transform:scaleX(0);transform-origin:left;}
+.mc-cutline.go{transform:scaleX(1);transition:transform .6s;}
+.mc-peelbar{height:18px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line-strong);overflow:hidden;max-width:420px;}
+.mc-peelbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e6c9dc,#c86aa8);}
+.mc-peelmsg{min-height:1.5em;font-size:.86rem;margin:6px 0;}
+.mc-slidesvg{width:100%;max-width:420px;display:block;margin:8px auto;}
+.mc-slidewrap{max-width:440px;margin:0 auto;}
+.mc-obs{display:grid;grid-template-columns:300px 1fr;gap:var(--sp-4);align-items:center;}
+@media (max-width:720px){.mc-obs{grid-template-columns:1fr;}}
+.mc-pop{position:relative;margin:8px auto;max-width:420px;padding:10px 12px;border-radius:12px;background:var(--surface);border:2px solid var(--accent);box-shadow:0 8px 20px rgba(0,0,0,.2);}
+.mc-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:560px;}
+.mc-card{position:relative;padding:0;border:3px solid var(--line-strong);border-radius:14px;overflow:hidden;cursor:pointer;background:#000;}
+.mc-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;}
+.mc-card span{position:absolute;left:8px;top:8px;background:#111;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.mc-card:hover{border-color:var(--accent);}
+
+/* observation + orient */
+.mc-obsphoto{max-width:820px;margin:var(--sp-3) auto 0;}
+.mc-obspop{max-width:820px;margin:8px auto;}
+.mc-medals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:var(--sp-3) 0;}
+@media (max-width:520px){.mc-medals{grid-template-columns:1fr;}}
+.mc-mtile{font:inherit;text-align:left;border:2px solid var(--line-strong);border-radius:16px;padding:12px;background:var(--surface);cursor:pointer;color:var(--ink);transition:transform .2s;}
+.mc-mtile:hover{transform:translateY(-3px);}
+.mc-mtile .mc-medal{display:block;font-size:2.2rem;}
+.mc-mtile small{display:block;font-weight:700;color:var(--accent);}
+.mc-mtile .more{display:none;font-size:.82rem;margin-top:4px;}
+.mc-mtile.is-open .more{display:block;}
+.mc-mtile.is-open{border-color:var(--accent);background:var(--accent-wash);}
+.mc-scopefacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:.78rem;}
+.mc-scopefacts span{padding:3px 10px;border-radius:999px;background:var(--accent-wash);color:var(--accent);font-weight:700;}
+
+/* finish + bonus */
+.mc-done{display:flex;gap:16px;align-items:center;margin-top:var(--sp-4);padding:var(--sp-4);border-radius:16px;color:#eafcff;background:linear-gradient(120deg,#0a2a3d,#0f5a73 60%,#1a8a84);box-shadow:0 12px 34px rgba(10,60,80,.3);}
+.mc-done__badge{font-size:2.6rem;}
+.mc-done__title{font-family:var(--font-display);font-size:var(--step-1);margin:0;}
+.mc-done__stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-family:var(--font-data);font-size:.8rem;}
+.mc-launch{display:flex;gap:16px;align-items:center;padding:var(--sp-4);border-radius:18px;color:#fff;background:linear-gradient(120deg,#10243f,#1c4f8f 60%,#2fa3c9);box-shadow:0 12px 34px rgba(20,60,110,.3);margin-top:var(--sp-4);}
+.mc-launch .q__hint{color:#e3f4ff;}
+.mc-launch__art{flex:none;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle,#dff3ff 0 24%,#6fb8e8 24% 44%,#1b4f84 44% 60%,#05121e 60%);box-shadow:0 0 0 6px rgba(255,255,255,.2);filter:blur(1px);}
+.mc-launch__title{font-family:var(--font-display);font-size:var(--step-1);font-weight:800;margin:0;}
+.mc-launch .btn--ghost{color:#fff;border-color:rgba(255,255,255,.6);}
+.mc-ff{margin-top:var(--sp-4);padding:var(--sp-4);border-radius:18px;color:#eef8ff;background:linear-gradient(160deg,#0b1a2a,#133a57);}
+.mc-ff .q__hint{color:#bcd6e8;}
+.mc-ff__hud{display:flex;gap:16px;font-family:var(--font-data);font-weight:800;margin-bottom:10px;align-items:center;}
+.mc-ff__score{font-size:1.4rem;color:#7dffb4;}
+.mc-ff__body{display:grid;grid-template-columns:320px 1fr;gap:var(--sp-4);align-items:center;}
+@media (max-width:760px){.mc-ff__body{grid-template-columns:1fr;}}
+.mc-ff__ctl .mc-row{grid-template-columns:130px 1fr;}
+.mc-ff__ans{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+.mc-ff__opt{min-height:44px;}
+.mc-ff__opt.good{background:#1f7a4a;color:#fff;}
+.mc-ff__opt.bad{background:#8a2a3c;color:#fff;}
+.mc-ff .mc-good{background:#123a27;color:#bff5d3;}
+.mc-ff .mc-bad{background:#3d1a24;color:#ffd5dc;}
+.mc-ff .btn:not(.btn--signal){color:#fff;}
+.mc-done__stats b{color:#7dffb4;}
+
+.mc-spark{position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;animation:mc-spark .7s ease-out forwards;}
+@keyframes mc-spark{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0;}}
+.mc-float{position:absolute;z-index:9999;font-weight:900;font-size:1.1rem;pointer-events:none;transform:translateX(-50%);animation:mc-float 1.1s ease-out forwards;}
+@keyframes mc-float{to{transform:translate(-50%,-48px);opacity:0;}}
+.mc-shake{animation:mc-shake .45s;}
+@keyframes mc-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+[data-reduced-motion="on"] .mc-spark,[data-reduced-motion="on"] .mc-float{display:none;}
+[data-reduced-motion="on"] .mc-shake,[data-reduced-motion="on"] .mc-obj:hover,[data-reduced-motion="on"] .mc-mtile:hover{animation:none;transform:none;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secondary</a></li>
+      <li><a href="../../../../../../">A-Level Pathway</a></li>
+      <li><a href="../../../../../">Pre-IG</a></li>
+      <li><a href="../../../../">Science</a></li>
+      <li><a href="../../../">Stage 1</a></li>
+      <li><a href="../../">Biology</a></li>
+      <li><a href="../">Module 2: Cells and Microscopy</a></li>
+      <li><span aria-current="page">Microscope Mission Control</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secundaria</a></li>
+      <li><a href="../../../../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../../../../">Pre-IG</a></li>
+      <li><a href="../../../../">Ciencias</a></li>
+      <li><a href="../../../">Etapa 1</a></li>
+      <li><a href="../../">Biología</a></li>
+      <li><a href="../">Módulo 2: Células y microscopía</a></li>
+      <li><span aria-current="page">Control de Misión del Microscopio</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=21";
+import { L, PARTS, img, creditLine } from "./data.js?v=1";
+import { burstAt } from "./fx.js?v=1";
+import { buildParts, buildFocus, buildMagnify, buildSlideLab } from "./stations.js?v=8";
+import { mountFocusLaunch } from "./focus.js?v=3";
+
+const RANKS = [[0, L("Lab Assistant", "Ayudante de laboratorio")], [80, L("Technician", "Técnico")], [200, L("Microscopist", "Microscopista")], [320, L("Master Scientist", "Científico maestro")]];
+const MAXXP = 400;
+const rankOf = xp => RANKS.filter(r => xp >= r[0]).pop()[1];
+
+/* observation pins on the real low-power onion micrograph — tap to notice (ungraded) */
+const NOTICE = [
+  { x: 0.30, y: 0.40, t: () => L("Each cell is a long box shape, and the cells fit together like bricks in a wall with no gaps.", "Cada célula tiene forma de caja alargada y encajan como ladrillos en un muro, sin huecos.") },
+  { x: 0.211, y: 0.272, t: () => L("Each cell has one small round dot inside. Something controls the cell from the centre.", "Cada célula tiene un pequeño punto redondo dentro. Algo controla la célula desde dentro.") },
+  { x: 0.55, y: 0.50, t: () => L("Dark lines mark the edges between cells. They are thick and regular: a stiff outer layer.", "Líneas oscuras marcan los bordes entre células. Son gruesas y regulares: una capa externa rígida.") },
+  { x: 0.80, y: 0.22, t: () => L("There are dozens of cells in just this tiny circle. A speck of onion skin is made of thousands.", "Hay decenas de células solo en este círculo diminuto. Un trocito de piel de cebolla tiene miles.") },
+  { x: 0.70, y: 0.80, t: () => L("The cells are nearly clear and colourless, with no green parts: this skin never sees light.", "Las células son casi transparentes e incoloras, sin partes verdes: esta piel nunca recibe luz.") },
+];
+
+const simulation = {
+  /* ============================== ORIENT ============================== */
+  orient(host) {
+    const tiles = [
+      ["🥉", L("Bronze", "Bronce"), L("I can name the parts of the microscope and state their functions.", "Sé nombrar las partes del microscopio y decir sus funciones."), L("Station 1: tap each part on a real microscope.", "Estación 1: toca cada parte en un microscopio real.")],
+      ["🥈", L("Silver", "Plata"), L("I can use a microscope to make observations.", "Sé usar un microscopio para hacer observaciones."), L("Stations 2 and 4: drive a 3D microscope, then observe a real onion slide.", "Estaciones 2 y 4: maneja un microscopio 3D y observa una preparación real de cebolla.")],
+      ["🥇", L("Gold", "Oro"), L("I can use an equation to calculate the level of magnification.", "Sé usar una ecuación para calcular el aumento."), L("Station 3: overall magnification = eyepiece × objective.", "Estación 3: aumento total = ocular × objetivo.")],
+    ];
+    host.innerHTML = `<p class="q__hint">${L("Three medals to win. Tap each one to see what it takes.", "Tres medallas por ganar. Toca cada una para ver qué necesitas.")}</p>
+      <div class="mc-medals">${tiles.map(t => `<button type="button" class="mc-mtile" aria-expanded="false"><span class="mc-medal" aria-hidden="true">${t[0]}</span><small>${t[1]}</small><b>${t[2]}</b><span class="more">${t[3]}</span></button>`).join("")}</div>
+      <div class="mc-scopefacts" aria-hidden="true"><span>${L("Eyepiece ×10","Ocular ×10")}</span><span>${L("Objectives","Objetivos")} ×4 · ×10 · ×40</span><span>${L("Overall = eyepiece × objective","Total = ocular × objetivo")}</span></div>`;
+    host.querySelectorAll(".mc-mtile").forEach(b => b.addEventListener("click", () => { const o = b.classList.toggle("is-open"); b.setAttribute("aria-expanded", o); burstAt(b, "#e8b830", 10); }));
+  },
+
+  /* ============================ OBSERVATION =========================== */
+  observation(host, sim) {
+    sim.state.obs = sim.state.obs || {};
+    const seen = sim.state.obs;
+    host.innerHTML = `<p class="q__hint">${L("This is a REAL photo of onion skin seen through a microscope. Tap each pin and notice what is there. There are no wrong answers.", "Esta es una foto REAL de piel de cebolla vista al microscopio. Toca cada punto y fíjate en lo que hay. No hay respuestas incorrectas.")}</p>
+      <div class="mc-photo mc-obsphoto"><img src="${img("onion-low")}" alt="${L("Onion skin cells seen through a microscope: many elongated box-shaped cells with dark outlines and a small round dot in each", "Células de piel de cebolla vistas al microscopio: muchas células alargadas en forma de caja con contornos oscuros y un pequeño punto redondo en cada una")}"><div class="mc-pins"></div></div>
+      <div class="mc-good mc-obspop" role="status" aria-live="polite">${L("Tap a pin.", "Toca un punto.")}</div>
+      <p class="mc-credit">${creditLine(["onion-low"])}</p>`;
+    const pins = host.querySelector(".mc-pins"), pop = host.querySelector(".mc-obspop");
+    const count = () => Object.keys(seen).length;
+    NOTICE.forEach((n, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "mc-pin"; b.style.left = n.x * 100 + "%"; b.style.top = n.y * 100 + "%";
+      b.setAttribute("aria-label", `${L("Notice", "Observación")} ${i + 1}`); b.textContent = i + 1; if (seen[i]) b.dataset.state = "seen";
+      b.addEventListener("click", () => {
+        pop.textContent = n.t(); b.dataset.state = "seen"; burstAt(b, "#6fd6ff", 10);
+        if (!seen[i]) { seen[i] = 1; sim.saveState(); sim.recordTrial({ station: L("Observation", "Observación"), step: L(`Noticed ${i + 1}`, `Observó ${i + 1}`), result: n.t() }); }
+        if (count() === NOTICE.length) pop.textContent += "  ✔ " + L("You noticed all five — now write a question about them in the next stage.", "Lo has visto todo: en la siguiente etapa elegirás la pregunta científica.");
+      });
+      pins.append(b);
+    });
+  },
+
+  /* ============================ EXPERIMENT ============================ */
+  investigate(host, sim) {
+    host.innerHTML = "";
+    sim.state.lab = sim.state.lab || {};
+    const lab = sim.state.lab;
+    const hud = document.createElement("div"); hud.className = "mc-hud";
+    const track = document.createElement("div"); track.className = "mc-track";
+    const names = [L("1 · Name That Part", "1 · Nombra la parte"), L("2 · Focus Like a Pro", "2 · Enfoca como un profesional"), L("3 · Magnification Mission", "3 · Misión de aumento"), L("4 · Onion Slide", "4 · Preparación de cebolla")];
+    const pills = names.map(t => { const s = document.createElement("span"); s.textContent = t; track.append(s); return s; });
+    host.append(hud, track);
+    sim.hud = () => {
+      const xp = sim.state.xp || 0;
+      hud.innerHTML = `<span>⭐ <b>${xp}</b> XP</span><span class="mc-hud__rank">${rankOf(xp)}</span><div class="mc-hud__bar" aria-hidden="true"><i style="width:${Math.min(100, xp / MAXXP * 100)}%"></i></div><span>${["🥉", "🥈", "🥇"].map((m, i) => lab[["parts", "focus", "mag"][i]] ? m : "▫️").join(" ")}</span>`;
+    };
+    sim.hud();
+    const stations = document.createElement("div"); host.append(stations);
+    const finish = document.createElement("div"); host.append(finish);
+    const bonus = document.createElement("div"); host.append(bonus);
+    const mark = (k, i) => () => { if (!lab[k]) { lab[k] = true; sim.saveState(); } pills[i].classList.add("done"); sim.hud(); check(); };
+    buildParts(stations, sim, mark("parts", 0));
+    buildFocus(stations, sim, mark("focus", 1));
+    buildMagnify(stations, sim, mark("mag", 2));
+    buildSlideLab(stations, sim, mark("prep", 3));
+    ["parts", "focus", "mag", "prep"].forEach((k, i) => { if (lab[k]) pills[i].classList.add("done"); });
+
+    function check() {
+      if (!(lab.parts && lab.focus && lab.mag && lab.prep)) return;
+      const tr = sim.trials, good = tr.filter(r => /^(Correct|Correcta|Done|Hecho|Fine focus only|Solo micro|0 air|0 burb)/.test(r.result || "")).length;
+      finish.innerHTML = `<div class="mc-done"><div class="mc-done__badge" aria-hidden="true">🔬</div><div>
+        <p class="mc-done__title">${L("Mission complete — Bronze, Silver and Gold!", "¡Misión cumplida: Bronce, Plata y Oro!")}</p>
+        <p>${L("All four stations done. Your entries are in the Record. Play the bonus round below, then move on to Record and Explain.", "Las cuatro estaciones completas. Tus entradas están en el Registro. Juega la ronda bonus y luego sigue con Registrar y Explicar.")}</p>
+        <div class="mc-done__stats"><span>${L("Rank", "Rango")}: <b>${rankOf(sim.state.xp || 0)}</b></span><span>XP: <b>${sim.state.xp || 0}</b></span><span>${L("Logged entries", "Entradas registradas")}: <b>${tr.length}</b></span><span>${L("Successful steps", "Pasos logrados")}: <b>${good}</b></span></div></div></div>`;
+      if (!lab.awarded) { lab.awarded = true; sim.saveState(); sim.award("mc-mission", L("Microscope Master", "Maestro del Microscopio")); burstAt(finish.firstElementChild, "#7dffb4", 24); }
+      sim.setScienceMethod({
+        observation: L("Under the microscope, a tiny peel of onion skin is not a blur: it is a neat pattern of box-shaped cells fitting together like bricks, each with a round dark dot inside and a thick outline.", "Al microscopio, un trocito de piel de cebolla no es una mancha: es un patrón ordenado de células en forma de caja que encajan como ladrillos, cada una con un punto oscuro redondo dentro y un contorno grueso."),
+        question: L("How do we use a microscope to see the structure of cells, and how do we work out how much bigger it makes them look?", "¿Cómo usamos un microscopio para ver la estructura de las células y cómo calculamos cuánto las amplía?"),
+        hypothesis: L("If I swap to a higher-power objective with the same eyepiece, then I will see fewer cells but each will look bigger, because overall magnification = eyepiece × objective, so the field of view shows a smaller part of the slide.", "Si cambio a un objetivo de mayor aumento con el mismo ocular, veré menos células pero cada una se verá mayor, porque el aumento total = ocular × objetivo, así que el campo muestra una parte menor de la preparación."),
+        variables: L("Independent: the objective lens (×4, ×10, ×40) and the slide (onion or cheek). Dependent: how many cells are visible, how sharp the image is and the overall magnification. Controlled: the ×10 eyepiece, the light setting and the same onion slide.", "Independiente: el objetivo (×4, ×10, ×40) y la preparación (cebolla o mejilla). Dependiente: cuántas células se ven, la nitidez de la imagen y el aumento total. Controladas: el ocular ×10, la luz y la misma preparación de cebolla."),
+        results: L("See the Investigation Record: one row per part named, per focusing step (lens, total, sharpness), per magnification order, and per onion-slide step including labels and the drawing magnification.", "Ver el Registro de investigación: una fila por parte nombrada, por paso de enfoque (lente, total, nitidez), por pedido de aumento y por paso de la preparación de cebolla, con etiquetas y aumento del dibujo."),
+        analysis: L("As the objective went from ×4 to ×40 the total went from ×40 to ×400, the cells looked larger and fewer fitted in view, and the range of sharp focus became tiny, so only the fine knob worked. The nucleus only became clear at ×40.", "Al pasar del objetivo ×4 al ×40, el total pasó de ×40 a ×400, las células se vieron mayores, cupieron menos en el campo y el rango de enfoque nítido se hizo mínimo, así que solo funcionó el micrométrico. El núcleo solo se vio claro a ×40."),
+        conclusion: L("A light microscope shows cell structures such as the wall, nucleus and cytoplasm. Overall magnification = eyepiece × objective. Start at the lowest power, find the cells with the coarse knob, and use only the fine knob at higher power. Plant cells such as onion have a cell wall; cheek (animal) cells do not.", "El microscopio óptico muestra estructuras celulares como la pared, el núcleo y el citoplasma. Aumento total = ocular × objetivo. Empieza con el menor aumento, encuentra las células con el macrométrico y usa solo el micrométrico con más aumento. Las células vegetales como la cebolla tienen pared celular; las de mejilla (animales) no."),
+        reflection: L("The hardest part was keeping the image sharp at ×40, where even a small turn blurred it. Next time I would make a better slide with no bubbles and compare more cell types.", "Lo más difícil fue mantener la imagen nítida a ×40, donde un giro pequeño la desenfocaba. La próxima vez haría una preparación mejor sin burbujas y compararía más tipos de células."),
+      });
+      if (!bonus.dataset.on) { bonus.dataset.on = "1"; mountFocusLaunch(bonus, sim); }
+    }
+    check();
+    if (!(lab.parts && lab.focus && lab.mag && lab.prep)) bonus.innerHTML = `<p class="q__hint">${L("Bonus round (Focus Frenzy) unlocks when all four stations are done.", "La ronda bonus (Frenesí de enfoque) se desbloquea al completar las cuatro estaciones.")}</p>`;
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
