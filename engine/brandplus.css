@@ -109,44 +109,36 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
     radial-gradient(52rem 40rem at 70% 108%, #C9453B1A, transparent 62%),
     radial-gradient(40rem 30rem at 10% 100%, #2B30361A, transparent 60%); }
 html[data-tint="dark"] body::before { opacity: .55; }
-/* --- 9b. A notebook in the sky. One 96-second cycle, never both at once:
-   grid breathes in and out -> a quiet blank pause -> pale grey clouds appear, drift and dissolve -> pause -> repeat.
-   Compositor-only (opacity/transform), never flashes. Grid lines and clouds share one pale grey. --- */
-html::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background-image: linear-gradient(#5B656E24 1px, transparent 1px), linear-gradient(90deg, #5B656E24 1px, transparent 1px);
-  background-size: 48px 48px; background-position: -1px -1px;
-  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 60% 40%, #000 0%, transparent 82%);
-          mask-image: radial-gradient(ellipse 75% 65% at 60% 40%, #000 0%, transparent 82%);
-  opacity: 0; animation: bp-grid 96s ease-in-out infinite; will-change: opacity; }
-html::after { content: ""; position: fixed; inset: -12% -30%; z-index: -1; pointer-events: none;
+/* --- 9b. Sky of soft colour: no grid. Three kinds of very faint cloud, in the site's own colours (mustard, coral, teal),
+   each one slowly appearing, drifting and dissolving in turn. Opacity/transform only, 100+ seconds a cycle, never flashes. --- */
+html::before, html::after, body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; opacity: 0; will-change: transform, opacity; }
+html::before { inset: -12% -30%;
   background:
-    radial-gradient(22rem 8rem at 16% 24%, #5B656E2E, transparent 70%),
-    radial-gradient(30rem 10rem at 42% 32%, #5B656E26, transparent 72%),
-    radial-gradient(24rem 8rem at 72% 18%, #5B656E2B, transparent 70%),
-    radial-gradient(34rem 11rem at 62% 64%, #5B656E22, transparent 72%),
-    radial-gradient(26rem 9rem at 22% 78%, #5B656E26, transparent 72%);
-  filter: blur(18px); opacity: 0; animation: bp-cloud-a 96s linear infinite; will-change: transform, opacity; }
-body::after { content: ""; position: fixed; inset: -10% -25%; z-index: -1; pointer-events: none;
+    radial-gradient(26rem 10rem at 16% 26%, #E3B2303D, transparent 70%),
+    radial-gradient(32rem 12rem at 62% 20%, #E3B23033, transparent 72%),
+    radial-gradient(28rem 10rem at 78% 68%, #E3B23038, transparent 72%);
+  filter: blur(26px); animation: bp-cloud-a 110s ease-in-out infinite; }
+html::after { inset: -10% -28%;
   background:
-    radial-gradient(28rem 9rem at 8% 54%, #5B656E26, transparent 72%),
-    radial-gradient(20rem 7rem at 50% 12%, #5B656E2B, transparent 70%),
-    radial-gradient(32rem 10rem at 88% 46%, #5B656E26, transparent 72%),
-    radial-gradient(22rem 8rem at 38% 90%, #5B656E22, transparent 72%);
-  filter: blur(24px); opacity: 0; animation: bp-cloud-b 96s linear infinite; will-change: transform, opacity; }
-/* grid: in 5-22%, holds to 36%, out by 46%, then absent */
-@keyframes bp-grid { 0%, 4% { opacity: 0; } 22%, 36% { opacity: .95; } 46%, 100% { opacity: 0; } }
-/* clouds: absent until 52%, fade up by 64%, drift on, dissolve by 92%, absent until the grid returns */
-@keyframes bp-cloud-a { 0%, 50% { opacity: 0; transform: translate3d(-6%, 0, 0); } 64%, 78% { opacity: 1; } 92%, 100% { opacity: 0; transform: translate3d(6%, 2%, 0); } }
-@keyframes bp-cloud-b { 0%, 52% { opacity: 0; transform: translate3d(6%, 1%, 0); } 66%, 80% { opacity: 1; } 94%, 100% { opacity: 0; transform: translate3d(-6%, -2%, 0); } }
-html[data-tint="dark"]::before { background-image: linear-gradient(#ECEFF11C 1px, transparent 1px), linear-gradient(90deg, #ECEFF11C 1px, transparent 1px); }
-html[data-tint="dark"]::after, html[data-tint="dark"] body::after { filter: blur(24px) brightness(2.2); }
+    radial-gradient(28rem 10rem at 30% 70%, #C9453B2E, transparent 72%),
+    radial-gradient(24rem 9rem at 74% 30%, #C9453B28, transparent 70%),
+    radial-gradient(30rem 11rem at 8% 36%, #C9453B26, transparent 72%);
+  filter: blur(28px); animation: bp-cloud-b 130s ease-in-out -45s infinite; }
+body::after { inset: -10% -26%;
+  background:
+    radial-gradient(30rem 11rem at 22% 18%, #3A8C8A33, transparent 72%),
+    radial-gradient(26rem 10rem at 70% 54%, #3A8C8A2E, transparent 70%),
+    radial-gradient(32rem 11rem at 46% 88%, #3A8C8A2B, transparent 72%);
+  filter: blur(26px); animation: bp-cloud-c 120s ease-in-out -85s infinite; }
+@keyframes bp-cloud-a { 0%, 100% { opacity: 0; transform: translate3d(-5%, 0, 0); } 45% { opacity: 1; } 55% { opacity: 1; } }
+@keyframes bp-cloud-b { 0%, 100% { opacity: 0; transform: translate3d(5%, 1%, 0); } 45% { opacity: 1; } 55% { opacity: 1; } 99% { transform: translate3d(-5%, -2%, 0); } }
+@keyframes bp-cloud-c { 0%, 100% { opacity: 0; transform: translate3d(-4%, -1%, 0); } 45% { opacity: 1; } 55% { opacity: 1; } 99% { transform: translate3d(5%, 2%, 0); } }
+html[data-tint="dark"]::before, html[data-tint="dark"]::after, html[data-tint="dark"] body::after { filter: blur(28px) brightness(1.5); }
 @media (max-width: 720px) { body::after { display: none; } }
-/* calm motion: no grid; a single set of clouds rests, very faint and still */
-html[data-reduced-motion="on"]::before { display: none; }
-html[data-reduced-motion="on"]::after, html[data-reduced-motion="on"] body::after { animation: none; opacity: .6; }
+/* calm motion: the colour clouds simply rest, very faint and still */
+html[data-reduced-motion="on"]::before, html[data-reduced-motion="on"]::after, html[data-reduced-motion="on"] body::after { animation: none; opacity: .45; }
 @media (prefers-reduced-motion: reduce) {
-  html:not([data-reduced-motion="off"])::before { display: none; }
-  html:not([data-reduced-motion="off"])::after, html:not([data-reduced-motion="off"]) body::after { animation: none; opacity: .6; }
+  html:not([data-reduced-motion="off"])::before, html:not([data-reduced-motion="off"])::after, html:not([data-reduced-motion="off"]) body::after { animation: none; opacity: .45; }
 }
 
 /* --- 10. Depth: tiles and cards tilt a few degrees toward the pointer, layered like glass --- */
