@@ -56,8 +56,44 @@
     })(h);
     h.classList.add('bp-kinetic');
   }
+  // Premium entrance: headings are typed in, then cards arrive from alternating sides.
+  var tileBase = 0, PAN = ['right', 'down', 'left', 'up', 'in'];
+  function typeIt(el, start, perChar, cap) {
+    var text = el.textContent;
+    if (!text.trim() || el.dataset.bpTyped) return start;
+    el.dataset.bpTyped = '1';
+    var chars = text.replace(/\s+/g, ' ').length, per = Math.min(perChar, cap / Math.max(chars, 1));
+    el.setAttribute('aria-label', text.trim());
+    el.textContent = '';
+    var n = 0;
+    text.split(/(\s+)/).forEach(function (tok) {
+      if (!tok) return;
+      if (/^\s+$/.test(tok)) { el.appendChild(document.createTextNode(' ')); return; }
+      var w = document.createElement('span'); w.className = 'bp-w'; w.setAttribute('aria-hidden', 'true');
+      tok.split('').forEach(function (c) {
+        var ch = document.createElement('span'); ch.className = 'bp-ch'; ch.textContent = c;
+        ch.style.transitionDelay = Math.round(start + n++ * per) + 'ms'; w.appendChild(ch);
+      });
+      el.appendChild(w);
+    });
+    el.classList.add('bp-typing');
+    requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('bp-typed'); }); });
+    return start + n * per;
+  }
+  function entrance() {
+    var animate = !calm() && root.getAttribute('data-dyslexia') !== 'on';
+    var head = document.querySelector('.nav-title');
+    var set = head ? [head.querySelector('.eyebrow'), head.querySelector('h1'), head.querySelector('.nav-title__blurb')]
+      : [document.querySelector('.hero .eyebrow:not([hidden])'), document.querySelector('.hero [data-lang]:not([hidden]) h1, .hero h1'), document.querySelector('.hero [data-lang]:not([hidden]) .hero__lede, .hero__lede')];
+    if (!animate || !set[1] || set[1].dataset.bpTyped) { return; }
+    if (set[0]) typeIt(set[0], 0, 18, 260);
+    var th = typeIt(set[1], 140, 24, 620);
+    var tb = set[2] ? typeIt(set[2], Math.max(th - 80, 300), 11, 640) : th;
+    tileBase = Math.max(300, Math.min(tb - 250, 1000));
+  }
   function enhance() {
     if (!io) return;
+    entrance();
     var tags = '.nav-sec__head, .tile, .choice, .extras__card, .extras__grid > *, .prose';
     [].forEach.call(document.querySelectorAll(tags), function (el) {
       if (el.classList.contains('bp-seen')) return;
@@ -65,9 +101,15 @@
       if (hasManualReveal) return;   // MoreHuman Ed already reveals its own sections
       var idx = el.parentNode ? [].indexOf.call(el.parentNode.children, el) : 0;
       el.style.setProperty('--bp-i', Math.min(idx, 6));
+      if (el.getBoundingClientRect().top < window.innerHeight) el.style.setProperty('--bp-base', tileBase + 'ms');
+      var side = idx % 3;   // left, below, right: cards arrive from different places
+      el.style.setProperty('--bp-x', side === 0 ? '-72px' : side === 2 ? '72px' : '0px');
+      el.style.setProperty('--bp-y', side === 1 ? '72px' : '24px');
+      var th = el.querySelector('.tile__thumb');
+      if (th) th.dataset.pan = th.dataset.pan || PAN[idx % PAN.length];
       el.classList.add('bp-reveal'); io.observe(el);
     });
-    [].forEach.call(document.querySelectorAll(hasManualReveal ? 'main h2' : 'main h1, main h2'), function (h) {
+    [].forEach.call(document.querySelectorAll('main h2'), function (h) {
       if (h.classList.contains('bp-seen')) return;
       h.classList.add('bp-seen');
       if (calm() || root.getAttribute('data-dyslexia') === 'on') return;

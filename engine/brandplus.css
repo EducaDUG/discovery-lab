@@ -185,3 +185,30 @@ html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__credit { opacity: 
   html:not([data-reduced-motion="off"]) .tile__media--photo .tile__thumb { transform: none; animation: none; transition: none; }
   html:not([data-reduced-motion="off"]) .tile__credit { opacity: 1; transition: none; }
 }
+
+/* --- 13. (section 13) Premium page entrance, 1-2 s: typed headings, cards from alternating sides, photos that keep moving --- */
+.bp-w { display: inline-block; white-space: nowrap; }
+html.bp-js:not([data-reduced-motion="on"]) .bp-typing .bp-ch { opacity: 0; transition: opacity .06s linear; }
+html.bp-js:not([data-reduced-motion="on"]) .bp-typing.bp-typed .bp-ch { opacity: 1; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-reveal, html.bp-js:not([data-reduced-motion="on"]) .choice.bp-reveal {
+  opacity: 0; transform: translate(var(--bp-x, 0), var(--bp-y, 32px)) scale(.95);
+  transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform 1s cubic-bezier(.2,.8,.2,1);
+  transition-delay: calc(var(--bp-base, 0ms) + var(--bp-i, 0) * 120ms); }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-reveal.bp-in, html.bp-js:not([data-reduced-motion="on"]) .choice.bp-reveal.bp-in { opacity: 1; transform: none; }
+/* photos arrive zoomed and off-centre, settle, then pan very slowly (direction varies per photo) */
+html.bp-js:not([data-reduced-motion="on"]) .tile__media--photo .tile__thumb {
+  transform: scale(1.34); translate: calc(var(--bp-x, 0px) * -.25) 0;
+  transition: transform 1.8s cubic-bezier(.2,.8,.2,1), translate 1.8s cubic-bezier(.2,.8,.2,1);
+  transition-delay: calc(var(--bp-base, 0ms) + var(--bp-i, 0) * 120ms); }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__media--photo .tile__thumb {
+  transform: scale(1.14); translate: 0 0; animation: bp-pan-right 26s ease-in-out 2.4s infinite alternate; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="right"] { animation-name: bp-pan-right; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="left"] { animation-name: bp-pan-left; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="down"] { animation-name: bp-pan-down; animation-duration: 30s; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="up"] { animation-name: bp-pan-up; }
+html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="in"] { animation-name: bp-pan-in; animation-duration: 30s; }
+@keyframes bp-pan-right { from { translate: -4% 0; } to { translate: 4% 0; } }
+@keyframes bp-pan-left  { from { translate: 4% 0; } to { translate: -4% 0; } }
+@keyframes bp-pan-down  { from { translate: 0 -5.5%; } to { translate: 0 5.5%; } }
+@keyframes bp-pan-up    { from { translate: 0 5%; } to { translate: 0 -5%; } }
+@keyframes bp-pan-in    { from { scale: 1; } to { scale: 1.1; } }

@@ -15,7 +15,7 @@
    ========================================================================== */
 
 import { t, pl, getLang } from "./i18n.js?v=8";
-import "./brandplus.js?v=2";
+import "./brandplus.js?v=3";
 import "./weather.js?v=1";
 
 const el = (tag, cls, text) => {
@@ -90,6 +90,7 @@ function tile(node, href, photo, root) {
     img.src = `${root}assets/tile-photos/${photo.file}`;
     img.alt = "";
     img.loading = "lazy"; img.decoding = "async"; img.width = 720; img.height = 480;
+    if (photo.pan) img.dataset.pan = photo.pan;
     img.setAttribute("aria-hidden", "true");
     media.append(img);
     const who = /^unknown/i.test(photo.author || "") ? "" : (photo.author || "").slice(0, 38) + " · ";
