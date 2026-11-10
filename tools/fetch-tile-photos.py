@@ -95,7 +95,7 @@ Q = {  # key (path suffix) -> photo search
     "module-2-holidays-and-travel": "beach holiday Spain", "sim-el-diario-de-viaje": "travel notebook map passport",
     "module-3-exam-revision-materials": "pen notebook desk", "module-3-exam-revision-materials/exam-4-revision": "Alhambra Granada",
     "igcse-biology": "leaf cross section microscope", "module-0-exam-skills": "exam hall desks", "sim-command-words": "fountain pen exam paper",
-    "module-1-variety-of-living-things": "coral reef", "module-5a-food-production": "tomato plants greenhouse", "sim-greenhouse-business-tycoon": "polytunnel vegetables farm", "sim-five-kingdoms-sorter": "mushroom forest", "a-level-biology": "laboratory microscope",
+    "module-1-variety-of-living-things": "coral reef", "module-5a-food-production": "tomato plants greenhouse", "primary/leap-science": "vegetable garden raised beds", "leap-science/module-1-growing-food": "seedlings sprouting soil", "sim-greenhouse-business-tycoon": "polytunnel vegetables farm", "sim-five-kingdoms-sorter": "mushroom forest", "a-level-biology": "laboratory microscope",
 }
 
 
