@@ -15,7 +15,7 @@
    ========================================================================== */
 
 import { t, pl, getLang } from "./i18n.js?v=8";
-import "./brandplus.js?v=7";
+import "./brandplus.js?v=8";
 import "./weather.js?v=1";
 
 const el = (tag, cls, text) => {
@@ -217,12 +217,24 @@ function header(node, mount) {
 }
 
 /* --- render -------------------------------------------------------------- */
-export async function mountNav() {
+let appData = null;
+export async function mountNav(forcedIds) {
   const mount = document.getElementById("nav-root");
   if (!mount) return;
 
-  const root = mount.dataset.root || "./";
-  const ids = (mount.dataset.path || "").split("/").filter(Boolean);
+  let root = mount.dataset.root || "./";
+  let ids = (mount.dataset.path || "").split("/").filter(Boolean);
+  if (forcedIds) {   // in-place navigation: rebuild the page content without reloading the document
+    ids = forcedIds;
+    root = ids.length ? "../".repeat(ids.length) : "./";
+    mount.dataset.path = ids.join("/");
+    mount.dataset.root = root;
+    document.querySelectorAll(".crumbs, .nav-title").forEach(x => x.remove());
+    mount.replaceChildren();
+    photoCount = 0;
+    const hero = document.querySelector(".hero");
+    if (hero) hero.hidden = ids.length > 0;
+  }
 
   let data;
   let photos = {};
@@ -250,6 +262,8 @@ export async function mountNav() {
     mount.append(el("p", "nav-empty", t("site-index-error")));
     return;
   }
+
+  appData = data;
 
   /* Home — the two front doors. */
   if (!ids.length) {
@@ -401,3 +415,53 @@ function renderResources(node, mount) {
 }
 
 mountNav().then(() => { if (window.dlEnhance) window.dlEnhance(); });
+
+/* --- In-place navigation ------------------------------------------------------------------------------------------
+   Moving between Discovery Lab pages never reloads the document: the header, background and weather chip stay exactly
+   where they are, the old content eases away, and the next page's content builds in. No reload = no flash.
+   Anything that is not a navigation page (activities, guides, About, external links) navigates normally. */
+let routing = false;
+const calmNow = () => {
+  const m = document.documentElement.getAttribute("data-reduced-motion");
+  return m === "on" || (m !== "off" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+};
+function idsFor(url) {
+  const mount = document.getElementById("nav-root");
+  if (!mount || !appData) return null;
+  const base = new URL(mount.dataset.root || "./", location.href);
+  if (url.origin !== location.origin || !url.href.startsWith(base.href)) return null;
+  const rest = url.pathname.slice(base.pathname.length).replace(/index\.html$/, "").replace(/\/+$/, "");
+  const ids = rest.split("/").filter(Boolean);
+  if (!ids.length) return document.querySelector(".hero") ? ids : null;   // home needs its hero element
+  const chain = walk(appData.tree, ids);
+  if (!chain) return null;
+  const last = chain[chain.length - 1];
+  if (last.type === "simulation" || last.type === "guide" || last.url) return null;
+  return ids;
+}
+async function swap(ids, push, url) {
+  const root = document.documentElement;
+  if (routing) return;
+  routing = true;
+  if (!calmNow()) { root.classList.add("bp-leaving"); await new Promise(r => setTimeout(r, 260)); }
+  if (push) history.pushState({ dl: 1 }, "", url);
+  await mountNav(ids);
+  window.scrollTo(0, 0);
+  root.classList.remove("bp-leaving");
+  if (window.dlEnhance) window.dlEnhance();
+  const h1 = document.querySelector(".nav-title h1");
+  if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus({ preventScroll: true }); }
+  routing = false;
+}
+window.dlRoute = function (a, e) {
+  const url = new URL(a.href);
+  const ids = idsFor(url);
+  if (!ids) return false;
+  e.preventDefault();
+  swap(ids, true, url.href);
+  return true;
+};
+window.addEventListener("popstate", () => {
+  const ids = idsFor(new URL(location.href));
+  if (ids) swap(ids, false); else location.reload();
+});

@@ -149,6 +149,7 @@
       if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       if (a.target === '_blank' || a.hasAttribute('download') || a.origin !== location.origin) return;
       if (a.pathname === location.pathname && a.search === location.search) return;
+      if (window.dlRoute && window.dlRoute(a, e)) return;   // in-place navigation (no document reload)
       if (calm()) return;
       e.preventDefault();
       root.classList.add('bp-leaving');
