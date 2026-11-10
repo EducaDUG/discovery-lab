@@ -15,7 +15,7 @@
    ========================================================================== */
 
 import { t, pl, getLang } from "./i18n.js?v=8";
-import "./brandplus.js?v=4";
+import "./brandplus.js?v=6";
 import "./weather.js?v=1";
 
 const el = (tag, cls, text) => {
@@ -395,4 +395,4 @@ function renderResources(node, mount) {
   mount.append(sec);
 }
 
-mountNav();
+mountNav().then(() => { if (window.dlEnhance) window.dlEnhance(); });

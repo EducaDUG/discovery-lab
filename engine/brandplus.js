@@ -85,6 +85,10 @@
     var head = document.querySelector('.nav-title');
     var set = head ? [head.querySelector('.eyebrow'), head.querySelector('h1'), head.querySelector('.nav-title__blurb')]
       : [document.querySelector('.hero .eyebrow:not([hidden])'), document.querySelector('.hero [data-lang]:not([hidden]) h1, .hero h1'), document.querySelector('.hero [data-lang]:not([hidden]) .hero__lede, .hero__lede')];
+    if (!head && !document.querySelector('.hero')) {   // standalone pages such as About: first visible h1 + its role line + lede
+      var v = [].filter.call(document.querySelectorAll('main h1'), function (h) { return !h.closest('[hidden]'); })[0];
+      if (v) { var box = v.parentNode; set = [box.querySelector('.profile__role, .eyebrow'), v, box.querySelector('.lede, p:not(.profile__role):not(.eyebrow)')]; }
+    }
     if (!animate || !set[1] || set[1].dataset.bpTyped) { return; }
     if (set[0]) typeIt(set[0], 0, 18, 260);
     var th = typeIt(set[1], 140, 24, 620);
@@ -94,7 +98,7 @@
   function enhance() {
     if (!io) return;
     entrance();
-    var tags = '.nav-sec__head, .tile, .choice, .extras__card, .extras__grid > *, .prose';
+    var tags = '.nav-sec__head, .tile, .choice, .extras__card, .extras__grid > *, .prose, .facts, .bio, .connect, main > section';
     [].forEach.call(document.querySelectorAll(tags), function (el) {
       if (el.classList.contains('bp-seen')) return;
       el.classList.add('bp-seen');
@@ -133,6 +137,7 @@
     });
   }
   enhance();
+  window.dlEnhance = enhance;
   var t; new MutationObserver(function () { clearTimeout(t); t = setTimeout(enhance, 60); })
     .observe(document.body, { childList: true, subtree: true });
 

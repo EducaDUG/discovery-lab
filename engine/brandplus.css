@@ -221,3 +221,17 @@ html.bp-js:not([data-reduced-motion="on"]) .tile.bp-in .tile__thumb[data-pan="in
 html[data-reduced-motion="on"]::view-transition-group(*), html[data-reduced-motion="on"]::view-transition-old(*), html[data-reduced-motion="on"]::view-transition-new(*) { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { html:not([data-reduced-motion="off"])::view-transition-group(*), html:not([data-reduced-motion="off"])::view-transition-old(*), html:not([data-reduced-motion="off"])::view-transition-new(*) { animation: none !important; } }
 .tile__media.tile__media--photo { background: #E4E8E7; }
+
+/* --- 15. (section 15) Steady chrome: only the page content changes between pages --- */
+main#main { view-transition-name: page; }
+.bp-wx { view-transition-name: weather; }
+::view-transition-group(page), ::view-transition-group(weather) { animation-duration: 0s; }
+::view-transition-old(page) { animation: bp-vt-out .16s ease both; mix-blend-mode: normal; }
+::view-transition-new(page) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; }
+@keyframes bp-vt-out { to { opacity: 0; } }
+
+/* --- 16. (section 16) About page: the portrait settles in and keeps a very slow, subtle drift --- */
+html.bp-js:not([data-reduced-motion="on"]) .portrait img { transform: scale(1.22); transition: transform 1.9s cubic-bezier(.2,.8,.2,1) .35s; }
+html.bp-js:not([data-reduced-motion="on"]) .portrait-wrap .portrait img { transform: scale(1.04); animation: bp-pan-soft 32s ease-in-out 2.6s infinite alternate; }
+@keyframes bp-pan-soft { from { scale: 1; translate: -.8% 0; } to { scale: 1.035; translate: .8% -.8%; } }

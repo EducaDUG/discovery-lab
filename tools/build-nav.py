@@ -71,13 +71,13 @@ SHELL = """<!DOCTYPE html>
     <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. <a href="{root}credits/">Créditos de fotos</a></span>
   </div>
 </footer>
-<script type="module" src="{root}engine/nav.js?v={v}"></script>
+<script type="module" blocking="render" src="{root}engine/nav.js?v={v}"></script>
 </body>
 </html>
 """
 
-ASSET_VERSION = "20"
-STYLE_VERSION = "27"
+ASSET_VERSION = "22"
+STYLE_VERSION = "29"
 
 
 LEAF_TYPES = {"simulation", "guide"}  # own hand-written page; never gets a generated nav shell
