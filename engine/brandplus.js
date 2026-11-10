@@ -34,7 +34,7 @@
 
   // 2. Reveal on scroll + kinetic headings, once each
   var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
-    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('bp-in'); io.unobserve(e.target); } });
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('bp-in'); io.unobserve(e.target); var tg = e.target; setTimeout(function () { tg.classList.add('bp-done'); }, 2600); } });
   }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' }) : null;
 
   function splitWords(h) {
@@ -90,10 +90,10 @@
       if (v) { var box = v.parentNode; set = [box.querySelector('.profile__role, .eyebrow'), v, box.querySelector('.lede, p:not(.profile__role):not(.eyebrow)')]; }
     }
     if (!animate || !set[1] || set[1].dataset.bpTyped) { return; }
-    if (set[0]) typeIt(set[0], 0, 18, 260);
-    var th = typeIt(set[1], 140, 24, 620);
-    var tb = set[2] ? typeIt(set[2], Math.max(th - 80, 300), 11, 640) : th;
-    tileBase = Math.max(300, Math.min(tb - 250, 1000));
+    if (set[0]) typeIt(set[0], 0, 12, 170);
+    var th = typeIt(set[1], 60, 15, 340);
+    var tb = set[2] ? typeIt(set[2], Math.max(th - 60, 200), 6, 360) : th;
+    tileBase = Math.max(220, Math.min(tb - 380, 520));
   }
   function enhance() {
     if (!io) return;
@@ -106,9 +106,10 @@
       var idx = el.parentNode ? [].indexOf.call(el.parentNode.children, el) : 0;
       el.style.setProperty('--bp-i', Math.min(idx, 6));
       if (el.getBoundingClientRect().top < window.innerHeight) el.style.setProperty('--bp-base', tileBase + 'ms');
-      var D = [[-120, 30, -3], [0, -90, 0], [120, 30, 3], [0, 100, 0]];   // left, above, right, below
+      var D = [[-200, 40, -5, -16], [0, -150, 0, 0], [200, 40, 5, 16], [0, 170, 0, 0]];   // left, above, right, below
       var d = D[idx % 4];
-      el.style.setProperty('--bp-x', d[0] + 'px'); el.style.setProperty('--bp-y', d[1] + 'px'); el.style.setProperty('--bp-r', d[2] + 'deg');
+      el.style.setProperty('--bp-x', d[0] + 'px'); el.style.setProperty('--bp-y', d[1] + 'px');
+      el.style.setProperty('--bp-r', d[2] + 'deg'); el.style.setProperty('--bp-ry', d[3] + 'deg');
       var th = el.querySelector('.tile__thumb');
       if (th) th.dataset.pan = th.dataset.pan || PAN[idx % PAN.length];
       el.classList.add('bp-reveal'); io.observe(el);

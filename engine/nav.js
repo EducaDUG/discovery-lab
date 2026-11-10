@@ -15,7 +15,7 @@
    ========================================================================== */
 
 import { t, pl, getLang } from "./i18n.js?v=8";
-import "./brandplus.js?v=8";
+import "./brandplus.js?v=9";
 import "./weather.js?v=1";
 
 const el = (tag, cls, text) => {
