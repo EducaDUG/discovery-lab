@@ -172,7 +172,7 @@ const SUB = { mac: ["match", "priv"], ip: ["build", "deliver", "v6"], pkt: ["sen
 const SUBL = { match: ["Match 6", "6 parejas"], priv: ["Private", "Privada"], build: ["Build", "Crear"], deliver: ["Deliver 5", "Entrega 5"], v6: ["IPv6", "IPv6"],
   send: ["Send", "Enviar"], resend: ["Resend", "Reenviar"], web: ["Web", "Web"], mail: ["Mail", "Correo"], file: ["File", "Archivos"], game: ["Game", "Juego"], data: ["Data", "Datos"],
   cable: ["Cable", "Cable"], router: ["Router", "Router"], site: ["Site", "Sitio"] };
-const RANKS = [[0, L("Rookie", "Novato")], [60, L("Router Tech", "Técnico de red")], [140, L("Net Engineer", "Ingeniero de red")], [240, L("Internet Architect", "Arquitecto de Internet")]];
+const RANKS = [[0, L("Rookie", "Novato")], [70, L("Router Tech", "Técnico de red")], [170, L("Net Engineer", "Ingeniero de red")], [300, L("Internet Architect", "Arquitecto de Internet")]];
 const MAKERS = [{ id: "hp", name: "HP", p: "00:60:B0", c: "#3b8bff" }, { id: "nova", name: "Nova", p: "F4:3E:9D", c: "#ff5468" }, { id: "zeta", name: "Zeta", p: "A4:1B:7C", c: "#2bf0a0" }];
 const DEV = [{ k: "laptop", m: 0, s: "1A:2B:3C" }, { k: "tablet", m: 1, s: "5D:6E:7F" }, { k: "phone", m: 2, s: "90:AB:CD" },
   { k: "console", m: 1, s: "22:C4:08" }, { k: "desktop", m: 2, s: "E1:07:B9" }, { k: "printer", m: 0, s: "4F:55:D2" }];
@@ -438,8 +438,8 @@ async function initScene(view) {
   frameHooks.push((dt, t) => { ispF.ring0.rotation.z += dt; ispF.ring1.rotation.z -= dt * 1.3; cell.ring0.rotation.z += dt; cell.ring1.rotation.z -= dt; bad.position.y = 7 + Math.sin(t * 2) * .25; });
 
   /* ---------- camera ---------- */
-  const presets = { mac: { t: [0, 3.4, 2], az: 0, pol: .3, d: 20 }, ip: { t: [0, 2.6, 0], az: .12, pol: .42, d: 28 }, pkt: { t: [0, 1.6, 0], az: .05, pol: .55, d: 27 },
-    srv: { t: [0, 2.4, 0], az: .05, pol: .5, d: 29 }, fix: { t: [0, 1.8, 1], az: .04, pol: .5, d: 31 } };
+  const presets = { mac: { t: [0, 2.6, 3], az: 0, pol: .25, d: 24 }, ip: { t: [0, 2.6, 0], az: .12, pol: .42, d: 28 }, pkt: { t: [0, 1.6, 0], az: .05, pol: .5, d: 23 },
+    srv: { t: [0, 2.4, 0], az: .05, pol: .5, d: 25 }, fix: { t: [0, 1.8, 1], az: .04, pol: .5, d: 27 } };
   const cam = { t: V(0, 3, 0), az: 0, pol: .4, d: 22 }, drag = { az: 0, pol: 0 }; let station = "mac", aspectBoost = 1;
   out.goto = id => { station = id; drag.az = drag.pol = 0; key.position.set(ZX[id] + 6, 16, 12); key.target.position.set(ZX[id], 0, 0); };
   let dn = false, lx = 0, ly = 0; const cv = renderer.domElement; cv.style.touchAction = "pan-y";
@@ -554,7 +554,7 @@ function mkSim(host, api) {
       else { const full = ["2001", "0000", "0000", "9D38", "6AB8", "30F3", "34B1", "9D04"]; w.innerHTML = `<div class="nc-v6">${short ? `<b>2001</b><b class="z">::</b>${full.slice(3).map(g => `<b>${g}</b>`).join("")}` : full.map(g => `<b class="${g === "0000" ? "z" : ""}">${g}</b>`).join("")}</div><button class="nc-btn">${short ? L("Show all zeros", "Mostrar ceros") : L("Shorten zeros ::", "Acortar ceros ::")}</button>
         <div class="nc-cmp"><div><span>IPv4</span><i style="width:3%"></i><em>2³²</em></div><div><span>IPv6</span><i style="width:100%"></i><em>2¹²⁸</em></div></div>`; w.querySelector(".nc-btn").addEventListener("click", () => { short = !short; gain(1); drawBld(); });
         s3?.ip.build(short ? "2001::9D38:6AB8:30F3:34B1:9D04" : "2001:0000:0000:9D38:…:9D04", true); }
-      bld.append(subBar("ip")); renderSubs(); }
+      }
     p.show = () => { drawDel(); drawBld(); if (v6) s3?.ip.v6(true); }; p.show();
   })();
 
