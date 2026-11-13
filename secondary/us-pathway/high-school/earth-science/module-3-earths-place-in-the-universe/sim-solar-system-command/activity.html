@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<!-- Earth Science · Module 3: Earth's Place in the Universe · Solar System Command. Content lives here + config.json only. -->
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar System Command — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  .ssc-rank{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;background:radial-gradient(120% 160% at 10% 0%,#1b1f3a,#0a0c1e);border:1px solid #2a2f55;border-radius:12px;padding:.6rem .9rem;color:#eaf0ff;font-family:var(--font-data)}
+  .ssc-rank b{color:#ffd9a1}.ssc-xp{flex:1 1 180px;height:10px;border-radius:999px;background:#ffffff22;overflow:hidden}.ssc-xp i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff9a3a,#ffd27a);transition:width .5s}
+  .ssc-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}
+  .ssc-tab{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:.55rem .9rem;font:700 .88rem var(--font-data);cursor:pointer;color:var(--ink-1);min-height:44px}
+  .ssc-tab[aria-selected="true"]{border-color:var(--accent);background:var(--accent-wash)}.ssc-tab[data-done="true"]::after{content:" ✓";color:#2e9b5a}
+  .ssc-tab:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+  .ssc-done{margin-top:1rem;padding:1rem 1.2rem;border-radius:14px;background:linear-gradient(135deg,#1d6b3a,#0f3d5e);color:#fff}
+  .ssc-done h3{margin:0 0 .3rem}
+  .ssc-photo{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#000;max-width:520px}
+  .ssc-photo img{display:block;width:100%;height:auto}
+  .ssc-spot{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:2px solid #fff;background:#ffffff33;color:#fff;font:700 .85rem var(--font-data);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #00000066}
+  .ssc-spot:hover,.ssc-spot:focus-visible{background:var(--signal);border-color:var(--signal);color:#000;outline:none}.ssc-spot[data-open="true"]{background:var(--accent);border-color:var(--accent)}
+  .ssc-spot[data-seen="true"]{border-color:#6ee7a1}
+  .ssc-credit{font-size:.74rem;color:var(--ink-3);margin:.3rem 0 .8rem}
+  .ssc-launch{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;padding:1rem;border-radius:14px;background:radial-gradient(120% 160% at 90% 0%,#3a1b52,#0a0c1e);color:#fff}
+  .ssc-launch h3{margin:0;color:#ffd9a1}.ssc-launch p{margin:.2rem 0 0;color:#dfe5ff}
+  .ssc-pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .dl-ssc .card+.card{margin-top:12px}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../engine/i18n.js?v=10";
+import { STATION_CSS, mountOrbitLab, mountEclipseStudio, mountSunDive } from "./stations.js?v=4";
+import { mountFormation } from "./formation.js?v=2";
+import { mountSling } from "./sling.js?v=2";
+const L = (en, es) => getLang() === "es" ? es : en;
+const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+{ const s = document.createElement("style"); s.textContent = STATION_CSS; document.head.append(s); }
+
+const RANKS = [[0, "Cadet", "Cadete"], [45, "Navigator", "Navegante"], [100, "Pilot", "Piloto"], [160, "Commander", "Comandante"], [230, "Fleet Admiral", "Almirante de flota"]];
+const rankOf = xp => [...RANKS].reverse().find(r => xp >= r[0]);
+
+/* ---------------- shared gamification: XP + rank across the whole activity ---------------- */
+function makeXP(sim, bar) {
+  const S = sim.state; S.xp = S.xp || 0;
+  const paint = () => { const r = rankOf(S.xp), idx = RANKS.indexOf(r), nxt = RANKS[idx + 1]; bar.querySelector("[data-r]").textContent = L(r[1], r[2]); bar.querySelector("[data-x]").textContent = S.xp + " XP"; const pct = nxt ? (S.xp - r[0]) / (nxt[0] - r[0]) * 100 : 100; bar.querySelector(".ssc-xp i").style.width = Math.min(100, pct) + "%"; };
+  return { paint, add(n, label) { const before = rankOf(S.xp); S.xp += n; sim.saveState(); paint(); const after = rankOf(S.xp); if (after !== before) sim.toast(L(`Rank up! You are now ${after[1]}.`, `¡Subes de rango! Ahora eres ${after[2]}.`), "correct"); else sim.toast(`+${n} XP — ${label}`, "correct"); } };
+}
+
+/* ---------------- ORIENT: Time machine (3D formation) ---------------- */
+function orient(host, sim) {
+  sim.setScienceMethod({
+    observation: L("A real NASA photo shows the Sun's atmosphere erupting; meteorites on Earth are all about 4.6 billion years old; planets all orbit in the same direction on nearly the same flat plane.", "Una foto real de la NASA muestra la atmósfera del Sol en erupción; los meteoritos en la Tierra tienen unos 4.600 millones de años; los planetas orbitan en el mismo sentido y casi en el mismo plano."),
+    question: L("How does the shape of an orbit change a planet's speed, and what causes eclipses and the Sun's activity?", "¿Cómo cambia la forma de una órbita la velocidad de un planeta, y qué causa los eclipses y la actividad del Sol?")
+  });
+  host.innerHTML = "";
+  const bar = el("div", "ssc-rank", `<span>${L("Rank", "Rango")}: <b data-r></b></span><span data-x></span><div class="ssc-xp" aria-hidden="true"><i></i></div>`);
+  const xp = makeXP(sim, bar); xp.paint();
+  const c = el("div", "card"); c.style.marginTop = "10px";
+  c.innerHTML = `<p class="eyebrow">${L("Mission briefing — rewind time", "Informe de misión — rebobina el tiempo")}</p><p class="q__hint" style="margin:0 0 8px">${L("Drag the Time machine slider (or press Play) and watch a cold cloud of gas and dust spin, flatten and build the Sun and planets. Drag the 3D view to look around.", "Arrastra el control de la Máquina del tiempo (o pulsa Reproducir) y mira cómo una nube fría de gas y polvo gira, se aplana y construye el Sol y los planetas. Arrastra la vista 3D para mirar alrededor.")}</p>`;
+  const fh = el("div"); c.append(fh); host.append(bar, c);
+  mountFormation(fh, { L, sim, addXP: xp.add });
+  // quick-check
+  const qc = el("div", "card"); qc.style.marginTop = "10px";
+  qc.innerHTML = `<p class="eyebrow">${L("Quick check", "Comprobación rápida")}</p><p style="margin:0 0 8px"><b>${L("Why are the inner planets small and rocky, but the outer planets huge gas and ice giants?", "¿Por qué los planetas internos son pequeños y rocosos, pero los externos son enormes gigantes de gas y hielo?")}</b></p>`;
+  const opts = [[L("Close to the Sun it was too warm for gas and ice to stay, so only rock and metal clumped together.", "Cerca del Sol hacía demasiado calor para que el gas y el hielo se quedaran, así que solo se unieron roca y metal."), true], [L("The inner planets were hit by more comets.", "Los planetas internos recibieron más impactos de cometas."), false], [L("The Sun pulled the gas out of the inner planets later.", "El Sol les quitó el gas a los planetas internos más tarde."), false]];
+  const fbk = el("p", "ssc-fb"); fbk.setAttribute("aria-live", "polite");
+  const row = el("div", "ssc-ctl");
+  opts.forEach(([t, ok]) => { const b = el("button", "ssc-chip"); b.type = "button"; b.style.textAlign = "left"; b.style.borderRadius = "10px"; b.textContent = t; b.addEventListener("click", () => { if (ok) { fbk.dataset.t = "ok"; fbk.textContent = L("Yes — temperature in the early disk decided what material could clump. Inner = rock and metal; outer = gas and ice as well, so those cores grew big enough to hold huge atmospheres.", "Sí — la temperatura en el disco primitivo decidía qué material podía agruparse. Interior = roca y metal; exterior = también gas y hielo, así que esos núcleos crecieron lo bastante para retener enormes atmósferas."); b.dataset.done = "true"; if (!sim.state.qcOrient) { sim.state.qcOrient = true; xp.add(5, L("sharp thinking", "buen razonamiento")); } } else { fbk.dataset.t = "no"; b.classList.remove("ssc-shake"); void b.offsetWidth; b.classList.add("ssc-shake"); fbk.textContent = L("Not quite — think about how temperature changes with distance from a newborn star. Try again.", "Casi — piensa cómo cambia la temperatura con la distancia a una estrella recién nacida. Inténtalo otra vez."); } }); row.append(b); });
+  qc.append(row, fbk); host.append(qc);
+}
+
+/* ---------------- OBSERVATION: real NASA photos, tap to notice ---------------- */
+function observation(host, sim) {
+  host.innerHTML = ""; const S = sim.state; S.seenSpots = S.seenSpots || {};
+  const PHOTOS = [
+    { src: "photos/sun-eruption.jpg", alt: L("A real NASA Solar Dynamics Observatory image of a huge loop of plasma erupting from the Sun's edge", "Imagen real del Observatorio de Dinámica Solar de la NASA: un enorme bucle de plasma que sale del borde del Sol"), credit: "NASA/SDO (public domain)",
+      spots: [{ x: .25, y: .2, en: "Eruption loop", es: "Bucle de erupción", ren: "A huge loop of hot plasma, steered by the Sun's magnetic field, lifting off the edge of the Sun. This is a prominence/eruption — part of solar activity.", res: "Un enorme bucle de plasma caliente, guiado por el campo magnético del Sol, que se eleva desde el borde. Es una prominencia/erupción — parte de la actividad solar." },
+        { x: .78, y: .42, en: "Churning surface", es: "Superficie en ebullición", ren: "The textured, boiling surface is made of convection cells: hot plasma rising and cooler plasma sinking. We are looking at the Sun's outer layers.", res: "La superficie texturada y en ebullición son celdas de convección: plasma caliente que sube y plasma más frío que baja. Vemos las capas externas del Sol." },
+        { x: .68, y: .95, en: "Bright active region", es: "Región activa brillante", ren: "A bright patch where magnetic fields are strongest. Active regions like this (often with sunspots) are where solar flares start.", res: "Una zona brillante donde los campos magnéticos son más fuertes. Las regiones activas como esta (a menudo con manchas solares) son donde nacen las llamaradas." }] },
+    { src: "photos/eclipse-2017.jpg", alt: L("A real NASA photograph of the total solar eclipse of 2017: a black Moon disk surrounded by the white glow of the Sun's corona", "Fotografía real de la NASA del eclipse solar total de 2017: un disco negro de la Luna rodeado por el resplandor blanco de la corona solar"), credit: "NASA / Carla Thomas (public domain)",
+      spots: [{ x: .515, y: .47, en: "The Moon", es: "La Luna", ren: "During a total solar eclipse the new Moon passes exactly between the Sun and Earth and its dark disk covers the Sun completely.", res: "En un eclipse solar total la Luna nueva pasa justo entre el Sol y la Tierra y su disco oscuro tapa el Sol por completo." },
+        { x: .375, y: .45, en: "Corona", es: "Corona", ren: "The Sun's outermost atmosphere, normally invisible in the glare. It is only visible when the Moon blocks the bright surface.", res: "La atmósfera más externa del Sol, normalmente invisible por el deslumbramiento. Solo se ve cuando la Luna tapa la superficie brillante." },
+        { x: .462, y: .672, en: "Pink edge", es: "Borde rosado", ren: "A thin pink-red sliver on the Moon's edge is the Sun's chromosphere peeking out around the Moon.", res: "Un fino borde rosado-rojizo en el filo de la Luna es la cromosfera del Sol asomando alrededor de la Luna." }] },
+    { src: "photos/kbo-compare.jpg", alt: L("An illustration comparing the largest Kuiper Belt objects, including Pluto and its moon Charon, with Earth for scale", "Ilustración que compara los mayores objetos del cinturón de Kuiper, incluidos Plutón y su luna Caronte, con la Tierra como escala"), credit: "A. Feild, STScI / NASA (public domain)",
+      spots: [{ x: .51, y: .32, en: "Pluto", es: "Plutón", ren: "Pluto: a round, icy world that orbits the Sun but hasn't cleared its orbit of other debris. In 2006 it was reclassified as a dwarf planet.", res: "Plutón: un mundo redondo y helado que orbita el Sol pero no ha despejado su órbita de otros restos. En 2006 fue reclasificado como planeta enano." },
+        { x: .17, y: .31, en: "Eris ('Xena')", es: "Eris ('Xena')", ren: "Eris (shown as 2003 UB313 'Xena') is a similar-size dwarf planet in the Kuiper Belt region — its discovery helped spark the debate over what a planet is.", res: "Eris (aquí 2003 UB313 'Xena') es un planeta enano de tamaño parecido en la región del cinturón de Kuiper — su descubrimiento ayudó a iniciar el debate sobre qué es un planeta." },
+        { x: .6, y: .35, en: "Charon", es: "Caronte", ren: "Charon, Pluto's large moon — it is so big that Pluto and Charon orbit a point between them.", res: "Caronte, la gran luna de Plutón — es tan grande que Plutón y Caronte orbitan un punto entre ambos." },
+        { x: .5, y: .96, en: "Earth for scale", es: "La Tierra, como escala", ren: "Earth is far larger than any of these dwarf planets — they are small, icy bodies from the cold outer edge of the solar system.", res: "La Tierra es mucho mayor que cualquiera de estos planetas enanos — son cuerpos pequeños y helados del frío borde exterior del sistema solar." }] }
+  ];
+  const intro = el("div", "card"); intro.innerHTML = `<p class="eyebrow">${L("Observation", "Observación")}</p><p class="q__hint" style="margin:0">${L("Real NASA images. Tap every numbered spot and notice what is happening. Tapped spots turn green — notice at least 8.", "Imágenes reales de la NASA. Toca cada punto numerado y fíjate en lo que ocurre. Los puntos tocados se ponen verdes — observa al menos 8.")}</p><p class="ssc-note" data-count></p>`;
+  host.append(intro); const count = () => { const n = Object.keys(S.seenSpots).length; intro.querySelector("[data-count]").innerHTML = L(`Noticed: <b>${n}</b> / 11`, `Observado: <b>${n}</b> / 11`); sim.mark("observations_noticed", n); };
+  const grid = el("div", "ssc-pgrid"); grid.style.marginTop = "12px"; host.append(grid);
+  PHOTOS.forEach((ph, pi) => {
+    const col = el("div"); const wrap = el("div", "ssc-photo"); wrap.innerHTML = `<img src="${ph.src}" alt="${ph.alt}">`;
+    const rev = el("p", "ssc-fb", L("Tap a numbered spot.", "Toca un punto numerado.")); rev.setAttribute("aria-live", "polite");
+    ph.spots.forEach((s, i) => { const b = el("button", "ssc-spot"); b.type = "button"; b.style.left = s.x * 100 + "%"; b.style.top = s.y * 100 + "%"; b.textContent = i + 1; b.setAttribute("aria-label", L(s.en, s.es)); const key = pi + "-" + i; if (S.seenSpots[key]) b.dataset.seen = "true";
+      b.addEventListener("click", () => { wrap.querySelectorAll(".ssc-spot").forEach(x => x.dataset.open = "false"); b.dataset.open = "true"; b.dataset.seen = "true"; b.classList.remove("ssc-pulse"); void b.offsetWidth; b.classList.add("ssc-pulse"); rev.dataset.t = "ok"; rev.innerHTML = `<b>${L(s.en, s.es)}</b> — ${L(s.ren, s.res)}`; if (!S.seenSpots[key]) { S.seenSpots[key] = true; sim.saveState(); count(); } }); wrap.append(b); });
+    col.append(wrap, el("p", "ssc-credit", L("Photo: ", "Foto: ") + ph.credit), rev); grid.append(col);
+  });
+  count();
+}
+
+/* ---------------- INVESTIGATE: three 3D stations + bonus round ---------------- */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L("Orbit Lab — independent: orbit eccentricity; dependent: closest/farthest distance and orbital speed; controlled: the same Sun mass and the same average distance (1 AU). Eclipse Studio — independent: the Moon's position, orbit tilt and distance; dependent: the type of eclipse. Sun Dive — independent: probe depth; dependent: layer and temperature.", "Laboratorio de órbitas — independiente: excentricidad de la órbita; dependiente: distancia más cercana/lejana y velocidad orbital; controladas: la misma masa solar y la misma distancia media (1 UA). Estudio de eclipses — independiente: posición, inclinación y distancia de la Luna; dependiente: tipo de eclipse. Inmersión solar — independiente: profundidad de la sonda; dependiente: capa y temperatura.") });
+  host.innerHTML = ""; const S = sim.state; S.tab = S.tab || "orbit";
+  const bar = el("div", "ssc-rank", `<span>${L("Rank", "Rango")}: <b data-r></b></span><span data-x></span><div class="ssc-xp" aria-hidden="true"><i></i></div>`); const xp = makeXP(sim, bar); xp.paint();
+  const root = el("div", "stack"); root.append(bar);
+  const vars = el("div", "card"); vars.innerHTML = `<p class="eyebrow">${L("Your experiments — three labs", "Tus experimentos — tres laboratorios")}</p><p class="q__hint" style="margin:0">${L("<b>Orbit Lab</b>: change the orbit's shape and measure speed and distance. <b>Eclipse Studio</b>: line up the Sun, Earth and Moon. <b>Sun Dive</b>: send a probe through the Sun's six layers. Log what you measure — it goes straight into your Investigation Record. Drag any 3D view to orbit the camera.", "<b>Laboratorio de órbitas</b>: cambia la forma de la órbita y mide velocidad y distancia. <b>Estudio de eclipses</b>: alinea el Sol, la Tierra y la Luna. <b>Inmersión solar</b>: envía una sonda por las seis capas del Sol. Registra lo que midas — pasa directo a tu Registro de investigación. Arrastra cualquier vista 3D para orbitar la cámara.")}</p>`; root.append(vars);
+  const tabs = el("div", "ssc-tabs"); tabs.setAttribute("role", "tablist"); root.append(tabs);
+  const stationHost = el("div", "card"); root.append(stationHost);
+  const TABS = [["orbit", L("① Orbit Lab", "① Lab. de órbitas"), mountOrbitLab, () => new Set(S.orbitLogged || []).size >= 3], ["eclipse", L("② Eclipse Studio", "② Estudio de eclipses"), mountEclipseStudio, () => ["solar-total", "solar-annular", "solar-partial", "lunar-total", "lunar-partial", "lunar-penumbral"].every(i => (S.eclipseDone || {})[i])], ["sun", L("③ Sun Dive", "③ Inmersión solar"), mountSunDive, () => (S.sunRound || 0) >= 6 && new Set(S.sunLogged || []).size >= 4]];
+  const done = el("div"); root.append(done);
+  function paintTabs() { tabs.innerHTML = ""; TABS.forEach(([id, label, , isDone]) => { const b = el("button", "ssc-tab", label); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", S.tab === id); b.dataset.done = isDone() ? "true" : "false"; b.addEventListener("click", () => { S.tab = id; sim.saveState(); show(); }); tabs.append(b); }); }
+  const addXP = (n, l) => { xp.add(n, l); paintTabs(); checkDone(); };
+  function show() { paintTabs(); stationHost.innerHTML = ""; const t = TABS.find(x => x[0] === S.tab); const h = el("div"); stationHost.append(h); t[2](h, { L, sim, addXP }); }
+  function checkDone() {
+    if (!TABS.every(t => t[3]())) { done.innerHTML = `<p class="ssc-note">${L("Mission progress: finish all three labs — 3 different orbit shapes logged, all 6 eclipses created, and all 6 Sun layers found.", "Progreso de la misión: termina los tres laboratorios — 3 formas de órbita registradas, los 6 eclipses creados y las 6 capas del Sol encontradas.")}</p>`; return; }
+    const r = rankOf(S.xp); if (!S.missionDone) { S.missionDone = true; sim.mark("all_labs_complete", true); sim.saveState(); }
+    done.innerHTML = `<div class="ssc-done"><h3>🚀 ${L("Mission complete!", "¡Misión cumplida!")}</h3><p style="margin:0">${L(`You mastered orbits, eclipses and the Sun. Final rank: <b>${r[1]}</b> with <b>${S.xp} XP</b>. Head to Record to see your data — then try the bonus round below.`, `Dominaste las órbitas, los eclipses y el Sol. Rango final: <b>${r[2]}</b> con <b>${S.xp} XP</b>. Ve a Registro para ver tus datos — y prueba la ronda extra de abajo.`)}</p></div>`;
+  }
+  host.append(root); show(); checkDone();
+
+  // ---- bonus: Planet Sling ----
+  const bonus = el("div", "card"); bonus.style.marginTop = "12px";
+  const launch = el("div", "ssc-launch", `<div style="flex:1 1 260px"><h3>🪐 ${L("Bonus round: Planet Sling", "Ronda extra: Honda planetaria")}</h3><p>${L("Fire probes from Earth, let the Sun's gravity bend their path, and hit the planet in each clue. About 2 minutes — optional, no marks, no penalties.", "Dispara sondas desde la Tierra, deja que la gravedad del Sol curve su trayectoria y acierta el planeta de cada pista. Unos 2 minutos — opcional, sin notas ni penalizaciones.")}</p></div>`);
+  const bPlay = el("button", "btn btn--signal", L("▶ Play", "▶ Jugar")), bSkip = el("button", "btn btn--ghost", L("Skip", "Omitir")); bPlay.type = bSkip.type = "button"; launch.append(bPlay, bSkip); bonus.append(launch);
+  const gameHost = el("div"); bonus.append(gameHost); root.append(bonus);
+  if (S.sling) launch.innerHTML = `<div><h3>🪐 ${L("Planet Sling — best so far", "Honda planetaria — mejor marca")}</h3><p>${L(`${S.sling.hits} hits · best streak ${S.sling.best} · score ${S.sling.score}`, `${S.sling.hits} aciertos · mejor racha ${S.sling.best} · puntos ${S.sling.score}`)}</p></div>`, launch.append(bPlay), bPlay.textContent = L("↻ Play again", "↻ Jugar otra vez");
+  bPlay.addEventListener("click", () => { launch.style.display = "none"; mountSling(gameHost, { L, onFinish: res => {
+    S.sling = (!S.sling || res.score >= S.sling.score) ? res : S.sling; sim.setResult("bonus_planet_sling", res); sim.mark("bonus_hits", res.hits); sim.saveState(); if (res.hits >= 4) xp.add(15, L("sling master", "maestro de la honda"));
+    gameHost.innerHTML = `<div class="ssc-done"><h3>${L("Round over!", "¡Fin de la ronda!")}</h3><p style="margin:0">${res.skipped ? L("3D isn't available here, so the bonus round was skipped.", "El 3D no está disponible aquí, así que se omitió la ronda extra.") : L(`<b>${res.hits}</b> hits from ${res.shots} shots · best streak <b>${res.best}</b> · score <b>${res.score}</b>. Great flying, Commander!`, `<b>${res.hits}</b> aciertos en ${res.shots} disparos · mejor racha <b>${res.best}</b> · puntos <b>${res.score}</b>. ¡Buen vuelo, comandante!`)}</p></div>`; const again = el("button", "btn btn--ghost", L("↻ Play again", "↻ Jugar otra vez")); again.type = "button"; again.style.marginTop = ".6rem"; again.addEventListener("click", () => bPlay.click()); gameHost.append(again); } }); });
+  bSkip.addEventListener("click", () => { launch.innerHTML = `<p style="margin:0">${L("Skipped — you can come back to it any time.", "Omitida — puedes volver cuando quieras.")}</p>`; launch.append(bPlay); bPlay.textContent = L("▶ Play", "▶ Jugar"); });
+}
+
+mountActivity({ simulation: { orient, observation, investigate } }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
