@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="computing" data-age-band="primary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Hardware City — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../engine/style.css?v=34">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='14' y='14' width='36' height='36' rx='6' fill='%232b7de9'/><rect x='24' y='24' width='16' height='16' rx='3' fill='%23fff'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Tech Core Arena: dark glass HUD over a real-time 3D motherboard ---- */
+.simonly{--cpu:#35d0ff;--ram:#ff9a3c;--sto:#a97bff;--ok:#2bf0a0;--bad:#ff5468;
+  padding:0 !important;overflow:hidden;border-radius:22px;border:1px solid #22304d;background:#070b14;color:#e8f0ff;
+  box-shadow:0 20px 60px -20px rgba(20,60,160,.55);}
+.simonly *{box-sizing:border-box;}
+.ar-top{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:12px 16px;
+  background:linear-gradient(180deg,#0f1830,#0a1122);border-bottom:1px solid #1d2a47;}
+.ar-rank{display:flex;align-items:center;gap:12px;min-width:15rem;}
+.ar-rank__badge{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:1.25rem;color:#06101f;
+  background:linear-gradient(135deg,#35d0ff,#a97bff);box-shadow:0 0 18px rgba(80,160,255,.55);}
+.ar-rank__name{font-weight:900;letter-spacing:.04em;text-transform:uppercase;font-size:.78rem;color:#9fb6e6;}
+.ar-xpbar{height:9px;width:11rem;border-radius:9px;background:#18233d;overflow:hidden;margin-top:5px;}
+.ar-xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#35d0ff,#2bf0a0);transition:width .5s;}
+.ar-xp{font-family:var(--font-data);font-size:.8rem;color:#c7d8ff;font-weight:700;}
+.ar-miss{display:flex;gap:7px;flex-wrap:wrap;}
+.ar-m{display:inline-flex;align-items:center;gap:.45em;padding:.38em .85em;border-radius:999px;font-size:.76rem;font-weight:800;
+  background:#121d36;color:#7f95c4;border:1px solid #243457;}
+.ar-m::before{content:"";width:.8em;height:.8em;border-radius:50%;border:2px solid #4a5f8f;}
+.ar-m.done{background:rgba(43,240,160,.12);color:var(--ok);border-color:rgba(43,240,160,.5);}
+.ar-m.done::before{background:var(--ok);border-color:var(--ok);}
+.ar-view{position:relative;height:clamp(300px,52vh,520px);background:radial-gradient(ellipse at 50% 30%,#13203d,#070b14 70%);}
+.ar-view canvas{display:block;touch-action:pan-y;cursor:grab;}
+.ar-nogl{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:2rem;color:#9fb6e6;font-weight:700;}
+.ar-msg{position:absolute;left:12px;right:12px;bottom:12px;padding:.7em 1em;border-radius:14px;font-weight:800;font-size:.92rem;
+  background:rgba(8,14,30,.78);border:1px solid #2a3b60;backdrop-filter:blur(8px);color:#dce8ff;pointer-events:none;}
+.ar-msg.good{border-color:rgba(43,240,160,.6);color:var(--ok);} .ar-msg.bad{border-color:rgba(255,84,104,.7);color:#ff8d9c;}
+.ar-hint{position:absolute;right:12px;top:10px;font-size:.7rem;font-weight:700;color:#6f86b8;pointer-events:none;}
+.ar-pop{position:absolute;left:50%;top:38%;transform:translateX(-50%);font-weight:900;font-size:1.5rem;color:var(--ok);text-shadow:0 0 14px rgba(43,240,160,.8);
+  pointer-events:none;animation:arpop 1.1s ease-out forwards;}
+@keyframes arpop{0%{opacity:0;transform:translate(-50%,10px);}15%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50px);}}
+.ar-banner{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,9,20,.72);backdrop-filter:blur(3px);z-index:3;}
+.ar-banner div{text-align:center;padding:1.4rem 2rem;border-radius:22px;border:1px solid var(--ok);background:#0a1426;box-shadow:0 0 40px rgba(43,240,160,.35);}
+.ar-banner h3{margin:0 0 .3em;font-size:1.6rem;color:var(--ok);} .ar-banner p{margin:0 0 .9em;color:#c7d8ff;font-weight:700;}
+.ar-stations{display:flex;gap:8px;padding:10px 12px;background:#0a1122;flex-wrap:wrap;}
+.ar-st{flex:1 1 9rem;display:flex;align-items:center;justify-content:center;gap:.5em;min-height:46px;padding:.5em .8em;border-radius:14px;border:1px solid #243457;
+  background:#101a31;color:#a9bde6;font:inherit;font-weight:900;font-size:.9rem;cursor:pointer;touch-action:manipulation;transition:all .15s;}
+.ar-st svg{width:1.4em;height:1.4em;}
+.ar-st[aria-selected=true]{color:#fff;border-color:var(--c);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 28%,#101a31),#101a31);box-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);}
+.ar-dock{padding:6px 14px 16px;background:#0a1122;}
+.ar-dock[hidden],.ar-panel[hidden]{display:none;}
+.ar-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px;align-items:start;}
+@media(max-width:760px){.ar-panel{grid-template-columns:1fr;}}
+.ar-card{border-radius:16px;border:1px solid #243457;background:linear-gradient(180deg,#111c35,#0d1630);padding:12px 14px;}
+.ar-card h3{margin:0 0 8px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#8fa7d8;}
+.ar-big{font-family:var(--font-data);font-weight:900;font-size:2.2rem;line-height:1;color:var(--c);text-shadow:0 0 18px color-mix(in srgb,var(--c) 60%,transparent);}
+.ar-seg{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;}
+.ar-seg button{flex:1 1 3.4rem;min-height:44px;border-radius:12px;border:1px solid #2c3f68;background:#14213f;color:#bcd0ff;font:inherit;font-weight:900;cursor:pointer;touch-action:manipulation;}
+.ar-seg button[aria-pressed=true]{background:var(--c);color:#06101f;border-color:var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 55%,transparent);}
+.ar-go{width:100%;min-height:50px;border:none;border-radius:14px;font:inherit;font-weight:900;font-size:1rem;color:#06101f;cursor:pointer;
+  background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#fff));box-shadow:0 5px 0 color-mix(in srgb,var(--c) 45%,#000),0 0 22px color-mix(in srgb,var(--c) 40%,transparent);touch-action:manipulation;}
+.ar-go:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--c) 45%,#000);} .ar-go:disabled{opacity:.5;}
+.ar-go--ghost{background:#14213f;color:#dce8ff;box-shadow:0 4px 0 #0a1226;border:1px solid #2c3f68;margin-top:8px;}
+.ar-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(7.6rem,1fr));gap:8px;}
+.ar-chip{display:flex;align-items:center;gap:8px;min-height:50px;padding:6px 10px 6px 6px;border-radius:14px;border:1px solid #2c3f68;background:#14213f;color:#e8f0ff;font:inherit;font-weight:800;font-size:.82rem;cursor:pointer;text-align:left;touch-action:manipulation;}
+.ar-chip svg{width:2.2rem;height:2.2rem;flex:none;} .ar-chip small{display:block;color:#8fa7d8;font-weight:700;}
+.ar-chip[aria-pressed=true]{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 22%,#14213f);box-shadow:0 0 14px color-mix(in srgb,var(--ac) 50%,transparent);}
+.ar-bars{display:flex;flex-direction:column;gap:7px;margin-top:6px;}
+.ar-bar{display:grid;grid-template-columns:3.6rem 1fr 3.2rem;gap:8px;align-items:center;font-size:.8rem;font-weight:800;color:#c7d8ff;}
+.ar-bar i{display:block;height:.9rem;border-radius:6px;background:linear-gradient(90deg,var(--cpu),#2bf0a0);transition:width .4s;}
+.ar-bar.e{color:#5d7199;} .ar-bar.e i{background:#1b2846;width:6%;}
+.ar-meter{height:14px;border-radius:8px;background:#18233d;overflow:hidden;margin:8px 0;border:1px solid #2c3f68;}
+.ar-meter i{display:block;height:100%;transition:width .3s,background .3s;}
+.ar-add{margin-top:12px;padding:10px 12px;border-radius:14px;border:1px dashed #3a5086;background:#0c1630;}
+.ar-add h3{margin:0 0 8px;}
+.ar-add__row{display:flex;gap:8px;} .ar-add__row input{flex:1;min-width:0;min-height:46px;border-radius:12px;border:1px solid #2c3f68;background:#14213f;color:#e8f0ff;font:inherit;font-weight:700;padding:0 .9em;}
+.ar-add__row .ar-go{width:auto;padding:0 1.3em;}
+.ar-fact{margin:12px 14px 14px;padding:10px 14px;border-radius:14px;background:#17130a;border:1px dashed #d9a21b;display:flex;gap:12px;align-items:center;}
+.ar-fact button{font:inherit;font-weight:900;background:#d9a21b;color:#1c1400;border:none;border-radius:10px;padding:.6em 1em;cursor:pointer;min-height:44px;}
+.ar-fact p{margin:0;font-weight:700;color:#ffdf8a;font-size:.9rem;}
+[data-reduced-motion=on] .ar-pop{animation:none;}
+.nl{position:absolute;left:0;top:0;pointer-events:none;font:900 .7rem var(--font-data,monospace);padding:.2em .65em;border-radius:99px;background:rgba(8,14,30,.78);border:1px solid #2a3b60;color:#dce8ff;white-space:nowrap;will-change:transform;z-index:2}
+.nl.g{border-color:rgba(43,240,160,.7);color:#2bf0a0}.nl.r{border-color:rgba(255,84,104,.8);color:#ff8d9c}
+.pcb{width:46px;height:46px;border-radius:50%;border:3px solid transparent;font:inherit;font-weight:900;font-size:1.1rem;color:#06101f;background:var(--pc);cursor:pointer;touch-action:manipulation}
+.pcb[aria-pressed=true]{border-color:#fff;box-shadow:0 0 16px var(--pc);transform:scale(1.12)}.pcb:disabled{opacity:.25}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.row>b{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#8fa7d8;min-width:3.4rem}
+.dev{display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 8px;border-radius:12px;border:1px solid #2c3f68;background:#14213f;font-weight:800;font-size:.85rem}
+.dev.ok{border-color:var(--ok);background:rgba(43,240,160,.12)}.dev span{flex:1}.dev button{min-width:46px;min-height:44px;border-radius:10px;border:1px solid #2c3f68;background:#0f1a33;color:#e8f0ff;cursor:pointer;font-size:1.1rem;touch-action:manipulation}
+.dev button svg{width:1.4rem;height:1.4rem;vertical-align:middle}
+.dev svg.i{width:2rem;height:2rem}
+.shk{animation:shk .35s}@keyframes shk{20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+[data-reduced-motion=on] .shk{animation:none}
+.ar-chip.shk{border-color:var(--bad)}
+</style></head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountExternalActivity } from "../../../../engine/external-activity.js?v=3";
+import { getLang } from "../../../../engine/i18n.js?v=10";
+const L = (en, es) => getLang() === "es" ? es : en;
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on" ||
+  (document.documentElement.getAttribute("data-reduced-motion") !== "off" && matchMedia("(prefers-reduced-motion: reduce)").matches);
+const RANKS = [[0, L("Rookie", "Novato")], [60, L("Cable Tech", "Técnico")], [140, L("Network Pro", "Experto en redes")], [240, L("Architect", "Arquitecto")]];
+const PCC = ["#ff6b6b", "#ffd23f", "#2bf0a0", "#35d0ff", "#c18bff"], LET = "ABCDE";
+
+/* small drawn icons */
+const IC = {
+  eth: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#6aa6ff"/><path d="M14 14h20v14h-4v6h-12v-6h-4z" fill="#fff"/><path d="M19 18v6M24 18v6M29 18v6" stroke="#6aa6ff" stroke-width="2.4"/></svg>`,
+  fibre: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#35d0ff"/><g stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M8 34C18 34 18 14 26 14S34 24 40 12"/><path d="M8 40C20 40 22 22 30 22S36 32 42 22" opacity=".6"/></g></svg>`,
+  wifi: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#ff5fd2"/><g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M9 19a22 22 0 0 1 30 0M15 26a13 13 0 0 1 18 0"/></g><circle cx="24" cy="34" r="3.4" fill="#fff"/></svg>`,
+  cell: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#ffb13c"/><path d="M24 14l7 24H17z" fill="#fff"/><path d="M18 26h12M20 32h8" stroke="#ffb13c" stroke-width="2"/><circle cx="24" cy="12" r="3" fill="#fff"/></svg>`,
+  modem: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#1fb5a4"/><rect x="8" y="22" width="32" height="14" rx="3" fill="#fff"/><circle cx="15" cy="29" r="2" fill="#1fb5a4"/><circle cx="22" cy="29" r="2" fill="#1fb5a4"/><path d="M30 29h6" stroke="#1fb5a4" stroke-width="2.4"/><path d="M24 20v-6" stroke="#fff" stroke-width="3"/></svg>`,
+  router: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#8b5cf6"/><rect x="8" y="26" width="32" height="12" rx="3" fill="#fff"/><path d="M14 26L11 12M34 26l3-14" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="32" r="2" fill="#8b5cf6"/><circle cx="23" cy="32" r="2" fill="#8b5cf6"/></svg>`,
+  hub: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#9aa5b8"/><rect x="7" y="19" width="34" height="14" rx="3" fill="#fff"/><g fill="#9aa5b8"><circle cx="13" cy="26" r="2"/><circle cx="20" cy="26" r="2"/><circle cx="27" cy="26" r="2"/><circle cx="34" cy="26" r="2"/></g></svg>`,
+  pc: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#3b8bff"/><rect x="8" y="10" width="32" height="21" rx="3" fill="#fff"/><rect x="11" y="13" width="26" height="15" rx="1.5" fill="#3b8bff"/><path d="M18 38h12M24 31v7" stroke="#fff" stroke-width="3"/></svg>`,
+  console: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#e5484d"/><path d="M13 16h22c5 0 8 7 8 13 0 4-2.500 6-5 4.500L33 30H15l-5 3.500C7.500 35 5 33 5 29c0-6 3-13 8-13z" fill="#fff"/><path d="M16 21v7M12.500 24.500h7" stroke="#e5484d" stroke-width="2.800" stroke-linecap="round"/></svg>`,
+  laptop: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#22c58b"/><rect x="11" y="12" width="26" height="17" rx="2.500" fill="#fff"/><path d="M6 35h36l-3-6H9z" fill="#fff"/></svg>`,
+  tablet: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#ff8a1f"/><rect x="10" y="9" width="28" height="30" rx="4" fill="#fff"/><circle cx="24" cy="34" r="1.800" fill="#ff8a1f"/></svg>`,
+  phone: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#e043a8"/><rect x="15" y="8" width="18" height="32" rx="4" fill="#fff"/><circle cx="24" cy="35" r="1.800" fill="#e043a8"/></svg>`,
+  speaker: `<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#7a8599"/><rect x="14" y="8" width="20" height="32" rx="4" fill="#fff"/><circle cx="24" cy="28" r="6" fill="#7a8599"/><circle cx="24" cy="16" r="2.500" fill="#7a8599"/></svg>`,
+  cable: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 3v6M17 3v6M5 9h14v4a7 7 0 0 1-14 0zM12 20v2"/></svg>`,
+  air: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 9a13 13 0 0 1 18 0M7 13a7 7 0 0 1 10 0"/><circle cx="12" cy="18" r="1.600" fill="currentColor"/></svg>`,
+};
+
+function loadThree() {
+  if (window.THREE) return Promise.resolve();
+  return new Promise((res, rej) => { const s = document.createElement("script");
+    s.src = "../../../../engine/vendor/three.min.js"; s.onload = res; s.onerror = rej; document.head.append(s); });
+}
+
+/* =====================================================================
+   3D CITY - a real-time scene that only DRAWS what the game tells it.
+   All game logic and timing live outside (setTimeout / wall clock).
+   ===================================================================== */
+const stub = {
+  clear() {}, node() {}, link() {}, cut() {}, mend() {}, state() {}, burst() {}, shake() {}, solid() {}, move() {}, disc() {}, cam() {}, label() {},
+  send(ids, o) { setTimeout(() => o.cb && o.cb(), (o.delay || 0) + o.dur); },
+};
+async function initScene(view, rt) {
+  try { await loadThree(); } catch (e) { return null; }
+  const THREE = window.THREE; let renderer;
+  try { renderer = new THREE.WebGLRenderer({ antialias: true }); } catch (e) { return null; }
+  const C = h => new THREE.Color(h).convertSRGBToLinear(), V3 = THREE.Vector3;
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const cv = renderer.domElement; cv.style.cssText = "width:100%;height:100%;display:block"; view.prepend(cv);
+  const scene = new THREE.Scene(); scene.background = C(0x0a1226); scene.fog = new THREE.FogExp2(C(0x0a1226), .017);
+  const camera = new THREE.PerspectiveCamera(45, 1, .1, 200);
+  scene.add(new THREE.HemisphereLight(C(0xb5ccff), C(0x1a2850), 1.5));
+  const sun = new THREE.DirectionalLight(C(0xfff2dd), 1.5); sun.position.set(6, 14, 9); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { left: -17, right: 17, top: 17, bottom: -17, near: 1, far: 40 }); scene.add(sun);
+  const cvs = (w, h, fn) => { const c = document.createElement("canvas"); c.width = w; c.height = h; fn(c.getContext("2d"), w, h); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; };
+  /* circuit-board ground texture */
+  const gtex = cvs(512, 512, (x, w, h) => { x.fillStyle = "#0b1428"; x.fillRect(0, 0, w, h); x.strokeStyle = "rgba(53,208,255,.16)"; x.lineWidth = 2;
+    for (let i = 0; i < 46; i++) { let px = Math.random() * w, py = Math.random() * h; x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 4; k++) { if (Math.random() < .5) px += (Math.random() - .5) * 140; else py += (Math.random() - .5) * 140; x.lineTo(px, py); } x.stroke(); x.fillStyle = "rgba(53,208,255,.35)"; x.beginPath(); x.arc(px, py, 4, 0, 7); x.fill(); }
+    x.strokeStyle = "rgba(120,160,255,.08)"; for (let i = 0; i <= 8; i++) { x.beginPath(); x.moveTo(i * 64, 0); x.lineTo(i * 64, h); x.moveTo(0, i * 64); x.lineTo(w, i * 64); x.stroke(); } });
+  gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(4, 4);
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(40, 64), new THREE.MeshStandardMaterial({ map: gtex, roughness: .75, metalness: .2 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  const glow = cvs(64, 64, (x) => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(.35, "rgba(255,255,255,.45)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 64, 64); });
+  /* background city of lit towers + stars */
+  const wtex = cvs(64, 128, (x, w, h) => { x.fillStyle = "#101b36"; x.fillRect(0, 0, w, h); for (let r = 0; r < 16; r++) for (let c = 0; c < 6; c++) { x.fillStyle = Math.random() < .55 ? "#ffd98a" : "#1c2b52"; x.fillRect(4 + c * 10, 4 + r * 8, 6, 5); } });
+  const bm = new THREE.MeshStandardMaterial({ map: wtex, emissiveMap: wtex, emissive: C(0xffffff), emissiveIntensity: .6, roughness: .8 });
+  for (let i = 0; i < 70; i++) { const a = Math.random() * 6.283, r = 21 + Math.random() * 14, h = 2 + Math.random() * 9;
+    const b = new THREE.Mesh(new THREE.BoxGeometry(1.6 + Math.random() * 2, h, 1.6 + Math.random() * 2), bm); b.position.set(Math.cos(a) * r, h / 2, Math.sin(a) * r); scene.add(b); }
+  const sg = new THREE.BufferGeometry(), sp = new Float32Array(900); for (let i = 0; i < 300; i++) { const a = Math.random() * 6.283, e = .15 + Math.random() * 1.2, r = 70; sp[i * 3] = Math.cos(a) * Math.cos(e) * r; sp[i * 3 + 1] = Math.sin(e) * r; sp[i * 3 + 2] = Math.sin(a) * Math.cos(e) * r; }
+  sg.setAttribute("position", new THREE.BufferAttribute(sp, 3)); const stars = new THREE.Points(sg, new THREE.PointsMaterial({ size: 1.4, color: C(0xbcd0ff), fog: false })); scene.add(stars);
+  /* drifting data bits (always moving) */
+  const DN = 70, dg = new THREE.BufferGeometry(), dp = new Float32Array(DN * 3), dv = []; for (let i = 0; i < DN; i++) { dp[i * 3] = (Math.random() - .5) * 30; dp[i * 3 + 1] = .5 + Math.random() * 7; dp[i * 3 + 2] = (Math.random() - .5) * 20; dv.push(.2 + Math.random() * .5); }
+  dg.setAttribute("position", new THREE.BufferAttribute(dp, 3)); scene.add(new THREE.Points(dg, new THREE.PointsMaterial({ size: .16, color: C(0x35d0ff), map: glow, transparent: true, opacity: .8, depthWrite: false, blending: THREE.AdditiveBlending })));
+
+  const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: C(c), roughness: o.r ?? .45, metalness: o.m ?? .25, emissive: C(o.e ?? 0), emissiveIntensity: o.ei ?? 1 });
+  const nodes = {}, links = {}, packets = [], extras = [], pickables = [], labels = {};
+  /* ---- device models ---- */
+  function build(type, col) {
+    const g = new THREE.Group(), leds = []; let scr = null;
+    const bx = (w, h, d, c, x, y, z, o) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c, o)); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+    const led = (x, y, z, c) => { const m = bx(.1, .06, .06, 0x111111, x, y, z, { e: c, ei: 1.6 }); leds.push(m.material); return m; };
+    const screen = (w, h, x, y, z, rx) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat(0x0a1226, { e: 0x2fd0ff, ei: 1.2, r: .2 })); m.position.set(x, y, z); m.rotation.x = rx || 0; g.add(m); scr = m.material; };
+    switch (type) {
+      case "pc": bx(1.0, .1, .7, 0x4a5775, 0, .05, 0); bx(.16, .5, .16, 0x56648a, 0, .35, -.1); bx(1.5, .95, .1, 0x3b4770, 0, .95, -.12); screen(1.34, .8, 0, .95, -.06); bx(.5, .5, .55, 0x4a5775, .95, .3, 0); led(.95, .4, .29, 0x2bf0a0); break;
+      case "laptop": bx(1.4, .08, .95, 0x9aa5b8, 0, .04, 0, { m: .7 }); bx(1.3, .85, .06, 0x9aa5b8, 0, .5, -.48, { m: .7 }).rotation.x = -.2; screen(1.15, .72, 0, .5, -.44, -.2); break;
+      case "phone": bx(.5, .9, .07, 0x1b2236, 0, .55, 0).rotation.x = -.15; screen(.42, .78, 0, .55, .05, -.15); bx(.7, .08, .5, 0x4a5775, 0, .04, 0.1); break;
+      case "tablet": bx(1.1, .75, .07, 0x1b2236, 0, .55, 0).rotation.x = -.5; screen(1.0, .65, 0, .56, .045, -.5); bx(.9, .08, .5, 0x4a5775, 0, .04, .1); break;
+      case "console": bx(1.1, .22, .8, 0xe8ecf4, 0, .14, 0, { r: .3 }); bx(1.1, .06, .8, 0x4a5775, 0, .27, 0); led(.4, .31, .3, 0x2bf0a0); scr = null; break;
+      case "server": for (let i = 0; i < 3; i++) { bx(1.2, .5, .9, 0x4a5775, 0, .27 + i * .55, 0); led(-.4, .27 + i * .55, .46, 0x2bf0a0); led(-.25, .27 + i * .55, .46, 0xffb13c); } break;
+      case "hub": bx(1.8, .35, .95, 0x7f8a9e, 0, .2, 0); for (let i = 0; i < 5; i++) led(-.7 + i * .35, .38, .4, 0xffb13c); break;
+      case "switch": bx(2.0, .35, .95, 0x1f4fc0, 0, .2, 0, { m: .5 }); for (let i = 0; i < 8; i++) led(-.8 + i * .23, .38, .4, 0x2bf0a0); break;
+      case "router": bx(1.5, .3, .95, 0x6b3fd0, 0, .18, 0); [-.55, 0, .55].forEach(x => bx(.07, 1.0, .07, 0x1b2236, x, .8, -.3)); led(-.4, .34, .4, 0x2bf0a0); led(-.2, .34, .4, 0x35d0ff); led(0, .34, .4, 0xffb13c); break;
+      case "modem": bx(1.1, .38, .75, 0x1fb5a4, 0, .2, 0); led(-.3, .4, .3, 0x2bf0a0); led(-.1, .4, .3, 0x35d0ff); led(.1, .4, .3, 0xffb13c); bx(.06, .5, .06, 0x1b2236, .45, .6, -.2); break;
+      case "cloud": [[0, 1.8, 0, 1.1], [-1, 1.5, .2, .8], [1, 1.5, -.1, .85], [.4, 2.3, .1, .8], [-.5, 2.1, -.2, .7]].forEach(a => { const m = new THREE.Mesh(new THREE.SphereGeometry(a[3], 20, 14), mat(0xdfe9ff, { e: 0x7aa7ff, ei: .5, r: .9, m: 0 })); m.position.set(a[0], a[1], a[2]); m.castShadow = true; g.add(m); }); break;
+      case "tower": { const m = new THREE.Mesh(new THREE.ConeGeometry(.5, 3.4, 8), mat(0xc6d0e4, { m: .6 })); m.position.y = 1.7; m.castShadow = true; g.add(m);
+        [1.0, 1.7, 2.4].forEach(y => { const r = new THREE.Mesh(new THREE.TorusGeometry(.4 - (y - 1) * .12, .04, 8, 24), mat(0xffb13c, { e: 0xffb13c, ei: 1 })); r.position.y = y; r.rotation.x = Math.PI / 2; g.add(r); });
+        const b = new THREE.Mesh(new THREE.SphereGeometry(.14, 10, 8), mat(0xff4060, { e: 0xff4060, ei: 2 })); b.position.y = 3.5; g.add(b); leds.push(b.material); break; }
+      case "dot": { const m = new THREE.Mesh(new THREE.SphereGeometry(.28, 14, 10), mat(0x35d0ff, { e: 0x35d0ff, ei: .7 })); m.position.y = .3; g.add(m); break; }
+    }
+    return { g, scr, leds };
+  }
+  const SC = { on: [0x2fd0ff, 1.5], idle: [0x1d3a7a, .7], off: [0x40080f, .45], ok: [0x22ff99, 1.5], bad: [0xff4060, 1.5] };
+  const mkLabel = (id, t) => { labels[id] && labels[id].remove(); const d = document.createElement("div"); d.className = "nl"; d.textContent = t; view.append(d); labels[id] = d; };
+  const S = {
+    clear() { Object.values(nodes).forEach(n => scene.remove(n.g)); Object.values(links).forEach(l => scene.remove(l.g)); packets.forEach(p => scene.remove(p.m)); extras.forEach(e => scene.remove(e));
+      pickables.length = 0; extras.length = 0; packets.length = 0; for (const k in nodes) delete nodes[k]; for (const k in links) delete links[k]; Object.values(labels).forEach(d => d.remove()); for (const k in labels) delete labels[k]; },
+    node(id, type, x, z, o = {}) { if (nodes[id]) { scene.remove(nodes[id].g); } const b = build(type, o.color); b.g.position.set(x, 0, z); b.g.scale.setScalar(.01);
+      if (o.ghost) b.g.traverse(m => { if (m.material) { m.material = m.material.clone(); m.material.transparent = true; m.material.opacity = .22; m.material.depthWrite = false; } });
+      if (o.rot) b.g.rotation.y = o.rot; scene.add(b.g);
+      const pk = new THREE.Mesh(new THREE.SphereGeometry(1.2, 6, 4), new THREE.MeshBasicMaterial({ visible: false })); pk.position.y = .8; pk.userData = { nid: id }; b.g.add(pk); pickables.push(pk);
+      nodes[id] = { id, type, ...b, pos: new V3(x, 0, z), spawn: 0, hgt: o.h ?? 2.1, ghost: !!o.ghost, shake: 0, bob: type === "cloud" || type === "phone", tw: null };
+      if (b.scr) this.state(id, o.state || "idle"); if (o.label) mkLabel(id, o.label); else if (labels[id]) { labels[id].remove(); delete labels[id]; } },
+    label(id, t, cls) { const d = labels[id]; if (d) { if (t != null) d.textContent = t; d.className = "nl " + (cls || ""); } },
+    solid(id) { const n = nodes[id]; if (!n) return; n.ghost = false; n.g.traverse(m => { if (m.material && m.material.transparent) { m.material.opacity = 1; m.material.transparent = false; m.material.depthWrite = true; } }); n.spawn = 0; },
+    state(id, s) { const n = nodes[id]; if (!n || !n.scr) return; const [c, i] = SC[s]; n.scr.emissive.copy(C(c)); n.scr.emissiveIntensity = i; },
+    shake(id) { const n = nodes[id]; if (n) n.shake = .45; },
+    move(id, x, z) { const n = nodes[id]; if (n) n.tw = { f: n.pos.clone(), t: new V3(x, 0, z), p: 0 }; },
+    link(id, a, b, o = {}) { const l = { id, a, b, kind: o.kind || "cable", col: o.col ?? 0x7f9bd6, g: new THREE.Group(), cut: false, segs: [] }; scene.add(l.g); links[id] = l; draw(l); },
+    cut(id) { const l = links[id]; if (!l || l.cut) return; l.cut = true; draw(l); },
+    mend(id) { const l = links[id]; if (!l || !l.cut) return; l.cut = false; draw(l); },
+    disc(x, z, r, col) { const m = new THREE.Mesh(new THREE.RingGeometry(r - .12, r, 64), new THREE.MeshBasicMaterial({ color: C(col), transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(x, .05, z);
+      const f = new THREE.Mesh(new THREE.CircleGeometry(r, 64), new THREE.MeshBasicMaterial({ color: C(col), transparent: true, opacity: .07, side: THREE.DoubleSide, depthWrite: false })); f.rotation.x = -Math.PI / 2; f.position.set(x, .04, z); scene.add(m, f); extras.push(m, f); },
+    send(ids, o) { const pts = ids.map(i => nodes[i] ? nodes[i].pos.clone().setY(.6) : null).filter(Boolean); if (pts.length < 2) { setTimeout(() => o.cb && o.cb(), (o.delay || 0) + o.dur); return; }
+      const m = new THREE.Mesh(new THREE.BoxGeometry(.34, .34, .34), mat(o.col ?? 0xffffff, { e: o.col ?? 0xffffff, ei: 1.6 })); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: C(o.col ?? 0xffffff), blending: THREE.AdditiveBlending, depthWrite: false })); sp.scale.setScalar(1.3); m.add(sp); m.visible = false; scene.add(m);
+      const lens = []; let tot = 0; for (let i = 1; i < pts.length; i++) { tot += pts[i].distanceTo(pts[i - 1]); lens.push(tot); }
+      packets.push({ m, pts, lens, tot, st: performance.now() + (o.delay || 0), dur: o.dur, big: o.big }); setTimeout(() => o.cb && o.cb(), (o.delay || 0) + o.dur); },
+    burst(id, col, n = 24) { const p = typeof id === "string" ? (nodes[id] ? nodes[id].pos.clone().setY(1) : null) : id; if (!p) return; spawn(p, col, n); },
+    cam(p) { camT = p; },
+  };
+  /* links: cables are thin tubes; wireless are dashed arcs. A cut hides the middle and leaves a spark. */
+  function draw(l) { while (l.g.children.length) l.g.remove(l.g.children[0]); for (let i = pickables.length - 1; i >= 0; i--) if (pickables[i].userData.lid === l.id) pickables.splice(i, 1);
+    const A = nodes[l.a], B = nodes[l.b]; if (!A || !B) return; const a = A.pos.clone().setY(.28), b = B.pos.clone().setY(.28), wl = l.kind === "wifi" || l.kind === "cell"; const N = wl ? 16 : 14;
+    const m = mat(l.cut ? 0xff4060 : l.col, { e: l.kind === "fibre" ? 0x35d0ff : l.cut ? 0xff4060 : l.col, ei: l.kind === "fibre" ? 1.6 : wl ? 1.2 : .25, r: .4 });
+    for (let i = 0; i < N; i++) { const t0 = i / N, t1 = (i + 1) / N; if (l.cut && t0 > .38 && t1 < .64) continue;
+      const p0 = a.clone().lerp(b, t0), p1 = a.clone().lerp(b, t1); if (wl) { p0.y += Math.sin(t0 * Math.PI) * 1.6 + .6; p1.y += Math.sin(t1 * Math.PI) * 1.6 + .6; }
+      if (wl) { if (i % 2) continue; const s = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), m); s.position.copy(p0); l.g.add(s); }
+      else { const d = p1.clone().sub(p0), len = d.length(); const c = new THREE.Mesh(new THREE.CylinderGeometry(l.kind === "fibre" ? .06 : .09, l.kind === "fibre" ? .06 : .09, len, 8), m); c.position.copy(p0).addScaledVector(d, .5); c.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize()); c.castShadow = true; l.g.add(c); } }
+    if (!wl) { const mid = a.clone().lerp(b, .5), d = b.clone().sub(a), pk = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, d.length(), 6), new THREE.MeshBasicMaterial({ visible: false })); pk.position.copy(mid); pk.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize()); pk.userData = { lid: l.id }; l.g.add(pk); pickables.push(pk); }
+    if (l.cut) spawn(a.clone().lerp(b, .5).setY(.6), 0xff4060, 22); }
+  /* particles */
+  const PN = 260, pg = new THREE.BufferGeometry(), pP = new Float32Array(PN * 3).fill(-50), pC = new Float32Array(PN * 3), pV = new Float32Array(PN * 3), pL = new Float32Array(PN); let pi = 0;
+  pg.setAttribute("position", new THREE.BufferAttribute(pP, 3)); pg.setAttribute("color", new THREE.BufferAttribute(pC, 3));
+  scene.add(new THREE.Points(pg, new THREE.PointsMaterial({ size: .3, map: glow, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+  function spawn(p, hex, n) { if (reduced()) n = Math.ceil(n / 3); const c = C(hex); for (let k = 0; k < n; k++) { const i = pi++ % PN; pP.set([p.x, p.y, p.z], i * 3); pC.set([c.r, c.g, c.b], i * 3); const a = Math.random() * 6.283, s = 1.5 + Math.random() * 3; pV.set([Math.cos(a) * s, 2 + Math.random() * 3.5, Math.sin(a) * s], i * 3); pL[i] = 1; } }
+  /* camera */
+  let camT = { t: [0, 0, 0], az: 0, pol: .9, d: 18 }; const cam = { t: new V3(), az: 0, pol: .9, d: 18 }, drag = { az: 0, pol: 0 }; let aspectBoost = 1, down = null, trav = 0;
+  cv.style.touchAction = "none"; cv.style.cursor = "grab";
+  cv.addEventListener("pointerdown", e => { down = { x: e.clientX, y: e.clientY }; trav = 0; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; trav += Math.abs(dx) + Math.abs(dy); drag.az -= dx * .006; drag.pol = Math.max(-.5, Math.min(.5, drag.pol + dy * .004)); down = { x: e.clientX, y: e.clientY }; });
+  cv.addEventListener("pointerup", () => { down = null; });
+  cv.addEventListener("click", e => { if (trav > 8) return; const r = cv.getBoundingClientRect(), ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+    const h = ray.intersectObjects(pickables, false)[0]; if (h && rt.pick) rt.pick(h.object.userData.lid ? "link" : "node", h.object.userData.lid || h.object.userData.nid); });
+  const resize = () => { const w = view.clientWidth, h = view.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; aspectBoost = Math.max(1, 1.5 / camera.aspect); camera.updateProjectionMatrix(); };
+  new ResizeObserver(resize).observe(view); resize();
+  let last = performance.now(); const v = new V3();
+  const frame = now => {
+    requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; const tt = now / 1000, red = reduced();
+    for (const id in nodes) { const n = nodes[id]; if (n.spawn < 1) { n.spawn = Math.min(1, n.spawn + dt * 2.6); const k = n.spawn, s = k < 1 ? 1 + Math.sin(k * Math.PI) * .22 : 1; n.g.scale.setScalar(Math.max(.01, k * s) * 1.3); }
+      if (n.tw) { n.tw.p = Math.min(1, n.tw.p + dt * 1.6); n.pos.lerpVectors(n.tw.f, n.tw.t, 1 - Math.pow(1 - n.tw.p, 3)); for (const k in links) if (links[k].a === id || links[k].b === id) draw(links[k]); if (n.tw.p >= 1) n.tw = null; }
+      n.g.position.x = n.pos.x + (n.shake > 0 && !red ? Math.sin(tt * 60) * .12 : 0); n.g.position.z = n.pos.z; n.g.position.y = (n.bob && !red ? Math.sin(tt * 1.5 + n.pos.x) * .12 : 0); if (n.shake > 0) n.shake -= dt;
+      n.leds.forEach((m, i) => { m.emissiveIntensity = red ? 1.4 : .9 + .7 * Math.sin(tt * (2 + i) + i * 2); }); }
+    for (let i = packets.length - 1; i >= 0; i--) { const p = packets[i], t = (performance.now() - p.st) / p.dur; if (t >= 1) { scene.remove(p.m); packets.splice(i, 1); continue; } if (t < 0) continue; p.m.visible = true;
+      const d = t * p.tot; let s = 0; while (s < p.lens.length - 1 && d > p.lens[s]) s++; const a = s ? p.lens[s - 1] : 0, k = (d - a) / ((p.lens[s] - a) || 1); p.m.position.lerpVectors(p.pts[s], p.pts[s + 1], Math.min(1, k)); p.m.rotation.x += dt * 5; p.m.rotation.y += dt * 4; }
+    for (let i = 0; i < DN; i++) { dp[i * 3 + 1] += dv[i] * dt * (red ? .3 : 1); if (dp[i * 3 + 1] > 8) dp[i * 3 + 1] = .4; } dg.attributes.position.needsUpdate = true;
+    for (let i = 0; i < PN; i++) { if (pL[i] <= 0) continue; pL[i] -= dt * 1.1; pV[i * 3 + 1] -= 7 * dt; pP[i * 3] += pV[i * 3] * dt; pP[i * 3 + 1] += pV[i * 3 + 1] * dt; pP[i * 3 + 2] += pV[i * 3 + 2] * dt; if (pL[i] <= 0) pP[i * 3 + 1] = -50; } pg.attributes.position.needsUpdate = true;
+    const k = Math.min(1, dt * 3); cam.t.lerp(v.set(...camT.t), k); cam.az += (camT.az + drag.az + (red ? 0 : Math.sin(tt * .25) * .05) - cam.az) * k; cam.pol += (camT.pol + drag.pol - cam.pol) * k; cam.d += (camT.d * .82 * aspectBoost - cam.d) * k;
+    camera.position.set(cam.t.x + cam.d * Math.sin(cam.az) * Math.cos(cam.pol), cam.t.y + cam.d * Math.sin(cam.pol), cam.t.z + cam.d * Math.cos(cam.az) * Math.cos(cam.pol)); camera.lookAt(cam.t);
+    stars.rotation.y += dt * .004; camera.updateMatrixWorld();
+    const w = view.clientWidth, h = view.clientHeight; for (const id in labels) { const n = nodes[id]; if (!n) continue; v.copy(n.pos); v.y += n.hgt; v.project(camera); const d = labels[id]; d.style.transform = `translate(${(v.x * .5 + .5) * w - d.offsetWidth / 2}px,${(-v.y * .5 + .5) * h - 22}px)`; d.style.opacity = v.z < 1 ? 1 : 0; }
+    renderer.render(scene, camera);
+  };
+  requestAnimationFrame(frame);
+  return S;
+}
+
+/* =====================================================================
+   GAME LOGIC + HUD
+   ===================================================================== */
+function mkSim(host, api) {
+  const st = api.state;
+  st.tab ??= "speed"; st.explored ??= {}; st.xp ??= 0; st.shape ??= "star"; st.cuts ??= {}; st.rt ??= { stage: 0, dev: {} }; st.sw ??= { hub: 0, sw: 0 }; st.mode ??= "hub"; st.wifi ??= "near";
+  const rt = {}; let S = stub, timers = [], token = 0;
+  const $ = h => { const n = document.createElement("div"); n.innerHTML = h.trim(); return n.firstElementChild; };
+  const root = $(`<div></div>`);
+  const labels = { speed: L("Speed Lanes", "Carriles"), hub: L("Hub or Switch", "Hub o switch"), router: L("Home Router", "Router de casa"), shapes: L("Network Shapes", "Formas de red") };
+  const top = $(`<div class="ar-top"><div class="ar-rank"><div class="ar-rank__badge">1</div><div><div class="ar-rank__name"></div><div class="ar-xpbar"><i></i></div><div class="ar-xp"></div></div></div><div class="ar-miss" aria-live="polite"></div></div>`);
+  const view = $(`<div class="ar-view"><div class="ar-hint">${L("Drag to turn the city", "Arrastra para girar la ciudad")}</div><div class="ar-msg" role="status"></div></div>`);
+  const msgEl = view.querySelector(".ar-msg");
+  const stationsEl = $(`<div class="ar-stations" role="tablist"></div>`), dock = $(`<div class="ar-dock"></div>`);
+  root.append(top, view, stationsEl, dock);
+  const say = (t, k = "") => { msgEl.className = "ar-msg " + k; msgEl.textContent = t; };
+  const pop = text => { const p = $(`<div class="ar-pop">${text}</div>`); view.append(p); setTimeout(() => p.remove(), 1150); };
+  const rankOf = xp => { let r = 0; RANKS.forEach((x, i) => { if (xp >= x[0]) r = i; }); return r; };
+  function renderTop() {
+    const r = rankOf(st.xp), lo = RANKS[r][0], hi = RANKS[r + 1] ? RANKS[r + 1][0] : lo + 60;
+    top.querySelector(".ar-rank__badge").textContent = r + 1; top.querySelector(".ar-rank__name").textContent = RANKS[r][1];
+    top.querySelector(".ar-xpbar i").style.width = Math.min(100, (st.xp - lo) / (hi - lo) * 100) + "%";
+    top.querySelector(".ar-xp").textContent = `${st.xp} XP` + (RANKS[r + 1] ? ` · ${L("next rank at", "siguiente rango en")} ${hi}` : ` · ${L("MAX RANK", "RANGO MÁXIMO")}`);
+    top.querySelector(".ar-miss").innerHTML = Object.entries(labels).map(([k, l]) => `<span class="ar-m ${st.explored[k] ? "done" : ""}">${l}</span>`).join("");
+  }
+  const burstAll = hex => { S.burst({ x: 0, y: 2, z: 0 }, hex, 60); };
+  function gain(n) { const b = rankOf(st.xp); st.xp += n; pop(`+${n} XP`); renderTop(); api.save(); if (rankOf(st.xp) > b) setTimeout(() => { pop(`${L("RANK UP", "SUBES DE RANGO")}: ${RANKS[rankOf(st.xp)][1]}!`); burstAll(0x35d0ff); }, 500); }
+  function mark(k) { if (st.explored[k]) return; st.explored[k] = true; gain(30); renderTop();
+    if (Object.keys(labels).every(x => st.explored[x]) && !view.querySelector(".ar-banner")) {
+      const b = $(`<div class="ar-banner"><div><h3>${L("MISSION COMPLETE!", "¡MISIÓN CUMPLIDA!")}</h3><p>${L("You built and tested every kind of network. Now prove it in the quiz!", "Construiste y probaste todo tipo de redes. ¡Demuéstralo en la prueba!")}</p><button class="ar-go" style="--c:var(--ok);padding:0 1.6em">${L("Go to the quiz", "Ir a la prueba")}</button></div></div>`);
+      b.querySelector("button").addEventListener("click", () => { b.remove(); document.querySelector(".q")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); });
+      view.append(b); burstAll(0x2bf0a0); } }
+  const later = (fn, ms) => { const t = token; const id = setTimeout(() => { if (t === token) fn(); }, ms); timers.push(id); return id; };
+  const every = (fn, ms) => { const id = setInterval(fn, ms); timers.push(id); };
+  const wrong = (el, msg) => { el.classList.remove("shk"); void el.offsetWidth; el.classList.add("shk"); say(msg, "bad"); };
+
+  const TAB = [
+    { id: "speed", c: "#35d0ff", n: labels.speed, ico: IC.air }, { id: "hub", c: "#ff9a3c", n: labels.hub, ico: IC.cable },
+    { id: "router", c: "#2bf0a0", n: labels.router, ico: IC.air }, { id: "shapes", c: "#ff5fa8", n: labels.shapes, ico: IC.cable },
+  ];
+  const panels = {};
+  TAB.forEach(t => { const b = $(`<button class="ar-st" role="tab" style="--c:${t.c}">${t.ico}<span>${t.n}</span></button>`); b.dataset.id = t.id; b.addEventListener("click", () => select(t.id)); stationsEl.append(b);
+    const p = $(`<div class="ar-panel" role="tabpanel" style="--c:${t.c}" hidden></div>`); panels[t.id] = p; dock.append(p); });
+  const card = (title, ...kids) => { const c = $(`<div class="ar-card"><h3>${title}</h3></div>`); c.append(...kids); return c; };
+  const btn = (txt, cls = "ar-go") => $(`<button class="${cls}">${txt}</button>`);
+  const seg = (opts, cur, on) => { const d = $(`<div class="ar-seg"></div>`); const draw = () => { d.innerHTML = ""; opts.forEach(([id, n]) => { const b = $(`<button aria-pressed="${cur() === id}">${n}</button>`); b.addEventListener("click", () => { on(id); draw(); }); d.append(b); }); }; draw(); return d; };
+
+  /* ---------- 1. SPEED LANES ---------- */
+  const LANES = [
+    { id: "eth", c: 0x6aa6ff, hex: "#6aa6ff", n: L("Cable", "Cable"), ico: IC.eth, z: -5, T: 1500, g: 300 },
+    { id: "fibre", c: 0x35d0ff, hex: "#35d0ff", n: L("Fibre", "Fibra"), ico: IC.fibre, z: -1.7, T: 1000, g: 160 },
+    { id: "wifi", c: 0xff5fd2, hex: "#ff5fd2", n: "Wi-Fi", ico: IC.wifi, z: 1.7, T: 2000, g: 500 },
+    { id: "cell", c: 0xffb13c, hex: "#ffb13c", n: L("Cellular", "Celular"), ico: IC.cell, z: 5, T: 2600, g: 800 },
+  ];
+  const WX = { near: -7, far: -10.5, out: -13.5 };
+  function buildSpeed() {
+    S.cam({ t: [-1.5, 0, 0], az: 0, pol: .95, d: 21 });
+    S.node("cloud", "cloud", 9, 0, { label: L("Internet", "Internet"), h: 3.6 });
+    S.node("eth", "pc", -9, -5, { label: L("Cable", "Cable"), rot: 1.2 }); S.node("fib", "pc", -9, -1.7, { label: L("Fibre", "Fibra"), rot: 1.2 });
+    S.node("rtr", "router", -4.5, 1.7, { label: "Router", h: 1.8 }); S.node("lap", "laptop", WX[st.wifi], 1.7, { label: "Wi-Fi", rot: 1.2 });
+    S.node("twr", "tower", -2, 5, { label: L("Phone tower", "Torre"), h: 4 }); S.node("pho", "phone", -9, 5, { label: L("Cellular", "Celular"), rot: 1.2 });
+    S.link("l1", "eth", "cloud", { col: 0x6aa6ff }); S.link("l2", "fib", "cloud", { kind: "fibre" });
+    S.link("l3", "lap", "rtr", { kind: "wifi", col: 0xff5fd2 }); S.link("l3b", "rtr", "cloud", { col: 0xff5fd2 });
+    S.link("l4", "pho", "twr", { kind: "cell", col: 0xffb13c }); S.link("l4b", "twr", "cloud", { kind: "cell", col: 0xffb13c });
+    S.disc(-4.5, 1.7, 6.6, 0xff5fd2);
+  }
+  panels.speed.append((() => {
+    let pick = null, racing = false; const res = {}; let order = 0;
+    const cA = card(L("Who wins? Tap a lane", "¿Quién gana? Toca un carril")), cB = card(L("Download a movie", "Descarga una película"));
+    const chips = $(`<div class="ar-chips"></div>`); const rows = {};
+    LANES.forEach(l => { const b = $(`<button class="ar-chip" aria-pressed="false" style="--ac:${l.hex}">${l.ico}<span>${l.n}</span></button>`); b.addEventListener("click", () => { if (racing) return; pick = l.id; chips.querySelectorAll(".ar-chip").forEach(x => x.setAttribute("aria-pressed", String(x === b))); say(L(`You picked ${l.n}. Press GO!`, `Elegiste ${l.n}. ¡Pulsa GO!`), "good"); }); chips.append(b); });
+    const dist = seg([["near", L("Near", "Cerca")], ["far", L("Far", "Lejos")], ["out", L("Out of range", "Sin alcance")]], () => st.wifi, id => { if (racing) return; st.wifi = id; api.save(); S.move("lap", WX[id], 1.7);
+      say(id === "out" ? L("Wi-Fi is too far away: no signal!", "El Wi-Fi está muy lejos: ¡sin señal!") : id === "far" ? L("Far from the router: slower.", "Lejos del router: más lento.") : L("Close to the router: strong signal.", "Cerca del router: señal fuerte."), id === "out" ? "bad" : ""); S.label("lap", id === "out" ? "Wi-Fi ✗" : "Wi-Fi", id === "out" ? "r" : ""); });
+    cA.append(chips, $(`<div class="row"><b>Wi-Fi</b></div>`)); cA.lastElementChild.append(dist);
+    const bars = $(`<div class="ar-bars"></div>`);
+    LANES.forEach(l => { const r = $(`<div class="ar-bar" style="--c:${l.hex}"><span>${l.n}</span><span class="ar-meter" style="margin:0"><i style="width:0;background:${l.hex}"></i></span><b>0/10</b></div>`); rows[l.id] = r; bars.append(r); });
+    const go = btn("GO!"); go.style.setProperty("--c", "#35d0ff");
+    go.addEventListener("click", () => {
+      if (racing) return; if (!pick) { wrong(chips, L("First tap the lane you think wins!", "¡Primero toca el carril que crees que gana!")); return; }
+      racing = true; go.disabled = true; order = 0; const left = new Set(LANES.map(l => l.id)); const myTok = token;
+      LANES.forEach(l => { const r = rows[l.id], bar = r.querySelector("i"), num = r.querySelector("b"); bar.style.width = "0"; num.textContent = "0/10"; let n = 0;
+        let T = l.T, g = l.g; if (l.id === "wifi") { if (st.wifi === "far") { T = 2800; g = 1000; } if (st.wifi === "out") { num.textContent = L("no signal", "sin señal"); left.delete("wifi"); S.burst("lap", 0xff4060, 20); return; } }
+        for (let i = 0; i < 10; i++) { const ids = l.id === "eth" ? ["eth", "cloud"] : l.id === "fibre" ? ["fib", "cloud"] : l.id === "wifi" ? ["lap", "rtr", "cloud"] : ["pho", "twr", "cloud"];
+          S.send(ids, { dur: T, delay: i * g, col: l.c, cb: () => { if (myTok !== token) return; n++; bar.style.width = n * 10 + "%"; num.textContent = n + "/10"; if (n === 10) { order++; res[l.id] = order; num.textContent = ["🥇", "🥈", "🥉", "4"][order - 1]; S.burst("cloud", l.c, 30); left.delete(l.id);
+              if (order === 1) say(L(`${l.n} wins! More bandwidth = more data per second.`, `¡Gana ${l.n}! Más ancho de banda = más datos por segundo.`), "good");
+              if (!left.size) { racing = false; go.disabled = false; if (pick === "fibre" && order >= 1 && res.fibre === 1) { gain(10); } mark("speed"); } } } }); } });
+      if (!left.size) { racing = false; go.disabled = false; mark("speed"); }
+    });
+    cB.append(bars, go);
+    rt.speedReset = () => { racing = false; go.disabled = false; };
+    const w = $(`<div style="display:contents"></div>`); w.append(cA, cB); return w;
+  })());
+
+  /* ---------- 2. HUB OR SWITCH ---------- */
+  const PP = [[-6.5, 2], [-3.2, 5], [3.2, 5], [6.5, 2], [0, -5.2]];
+  const hs = { from: 0, to: 2, inflight: 0 };
+  function buildHub() {
+    S.cam({ t: [0, 0, 0], az: 0, pol: 1.05, d: 18 });
+    PP.forEach((p, i) => { S.node("p" + i, "pc", p[0], p[1], { label: LET[i], state: "on", rot: Math.atan2(-p[0], -p[1]) }); S.label("p" + i, LET[i]); S.link("c" + i, "p" + i, "ctr", { col: 0x7f9bd6 }); });
+    S.node("ctr", st.mode === "hub" ? "hub" : "switch", 0, 0, { label: st.mode === "hub" ? "HUB" : "SWITCH", h: 1.1 });
+    PP.forEach((p, i) => { S.link("c" + i, "p" + i, "ctr", { col: 0x7f9bd6 }); }); S.state("p" + hs.from, "ok");
+  }
+  panels.hub.append((() => {
+    const cA = card(L("Choose", "Elige")), cB = card(L("Packets used", "Paquetes usados"));
+    const modeSeg = seg([["hub", "HUB"], ["switch", "SWITCH"]], () => st.mode, id => { st.mode = id; api.save(); buildHub(); say(id === "hub" ? L("A hub repeats everything to everyone.", "Un hub repite todo a todos.") : L("A switch knows who is who.", "Un switch sabe quién es quién.")); });
+    const mkRow = (name, key) => { const row = $(`<div class="row"><b>${name}</b></div>`); PCC.forEach((c, i) => { const b = $(`<button class="pcb" style="--pc:${c}" aria-label="${LET[i]}" aria-pressed="${hs[key] === i}">${LET[i]}</button>`); b.addEventListener("click", () => { hs[key] = i; sync(); }); row.append(b); }); return row; };
+    const rF = mkRow(L("From", "De"), "from"), rT = mkRow(L("To", "A"), "to");
+    const sync = () => { [rF, rT].forEach((r, ri) => r.querySelectorAll(".pcb").forEach((b, i) => { b.setAttribute("aria-pressed", String(hs[ri ? "to" : "from"] === i)); b.disabled = ri ? i === hs.from : false; })); if (hs.to === hs.from) { hs.to = (hs.from + 1) % 5; sync(); } PP.forEach((p, i) => S.state("p" + i, i === hs.from ? "ok" : i === hs.to ? "on" : "idle")); };
+    rt.hubSync = sync;
+    const bars = $(`<div class="ar-bars"></div>`); const bH = $(`<div class="ar-bar" style="--c:#9aa5b8"><span>HUB</span><span class="ar-meter" style="margin:0"><i style="width:0;background:#ff9a3c"></i></span><b>0</b></div>`), bS = $(`<div class="ar-bar"><span>SWITCH</span><span class="ar-meter" style="margin:0"><i style="width:0;background:#35d0ff"></i></span><b>0</b></div>`); bars.append(bH, bS);
+    const upd = () => { bH.querySelector("i").style.width = Math.min(100, st.sw.hub * 2.5) + "%"; bH.querySelector("b").textContent = st.sw.hub; bS.querySelector("i").style.width = Math.min(100, st.sw.sw * 2.5) + "%"; bS.querySelector("b").textContent = st.sw.sw; };
+    const sendMsg = (from, to) => { const myTok = token, f = "p" + from, t = "p" + to, isHub = st.mode === "hub"; S.state(f, "ok");
+      st.sw[isHub ? "hub" : "sw"] += isHub ? 5 : 2; api.save(); upd(); hs.inflight++;
+      S.send([f, "ctr"], { dur: 650, col: 0xffd23f, cb: () => { if (myTok !== token) return; hs.inflight = Math.max(0, hs.inflight - 1);
+        const targets = isHub ? [0, 1, 2, 3, 4].filter(i => i !== from) : [to];
+        targets.forEach(i => S.send(["ctr", "p" + i], { dur: 650, col: i === to ? 0x2bf0a0 : 0xff6b8a, cb: () => { if (myTok !== token) return; if (i === to) { S.burst("p" + i, 0x2bf0a0, 26); S.label("p" + i, LET[i] + " ✓", "g"); } else { S.burst("p" + i, 0xff4060, 10); S.label("p" + i, LET[i] + " ✗", "r"); }
+          later(() => S.label("p" + i, LET[i]), 1300); } }));
+        if (st.sw.hub && st.sw.sw) mark("hub"); } });
+      };
+    const go = btn(L("Send message", "Enviar mensaje")); go.style.setProperty("--c", "#ff9a3c");
+    go.addEventListener("click", () => { sendMsg(hs.from, hs.to); gain(2); say(st.mode === "hub" ? L(`Hub: ${LET[hs.to]} got it, but everyone else got it too!`, `Hub: ¡${LET[hs.to]} lo recibió, pero todos los demás también!`) : L(`Switch: only ${LET[hs.to]} got it.`, `Switch: solo ${LET[hs.to]} lo recibió.`), st.mode === "hub" ? "bad" : "good"); });
+    const rush = btn(L("Rush hour! 6 messages", "¡Hora punta! 6 mensajes"), "ar-go ar-go--ghost");
+    rush.addEventListener("click", () => { for (let i = 0; i < 6; i++) later(() => { const f = Math.floor(Math.random() * 5); let t = Math.floor(Math.random() * 5); if (t === f) t = (t + 1) % 5; sendMsg(f, t); }, i * 380); gain(3); say(st.mode === "hub" ? L("Hub: traffic jam! So many wasted packets.", "Hub: ¡atasco! Muchos paquetes desperdiciados.") : L("Switch: smooth and quick.", "Switch: fluido y rápido."), st.mode === "hub" ? "bad" : "good"); });
+    cA.append(modeSeg, rF, rT, go, rush); cB.append(bars, $(`<p style="margin:10px 0 0;font-weight:800;color:#8fa7d8;font-size:.85rem">${L("Try both. Which one wastes fewer packets?", "Prueba los dos. ¿Cuál desperdicia menos paquetes?")}</p>`)); upd();
+    const w = $(`<div style="display:contents"></div>`); w.append(cA, cB); return w;
+  })());
+
+  /* ---------- 3. HOME ROUTER ---------- */
+  const DEVS = [
+    { id: "pc", ico: IC.pc, n: L("Desktop PC", "PC de mesa"), type: "pc", pos: [4, -4.6], ok: "cable", hint: L("A desktop has a cable socket!", "¡Un PC de mesa tiene toma de cable!") },
+    { id: "con", ico: IC.console, n: L("Game console", "Consola"), type: "console", pos: [7, -1.8], ok: "cable", hint: L("A cable makes games faster.", "Un cable hace los juegos más rápidos.") },
+    { id: "lap", ico: IC.laptop, n: L("Laptop", "Portátil"), type: "laptop", pos: [7.4, 1.4], ok: "air", hint: L("A laptop moves around: use Wi-Fi.", "Un portátil se mueve: usa Wi-Fi.") },
+    { id: "tab", ico: IC.tablet, n: L("Tablet", "Tableta"), type: "tablet", pos: [5.2, 4], ok: "air", hint: L("Tablets have no cable socket!", "¡Las tabletas no tienen toma de cable!") },
+    { id: "pho", ico: IC.phone, n: L("Phone", "Teléfono"), type: "phone", pos: [2, 5], ok: "air", hint: L("A phone connects through the air.", "Un teléfono se conecta por el aire.") },
+  ];
+  const PARTS = [{ id: "hub", ico: IC.hub, n: "Hub" }, { id: "router", ico: IC.router, n: "Router" }, { id: "modem", ico: IC.modem, n: "Modem" }, { id: "speaker", ico: IC.speaker, n: L("Speaker", "Altavoz") }];
+  function buildRouter() {
+    S.cam({ t: [-1, 0, 0], az: 0, pol: .95, d: 19 });
+    S.node("cloud", "cloud", -10, 0, { label: L("Internet", "Internet"), h: 3.6 });
+    const R = st.rt;
+    S.node("modem", "modem", -6, 0, { ghost: R.stage < 1, label: R.stage < 1 ? "Modem ?" : "Modem", h: 1.4 }); S.node("router", "router", -2, 0, { ghost: R.stage < 2, label: R.stage < 2 ? "Router ?" : "Router", h: 1.8 });
+    S.link("i1", "cloud", "modem", { col: 0x1fb5a4 }); S.link("i2", "modem", "router", { col: 0x8b5cf6 });
+    DEVS.forEach(d => { S.node(d.id, d.type, d.pos[0], d.pos[1], { label: d.n, state: R.dev[d.id] ? "on" : "off", rot: 4.2 }); if (R.dev[d.id]) S.link("d" + d.id, "router", d.id, { kind: d.ok === "air" ? "wifi" : "cable", col: d.ok === "air" ? 0xff5fd2 : 0x2bf0a0 }); });
+    if (R.stage >= 2 && DEVS.every(d => R.dev[d.id])) traffic();
+  }
+  function traffic() { every(() => DEVS.forEach((d, i) => later(() => S.send([d.id, "router", "modem", "cloud"], { dur: 1500, col: 0x2bf0a0 }), i * 240)), 2000); }
+  panels.router.append((() => {
+    const R = st.rt, cA = card(L("Parts", "Piezas")), cB = card(L("Devices", "Dispositivos")); const tray = $(`<div class="ar-chips"></div>`), devs = $(`<div></div>`);
+    const stageMsg = () => R.stage === 0 ? L("Plug in the first part after the Internet.", "Conecta la primera pieza tras Internet.") : R.stage === 1 ? L("Now the box that shares it with every device.", "Ahora la caja que lo reparte a todos los dispositivos.") : L("Connect every device: cable or air?", "Conecta cada dispositivo: ¿cable o aire?");
+    const drawTray = () => { tray.innerHTML = ""; PARTS.forEach(p => { const done = (p.id === "modem" && R.stage >= 1) || (p.id === "router" && R.stage >= 2); const b = $(`<button class="ar-chip" ${done ? "disabled" : ""} style="--ac:#2bf0a0">${p.ico}<span>${p.n}</span></button>`);
+      b.addEventListener("click", () => { if (R.stage > 1) return; const need = R.stage === 0 ? "modem" : "router";
+        if (p.id === need) { S.solid(need); S.label(need, p.n); S.burst(need, 0x2bf0a0, 30); S.send(R.stage === 0 ? ["cloud", "modem"] : ["cloud", "modem", "router"], { dur: 900, col: 0x2bf0a0 }); R.stage++; api.save(); gain(8); drawTray(); say(stageMsg(), "good"); }
+        else wrong(b, need === "modem" ? L("The modem talks to the Internet company first!", "¡El módem habla primero con la compañía de Internet!") : L("A router shares the Internet. Hubs and speakers cannot route.", "Un router reparte Internet. Los hubs y altavoces no enrutan.")); }); tray.append(b); }); };
+    const drawDevs = () => { devs.innerHTML = ""; DEVS.forEach(d => { const row = $(`<div class="dev ${R.dev[d.id] ? "ok" : ""}">${d.ico.replace("<svg", '<svg class="i"')}<span>${d.n}</span></div>`);
+      [["cable", IC.cable, L("Cable", "Cable")], ["air", IC.air, "Wi-Fi"]].forEach(([k, ic, nm]) => { const b = $(`<button aria-label="${nm}">${ic}</button>`); if (R.dev[d.id]) b.disabled = true;
+        b.addEventListener("click", () => { if (R.stage < 2) { wrong(b, L("Finish the modem and router first!", "¡Termina primero el módem y el router!")); return; }
+          if (k === d.ok) { R.dev[d.id] = true; api.save(); S.state(d.id, "on"); S.link("d" + d.id, "router", d.id, { kind: k === "air" ? "wifi" : "cable", col: k === "air" ? 0xff5fd2 : 0x2bf0a0 }); S.burst(d.id, 0x2bf0a0, 24); S.send(["router", d.id], { dur: 700, col: 0x2bf0a0 }); gain(5); drawDevs(); say(d.hint, "good");
+            if (DEVS.every(x => R.dev[x.id])) { later(() => { burstAll(0x2bf0a0); say(L("The whole home network is online!", "¡Toda la red de casa está en línea!"), "good"); traffic(); mark("router"); }, 900); } }
+          else wrong(b, d.hint); }); row.append(b); }); devs.append(row); }); };
+    drawTray(); drawDevs(); rt.routerHint = stageMsg; cA.append(tray); cB.append(devs);
+    const w = $(`<div style="display:contents"></div>`); w.append(cA, cB); return w;
+  })());
+
+  /* ---------- 4. NETWORK SHAPES ---------- */
+  const SH = { nodes: [], links: [] };
+  function layout(shape) {
+    const P = [], Lk = []; const pcs = i => "p" + i;
+    if (shape === "star") { P.push(["sw", "switch", 0, 0, "Switch"], ["srv", "server", 0, -5.5, "Server"]); [[-7, -1], [-4, 3.5], [0, 5], [4, 3.5], [7, -1]].forEach((p, i) => P.push([pcs(i), "pc", p[0], p[1], LET[i]])); Lk.push(["k0", "srv", "sw"]); for (let i = 0; i < 5; i++) Lk.push(["k" + (i + 1), pcs(i), "sw"]); }
+    else if (shape === "bus") { P.push(["srv", "server", -10, 0, "Server"]); const xs = [-6, -3, 0, 3, 6]; xs.forEach((x, i) => { P.push(["j" + i, "dot", x, 0, null]); P.push([pcs(i), "pc", x, i % 2 ? -3.8 : 3.8, LET[i]]); Lk.push(["b" + i, i ? "j" + (i - 1) : "srv", "j" + i]); Lk.push(["d" + i, "j" + i, pcs(i)]); }); }
+    else { for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 - 1.57; P.push([i ? pcs(i - 1) : "srv", i ? "pc" : "server", Math.cos(a) * 6, Math.sin(a) * 5, i ? LET[i - 1] : "Server"]); } const ids = P.map(p => p[0]); ids.forEach((id, i) => Lk.push(["r" + i, id, ids[(i + 1) % 6]])); }
+    return { P, Lk };
+  }
+  function online(shape, cut) {
+    const { P, Lk } = layout(shape), on = new Set(["srv"]), prev = {}; const alive = Lk.filter(l => !cut[l[0]]);
+    if (shape === "ring" && Lk.some(l => cut[l[0]])) return { on: new Set(), prev: {}, ring: false };
+    const q = ["srv"]; while (q.length) { const c = q.shift(); alive.forEach(l => { const o = l[1] === c ? l[2] : l[2] === c ? l[1] : null; if (o && !on.has(o)) { on.add(o); prev[o] = c; q.push(o); } }); }
+    return { on, prev, ring: shape === "ring" };
+  }
+  const cutNow = () => (st.cuts[st.shape + "_now"] ??= {});
+  function buildShapes() {
+    const shape = st.shape, { P, Lk } = layout(shape), cut = cutNow(); S.cam({ t: [shape === "bus" ? -2 : 0, 0, 0], az: 0, pol: 1.0, d: shape === "bus" ? 21 : 18 });
+    P.forEach(p => S.node(p[0], p[1], p[2], p[3], { label: p[4] || undefined, state: "ok", h: p[1] === "pc" ? 2 : 1.5 }));
+    Lk.forEach(l => { S.link(l[0], l[1], l[2], { col: 0xff5fa8 }); if (cut[l[0]]) S.cut(l[0]); }); paint();
+  }
+  function paint() { const shape = st.shape, { P } = layout(shape), o = online(shape, cutNow()); let n = 0;
+    P.forEach(p => { if (p[1] !== "pc") return; const on = o.on.has(p[0]); if (on) n++; S.state(p[0], on ? "ok" : "bad"); S.label(p[0], LET["p0p1p2p3p4".indexOf(p[0]) / 2] + (on ? "" : " ✗"), on ? "" : "r"); });
+    if (rt.onl) rt.onl.textContent = n + " / 5"; return o; }
+  function ping() { const o = online(st.shape, cutNow()); if (o.ring) { const ids = layout("ring").P.map(p => p[0]); ids.push("srv"); S.send(ids, { dur: 2600, col: 0xffd23f }); return; }
+    Object.keys(o.prev).forEach((id, i) => { if (!id.startsWith("p")) return; const path = [id]; while (path[0] !== "srv") path.unshift(o.prev[path[0]]); later(() => S.send(path, { dur: 500 + path.length * 280, col: 0x2bf0a0 }), i * 260); }); }
+  panels.shapes.append((() => {
+    const cA = card(L("Pick a shape, then cut a cable", "Elige una forma y corta un cable")), cB = card(L("Computers online", "Ordenadores conectados"));
+    const cuts = $(`<div class="ar-chips"></div>`); const big = $(`<div class="ar-big" style="--c:#ff5fa8">5 / 5</div>`); rt.onl = big;
+    const drawCuts = () => { cuts.innerHTML = ""; layout(st.shape).Lk.forEach((l, i) => { const on = !!cutNow()[l[0]]; const b = $(`<button class="ar-chip" aria-pressed="${on}" style="--ac:#ff4060;min-height:44px">✂ ${i + 1}</button>`); b.addEventListener("click", () => toggle(l[0])); cuts.append(b); }); };
+    const toggle = id => { const cut = cutNow(); if (cut[id]) { delete cut[id]; S.mend(id); } else { cut[id] = true; S.cut(id); st.cuts[st.shape] = true; gain(3); }
+      api.save(); const o = paint(); drawCuts(); const dead = 5 - [...o.on].filter(x => x.startsWith("p")).length;
+      say(!cut[id] ? L("Cable fixed.", "Cable arreglado.") : st.shape === "ring" ? L("A ring breaks everywhere: everyone is cut off!", "Un anillo se rompe por completo: ¡todos sin red!") : dead ? L(`${dead} computer${dead > 1 ? "s" : ""} cut off, the rest keep working.`, `${dead} ordenador${dead > 1 ? "es" : ""} sin red, los demás siguen.`) : L("Still connected!", "¡Sigue conectado!"), cut[id] ? "bad" : "good");
+      if (["star", "bus", "ring"].every(k => st.cuts[k])) mark("shapes"); };
+    rt.pick = (kind, id) => { if (st.tab === "shapes" && kind === "link") toggle(id); else if (st.tab === "hub" && kind === "node" && id[0] === "p") { const i = +id[1]; if (i !== hs.from) { hs.to = i; rt.hubSync(); } } };
+    const shp = seg([["star", L("Star", "Estrella")], ["bus", "Bus"], ["ring", L("Ring", "Anillo")]], () => st.shape, id => { st.shape = id; api.save(); token++; killTimers(); buildShapes(); drawCuts(); every(ping, 2800); ping(); say({ star: L("Star: every computer has its own cable.", "Estrella: cada ordenador tiene su cable."), bus: L("Bus: one long cable for everyone.", "Bus: un cable largo para todos."), ring: L("Ring: neighbours pass data along.", "Anillo: los vecinos se pasan los datos.") }[id]); });
+    const fix = btn(L("Fix all cables", "Arreglar todos"), "ar-go ar-go--ghost"); fix.addEventListener("click", () => { st.cuts[st.shape + "_now"] = {}; api.save(); buildShapes(); drawCuts(); say(L("All cables fixed.", "Todos los cables arreglados."), "good"); });
+    cA.append(shp, cuts, fix); cB.append(big, $(`<p style="margin:10px 0 0;font-weight:800;color:#8fa7d8;font-size:.85rem">${L("Tap a cable in the city, or the scissors.", "Toca un cable en la ciudad, o las tijeras.")}</p>`)); rt.drawCuts = drawCuts; drawCuts();
+    const w = $(`<div style="display:contents"></div>`); w.append(cA, cB); return w;
+  })());
+
+  /* ---------- station switching ---------- */
+  function killTimers() { timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; }
+  function select(id) {
+    st.tab = id; api.save(); token++; killTimers(); if (rt.speedReset) rt.speedReset();
+    stationsEl.querySelectorAll(".ar-st").forEach(b => b.setAttribute("aria-selected", String(b.dataset.id === id))); Object.entries(panels).forEach(([k, p]) => p.hidden = k !== id);
+    S.clear();
+    if (id === "speed") { buildSpeed(); say(L("Pick the fastest connection, then press GO!", "Elige la conexión más rápida y pulsa GO!")); }
+    if (id === "hub") { buildHub(); rt.hubSync(); say(L("Send a message from one computer to another.", "Envía un mensaje de un ordenador a otro.")); }
+    if (id === "router") { buildRouter(); say(rt.routerHint()); }
+    if (id === "shapes") { buildShapes(); rt.drawCuts(); every(ping, 2800); ping(); say(L("Tap a cable to cut it!", "¡Toca un cable para cortarlo!")); }
+  }
+  host.append(root); renderTop();
+  const first = st.tab; select(first);
+  initScene(view, rt).then(s => { if (s) { S = s; select(st.tab); } else view.prepend($(`<div class="ar-nogl">${L("3D view is not available on this device, but every control below still works.", "La vista 3D no está disponible en este dispositivo, pero todos los controles funcionan.")}</div>`)); })
+    .catch(e => console.error("3D scene failed", e));
+}
+
+mountExternalActivity({ simulation: mkSim }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script></body></html>
