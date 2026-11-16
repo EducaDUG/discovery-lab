@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selective Breeding Ranch — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=34">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%2316744F'/><path d='M10 50V28L32 12l22 16v22z' fill='none' stroke='%23fff' stroke-width='4'/><circle cx='32' cy='38' r='7' fill='%23ff6b4a'/></svg>">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Greenhouse Business Tycoon: dark glass HUD over a real-time 3D farm ---- */
+.simonly{--g1:#7dff9a;--cash:#ffd166;--lite:#ffe36b;--tmp:#ff7a59;--co2:#7fd6ff;--wat:#4aa8ff;--bad:#ff5468;
+  padding:0 !important;overflow:clip;border-radius:22px;border:1px solid #1f3a2c;background:#06100b;color:#e6fff0;
+  box-shadow:0 20px 60px -20px rgba(20,140,70,.5);}
+.simonly *{box-sizing:border-box;}
+.gh-top{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,#0e2218,#09160f);border-bottom:1px solid #1b3a29;}
+.gh-rank{display:flex;align-items:center;gap:12px;min-width:15rem;}
+.gh-rank__badge{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:1.25rem;color:#05180e;background:linear-gradient(135deg,#7dff9a,#ffd166);box-shadow:0 0 18px rgba(125,255,154,.5);}
+.gh-rank__name{font-weight:900;letter-spacing:.04em;text-transform:uppercase;font-size:.78rem;color:#9fd8b3;}
+.gh-xpbar{height:9px;width:11rem;border-radius:9px;background:#14301f;overflow:hidden;margin-top:5px;}
+.gh-xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7dff9a,#ffd166);transition:width .5s;}
+.gh-xp{font-family:var(--font-data);font-size:.8rem;color:#c8f1d6;font-weight:700;}
+.gh-miss{display:flex;gap:7px;flex-wrap:wrap;}
+.gh-m{display:inline-flex;align-items:center;gap:.45em;padding:.38em .85em;border-radius:999px;font-size:.76rem;font-weight:800;background:#102418;color:#7fb596;border:1px solid #234a33;}
+.gh-m::before{content:"";width:.8em;height:.8em;border-radius:50%;border:2px solid #4a8f66;}
+.gh-m.done{background:rgba(125,255,154,.12);color:var(--g1);border-color:rgba(125,255,154,.5);} .gh-m.done::before{background:var(--g1);border-color:var(--g1);}
+.gh-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:8px;padding:10px 12px;background:#08140d;border-bottom:1px solid #16331f;}
+.gh-stat{border-radius:14px;border:1px solid #1f4630;background:#0d2015;padding:7px 12px;}
+.gh-stat small{display:block;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7fb596;}
+.gh-stat b{font-family:var(--font-data);font-size:1.25rem;font-weight:900;color:#eafff2;} .gh-stat b.cash{color:var(--cash);} .gh-stat b.neg{color:var(--bad);}
+.gh-stat .bar{height:7px;border-radius:6px;background:#14301f;margin-top:5px;overflow:hidden;} .gh-stat .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8d5c,#7dff9a);transition:width .4s;}
+.gh-view{position:relative;height:clamp(250px,48vh,480px);background:radial-gradient(ellipse at 50% 30%,#1b4a6b,#06100b 75%);}
+.gh-view canvas{display:block;touch-action:pan-y;cursor:grab;}
+.gh-nogl{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:2rem;color:#9fd8b3;font-weight:700;}
+.gh-msg{position:absolute;left:12px;right:12px;bottom:12px;padding:.7em 1em;border-radius:14px;font-weight:800;font-size:.9rem;background:rgba(5,16,10,.8);border:1px solid #2a5a3b;backdrop-filter:blur(8px);color:#dcffe8;pointer-events:none;}
+.gh-msg.good{border-color:rgba(125,255,154,.6);color:var(--g1);} .gh-msg.bad{border-color:rgba(255,84,104,.7);color:#ff9aa8;}
+.gh-hint{position:absolute;right:12px;top:10px;font-size:.7rem;font-weight:700;color:#7fb596;pointer-events:none;}
+.gh-pop{position:absolute;left:50%;top:36%;transform:translateX(-50%);font-weight:900;font-size:1.5rem;color:var(--g1);text-shadow:0 0 14px rgba(125,255,154,.8);pointer-events:none;animation:ghpop 1.1s ease-out forwards;white-space:nowrap;}
+.gh-pop.cash{color:var(--cash);text-shadow:0 0 14px rgba(255,209,102,.8);} .gh-pop.neg{color:var(--bad);}
+@keyframes ghpop{0%{opacity:0;transform:translate(-50%,10px);}15%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50px);}}
+.gh-banner{position:absolute;inset:0;display:grid;place-items:center;background:rgba(4,12,8,.82);backdrop-filter:blur(3px);z-index:3;padding:10px;overflow:auto;}
+.gh-banner>div{width:min(46rem,100%);text-align:center;padding:1.1rem 1.4rem;border-radius:22px;border:1px solid var(--g1);background:#08180f;box-shadow:0 0 40px rgba(125,255,154,.3);max-height:100%;overflow:auto;}
+.gh-banner h3{margin:0 0 .3em;font-size:1.5rem;color:var(--g1);} .gh-banner p{margin:.2em 0 .7em;color:#c8f1d6;font-weight:700;}
+.gh-banner.alert>div{border-color:#ffb347;box-shadow:0 0 40px rgba(255,179,71,.3);} .gh-banner.alert h3{color:#ffb347;}
+.gh-cams{display:flex;gap:8px;padding:8px 12px;background:#08140d;flex-wrap:wrap;}
+.gh-cam{flex:1 1 7rem;min-height:42px;border-radius:12px;border:1px solid #1f4630;background:#0d2015;color:#a7dcbc;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;touch-action:manipulation;}
+.gh-cam[aria-pressed=true]{color:#05180e;background:var(--g1);border-color:var(--g1);}
+.gh-main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr);align-items:start;background:#08140d;}
+.gh-left{position:sticky;top:4px;z-index:6;background:#08140d;min-width:0;box-shadow:0 8px 20px -10px #000;}
+.gh-right{padding:10px 12px 16px;min-width:0;}
+@media(max-width:900px){.gh-main{grid-template-columns:1fr;} .gh-left{top:0;} .gh-view{height:clamp(180px,27vh,260px);}
+  .gh-strip{grid-template-columns:repeat(4,1fr);gap:4px;padding:5px;} .gh-strip .gh-stat:nth-child(4),.gh-strip .gh-stat:nth-child(6){display:none;} .gh-burn{font-size:.58rem;} .gh-stat{padding:3px 8px;} .gh-stat small{font-size:.56rem;} .gh-stat b{font-size:.92rem;} .gh-hint{display:none;} .gh-msg{font-size:.76rem;padding:.4em .7em;bottom:6px;left:6px;right:6px;} .gh-cams{padding:4px 6px;} .gh-cam{min-height:34px;font-size:.64rem;flex-basis:4rem;padding:0 .2em;}}
+.gh-act{display:grid;grid-template-columns:1.5fr 1fr;gap:8px;padding:6px 12px 10px;align-items:stretch;}
+.gh-act .gh-go{margin:0;min-height:46px;font-size:.88rem;} .gh-act__r{display:grid;grid-template-columns:1fr 1fr;gap:6px;} .gh-act__r .gh-go{min-height:21px;font-size:.7rem;padding:.1em .3em;box-shadow:none;border-radius:10px;}
+.gh-act__r button[hidden]{display:none;}
+.gh-prog{height:7px;border-radius:5px;background:#14301f;overflow:hidden;margin-top:5px;} .gh-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7dff9a,#ffd166);transition:width .3s;}
+.gh-q{display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;min-width:1.45rem;margin-left:.45em;border-radius:50%;border:1px solid #4a8f66;background:#0f2a1b;color:var(--g1);font:inherit;font-weight:900;font-size:.8rem;cursor:pointer;line-height:1;padding:0;vertical-align:middle;touch-action:manipulation;}
+.gh-q[aria-expanded=true]{background:var(--g1);color:#05180e;}
+.gh-help{display:block;margin:6px 0;padding:8px 10px;border-radius:10px;border:1px solid #2f6a46;background:#0c2216;color:#d3f5e0;font-size:.78rem;font-weight:600;line-height:1.4;}
+.gh-help[hidden]{display:none;}
+.gh-burn{display:block;font-size:.7rem;font-weight:800;color:#ff9aa8;font-family:var(--font-data);min-height:1em;} .gh-burn.hit{animation:ghburn .5s;}
+@keyframes ghburn{0%{color:#fff;transform:scale(1.15);}100%{color:#ff9aa8;transform:none;}}
+.gh-cpop{position:absolute;left:10px;top:8px;font-weight:900;font-size:1.05rem;color:#ff8d9c;text-shadow:0 0 10px rgba(255,84,104,.7);pointer-events:none;animation:ghcp .9s ease-out forwards;}
+@keyframes ghcp{0%{opacity:0;transform:translateY(-4px);}20%{opacity:1;}100%{opacity:0;transform:translateY(26px);}}
+.gh-stat.alert b{color:var(--bad);}
+.gh-seg.gh-seg--s button{flex:1 1 3rem;min-height:40px;justify-content:center;font-size:.9rem;padding:.2em .3em;}
+.gh-card{border-radius:16px;border:1px solid #1f4630;background:linear-gradient(180deg,#0e2318,#0a1a11);padding:12px 14px;margin-bottom:12px;}
+.gh-card h3{margin:0 0 8px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#8fd0a8;}
+.gh-seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;}
+.gh-seg button{flex:1 1 7rem;display:flex;align-items:center;justify-content:center;gap:.5em;min-height:48px;padding:.3em .6em;border-radius:12px;border:1px solid #27573b;background:#0f2a1b;color:#bdf0d0;font:inherit;font-weight:800;font-size:.82rem;cursor:pointer;touch-action:manipulation;text-align:left;}
+.gh-seg button svg{width:2rem;height:2rem;flex:none;} .gh-seg button small{display:block;font-weight:700;color:#7fb596;font-size:.7rem;}
+.gh-seg button[aria-pressed=true]{background:#17482c;border-color:var(--g1);box-shadow:0 0 14px rgba(125,255,154,.35);color:#fff;}
+.gh-seg button:disabled{opacity:.45;cursor:not-allowed;}
+.gh-row{margin:10px 0 4px;padding:8px 10px;border-radius:12px;border:1px solid #1c3f2b;background:#0b1d13;}
+.gh-row__head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:900;font-size:.88rem;}
+.gh-row__head output{font-family:var(--font-data);color:var(--c);font-size:1rem;}
+.gh-row input[type=range]{width:100%;min-height:34px;accent-color:var(--c);}
+.gh-row small{display:block;color:#86b99b;font-size:.72rem;font-weight:600;line-height:1.35;}
+.gh-fac{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:.72rem;font-weight:800;color:#a7dcbc;}
+.gh-fac .bar{flex:1;height:9px;border-radius:6px;background:#14301f;overflow:hidden;} .gh-fac .bar i{display:block;height:100%;background:var(--c);transition:width .3s;}
+.gh-fac .lim{display:none;color:#05180e;background:var(--bad);border-radius:6px;padding:0 .5em;font-size:.66rem;} .gh-row.is-lim .lim{display:inline-block;} .gh-row.is-lim{border-color:var(--bad);box-shadow:0 0 12px rgba(255,84,104,.3);}
+.gh-go{width:100%;min-height:54px;border:none;border-radius:14px;font:inherit;font-weight:900;font-size:1rem;color:#05180e;cursor:pointer;
+  background:linear-gradient(135deg,#7dff9a,#ffd166);box-shadow:0 5px 0 #2b7b43,0 0 22px rgba(125,255,154,.35);touch-action:manipulation;margin-top:8px;}
+.gh-go:active{transform:translateY(3px);} .gh-go:disabled{opacity:.45;cursor:not-allowed;}
+.gh-go--ghost{background:#102a1b;color:#dcffe8;box-shadow:0 4px 0 #07140d;border:1px solid #27573b;min-height:46px;}
+.gh-go--warn{background:linear-gradient(135deg,#ffb347,#ff7a59);box-shadow:0 5px 0 #8a3a1b;}
+.gh-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.gh-cost{width:100%;border-collapse:collapse;font-size:.8rem;font-weight:700;} .gh-cost td{padding:2px 0;color:#c8f1d6;} .gh-cost td:last-child{text-align:right;font-family:var(--font-data);}
+.gh-cost tr.t td{border-top:1px solid #27573b;font-weight:900;color:var(--cash);}
+.gh-big{font-family:var(--font-data);font-weight:900;font-size:2.1rem;line-height:1;color:var(--g1);text-shadow:0 0 18px rgba(125,255,154,.5);}
+.gh-spark{display:flex;align-items:flex-end;gap:2px;height:34px;margin:6px 0;} .gh-spark i{flex:1;background:linear-gradient(180deg,#7dff9a,#2b7b43);border-radius:2px;min-height:2px;}
+.gh-led{width:100%;border-collapse:collapse;font-size:.74rem;font-weight:700;} .gh-led th,.gh-led td{padding:4px 5px;text-align:right;border-bottom:1px solid #1b3a29;} .gh-led th:first-child,.gh-led td:first-child{text-align:left;} .gh-led th{color:#8fd0a8;font-size:.66rem;text-transform:uppercase;} .gh-led .neg{color:var(--bad);} .gh-led .pos{color:var(--g1);}
+.gh-tbl{overflow-x:auto;}
+.gh-note{font-size:.78rem;color:#9fd8b3;font-weight:600;margin:.4em 0;line-height:1.4;}
+.gh-fact{margin:0 14px 14px;padding:10px 14px;border-radius:14px;background:#17130a;border:1px dashed #d9a21b;display:flex;gap:12px;align-items:center;}
+.gh-fact button{font:inherit;font-weight:900;background:#d9a21b;color:#1c1400;border:none;border-radius:10px;padding:.6em 1em;cursor:pointer;min-height:44px;} .gh-fact p{margin:0;font-weight:700;color:#ffdf8a;font-size:.9rem;}
+.gh-dim{opacity:.4;pointer-events:none;filter:saturate(.5);}
+.gh-panel>*,.gh-card,.gh-seg button{min-width:0;}
+@media(max-width:560px){.gh-seg button{flex-basis:100%;} .gh-big{font-size:1.7rem;}}
+.gh-buy{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;margin:5px 0;border-radius:12px;border:1px solid #1c3f2b;background:#0b1d13;}
+.gh-buy__t{flex:1;min-width:0;font-size:.82rem;} .gh-buy small{color:#86b99b;font-weight:700;margin-left:.3em;}
+.gh-buybtn{min-width:5.4rem;min-height:40px;border-radius:10px;border:none;font:inherit;font-weight:900;font-size:.82rem;color:#05180e;background:linear-gradient(135deg,#7dff9a,#ffd166);cursor:pointer;touch-action:manipulation;}
+.gh-buybtn:disabled{opacity:.5;background:#16301f;color:#8fd0a8;cursor:not-allowed;}
+.gh-step{display:flex;align-items:center;gap:10px;margin:6px 0 10px;} .gh-step button{width:44px;height:44px;border-radius:12px;border:1px solid #27573b;background:#0f2a1b;color:var(--g1);font-size:1.3rem;font-weight:900;cursor:pointer;touch-action:manipulation;} .gh-step b{font-size:1.4rem;min-width:2ch;text-align:center;} .gh-step small{color:#86b99b;font-weight:700;font-size:.74rem;}
+.gh-ad{flex-wrap:wrap;} .gh-ad .gh-freq{margin:6px 0 0;} .gh-ad .gh-buybtn{min-height:38px;} .gh-studio{background:linear-gradient(135deg,#ffb347,#ff7a59);}
+.gh-in{width:100%;min-height:44px;border-radius:10px;border:1px solid #27573b;background:#0f2a1b;color:#e6fff0;font:inherit;font-weight:800;padding:0 .8em;margin:4px 0;}
+.gh-in.shake{border-color:var(--bad);}
+.gh-deal{font-size:.82rem;font-weight:700;color:#d3f5e0;line-height:1.45;} .gh-deal b{color:var(--cash);} .gh-deal .bad{color:var(--bad);font-weight:900;} .gh-deal .ok{color:var(--g1);font-weight:900;}
+.gh-deal input[type=range]{width:100%;min-height:34px;accent-color:#ffd166;} .gh-deal .msg{margin:6px 0;padding:8px 10px;border-radius:10px;background:#1a1408;border:1px dashed #d9a21b;color:#ffdf8a;}
+.gh-opt{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px;} .gh-opt button{min-height:44px;min-width:44px;padding:.2em .7em;border-radius:12px;border:1px solid #27573b;background:#0f2a1b;color:#bdf0d0;font:inherit;font-weight:800;font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:.4em;touch-action:manipulation;} .gh-opt button svg{width:1.9rem;height:1.9rem;} .gh-opt button[aria-pressed=true]{background:#17482c;border-color:var(--g1);color:#fff;box-shadow:0 0 12px rgba(125,255,154,.35);}
+.gh-sel{min-height:44px;width:100%;border-radius:10px;border:1px solid #27573b;background:#0f2a1b;color:#e6fff0;font:inherit;font-weight:700;padding:0 .6em;margin:4px 0;}
+.ad{position:relative;width:100%;margin:8px auto;border-radius:14px;overflow:hidden;color:#fff;text-align:center;--a:#ff7a59;--b:#ffd166;background:linear-gradient(160deg,var(--a),var(--b));border:1px solid #fff3;}
+.ad--tv{aspect-ratio:16/9;} .ad--mag{aspect-ratio:3/4;max-width:300px;} .ad--social{aspect-ratio:9/16;max-width:200px;border-radius:22px;border:4px solid #111;} .ad--news{aspect-ratio:4/3;background:#e9e2d0;color:#222;} .ad--radio{aspect-ratio:16/9;background:linear-gradient(160deg,#101a2e,#1d2b4a);}
+.ad__tag{position:absolute;top:6px;left:8px;font-size:.65rem;font-weight:900;letter-spacing:.1em;background:#0007;border-radius:6px;padding:.1em .5em;}
+.ad__m{position:absolute;left:50%;top:46%;width:34%;transform:translate(-50%,-50%) scale(.2);opacity:0;transition:all .7s cubic-bezier(.3,1.5,.5,1);} .ad__m svg{width:100%;height:auto;filter:drop-shadow(0 6px 8px #0006);} .ad__m.on{opacity:1;transform:translate(-50%,-50%) scale(1);} .ad__m.on.up{top:34%;transform:translate(-50%,-50%) scale(.8);transition:all .6s ease;} .ad.bob .ad__m.on svg{animation:adbob 1.4s ease-in-out infinite;}
+@keyframes adbob{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-6px) rotate(3deg);}}
+.ad__l{position:absolute;left:6%;right:6%;font-weight:900;opacity:0;transform:translateY(10px);transition:all .6s;text-shadow:0 2px 6px #0007;} .ad__l.on{opacity:1;transform:none;} .ad--news .ad__l{text-shadow:none;}
+.ad__l.s{bottom:34%;font-size:clamp(.8rem,3.4vw,1.25rem);} .ad__l.p{bottom:20%;font-size:clamp(.8rem,3vw,1.1rem);color:#fff6c2;} .ad__l.n{bottom:6%;font-size:clamp(1rem,4.4vw,1.7rem);}
+.ad__eq{position:absolute;left:10%;right:10%;top:12%;height:34%;display:flex;gap:4px;align-items:flex-end;} .ad__eq i{flex:1;background:linear-gradient(#7dff9a,#35d0ff);border-radius:3px;height:20%;animation:adeq 1s ease-in-out infinite;} @keyframes adeq{0%,100%{height:18%;}50%{height:90%;}}
+.ad__cap{position:absolute;left:6%;right:6%;bottom:8%;min-height:3.2em;font-weight:800;font-size:clamp(.8rem,3.2vw,1.1rem);color:#e6fff0;}
+.ad__h{position:absolute;font-size:1.3rem;opacity:0;animation:adheart 2.6s ease-out infinite;} @keyframes adheart{0%{transform:translateY(0);opacity:0;}15%{opacity:1;}100%{transform:translateY(-110px);opacity:0;}}
+.ad__box{position:absolute;left:10%;right:10%;top:30%;bottom:10%;border:3px solid #222;background:#fff;border-radius:6px;display:grid;place-items:center;transform:scale(.6);opacity:0;transition:all .6s;color:#222;} .ad__box.on{transform:scale(1);opacity:1;}
+.ad__bars{position:absolute;left:8%;right:8%;top:12%;display:grid;gap:5px;} .ad__bars i{display:block;height:6px;background:#bbb;border-radius:3px;}
+.ad__cnt{position:absolute;right:8px;bottom:8px;font-weight:900;font-size:.8rem;background:#0007;border-radius:8px;padding:.1em .5em;}
+[data-reduced-motion=on] .ad *{animation:none !important;transition:none !important;}
+[data-reduced-motion=on] .gh-pop,[data-reduced-motion=on] .gh-cpop,[data-reduced-motion=on] .gh-burn.hit{animation:none;}
+
+.gh-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;} .gh-tabs button{flex:1 1 6.2rem;min-height:46px;border-radius:12px;border:2px solid #27573b;background:#0f2a1b;color:#bdf0d0;font:inherit;font-weight:900;font-size:.8rem;cursor:pointer;display:grid;place-items:center;gap:0;padding:3px;touch-action:manipulation;} .gh-tabs button[aria-selected=true]{background:#17482c;border-color:var(--g1);color:#fff;box-shadow:0 0 12px rgba(125,255,154,.35);}
+.tb{display:grid;grid-template-columns:7.2rem 1fr auto;gap:8px;align-items:center;margin:5px 0;font-size:.8rem;font-weight:800;color:#c8f1d6;} .tb span{line-height:1.1;}
+.tbar{position:relative;height:16px;border-radius:9px;background:#14301f;overflow:hidden;} .tbar i{display:block;height:100%;border-radius:9px;transition:width .35s;} .tbar b{position:absolute;right:6px;top:-1px;font-size:.72rem;color:#05180e;mix-blend-mode:normal;text-shadow:0 0 3px #fff9;}
+.tbar.rng u{position:absolute;top:3px;bottom:3px;background:rgba(125,255,154,.55);border-radius:6px;} .tbar.rng i.mid{position:absolute;top:1px;width:8px;height:14px;border-radius:50%;background:#fff;transform:translateX(-4px);} .rv{font-size:.72rem;color:#9fe3b3;}
+.gradebar em{position:absolute;top:0;bottom:0;width:3px;background:#fff;} .gradebar b{color:#05180e;}
+.badge{display:inline-block;font-size:.72rem;font-weight:900;padding:.1em .6em;border-radius:999px;background:#17482c;margin:2px 4px 0 0;} .badge.rd{background:#7a1f2c;} .badge.pk{background:#7a2a5e;}
+.selh{display:flex;gap:12px;align-items:center;margin-bottom:6px;} .selico{font-size:2.4rem;line-height:1;} .selh small{color:#9fe3b3;font-weight:700;}
+.selbtns{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;} .selbtns button,.chip{min-height:42px;padding:.3em .8em;border-radius:12px;border:2px solid #27573b;background:#0f2a1b;color:#e6fff0;font:inherit;font-weight:800;font-size:.8rem;cursor:pointer;touch-action:manipulation;} .selbtns button:disabled,.chip:disabled{opacity:.4;cursor:not-allowed;} .selbtns button[aria-pressed=true],.chip.on{background:#17482c;border-color:var(--g1);}
+.alist{max-height:330px;overflow:auto;display:grid;gap:5px;margin:8px 0;} .arow{display:grid;grid-template-columns:1fr 5rem auto;gap:8px;align-items:center;min-height:42px;padding:4px 10px;border-radius:12px;border:2px solid #1f4630;background:#0b1d13;color:#e6fff0;font:inherit;font-weight:800;font-size:.82rem;cursor:pointer;text-align:left;touch-action:manipulation;} .arow.on{border-color:var(--g1);background:#13301d;} .mini{height:9px;border-radius:6px;background:#14301f;overflow:hidden;} .mini i{display:block;height:100%;}
+.plist{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
+.steps{margin:8px 0;padding-left:1.4rem;font-size:.82rem;font-weight:700;color:#8fb8a0;} .steps li{margin:2px 0;} .steps li.on{color:#ffe9a8;font-weight:900;} .steps li.dn{color:#7dff9a;}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;} .slot{padding:8px 10px;border-radius:14px;border:2px dashed #3a6a4b;background:#0b1d13;min-height:70px;} .slot.on{border-style:solid;border-color:var(--g1);} .slot small{display:block;color:#9fe3b3;font-weight:800;} .slot b{font-size:.95rem;}
+.warn{margin:8px 0;padding:8px 10px;border-radius:12px;background:#2a1708;border:2px solid #ffb347;color:#ffdca0;font-weight:700;font-size:.82rem;line-height:1.4;}
+.prods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;} .prod{padding:8px;border-radius:14px;background:#0b1d13;border:2px solid #1f4630;font-size:.85rem;font-weight:800;display:grid;gap:4px;} .prod span{font-size:1.15rem;color:#ffe9a8;} .prod small{font-size:.7rem;color:#9fe3b3;line-height:1.2;}
+.sw{display:block;margin:8px 0;font-weight:800;font-size:.85rem;} .sw input{width:1.3rem;height:1.3rem;vertical-align:middle;margin-right:.4em;}
+.mkt{display:grid;gap:6px;} .mk{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:12px;background:#0b1d13;border:2px solid #1f4630;font-size:.72rem;font-weight:700;} .mt{white-space:nowrap;}
+.flow{display:flex;gap:6px;align-items:flex-end;height:66px;} .flow div{display:flex;gap:2px;align-items:flex-end;} .flow i{width:8px;border-radius:3px;} .flow i.in{background:#35e08a;} .flow i.out{background:#ff6b5a;}
+.bigpic{font-size:2.4rem;margin:.2em 0;}
+@media(max-width:560px){.tb{grid-template-columns:5.4rem 1fr auto;} .prods{grid-template-columns:1fr;} .pairs{grid-template-columns:1fr;}}
+</style></head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountExternalActivity } from "../../../../../engine/external-activity.js?v=3";
+import { getLang } from "../../../../../engine/i18n.js?v=10";
+import * as M from "./ranch-model.js?v=1";
+import { initScene } from "./ranch-scene.js?v=3";
+const L = (en, es) => getLang() === "es" ? es : en;
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on" || (document.documentElement.getAttribute("data-reduced-motion") !== "off" && matchMedia("(prefers-reduced-motion: reduce)").matches);
+const D = x => (x < 0 ? "-$" : "$") + Math.abs(Math.round(x)).toLocaleString("en-GB");
+const esc = x => String(x).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const SPN = () => ({ cow: L("cow", "vaca"), sheep: L("sheep", "oveja") });
+const SPI = { cow: "🐄", sheep: "🐑" };
+const TN = sp => ({ prod: sp === "cow" ? L("Milk yield", "Leche") : L("Wool quality", "Calidad de lana"), meat: L("Meat", "Carne"), health: L("Health", "Salud"), looks: L("Looks", "Aspecto"), growth: L("Growth speed", "Crecimiento") });
+const PTN = () => ({ yield: L("Yield", "Producción"), flavour: L("Flavour", "Sabor"), resist: L("Disease resistance", "Resistencia"), looks: L("Looks", "Aspecto"), shelf: L("Shelf life", "Conservación") });
+const hue = v => v < 40 ? "#ff6b5a" : v < 60 ? "#ffc247" : v < 78 ? "#9be564" : "#35e08a";
+const barHtml = (label, v, extra = "") => `<div class="tb"><span>${label}</span><div class="tbar"><i style="width:${v}%;background:${hue(v)}"></i><b>${Math.round(v)}</b></div>${extra}</div>`;
+const rangeHtml = (label, r, cur) => `<div class="tb"><span>${label}</span><div class="tbar rng"><u style="left:${r[0]}%;width:${Math.max(2, r[2] - r[0])}%"></u><i class="mid" style="left:${r[1]}%"></i></div><b class="rv">${r[0]}–${r[2]}</b></div>`;
+function spark(arr, color = "#7dff9a") { if (!arr.length) return ""; const mx = Math.max(60, ...arr), mn = Math.min(30, ...arr), w = 220, h = 54; const pts = arr.map((v, i) => `${(i / Math.max(1, arr.length - 1)) * (w - 8) + 4},${h - 4 - ((v - mn) / (mx - mn || 1)) * (h - 10)}`).join(" "); return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" aria-hidden="true"><polyline fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" points="${pts}"/><text x="4" y="12" font-size="10" fill="#8fd0a8">${L("herd quality over time", "calidad del rebaño")}</text></svg>`; }
+
+function mkSim(host, api) {
+  const st = api.state; st.explored ??= {}; st.tab ??= "herd"; st.speed ??= 1; st.sel ??= {}; st.cam ??= "overview";
+  if (!st.game || !st.game.animals) { st.game = M.newGame(1 + Math.floor(Math.random() * 60)); st.base = null; }
+  const g = st.game; if (!st.base) st.base = { cow: M.herdMerit(g, "cow"), sheep: M.herdMerit(g, "sheep"), tom: g.plants.reduce((s, p) => s + M.plantMerit(p), 0) / Math.max(1, g.plants.length) };
+  const rt = { sel: {} }; let scene3d = null, running = false, timer = null;
+  const $ = h => { const n = document.createElement("div"); n.innerHTML = h.trim(); return n.firstElementChild; };
+  const root = $(`<div></div>`);
+  const labels = { breed: L("Breed an animal", "Cría un animal"), improve: L("Improve my herd", "Mejora tu rebaño"), plants: L("Cross-pollinate plants", "Poliniza plantas"), vet: L("Look after animal health", "Cuida la salud"), quality: L("Sell to a supermarket", "Vende a un supermercado"), year: L("Finish a year", "Termina un año") };
+  const top = $(`<div class="gh-top"><div class="gh-rank"><div class="gh-rank__badge">🧬</div><div><div class="gh-rank__name">${L("Selective Breeding Ranch", "Rancho de cría selectiva")}</div><div class="gh-xp" id="stars"></div></div></div><div class="gh-miss" id="miss" aria-live="polite"></div></div>`);
+  const strip = $(`<div class="gh-strip"><div class="gh-stat"><small>${L("Cash", "Dinero")}</small><b class="cash" id="s-cash"></b><span class="gh-burn" id="s-burn"></span></div>
+    <div class="gh-stat"><small>${L("Farm fame", "Fama")}</small><b id="s-rep"></b><div class="bar"><i id="s-repbar"></i></div></div>
+    <div class="gh-stat"><small>${L("Day", "Día")}</small><b id="s-day"></b></div>
+    <div class="gh-stat"><small>${L("Animals & plants", "Animales y plantas")}</small><b id="s-pop"></b></div>
+    <div class="gh-stat"><small>${L("In the store", "En el almacén")}</small><b id="s-stock" style="font-size:.95rem"></b></div></div>`);
+  const view = $(`<div class="gh-view"><div class="gh-hint">${L("Click animals, plants and buildings", "Haz clic en animales, plantas y edificios")}</div><div class="gh-msg" role="status"></div></div>`);
+  const msgEl = view.querySelector(".gh-msg");
+  const cams = $(`<div class="gh-cams" role="group" aria-label="${L("Camera", "Cámara")}"></div>`);
+  const act = $(`<div class="gh-act"><div><button class="gh-go" id="go"></button><div class="gh-prog" aria-hidden="true"><i id="b-prog"></i></div></div><div class="gh-act__r"><button class="gh-go gh-go--ghost" id="speed">1×</button><button class="gh-go gh-go--ghost" id="skip">${L("Next truck", "Camión")}</button></div></div>`);
+  const main = $(`<div class="gh-main"><div class="gh-left"></div><div class="gh-right"></div></div>`);
+  const left = main.querySelector(".gh-left"), right = main.querySelector(".gh-right");
+  left.append(strip, view, cams, act); root.append(top, main);
+  const hid = (() => { let n = 0; return () => "h" + (++n); })();
+  const H = t => { const id = hid(); return `<button type="button" class="gh-q" data-h="${id}" aria-expanded="false" aria-label="${L("What does this mean?", "¿Qué significa esto?")}">?</button><span class="gh-help" id="${id}" hidden>${t}</span>`; };
+  const shd = document.querySelector(".site-head"); const setTop = () => { left.style.top = ((shd && getComputedStyle(shd).position === "sticky") ? shd.getBoundingClientRect().height : 0) + 4 + "px"; }; setTop(); addEventListener("resize", setTop);
+  root.addEventListener("click", e => { const b = e.target.closest(".gh-q"); if (!b) return; const h = root.querySelector("#" + b.dataset.h); if (!h) return; h.hidden = !h.hidden; b.setAttribute("aria-expanded", String(!h.hidden)); });
+  const q = id => root.querySelector(id);
+  const say = (tx, k = "") => { msgEl.className = "gh-msg " + k; msgEl.textContent = tx; };
+  const pop = (text, k = "") => { const p = $(`<div class="gh-pop ${k}">${text}</div>`); view.append(p); setTimeout(() => p.remove(), 1400); };
+  function renderTop() { const n = Object.keys(labels).filter(k => st.explored[k]).length; q("#stars").textContent = "⭐".repeat(n) + "☆".repeat(6 - n); q("#miss").innerHTML = Object.entries(labels).map(([k, l]) => `<span class="gh-m ${st.explored[k] ? "done" : ""}">${l}</span>`).join(""); }
+  function mark(k) { if (st.explored[k]) return; st.explored[k] = true; pop("⭐"); renderTop(); rt.burst?.("green"); api.save();
+    if (Object.keys(labels).every(x => st.explored[x]) && !view.querySelector(".gh-banner.win")) { const bn = $(`<div class="gh-banner win"><div><h3>${L("MISSION COMPLETE!", "¡MISIÓN CUMPLIDA!")}</h3><p>${L("You ran a farm where science drives the profit: selective breeding, health, quality and sales. Now prove it in the quiz!", "Dirigiste una granja donde la ciencia impulsa el beneficio: cría selectiva, salud, calidad y ventas. ¡Ahora demuéstralo en el cuestionario!")}</p><button class="gh-go">${L("Go to the quiz", "Ir al cuestionario")}</button></div></div>`);
+      bn.querySelector("button").addEventListener("click", () => { bn.remove(); document.querySelector(".q")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); }); view.append(bn); } }
+  const animal = id => g.animals.find(a => a.id === id), plant = id => g.plants.find(p => p.id === id);
+  const aName = a => a ? `${SPI[a.sp]} ${a.name}` : "–";
+
+  /* ---------- the card for the thing I clicked ---------- */
+  const selCard = $(`<div class="gh-card" id="selcard"></div>`);
+  const tabBar = $(`<div class="gh-tabs" role="tablist"></div>`);
+  const TABS = [["herd", L("Herd", "Rebaño"), "🐄"], ["breed", L("Breeding lab", "Laboratorio"), "🧬"], ["crops", L("Crops", "Cultivos"), "🍅"], ["biz", L("Business", "Negocio"), "💰"], ["build", L("Build", "Construir"), "🏗️"], ["staff", L("Staff", "Personal"), "🧑‍⚕️"]];
+  TABS.forEach(([id, n, ic]) => { const b = $(`<button type="button" role="tab" data-t="${id}" aria-selected="false">${ic}<span>${n}</span></button>`); tabBar.append(b); });
+  const body = $(`<div id="tabbody"></div>`); right.append(selCard, tabBar, body);
+  [["overview", L("Whole ranch", "Todo el rancho")], ["cows", L("Cows", "Vacas")], ["sheep", L("Sheep", "Ovejas")], ["glass", L("Glasshouse", "Invernadero")], ["warehouse", L("Warehouse", "Almacén")], ["lab", L("Lab & clinic", "Lab y clínica")]].forEach(([id, n]) => { const b = $(`<button class="gh-cam" aria-pressed="${st.cam === id}">${n}</button>`); b.addEventListener("click", () => { st.cam = id; cams.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); scene3d?.goto(id); }); cams.append(b); });
+
+  /* ---------- selected card ---------- */
+  function renderSel() {
+    const s = st.sel; rt.sel = { id: s.id, mum: s.mum, dad: s.dad };
+    if (s.kind === "animal" && animal(s.id)) { const a = animal(s.id), tn = TN(a.sp), age = a.adult ? L("adult", "adulto") : L(`baby, grows up in ${Math.max(0, M.matureAge(a) - a.age)} days`, `cría, adulta en ${Math.max(0, M.matureAge(a) - a.age)} días`);
+      const badges = (a.preg ? `<span class="badge pk">🤰 ${L(`baby due in ${Math.max(0, a.preg.due - g.day)} days`, `cría en ${Math.max(0, a.preg.due - g.day)} días`)}</span>` : "") + (a.sick ? `<span class="badge rd">🤒 ${L("sick", "enferma")}</span>` : "") + (a.sp === "sheep" && a.adult ? `<span class="badge">🧶 ${L("wool", "lana")} ${Math.min(100, Math.round(a.wool / 20 * 100))}%</span>` : "");
+      selCard.innerHTML = `<h3>${L("I clicked on", "He hecho clic en")}</h3><div class="selh"><span class="selico">${SPI[a.sp]}</span><div><b>${esc(a.name)}</b> <small>${a.sex === "F" ? "♀ " + L("female", "hembra") : "♂ " + L("male", "macho")} · ${L("generation", "generación")} ${a.gen} · ${age}</small><div>${badges}</div></div></div>
+        ${M.TRAITS.animal.map(k => barHtml(tn[k], a.t[k])).join("")}
+        <div class="gh-note">${L(`Overall quality ${Math.round(M.merit(a))} · worth ${D(M.stockPrice(a, g.rep))} as breeding stock · ${D(M.meatPrice(a))} for meat`, `Calidad ${Math.round(M.merit(a))} · vale ${D(M.stockPrice(a, g.rep))} como reproductor · ${D(M.meatPrice(a))} por la carne`)}</div>
+        <div class="selbtns">${a.sex === "F" ? `<button type="button" data-act="mum" ${a.adult ? "" : "disabled"}>♀ ${L("Use as Mum", "Usar de madre")}</button>` : `<button type="button" data-act="dad" ${a.adult ? "" : "disabled"}>♂ ${L("Use as Dad", "Usar de padre")}</button>`}
+          ${a.sp === "sheep" ? `<button type="button" data-act="shear" ${a.adult && a.wool >= 12 ? "" : "disabled"}>✂️ ${L("Shear", "Esquilar")}</button>` : ""}<button type="button" data-act="stock" ${a.preg ? "disabled" : ""}>🏷️ ${L("Sell to a breeder", "Vender a un criador")} ${D(M.stockPrice(a, g.rep))}</button><button type="button" data-act="meat" ${a.preg ? "disabled" : ""}>🥩 ${L("Sell for meat", "Vender por la carne")} ${D(M.meatPrice(a))}</button></div>`; }
+    else if (s.kind === "plant" && plant(s.id)) { const p = plant(s.id), tn = PTN(); const idx = g.plants.indexOf(p) + 1;
+      selCard.innerHTML = `<h3>${L("I clicked on", "He hecho clic en")}</h3><div class="selh"><span class="selico">🍅</span><div><b>${L("Tomato plant", "Planta de tomate")} #${idx}</b> <small>${L("generation", "generación")} ${p.gen} · ${p.age >= 4 ? L("flowering", "con flores") : L("young", "joven")}</small><div>${p.ill ? `<span class="badge rd">🐛 ${L("pests / weeds", "plagas / malas hierbas")}</span>` : ""}</div></div></div>
+        ${M.TRAITS.plant.map(k => barHtml(tn[k], p.t[k])).join("")}<div class="gh-note">${L(`Overall quality ${Math.round(M.plantMerit(p))}`, `Calidad ${Math.round(M.plantMerit(p))}`)}</div>
+        <div class="selbtns"><button type="button" data-act="donor">🌼 ${L("Use as pollen donor", "Usar de donante de polen")}</button><button type="button" data-act="recv">🌸 ${L("Use as receiver", "Usar de receptora")}</button><button type="button" data-act="pull">🗑️ ${L("Pull up", "Arrancar")}</button></div>`; }
+    else selCard.innerHTML = `<h3>${L("Click something on the ranch!", "¡Haz clic en algo del rancho!")}</h3><div class="gh-note">${L("Click an animal or a plant in the 3D view to see its characteristics. Click a building to open it.", "Haz clic en un animal o una planta en la vista 3D para ver sus características. Haz clic en un edificio para abrirlo.")}</div>`;
+  }
+
+  /* ---------- tabs ---------- */
+  const STEPS = [L("Choose the characteristics you want", "Elige las características que quieres"), L("Pick parents that have them", "Elige padres que las tengan"), L("Breed the parents", "Cría a los padres"), L("Choose the best babies", "Elige las mejores crías"), L("Repeat for many generations", "Repite durante muchas generaciones")];
+  const stepsHtml = n => `<ol class="steps">${STEPS.map((t, i) => `<li class="${i + 1 === n ? "on" : i + 1 < n ? "dn" : ""}">${t}</li>`).join("")}</ol>`;
+  function tabHerd() {
+    const flt = st.flt || "all"; const list = g.animals.filter(a => flt === "all" || a.sp === flt).sort((a, b) => M.merit(b) - M.merit(a));
+    return `<div class="gh-card"><h3>${L("My animals", "Mis animales")}${H(L("Every animal has characteristics (traits) from 0 to 100. Click an animal in the list or in the 3D view to see them. Quality is a mix of all its traits.", "Cada animal tiene características (rasgos) de 0 a 100. Haz clic en un animal de la lista o en la vista 3D para verlas. La calidad es una mezcla de todos sus rasgos."))}</h3>
+      <div class="gh-seg gh-seg--s">${[["all", L("All", "Todos")], ["cow", "🐄"], ["sheep", "🐑"]].map(([k, n]) => `<button type="button" data-flt="${k}" aria-pressed="${flt === k}">${n}</button>`).join("")}</div>
+      <div class="alist">${list.map(a => `<button type="button" class="arow ${st.sel.id === a.id ? "on" : ""}" data-pick="${a.id}"><span>${SPI[a.sp]} ${esc(a.name)} ${a.sex === "F" ? "♀" : "♂"}</span><span class="mini"><i style="width:${M.merit(a)}%;background:${hue(M.merit(a))}"></i></span><small>${a.adult ? "" : "🍼"}${a.preg ? "🤰" : ""}${a.sick ? "🤒" : ""} ${Math.round(M.merit(a))}</small></button>`).join("") || `<div class="gh-note">${L("No animals yet. Buy some in the Business tab.", "Aún no hay animales. Compra algunos en la pestaña Negocio.")}</div>`}</div>
+      <div class="gh-note">${L(`Space: cows ${M.count(g, "cow")}/${M.cap(g, "barn")} · sheep ${M.count(g, "sheep")}/${M.cap(g, "pen")}`, `Espacio: vacas ${M.count(g, "cow")}/${M.cap(g, "barn")} · ovejas ${M.count(g, "sheep")}/${M.cap(g, "pen")}`)}</div></div>`;
+  }
+  function tabBreed() {
+    const s = st.sel, mum = animal(s.mum), dad = animal(s.dad), ai = s.ai || 0, goal = st.goal || "prod", sp = mum ? mum.sp : (s.spc || "cow");
+    const tn = TN(sp), ready = mum && (dad || ai), pr = ready ? M.predict(mum, dad, ai) : null, c = mum ? M.canBreed(g, mum, dad, ai) : { ok: false, why: "mum" };
+    const step = !mum ? 2 : !(dad || ai) ? 2 : 3; const fem = M.adults(g, sp, "F").sort((a, b) => M.merit(b) - M.merit(a)).slice(0, 4), mal = M.adults(g, sp, "M").sort((a, b) => M.merit(b) - M.merit(a)).slice(0, 4);
+    const why = { mum: L("Pick a Mum first (an adult female).", "Elige primero una madre (hembra adulta)."), dad: L("Pick a Dad (an adult male of the same kind) or an A.I. stud.", "Elige un padre (macho adulto de la misma especie) o un semental I.A."), preg: L("This mother is already expecting.", "Esta madre ya espera cría."), sick: L("This mother is sick.", "Esta madre está enferma."), lab: L("A.I. needs a Breeding lab. Build one first.", "La I.A. necesita un laboratorio. Constrúyelo antes."), cash: L("Not enough cash for this stud.", "No hay dinero para este semental."), full: L("The barn or pen is full. Sell or build more room.", "El establo o corral está lleno. Vende o construye más sitio.") };
+    const trait = M.TRAITS.animal.map(k => `<button type="button" data-goal="${k}" aria-pressed="${goal === k}">${tn[k]}</button>`).join("");
+    const hv = M.avgTrait(g.animals.filter(a => a.sp === sp && a.adult), goal);
+    return `<div class="gh-card"><h3>${L("Breeding lab: animals", "Laboratorio: animales")}${H(L("Selective breeding: farmers choose parents with the characteristics they want, breed them, pick the best babies, and repeat for many generations. Each generation gets closer to the goal.", "Cría selectiva: los granjeros eligen padres con las características que quieren, los cruzan, eligen las mejores crías y repiten durante muchas generaciones. Cada generación se acerca más al objetivo."))}</h3>${stepsHtml(step)}
+      <div class="gh-note"><b>1.</b> ${L("My goal", "Mi objetivo")}: <span class="gh-seg gh-seg--s" style="display:inline-flex">${trait}</span></div>
+      <div class="gh-note">${L(`Herd average for this goal: ${hv.toFixed(0)} (generation ${g.gen[sp]})`, `Media del rebaño en este objetivo: ${hv.toFixed(0)} (generación ${g.gen[sp]})`)}</div>${spark(g.trend[sp])}
+      <div class="gh-note"><b>2.</b> ${L("Parents", "Padres")}</div>
+      <div class="pairs"><div class="slot ${mum ? "on" : ""}"><small>♀ ${L("Mum", "Madre")}</small><b>${mum ? aName(mum) : L("click a female", "elige una hembra")}</b>${mum ? barHtml(tn[goal], mum.t[goal]) : ""}</div><div class="slot ${dad || ai ? "on" : ""}"><small>♂ ${L("Dad", "Padre")}</small><b>${ai ? L(`A.I. stud, level ${ai}`, `Semental I.A., nivel ${ai}`) : dad ? aName(dad) : L("click a male", "elige un macho")}</b>${dad ? barHtml(tn[goal], dad.t[goal]) : ai ? barHtml(tn[goal], M.STUD[ai - 1].avg) : ""}</div></div>
+      <div class="gh-note">${L("Best females", "Mejores hembras")}: ${fem.map(a => `<button type="button" class="chip" data-use="mum:${a.id}">${esc(a.name)} ${Math.round(a.t[goal])}</button>`).join("") || "–"}</div>
+      <div class="gh-note">${L("Best males", "Mejores machos")}: ${mal.map(a => `<button type="button" class="chip" data-use="dad:${a.id}">${esc(a.name)} ${Math.round(a.t[goal])}</button>`).join("") || "–"}</div>
+      <div class="gh-note">${L("Artificial insemination (A.I.): the stud's semen is placed in the mother. No need to keep a bull!", "Inseminación artificial (I.A.): el semen del semental se coloca en la madre. ¡No hace falta tener un toro!")} ${H(L("Artificial insemination lets one very good male father many babies safely and cheaply, and brings new genes into your herd.", "La inseminación artificial permite que un macho muy bueno sea padre de muchas crías de forma segura y barata, y trae genes nuevos a tu rebaño."))}
+        <div class="selbtns">${M.STUD.map(x => `<button type="button" data-ai="${x.q}" aria-pressed="${ai === x.q}" ${g.b.lab >= x.lab ? "" : "disabled"}>🧪 ${L("Stud", "Semental")} ${x.q} · ${L("quality", "calidad")} ~${x.avg} · ${D(x.cost)}</button>`).join("")}${ai ? `<button type="button" data-ai="0">✖ ${L("no A.I.", "sin I.A.")}</button>` : ""}</div></div>
+      ${pr ? `<div class="gh-note"><b>3.</b> ${L("What the baby may be like (range, dot = average)", "Cómo puede ser la cría (rango, punto = media)")}</div>${M.TRAITS.animal.map(k => rangeHtml(tn[k], pr.traits[k])).join("")}${pr.F > 0 ? `<div class="warn">⚠️ ${L("These two are close relatives (inbreeding). The baby may be weaker and get ill more easily, because there is less variety in the genes.", "Estos dos son parientes cercanos (endogamia). La cría puede ser más débil y enfermar más, porque hay menos variedad de genes.")}</div>` : ""}` : ""}
+      <button type="button" class="gh-go" id="dobreed" ${c.ok ? "" : "disabled"}>${L("Breed them! 💕", "¡Críalos! 💕")} ${ai ? D(M.STUD[ai - 1].cost) : ""}</button>${c.ok ? "" : `<div class="gh-note">${why[c.why] || ""}</div>`}
+      <div class="gh-note">${L("4. When the babies are grown, click the best ones and keep them as parents. Sell the others. 5. Do it again!", "4. Cuando las crías crezcan, elige las mejores y quédatelas como padres. Vende las demás. 5. ¡Hazlo otra vez!")}</div></div>`;
+  }
+  function tabCrops() {
+    const s = st.sel, A = plant(s.donor), Bp = plant(s.recv), tn = PTN(), cp = A && Bp ? M.canPollinate(g, A, Bp) : { ok: false, why: "two" };
+    const pr = A && Bp ? M.TRAITS.plant.reduce((o, k) => { const m = (A.t[k] + Bp.t[k]) / 2, sd = 7 + Math.abs(A.t[k] - Bp.t[k]) * .15; o[k] = [Math.round(Math.max(0, m - sd)), Math.round(m), Math.round(Math.min(100, m + sd))]; return o; }, {}) : null;
+    const why = { two: L("Pick two different plants (donor and receiver).", "Elige dos plantas distintas (donante y receptora)."), young: L("Both plants must be flowering (a few days old).", "Las dos plantas deben tener flores (unos días)."), full: L("The glasshouse is full. Pull up a weak plant first.", "El invernadero está lleno. Arranca antes una planta débil.") };
+    const avg = k => M.avgTrait(g.plants, k);
+    return `<div class="gh-card"><h3>${L("Glasshouse: tomato plants", "Invernadero: tomateras")}${H(L("Plants are bred by cross-pollination: pollen from the anther of one plant is placed on the stigma of another. The seeds are collected and germinated, and the best seedlings are kept.", "Las plantas se crían por polinización cruzada: el polen de la antera de una planta se coloca en el estigma de otra. Se recogen las semillas, se hacen germinar y se conservan las mejores plántulas."))}</h3>
+      <ol class="steps"><li class="${A && Bp ? "dn" : "on"}">${L("Pick a pollen donor and a receiver", "Elige donante y receptora")}</li><li class="${A && Bp ? "on" : ""}">${L("Cross-pollinate (the bee carries the pollen)", "Poliniza (la abeja lleva el polen)")}</li><li>${L("Collect the seeds and germinate them", "Recoge las semillas y haz que germinen")}</li><li>${L("Keep the best seedlings, pull up the weak ones", "Conserva las mejores plántulas")}</li><li>${L("Repeat for many generations", "Repite muchas generaciones")}</li></ol>
+      <div class="gh-note">${L(`Plants ${g.plants.length}/${M.cap(g, "glass")} · seeds growing ${g.seeds.reduce((a, x) => a + x.n, 0)} · generation ${g.gen.tomato}`, `Plantas ${g.plants.length}/${M.cap(g, "glass")} · semillas ${g.seeds.reduce((a, x) => a + x.n, 0)} · generación ${g.gen.tomato}`)}</div>
+      <div class="plist">${g.plants.map((p, i) => `<button type="button" class="chip ${st.sel.id === p.id ? "on" : ""}" data-pick="${p.id}" data-kind="plant">🍅${i + 1} <small>${Math.round(M.plantMerit(p))}${p.ill ? "🐛" : ""}</small></button>`).join("")}</div>
+      <div class="pairs"><div class="slot ${A ? "on" : ""}"><small>🌼 ${L("Pollen donor", "Donante")}</small><b>${A ? "🍅" + (g.plants.indexOf(A) + 1) : L("click a plant", "elige una planta")}</b></div><div class="slot ${Bp ? "on" : ""}"><small>🌸 ${L("Receiver", "Receptora")}</small><b>${Bp ? "🍅" + (g.plants.indexOf(Bp) + 1) : L("click a plant", "elige una planta")}</b></div></div>
+      ${pr ? `<div class="gh-note">${L("The seedlings may be like this (range, dot = average):", "Las plántulas pueden ser así (rango, punto = media):")}</div>${M.TRAITS.plant.map(k => rangeHtml(tn[k], pr[k])).join("")}` : ""}
+      <button type="button" class="gh-go" id="dopoll" ${cp.ok ? "" : "disabled"}>${L("Cross-pollinate 🐝", "Polinizar 🐝")}</button>${cp.ok ? "" : `<div class="gh-note">${why[cp.why] || ""}</div>`}
+      <div class="gh-note"><b>${L("My plants on average", "Mis plantas en promedio")}</b></div>${M.TRAITS.plant.map(k => barHtml(tn[k], avg(k))).join("")}${spark(g.trend.tomato, "#ff8d6a")}
+      ${g.pest ? `<div class="warn">🐛 ${L("Pests and weeds are damaging the plants! Plants with high disease resistance suffer less.", "¡Plagas y malas hierbas dañan las plantas! Las plantas con alta resistencia sufren menos.")} <button type="button" class="chip" data-act2="spray">${L("Spray", "Fumigar")} ${D(80)}</button></div>` : ""}</div>`;
+  }
+  function tabBiz() {
+    const gr = p => Math.round(M.grade(g, p)), prods = [["milk", "🥛", L("Milk", "Leche"), "L"], ["wool", "🧶", L("Wool", "Lana"), "kg"], ["tomato", "🍅", L("Tomatoes", "Tomates"), "kg"]];
+    const card = ([p, ic, n, u]) => { const gv = gr(p), th = M.THRESH[p], ok = gv >= th; return `<div class="prod"><b>${ic} ${n}</b><span>${Math.round(g.stock[p])} ${u}</span><div class="tbar gradebar"><i style="width:${gv}%;background:${ok ? "#35e08a" : "#ffc247"}"></i><em style="left:${th}%"></em><b>${gv}</b></div><small>${ok ? L("✔ good enough for supermarkets", "✔ válido para supermercados") : L(`needs ${th} for supermarkets`, `necesita ${th} para supermercados`)}</small></div>`; };
+    const lc = g.lastCollect;
+    return `<div class="gh-card"><h3>${L("Selling my products", "Vendo mis productos")}${H(L("Markets buy everything but pay less. Supermarkets pay about 40% more but only buy beautiful, good-quality products (good looks, flavour and health). Breeding better animals and plants makes the grade go up.", "Los mercados compran de todo pero pagan menos. Los supermercados pagan un 40% más pero solo compran productos bonitos y de buena calidad (buen aspecto, sabor y salud). Criar mejores animales y plantas sube la nota."))}</h3>
+      <div class="gh-note">${L(`The truck collects in ${g.collectIn} days.`, `El camión pasa en ${g.collectIn} días.`)}</div><div class="prods">${prods.map(card).join("")}</div>
+      <label class="sw"><input type="checkbox" id="supchk" ${g.super ? "checked" : ""} ${g.b.warehouse ? "" : "disabled"}> ${L("Supermarket contract (needs a warehouse)", "Contrato con supermercado (necesita almacén)")}</label>
+      ${lc ? `<div class="gh-note"><b>${L("Last collection", "Última recogida")}:</b> ${lc.rows.map(r => `${r.p === "milk" ? "🥛" : r.p === "wool" ? "🧶" : "🍅"} ${r.q} → ${r.sup ? L(`${r.sup} to supermarket`, `${r.sup} al supermercado`) + ", " : ""}${r.market} ${L("to market", "al mercado")} = ${D(r.rev)}${r.rejected ? " ⚠️" + L("(quality too low for the supermarket)", "(calidad baja para el supermercado)") : ""}`).join("<br>")}</div>` : ""}</div>
+      <div class="gh-card"><h3>${L("Livestock market", "Mercado de ganado")}${H(L("You can buy animals here, but it costs a lot every time. Breeding your own animals saves money, and you can even sell the best babies to other farmers.", "Aquí puedes comprar animales, pero cuesta mucho cada vez. Criar tus propios animales ahorra dinero, y puedes vender las mejores crías a otros granjeros."))}</h3><div class="mkt">${g.market.map(m => `<div class="mk"><b>${SPI[m.sp]} ${m.sex === "F" ? "♀" : "♂"}</b><div>${M.TRAITS.animal.map(k => `<span class="mt" title="${TN(m.sp)[k]}" style="color:${hue(m.t[k])}">${TN(m.sp)[k].slice(0, 4)} ${m.t[k]}</span>`).join(" ")}</div><button type="button" class="gh-buybtn" data-buy="${m.id}" ${g.cash >= m.price ? "" : "disabled"}>${D(m.price)}</button></div>`).join("")}</div></div>
+      <div class="gh-card"><h3>${L("Money in and out (10-day blocks)", "Dinero que entra y sale (bloques de 10 días)")}</h3><div class="flow">${g.flow.hist.map(h => `<div title="${h.d}"><i class="in" style="height:${Math.min(60, h.in / 60)}px"></i><i class="out" style="height:${Math.min(60, h.out / 60)}px"></i></div>`).join("") || `<small>${L("Play a few days to see this.", "Juega unos días para verlo.")}</small>`}</div><div class="gh-note">🟢 ${L("in", "entra")} · 🔴 ${L("out", "sale")}</div></div>`;
+  }
+  const BDEF = () => [["barn", L("Cow barn", "Establo"), L(l => `Room for ${M.CAP.barn[l]} cows`, l => `Sitio para ${M.CAP.barn[l]} vacas`)], ["pen", L("Sheep shelter", "Refugio de ovejas"), L(l => `Room for ${M.CAP.pen[l]} sheep`, l => `Sitio para ${M.CAP.pen[l]} ovejas`)], ["glass", L("Glasshouse", "Invernadero"), L(l => `Room for ${M.CAP.glass[l]} tomato plants`, l => `Sitio para ${M.CAP.glass[l]} tomateras`)], ["parlour", L("Milking parlour", "Sala de ordeño"), L(l => `Cows give ${15 * l}% more milk`, l => `Las vacas dan ${15 * l}% más leche`)], ["shed", L("Shearing shed", "Cobertizo de esquila"), L(l => `More wool, and hands shear for you`, l => `Más lana, y los peones esquilan por ti`)], ["warehouse", L("Warehouse", "Almacén"), L(l => `Supermarket contracts, stock keeps longer (level ${l})`, l => `Contratos con supermercados, el producto dura más (nivel ${l})`)], ["clinic", L("Vet clinic", "Clínica veterinaria"), L(l => `Lets you employ a vet`, l => `Permite contratar un veterinario`)], ["lab", L("Breeding lab", "Laboratorio de cría"), L(l => `Artificial insemination (A.I.) studs up to level ${l + 1 > 2 ? 3 : 2}`, l => `Sementales de I.A. hasta nivel ${l + 1 > 2 ? 3 : 2}`)]];
+  function tabBuild() { return `<div class="gh-card"><h3>${L("Build and upgrade", "Construir y mejorar")}${H(L("Click the FOR SALE lots in the 3D view or use the buttons. Every building helps the business: more room, more milk, better storage, and tools for breeding and health.", "Haz clic en los solares EN VENTA de la vista 3D o usa los botones. Cada edificio ayuda al negocio: más sitio, más leche, mejor almacenamiento y herramientas de cría y salud."))}</h3>
+    ${BDEF().map(([k, n, eff]) => { const lv = g.b[k], max = M.BUILD[k].length - 1, c = M.BUILD[k][lv + 1]; return `<div class="gh-buy"><div class="gh-buy__t"><b>${n}</b> <small>${L("level", "nivel")} ${lv}/${max}</small><div class="gh-note" style="margin:0">${lv ? eff(lv) : eff(1)}</div></div><button type="button" class="gh-buybtn" data-up="${k}" ${lv >= max || g.cash < c ? "disabled" : ""}>${lv >= max ? L("Max", "Máx") : D(c)}</button></div>`; }).join("")}</div>`; }
+  function tabStaff() {
+    const need = M.handsNeeded(g), sick = g.animals.filter(a => a.sick).length;
+    return `<div class="gh-card"><h3>${L("My team", "Mi equipo")}${H(L("People cost wages every day but they do important jobs. Farm hands feed and milk (you need about one per 9 animals). A vet keeps animals healthy. If you have no vet, sick animals can die, especially ones with low health.", "Las personas cuestan sueldo cada día pero hacen trabajos importantes. Los peones dan de comer y ordeñan (hace falta uno por cada 9 animales). Un veterinario mantiene sanos a los animales. Sin veterinario, los animales enfermos pueden morir, sobre todo los de poca salud."))}</h3>
+      <div class="gh-buy"><div class="gh-buy__t"><b>🧑‍🌾 ${L("Farm hands", "Peones")}: ${g.staff.hand}</b> <small>${L(`need about ${need} · ${D(M.WAGE.hand)}/day each`, `hacen falta ~${need} · ${D(M.WAGE.hand)}/día c/u`)}</small></div><span><button type="button" class="chip" data-hire="hand:-1">−</button><button type="button" class="chip" data-hire="hand:1">+</button></span></div>
+      <div class="gh-buy"><div class="gh-buy__t"><b>🩺 ${L("Vet (permanent)", "Veterinario (fijo)")}: ${g.staff.vet ? L("hired", "contratado") : L("no", "no")}</b> <small>${L(`${D(M.WAGE.vet)}/day · fewer illnesses, treats sick animals`, `${D(M.WAGE.vet)}/día · menos enfermedades, trata animales`)}${g.b.clinic ? "" : " · " + L("needs a Vet clinic", "necesita clínica")}</small></div><button type="button" class="chip" data-hire="vet:${g.staff.vet ? -1 : 1}" ${g.b.clinic ? "" : "disabled"}>${g.staff.vet ? L("Let go", "Despedir") : L("Hire", "Contratar")}</button></div>
+      <div class="gh-buy"><div class="gh-buy__t"><b>🔬 ${L("Agronomist (plants)", "Agrónomo (plantas)")}: ${g.staff.agro ? L("hired", "contratado") : L("no", "no")}</b> <small>${L(`${D(M.WAGE.agro)}/day · stops pests and weeds`, `${D(M.WAGE.agro)}/día · detiene plagas y malas hierbas`)}</small></div><button type="button" class="chip" data-hire="agro:${g.staff.agro ? -1 : 1}">${g.staff.agro ? L("Let go", "Despedir") : L("Hire", "Contratar")}</button></div>
+      <div class="gh-buy"><div class="gh-buy__t"><b>🚑 ${L("Call the vet (one visit)", "Llamar al veterinario (una visita)")}</b> <small>${D(300)} · ${L(`${sick} sick animals now`, `${sick} animales enfermos ahora`)}</small></div><button type="button" class="chip" data-act2="callvet" ${sick && g.cash >= 300 ? "" : "disabled"}>${L("Call", "Llamar")}</button></div></div>`; }
+  const TABF = { herd: tabHerd, breed: tabBreed, crops: tabCrops, biz: tabBiz, build: tabBuild, staff: tabStaff };
+  function renderTab() { tabBar.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === st.tab))); body.innerHTML = TABF[st.tab](); }
+  function sync() {
+    q("#s-cash").textContent = D(g.cash); q("#s-cash").classList.toggle("neg", g.cash < 0); const c = M.dailyCosts(g); q("#s-burn").textContent = "-" + D(c.total) + "/" + L("day", "día");
+    q("#s-rep").textContent = Math.round(g.rep) + "/100"; q("#s-repbar").style.width = g.rep + "%"; q("#s-day").textContent = `${g.year} · ${g.day - (g.year - 1) * M.YEAR_DAYS + 1}/${M.YEAR_DAYS}`;
+    q("#s-pop").textContent = `🐄${M.count(g, "cow")} 🐑${M.count(g, "sheep")} 🍅${g.plants.length}`; q("#s-stock").textContent = `🥛${Math.round(g.stock.milk)} 🧶${Math.round(g.stock.wool)} 🍅${Math.round(g.stock.tomato)}`;
+    q("#go").textContent = running ? L("⏸ Pause", "⏸ Pausa") : L("▶ Play the days", "▶ Avanzar los días"); q("#speed").textContent = st.speed + "×"; q("#b-prog").style.width = ((g.collectIn === 5 ? 0 : (5 - g.collectIn) / 5) * 100) + "%";
+    renderSel(); renderTab(); renderTop();
+    const imp = (M.herdMerit(g, "cow") - st.base.cow >= 8 && g.stats.bred > 0) || (M.herdMerit(g, "sheep") - st.base.sheep >= 8 && g.stats.bred > 0) || (g.plants.length && g.plants.reduce((s, p) => s + M.plantMerit(p), 0) / g.plants.length - st.base.tom >= 12 && g.stats.pollinated > 0); if (imp) mark("improve");
+  }
+  /* ---------- clicking things ---------- */
+  rt.onPick = (ref) => { if (!ref) return; if (ref.kind === "animal") { st.sel = { ...st.sel, id: ref.id, kind: "animal" }; st.tab = st.tab === "breed" ? "breed" : "herd"; const a = animal(ref.id); if (a) pop(`${SPI[a.sp]} ${esc(a.name)}`); }
+    else if (ref.kind === "plant") { st.sel = { ...st.sel, id: ref.id, kind: "plant" }; st.tab = "crops"; }
+    else if (ref.kind === "bld") { const m = { barn: "herd", pen: "herd", shed: g.b.shed ? "herd" : "build", parlour: g.b.parlour ? "herd" : "build", glass: g.b.glass ? "crops" : "build", warehouse: g.b.warehouse ? "biz" : "build", clinic: g.b.clinic ? "staff" : "build", lab: g.b.lab ? "breed" : "build" }; st.tab = m[ref.key] || "build"; say(L("You opened a building.", "Abriste un edificio."), ""); }
+    sync(); api.save(); };
+  tabBar.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; st.tab = b.dataset.t; sync(); });
+  selCard.addEventListener("click", e => { const b = e.target.closest("[data-act]"); if (!b || b.disabled) return; const s = st.sel, act = b.dataset.act;
+    if (act === "mum") { s.mum = s.id; st.tab = "breed"; const a = animal(s.id); if (a) { s.spc = a.sp; if (s.dad && animal(s.dad) && animal(s.dad).sp !== a.sp) s.dad = null; } }
+    else if (act === "dad") { const a = animal(s.id); if (a) { s.dad = s.id; s.ai = 0; st.tab = "breed"; if (s.mum && animal(s.mum) && animal(s.mum).sp !== a.sp) s.mum = null; s.spc = a.sp; } }
+    else if (act === "shear") { const r = M.shear(g, s.id); if (r.ok) { say(L(`Sheared ${r.kg.toFixed(1)} kg of wool. 🧶`, `Esquilaste ${r.kg.toFixed(1)} kg de lana. 🧶`), "good"); pop("🧶 +" + r.kg.toFixed(1) + " kg"); } }
+    else if (act === "stock" || act === "meat") { const a = animal(s.id), r = M.sellAnimal(g, s.id, act); if (r.ok) { say(act === "stock" ? L(`${a.name} went to a breeder for ${D(r.value)}. Good genes earn more!`, `${a.name} se fue con un criador por ${D(r.value)}. ¡Los buenos genes valen más!`) : L(`${a.name} was sold for meat: ${D(r.value)}.`, `${a.name} se vendió por la carne: ${D(r.value)}.`), "good"); pop("+" + D(r.value), "cash"); rt.burst?.("coins"); s.id = null; if (s.mum === a.id) s.mum = null; if (s.dad === a.id) s.dad = null; } }
+    else if (act === "donor") { s.donor = s.id; st.tab = "crops"; } else if (act === "recv") { s.recv = s.id; st.tab = "crops"; }
+    else if (act === "pull") { M.removePlant(g, s.id); if (s.donor === s.id) s.donor = null; if (s.recv === s.id) s.recv = null; s.id = null; say(L("Plant pulled up. A weak plant leaves space for a better one.", "Planta arrancada. Una planta débil deja sitio a una mejor."), ""); }
+    sync(); api.save(); });
+  body.addEventListener("click", e => { const t = e.target.closest("button"); if (!t || t.disabled) return; const s = st.sel;
+    if (t.dataset.flt) { st.flt = t.dataset.flt; }
+    else if (t.dataset.pick) { s.id = +t.dataset.pick; s.kind = t.dataset.kind === "plant" ? "plant" : "animal"; const o = s.kind === "animal" ? animal(s.id) : null; if (o) scene3d?.goto("at", [rt.pos?.(s.id)?.x ?? -41, rt.pos?.(s.id)?.z ?? -20]); }
+    else if (t.dataset.goal) st.goal = t.dataset.goal;
+    else if (t.dataset.use) { const [k, id] = t.dataset.use.split(":"); s[k] = +id; if (k === "dad") s.ai = 0; const a = animal(+id); if (a) s.spc = a.sp; }
+    else if (t.dataset.ai !== undefined) { s.ai = +t.dataset.ai; if (s.ai) s.dad = null; }
+    else if (t.id === "dobreed") { const mum = animal(s.mum), r = M.breed(g, s.mum, s.dad || null, s.ai || 0); if (r.ok) { say(L(`${mum.name} is expecting a baby! It arrives in ${r.due - g.day} days. 💕`, `¡${mum.name} espera una cría! Llegará en ${r.due - g.day} días. 💕`), "good"); pop("💕"); rt.hearts?.(rt.pos?.(mum.id)?.x ?? -40, rt.pos?.(mum.id)?.z ?? -20); rt.float?.("\u{1F495}", rt.pos?.(mum.id)?.x ?? -40, 4, rt.pos?.(mum.id)?.z ?? -20); mark("breed"); if (s.ai) pop("-" + D(M.STUD[s.ai - 1].cost), "neg"); if (!running) start(); s.mum = null; if (s.ai) s.ai = 0; else s.dad = s.dad; } }
+    else if (t.id === "dopoll") { const A = plant(s.donor), Bp = plant(s.recv); if (A && Bp && M.canPollinate(g, A, Bp).ok) { t.disabled = true; say(L("The bee carries pollen from one flower to the other… 🐝", "La abeja lleva polen de una flor a la otra… 🐝"), "good"); const done = () => { const r = M.pollinate(g, s.donor, s.recv); if (r.ok) { say(L(`Seeds collected! ${r.n} new seedlings will grow in 3 days. 🌱`, `¡Semillas recogidas! ${r.n} plántulas nuevas crecerán en 3 días. 🌱`), "good"); mark("plants"); rt.float?.("\u{1F331}", 44, 3, -20); } sync(); api.save(); }; if (scene3d && rt.bee) rt.bee(s.donor, s.recv, done); else done(); if (!running) start(); } }
+    else if (t.dataset.buy) { const r = M.buyAnimal(g, +t.dataset.buy); if (r.ok) { say(L(`You bought ${r.a.name} for ${D(r.price)}. Buying animals costs a lot: breeding your own saves money!`, `Compraste a ${r.a.name} por ${D(r.price)}. Comprar animales cuesta mucho: ¡criar los tuyos ahorra dinero!`), "good"); pop("-" + D(r.price), "neg"); s.id = r.a.id; s.kind = "animal"; } else say(r.why === "full" ? L("No room! Sell some animals or build more space.", "¡No hay sitio! Vende animales o construye más espacio.") : L("Not enough cash.", "No hay dinero suficiente."), "bad"); }
+    else if (t.dataset.up) { const r = M.upgrade(g, t.dataset.up); if (r.ok) { say(L("Built! The new building appears on the ranch.", "¡Construido! El nuevo edificio aparece en el rancho."), "good"); pop("-" + D(r.cost), "neg"); rt.burst?.("green"); scene3d?.goto({ barn: "cows", pen: "sheep", glass: "glass", warehouse: "warehouse", lab: "lab", clinic: "lab" }[t.dataset.up] || "overview"); setTimeout(() => scene3d?.goto(st.cam), 3500); } }
+    else if (t.dataset.hire) { const [w, n] = t.dataset.hire.split(":"); const r = M.hire(g, w, +n); if (r.ok) { say(+n > 0 ? L("Hired! Wages are paid every day.", "¡Contratado! El sueldo se paga cada día.") : L("Let go. You save wages.", "Despedido. Ahorras sueldo."), "good"); if (w === "vet" && +n > 0) mark("vet"); } }
+    else if (t.dataset.act2 === "callvet") { vetCall(); } else if (t.dataset.act2 === "spray") { const r = M.sprayPests(g); if (r.ok) { say(L("Sprayed! The pests are gone. Plants with strong resistance need less help.", "¡Fumigado! Las plagas se fueron. Las plantas resistentes necesitan menos ayuda."), "good"); pop("-" + D(80), "neg"); } }
+    sync(); api.save(); });
+  body.addEventListener("change", e => { if (e.target.id === "supchk") { const r = M.toggleSuper(g, e.target.checked); say(r.ok ? (g.super ? L("Supermarket contract on. They only buy good-quality products!", "Contrato con supermercado activo. ¡Solo compran productos de buena calidad!") : L("Contract off.", "Contrato desactivado.")) : "", ""); sync(); api.save(); } });
+  function vetCall() { const r = M.callVet(g); if (r.ok) { say(L(`The vet treated ${r.n} animals. 🚑`, `El veterinario trató ${r.n} animales. 🚑`), "good"); pop("-" + D(300), "neg"); rt.vetCar?.(); mark("vet"); view.querySelector(".gh-banner.alert")?.remove(); } else if (r.why === "cash") say(L("Not enough cash for the vet.", "No hay dinero para el veterinario."), "bad"); }
+  /* ---------- the days ---------- */
+  function handle(e) {
+    if (e.t === "born") { const k = e.kids[0]; say(L(`${e.mum.name} had ${e.kids.length > 1 ? e.kids.length + " babies" : "a baby"}! Click ${e.kids.length > 1 ? "them" : "it"} to see the characteristics.`, `¡${e.mum.name} tuvo ${e.kids.length > 1 ? e.kids.length + " crías" : "una cría"}! Haz clic para ver sus características.`), "good"); pop("🍼"); rt.hearts?.(-40, -18); }
+    else if (e.t === "grown") { /* quiet */ } else if (e.t === "germinated") say(L("New tomato seedlings are growing! Click them to see their traits.", "¡Nuevas plántulas de tomate! Haz clic para ver sus rasgos."), "good");
+    else if (e.t === "sheared") pop("✂️");
+    else if (e.t === "outbreak") { if (g.staff.vet) { say(L("A disease started, but your vet is already treating the animals. 🩺", "Empezó una enfermedad, pero tu veterinario ya trata a los animales. 🩺"), "good"); mark("vet"); } else { stop(); showOutbreak(e.n); } }
+    else if (e.t === "pest") { stop(); showPest(); }
+    else if (e.t === "died") say(L(`Sad news: ${e.list.map(a => a.name).join(", ")} died of disease. Animals with high health resist disease better.`, `Triste noticia: ${e.list.map(a => a.name).join(", ")} murió de enfermedad. Los animales con mucha salud resisten mejor.`), "bad");
+    else if (e.t === "market") say(L("New animals have arrived at the livestock market.", "Llegaron animales nuevos al mercado de ganado."), "");
+    else if (e.t === "collect") { const r = e.r; g.lastCollect = r; scene3d?.goto("warehouse"); const done = () => { const v = M.flush(g); pop("+" + D(v), "cash"); rt.burst?.("coins", [30, 4, 24]); say(L(`The truck sold your products for ${D(v)}.`, `El camión vendió tus productos por ${D(v)}.`), "good"); if (r.rows.some(x => x.sup > 0)) mark("quality"); setTimeout(() => scene3d?.goto(st.cam), 1800); sync(); api.save(); }; if (scene3d && rt.truck) rt.truck(done); else done(); }
+    else if (e.t === "year") { stop(); yearReport(); }
+  }
+  function showOutbreak(n) { const bn = $(`<div class="gh-banner alert"><div><h3>${L("Disease outbreak! 🤒", "¡Brote de enfermedad! 🤒")}</h3><div class="bigpic">🐄🤒 🐑🤒</div><p>${L(`${n} animals are sick. Animals with low health may die. A vet can treat them.`, `${n} animales están enfermos. Los de poca salud pueden morir. Un veterinario puede tratarlos.`)}</p><div class="gh-2"><button class="gh-go gh-go--warn" id="oc">${L("Call the vet 🚑", "Llamar al veterinario 🚑")} ${D(300)}</button><button class="gh-go gh-go--ghost" id="ow">${L("Wait and see", "Esperar")}</button></div></div></div>`);
+    bn.querySelector("#oc").addEventListener("click", () => { vetCall(); bn.remove(); start(); sync(); }); bn.querySelector("#ow").addEventListener("click", () => { bn.remove(); say(L("You waited. Sick animals with low health might not survive. Breed healthier animals!", "Esperaste. Los animales enfermos con poca salud pueden no sobrevivir. ¡Cría animales más sanos!"), "bad"); start(); }); view.append(bn); }
+  function showPest() { const bn = $(`<div class="gh-banner alert"><div><h3>${L("Pests and weeds! 🐛", "¡Plagas y malas hierbas! 🐛")}</h3><div class="bigpic">🐛🍅🥀</div><p>${L("Pests and weeds are attacking the tomatoes. Plants with high disease resistance suffer less.", "Las plagas y malas hierbas atacan los tomates. Las plantas con más resistencia sufren menos.")}</p><div class="gh-2"><button class="gh-go gh-go--warn" id="pc">${L("Spray", "Fumigar")} ${D(80)}</button><button class="gh-go gh-go--ghost" id="pw">${L("Wait", "Esperar")}</button></div></div></div>`);
+    bn.querySelector("#pc").addEventListener("click", () => { M.sprayPests(g); pop("-" + D(80), "neg"); bn.remove(); start(); sync(); }); bn.querySelector("#pw").addEventListener("click", () => { bn.remove(); start(); }); view.append(bn); }
+  function yearReport() { const s = M.summary(g), prof = g.cash - (st.yearStartCash ?? M.START_CASH);
+    const bn = $(`<div class="gh-banner rep"><div><h3>${L("Year", "Año")} ${g.year} · ${L("Ranch report", "Informe del rancho")}</h3><p>${L(`Cash ${D(g.cash)} (${prof >= 0 ? "+" : ""}${D(prof)} this year) · farm fame ${Math.round(g.rep)}`, `Dinero ${D(g.cash)} (${prof >= 0 ? "+" : ""}${D(prof)} este año) · fama ${Math.round(g.rep)}`)}</p>
+      <div class="gh-note">${L(`Cows ${s.cows} (quality ${s.cowMerit.toFixed(0)}, was ${st.base.cow.toFixed(0)}) · sheep ${s.sheep} (${s.sheepMerit.toFixed(0)}, was ${st.base.sheep.toFixed(0)}) · tomato plants ${s.plants} (${s.tom.toFixed(0)}, was ${st.base.tom.toFixed(0)})`, `Vacas ${s.cows} (calidad ${s.cowMerit.toFixed(0)}, antes ${st.base.cow.toFixed(0)}) · ovejas ${s.sheep} (${s.sheepMerit.toFixed(0)}, antes ${st.base.sheep.toFixed(0)}) · tomateras ${s.plants} (${s.tom.toFixed(0)}, antes ${st.base.tom.toFixed(0)})`)}</div>
+      <div class="gh-note">${L(`Babies born ${g.stats.born} · crosses ${g.stats.pollinated} · treated ${g.stats.treated} · supermarket sales ${g.stats.superSales} · lost to disease ${g.stats.died}`, `Crías ${g.stats.born} · cruces ${g.stats.pollinated} · tratamientos ${g.stats.treated} · ventas al supermercado ${g.stats.superSales} · perdidos por enfermedad ${g.stats.died}`)}</div>
+      <p class="gh-note">${L("Science is the engine of the business: better genes mean more milk, healthier animals and tastier tomatoes, and that means more money.", "La ciencia es el motor del negocio: mejores genes significan más leche, animales más sanos y tomates más ricos, y eso significa más dinero.")}</p>
+      <div class="gh-2"><button class="gh-go" id="ynext">${L("Next year", "Año siguiente")}</button><button class="gh-go gh-go--ghost" id="yquiz">${L("Go to the quiz", "Ir al cuestionario")}</button></div></div></div>`);
+    bn.querySelector("#ynext").addEventListener("click", () => { g.year++; st.yearStartCash = g.cash; bn.remove(); start(); sync(); api.save(); }); bn.querySelector("#yquiz").addEventListener("click", () => { bn.remove(); document.querySelector(".q")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); }); view.append(bn); mark("year"); rt.burst?.("coins"); }
+  function tick() { const ev = M.stepDay(g); ev.forEach(handle); sync(); api.save(); }
+  function start() { stop(); running = true; timer = setInterval(tick, Math.round(900 / st.speed)); sync(); }
+  function stop() { running = false; clearInterval(timer); timer = null; sync(); }
+  q("#go").addEventListener("click", () => { running ? stop() : start(); });
+  q("#speed").addEventListener("click", () => { st.speed = st.speed === 1 ? 2 : st.speed === 2 ? 4 : 1; if (running) start(); else sync(); api.save(); });
+  q("#skip").addEventListener("click", () => { let n = 0; while (g.collectIn > 1 && n++ < 6) tick(); tick(); });
+
+  host.append(root); if (g.pending) M.flush(g);
+  say(L("Welcome to your ranch! Click a cow, a sheep or a tomato plant to see its characteristics. Then press ▶ to start the days.", "¡Bienvenido a tu rancho! Haz clic en una vaca, una oveja o una tomatera para ver sus características. Luego pulsa ▶ para empezar los días."));
+  sync();
+  (async () => { try { if (!window.THREE) await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "../../../../../engine/vendor/three.min.js"; s.onload = res; s.onerror = rej; document.head.append(s); }); scene3d = await initScene(view, g, rt, M, { reduced }); if (scene3d) { scene3d.goto(st.cam); } else view.prepend($(`<div class="gh-nogl">${L("The 3D ranch cannot show on this device, but every control still works.", "El rancho en 3D no se ve en este dispositivo, pero todos los controles funcionan.")}</div>`)); } catch (e) { console.error("3D failed", e); } })();
+  window.__rn = { g, st, M, rt, sync, tick };
+}
+mountExternalActivity({ simulation: mkSim }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+
+</script>
+</body>
+</html>
