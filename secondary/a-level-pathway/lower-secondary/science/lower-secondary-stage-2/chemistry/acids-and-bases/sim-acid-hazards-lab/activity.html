@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<!-- Lower Secondary Stage 2 Chemistry - Acids and Bases - Lesson 15 Acids and Hazards (Safety Officer Lab). Content lives here + config.json/marking.json only. Hyper-real 3D (CLAUDE.md 18); mechanic: branching-scenario (hazard symbols, strength dial, PPE); bonus: classic Frogger-style reskin (Hazard Hopper) with quiz in the action. -->
+<html lang="en" data-theme="chemistry" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 15: Acids and Hazards - The Safety Officer Lab - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #1e4a5e 0%, #0e2433 62%, #07121b 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  .hz-spot { border-radius: 10px !important; aspect-ratio: auto !important; transform: translate(-50%,-50%); }
+  .hz-symchip img { vertical-align: middle; border-radius: 4px; background: #fff; }
+  .hz-prompt { font-weight: 800; color: #fff; min-height: 2.4rem; margin: .3rem 0; font-size: .95rem; }
+  .hz-dpad { display: flex; gap: .5rem; justify-content: center; margin-top: .6rem; }
+  .hz-dpad button { min-width: 3.4rem; font-size: 1.1rem; touch-action: manipulation; }
+  .cyc-bonus ul { margin: .2rem 0 .6rem 1.1rem; color: #c8d7f5; font-size: .88rem; }
+</style>
+<!-- seo:start -->
+<meta name="description" content="In this lab students act as a school Safety Officer and learn why acids and alkalis must be handled with respect. They read a real, photographed chemical label, decoding its hazard pictogram, signal word, hazard statement and protective-equipment advice; match the five hazard symbols...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-2/chemistry/acids-and-bases/sim-acid-hazards-lab/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Lesson 15: Acids and Hazards - The Safety Officer Lab | Discovery Lab">
+<meta property="og:description" content="In this lab students act as a school Safety Officer and learn why acids and alkalis must be handled with respect. They read a real, photographed chemical label, decoding its hazard pictogram, signal word, hazard statement and protective-equipment advice; match the five hazard symbols...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-2/chemistry/acids-and-bases/sim-acid-hazards-lab/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Lesson 15: Acids and Hazards - The Safety Officer Lab", "description": "In this lab students act as a school Safety Officer and learn why acids and alkalis must be handled with respect. They read a real, photographed chemical label, decoding its hazard pictogram, signal word, hazard statement and protective-equipment advice; match the five hazard symbols (exclamation mark, biohazard, flame, exploding bomb and corrosive) to what each one warns about at a 3D storage rack; use a 3D Strength Dial to drip an acid and an alkali onto synthetic skin at different strengths, logging the damage and the label each strength needs; and dress a 3D mannequin in the right personal protective equipment (PPE) before a splash test. Students practise scientific enquiry and data interpretation by comparing logged readings, build risk-assessment thinking by choosing PPE to suit each task, and practise communication by explaining their findings in writing. The content practised is Lower Secondary Stage 2 Chemistry, Acids and Bases: how hazardous an acid or alkali is depends on its strength and concentration (corrosive or irritant), the meaning of hazard symbols, and safe handling and first aid.", "url": "https://educadug.github.io/discovery-lab/secondary/a-level-pathway/lower-secondary/science/lower-secondary-stage-2/chemistry/acids-and-bases/sim-acid-hazards-lab/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Scientific enquiry", "Risk assessment", "Critical thinking", "Data interpretation", "Communication"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "Lower Secondary Stage 2 Science"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+/* ============================================================
+   3D SCENE KIT
+   ============================================================ */
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+/* Orders queue (persisted in sim.state — CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone, guard) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete — keep exploring, or lock in more readings.", "Todos los pedidos completos — sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const gm = guard && guard(); if (gm) { lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(gm, "info"); return; }
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" — order met", " — pedido cumplido") : t ? L(" — not the order yet", " — todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("cyc-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#ff7aa8", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged — but that is not the order. Re-read it and try again.", "Registrado — pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+
+
+
+const C = h => new THREE.Color(h).convertSRGBToLinear();
+function glassMat(op) { return new THREE.MeshPhysicalMaterial({ color: C(0xffffff), transparent: true, opacity: op || 0.2, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.05, side: THREE.DoubleSide, depthWrite: false }); }
+function liquidMat(hex) { const m = new THREE.MeshPhysicalMaterial({ color: C(0xffffff), roughness: 0.15, clearcoat: 0.6, transparent: true, opacity: 0.88 }); setLiquid(m, hex); return m; }
+function setLiquid(m, hex) { m.color.set(hex); m.color.convertSRGBToLinear(); }
+function lightLab(sp) {
+  sp.scene.add(new THREE.HemisphereLight(0xe8f4ff, 0x20303a, 0.95));
+  const k = new THREE.DirectionalLight(0xffffff, 2.2); k.position.set(4, 8, 7); sp.scene.add(k);
+  const r = new THREE.DirectionalLight(0x6fd0ff, 1.2); r.position.set(-6, 3, -5); sp.scene.add(r);
+  const wood = document.createElement("canvas"); wood.width = 256; wood.height = 128; const c = wood.getContext("2d"); c.fillStyle = "#8d6b4a"; c.fillRect(0, 0, 256, 128);
+  for (let i = 0; i < 90; i++) { c.strokeStyle = `rgba(${60 + Math.random() * 40},${40 + Math.random() * 30},20,${0.1 + Math.random() * 0.2})`; c.lineWidth = 1 + Math.random() * 2; c.beginPath(); const y = Math.random() * 128; c.moveTo(0, y); c.bezierCurveTo(80, y + 6, 170, y - 6, 256, y); c.stroke(); }
+  const wt = new THREE.CanvasTexture(wood); wt.encoding = THREE.sRGBEncoding;
+  const bench = new THREE.Mesh(new THREE.BoxGeometry(24, 0.4, 7), new THREE.MeshStandardMaterial({ map: wt, roughness: 0.55 })); bench.position.y = -0.2; sp.scene.add(bench);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 16), new THREE.MeshStandardMaterial({ color: C(0x1b3a4a), roughness: 0.9 })); wall.position.set(0, 7, -3.4); sp.scene.add(wall);
+}
+
+/* ============================================================
+   DATA — the five hazard symbols (real UN GHS pictograms + biohazard sign, public domain)
+   ============================================================ */
+const SYMS = [
+  { id: "corrosive", f: "photos/ghs-corrosive.svg", bg: "#f6f2e6", en: "Corrosive", es: "Corrosivo", mean: { en: "Damages skin or eyes (and metals)", es: "Daña la piel o los ojos (y los metales)" } },
+  { id: "flame", f: "photos/ghs-flame.svg", bg: "#f6f2e6", en: "Flame", es: "Llama", mean: { en: "Flammable - easily catches fire", es: "Inflamable - se incendia fácilmente" } },
+  { id: "exclam", f: "photos/ghs-exclam.svg", bg: "#f6f2e6", en: "Exclamation mark", es: "Signo de exclamación", mean: { en: "Harmful or irritant", es: "Nocivo o irritante" } },
+  { id: "explosive", f: "photos/ghs-explosive.svg", bg: "#f6f2e6", en: "Exploding bomb", es: "Bomba que explota", mean: { en: "Explosive if heated", es: "Explosivo si se calienta" } },
+  { id: "bio", f: "photos/biohazard.svg", bg: "#ffcf2e", en: "Biohazard", es: "Riesgo biológico", mean: { en: "Dangerous bacteria, virus or toxin", es: "Bacterias, virus o toxinas peligrosas" } },
+];
+const SYM = id => SYMS.find(s => s.id === id);
+function symTexture(sym, size) {
+  const c = document.createElement("canvas"); c.width = c.height = size || 256; const x = c.getContext("2d"), S = c.width, t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  const paint = img => { x.fillStyle = sym.bg; x.fillRect(0, 0, S, S); if (img) { const m = sym.id === "bio" ? S * 0.14 : S * 0.04; x.drawImage(img, m, m, S - 2 * m, S - 2 * m); } t.needsUpdate = true; };
+  paint(null); const im = new Image(); im.onload = () => paint(im); im.src = sym.f; return t;
+}
+function textTexture(lines, w, h, bg, fg, fs) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.fillStyle = bg; x.fillRect(0, 0, w, h); x.fillStyle = fg; x.textAlign = "center"; x.font = `bold ${fs || 30}px sans-serif`;
+  lines.forEach((ln, i) => x.fillText(ln, w / 2, h / 2 + (i - (lines.length - 1) / 2) * (fs || 30) * 1.25 + (fs || 30) * 0.35));
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function dustMotes(sp, n, box) {
+  const pos = new Float32Array(n * 3); for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - 0.5) * box[0]; pos[i * 3 + 1] = Math.random() * box[1]; pos[i * 3 + 2] = (Math.random() - 0.5) * box[2]; }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const p = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.07, map: makeGlowTexture("#ffffff"), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); sp.scene.add(p);
+  sp.hooks.push((dt, t) => { if (reducedMotion()) return; for (let i = 0; i < n; i++) { pos[i * 3 + 1] += dt * 0.12; pos[i * 3] += Math.sin(t * 0.4 + i) * dt * 0.05; if (pos[i * 3 + 1] > box[1]) pos[i * 3 + 1] = 0; } g.attributes.position.needsUpdate = true; });
+}
+function pickable(sp, meshes, onPick) {
+  const cv = sp.renderer.domElement, ray = new THREE.Raycaster(), v = new THREE.Vector2(); let sx = 0, sy = 0, moved = 0;
+  cv.addEventListener("pointerdown", e => { sx = e.clientX; sy = e.clientY; moved = 0; });
+  cv.addEventListener("pointermove", e => { moved = Math.max(moved, Math.hypot(e.clientX - sx, e.clientY - sy)); });
+  cv.addEventListener("click", e => {
+    if (moved > 7) return; const r = cv.getBoundingClientRect(); v.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(v, sp.camera);
+    const hit = ray.intersectObjects(meshes, false)[0]; onPick(hit ? hit.object.userData.idx : -1);
+  });
+}
+function pulse(el) { el.classList.remove("cyc-shake"); void el.offsetWidth; el.classList.add("cyc-shake"); }
+function chipRow(host) { const r = document.createElement("div"); r.className = "cyc-chiprow"; host.append(r); return r; }
+
+/* ============================================================
+   STATION 1 — LABEL RACK (3D)
+   ============================================================ */
+function buildRack(sp) {
+  lightLab(sp);
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(11, 0.3, 2.4), new THREE.MeshStandardMaterial({ color: C(0x4a5b66), roughness: 0.45, metalness: 0.5 })); shelf.position.set(0, 0.15, 0); sp.scene.add(shelf);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(11.4, 3.6, 0.15), new THREE.MeshStandardMaterial({ color: C(0x2b4452), roughness: 0.8 })); back.position.set(0, 2.1, -1.35); sp.scene.add(back);
+  const bottles = [], hit = [];
+  SYMS.forEach((s, i) => {
+    const g = new THREE.Group(); g.position.set((i - 2) * 2.05, 0.3, 0); sp.scene.add(g);
+    const amber = new THREE.MeshPhysicalMaterial({ color: C(0x7a3f10), roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.08, transparent: true, opacity: 0.93 });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.9, 36), amber); body.position.y = 0.95; g.add(body);
+    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.6, 0.42, 36), amber); sh.position.y = 2.06; g.add(sh);
+    const nk = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.34, 28), amber); nk.position.y = 2.44; g.add(nk);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.28, 28), new THREE.MeshStandardMaterial({ color: C(0x15191d), roughness: 0.5 })); cap.position.y = 2.75; g.add(cap);
+    const lab = new THREE.Mesh(new THREE.CylinderGeometry(0.615, 0.615, 1.05, 28, 1, true, -0.62, 1.24), new THREE.MeshStandardMaterial({ map: symTexture(s), roughness: 0.6 })); lab.position.y = 0.95; g.add(lab);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.0, 44), new THREE.MeshBasicMaterial({ color: C(0xffd24d), transparent: true, opacity: 0, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; g.add(ring);
+    [body, sh, nk, cap, lab].forEach(m => { m.userData.idx = i; hit.push(m); });
+    bottles.push({ g, ring, sel: false, y0: 0.3 });
+  });
+  dustMotes(sp, 50, [10, 4.5, 3]);
+  sp.hooks.push((dt, t) => { bottles.forEach((b, i) => { b.ring.material.opacity = b.sel ? 0.55 + 0.35 * Math.sin(t * 3 + i) : 0; }); });
+  return { bottles, hit, select(i) { bottles.forEach((b, k) => { const on = k === i; if (on === b.sel && !on) return; b.sel = on; const from = b.g.position.y, to = on ? 1.05 : 0.3, r0 = b.g.rotation.y; tween(520, e => { b.g.position.y = from + (to - from) * e; if (on) b.g.rotation.y = r0 + (Math.PI * 2 - (r0 % (Math.PI * 2))) * e; }, () => { if (on) b.g.rotation.y = 0; }); }); } };
+}
+function buildLabelRack(host, sim, onDone) {
+  const card = stationShell("1", "Station 1 — Label Rack", "Estación 1 — Estante de Etiquetas", "Read each order, then tap the bottle (or the symbol button) that matches. Choose first — the meaning is revealed after you lock it in.", "Lee cada pedido y toca el frasco (o el botón del símbolo) que corresponde. Elige primero — el significado se muestra después de fijarlo.");
+  const stage = document.createElement("div"); stage.className = "cyc-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 10.5, pitch: 0.1, ty: 1.55, yaw: 0.12 });
+  let rack = null; const S = { sel: -1 };
+  if (sp) { rack = buildRack(sp); pickable(sp, rack.hit, i => { if (i < 0) return; choose(i); }); }
+  const chips = chipRow(card); chips.style.marginTop = ".6rem";
+  const btns = SYMS.map((s, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip hz-symchip"; b.setAttribute("aria-pressed", "false"); b.innerHTML = `<img src="${s.f}" alt="" width="26" height="26"> ${L(s.en, s.es)}`; b.addEventListener("click", () => choose(i)); chips.append(b); return b; });
+  function choose(i) { S.sel = i; rack && rack.select(i); btns.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i))); note.textContent = ""; }
+  const note = document.createElement("div"); note.className = "cyc-note"; note.style.display = "none";
+  const tasks = [
+    { id: "corrosive", en: "A bottle's label warns it can burn skin and damage eyes. Choose its symbol.", es: "La etiqueta de un frasco advierte que puede quemar la piel y dañar los ojos. Elige su símbolo." },
+    { id: "flame", en: "This bottle's vapour catches fire easily, so it must stay far from the Bunsen burner. Choose its symbol.", es: "Los vapores de este frasco se incendian fácilmente, así que debe estar lejos del mechero Bunsen. Elige su símbolo." },
+    { id: "exclam", en: "A cleaning spray is harmful if swallowed and makes skin red and itchy. Choose its symbol.", es: "Un limpiador en espray es nocivo si se traga y enrojece y pica la piel. Elige su símbolo." },
+    { id: "explosive", en: "A sealed container could blow up if it gets hot. Choose its symbol.", es: "Un recipiente sellado podría explotar si se calienta. Elige su símbolo." },
+    { id: "bio", en: "A pond-water sample might hold dangerous bacteria, a virus or a toxin. Choose its symbol.", es: "Una muestra de agua de estanque podría contener bacterias, un virus o una toxina peligrosos. Elige su símbolo." },
+  ].map(t => ({ en: t.en, es: t.es, test: r => r.id === t.id }));
+  const reading = () => { const s = SYMS[S.sel]; return s ? { id: s.id, setting: L("Chose: " + s.en, "Eligió: " + s.es), reading: L("Symbol: " + s.en, "Símbolo: " + s.es), result: L("Means: " + s.mean.en, "Significa: " + s.mean.es) } : { id: null, setting: "-", reading: "-", result: "-" }; };
+  const q = makeOrders(card, sim, "st1", tasks, reading, L("Label Rack", "Estante de Etiquetas"), () => { card.querySelector(".cyc-done").dataset.show = "true"; onDone(); }, () => S.sel < 0 ? L("Choose a bottle or symbol first.", "Elige primero un frasco o símbolo.") : null);
+  card.insertBefore(q.bar, stage); q.lock.textContent = L("Lock in my choice", "Fijar mi elección"); card.append(note);
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(q.lock); card.append(row);
+  q.lock.addEventListener("click", () => { if (S.sel < 0) return; const s = SYMS[S.sel]; note.style.display = "block"; note.innerHTML = `<b>${L(s.en, s.es)}</b> = ${L(s.mean.en, s.mean.es)}`; if (q.st.idx > 0) burst(card, 50, 30, ["#ffd24d", "#fff"], 8); });
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  host.append(card);
+}
+
+/* ============================================================
+   STATION 2 — STRENGTH DIAL (3D)
+   ============================================================ */
+const dmgOf = (c, alk) => Math.round(Math.min(100, 100 * Math.pow(c / 10, 1.6) * (alk ? 1.08 : 1)));
+const bandOf = c => c <= 2 ? "low" : c <= 6 ? "irritant" : "corrosive";
+const bandName = b => b === "low" ? L("LOW HAZARD (no pictogram)", "PELIGRO BAJO (sin pictograma)") : b === "irritant" ? L("IRRITANT (exclamation mark)", "IRRITANTE (signo de exclamación)") : L("CORROSIVE", "CORROSIVO");
+const strengthDesc = c => c <= 1 ? L("very dilute - about the strength of vinegar or lemon juice", "muy diluido - más o menos como el vinagre o el zumo de limón") : c <= 2 ? L("dilute", "diluido") : c <= 6 ? L("cleaning-product strength", "concentración de producto de limpieza") : L("concentrated - lab stock bottle or drain-cleaner strength", "concentrado - frasco de laboratorio o desatascador");
+function buildDial(sp) {
+  lightLab(sp);
+  const tray = new THREE.Mesh(new THREE.BoxGeometry(7.2, 0.22, 3.8), new THREE.MeshStandardMaterial({ color: C(0x9aa7b0), roughness: 0.35, metalness: 0.7 })); tray.position.set(0, 0.11, 0.2); sp.scene.add(tray);
+  const sc = document.createElement("canvas"); sc.width = 280; sc.height = 200; const sx = sc.getContext("2d"); const skinTex = new THREE.CanvasTexture(sc); skinTex.encoding = THREE.sRGBEncoding;
+  const seeds = Array.from({ length: 14 }, (_, i) => ({ a: (i / 14) * TAU + (i % 3) * 0.4, r: 18 + (i * 37 % 60), s: 0.7 + (i % 5) * 0.18 }));
+  function paintSkin(d, alk) {
+    sx.fillStyle = "#e7a59a"; sx.fillRect(0, 0, 280, 200); for (let i = 0; i < 700; i++) { sx.fillStyle = `rgba(190,110,100,${Math.random() * 0.18})`; sx.fillRect(Math.random() * 280, Math.random() * 200, 2, 2); }
+    if (d > 0) seeds.forEach((s, i) => { if (i > 2 + d / 8) return; const x = 140 + Math.cos(s.a) * s.r * 1.5, y = 100 + Math.sin(s.a) * s.r * 0.9, rad = (10 + d * 0.5) * s.s;
+      const g = sx.createRadialGradient(x, y, 0, x, y, rad * 1.5); const col = d < 15 ? "230,120,120" : d < 45 ? "205,60,60" : d < 75 ? "120,45,25" : "45,22,12";
+      g.addColorStop(0, `rgba(${col},${Math.min(1, 0.45 + d / 120)})`); g.addColorStop(1, `rgba(${col},0)`); sx.fillStyle = g; sx.beginPath(); sx.arc(x, y, rad * 1.5, 0, TAU); sx.fill(); if (alk && d > 20) { sx.strokeStyle = "rgba(255,255,255,.45)"; sx.lineWidth = 2; sx.beginPath(); sx.arc(x, y, rad * 1.7, 0, TAU); sx.stroke(); } });
+    if (d > 85) { sx.fillStyle = "#1a0d06"; sx.beginPath(); sx.ellipse(140, 100, 26, 18, 0.4, 0, TAU); sx.fill(); }
+    skinTex.needsUpdate = true;
+  }
+  paintSkin(0, false);
+  const sideM = () => new THREE.MeshStandardMaterial({ color: C(0xd9928a), roughness: 0.6 }); const skin = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.34, 2.0), [sideM(), sideM(), new THREE.MeshStandardMaterial({ map: skinTex, roughness: 0.55 }), sideM(), sideM(), sideM()]); skin.position.set(1.5, 0.39, 0.5); sp.scene.add(skin);
+  const prof = []; for (let i = 0; i <= 8; i++) prof.push(new THREE.Vector2(0.95, i * 0.28));
+  const beaker = new THREE.Mesh(new THREE.LatheGeometry(prof, 40), glassMat(0.18)); beaker.position.set(-2.1, 0.22, 0.4); sp.scene.add(beaker);
+  const liq = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.5, 40), liquidMat("#f3e6a8")); liq.position.set(-2.1, 1.0, 0.4); liq.material.opacity = 0.55; sp.scene.add(liq);
+  const MAXP = 90, ppos = new Float32Array(MAXP * 3), pv = []; for (let i = 0; i < MAXP; i++) { const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * 0.78; ppos[i * 3] = -2.1 + Math.cos(a) * r; ppos[i * 3 + 1] = 0.35 + Math.random() * 1.4; ppos[i * 3 + 2] = 0.4 + Math.sin(a) * r; pv.push([Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5]); }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(ppos, 3)); const parts = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.22, map: makeGlowTexture("#ff9a3c"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sp.scene.add(parts); pg.setDrawRange(0, 0);
+  const lblMat = new THREE.MeshBasicMaterial({ map: textTexture(["-"], 256, 96, "#f4f7fa", "#123", 22) }); const lbl = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.56), lblMat); lbl.position.set(-2.1, 0.75, 1.36); sp.scene.add(lbl);
+  const dropper = new THREE.Group(); const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 16), new THREE.MeshPhysicalMaterial({ color: C(0xcc2233), roughness: 0.4, clearcoat: 0.6 })); bulb.position.y = 1.5; dropper.add(bulb);
+  const pip = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.035, 1.5, 14), glassMat(0.4)); pip.position.y = 0.55; dropper.add(pip); dropper.position.set(1.5, 2.2, 0.5); sp.scene.add(dropper);
+  const drop = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), new THREE.MeshBasicMaterial({ color: C(0xfff1a8) })); drop.visible = false; sp.scene.add(drop);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.05, 0.1, 32), new THREE.MeshBasicMaterial({ color: C(0xffffff), transparent: true, opacity: 0, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.set(1.5, 0.58, 0.5); sp.scene.add(ring);
+  const knob = new THREE.Group(); knob.position.set(-0.2, 0.34, 1.75); sp.scene.add(knob);
+  const kb = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.56, 0.34, 32), new THREE.MeshStandardMaterial({ color: C(0x20252b), roughness: 0.35, metalness: 0.5 })); knob.add(kb);
+  const kp = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.06, 0.42), new THREE.MeshBasicMaterial({ color: C(0xffd24d) })); kp.position.set(0, 0.2, -0.2); knob.add(kp);
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.3), new THREE.MeshBasicMaterial({ map: textTexture(["?"], 256, 256, "#31424d", "#9fb4c4", 120) })); board.position.set(-3.2, 3.2, -3.3); sp.scene.add(board);
+  const frame = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), new THREE.MeshBasicMaterial({ color: C(0x0b141a) })); frame.position.set(-3.2, 3.2, -3.31); sp.scene.add(frame);
+  const tgt = { knob: 0, cur: 0 };
+  dustMotes(sp, 40, [9, 4.5, 4]);
+  sp.hooks.push((dt, t) => { tgt.cur += (tgt.knob - tgt.cur) * Math.min(1, dt * 8); knob.rotation.y = tgt.cur; if (!reducedMotion()) for (let i = 0; i < MAXP; i++) for (let k = 0; k < 3; k++) { pv[i][k] += (Math.random() - 0.5) * 0.4; pv[i][k] *= 0.9; ppos[i * 3 + k] += pv[i][k] * 0.02; const lo = [-2.1 - 0.8, 0.3, 0.4 - 0.8][k], hi = [-2.1 + 0.8, 1.75, 0.4 + 0.8][k]; if (ppos[i * 3 + k] < lo || ppos[i * 3 + k] > hi) { ppos[i * 3 + k] = Math.max(lo, Math.min(hi, ppos[i * 3 + k])); pv[i][k] *= -1; } } pg.attributes.position.needsUpdate = true; });
+  return {
+    paintSkin, setStrength(c) { tgt.knob = -2.3 + (c / 10) * 4.6; pg.setDrawRange(0, Math.round(c * 9)); liq.material.opacity = 0.35 + c * 0.04; },
+    setLabel(txt) { lblMat.map = textTexture(txt, 256, 96, "#f4f7fa", "#123", 20); lblMat.needsUpdate = true; },
+    setBoard(b) { board.material.map = b === "low" ? textTexture([L("NO PICTOGRAM", "SIN PICTOGRAMA"), L("needed", "necesario")], 256, 256, "#1f7a46", "#fff", 30) : symTexture(SYM(b === "irritant" ? "exclam" : "corrosive"), 256); board.material.needsUpdate = true; },
+    drip(n, done) { if (reducedMotion()) { done && done(); return; } let k = 0; const one = () => { if (k++ >= n) { done && done(); return; } drop.visible = true; tween(300, e => { drop.position.set(1.5, 1.95 - e * 1.35, 0.5); }, () => { drop.visible = false; ring.material.opacity = 0.85; tween(380, e => { ring.scale.setScalar(1 + e * 9); ring.material.opacity = 0.85 * (1 - e); }); setTimeout(one, 260); }); }; one(); }
+  };
+}
+function buildStrengthDial(host, sim, onDone) {
+  const card = stationShell("2", "Station 2 — Strength Dial", "Estación 2 — Dial de Concentración", "Turn the strength dial, choose an acid or an alkali, then drip it on the synthetic skin. The skin shows the damage, and the board shows which label the bottle needs.", "Gira el dial de concentración, elige un ácido o un álcali y gotéalo sobre la piel sintética. La piel muestra el daño y el cartel muestra la etiqueta que necesita el frasco.");
+  const stage = document.createElement("div"); stage.className = "cyc-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 9.5, pitch: 0.38, ty: 1.4, yaw: 0.35 }); const sc3 = sp ? buildDial(sp) : null;
+  const S = sim.state.dial || (sim.state.dial = { c: 1, alk: false, tested: false });
+  const ctrl = document.createElement("div"); ctrl.className = "cyc-controls";
+  ctrl.innerHTML = `<div class="cyc-row"><label for="hz-c">${L("Strength", "Concentración")}</label><input type="range" id="hz-c" min="0" max="10" step="1"><span class="cyc-val" id="hz-cv"></span></div><p class="q__hint" id="hz-desc" style="margin:0"></p><div class="cyc-row"><span style="font-weight:700;font-size:.84rem">${L("Substance:", "Sustancia:")}</span><span id="hz-sub"></span></div><div class="cyc-gauges"><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Skin damage (last test)", "Daño en la piel (última prueba)")}</div><div class="cyc-gauge__val" id="hz-dmg">—</div><div class="cyc-bar cyc-bar--cold"><i id="hz-bar" style="width:0%"></i></div></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Label the bottle needs", "Etiqueta que necesita el frasco")}</div><div class="cyc-gauge__val" id="hz-lab" style="font-size:.95rem">—</div></div></div>`;
+  const sub = ctrl.querySelector("#hz-sub");
+  [[false, "Hydrochloric acid (an acid)", "Ácido clorhídrico (un ácido)"], [true, "Sodium hydroxide (an alkali)", "Hidróxido de sodio (un álcali)"]].forEach(([alk, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(en, es); b.setAttribute("aria-pressed", String(S.alk === alk)); b.addEventListener("click", () => { S.alk = alk; sim.saveState(); sub.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); refresh(); }); sub.append(b); });
+  const slider = ctrl.querySelector("#hz-c"); slider.value = S.c;
+  function refresh() { ctrl.querySelector("#hz-cv").textContent = S.c + " / 10"; ctrl.querySelector("#hz-desc").textContent = strengthDesc(S.c); if (sc3) { sc3.setStrength(S.c); sc3.setLabel([S.alk ? L("Sodium hydroxide", "Hidróxido de sodio") : L("Hydrochloric acid", "Ácido clorhídrico"), L("strength " + S.c + "/10", "concentración " + S.c + "/10")]); } }
+  slider.addEventListener("input", () => { S.c = +slider.value; refresh(); }); slider.addEventListener("change", () => { sim.saveState(); });
+  const reading = () => { const d = dmgOf(S.c, S.alk), b = bandOf(S.c); return { c: S.c, alk: S.alk, band: b, dmg: d, setting: (S.alk ? L("Sodium hydroxide (alkali)", "Hidróxido de sodio (álcali)") : L("Hydrochloric acid (acid)", "Ácido clorhídrico (ácido)")) + L(", strength ", ", concentración ") + S.c + "/10", reading: L(`Skin damage ${d}%`, `Daño en la piel ${d}%`), result: L("Needs label: ", "Necesita etiqueta: ") + bandName(b) }; };
+  const tasks = [
+    { en: "Order 1: Make concentrated hydrochloric acid. The skin sample must be badly damaged and the bottle needs the CORROSIVE label.", es: "Pedido 1: Prepara ácido clorhídrico concentrado. La muestra de piel debe quedar muy dañada y el frasco necesita la etiqueta CORROSIVO.", test: r => !r.alk && r.band === "corrosive" },
+    { en: "Order 2: Dilute the same acid until it only needs the exclamation-mark (IRRITANT) label.", es: "Pedido 2: Diluye el mismo ácido hasta que solo necesite la etiqueta del signo de exclamación (IRRITANTE).", test: r => !r.alk && r.band === "irritant" },
+    { en: "Order 3: Dilute it even more, until it needs no hazard pictogram at all (LOW HAZARD).", es: "Pedido 3: Diluye aún más, hasta que no necesite ningún pictograma de peligro (PELIGRO BAJO).", test: r => !r.alk && r.band === "low" },
+    { en: "Order 4: Switch to the ALKALI, sodium hydroxide. Show that it also needs the CORROSIVE label at high strength.", es: "Pedido 4: Cambia al ÁLCALI, hidróxido de sodio. Demuestra que también necesita la etiqueta CORROSIVO con alta concentración.", test: r => r.alk && r.band === "corrosive" },
+  ];
+  const q = makeOrders(card, sim, "st2", tasks, reading, L("Strength Dial", "Dial de Concentración"), () => { card.querySelector(".cyc-done").dataset.show = "true"; onDone(); });
+  q.lock.textContent = L("Drip on the skin sample & log it", "Gotear sobre la piel y registrar"); card.insertBefore(q.bar, stage); card.append(ctrl); const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(q.lock); card.append(row);
+  q.lock.addEventListener("click", () => { const r = reading(); q.lock.disabled = true;
+    const show = () => { ctrl.querySelector("#hz-dmg").textContent = r.dmg + "%"; ctrl.querySelector("#hz-bar").style.width = r.dmg + "%"; ctrl.querySelector("#hz-lab").textContent = bandName(r.band); if (sc3) sc3.setBoard(r.band); q.lock.disabled = false; if (r.dmg >= 45) burst(stage, 74, 70, ["#ff6a3c", "#ffd24d", "#7a2a14"], 16); else burst(stage, 74, 70, ["#ffd1c9", "#fff"], 6); };
+    if (sc3) { sc3.paintSkin(0, r.alk); sc3.drip(3, () => { let k = 0; const step = () => { k++; sc3.paintSkin(Math.round(r.dmg * k / 5), r.alk); if (k < 5) setTimeout(step, 120); else show(); }; step(); }); } else show(); });
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  refresh(); host.append(card);
+}
+
+/* ============================================================
+   STATION 3 — PPE BENCH (3D)
+   ============================================================ */
+const PPE = [
+  { id: "goggles", zone: "eyes", en: "Safety goggles", es: "Gafas de seguridad" },
+  { id: "gloves", zone: "hands", en: "Chemical-resistant gloves", es: "Guantes resistentes a químicos" },
+  { id: "coat", zone: "body", en: "Lab coat", es: "Bata de laboratorio" },
+  { id: "hair", zone: "hair", en: "Hair tied back", es: "Pelo recogido" },
+  { id: "shoes", zone: "feet", en: "Closed shoes", es: "Zapatos cerrados" },
+];
+const ZONE_NAME = { eyes: ["eyes", "ojos"], hands: ["hands", "manos"], body: ["body", "cuerpo"], hair: ["hair", "pelo"], feet: ["feet", "pies"] };
+const PTASKS = [
+  { name: { en: "Pour dilute vinegar", es: "Verter vinagre diluido" }, en: "Task 1: Pour a little dilute vinegar (low hazard) into a beaker. What is the minimum protection?", es: "Tarea 1: Vierte un poco de vinagre diluido (peligro bajo) en un vaso. ¿Cuál es la protección mínima?", req: ["eyes"] },
+  { name: { en: "Heat dilute acid", es: "Calentar ácido diluido" }, en: "Task 2: Heat dilute acid in a test tube over a Bunsen flame. You have long hair and splashes are possible.", es: "Tarea 2: Calienta ácido diluido en un tubo de ensayo sobre un mechero Bunsen. Tienes el pelo largo y puede haber salpicaduras.", req: ["eyes", "hair"] },
+  { name: { en: "Pour concentrated acid", es: "Verter ácido concentrado" }, en: "Task 3: Pour concentrated hydrochloric acid (CORROSIVE) from a large bottle into a small one.", es: "Tarea 3: Vierte ácido clorhídrico concentrado (CORROSIVO) de un frasco grande a uno pequeño.", req: ["eyes", "hands", "body", "feet"] },
+  { name: { en: "Dilute strong alkali", es: "Diluir álcali fuerte" }, en: "Task 4: Add concentrated sodium hydroxide (a corrosive alkali) to water. It will splash and you have long hair.", es: "Tarea 4: Añade hidróxido de sodio concentrado (un álcali corrosivo) a agua. Salpicará y tienes el pelo largo.", req: ["eyes", "hands", "body", "hair", "feet"] },
+];
+function buildMannequin(sp) {
+  lightLab(sp);
+  const M = (c, r, m) => new THREE.MeshStandardMaterial({ color: C(c), roughness: r === undefined ? 0.6 : r, metalness: m || 0 });
+  const plat = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.7, 0.2, 40), M(0x35424c, 0.4, 0.5)); plat.position.y = 0.1; sp.scene.add(plat);
+  const man = new THREE.Group(); man.position.y = 0.2; sp.scene.add(man);
+  const skinC = 0xe2a98f, shirt = 0x4e6e8a;
+  const add = (g, m, x, y, z, parent) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); (parent || man).add(o); return o; };
+  add(new THREE.CylinderGeometry(0.55, 0.5, 1.5, 28), M(shirt), 0, 2.3, 0);
+  add(new THREE.CylinderGeometry(0.15, 0.17, 0.25, 16), M(skinC), 0, 3.15, 0);
+  add(new THREE.SphereGeometry(0.42, 32, 24), M(skinC), 0, 3.5, 0);
+  [-1, 1].forEach(sd => { const arm = add(new THREE.CylinderGeometry(0.14, 0.13, 1.3, 14), M(shirt), sd * 0.82, 2.25, 0.05); arm.rotation.z = sd * 0.08; add(new THREE.SphereGeometry(0.16, 16, 12), M(skinC), sd * 0.93, 1.55, 0.1); add(new THREE.CylinderGeometry(0.2, 0.18, 1.75, 16), M(0x2f3944), sd * 0.27, 0.9, 0); });
+  add(new THREE.SphereGeometry(0.455, 28, 16, 0, TAU, 0, Math.PI * 0.58), M(0x4a2c18, 0.8), 0, 3.52, -0.03);
+  const PP = {};
+  const grp = (id, build) => { const g = new THREE.Group(); build(g); g.visible = false; man.add(g); PP[id] = g; return g; };
+  grp("goggles", g => { [-1, 1].forEach(sd => { const l = add(new THREE.CylinderGeometry(0.15, 0.15, 0.07, 24), new THREE.MeshPhysicalMaterial({ color: C(0x9fd8ff), transparent: true, opacity: 0.55, roughness: 0.05, clearcoat: 1 }), sd * 0.19, 3.55, 0.39, g); l.rotation.x = Math.PI / 2; }); const st = add(new THREE.TorusGeometry(0.43, 0.035, 8, 32), M(0x20343f), 0, 3.55, 0, g); st.rotation.x = Math.PI / 2; });
+  grp("gloves", g => { [-1, 1].forEach(sd => add(new THREE.SphereGeometry(0.23, 18, 14), M(0x2a7fd6, 0.4), sd * 0.93, 1.55, 0.1, g)); });
+  grp("coat", g => { add(new THREE.CylinderGeometry(0.64, 0.6, 2.0, 30, 1, true), new THREE.MeshStandardMaterial({ color: C(0xf6f8fa), roughness: 0.85, side: THREE.DoubleSide }), 0, 2.15, 0, g); [-1, 1].forEach(sd => { const s = add(new THREE.CylinderGeometry(0.19, 0.18, 1.15, 16, 1, true), new THREE.MeshStandardMaterial({ color: C(0xf6f8fa), roughness: 0.85, side: THREE.DoubleSide }), sd * 0.83, 2.2, 0.05, g); s.rotation.z = sd * 0.08; }); });
+  grp("shoes", g => { [-1, 1].forEach(sd => add(new THREE.BoxGeometry(0.38, 0.22, 0.7), M(0x15191d, 0.5), sd * 0.27, 0.11, 0.1, g)); });
+  const sandals = new THREE.Group(); [-1, 1].forEach(sd => add(new THREE.BoxGeometry(0.28, 0.07, 0.55), M(skinC), sd * 0.27, 0.04, 0.12, sandals)); man.add(sandals);
+  const loose = new THREE.Group(); add(new THREE.CylinderGeometry(0.1, 0.05, 0.95, 12), M(0x4a2c18, 0.8), 0, 3.0, -0.5, loose); man.add(loose);
+  const bun = grp("hair", g => { add(new THREE.SphereGeometry(0.16, 16, 12), M(0x4a2c18, 0.8), 0, 3.88, -0.38, g); });
+  const sprites = [];
+  const zonePos = { eyes: [0, 3.55, 0.5], hands: [0.95, 1.6, 0.3], body: [0, 2.5, 0.6], hair: [0, 3.7, -0.5], feet: [0, 0.2, 0.6] };
+  Object.entries(zonePos).forEach(([z, p]) => { const sp1 = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#ffffff"), color: C(0xff3b3b), transparent: true, opacity: 0, depthTest: false })); sp1.position.set(p[0], p[1] + 0.2, p[2]); sp1.scale.setScalar(1.6); sp.scene.add(sp1); sprites.push({ z, sp1 }); if (z === "hands") { const s2 = sp1.clone(); s2.material = sp1.material.clone(); s2.position.x = -p[0]; sp.scene.add(s2); sprites.push({ z, sp1: s2 }); } });
+  // landmark: eyewash sign, bench, beaker, Bunsen burner (off-axis so orbiting is visibly rewarding)
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.3), new THREE.MeshBasicMaterial({ map: textTexture([L("EYEWASH", "LAVAOJOS"), "+"], 256, 160, "#1f8a4c", "#fff", 40) })); sign.position.set(-4.0, 3.3, -3.3); sp.scene.add(sign);
+  const bench = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.14, 1.6), M(0x6b4a31, 0.6)); bench.position.set(3.6, 1.0, 0.3); sp.scene.add(bench); [-1, 1].forEach(sd => { const l = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.0, 1.4), M(0x2f3944)); l.position.set(3.6 + sd * 1.2, 0.5, 0.3); sp.scene.add(l); });
+  const bk = new THREE.Mesh(new THREE.LatheGeometry([0, 1, 2, 3, 4, 5].map(i => new THREE.Vector2(0.42, i * 0.2)), 28), glassMat(0.2)); bk.position.set(3.2, 1.07, 0.3); sp.scene.add(bk);
+  const bl = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.6, 28), liquidMat("#f3e6a8")); bl.position.set(3.2, 1.4, 0.3); bl.material.opacity = 0.6; sp.scene.add(bl);
+  const bun2 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 0.6, 14), M(0x9aa7b0, 0.3, 0.7)); bun2.position.set(4.1, 1.37, 0.3); sp.scene.add(bun2);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.5, 14), new THREE.MeshBasicMaterial({ color: C(0x5fb6ff), transparent: true, opacity: 0.8 })); flame.position.set(4.1, 1.9, 0.3); sp.scene.add(flame);
+  const SN = 70, spos = new Float32Array(SN * 3), sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.BufferAttribute(spos, 3)); const splash = new THREE.Points(sg, new THREE.PointsMaterial({ size: 0.16, map: makeGlowTexture("#f3e6a8"), transparent: true, depthWrite: false, opacity: 0.95 })); splash.visible = false; sp.scene.add(splash);
+  sp.hooks.push((dt, t) => { if (!reducedMotion()) { flame.scale.set(1 + Math.sin(t * 3) * 0.05, 1 + Math.sin(t * 2.3 + 1) * 0.07, 1); } man.rotation.y = Math.sin(t * 0.3) * 0.06; });
+  dustMotes(sp, 40, [10, 4.5, 4]);
+  return {
+    wear(id, on) { const g = PP[id]; if (g) { g.visible = on; if (on) { g.scale.setScalar(0.2); tween(320, e => g.scale.setScalar(0.2 + 0.8 * e)); } } if (id === "shoes") sandals.visible = !on; if (id === "hair") loose.visible = !on; },
+    splash(done) { if (reducedMotion()) { done && done(); return; } splash.visible = true; const tgtp = [0, 2.6, 0.6]; const vel = []; for (let i = 0; i < SN; i++) { spos[i * 3] = 3.2; spos[i * 3 + 1] = 1.9; spos[i * 3 + 2] = 0.3; vel.push([(tgtp[0] - 3.2) / 0.8 + (Math.random() - 0.5) * 2.4, (Math.random() - 0.2) * 3.2 + 1.2, (Math.random() - 0.5) * 2.4]); }
+      const t0 = performance.now(); tween(900, (e, t) => { const tt = t * 0.9; for (let i = 0; i < SN; i++) { spos[i * 3] = 3.2 + vel[i][0] * tt; spos[i * 3 + 1] = 1.9 + vel[i][1] * tt - 4.5 * tt * tt; spos[i * 3 + 2] = 0.3 + vel[i][2] * tt * 0.5; } sg.attributes.position.needsUpdate = true; }, () => { splash.visible = false; done && done(); }); },
+    flare(zones, ok) { sprites.forEach(s => { if (zones.includes(s.z)) { s.sp1.material.color.set(ok ? 0x3be07a : 0xff3b3b); s.sp1.material.opacity = 0.85; tween(1500, e => { s.sp1.material.opacity = 0.85 * (1 - e); }); } }); }
+  };
+}
+function buildPPEBench(host, sim, onDone) {
+  const card = stationShell("3", "Station 3 — PPE Bench", "Estación 3 — Banco de EPP", "Read the task, then dress the mannequin in the personal protective equipment (PPE) that suits it. Then run the splash test to see whether you are protected.", "Lee la tarea y viste al maniquí con el equipo de protección personal (EPP) que le conviene. Luego haz la prueba de salpicadura para ver si estás protegido.");
+  const stage = document.createElement("div"); stage.className = "cyc-stage"; card.append(stage);
+  const sp = makeSpace(stage, { dist: 11, pitch: 0.12, ty: 2.0, yaw: -0.28 }); const m3 = sp ? buildMannequin(sp) : null;
+  const S = sim.state.ppe || (sim.state.ppe = { worn: [] });
+  const chips = chipRow(card); chips.style.marginTop = ".6rem"; const btn = {};
+  PPE.forEach(p => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(p.en, p.es); b.setAttribute("aria-pressed", String(S.worn.includes(p.id))); btn[p.id] = b; b.addEventListener("click", () => { const on = !S.worn.includes(p.id); S.worn = on ? [...S.worn, p.id] : S.worn.filter(x => x !== p.id); b.setAttribute("aria-pressed", String(on)); m3 && m3.wear(p.id, on); sim.saveState(); }); chips.append(b); if (m3 && S.worn.includes(p.id)) m3.wear(p.id, true); });
+  const wornZones = () => PPE.filter(p => S.worn.includes(p.id)).map(p => p.zone);
+  const cur = () => PTASKS[Math.min(q.st.idx, PTASKS.length - 1)];
+  const reading = () => { const t = cur(), wz = wornZones(), exposed = t.req.filter(z => !wz.includes(z)), worn = PPE.filter(p => S.worn.includes(p.id)).map(p => L(p.en, p.es)); return { t, exposed, setting: L(t.name.en, t.name.es), reading: L("PPE: ", "EPP: ") + (worn.length ? worn.join(", ") : L("none", "ninguno")), result: exposed.length ? L("Splash test: exposed - ", "Prueba de salpicadura: expuesto - ") + exposed.map(z => L(ZONE_NAME[z][0], ZONE_NAME[z][1])).join(", ") : L("Splash test: fully protected", "Prueba de salpicadura: totalmente protegido") }; };
+  const tasks = PTASKS.map(t => ({ en: t.en, es: t.es, test: r => r.exposed.length === 0 && r.t === t }));
+  const q = makeOrders(card, sim, "st3", tasks, reading, L("PPE Bench", "Banco de EPP"), () => { card.querySelector(".cyc-done").dataset.show = "true"; onDone(); });
+  q.lock.textContent = L("Run the splash test", "Hacer la prueba de salpicadura"); card.insertBefore(q.bar, stage); const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(q.lock); card.append(row);
+  const note = document.createElement("div"); note.className = "cyc-note"; note.style.display = "none"; card.append(note);
+  q.lock.addEventListener("click", () => { const r = reading(); q.lock.disabled = true; const t = r.t;
+    const fin = () => { q.lock.disabled = false; if (m3) { m3.flare(t.req.filter(z => !r.exposed.includes(z)), true); m3.flare(r.exposed, false); } note.style.display = "block"; note.textContent = r.exposed.length ? L("The splash reached: " + r.exposed.map(z => ZONE_NAME[z][0]).join(", ") + ". Think about where this liquid could land, then add the missing PPE.", "La salpicadura llegó a: " + r.exposed.map(z => ZONE_NAME[z][1]).join(", ") + ". Piensa dónde podría caer este líquido y añade el EPP que falta.") : L("Fully protected! Every body part at risk in this task was covered.", "¡Totalmente protegido! Cada parte del cuerpo en riesgo en esta tarea estaba cubierta."); if (!r.exposed.length) burst(stage, 50, 40, ["#3be07a", "#fff", "#ffd24d"], 18); };
+    if (m3) m3.splash(fin); else fin(); });
+  if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
+  host.append(card);
+}
+
+/* ============================================================
+   ORIENT + OBSERVATION (real photos)
+   ============================================================ */
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit"; cr.innerHTML = L(
+    'Photos via Wikimedia Commons: drain-cleaner label — Petr Kadlec (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>); hydrochloric acid bottles — Aleksander Sobolewski (CC BY-SA 4.0); eyewash station — Ashashyou (CC BY-SA 4.0). Hazard pictograms: UN GHS (public domain); biohazard sign — Silsor (public domain).',
+    'Fotos vía Wikimedia Commons: etiqueta de desatascador — Petr Kadlec (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>); frascos de ácido clorhídrico — Aleksander Sobolewski (CC BY-SA 4.0); lavaojos — Ashashyou (CC BY-SA 4.0). Pictogramas de peligro: GHS de la ONU (dominio público); signo de riesgo biológico — Silsor (dominio público).'); return cr;
+}
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Acids and alkalis are everywhere, but some are safe to eat and some can burn. Tap each real photo to meet three things every science lab has. (Safety: in real life never taste or touch unknown liquids — here it is all simulated.)", "Los ácidos y los álcalis están en todas partes, pero algunos se pueden comer y otros pueden quemar. Toca cada foto real para conocer tres cosas que tiene todo laboratorio. (Seguridad: en la vida real nunca pruebes ni toques líquidos desconocidos — aquí todo es simulado.)");
+  host.append(p);
+  const items = [
+    { f: "photos/reagents.jpg", pos: "50% 45%", en: "Lab acid bottles", es: "Frascos de ácido de laboratorio", t: { en: "These bottles hold hydrochloric acid at lab strength. Acids taste sour and alkalis feel soapy — but strong, concentrated ones of either kind can be dangerous, so the label carries a warning diamond.", es: "Estos frascos contienen ácido clorhídrico de laboratorio. Los ácidos saben agrios y los álcalis son jabonosos — pero los fuertes y concentrados de cualquier tipo pueden ser peligrosos, por eso la etiqueta lleva un rombo de advertencia." } },
+    { f: "photos/cleaner.jpg", pos: "55% 30%", en: "Drain cleaner", es: "Desatascador", t: { en: "Drain cleaner contains sodium hydroxide, an ALKALI. Alkalis can burn skin and eyes just like acids, so this label has the same corrosive diamond.", es: "El desatascador contiene hidróxido de sodio, un ÁLCALI. Los álcalis pueden quemar la piel y los ojos igual que los ácidos, así que esta etiqueta lleva el mismo rombo corrosivo." } },
+    { f: "photos/eyewash.jpg", pos: "50% 35%", en: "Eyewash station", es: "Lavaojos", t: { en: "Every lab has an eyewash. It is there because splashes happen, even to careful people, and the first minutes matter most.", es: "Todo laboratorio tiene un lavaojos. Está ahí porque las salpicaduras ocurren, incluso a gente cuidadosa, y los primeros minutos son los más importantes." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo"><img src="${it.f}" alt="${L(it.en, it.es)}" loading="lazy" style="object-position:${it.pos}"></span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("This is a real label on a real bottle of drain cleaner. You do not need to read the language — the symbols and codes are international. Play label detective: tap what each clue describes.", "Esta es la etiqueta real de un frasco real de desatascador. No necesitas leer el idioma — los símbolos y códigos son internacionales. Juega a detective de etiquetas: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo"; wrap.style.maxWidth = "26rem";
+  wrap.innerHTML = `<img src="photos/cleaner.jpg" alt="${L("A real drain-cleaner label showing a corrosive hazard diamond, the word Danger, hazard and precaution sentences", "La etiqueta real de un desatascador con un rombo de peligro corrosivo, la palabra Peligro y frases de peligro y precaución")}">`;
+  const targets = [
+    { x: 55, y: 28.3, w: 36, h: 24, en: "the hazard pictogram — the red diamond picture", es: "el pictograma de peligro — el dibujo del rombo rojo", r: { en: "This is the hazard pictogram. It shows liquid dripping on a hand and a metal bar: CORROSIVE.", es: "Este es el pictograma de peligro. Muestra un líquido goteando sobre una mano y una barra de metal: CORROSIVO." } },
+    { x: 47, y: 40.5, w: 46, h: 3.6, en: "the signal word that says how serious the warning is", es: "la palabra de advertencia que dice lo grave que es el aviso", r: { en: "\"Danger\" is the stronger signal word. The milder one is \"Warning\".", es: "\"Peligro\" es la palabra de advertencia más fuerte. La más suave es \"Atención\"." } },
+    { x: 44, y: 46.6, w: 52, h: 4.8, en: "the hazard sentence (code H314) that says what harm it can do", es: "la frase de peligro (código H314) que dice qué daño puede hacer", r: { en: "H314 means: causes severe skin burns and eye damage.", es: "H314 significa: provoca quemaduras graves en la piel y lesiones oculares." } },
+    { x: 44, y: 51.7, w: 52, h: 6.4, en: "the line (code P280) that tells you what protection to wear", es: "la línea (código P280) que dice qué protección llevar", r: { en: "P280 means: wear protective gloves, protective clothing and eye protection.", es: "P280 significa: llevar guantes, ropa y protección para los ojos." } },
+    { x: 42, y: 58.8, w: 52, h: 9.6, en: "the first-aid advice (code P305) for when it gets in your eyes", es: "el consejo de primeros auxilios (código P305) si te cae en los ojos", r: { en: "P305+P351+P338 means: if in eyes, rinse carefully with water for several minutes.", es: "P305+P351+P338 significa: si cae en los ojos, enjuagar con cuidado con agua durante varios minutos." } },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot hz-spot"; Object.assign(b.style, { left: t.x + "%", top: t.y + "%", width: t.w + "%", height: t.h + "%" }); b.setAttribute("aria-label", L("Label area " + (i + 1), "Zona de la etiqueta " + (i + 1)));
+    b.addEventListener("click", () => { if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(t.r); }
+      else { pulse(b); h.textContent = L("Not that one — read the clue again.", "Esa no — vuelve a leer la pista."); } });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint(r) {
+    wrap.querySelectorAll(".hz-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    const reveal = r ? L(r.en, r.es) + " " : "";
+    h.textContent = step >= targets.length ? reveal + L("Label detective done! Reading a label takes seconds — but how does the danger change with strength?", "¡Detective de etiquetas completado! Leer una etiqueta lleva segundos — ¿pero cómo cambia el peligro con la concentración?") : reveal + L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint(null);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   BONUS — HAZARD HOPPER (classic Frogger-style reskin; quiz in the action; cost time, never health)
+   ============================================================ */
+const HOP_Q = (() => {
+  const m2s = id => ({ kind: "m2s", ans: id, en: SYM(id).mean.en, es: SYM(id).mean.es, opts: id === "corrosive" ? ["corrosive", "flame", "exclam"] : id === "flame" ? ["flame", "explosive", "bio"] : id === "exclam" ? ["exclam", "corrosive", "bio"] : id === "explosive" ? ["explosive", "flame", "exclam"] : ["bio", "corrosive", "flame"], hook: { en: SYM(id).en + " = " + SYM(id).mean.en + ".", es: SYM(id).es + " = " + SYM(id).mean.es + "." } });
+  const s2m = id => ({ kind: "s2m", ans: id, img: SYM(id).f, bg: SYM(id).bg, en: "What does this symbol warn about?", es: "¿Qué advierte este símbolo?", opts: [id, ...SYMS.filter(s => s.id !== id).sort(() => Math.random() - 0.5).slice(0, 2).map(s => s.id)], hook: { en: SYM(id).en + " = " + SYM(id).mean.en + ".", es: SYM(id).es + " = " + SYM(id).mean.es + "." } });
+  const txt = (en, es, a, b, c, hk) => ({ kind: "txt", en, es, opts: [{ en: a[0], es: a[1] }, { en: b[0], es: b[1] }, { en: c[0], es: c[1] }], ans: 0, hook: hk });
+  return () => [
+    ...SYMS.map(s => m2s(s.id)), ...SYMS.map(s => s2m(s.id)),
+    txt("A drop of acid lands in your eye. What is your first move?", "Una gota de ácido cae en tu ojo. ¿Cuál es tu primer movimiento?", ["Rinse with lots of water and tell the teacher", "Rinse con mucha agua y avisar al profesor"], ["Rub it hard", "Frotarlo con fuerza"], ["Wait and see", "Esperar a ver"], { en: "Water first, teacher fast.", es: "Primero agua, avisa rápido al profesor." }),
+    txt("The SAME acid: which version is MORE hazardous?", "El MISMO ácido: ¿qué versión es MÁS peligrosa?", ["Concentrated (strong)", "Concentrado (fuerte)"], ["Dilute (weak)", "Diluido (débil)"], ["They are identical", "Son idénticas"], { en: "Stronger and more concentrated = more hazardous.", es: "Más fuerte y concentrado = más peligroso." }),
+    txt("You will pour concentrated corrosive liquid. You wear...", "Vas a verter un líquido corrosivo concentrado. Te pones...", ["Goggles, gloves and a lab coat", "Gafas, guantes y bata"], ["Goggles only", "Solo gafas"], ["Nothing - it is quick", "Nada - es rápido"], { en: "Cover every part a splash could reach.", es: "Cubre cada parte que una salpicadura pueda alcanzar." }),
+    txt("Drain cleaner is an alkali. Is it safe to touch?", "El desatascador es un álcali. ¿Es seguro tocarlo?", ["No - alkalis can burn skin too", "No - los álcalis también queman la piel"], ["Yes - only acids burn", "Sí - solo los ácidos queman"], ["Yes - it is soapy", "Sí - es jabonoso"], { en: "Strong acids AND strong alkalis can be corrosive.", es: "Los ácidos fuertes Y los álcalis fuertes pueden ser corrosivos." }),
+    txt("How can you tell if a liquid is an acid? Taste a little!", "¿Cómo saber si un líquido es ácido? ¡Probando un poquito!", ["Never - never taste chemicals", "Nunca - jamás pruebes productos químicos"], ["Yes, a tiny sip", "Sí, un traguito"], ["Only if it smells sour", "Solo si huele agrio"], { en: "Never taste or touch unknown liquids.", es: "Nunca pruebes ni toques líquidos desconocidos." }),
+  ];
+})();
+function mountHopper(host, sim, onExit) {
+  const W = 720, H = 420, CW = 80, CH = 60, COLS = 9, ROWS = 7, LANES = [[1, 70], [2, -95], [3, 62], [4, -110], [5, 82]];
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus"; host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: Hazard Hopper", "Bonus: Hazard Hopper")}</h3><p>${L("Hop across the busy lab floor to the door with the right answer. Dodging a trolley only costs you 2 seconds — nothing can hurt you here. Two minutes. A silent game. Use the arrow keys, WASD or the buttons.", "Cruza el ajetreado suelo del laboratorio hasta la puerta con la respuesta correcta. Esquivar un carrito solo te cuesta 2 segundos — aquí nada puede hacerte daño. Dos minutos. Un juego silencioso. Usa las flechas, WASD o los botones.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="hp-start">${L("Play (2 minutes)", "Jugar (2 minutos)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="hp-skip">${L("Skip", "Omitir")}</button></div>`;
+  wrap.querySelector("#hp-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#hp-start").addEventListener("click", start);
+  const imgs = {}; SYMS.forEach(s => { const i = new Image(); i.src = s.f; imgs[s.id] = i; });
+  function start() {
+    wrap.innerHTML = `<h3>Hazard Hopper</h3><div class="cyc-hud"><span id="hp-time"></span><span id="hp-score"></span><span id="hp-streak"></span></div><div class="hz-prompt" id="hp-prompt"></div><canvas id="hp-cv" width="${W}" height="${H}" tabindex="0" aria-label="${L("Lab floor with trolleys and three answer doors", "Suelo del laboratorio con carritos y tres puertas de respuesta")}"></canvas>
+      <div class="hz-dpad"><button type="button" class="cyc-btn cyc-btn--ghost" data-d="L" aria-label="${L("Left", "Izquierda")}">◀</button><button type="button" class="cyc-btn cyc-btn--ghost" data-d="U" aria-label="${L("Up", "Arriba")}">▲</button><button type="button" class="cyc-btn cyc-btn--ghost" data-d="D" aria-label="${L("Down", "Abajo")}">▼</button><button type="button" class="cyc-btn cyc-btn--ghost" data-d="R" aria-label="${L("Right", "Derecha")}">▶</button></div><div class="cyc-toast" id="hp-toast"></div>`;
+    const cv = wrap.querySelector("#hp-cv"), ctx = cv.getContext("2d"), toast = wrap.querySelector("#hp-toast"), prompt = wrap.querySelector("#hp-prompt");
+    const G = { col: 4, row: 6, score: 0, streak: 0, best: 0, ok: 0, tot: 0, over: false, t0: performance.now(), bonus: 0, imm: 0, qi: 0, bank: [], q: null, doors: [], missed: [], flash: 0, flashOk: true, last: 0 };
+    const nextQ = () => { if (G.qi >= G.bank.length) { G.bank = HOP_Q().sort(() => Math.random() - 0.5); G.qi = 0; } const q = G.bank[G.qi++]; const ds = q.opts.map((o, i) => ({ o, right: q.kind === "txt" ? i === 0 : o === q.ans })); ds.sort(() => Math.random() - 0.5); G.q = q; G.doors = ds;
+      prompt.innerHTML = q.kind === "s2m" ? `<img src="${q.img}" alt="" width="44" height="44" style="background:${q.bg};border-radius:6px;vertical-align:middle;margin-right:.5rem">${L(q.en, q.es)}` : L(q.en, q.es); };
+    nextQ();
+    const obstacles = LANES.map(([row, v], li) => Array.from({ length: 3 }, (_, k) => ({ row, v, x0: k * (W + 140) / 3 + li * 47, w: k % 2 ? 56 : 72, type: (k + li) % 2 })));
+    const ox = o => { const span = W + 140; return (((o.x0 + o.v * (performance.now() - G.t0) / 1000) % span) + span) % span - 70; };
+    const reset = () => { G.col = 4; G.row = 6; };
+    function answer(di) { const d = G.doors[di], q = G.q; G.tot++;
+      if (d.right) { G.ok++; G.streak++; G.best = Math.max(G.best, G.streak); G.score += 100 + Math.min(G.streak, 5) * 10; toast.textContent = L("Correct! ", "¡Correcto! ") + L(q.hook.en, q.hook.es); G.flash = performance.now(); G.flashOk = true; burst(wrap, 50, 40, ["#5ee08a", "#fff", "#ffd24d"], 12); }
+      else { G.streak = 0; const rt = G.doors.find(x => x.right); G.missed.push(q); toast.textContent = L("Answer: ", "Respuesta: ") + (q.kind === "txt" ? L(rt.o.en, rt.o.es) : q.kind === "m2s" ? L(SYM(q.ans).en, SYM(q.ans).es) : L(SYM(q.ans).mean.en, SYM(q.ans).mean.es)) + " · " + L(q.hook.en, q.hook.es); G.flash = performance.now(); G.flashOk = false; }
+      reset(); nextQ(); }
+    function move(d) { if (G.over) return; const now = performance.now(); if (now - G.last < 80) return; G.last = now;
+      if (d === "L") G.col = Math.max(0, G.col - 1); else if (d === "R") G.col = Math.min(COLS - 1, G.col + 1); else if (d === "D") G.row = Math.min(ROWS - 1, G.row + 1); else if (d === "U") { G.row--; if (G.row <= 0) { answer(Math.floor(G.col / 3)); } } }
+    wrap.querySelectorAll(".hz-dpad button").forEach(b => b.addEventListener("click", () => move(b.dataset.d)));
+    const kd = e => { if (G.over || !cv.isConnected || cv.offsetParent === null) return; if (/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ""))) return; const m = { ArrowLeft: "L", a: "L", A: "L", ArrowRight: "R", d: "R", D: "R", ArrowUp: "U", w: "U", W: "U", ArrowDown: "D", s: "D", S: "D" }[e.key]; if (m) { e.preventDefault(); move(m); } };
+    window.addEventListener("keydown", kd);
+    const timer = setInterval(() => {   // wall-clock state; rAF only paints
+      if (G.over) return; const now = performance.now(); G.left = 120 - (now - G.t0) / 1000 - G.bonus;
+      if (now > G.imm && G.row >= 1 && G.row <= 5) { const px = G.col * CW + 12, py = G.row * CH + 10; for (const lane of obstacles) for (const o of lane) { if (o.row !== G.row) continue; const x = ox(o); if (px < x + o.w && px + 56 > x) { G.bonus += 2; G.imm = now + 700; G.streak = 0; toast.textContent = L("Trolley! −2 seconds. Back to the start.", "¡Carrito! −2 segundos. De vuelta al inicio."); reset(); break; } } }
+      if (G.left <= 0) finish(); hud();
+    }, 50);
+    function hud() { wrap.querySelector("#hp-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(G.left)) + " s"; wrap.querySelector("#hp-score").textContent = L("Score ", "Puntos ") + G.score; wrap.querySelector("#hp-streak").textContent = L("Streak ", "Racha ") + G.streak; }
+    function wrapText(t, x, y, mw, lh) { const words = t.split(" "); let line = "", yy = y, lines = []; words.forEach(w => { const test = line ? line + " " + w : w; if (ctx.measureText(test).width > mw && line) { lines.push(line); line = w; } else line = test; }); lines.push(line); yy -= (lines.length - 1) * lh / 2; lines.forEach((l, i) => ctx.fillText(l, x, yy + i * lh)); }
+    function draw() {
+      if (!cv.isConnected || G.over) return; const now = performance.now();
+      ctx.clearRect(0, 0, W, H); const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#26363f"); bg.addColorStop(1, "#1a252c"); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      for (let r = 1; r <= 5; r++) { ctx.fillStyle = r % 2 ? "#33444e" : "#2c3b44"; ctx.fillRect(0, r * CH, W, CH); ctx.fillStyle = "#ffd24d55"; for (let x = 0; x < W; x += 40) ctx.fillRect(x, r * CH + CH / 2 - 1, 20, 2); }
+      ctx.fillStyle = "#1d6a43"; ctx.fillRect(0, 6 * CH, W, CH); ctx.fillStyle = "#e8f6ee"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center"; ctx.fillText(L("START — safe zone", "INICIO — zona segura"), W / 2, 6 * CH + 34);
+      G.doors.forEach((d, i) => { const x = i * 240; ctx.fillStyle = "#14202a"; ctx.fillRect(x + 4, 4, 232, CH - 8); ctx.strokeStyle = "#ffd24d"; ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.strokeRect(x + 4, 4, 232, CH - 8); ctx.setLineDash([]);
+        ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center";
+        if (G.q.kind === "m2s") { const im = imgs[d.o]; ctx.fillStyle = SYM(d.o).bg; ctx.fillRect(x + 10, 9, 42, 42); if (im.complete && im.naturalWidth) ctx.drawImage(im, x + 12, 11, 38, 38); ctx.fillStyle = "#fff"; ctx.textAlign = "left"; wrapText(L(SYM(d.o).en, SYM(d.o).es), x + 60, CH / 2, 168, 15); }
+        else if (G.q.kind === "s2m") { ctx.textAlign = "center"; wrapText(L(SYM(d.o).mean.en, SYM(d.o).mean.es), x + 120, CH / 2, 216, 15); }
+        else { ctx.textAlign = "center"; wrapText(L(d.o.en, d.o.es), x + 120, CH / 2, 216, 15); } });
+      obstacles.forEach(lane => lane.forEach(o => { const x = ox(o), y = o.row * CH + 12; if (o.type) { ctx.fillStyle = "#7b8a94"; ctx.fillRect(x, y + 6, o.w, 22); ctx.fillStyle = "#c9d3da"; ctx.fillRect(x + 4, y, o.w - 8, 8); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(x + 12, y + 34, 6, 0, TAU); ctx.arc(x + o.w - 12, y + 34, 6, 0, TAU); ctx.fill(); } else { ctx.fillStyle = "#d94a3a"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y + 2, o.w, 30, 8) : ctx.rect(x, y + 2, o.w, 30); ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center"; ctx.fillText(L("TROLLEY", "CARRITO"), x + o.w / 2, y + 22); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(x + 12, y + 36, 5, 0, TAU); ctx.arc(x + o.w - 12, y + 36, 5, 0, TAU); ctx.fill(); } }));
+      const px = G.col * CW + CW / 2, py = G.row * CH + CH / 2, bob = reducedMotion() ? 0 : Math.sin(now / 160) * 1.5;
+      ctx.fillStyle = "#0004"; ctx.beginPath(); ctx.ellipse(px, py + 20, 15, 5, 0, 0, TAU); ctx.fill(); ctx.fillStyle = "#f4f7fa"; ctx.fillRect(px - 12, py - 8 + bob, 24, 26); ctx.fillStyle = "#e2a98f"; ctx.beginPath(); ctx.arc(px, py - 14 + bob, 10, 0, TAU); ctx.fill(); ctx.fillStyle = "#9fd8ff"; ctx.fillRect(px - 9, py - 17 + bob, 18, 6); ctx.fillStyle = "#4a2c18"; ctx.fillRect(px - 10, py - 25 + bob, 20, 6);
+      if (now - G.flash < 500) { ctx.fillStyle = G.flashOk ? "rgba(94,224,138,.22)" : "rgba(255,138,138,.2)"; ctx.fillRect(0, 0, W, H); }
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw); hud(); cv.focus({ preventScroll: true });
+    function finish() {
+      if (G.over) return; G.over = true; clearInterval(timer); window.removeEventListener("keydown", kd);
+      const acc = G.tot ? Math.round(G.ok / G.tot * 100) : 0, rev = [...new Set(G.missed.map(q => q.kind === "txt" ? L(q.hook.en, q.hook.es) : L(q.hook.en, q.hook.es)))].slice(0, 4);
+      wrap.innerHTML = `<h3>${L("Hop complete!", "¡Salto completado!")}</h3><p>${L(`Correct doors: ${G.ok} of ${G.tot} (${acc}%). Best streak ${G.best}. Score ${G.score}.`, `Puertas correctas: ${G.ok} de ${G.tot} (${acc}%). Mejor racha ${G.best}. Puntos ${G.score}.`)}</p>${rev.length ? `<p>${L("Worth another look:", "Vale la pena repasar:")}</p><ul>${rev.map(r => `<li>${r}</li>`).join("")}</ul>` : `<p>${L("Perfect safety record — every answer was right!", "¡Récord de seguridad perfecto — todas las respuestas correctas!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="hp-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="hp-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#hp-again").addEventListener("click", start); wrap.querySelector("#hp-close").addEventListener("click", () => wrap.remove()); onExit && onExit({ score: G.score, accuracy: acc });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the hazard symbol chosen, the strength of the acid or alkali, whether it is an acid or an alkali, and the PPE worn. Dependent: the damage to the synthetic skin (%), the hazard label needed, and which body parts are protected. Controlled: the same synthetic-skin sample, the same three drips and the same splash test every time.",
+    "Independiente: el símbolo de peligro elegido, la concentración del ácido o álcali, si es un ácido o un álcali y el EPP puesto. Dependiente: el daño a la piel sintética (%), la etiqueta de peligro necesaria y qué partes del cuerpo están protegidas. Controladas: la misma muestra de piel sintética, las mismas tres gotas y la misma prueba de salpicadura cada vez.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (s.st1 && s.st1.idx >= 5 && s.st2 && s.st2.idx >= 4 && s.st3 && s.st3.idx >= 4 && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Safety Officer certified! You read the labels, tested the strengths and dressed for the job. Now explain what you found.", "¡Oficial de Seguridad certificado! Leíste las etiquetas, probaste las concentraciones y te vestiste para el trabajo. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildLabelRack(host, sim, check); buildStrengthDial(host, sim, check); buildPPEBench(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel choosing the right protection for a task?", "¿Qué tan seguro te sientes eligiendo la protección adecuada para una tarea?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "labels", label: L("Hazard labels on household products", "Etiquetas de peligro en productos del hogar") }, { id: "firstaid", label: L("First aid for chemical splashes", "Primeros auxilios para salpicaduras químicas") }, { id: "disposal", label: L("How labs dispose of chemicals safely", "Cómo eliminan los laboratorios los químicos con seguridad") }], "next");
+  host.append(creditLine());
+  document.addEventListener("cyc-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountHopper(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete — score ${st.score}.`, `Bonus completo — ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
