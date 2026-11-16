@@ -45,6 +45,12 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
   .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
   .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
   .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn[data-ready="false"] { background: #6b7280; }
+  .cyc-step { margin: .5rem 0 .25rem; font-size: .88rem; }
+  .cyc-step b { background: var(--accent); color: #fff; border-radius: 999px; padding: .08rem .6rem; font-size: .72rem; margin-right: .4rem; }
+  .cyc-step--opt b { background: var(--accent-wash); color: var(--accent); }
+  .cyc-step--opt { font-size: .8rem; opacity: .9; }
+  #cyc-curves.cyc-shake { animation: cyc-shake .35s ease; }
   .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
   .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
   [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
@@ -377,7 +383,8 @@ function buildAnatomy(sp) {
 }
 
 /* Orders queue (persisted in sim.state — CLAUDE.md 12.16) */
-function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+function makeOrders(card, sim, key, tasks, getReading, station, onDone, opts) {
+  opts = opts || {};
   const bar = document.createElement("div"); bar.className = "cyc-order";
   bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
   const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
@@ -389,12 +396,20 @@ function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
     [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
   }
   paint();
+  const refresh = () => { if (opts.label) lock.textContent = opts.label(); lock.dataset.ready = String(!opts.need || !opts.need()); };
+  lock.refresh = refresh; refresh(); if (opts.slot) opts.slot.append(lock);
   lock.addEventListener("click", () => {
+    const nd = opts.need && tasks[st.idx] && opts.need();
+    if (nd) {
+      const tg = nd.target && card.querySelector(nd.target);
+      [lock, tg].forEach(el => { if (el) { el.classList.remove("cyc-shake"); void el.offsetWidth; el.classList.add("cyc-shake"); } });
+      sim.toast(L(nd.en, nd.es), "info"); return;
+    }
     const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
     sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" — order met", " — pedido cumplido") : t ? L(" — not the order yet", " — todavía no es el pedido") : "") });
     document.dispatchEvent(new CustomEvent("cyc-trial"));
     if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#ff7aa8", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
-    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged — but that is not the order. Re-read it and try again.", "Registrado — pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(opts.hint ? opts.hint(r) : L("Not quite — that is not the order. Re-read it and try again.", "Casi — ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
     else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
   });
   return { bar, lock, st };
@@ -567,11 +582,11 @@ function buildTracker(mount, sim, onDone) {
 function buildHormoneLab(mount, sim, onDone) {
   const card = stationShell(3, "Hormone Messenger Lab", "Laboratorio de Mensajeros Hormonales", "Hormones are chemical messengers in the blood. Four unlabelled curves are drawn below — use the clues and scrub through the days to work out which is which.", "Las hormonas son mensajeros químicos en la sangre. Abajo hay cuatro curvas sin etiqueta — usa las pistas y recorre los días para descubrir cuál es cuál.");
   if (!sim.state.letters) { const L4 = ["W", "X", "Y", "Z"].sort(() => Math.random() - 0.5); sim.state.letters = { fsh: L4[0], lh: L4[1], oes: L4[2], pro: L4[3] }; sim.saveState(); }
-  const letters = sim.state.letters, S = { d: 14, sel: null };
+  const letters = sim.state.letters, S = { d: 14, sel: null }; let lockRef = null;
   const msg = document.createElement("div"); msg.className = "cyc-stage"; msg.style.aspectRatio = "16/6"; card.append(msg);
   const mc = document.createElement("canvas"); mc.width = 640; mc.height = 240; mc.style.cssText = "width:100%;height:100%;display:block"; msg.append(mc);
   const ctrl = document.createElement("div"); ctrl.className = "cyc-controls"; card.append(ctrl);
-  ctrl.innerHTML = `<div class="cyc-row"><label for="cyc-hd">${L("Day of the cycle", "Día del ciclo")}</label><input id="cyc-hd" type="range" min="1" max="28" step="0.5"><span class="cyc-val" id="cyc-hdv"></span></div><div class="cyc-row" id="cyc-curves"></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Selected curve", "Curva seleccionada")}</div><div class="cyc-gauge__val" style="font-size:.95rem" id="cyc-sel"></div></div>`;
+  ctrl.innerHTML = `<p class="cyc-step"><b>${L("Step 1", "Paso 1")}</b> ${L("Read the order above, then TAP the curve you think matches it.", "Lee el pedido de arriba y TOCA la curva que crees que coincide.")}</p><div class="cyc-row" id="cyc-curves"></div><div class="cyc-gauge"><div class="cyc-gauge__label">${L("Selected curve", "Curva seleccionada")}</div><div class="cyc-gauge__val" style="font-size:.95rem" id="cyc-sel"></div></div><p class="cyc-step"><b>${L("Step 2", "Paso 2")}</b> ${L("Press the button to check your answer.", "Pulsa el botón para comprobar tu respuesta.")}</p><div id="cyc-lockslot"></div><p class="cyc-step cyc-step--opt"><b>${L("Optional helper", "Ayuda opcional")}</b> ${L("This slider does NOT choose your answer. Slide it to read every curve on a different day of the cycle (use Day 1 to see which hormone starts high).", "Este deslizador NO elige tu respuesta. Muévelo para leer cada curva en otro día del ciclo (usa el Día 1 para ver qué hormona empieza alta).")}</p><div class="cyc-row"><label for="cyc-hd">${L("Day of the cycle", "Día del ciclo")}</label><input id="cyc-hd" type="range" min="1" max="28" step="0.5"><span class="cyc-val" id="cyc-hdv"></span></div>`;
   const chart = makeChartCanvas(); ctrl.append(chart);
   const dS = ctrl.querySelector("#cyc-hd");
   HORM.forEach(hm => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.dataset.k = hm.k; b.innerHTML = `<span class="cyc-swatch" style="border-color:${hm.c};border-top-style:${hm.dash.length ? "dashed" : "solid"}"></span>${L("Curve ", "Curva ")}${letters[hm.k]}`; b.addEventListener("click", () => { S.sel = hm.k; render(); }); ctrl.querySelector("#cyc-curves").append(b); });
@@ -581,6 +596,7 @@ function buildHormoneLab(mount, sim, onDone) {
     ctrl.querySelectorAll("#cyc-curves .cyc-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === S.sel)));
     ctrl.querySelector("#cyc-sel").textContent = S.sel ? L(`Curve ${letters[S.sel]}: level on day ${S.d} = ${Math.round(HFN[S.sel](S.d) * 100)}% · its highest point is on day ${peakDay(S.sel)}`, `Curva ${letters[S.sel]}: nivel el día ${S.d} = ${Math.round(HFN[S.sel](S.d) * 100)}% · su punto más alto es el día ${peakDay(S.sel)}`) : L("Tap a curve button first.", "Toca primero un botón de curva.");
     drawChart(chart, S.d, { letters, hi: S.sel });
+    if (lockRef) lockRef();
   }
   dS.addEventListener("input", () => { S.d = +dS.value; render(); });
   /* animated messenger map */
@@ -614,8 +630,11 @@ function buildHormoneLab(mount, sim, onDone) {
   const nameOf = k => HORM.find(h => h.k === k);
   const q = makeOrders(card, sim, "st3", tasks, () => { const k = S.sel; return { sel: k, setting: k ? L(`Curve ${letters[k]} chosen`, `Curva ${letters[k]} elegida`) : L("No curve chosen", "Ninguna curva elegida"),
     reading: k ? L(`Highest on day ${peakDay(k)} (${Math.round(HFN[k](peakDay(k)) * 100)}%); level on day ${S.d} = ${Math.round(HFN[k](S.d) * 100)}%`, `Máxima el día ${peakDay(k)} (${Math.round(HFN[k](peakDay(k)) * 100)}%); nivel el día ${S.d} = ${Math.round(HFN[k](S.d) * 100)}%`) : "-",
-    result: k ? L(`Identified as ${nameOf(k).en}`, `Identificada como ${nameOf(k).es}`) : "-" }; }, L("Hormones", "Hormonas"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("hormones", L("Hormone Decoder", "Decodificador de Hormonas")); onDone(); });
-  ctrl.prepend(q.bar); ctrl.append(q.lock);
+    result: k ? L(`Identified as ${nameOf(k).en}`, `Identificada como ${nameOf(k).es}`) : "-" }; }, L("Hormones", "Hormonas"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("hormones", L("Hormone Decoder", "Decodificador de Hormonas")); onDone(); },
+    { need: () => !S.sel && { en: "Pick a curve first: tap Curve W, X, Y or Z, then press the button again.", es: "Primero elige una curva: toca la Curva W, X, Y o Z y vuelve a pulsar el botón.", target: "#cyc-curves" },
+      hint: () => { const k = S.sel; const h = { lh: ["Not that one. Look for the curve with ONE very sharp spike around day 14.", "Esa no. Busca la curva con UN pico muy brusco hacia el día 14."], fsh: ["Not that one. Slide to Day 1 and look for the curve that is already high at the very start.", "Esa no. Ve al Día 1 y busca la curva que ya está alta al principio."], oes: ["Not that one. Look for the curve that climbs steadily and peaks just before day 14.", "Esa no. Busca la curva que sube de forma constante y alcanza su máximo justo antes del día 14."], pro: ["Not that one. Look for the curve that stays low until day 14, then peaks near day 21.", "Esa no. Busca la curva que se mantiene baja hasta el día 14 y luego alcanza su máximo cerca del día 21."] }[order[q.st.idx]]; return L(`Curve ${letters[k]}: ${h[0]}`, `Curva ${letters[k]}: ${h[1]}`); },
+      slot: ctrl.querySelector("#cyc-lockslot"), label: () => S.sel ? L(`Check my answer: Curve ${letters[S.sel]}`, `Comprobar mi respuesta: Curva ${letters[S.sel]}`) : L("Check my answer (pick a curve first)", "Comprobar mi respuesta (elige una curva)") });
+  ctrl.prepend(q.bar); lockRef = q.lock.refresh;
   q.lock.addEventListener("click", () => { if (q.st.idx > 0 && S.sel && order[q.st.idx - 1] === S.sel) { const hm = nameOf(S.sel); sim.toast(L(`Yes — that is ${hm.en}!`, `¡Sí — esa es ${hm.es}!`), "correct"); } });
   if (q.st.idx >= tasks.length) card.querySelector(".cyc-done").dataset.show = "true";
   const note = document.createElement("p"); note.className = "cyc-note"; note.textContent = L("Hormones are made in one place and act in another. The brain's pituitary gland sends FSH and LH to the ovary; the ovary sends oestrogen and progesterone to the uterus. Watch the moving dots: more dots means a higher level that day.", "Las hormonas se producen en un lugar y actúan en otro. La glándula pituitaria del cerebro envía FSH y LH al ovario; el ovario envía estrógeno y progesterona al útero. Mira los puntos que se mueven: más puntos significa un nivel más alto ese día.");
