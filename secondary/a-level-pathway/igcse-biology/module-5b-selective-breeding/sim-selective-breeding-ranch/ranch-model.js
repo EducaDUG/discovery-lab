@@ -113,7 +113,7 @@ function germinate(g, s) {
 
 /* ---------- selling ---------- */
 export function stockPrice(a, rep = 30) { const m = merit(a); return Math.round(SP[a.sp].price * (0.55 + Math.pow(m / 60, 1.6) * 0.7) * (0.9 + rep / 400)); }
-export function meatPrice(a) { const kg = a.sp === "cow" ? 280 + a.t.meat * 2.5 : 22 + a.t.meat * 0.3; const grade = a.t.meat * .6 + a.t.looks * .4; return Math.round(kg * (3.2 + grade / 100 * 1.8) * (a.adult ? 1 : 0.6)); }
+export function meatPrice(a) { const kg = a.sp === "cow" ? 280 + a.t.meat * 2.5 : 22 + a.t.meat * 0.3; const grade = a.t.meat * .6 + a.t.looks * .4; const rate = a.sp === "cow" ? 1.2 + grade / 100 * 1.3 : 3.2 + grade / 100 * 1.6; return Math.round(kg * rate * (a.adult ? 1 : 0.6)); }
 export function sellAnimal(g, id, mode) {
   const i = g.animals.findIndex(a => a.id === id); if (i < 0) return { ok: false }; const a = g.animals[i]; if (a.preg) return { ok: false, why: "preg" };
   const v = mode === "meat" ? meatPrice(a) : stockPrice(a, g.rep); g.cash += v; g.flow.in += v; g.animals.splice(i, 1); g.stats.sold++;

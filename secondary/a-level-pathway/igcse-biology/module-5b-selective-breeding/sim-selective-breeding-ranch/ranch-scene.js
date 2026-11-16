@@ -35,7 +35,7 @@ export async function initScene(view, g, rt, M, opt) {
   /* ---------- world ---------- */
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(420, 320), S({ map: grassTex, roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const addPatch = (x, z, w, d, m) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(w, d), m); p.rotation.x = -Math.PI / 2; p.position.set(x, 0.03, z); p.receiveShadow = true; scene.add(p); return p; };
-  const dirtM = S({ map: dirtTex, roughness: 1 }), concM = S({ map: concTex, roughness: .9 });
+  const dirtM = S({ map: dirtTex, roughness: 1 }), concM = S({ map: concTex, color: C(0x7d7f80), roughness: .95 });
   addPatch(-41, -19, 36, 32, dirtM); addPatch(-1, -19, 34, 32, dirtM); addPatch(-41, 10, 80, 16, concM); addPatch(28, 17, 44, 22, concM);
   for (let i = 0; i < 9; i++) { const h = new THREE.Mesh(new THREE.SphereGeometry(16 + rand() * 14, 22, 12, 0, 6.3, 0, 1.5), S({ color: C(i % 2 ? 0x3b7a3a : 0x4f8f45), roughness: 1 })); h.position.set(-120 + i * 32, -2, -110 - rand() * 14); h.scale.y = .5; scene.add(h); }
   for (let i = 0; i < 38; i++) { const t = new THREE.Group(); cyl(.3, .4, 2.4, S({ color: C(0x5a3f2a) }), 0, 1.2, 0, t, 6); sph(1.8 + rand() * 1.1, S({ color: C(0x2f7a34), roughness: 1 }), 0, 3.6, 0, t); t.position.set(-110 + i * 6 + rand() * 3, 0, -62 - rand() * 18); scene.add(t); }
@@ -95,6 +95,11 @@ export async function initScene(view, g, rt, M, opt) {
     return [L1, L2]; });
   function setBuild(key, level) { const b = B[key]; if (b.shown === level) return; const first = b.shown === -1; b.shown = level; b.mark.visible = level === 0; b.levels.forEach((l, i) => { l.visible = level > i; }); if (!first && level > 0) { b.pop = 0; rt.dust?.(b.grp.position.x, b.grp.position.z); } }
 
+  /* always-there farm dressing: silos, hay bales, a farmhouse and a tractor */
+  { const dk = S({ color: C(0x2a2a2a), roughness: .8 }); const siloM = S({ color: C(0xc8ccd0), metalness: .7, roughness: .35 }); [[-66, -30], [-66, -22]].forEach((p, i) => { cyl(2.4, 2.4, 14 - i * 2, siloM, p[0], 7 - i, p[1], scene, 20); const cap = new THREE.Mesh(new THREE.ConeGeometry(2.6, 2, 20), S({ color: C(0x9aa3aa), metalness: .6, roughness: .4 })); cap.position.set(p[0], 14.9 - i * 2, p[1]); cap.castShadow = true; scene.add(cap); });
+    const hay = S({ color: C(0xd9c27a), roughness: 1 }); for (let i = 0; i < 6; i++) { const h = cyl(1.2, 1.2, 1.6, hay, -18 + (i % 3) * 3.2, 1.2, -46 + Math.floor(i / 3) * 3, scene, 14); h.rotation.z = 1.5708; }
+    const fh = new THREE.Group(); fh.position.set(-76, 0, 6); scene.add(fh); box(12, 6, 8, S({ color: C(0xf1e3c8), roughness: .8 }), 0, 3, 0, fh); roofPrism(13, 8.6, 4, S({ color: C(0x8b3a2e), roughness: .7 }), fh, 6); box(1.8, 3.2, .2, S({ map: woodTex }), 0, 1.6, 4.1, fh);
+    const tr = new THREE.Group(); tr.position.set(-12, 0, 18); scene.add(tr); box(3.2, 1.6, 1.8, S({ color: C(0x2f9e44), roughness: .4 }), 0, 1.6, 0, tr); box(1.6, 1.6, 1.7, S({ color: C(0x37b24d), roughness: .4 }), -.9, 2.8, 0, tr); [[-1, 1], [-1, -1]].forEach(w => { const wh = cyl(1, 1, .5, dk, w[0], 1, w[1], tr, 16); wh.rotation.x = 1.5708; }); [[1.2, 1], [1.2, -1]].forEach(w => { const wh = cyl(.6, .6, .4, dk, w[0], .6, w[1], tr, 16); wh.rotation.x = 1.5708; }); }
   /* ---------- tomato plants in the glasshouse ---------- */
   const leafProto = new THREE.SphereGeometry(.22, 8, 6), fruitProto = new THREE.SphereGeometry(.14, 10, 8), stemM = S({ color: C(0x3d8a35), roughness: .8 }), potM = S({ color: C(0xb5651d), roughness: .9 });
   const plantMap = new Map();
