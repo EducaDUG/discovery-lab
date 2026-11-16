@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clone Command: Operation Dolly — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Clone Command — activity-local styles only ---- */
+.cc-credit{font-size:.68rem;color:var(--ink-3);margin-top:10px;line-height:1.5;}
+.cc-credit a{color:inherit;}
+.cc-game .cc-credit,.cc-dash .cc-credit{color:#9db4c4;}
+
+/* orient + observation (light page) */
+.cc-terms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+@media (max-width:640px){.cc-terms{grid-template-columns:repeat(2,1fr);}}
+.cc-term{position:relative;padding:0;border:0;border-radius:16px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;background:#0b1820;color:#fff;font:inherit;text-align:left;box-shadow:0 8px 22px rgba(10,40,60,.25);}
+.cc-term img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s,filter .3s;}
+.cc-term:hover img{transform:scale(1.06);}
+.cc-term b{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;font-family:var(--font-display);font-size:1.05rem;background:linear-gradient(transparent,rgba(4,14,22,.92));}
+.cc-term span{position:absolute;inset:0;padding:12px;display:flex;align-items:center;font-size:.86rem;line-height:1.35;background:rgba(6,24,36,.93);opacity:0;transition:opacity .25s;}
+.cc-term.is-open span{opacity:1;}
+.cc-term.is-open b{background:none;top:6px;bottom:auto;padding:4px 12px;font-size:.8rem;color:#7dffb4;z-index:1;}
+.cc-term.is-open span{padding-top:30px;align-items:flex-start;}
+.cc-quick{padding:12px 14px;border-radius:14px;background:var(--accent-wash);border:2px solid var(--accent);margin-top:10px;}
+.cc-quick .cc-row{margin-top:8px;}
+.cc-qbtn{font:inherit;font-weight:700;padding:9px 16px;min-height:44px;border-radius:12px;border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;}
+.cc-qbtn.good{background:#e3f7ea;border-color:#2fbf71;}.cc-qbtn.bad{background:#fdeaee;border-color:#d9475e;}
+.cc-obs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+@media (max-width:760px){.cc-obs{grid-template-columns:1fr;}}
+.cc-photo{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+.cc-photo>img{display:block;width:100%;height:auto;}
+.cc-pin{position:absolute;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;border:3px solid #fff;background:rgba(14,120,110,.92);color:#fff;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 0 0 6px rgba(94,230,200,.35);animation:cc-pin 2.4s ease-in-out infinite;}
+.cc-pin.ok,.cc-pin.seen{background:#2fbf71;animation:none;}.cc-pin.seen{background:#3a7bd5;}.cc-pin.bad{background:#d9475e;}
+@keyframes cc-pin{0%,100%{box-shadow:0 0 0 4px rgba(94,230,200,.35);}50%{box-shadow:0 0 0 12px rgba(94,230,200,.08);}}
+.cc-note{min-height:3.2em;margin-top:8px;padding:9px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:.9rem;}
+
+/* ---------------- the game console (dark) ---------------- */
+.cc-game{--g1:#7dffb4;--g2:#4de3ff;color:#e8f4fb;background:radial-gradient(1200px 500px at 10% -10%,#17445c 0,transparent 60%),linear-gradient(160deg,#0a1a26,#0d2434 55%,#10303f);border-radius:22px;padding:14px;box-shadow:0 18px 50px rgba(6,30,46,.45);}
+.cc-game a{color:#9fe6ff;}
+.cc-game [hidden]{display:none !important;}
+.cc-hud{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);}
+.cc-hud__rank{display:flex;flex-direction:column;line-height:1.1;}
+.cc-hud__rank small{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:#9db4c4;}
+.cc-hud__rank b{font-family:var(--font-display);font-size:1.05rem;color:var(--g1);}
+.cc-hud__xp{flex:1;min-width:140px;}
+.cc-hud__xp span{font-family:var(--font-data);font-size:.72rem;color:#c8dbe6;}
+.cc-hud__bar{height:10px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:3px;}
+.cc-hud__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g2),var(--g1));transition:width .6s;border-radius:99px;}
+.cc-hud__stars{font-size:1rem;letter-spacing:2px;color:#ffd75e;white-space:nowrap;}
+.cc-mute{font:inherit;font-size:.78rem;padding:6px 12px;min-height:36px;border-radius:99px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;}
+.cc-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.cc-tab{font:inherit;text-align:left;padding:10px 12px;min-height:58px;border-radius:14px;border:2px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#e8f4fb;cursor:pointer;transition:transform .2s,border-color .2s;}
+.cc-tab:hover{transform:translateY(-2px);border-color:var(--g2);}
+.cc-tab.is-on{border-color:var(--g1);background:linear-gradient(140deg,rgba(125,255,180,.18),rgba(77,227,255,.10));box-shadow:0 0 0 3px rgba(125,255,180,.15);}
+.cc-tab small{display:block;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:#9db4c4;}
+.cc-tab b{display:block;font-family:var(--font-display);font-size:.95rem;}
+.cc-tab i{font-style:normal;color:#ffd75e;font-size:.8rem;letter-spacing:1px;}
+@media (max-width:600px){.cc-tab b{font-size:.78rem;}.cc-tab{padding:8px;}}
+
+.cc-split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start;}
+.cc-view{position:sticky;top:8px;}
+.cc-stage3d,.cc-dash__stage{position:relative;height:440px;border-radius:16px;overflow:hidden;background:#07131c;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}
+.cc-stage canvas{display:block;width:100%;height:100%;cursor:grab;}
+.cc-nogl::after,.cc-lost::after{content:attr(data-fallback);position:absolute;inset:auto 12px 12px 12px;padding:10px 12px;border-radius:10px;background:rgba(5,20,28,.85);color:#d9f3ff;font-size:.82rem;}
+.cc-cams{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.cc-cams button{font:inherit;font-size:.76rem;padding:6px 12px;min-height:36px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.07);color:#fff;cursor:pointer;}
+.cc-cams button:hover{border-color:var(--g2);}
+@media (max-width:900px){.cc-split{grid-template-columns:1fr;}.cc-view{top:0;z-index:5;background:#0b1e2b;padding-bottom:6px;border-radius:0 0 14px 14px;}.cc-stage3d{height:250px;}.cc-dash__stage{height:320px;}}
+.cc-panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;min-height:300px;}
+.cc-h{font-family:var(--font-display);font-size:1.25rem;margin:.2em 0 .3em;color:#fff;}
+.cc-sub{font-size:.9rem;line-height:1.45;color:#d5e6f0;margin:0 0 10px;}
+.cc-sub b{color:#fff;}.cc-sub small{display:block;color:#9db4c4;margin-top:4px;}
+.cc-steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.cc-step,.cc-chip{font:inherit;font-size:.74rem;font-weight:700;padding:5px 11px;min-height:32px;border-radius:99px;border:1px solid rgba(255,255,255,.28);background:transparent;color:#c8dbe6;cursor:pointer;}
+.cc-step.is-on,.cc-chip.is-on{background:var(--g1);border-color:var(--g1);color:#06281a;}
+.cc-step:disabled{opacity:.4;cursor:not-allowed;}
+.cc-track{list-style:none;display:flex;flex-wrap:wrap;gap:4px;padding:0;margin:0 0 8px;counter-reset:s;}
+.cc-track li{counter-increment:s;font-size:.68rem;font-weight:700;padding:4px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.22);color:#9db4c4;}
+.cc-track li::before{content:counter(s) " ";}
+.cc-track li.done{background:#1f7a4a;border-color:#1f7a4a;color:#fff;}.cc-track li.now{border-color:var(--g2);color:#fff;background:rgba(77,227,255,.18);}
+.cc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.cc-card{font:inherit;text-align:left;display:flex;flex-direction:column;gap:5px;padding:10px;min-height:44px;border-radius:14px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#e8f4fb;cursor:pointer;transition:transform .15s,border-color .15s;}
+.cc-card:hover{transform:translateY(-2px);border-color:var(--c,var(--g2));}
+.cc-card b{font-family:var(--font-display);}
+.cc-card span{font-size:.72rem;color:#c8dbe6;}
+.cc-cards--sheep .cc-card{border-color:var(--c);}.cc-cards--sheep .cc-card b{color:var(--c);}
+.cc-bar{display:block;height:7px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin-top:2px;}
+.cc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g2),var(--g1));}
+.cc-fb{min-height:1.4em;font-size:.88rem;line-height:1.45;border-radius:12px;margin:8px 0;color:#c8dbe6;}
+.cc-fb.good{padding:9px 12px;background:#123a27;border:1px solid #2fbf71;color:#d6ffe6;}
+.cc-fb.bad{padding:9px 12px;background:#3d1a24;border:1px solid #d9475e;color:#ffdce2;}
+.cc-fb b{color:#fff;}
+.cc-tag{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:99px;background:#ffd75e;color:#2b2000;font-weight:800;font-size:.74rem;}
+.cc-btn{font:inherit;font-weight:800;padding:9px 16px;min-height:44px;border-radius:12px;border:0;background:linear-gradient(120deg,#35c9f5,#5be3a7);color:#04202c;cursor:pointer;box-shadow:0 6px 16px rgba(60,200,220,.3);transition:transform .12s;}
+.cc-btn:hover{transform:translateY(-2px);}.cc-btn:active{transform:translateY(1px);}
+.cc-btn:disabled{opacity:.5;cursor:default;transform:none;}
+.cc-btn--big{font-size:1rem;padding:12px 20px;}
+.cc-btn--ghost{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;box-shadow:none;}
+.cc-next{margin-top:8px;}
+.cc-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;}
+.cc-opts{display:flex;flex-direction:column;gap:7px;}
+.cc-opts--row{flex-direction:row;flex-wrap:wrap;}
+.cc-opt{font:inherit;text-align:left;padding:10px 14px;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;}
+.cc-opt:hover{border-color:var(--g2);}
+.cc-opt.good{background:#1f7a4a;border-color:#2fbf71;}.cc-opt.bad{background:#7a2436;border-color:#d9475e;}
+.cc-q{font-weight:700;margin:8px 0;}
+.cc-dish{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;padding:10px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);width:max-content;max-width:100%;}
+.cc-dish i{width:16px;height:16px;border-radius:40% 60% 55% 45%;background:rgba(255,255,255,.14);}
+.cc-dish i.on{background:radial-gradient(circle at 35% 30%,#c9f59a,#4a9a37);box-shadow:0 0 8px rgba(155,224,106,.6);}
+.cc-tgs{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media (max-width:480px){.cc-tgs,.cc-cards{grid-template-columns:1fr;}}
+.cc-tg{display:flex;gap:9px;align-items:center;padding:8px 10px;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.05);cursor:pointer;}
+.cc-tg input{width:20px;height:20px;accent-color:#5be3a7;flex:none;}
+.cc-tg b{display:block;font-size:.82rem;}.cc-tg small{font-size:.7rem;color:#9db4c4;}
+.cc-range{display:block;margin:10px 0;font-size:.85rem;}
+.cc-range input{width:100%;accent-color:#5be3a7;min-height:30px;}
+.cc-prog{position:relative;height:22px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin:8px 0;}
+.cc-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6ad5,#ffd75e);}
+.cc-prog span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;text-shadow:0 1px 2px #000;}
+.cc-goals{list-style:none;padding:0;margin:10px 0;display:grid;gap:5px;}
+.cc-goals li{position:relative;padding:6px 10px 6px 32px;border-radius:10px;border:1px solid rgba(255,255,255,.16);font-size:.8rem;color:#c8dbe6;}
+.cc-goals li::before{content:"";position:absolute;left:9px;top:50%;width:14px;height:14px;margin-top:-8px;border-radius:50%;border:2px solid rgba(255,255,255,.4);}
+.cc-goals li.done{background:#123a27;border-color:#2fbf71;color:#d6ffe6;}
+.cc-goals li.done::before{content:"✓";border-color:#2fbf71;background:#2fbf71;color:#fff;font-size:.66rem;font-weight:900;text-align:center;line-height:14px;}
+.cc-log{display:grid;gap:6px;margin-top:8px;}
+.cc-run{font:inherit;text-align:left;color:#e8f4fb;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.12);font-size:.74rem;display:block;width:100%;}
+button.cc-run{cursor:pointer;}.cc-run.is-sel{border-color:var(--g1);}
+.cc-run b{display:block;font-size:.84rem;color:#fff;}.cc-run span{color:#b6cad6;}
+.cc-jars{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.cc-jars i,.cc-jar{position:relative;display:inline-block;width:17px;height:23px;border-radius:3px 3px 5px 5px;border:1.5px solid rgba(255,255,255,.65);background:linear-gradient(transparent 62%,#e0a93f 62%);}
+.cc-jars i::after,.cc-jar::after{content:"";position:absolute;left:50%;bottom:36%;width:9px;height:9px;margin-left:-4.5px;border-radius:50% 50% 0 50%;transform:rotate(45deg);}
+.cc-jars i.j-healthy::after,.cc-jar::after{background:#4fd15f;box-shadow:0 0 5px rgba(79,209,95,.8);}
+.cc-jars i.j-mould{background:linear-gradient(transparent 40%,#7d8a76 40%);}.cc-jars i.j-mould::after{background:#3a4436;border-radius:50%;width:11px;height:7px;transform:none;margin-left:-5.5px;}
+.cc-jars i.j-starved::after{background:#7a6233;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;}
+.cc-jars i.j-callus::after{background:#dcd9a8;width:8px;height:5px;margin-left:-4px;border-radius:50%;transform:none;}
+.cc-jars i.j-stunted::after{background:#9fbf5a;width:5px;height:5px;margin-left:-2.5px;}
+.cc-jars i.s-on,.cc-jars i.s-off{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:#f1ead8;}
+.cc-jars i.s-on{border-color:#4de3ff;box-shadow:0 0 8px rgba(77,227,255,.9);}
+.cc-jars i.s-on::after,.cc-jars i.s-off::after{content:"DNA";transform:none;width:auto;height:auto;margin:0;left:0;right:0;bottom:6px;text-align:center;font:900 .5rem/1 system-ui;color:#0a6f88;background:none;border-radius:0;box-shadow:none;}
+.cc-jars i.s-off{opacity:.55;}.cc-jars i.s-off::after{content:"—";color:#555;}
+.cc-counter{display:flex;flex-direction:column;align-items:center;padding:10px;border-radius:14px;background:rgba(0,0,0,.25);margin-bottom:8px;}
+.cc-counter b{font-family:var(--font-display);font-size:2.4rem;color:var(--g1);line-height:1;}
+.cc-counter small{color:#9db4c4;font-size:.72rem;margin-top:3px;}
+.cc-shelf{display:flex;flex-wrap:wrap;gap:3px;max-height:150px;overflow:hidden;padding:8px;border-radius:12px;background:linear-gradient(#2a1830,#1b2030);border:1px solid rgba(255,106,213,.4);margin-bottom:8px;align-items:center;}
+.cc-shelf b{margin-left:6px;color:#ffd75e;}
+
+/* nuclear transfer */
+.cc-aim{display:grid;grid-template-columns:46px 1fr;gap:12px;align-items:center;margin:8px 0;}
+.cc-gauge{position:relative;height:150px;border-radius:99px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25);}
+.cc-g-nuc,.cc-g-needle{position:absolute;left:50%;transform:translate(-50%,-50%);}
+.cc-g-nuc{width:26px;height:26px;border-radius:50%;border:2px solid #fff;top:50%;}
+.cc-g-needle{width:46px;height:4px;background:#fff;border-radius:2px;top:50%;box-shadow:0 0 6px #fff;}
+.cc-aimctl label{display:block;font-size:.82rem;font-weight:700;}
+.cc-aimr{width:100%;accent-color:#5be3a7;min-height:34px;}
+.cc-hint{font-size:.74rem;color:#9db4c4;margin:4px 0 0;}
+.cc-meter{position:relative;height:26px;border-radius:99px;background:linear-gradient(90deg,#27405a,#d9475e);border:1px solid rgba(255,255,255,.3);margin:10px 0;overflow:hidden;}
+.cc-band{position:absolute;left:36%;width:28%;top:0;bottom:0;background:#2fbf71;}
+.cc-mark{position:absolute;top:-3px;bottom:-3px;width:6px;margin-left:-3px;background:#fff;border-radius:3px;box-shadow:0 0 8px #fff;}
+.cc-fig{margin:8px 0;display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;}
+.cc-fig img{width:100%;border-radius:12px;display:block;}
+.cc-fig figcaption{font-size:.76rem;color:#c8dbe6;line-height:1.4;}
+.cc-clue{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(77,227,255,.12);border:1px solid var(--g2);margin-bottom:8px;}
+.cc-clue small{color:#9db4c4;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;}
+.cc-clue b{font-family:var(--font-display);font-size:1.1rem;}.cc-clue span{font-size:.84rem;color:#d5e6f0;}
+
+/* pharming */
+.cc-flocksel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.cc-hudrow{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--font-data);}
+.cc-time{font-size:1.5rem;font-weight:900;color:#ffd75e;}
+.cc-doses b{font-size:1.5rem;color:var(--g1);}
+.cc-vials{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;margin:6px 0 10px;}
+.cc-vials i{height:14px;border-radius:2px 2px 6px 6px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.06);}
+.cc-vials i.on{background:linear-gradient(#fff 20%,#9fe6ff);box-shadow:0 0 6px rgba(159,230,255,.8);}
+.cc-ewes{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.cc-ewe{position:relative;font:inherit;font-weight:900;font-size:1.1rem;min-height:58px;border-radius:14px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;overflow:hidden;}
+.cc-ewe span{position:relative;z-index:1;}
+.cc-ewe span::after{content:" 🐑";}
+.cc-ewe i{position:absolute;left:0;bottom:0;height:6px;width:0;background:#9fe6ff;}
+.cc-ewe.rdy{border-color:var(--g2);box-shadow:0 0 10px rgba(77,227,255,.5);}
+.cc-ewe.no{border-color:#d9475e;opacity:.7;}
+.cc-ewe:disabled{opacity:.45;cursor:default;}
+
+/* finish + bonus */
+.cc-finish{display:flex;gap:16px;align-items:center;margin-top:14px;padding:16px;border-radius:18px;background:linear-gradient(120deg,#123a55,#1a6a6f 60%,#2a8f5e);box-shadow:0 12px 34px rgba(10,60,80,.35);}
+.cc-finish__badge{font-size:2.8rem;}
+.cc-finish p{margin:.2em 0;}
+.cc-stats{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+.cc-stats span{display:flex;flex-direction:column;padding:8px 14px;border-radius:12px;background:rgba(0,0,0,.25);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#b6cad6;}
+.cc-stats b{font-family:var(--font-display);font-size:1.3rem;color:var(--g1);letter-spacing:0;}
+.cc-bonus{margin-top:14px;}
+.cc-launch{display:flex;gap:16px;align-items:center;padding:14px;border-radius:18px;background:linear-gradient(120deg,#3b1a5c,#7a2a8f 55%,#d9578f);box-shadow:0 12px 34px rgba(80,20,110,.4);}
+.cc-launch img{width:130px;height:100px;object-fit:cover;border-radius:14px;flex:none;border:3px solid rgba(255,255,255,.6);}
+.cc-launch__t{font-family:var(--font-display);font-size:1.3rem;font-weight:800;margin:0;}
+.cc-launch p{margin:.3em 0;font-size:.9rem;}
+@media (max-width:560px){.cc-launch,.cc-finish{flex-direction:column;align-items:flex-start;}.cc-fig{grid-template-columns:1fr;}}
+.cc-dash{margin-top:12px;}
+.cc-dash__hud{position:absolute;left:10px;right:10px;top:8px;display:flex;gap:8px;align-items:center;pointer-events:none;font-family:var(--font-data);font-weight:900;}
+.cc-dash__hud span{padding:4px 12px;border-radius:99px;background:rgba(5,20,30,.72);color:#fff;}
+.d-score{color:#7dffb4 !important;}.d-score::before{content:"★ ";}
+.d-streak:empty{display:none;}.d-streak{color:#ffd75e !important;}
+.cc-dash__q{position:absolute;left:50%;top:46px;transform:translateX(-50%);display:flex;gap:10px;align-items:center;max-width:min(92%,560px);padding:8px 14px 8px 8px;border-radius:16px;background:rgba(255,255,255,.95);color:#10202c;box-shadow:0 10px 26px rgba(0,0,0,.35);}
+.cc-dash__q[hidden]{display:none;}
+.cc-dash__q img{width:64px;height:48px;object-fit:cover;border-radius:10px;flex:none;}
+.cc-dash__q b{font-size:1rem;line-height:1.25;}
+.cc-dash__toast{position:absolute;left:50%;bottom:12px;transform:translate(-50%,20px);max-width:92%;padding:8px 14px;border-radius:12px;font-size:.86rem;font-weight:700;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;background:rgba(5,20,30,.85);color:#fff;text-align:center;}
+.cc-dash__toast.show{opacity:1;transform:translate(-50%,0);}
+.cc-dash__toast.good{background:#14633c;}.cc-dash__toast.bad{background:#7a2436;}
+.cc-dash__ans{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.d-ans{font:inherit;display:flex;gap:8px;align-items:center;text-align:left;padding:8px 10px;min-height:58px;border-radius:14px;border:3px solid var(--c);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;}
+.d-ans i{flex:none;font-style:normal;font-weight:900;width:30px;height:30px;border-radius:50%;background:var(--c);color:#08202c;display:flex;align-items:center;justify-content:center;}
+.d-ans span{font-size:.84rem;font-weight:700;line-height:1.2;}
+.d-ans.is-on{background:color-mix(in srgb,var(--c) 30%,transparent);box-shadow:0 0 0 3px rgba(255,255,255,.5);}
+.d-ans.good{background:#1f7a4a;}.d-ans.bad{background:#7a2436;}
+.cc-dash__foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:8px;font-size:.76rem;color:#b6cad6;}
+.cc-dashend{padding:16px;border-radius:18px;background:linear-gradient(140deg,#24123f,#3d1f6b);}
+.cc-miss{list-style:none;padding:0;display:grid;gap:6px;}
+.cc-miss li{display:flex;gap:10px;align-items:center;padding:6px;border-radius:10px;background:rgba(0,0,0,.25);font-size:.82rem;}
+.cc-miss img{width:54px;height:40px;object-fit:cover;border-radius:8px;flex:none;}
+.cc-miss b{color:var(--g1);}.cc-miss small{display:block;color:#b6cad6;}
+@media (max-width:560px){.d-ans{flex-direction:column;align-items:flex-start;}.d-ans span{font-size:.74rem;}.cc-dash__q b{font-size:.84rem;}}
+
+.cc-spark{position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;animation:cc-spark .7s ease-out forwards;}
+@keyframes cc-spark{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0;}}
+.cc-float{position:absolute;z-index:9999;font-weight:900;font-size:1.1rem;pointer-events:none;transform:translateX(-50%);animation:cc-float 1.1s ease-out forwards;text-shadow:0 1px 3px #000;}
+@keyframes cc-float{to{transform:translate(-50%,-52px);opacity:0;}}
+.cc-shake{animation:cc-shake .45s;}
+@keyframes cc-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.cc-rankup{position:fixed;left:50%;top:22%;transform:translate(-50%,0);z-index:9998;padding:14px 26px;border-radius:18px;background:linear-gradient(120deg,#ffd75e,#ff9f43);color:#2b1a00;font-family:var(--font-display);font-size:1.3rem;font-weight:900;box-shadow:0 16px 40px rgba(0,0,0,.4);animation:cc-rank 2.6s ease forwards;pointer-events:none;text-align:center;}
+.cc-rankup small{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;}
+@keyframes cc-rank{0%{opacity:0;transform:translate(-50%,20px) scale(.8);}12%,80%{opacity:1;transform:translate(-50%,0) scale(1);}100%{opacity:0;transform:translate(-50%,-20px);}}
+[data-reduced-motion="on"] .cc-spark,[data-reduced-motion="on"] .cc-float{display:none;}
+[data-reduced-motion="on"] .cc-shake,[data-reduced-motion="on"] .cc-pin,[data-reduced-motion="on"] .cc-rankup{animation:none;}
+[data-reduced-motion="on"] .cc-tab:hover,[data-reduced-motion="on"] .cc-card:hover,[data-reduced-motion="on"] .cc-btn:hover,[data-reduced-motion="on"] .cc-term:hover img{transform:none;}
+</style>
+<!-- seo:start -->
+<meta name="description" content="Students take charge of a working cloning facility and meet the whole of Edexcel International GCSE Biology Topic 5d (Cloning, specification points 5.17B to 5.20B). In the Propagation Bay they select a parent plant with desired characteristics, cut shoot-tip explants and run controlled,...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/igcse-biology/module-5d-cloning/sim-clone-command/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Clone Command: Operation Dolly | Discovery Lab">
+<meta property="og:description" content="Students take charge of a working cloning facility and meet the whole of Edexcel International GCSE Biology Topic 5d (Cloning, specification points 5.17B to 5.20B). In the Propagation Bay they select a parent plant with desired characteristics, cut shoot-tip explants and run controlled,...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/igcse-biology/module-5d-cloning/sim-clone-command/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Clone Command: Operation Dolly", "description": "Students take charge of a working cloning facility and meet the whole of Edexcel International GCSE Biology Topic 5d (Cloning, specification points 5.17B to 5.20B). In the Propagation Bay they select a parent plant with desired characteristics, cut shoot-tip explants and run controlled, fair-test culture experiments in vitro, changing one condition at a time (sterilisation, nutrients, plant hormones, sealed vessels, temperature) and counting healthy plantlets, before using repeated subculture to reach commercial quantities of genetically identical plants. In the Nuclear Transfer Suite they carry out every stage of the procedure that produced Dolly the sheep: taking a diploid nucleus from a mature body cell, enucleating an egg cell, inserting the nucleus, stimulating division with an electric pulse and implanting the embryo in a surrogate, then testing which sheep the lamb is identical to. In the Pharming Barn they compare breeding with cloning a transgenic ewe and see why cloning is used to produce human proteins. Throughout, they practise scientific enquiry (hypothesising, controlling variables, collecting and interpreting their own data), exponential reasoning, and precise use of key terms such as explant, in vitro, enucleated, diploid, mitosis, surrogate and transgenic, in direct preparation for the IGCSE examination.", "url": "https://educadug.github.io/discovery-lab/secondary/a-level-pathway/igcse-biology/module-5d-cloning/sim-clone-command/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Secondary (ages 14-18)", "teaches": ["Scientific enquiry", "Critical thinking", "Analytical skills", "Mathematical skills", "Communication", "Digital literacy"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "IGCSE Biology"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../">Secondary</a></li>
+      <li><a href="../../../">A-Level Pathway</a></li>
+      <li><a href="../../">IGCSE Biology</a></li>
+      <li><a href="../">Topic 5d: Cloning</a></li>
+      <li><span aria-current="page">Clone Command: Operation Dolly</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../">Secundaria</a></li>
+      <li><a href="../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../">Biología IGCSE</a></li>
+      <li><a href="../">Tema 5d: Clonación</a></li>
+      <li><span aria-current="page">Comando Clon: Operación Dolly</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../engine/engine.js?v=21";
+import { L, img, creditLine, burstAt, floatText, shake, sfx, muteButton } from "./kit.js?v=2";
+import { mountMicro } from "./micro.js?v=2";
+import { mountNuclear } from "./nuclear.js?v=2";
+import { mountPharm } from "./pharm.js?v=2";
+import { mountDashLaunch } from "./dash.js?v=2";
+
+const RANKS = [[0, L("Intern", "Becario")], [150, L("Lab Technician", "Técnico de laboratorio")], [350, L("Clone Specialist", "Especialista en clonación")], [600, L("Chief Geneticist", "Genetista jefe")]];
+const MAXXP = 750;
+const rankOf = xp => RANKS.filter(r => xp >= r[0]).pop()[1];
+
+const TERMS = [
+  ["dolly", L("Clone", "Clon"), L("An organism that is genetically identical to its one parent. Made by asexual reproduction, using mitosis.", "Un organismo genéticamente idéntico a su único progenitor. Se obtiene por reproducción asexual, mediante mitosis.")],
+  ["hood", L("Explant", "Explante"), L("A small piece cut from a parent plant, such as a shoot tip, used to grow a new plant.", "Un trocito cortado de la planta madre, como una punta de brote, que se usa para obtener una planta nueva.")],
+  ["jars", L("In vitro", "In vitro"), L("'In glass': grown in a container in the lab, outside the normal living organism.", "'En vidrio': cultivado en un recipiente de laboratorio, fuera del organismo vivo.")],
+  ["plantlets", L("Micropropagation", "Micropropagación"), L("Tissue culture: growing thousands of identical plants from tiny explants on sterile nutrient agar.", "Cultivo de tejidos: obtener miles de plantas idénticas a partir de explantes diminutos en agar nutritivo estéril.")],
+  ["icsi", L("Enucleated egg", "Óvulo enucleado"), L("An egg cell that has had its nucleus removed, so it has no genetic information of its own.", "Un óvulo al que se le ha quitado el núcleo, de modo que no tiene información genética propia.")],
+  ["blackface", L("Surrogate mother", "Madre sustituta"), L("The female that carries the embryo in her uterus. She gives it no genes.", "La hembra que lleva el embrión en su útero. No le aporta genes.")],
+];
+const NOTICE = [
+  { p: "dolly", x: .87, y: .22, t: () => L("Her face is white. Remember that: the sheep that carried her and gave birth to her had a black face.", "Su cara es blanca. Recuérdalo: la oveja que la gestó y la parió tenía la cara negra.") },
+  { p: "dolly", x: .42, y: .36, t: () => L("She looks like a completely ordinary sheep. Nothing on the outside tells you she was made in a lab from a single body cell.", "Parece una oveja totalmente normal. Nada por fuera indica que se creó en un laboratorio a partir de una célula corporal.") },
+  { p: "dolly", x: .2, y: .93, t: () => L("She is in a museum: Dolly (1996 to 2003) was the first mammal ever cloned from an adult cell, so she became world famous.", "Está en un museo: Dolly (1996-2003) fue el primer mamífero clonado a partir de una célula adulta, y se hizo famosa en todo el mundo.") },
+  { p: "jars", x: .58, y: .5, t: () => L("Many small plants are growing together in one container, and they all look the same.", "Muchas plantitas crecen juntas en un mismo recipiente y todas parecen iguales.") },
+  { p: "jars", x: .57, y: .86, t: () => L("There is no soil. The roots sit in a clear jelly at the bottom.", "No hay tierra. Las raíces están en una gelatina transparente en el fondo.") },
+  { p: "jars", x: .57, y: .18, t: () => L("Every container has a closed lid. Something is being kept out.", "Cada recipiente tiene la tapa cerrada. Se está impidiendo que algo entre.") },
+];
+
+let current = null;   /* the mounted station (one WebGL context at a time) */
+
+const simulation = {
+  /* ============================== ORIENT ============================== */
+  orient(host) {
+    host.innerHTML = `<p class="q__hint">${L("Six words you will use as a clone engineer. Tap each card to reveal what it means.", "Seis palabras que usarás como ingeniero de clones. Toca cada tarjeta para ver su significado.")}</p>
+      <div class="cc-terms">${TERMS.map(t => `<button type="button" class="cc-term" aria-expanded="false"><img src="${img(t[0])}" alt=""><b>${t[1]}</b><span>${t[2]}</span></button>`).join("")}</div>
+      <div class="cc-quick"><b>${L("Quick check: how many parents does a clone have?", "Comprobación rápida: ¿cuántos progenitores tiene un clon?")}</b><div class="cc-row"><button type="button" class="cc-qbtn" data-a="1">${L("One", "Uno")}</button><button type="button" class="cc-qbtn" data-a="2">${L("Two", "Dos")}</button></div><p class="cc-qfb" role="status"></p></div>
+      <p class="cc-credit">${creditLine(TERMS.map(t => t[0]))}</p>`;
+    host.querySelectorAll(".cc-term").forEach(b => b.addEventListener("click", () => { const o = b.classList.toggle("is-open"); b.setAttribute("aria-expanded", o); burstAt(b, "#7dffb4", 10); sfx("tick"); }));
+    const qfb = host.querySelector(".cc-qfb");
+    host.querySelectorAll(".cc-qbtn").forEach(b => b.addEventListener("click", () => {
+      if (b.dataset.a === "1") { b.classList.add("good"); burstAt(b); sfx("ok"); qfb.textContent = L("Yes. One parent, no gametes, no mixing of genes: that is asexual reproduction, so the offspring are genetically identical.", "Sí. Un progenitor, sin gametos y sin mezcla de genes: es reproducción asexual, así que los descendientes son genéticamente idénticos."); }
+      else { b.classList.add("bad"); shake(b); sfx("bad"); qfb.textContent = L("Two parents means sexual reproduction, which mixes genes. A clone copies the genes of just one parent.", "Dos progenitores significa reproducción sexual, que mezcla genes. Un clon copia los genes de un solo progenitor."); }
+    }));
+  },
+
+  /* ============================ OBSERVATION =========================== */
+  observation(host, sim) {
+    const seen = sim.state.obs = sim.state.obs || {};
+    const fig = (p, alt) => `<div><div class="cc-photo"><img src="${img(p)}" alt="${alt}">${NOTICE.map((n, i) => n.p === p ? `<button type="button" class="cc-pin${seen[i] ? " seen" : ""}" data-i="${i}" style="left:${n.x * 100}%;top:${n.y * 100}%" aria-label="${L("Notice", "Observación")} ${i + 1}">${i + 1}</button>` : "").join("")}</div></div>`;
+    host.innerHTML = `<p class="q__hint">${L("Two REAL photos: Dolly the sheep in the National Museum of Scotland, and plants growing in a research lab. Tap every pin and notice what is there. Nothing here is marked.", "Dos fotos REALES: la oveja Dolly en el Museo Nacional de Escocia y plantas creciendo en un laboratorio. Toca cada punto y fíjate en lo que hay. Aquí nada lleva nota.")}</p>
+      <div class="cc-obs">${fig("dolly", L("Dolly the sheep, a white-faced sheep, displayed in a museum case", "La oveja Dolly, de cara blanca, expuesta en una vitrina de museo"))}${fig("jars", L("Clear sealed containers on a lab shelf, each holding several small green plants growing in jelly", "Recipientes transparentes cerrados en un estante de laboratorio, cada uno con varias plantitas verdes creciendo en gelatina"))}</div>
+      <div class="cc-note" role="status" aria-live="polite">${L("Tap a pin.", "Toca un punto.")}</div><p class="cc-credit">${creditLine(["dolly", "jars"])}</p>`;
+    const note = host.querySelector(".cc-note");
+    host.querySelectorAll(".cc-pin").forEach(b => b.addEventListener("click", () => {
+      const i = +b.dataset.i; note.textContent = NOTICE[i].t(); b.classList.add("seen"); burstAt(b, "#6fd6ff", 10); sfx("tick");
+      if (!seen[i]) { seen[i] = 1; sim.saveState(); }
+      if (Object.keys(seen).length === NOTICE.length) note.textContent += " ✔ " + L("All six noticed. Next, choose the scientific question.", "Las seis observadas. Ahora elige la pregunta científica.");
+    }));
+  },
+
+  /* ============================ EXPERIMENT ============================ */
+  investigate(host, sim) {
+    if (current) { current.dispose(); current = null; }
+    host.innerHTML = "";
+    const st = sim.state; st.xp = st.xp || 0; st.stars = st.stars || {}; st.ok = st.ok || {}; st.tab = st.tab || "micro";
+    const game = document.createElement("div"); game.className = "cc-game";
+    game.innerHTML = `<div class="cc-hud"><div class="cc-hud__rank"><small>${L("Rank", "Rango")}</small><b></b></div><div class="cc-hud__xp"><span></span><div class="cc-hud__bar" aria-hidden="true"><i></i></div></div><div class="cc-hud__stars" aria-label="${L("Stars earned", "Estrellas ganadas")}"></div></div>
+      <div class="cc-tabs" role="tablist"></div><div class="cc-station"></div><div class="cc-fin"></div><div class="cc-bonus"></div>`;
+    host.append(game);
+    game.querySelector(".cc-hud").append(muteButton());
+    const TABS = [["micro", L("Station 1", "Estación 1"), L("Propagation Bay", "Sala de propagación"), mountMicro], ["nuclear", L("Station 2", "Estación 2"), L("Nuclear Transfer", "Transferencia nuclear"), mountNuclear], ["pharm", L("Station 3", "Estación 3"), L("Pharming Barn", "Granja farmacéutica"), mountPharm]];
+    const tabs = game.querySelector(".cc-tabs"), station = game.querySelector(".cc-station"), fin = game.querySelector(".cc-fin"), bonus = game.querySelector(".cc-bonus");
+    const starStr = n => "★".repeat(n) + "☆".repeat(3 - n);
+    function hud() {
+      game.querySelector(".cc-hud__rank b").textContent = rankOf(st.xp);
+      game.querySelector(".cc-hud__xp span").textContent = `${st.xp} XP`;
+      game.querySelector(".cc-hud__bar i").style.width = Math.min(100, st.xp / MAXXP * 100) + "%";
+      const total = TABS.reduce((a, t) => a + (st.stars[t[0]] || 0), 0);
+      game.querySelector(".cc-hud__stars").textContent = `${starStr(Math.min(3, Math.floor(total / 3)))} ${total}/9`;
+      tabs.innerHTML = TABS.map(t => `<button type="button" role="tab" class="cc-tab${st.tab === t[0] ? " is-on" : ""}" aria-selected="${st.tab === t[0]}" data-tab="${t[0]}"><small>${t[1]}</small><b>${t[2]}</b><i>${starStr(st.stars[t[0]] || 0)}</i></button>`).join("");
+      tabs.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => { if (st.tab === b.dataset.tab) return; st.tab = b.dataset.tab; sim.saveState(); sfx("tick"); mount(); hud(); }));
+    }
+    const ctx = {
+      sim,
+      gain(n, el) { const before = rankOf(st.xp); st.xp += n; sim.saveState(); floatText(el, `+${n} XP`); hud(); const after = rankOf(st.xp); if (after !== before) { sfx("win"); const d = document.createElement("div"); d.className = "cc-rankup"; d.innerHTML = `<small>${L("Promoted", "Ascenso")}</small>${after}`; document.body.append(d); setTimeout(() => d.remove(), 2700); } },
+      log(row) { sim.recordTrial(row); },
+      star(key, n, ok) { const up = n > (st.stars[key] || 0); st.stars[key] = Math.max(st.stars[key] || 0, n); if (ok) st.ok[key] = 1; sim.saveState(); hud(); if (up) sfx("win"); check(); },
+      award(id, label) { sim.award(id, label); },
+      bonusDone(score, right) { st.dash = Math.max(st.dash || 0, score); sim.saveState(); sim.setResult("bonus_round_best_score", st.dash); sim.award("cc-dash", L("Dolly Dasher", "Corredor Dolly")); },
+    };
+    function mount() { if (current) current.dispose(); station.innerHTML = ""; current = TABS.find(t => t[0] === st.tab)[3](station, ctx); }
+    function check() {
+      const all = TABS.every(t => st.ok[t[0]]);
+      if (!all) { if (!bonus.dataset.on) bonus.innerHTML = `<p class="cc-credit">${L("Bonus round (Dolly Dash, a 3D runner) unlocks when you have logged evidence at all three stations.", "La ronda bonus (Dolly Dash, una carrera 3D) se desbloquea cuando hayas registrado evidencia en las tres estaciones.")}</p>`; return; }
+      const total = TABS.reduce((a, t) => a + (st.stars[t[0]] || 0), 0);
+      fin.innerHTML = `<div class="cc-finish"><div class="cc-finish__badge" aria-hidden="true">🧬</div><div><p class="cc-launch__t">${L("Investigation complete!", "¡Investigación completada!")}</p>
+        <p>${L("You have evidence from all three stations. Keep playing for more stars, try the bonus round, then go on to Record and Explain.", "Tienes evidencia de las tres estaciones. Sigue jugando para ganar más estrellas, prueba la ronda bonus y continúa con Registro y Explicación.")}</p>
+        <div class="cc-stats"><span><b>${rankOf(st.xp)}</b>${L("rank", "rango")}</span><span><b>${st.xp}</b>XP</span><span><b>${total}/9</b>${L("stars", "estrellas")}</span><span><b>${sim.trials.length}</b>${L("logged entries", "entradas")}</span></div></div></div>`;
+      if (!st.done) { st.done = 1; sim.saveState(); sim.award("cc-chief", L("Clone Commander", "Comandante Clon")); burstAt(fin.firstElementChild, "#7dffb4", 26); }
+      sim.setScienceMethod({
+        observation: L("Dolly looks like an ordinary white-faced sheep even though the ewe that gave birth to her had a black face; lab plants grow many identical plantlets in sealed jars on clear jelly with no soil.", "Dolly parece una oveja normal de cara blanca aunque la oveja que la parió tenía la cara negra; en el laboratorio crecen muchas plántulas idénticas en frascos cerrados, sobre gelatina transparente y sin tierra."),
+        question: L("How can we make genetically identical copies of a plant or an animal that has the characteristics we want, and what is each step of the method for?", "¿Cómo podemos obtener copias genéticamente idénticas de una planta o un animal con las características deseadas, y para qué sirve cada paso del método?"),
+        hypothesis: L("If the nucleus of a body cell from one sheep is put into an enucleated egg cell from a second sheep and carried by a third, then the lamb will look like the sheep that gave the nucleus, because the nucleus contains the genetic information.", "Si el núcleo de una célula corporal de una oveja se introduce en un óvulo enucleado de otra y lo gesta una tercera, el cordero se parecerá a la oveja que dio el núcleo, porque el núcleo contiene la información genética."),
+        variables: L("Plants: independent = one culture condition at a time (sterilising, nutrients, hormones, sealed jar, temperature); dependent = healthy plantlets out of 10; controlled = the same parent plant, 10 shoot-tip explants and 4 weeks. Animals: independent = which sheep gives the nucleus (and whether a step is skipped); dependent = the lamb's appearance. Pharming: independent = breeding or cloning; dependent = lambs carrying the human gene and doses of protein.", "Plantas: independiente = una condición de cultivo cada vez (esterilizar, nutrientes, hormonas, frasco cerrado, temperatura); dependiente = plántulas sanas de 10; controladas = la misma planta madre, 10 explantes de punta de brote y 4 semanas. Animales: independiente = qué oveja da el núcleo (y si se omite un paso); dependiente = el aspecto del cordero. Pharming: independiente = cruce o clonación; dependiente = corderos con el gen humano y dosis de proteína."),
+        results: L("See the Investigation Record: one row per culture run (conditions and healthy plantlets out of 10), per clone attempt (nucleus donor, egg donor, steps done, lamb born), per flock (lambs carrying the gene) and per milking round (doses).", "Ver el Registro de la investigación: una fila por cultivo (condiciones y plántulas sanas de 10), por intento de clon (donante de núcleo, de óvulo, pasos hechos, cordero nacido), por rebaño (corderos con el gen) y por ordeño (dosis)."),
+        analysis: L("Explants only became healthy plantlets when they were sterile and had both nutrients and hormones. The lamb always matched the nucleus donor, never the egg donor or the surrogate. Cloned flocks all carried the inserted gene; bred flocks only partly.", "Los explantes solo formaron plántulas sanas cuando eran estériles y tenían nutrientes y hormonas. El cordero siempre coincidió con la donante del núcleo, nunca con la del óvulo ni con la madre sustituta. Los rebaños clonados llevaban todos el gen insertado; los criados, solo en parte."),
+        conclusion: L("Cloning makes genetically identical offspring by mitosis. Micropropagation grows sterile explants in vitro on nutrient agar with hormones to make commercial numbers of identical plants. Mammals are cloned by putting a diploid body-cell nucleus into an enucleated egg cell, shocking it to divide and implanting the embryo in a surrogate. Cloning transgenic animals gives a whole flock that makes a human protein.", "La clonación produce descendientes genéticamente idénticos por mitosis. La micropropagación cultiva explantes estériles in vitro en agar nutritivo con hormonas para obtener cantidades comerciales de plantas idénticas. Los mamíferos se clonan introduciendo un núcleo diploide de célula corporal en un óvulo enucleado, aplicando una descarga para que se divida e implantando el embrión en una madre sustituta. Clonar animales transgénicos da un rebaño entero que produce una proteína humana."),
+        reflection: L("Culture runs vary a little, so repeating each condition would make the plant results more reliable. Real nuclear transfer has a very low success rate (277 attempts for Dolly), which this model does not show.", "Los cultivos varían un poco, así que repetir cada condición haría más fiables los resultados. La transferencia nuclear real tiene una tasa de éxito muy baja (277 intentos para Dolly), algo que este modelo no muestra."),
+      });
+      if (!bonus.dataset.on) { bonus.dataset.on = "1"; mountDashLaunch(bonus, ctx); }
+    }
+    hud(); mount(); check();
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
