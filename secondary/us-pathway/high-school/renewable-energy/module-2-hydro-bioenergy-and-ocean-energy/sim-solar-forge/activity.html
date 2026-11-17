@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="physics" data-age-band="secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar Forge: Three Ways to Catch the Sun — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Solar Forge — activity-local styles only ---- */
+.sf-credit{font-size:.68rem;color:var(--ink-3);margin-top:10px;line-height:1.5;}
+.sf-credit a{color:inherit;}
+.sf-game .sf-credit,.sf-dash .sf-credit{color:#9db4c4;}
+
+/* orient + observation (light page) */
+.sf-terms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+@media (max-width:640px){.sf-terms{grid-template-columns:repeat(2,1fr);}}
+.sf-term{position:relative;padding:0;border:0;border-radius:16px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;background:#0b1820;color:#fff;font:inherit;text-align:left;box-shadow:0 8px 22px rgba(10,40,60,.25);}
+.sf-term img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s,filter .3s;}
+.sf-term:hover img{transform:scale(1.06);}
+.sf-term b{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;font-family:var(--font-display);font-size:1.05rem;background:linear-gradient(transparent,rgba(4,14,22,.92));}
+.sf-term span{position:absolute;inset:0;padding:12px;display:flex;align-items:center;font-size:.86rem;line-height:1.35;background:rgba(6,24,36,.93);opacity:0;transition:opacity .25s;}
+.sf-term.is-open span{opacity:1;}
+.sf-term.is-open b{background:none;top:6px;bottom:auto;padding:4px 12px;font-size:.8rem;color:#ffd166;z-index:1;}
+.sf-term.is-open span{padding-top:30px;align-items:flex-start;}
+.sf-quick{padding:12px 14px;border-radius:14px;background:var(--accent-wash);border:2px solid var(--accent);margin-top:10px;}
+.sf-quick .sf-row{margin-top:8px;}
+.sf-qbtn{font:inherit;font-weight:700;padding:9px 16px;min-height:44px;border-radius:12px;border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;}
+.sf-qbtn.good{background:#e3f7ea;border-color:#2fbf71;}.sf-qbtn.bad{background:#fdeaee;border-color:#d9475e;}
+.sf-obs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+@media (max-width:760px){.sf-obs{grid-template-columns:1fr;}}
+.sf-photo{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+.sf-photo>img{display:block;width:100%;height:auto;}
+.sf-pin{position:absolute;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;border:3px solid #fff;background:rgba(200,90,10,.94);color:#fff;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 0 0 6px rgba(255,190,90,.35);animation:sf-pin 2.4s ease-in-out infinite;}
+.sf-pin.ok,.sf-pin.seen{background:#2fbf71;animation:none;}.sf-pin.seen{background:#3a7bd5;}.sf-pin.bad{background:#d9475e;}
+@keyframes sf-pin{0%,100%{box-shadow:0 0 0 4px rgba(255,190,90,.35);}50%{box-shadow:0 0 0 12px rgba(255,190,90,.08);}}
+.sf-note{min-height:3.2em;margin-top:8px;padding:9px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:.9rem;}
+
+/* ---------------- the game console (dark) ---------------- */
+.sf-game{--g1:#ffd166;--g2:#ff9f43;color:#e8f4fb;background:radial-gradient(1200px 500px at 10% -10%,#5a3a12 0,transparent 60%),linear-gradient(160deg,#0b1322,#141c33 55%,#2a1f3a);border-radius:22px;padding:14px;box-shadow:0 18px 50px rgba(6,30,46,.45);}
+.sf-game a{color:#9fe6ff;}
+.sf-game [hidden]{display:none !important;}
+.sf-hud{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);}
+.sf-hud__rank{display:flex;flex-direction:column;line-height:1.1;}
+.sf-hud__rank small{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:#9db4c4;}
+.sf-hud__rank b{font-family:var(--font-display);font-size:1.05rem;color:var(--g1);}
+.sf-hud__xp{flex:1;min-width:140px;}
+.sf-hud__xp span{font-family:var(--font-data);font-size:.72rem;color:#c8dbe6;}
+.sf-hud__bar{height:10px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:3px;}
+.sf-hud__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g2),var(--g1));transition:width .6s;border-radius:99px;}
+.sf-hud__stars{font-size:1rem;letter-spacing:2px;color:#ffd75e;white-space:nowrap;}
+.sf-mute{font:inherit;font-size:.78rem;padding:6px 12px;min-height:36px;border-radius:99px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;}
+.sf-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.sf-tab{font:inherit;text-align:left;padding:10px 12px;min-height:58px;border-radius:14px;border:2px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#e8f4fb;cursor:pointer;transition:transform .2s,border-color .2s;}
+.sf-tab:hover{transform:translateY(-2px);border-color:var(--g2);}
+.sf-tab.is-on{border-color:var(--g1);background:linear-gradient(140deg,rgba(255,209,102,.2),rgba(255,138,61,.10));box-shadow:0 0 0 3px rgba(255,209,102,.18);}
+.sf-tab small{display:block;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:#9db4c4;}
+.sf-tab b{display:block;font-family:var(--font-display);font-size:.95rem;}
+.sf-tab i{font-style:normal;color:#ffd75e;font-size:.8rem;letter-spacing:1px;}
+@media (max-width:600px){.sf-tab b{font-size:.78rem;}.sf-tab{padding:8px;}}
+
+.sf-split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start;}
+.sf-view{position:sticky;top:8px;}
+.sf-stage3d,.sf-dash__stage{position:relative;height:440px;border-radius:16px;overflow:hidden;background:#07131c;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}
+.sf-stage canvas{display:block;width:100%;height:100%;cursor:grab;}
+.sf-nogl::after,.sf-lost::after{content:attr(data-fallback);position:absolute;inset:auto 12px 12px 12px;padding:10px 12px;border-radius:10px;background:rgba(5,20,28,.85);color:#d9f3ff;font-size:.82rem;}
+.sf-cams{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.sf-cams button{font:inherit;font-size:.76rem;padding:6px 12px;min-height:36px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.07);color:#fff;cursor:pointer;}
+.sf-cams button:hover{border-color:var(--g2);}
+@media (max-width:900px){.sf-split{grid-template-columns:1fr;}.sf-view{top:0;z-index:5;background:#101830;padding-bottom:6px;border-radius:0 0 14px 14px;}.sf-stage3d{height:250px;}.sf-dash__stage{height:320px;}}
+.sf-panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;min-height:300px;}
+.sf-h{font-family:var(--font-display);font-size:1.25rem;margin:.2em 0 .3em;color:#fff;}
+.sf-sub{font-size:.9rem;line-height:1.45;color:#d5e6f0;margin:0 0 10px;}
+.sf-sub b{color:#fff;}.sf-sub small{display:block;color:#9db4c4;margin-top:4px;}
+.sf-steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.sf-step,.sf-chip{font:inherit;font-size:.74rem;font-weight:700;padding:5px 11px;min-height:32px;border-radius:99px;border:1px solid rgba(255,255,255,.28);background:transparent;color:#c8dbe6;cursor:pointer;}
+.sf-step.is-on,.sf-chip.is-on{background:var(--g1);border-color:var(--g1);color:#2b1500;}
+.sf-step:disabled{opacity:.4;cursor:not-allowed;}
+.sf-track{list-style:none;display:flex;flex-wrap:wrap;gap:4px;padding:0;margin:0 0 8px;counter-reset:s;}
+.sf-track li{counter-increment:s;font-size:.68rem;font-weight:700;padding:4px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.22);color:#9db4c4;}
+.sf-track li::before{content:counter(s) " ";}
+.sf-track li.done{background:#1f7a4a;border-color:#1f7a4a;color:#fff;}.sf-track li.now{border-color:var(--g2);color:#fff;background:rgba(77,227,255,.18);}
+.sf-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.sf-card{font:inherit;text-align:left;display:flex;flex-direction:column;gap:5px;padding:10px;min-height:44px;border-radius:14px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#e8f4fb;cursor:pointer;transition:transform .15s,border-color .15s;}
+.sf-card:hover{transform:translateY(-2px);border-color:var(--c,var(--g2));}
+.sf-card b{font-family:var(--font-display);}
+.sf-card span{font-size:.72rem;color:#c8dbe6;}
+.sf-bar{display:block;height:7px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin-top:2px;}
+.sf-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g2),var(--g1));}
+.sf-fb{min-height:1.4em;font-size:.88rem;line-height:1.45;border-radius:12px;margin:8px 0;color:#c8dbe6;}
+.sf-fb.good{padding:9px 12px;background:#123a27;border:1px solid #2fbf71;color:#d6ffe6;}
+.sf-fb.bad{padding:9px 12px;background:#3d1a24;border:1px solid #d9475e;color:#ffdce2;}
+.sf-fb b{color:#fff;}
+.sf-tag{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:99px;background:#ffd75e;color:#2b2000;font-weight:800;font-size:.74rem;}
+.sf-btn{font:inherit;font-weight:800;padding:9px 16px;min-height:44px;border-radius:12px;border:0;background:linear-gradient(120deg,#ffd166,#ff8a3d);color:#2b1500;cursor:pointer;box-shadow:0 6px 16px rgba(255,150,60,.3);transition:transform .12s;}
+.sf-btn:hover{transform:translateY(-2px);}.sf-btn:active{transform:translateY(1px);}
+.sf-btn:disabled{opacity:.5;cursor:default;transform:none;}
+.sf-btn--big{font-size:1rem;padding:12px 20px;}
+.sf-btn--ghost{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;box-shadow:none;}
+.sf-next{margin-top:8px;}
+.sf-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;}
+.sf-opts{display:flex;flex-direction:column;gap:7px;}
+.sf-opts--row{flex-direction:row;flex-wrap:wrap;}
+.sf-opt{font:inherit;text-align:left;padding:10px 14px;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;}
+.sf-opt:hover{border-color:var(--g2);}
+.sf-opt.good{background:#1f7a4a;border-color:#2fbf71;}.sf-opt.bad{background:#7a2436;border-color:#d9475e;}
+.sf-q{font-weight:700;margin:8px 0;}
+.sf-tgs{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media (max-width:480px){.sf-tgs,.sf-cards{grid-template-columns:1fr;}}
+.sf-tg{display:flex;gap:9px;align-items:center;padding:8px 10px;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.05);cursor:pointer;}
+.sf-tg input{width:20px;height:20px;accent-color:#ffb347;flex:none;}
+.sf-tg b{display:block;font-size:.82rem;}.sf-tg small{font-size:.7rem;color:#9db4c4;}
+.sf-range{display:block;margin:10px 0;font-size:.85rem;}
+.sf-range input{width:100%;accent-color:#ffb347;min-height:30px;}
+.sf-prog{position:relative;height:22px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin:8px 0;}
+.sf-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6ad5,#ffd75e);}
+.sf-prog span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;text-shadow:0 1px 2px #000;}
+.sf-goals{list-style:none;padding:0;margin:10px 0;display:grid;gap:5px;}
+.sf-goals li{position:relative;padding:6px 10px 6px 32px;border-radius:10px;border:1px solid rgba(255,255,255,.16);font-size:.8rem;color:#c8dbe6;}
+.sf-goals li::before{content:"";position:absolute;left:9px;top:50%;width:14px;height:14px;margin-top:-8px;border-radius:50%;border:2px solid rgba(255,255,255,.4);}
+.sf-goals li.done{background:#123a27;border-color:#2fbf71;color:#d6ffe6;}
+.sf-goals li.done::before{content:"✓";border-color:#2fbf71;background:#2fbf71;color:#fff;font-size:.66rem;font-weight:900;text-align:center;line-height:14px;}
+.sf-log{display:grid;gap:6px;margin-top:8px;}
+.sf-run{font:inherit;text-align:left;color:#e8f4fb;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.12);font-size:.74rem;display:block;width:100%;}
+button.sf-run{cursor:pointer;}.sf-run.is-sel{border-color:var(--g1);}
+.sf-run b{display:block;font-size:.84rem;color:#fff;}.sf-run span{color:#b6cad6;}
+
+/* finish + bonus */
+.sf-finish{display:flex;gap:16px;align-items:center;margin-top:14px;padding:16px;border-radius:18px;background:linear-gradient(120deg,#5a2a0c,#a8521a 60%,#d99a2b);box-shadow:0 12px 34px rgba(10,60,80,.35);}
+.sf-finish__badge{font-size:2.8rem;}
+.sf-finish p{margin:.2em 0;}
+.sf-stats{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+.sf-stats span{display:flex;flex-direction:column;padding:8px 14px;border-radius:12px;background:rgba(0,0,0,.25);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#b6cad6;}
+.sf-stats b{font-family:var(--font-display);font-size:1.3rem;color:var(--g1);letter-spacing:0;}
+.sf-bonus{margin-top:14px;}
+.sf-launch{display:flex;gap:16px;align-items:center;padding:14px;border-radius:18px;background:linear-gradient(120deg,#1b2a6b,#5a2a8f 55%,#d9572b);box-shadow:0 12px 34px rgba(80,20,110,.4);}
+.sf-launch img{width:130px;height:100px;object-fit:cover;border-radius:14px;flex:none;border:3px solid rgba(255,255,255,.6);}
+.sf-launch__t{font-family:var(--font-display);font-size:1.3rem;font-weight:800;margin:0;}
+.sf-launch p{margin:.3em 0;font-size:.9rem;}
+@media (max-width:560px){.sf-launch,.sf-finish{flex-direction:column;align-items:flex-start;}.sf-fig{grid-template-columns:1fr;}}
+.sf-dash{margin-top:12px;}
+.sf-dash__hud{position:absolute;left:10px;right:10px;top:8px;display:flex;gap:8px;align-items:center;pointer-events:none;font-family:var(--font-data);font-weight:900;}
+.sf-dash__hud span{padding:4px 12px;border-radius:99px;background:rgba(5,20,30,.72);color:#fff;}
+.d-score{color:#ffd166 !important;}.d-score::before{content:"★ ";}
+.d-streak:empty{display:none;}.d-streak{color:#ffd75e !important;}
+.sf-dash__q{position:absolute;left:50%;top:46px;transform:translateX(-50%);display:flex;gap:10px;align-items:center;max-width:min(92%,560px);padding:8px 14px 8px 8px;border-radius:16px;background:rgba(255,255,255,.95);color:#10202c;box-shadow:0 10px 26px rgba(0,0,0,.35);}
+.sf-dash__q[hidden]{display:none;}
+.sf-dash__q img{width:64px;height:48px;object-fit:cover;border-radius:10px;flex:none;}
+.sf-dash__q b{font-size:1rem;line-height:1.25;}
+.sf-dash__toast{position:absolute;left:50%;bottom:12px;transform:translate(-50%,20px);max-width:92%;padding:8px 14px;border-radius:12px;font-size:.86rem;font-weight:700;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;background:rgba(5,20,30,.85);color:#fff;text-align:center;}
+.sf-dash__toast.show{opacity:1;transform:translate(-50%,0);}
+.sf-dash__toast.good{background:#14633c;}.sf-dash__toast.bad{background:#7a2436;}
+.sf-dash__ans{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.d-ans{font:inherit;display:flex;gap:8px;align-items:center;text-align:left;padding:8px 10px;min-height:58px;border-radius:14px;border:3px solid var(--c);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;}
+.d-ans i{flex:none;font-style:normal;font-weight:900;width:30px;height:30px;border-radius:50%;background:var(--c);color:#08202c;display:flex;align-items:center;justify-content:center;}
+.d-ans span{font-size:.84rem;font-weight:700;line-height:1.2;}
+.d-ans.is-on{background:color-mix(in srgb,var(--c) 30%,transparent);box-shadow:0 0 0 3px rgba(255,255,255,.5);}
+.d-ans.good{background:#1f7a4a;}.d-ans.bad{background:#7a2436;}
+.sf-dash__foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:8px;font-size:.76rem;color:#b6cad6;}
+.sf-dashend{padding:16px;border-radius:18px;background:linear-gradient(140deg,#1b1f4a,#4a2260);}
+.sf-miss{list-style:none;padding:0;display:grid;gap:6px;}
+.sf-miss li{display:flex;gap:10px;align-items:center;padding:6px;border-radius:10px;background:rgba(0,0,0,.25);font-size:.82rem;}
+.sf-miss img{width:54px;height:40px;object-fit:cover;border-radius:8px;flex:none;}
+.sf-miss b{color:var(--g1);}.sf-miss small{display:block;color:#b6cad6;}
+@media (max-width:560px){.d-ans{flex-direction:column;align-items:flex-start;}.d-ans span{font-size:.74rem;}.sf-dash__q b{font-size:.84rem;}}
+
+.sf-spark{position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;animation:sf-spark .7s ease-out forwards;}
+@keyframes sf-spark{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0;}}
+.sf-float{position:absolute;z-index:9999;font-weight:900;font-size:1.1rem;pointer-events:none;transform:translateX(-50%);animation:sf-float 1.1s ease-out forwards;text-shadow:0 1px 3px #000;}
+@keyframes sf-float{to{transform:translate(-50%,-52px);opacity:0;}}
+.sf-shake{animation:sf-shake .45s;}
+@keyframes sf-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.sf-rankup{position:fixed;left:50%;top:22%;transform:translate(-50%,0);z-index:9998;padding:14px 26px;border-radius:18px;background:linear-gradient(120deg,#ffd75e,#ff9f43);color:#2b1a00;font-family:var(--font-display);font-size:1.3rem;font-weight:900;box-shadow:0 16px 40px rgba(0,0,0,.4);animation:sf-rank 2.6s ease forwards;pointer-events:none;text-align:center;}
+.sf-rankup small{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;}
+@keyframes sf-rank{0%{opacity:0;transform:translate(-50%,20px) scale(.8);}12%,80%{opacity:1;transform:translate(-50%,0) scale(1);}100%{opacity:0;transform:translate(-50%,-20px);}}
+[data-reduced-motion="on"] .sf-spark,[data-reduced-motion="on"] .sf-float{display:none;}
+[data-reduced-motion="on"] .sf-shake,[data-reduced-motion="on"] .sf-pin,[data-reduced-motion="on"] .sf-rankup{animation:none;}
+[data-reduced-motion="on"] .sf-tab:hover,[data-reduced-motion="on"] .sf-card:hover,[data-reduced-motion="on"] .sf-btn:hover,[data-reduced-motion="on"] .sf-term:hover img{transform:none;}
+
+/* ---- Solar Forge additions ---- */
+.sf-stage3d{position:relative;}
+.sf-over{position:absolute;left:10px;top:8px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none;font-family:var(--font-data);font-weight:800;font-size:.8rem;z-index:2;}
+.sf-over span{padding:4px 11px;border-radius:99px;background:rgba(6,12,26,.72);color:#fff;}
+.sf-over span.hot{color:#ffd166;}
+.sf-ask{margin-top:6px;}
+.sf-ledger{display:flex;height:16px;border-radius:99px;overflow:hidden;margin:6px 0 2px;background:rgba(255,255,255,.1);}
+.sf-ledger i{display:block;min-width:0;}
+.sf-ledger .e{background:linear-gradient(90deg,#4de3ff,#7df0c0);}.sf-ledger .h{background:linear-gradient(90deg,#ff7a3d,#d9475e);}.sf-ledger .r{background:#f4f1e6;}.sf-ledger .z{background:rgba(255,255,255,.08);}
+.sf-meter{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0;}
+.sf-meter div{padding:8px 6px;border-radius:12px;background:rgba(0,0,0,.28);text-align:center;}
+.sf-meter small{display:block;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#b9c8d6;}
+.sf-meter b{font-family:var(--font-display);font-size:1.12rem;color:var(--g1);}
+.sf-meter div:nth-child(1) b{color:#7df0e0;}.sf-meter div:nth-child(2) b{color:#ff9a6a;}.sf-meter div:nth-child(3) b{color:#f4f1e6;}
+.sf-meter b.ok{color:#7dffb4;}.sf-meter b.no{color:#ff7a8a;}
+@media (max-width:480px){.sf-meter{grid-template-columns:repeat(2,1fr);}}
+.sf-log-list{display:grid;gap:6px;margin-top:8px;}
+.sf-graph{display:block;width:100%;height:auto;border-radius:12px;margin:6px 0;}
+.sf-rings{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0;}
+.sf-ring{font:inherit;padding:8px 4px;min-height:52px;border-radius:12px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.05);color:#e8f0fb;cursor:pointer;text-align:center;}
+.sf-ring b{display:block;font-size:.8rem;}.sf-ring span{font-size:.66rem;color:#b9c8d6;}
+.sf-ring.is-on{border-color:var(--g1);background:linear-gradient(140deg,rgba(255,209,102,.28),rgba(255,138,61,.14));}
+.sf-ring.is-on span{color:#ffe7b0;}
+@media (max-width:480px){.sf-rings{grid-template-columns:repeat(3,1fr);}}
+.sf-thermo{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin:8px 0;}
+.sf-thermo__bar{position:relative;height:20px;border-radius:99px;background:rgba(255,255,255,.12);}
+.sf-thermo__bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#3a8cff,#ffd166 45%,#ff5a2a);transition:width .5s;}
+.sf-thermo__bar u{position:absolute;top:-5px;bottom:-5px;width:3px;background:#fff;border-radius:2px;}
+.sf-thermo__n b{display:block;font-family:var(--font-display);font-size:1.5rem;color:var(--g1);line-height:1;}
+.sf-thermo__n span{font-size:.7rem;color:#b9c8d6;}
+.sf-chain{display:grid;gap:7px;margin:8px 0;}
+.sf-chain__row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;}
+.sf-chain__row small{grid-column:1/-1;font-size:.72rem;color:#d5e0ee;}
+.sf-chain__bar{height:14px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;}
+.sf-chain__bar i{display:block;height:100%;border-radius:99px;transition:width .5s;}
+.sf-chain .c1{background:#ffd166;}.sf-chain .c2{background:#ff7a3d;}.sf-chain .c3{background:#b9c8d6;}.sf-chain .c4{background:#4de3ff;}
+.sf-chain__row b{font-family:var(--font-data);font-size:.84rem;white-space:nowrap;}
+.sf-chain__row em{grid-column:1/-1;font-style:normal;font-size:.68rem;color:#ff9a8a;}
+.sf-photo{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);margin-bottom:8px;}
+.sf-release.pulse{box-shadow:0 0 0 4px rgba(255,209,102,.55);}
+.d-ans{position:relative;overflow:hidden;}
+.d-ans u{position:absolute;left:0;bottom:0;height:5px;width:0;background:#fff;}
+.b-aim{margin-top:8px;color:#d5e0ee;}
+.b-tools{display:flex;gap:8px;align-items:center;}
+.sf-hint b{color:#fff;}
+.sf-hint{font-size:.76rem;line-height:1.4;color:#b9c8d6;margin:4px 0;}
+.sf-q{line-height:1.4;}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secondary</a></li>
+      <li><a href="../../../../">US Pathway</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Renewable Energy</a></li>
+      <li><a href="../">Module 2</a></li>
+      <li><span aria-current="page">Solar Forge</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../">Secundaria</a></li>
+      <li><a href="../../../../">Itinerario estadounidense</a></li>
+      <li><a href="../../../">High School</a></li>
+      <li><a href="../../">Energías Renovables</a></li>
+      <li><a href="../">Módulo 2</a></li>
+      <li><span aria-current="page">Forja Solar</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=21";
+import { L, img, creditLine, burstAt, floatText, shake, sfx, muteButton } from "./kit.js?v=3";
+import { mountPV } from "./pv.js?v=3";
+import { mountHouse } from "./house.js?v=3";
+import { mountCSP } from "./csp.js?v=3";
+import { mountBeamLaunch } from "./beam.js?v=3";
+
+const RANKS = [[0, L("Apprentice", "Aprendiz")], [150, L("Solar Technician", "Técnico solar")], [360, L("Energy Engineer", "Ingeniero de energía")], [600, L("Chief Solar Architect", "Arquitecto solar jefe")]];
+const MAXXP = 820;
+const rankOf = xp => RANKS.filter(r => xp >= r[0]).pop()[1];
+
+const TERMS = [
+  ["cell", L("Photovoltaic effect", "Efecto fotovoltaico"), L("Sunlight converted directly into electricity inside a solar cell. Radiant energy to electrical energy.", "La luz solar convertida directamente en electricidad dentro de una célula solar. Energía radiante a energía eléctrica.")],
+  ["roof", L("Semiconductor", "Semiconductor"), L("A material, such as silicon, whose ability to conduct electricity can be controlled. Solar cells are made of it.", "Un material, como el silicio, cuya capacidad de conducir la electricidad se puede controlar. Las células solares están hechas de él.")],
+  ["earthship", L("Passive solar design", "Diseño solar pasivo"), L("Using the building itself (windows, floors, walls) to capture, store and spread the Sun's heat, with no pumps or fans.", "Usar el propio edificio (ventanas, suelos, paredes) para captar, almacenar y repartir el calor del Sol, sin bombas ni ventiladores.")],
+  ["helio", L("Concentrated solar power", "Energía solar de concentración"), L("Mirrors focus sunlight to make heat. The heat makes steam, which drives a turbine and a generator.", "Unos espejos concentran la luz solar para producir calor. El calor genera vapor, que mueve una turbina y un generador.")],
+  ["turbine", L("Thermodynamics", "Termodinámica"), L("The study of energy, heat, temperature and work. Its laws set the limits for every power station.", "El estudio de la energía, el calor, la temperatura y el trabajo. Sus leyes marcan los límites de toda central eléctrica.")],
+  ["ivan", L("Efficiency", "Eficiencia"), L("The proportion of the input energy that is converted into useful output energy.", "La proporción de la energía de entrada que se convierte en energía útil de salida.")],
+];
+const NOTICE = [
+  { p: "girl", x: .62, y: .5, t: () => L("She is wearing a thick winter coat and there is snow everywhere. It is close to freezing.", "Lleva un abrigo grueso de invierno y hay nieve por todas partes. La temperatura ronda los cero grados.") },
+  { p: "girl", x: .33, y: .68, t: () => L("Under the snow the panels are dark, flat glass. Dark surfaces absorb light. There are no moving parts anywhere.", "Bajo la nieve, los paneles son de vidrio oscuro y plano. Las superficies oscuras absorben la luz. No hay ninguna parte móvil.") },
+  { p: "girl", x: .16, y: .47, t: () => L("She is sweeping the snow off. The snow blocks the light. People only clear panels if they are worth using in the cold.", "Está barriendo la nieve. La nieve bloquea la luz. Solo se limpian los paneles si merece la pena usarlos con frío.") },
+  { p: "ivan", x: .472, y: .14, t: () => L("The top of the tower is glowing white. Nothing up there is burning: no fuel, no flame.", "Lo alto de la torre brilla en blanco. Allí arriba no arde nada: ni combustible ni llama.") },
+  { p: "ivan", x: .28, y: .44, t: () => L("A bright silver band circles the tower: thousands of flat mirrors, all tilted the same way, towards the tower.", "Una franja plateada y brillante rodea la torre: miles de espejos planos, todos inclinados hacia la torre.") },
+  { p: "ivan", x: .7, y: .78, t: () => L("Dry desert under a clear sky. Hardly any cloud ever blocks the Sun here.", "Desierto seco bajo un cielo despejado. Aquí casi nunca hay nubes que tapen el Sol.") },
+];
+
+let current = null;   /* the mounted station (one WebGL context at a time) */
+
+const simulation = {
+  /* ============================== ORIENT ============================== */
+  orient(host) {
+    host.innerHTML = `<p class="q__hint">${L("Six key ideas you will use as a solar engineer. Tap each card to reveal what it means.", "Seis ideas clave que usarás como ingeniero solar. Toca cada tarjeta para ver su significado.")}</p>
+      <div class="sf-terms">${TERMS.map(t => `<button type="button" class="sf-term" aria-expanded="false"><img src="${img(t[0])}" alt=""><b>${t[1]}</b><span>${t[2]}</span></button>`).join("")}</div>
+      <div class="sf-quick"><b>${L("Quick check: what does a solar panel need in order to make electricity?", "Comprobación rápida: ¿qué necesita un panel solar para producir electricidad?")}</b><div class="sf-row"><button type="button" class="sf-qbtn" data-a="heat">${L("Heat", "Calor")}</button><button type="button" class="sf-qbtn" data-a="light">${L("Light", "Luz")}</button></div><p class="sf-qfb" role="status"></p></div>
+      <p class="sf-credit">${creditLine(TERMS.map(t => t[0]))}</p>`;
+    host.querySelectorAll(".sf-term").forEach(b => b.addEventListener("click", () => { const o = b.classList.toggle("is-open"); b.setAttribute("aria-expanded", o); burstAt(b, "#ffd166", 10); sfx("tick"); }));
+    const qfb = host.querySelector(".sf-qfb");
+    host.querySelectorAll(".sf-qbtn").forEach(b => b.addEventListener("click", () => {
+      if (b.dataset.a === "light") { b.classList.add("good"); burstAt(b); sfx("ok"); qfb.textContent = L("Yes. A solar cell absorbs light. You will test what heat does to it in Station 1.", "Sí. Una célula solar absorbe luz. En la Estación 1 comprobarás qué le hace el calor."); }
+      else { b.classList.add("bad"); shake(b); sfx("bad"); qfb.textContent = L("Many people think so. Keep that idea in mind: you are about to test it.", "Mucha gente lo cree. Guarda esa idea: estás a punto de ponerla a prueba."); }
+    }));
+  },
+
+  /* ============================ OBSERVATION =========================== */
+  observation(host, sim) {
+    const seen = sim.state.obs = sim.state.obs || {};
+    const fig = (p, alt) => `<div><div class="sf-photo"><img src="${img(p)}" alt="${alt}">${NOTICE.map((n, i) => n.p === p ? `<button type="button" class="sf-pin${seen[i] ? " seen" : ""}" data-i="${i}" style="left:${n.x * 100}%;top:${n.y * 100}%" aria-label="${L("Notice", "Observación")} ${i + 1}">${i + 1}</button>` : "").join("")}</div></div>`;
+    host.innerHTML = `<p class="q__hint">${L("Two REAL photos: solar panels on a farm roof in a British winter, and a solar power tower in the California desert. Tap every pin and notice what is there. Nothing here is marked.", "Dos fotos REALES: paneles solares en el tejado de una granja en pleno invierno británico, y una torre solar en el desierto de California. Toca cada punto y fíjate en lo que hay. Aquí nada lleva nota.")}</p>
+      <div class="sf-obs">${fig("girl", L("A child in a winter coat sweeping snow off a roof covered in solar panels", "Una niña con abrigo de invierno barriendo la nieve de un tejado cubierto de paneles solares"))}${fig("ivan", L("A tall tower in a desert with a brilliantly glowing top, surrounded by a field of mirrors", "Una torre alta en un desierto con la parte superior muy brillante, rodeada de un campo de espejos"))}</div>
+      <div class="sf-note" role="status" aria-live="polite">${L("Tap a pin.", "Toca un punto.")}</div><p class="sf-credit">${creditLine(["girl", "ivan"])}</p>`;
+    const note = host.querySelector(".sf-note");
+    host.querySelectorAll(".sf-pin").forEach(b => b.addEventListener("click", () => {
+      const i = +b.dataset.i; note.textContent = NOTICE[i].t(); b.classList.add("seen"); burstAt(b, "#ffd166", 10); sfx("tick");
+      if (!seen[i]) { seen[i] = 1; sim.saveState(); }
+      if (Object.keys(seen).length === NOTICE.length) note.textContent += " ✔ " + L("All six noticed. Next, choose the scientific question.", "Las seis observadas. Ahora elige la pregunta científica.");
+    }));
+  },
+
+  /* ============================ EXPERIMENT ============================ */
+  investigate(host, sim) {
+    if (current) { current.dispose(); current = null; }
+    host.innerHTML = "";
+    const st = sim.state; st.xp = st.xp || 0; st.stars = st.stars || {}; st.ok = st.ok || {}; st.tab = st.tab || "pv";
+    const game = document.createElement("div"); game.className = "sf-game";
+    game.innerHTML = `<div class="sf-hud"><div class="sf-hud__rank"><small>${L("Rank", "Rango")}</small><b></b></div><div class="sf-hud__xp"><span></span><div class="sf-hud__bar" aria-hidden="true"><i></i></div></div><div class="sf-hud__stars" aria-label="${L("Stars earned", "Estrellas ganadas")}"></div></div>
+      <div class="sf-tabs" role="tablist"></div><div class="sf-station"></div><div class="sf-fin"></div><div class="sf-bonus"></div>`;
+    host.append(game);
+    game.querySelector(".sf-hud").append(muteButton());
+    const TABS = [["pv", L("Station 1", "Estación 1"), L("Photon Lab", "Laboratorio de fotones"), mountPV], ["house", L("Station 2", "Estación 2"), L("Passive House", "Casa pasiva"), mountHouse], ["csp", L("Station 3", "Estación 3"), L("Power Tower", "Torre solar"), mountCSP]];
+    const tabs = game.querySelector(".sf-tabs"), station = game.querySelector(".sf-station"), fin = game.querySelector(".sf-fin"), bonus = game.querySelector(".sf-bonus");
+    const starStr = n => "★".repeat(n) + "☆".repeat(3 - n);
+    function hud() {
+      game.querySelector(".sf-hud__rank b").textContent = rankOf(st.xp);
+      game.querySelector(".sf-hud__xp span").textContent = `${st.xp} XP`;
+      game.querySelector(".sf-hud__bar i").style.width = Math.min(100, st.xp / MAXXP * 100) + "%";
+      const total = TABS.reduce((a, t) => a + (st.stars[t[0]] || 0), 0);
+      game.querySelector(".sf-hud__stars").textContent = `${starStr(Math.min(3, Math.floor(total / 3)))} ${total}/9`;
+      tabs.innerHTML = TABS.map(t => `<button type="button" role="tab" class="sf-tab${st.tab === t[0] ? " is-on" : ""}" aria-selected="${st.tab === t[0]}" data-tab="${t[0]}"><small>${t[1]}</small><b>${t[2]}</b><i>${starStr(st.stars[t[0]] || 0)}</i></button>`).join("");
+      tabs.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => { if (st.tab === b.dataset.tab) return; st.tab = b.dataset.tab; sim.saveState(); sfx("tick"); mount(); hud(); }));
+    }
+    const ctx = {
+      sim,
+      gain(n, el) { const before = rankOf(st.xp); st.xp += n; sim.saveState(); floatText(el, `+${n} XP`); hud(); const after = rankOf(st.xp); if (after !== before) { sfx("win"); const d = document.createElement("div"); d.className = "sf-rankup"; d.innerHTML = `<small>${L("Promoted", "Ascenso")}</small>${after}`; document.body.append(d); setTimeout(() => d.remove(), 2700); } },
+      log(row) { sim.recordTrial(row); },
+      star(key, n, ok) { const up = n > (st.stars[key] || 0); st.stars[key] = Math.max(st.stars[key] || 0, n); if (ok) st.ok[key] = 1; sim.saveState(); hud(); if (up) sfx("win"); check(); },
+      award(id, label) { sim.award(id, label); },
+      bonusDone(score) { st.beam = Math.max(st.beam || 0, score); sim.saveState(); sim.setResult("bonus_round_best_score", st.beam); sim.award("sf-beam", L("Beam Bender", "Doblador de rayos")); },
+    };
+    function mount() { if (current) current.dispose(); station.innerHTML = ""; current = TABS.find(t => t[0] === st.tab)[3](station, ctx); }
+    function check() {
+      const all = TABS.every(t => st.ok[t[0]]);
+      if (!all) { if (!bonus.dataset.on) bonus.innerHTML = `<p class="sf-credit">${L("Bonus game (Beam Bender, a 3D mirror-aiming game) unlocks when you have logged evidence at all three stations.", "El juego bonus (Dobla el rayo, un juego 3D de apuntar espejos) se desbloquea cuando hayas registrado evidencia en las tres estaciones.")}</p>`; return; }
+      const total = TABS.reduce((a, t) => a + (st.stars[t[0]] || 0), 0);
+      fin.innerHTML = `<div class="sf-finish"><div class="sf-finish__badge" aria-hidden="true">☀️</div><div><p class="sf-launch__t">${L("Investigation complete!", "¡Investigación completada!")}</p>
+        <p>${L("You have evidence from all three stations. Keep playing for more stars, try the bonus game, then go on to Record and Explain.", "Tienes evidencia de las tres estaciones. Sigue jugando para ganar más estrellas, prueba el juego bonus y continúa con Registro y Explicación.")}</p>
+        <div class="sf-stats"><span><b>${rankOf(st.xp)}</b>${L("rank", "rango")}</span><span><b>${st.xp}</b>XP</span><span><b>${total}/9</b>${L("stars", "estrellas")}</span><span><b>${sim.trials.length}</b>${L("logged entries", "entradas")}</span></div></div></div>`;
+      if (!st.done) { st.done = 1; sim.saveState(); sim.award("sf-chief", L("Solar Forge Master", "Maestro de la Forja Solar")); burstAt(fin.firstElementChild, "#ffd166", 26); }
+      sim.setScienceMethod({
+        observation: L("Solar panels are being cleared of snow so they can be used on a freezing winter day; a desert tower glows white at the top with no fuel burning, surrounded by thousands of mirrors all tilted towards it.", "Se limpia la nieve de unos paneles solares para usarlos en un día helado de invierno; una torre en el desierto brilla en blanco en lo alto sin quemar combustible, rodeada de miles de espejos inclinados hacia ella."),
+        question: L("In what different ways can the Sun's energy be captured, converted and stored, and what limits how efficiently each one works?", "¿De qué formas distintas se puede captar, convertir y almacenar la energía del Sol, y qué limita la eficiencia de cada una?"),
+        hypothesis: L("If two identical solar panels receive the same sunlight, then the colder one will produce more electrical power, because a solar cell converts light (not heat) and high temperatures lower the efficiency of silicon.", "Si dos paneles solares idénticos reciben la misma luz, el más frío producirá más potencia eléctrica, porque una célula solar convierte luz (no calor) y las temperaturas altas reducen la eficiencia del silicio."),
+        variables: L("Photon Lab: independent = sunlight (W) or cell temperature (°C), one at a time; dependent = electrical power, heat and reflected light (W); controlled = the same 1 m² panel. Passive House: independent = one building feature at a time (window direction and size, floor material, insulation, glazing, roof overhang) and the season; dependent = indoor temperature over 24 h and hours at 18-26 °C; controlled = the same house and weather. Power Tower: independent = number of mirrors focused (receiver temperature), and storage on or off; dependent = receiver temperature, power at each energy-transfer step, turbine efficiency and hours the town is powered.", "Laboratorio de fotones: independiente = luz solar (W) o temperatura de la célula (°C), de una en una; dependiente = potencia eléctrica, calor y luz reflejada (W); controlada = el mismo panel de 1 m². Casa pasiva: independiente = una característica del edificio cada vez (orientación y tamaño de la ventana, material del suelo, aislamiento, acristalamiento, alero) y la estación; dependiente = temperatura interior durante 24 h y horas a 18-26 °C; controladas = la misma casa y el mismo tiempo. Torre solar: independiente = número de espejos enfocados (temperatura del receptor) y almacenamiento sí o no; dependiente = temperatura del receptor, potencia en cada paso de la cadena, eficiencia de la turbina y horas con luz en el pueblo."),
+        results: L("See the Investigation Record: one row per panel test (sunlight, cell temperature, electricity, heat, reflected light, efficiency), per house day (season, features, indoor temperature range, comfortable hours), and per tower test (mirrors and receiver temperature, the energy chain in MW, hours powered with and without storage).", "Ver el Registro de la investigación: una fila por prueba del panel (luz, temperatura de la célula, electricidad, calor, luz reflejada, eficiencia), por día de la casa (estación, características, rango de temperatura interior, horas confortables) y por prueba de la torre (espejos y temperatura del receptor, cadena de energía en MW, horas con luz con y sin almacenamiento)."),
+        analysis: L("Electrical power rose in proportion to sunlight and fell as the cell got hotter, and electricity + heat + reflected light always equalled the sunlight arriving. The house only stayed comfortable when Sun-facing glass let radiation in, thermal mass stored it and insulation kept it in, and the overhang only mattered in summer. More mirrors gave a hotter receiver, and a hotter receiver let the turbine convert a larger share of the heat, but never all of it.", "La potencia eléctrica aumentó en proporción a la luz y disminuyó al calentarse la célula, y electricidad + calor + luz reflejada siempre igualó la luz que llegaba. La casa solo se mantuvo confortable cuando el vidrio orientado al Sol dejó entrar la radiación, la masa térmica la almacenó y el aislamiento la retuvo, y el alero solo importó en verano. Más espejos dieron un receptor más caliente, y un receptor más caliente permitió a la turbina convertir una parte mayor del calor, pero nunca todo."),
+        conclusion: L("Solar energy is used in three ways. Photovoltaic cells convert radiant energy directly to electrical energy and work best when bright and cool. Passive solar buildings convert radiant energy to thermal energy and store it in thermal mass. Concentrated solar power goes radiant, thermal, mechanical, electrical and can store heat in molten salt to generate after sunset. The First Law means unconverted energy becomes heat or reflected light, and the Second Law means no heat engine converts all its heat into work.", "La energía solar se aprovecha de tres formas. Las células fotovoltaicas convierten la energía radiante directamente en eléctrica y funcionan mejor con mucha luz y poco calor. Los edificios solares pasivos convierten la energía radiante en térmica y la almacenan en masa térmica. La energía solar de concentración pasa de radiante a térmica, mecánica y eléctrica, y puede almacenar calor en sales fundidas para generar tras la puesta de sol. La Primera Ley implica que la energía no convertida pasa a calor o luz reflejada, y la Segunda Ley implica que ninguna máquina térmica convierte todo su calor en trabajo."),
+        reflection: L("These are simplified models: the panel has one fixed efficiency rule, the house is treated as a single room with one day of repeating weather, and the tower ignores cloud. Testing real hourly weather and repeating each test would make the conclusions more reliable.", "Son modelos simplificados: el panel tiene una única regla de eficiencia, la casa se trata como una sola habitación con un día de tiempo que se repite y la torre no tiene en cuenta las nubes. Probar con datos meteorológicos reales por horas y repetir cada prueba haría más fiables las conclusiones."),
+      });
+      if (!bonus.dataset.on) { bonus.dataset.on = "1"; mountBeamLaunch(bonus, ctx); }
+    }
+    hud(); mount(); check();
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
