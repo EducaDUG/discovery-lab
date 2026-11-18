@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Escuela: Ser vs Estar — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right}.credit a{color:inherit}
+.rule-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--sp-3);margin-top:var(--sp-3)}
+.rule-card{border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:var(--sp-3);cursor:pointer;text-align:center;font:inherit;color:inherit;transition:transform .2s,box-shadow .2s}
+.rule-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-2)}
+.rule-card img{width:100%;height:110px;object-fit:cover;border-radius:10px;display:block;margin-bottom:.5em}
+.rule-card__big{font-family:var(--font-data);font-weight:800;font-size:1.25rem;color:var(--accent)}
+.rule-card__more{margin-top:.5em;font-size:.85rem;color:var(--ink-2);display:none;text-align:left}
+.rule-card.is-open{background:var(--wash);border-color:var(--accent)}.rule-card.is-open .rule-card__more{display:block}
+.ctab{width:100%;border-collapse:collapse;font-family:var(--font-data);margin-top:.4em}
+.ctab td{padding:.15em .3em;border-bottom:1px dotted var(--line)}.ctab td:first-child{color:var(--ink-3);font-size:.8rem}
+.ctab b{color:var(--accent);text-decoration:underline;text-decoration-thickness:2px}
+@media(max-width:600px){.rule-cards{grid-template-columns:1fr}}
+
+.pz-hud{display:flex;flex-wrap:wrap;gap:.5em;align-items:center;justify-content:space-between;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:14px;padding:.7em 1em}
+.pz-hud b{font-family:var(--font-data)}
+.pz-hud__rank{font-weight:800;font-size:1.05rem}
+.pz-hud__bar{flex:1 1 140px;height:8px;background:rgba(255,255,255,.3);border-radius:99px;overflow:hidden}
+.pz-hud__bar i{display:block;height:100%;background:#fff;transition:width .5s}
+.pz-tabs{display:flex;gap:.4em;flex-wrap:wrap;margin:var(--sp-3) 0}
+.pz-tab{border:2px solid var(--line);background:var(--paper);border-radius:99px;padding:.3em .8em;font-size:.82rem;font-family:var(--font-data)}
+.pz-tab.is-now{border-color:var(--accent);background:var(--accent);color:#fff}.pz-tab.is-done{border-color:var(--positive,#2e8b57);color:var(--positive,#2e8b57)}
+.pz-panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:var(--sp-4)}
+.pz-title{font-family:var(--font-data);font-weight:800;font-size:1.15rem;color:var(--accent);margin:0}
+.pz-how{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.6em 0;font-size:.92rem}
+.pz-count{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.es{font-family:var(--font-data);font-weight:700}
+.pz-chips{display:flex;flex-wrap:wrap;gap:.5em;margin:.3em 0 .8em}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:.5em .9em;font-family:var(--font-data);font-size:1rem;cursor:pointer;color:inherit;transition:transform .12s;min-height:44px}
+.chip:hover:not(:disabled){transform:translateY(-2px)}
+.chip.is-on{border-color:var(--accent);background:var(--wash)}
+.chip.is-ok{border-color:var(--positive,#2e8b57);background:color-mix(in srgb,var(--positive,#2e8b57) 16%,var(--paper))}
+.chip.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+.chip:disabled{cursor:default}
+@keyframes pzshake{0%,100%{transform:translateX(0)}30%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+[data-reduced-motion="on"] .chip.is-bad{animation:none;outline:3px solid var(--negative,#b3392c)}
+.row-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.preview{font-family:var(--font-data);font-size:1.3rem;font-weight:700;padding:.5em .8em;border-radius:10px;background:var(--wash);margin:.5em 0;min-height:2.4em}
+.preview u{color:var(--accent);text-decoration-thickness:2px}
+.fb{min-height:1.5em;font-weight:600;margin:.4em 0}.fb.good{color:var(--positive,#2e8b57)}.fb.bad{color:var(--negative,#b3392c)}
+.pz-next{margin-top:.6em}
+.vis{display:flex;justify-content:center;margin:.6em 0}
+.cphoto{border-radius:12px;object-fit:cover;border:2px solid var(--line);background:#fff;display:block}
+
+/* globe */
+.globe-wrap{position:relative;height:280px;border-radius:14px;overflow:hidden;background:radial-gradient(#10243f,#050a16);margin-bottom:var(--sp-3);touch-action:pan-y}
+.globe-wrap canvas{width:100%;height:100%;display:block;cursor:grab}
+.globe-tag{position:absolute;left:10px;top:10px;background:rgba(5,10,22,.7);color:#fff;border-radius:99px;padding:.25em .8em;font-family:var(--font-data);font-size:.85rem}
+.globe-key{position:absolute;left:10px;bottom:8px;color:#fff;font-size:.75rem;display:flex;gap:.4em;align-items:center;background:rgba(5,10,22,.7);padding:.2em .7em;border-radius:99px}.globe-key i{width:.9em;height:.9em;border-radius:50%;background:#ff9f1c;border:2px solid #d9480f}.globe-hint{position:absolute;right:10px;bottom:8px;color:#cfe3ff;font-size:.7rem}
+.globe-fallback{display:flex;height:100%;align-items:center;justify-content:center;color:#fff;font-family:var(--font-data);text-align:center;padding:1em}
+
+/* time machine & passport & suitcase */
+.tm{width:100%;max-width:300px}
+.tm .hand{transform-origin:60px 60px;transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+.tm.rew .hand{transform:rotate(-300deg)}
+.timeword{font-family:var(--font-data);font-weight:800;font-size:1.8rem;color:var(--accent)}
+.passport{display:flex;gap:1em;align-items:center;background:#16385c;color:#fff;border-radius:12px;padding:.8em;max-width:560px;width:100%;position:relative;overflow:hidden}
+.passport img{width:120px;height:90px;border-radius:8px;object-fit:cover;border:2px solid #fff6}
+.passport .meta{font-family:var(--font-data)}.passport .meta small{opacity:.8;display:block}
+.stamp{position:absolute;right:10px;top:8px;border:3px solid #ffd27a;color:#ffd27a;border-radius:10px;padding:.1em .5em;font-family:var(--font-data);font-weight:800;transform:rotate(-12deg) scale(3);opacity:0}
+.stamp.go{animation:thump .55s ease-out forwards}
+@keyframes thump{60%{transform:rotate(-12deg) scale(.9);opacity:1}100%{transform:rotate(-12deg) scale(1);opacity:1}}
+[data-reduced-motion="on"] .stamp.go{animation:none;opacity:1;transform:rotate(-12deg)}
+.suit{position:relative;width:200px;height:120px;margin:0 auto}
+.suit .case{position:absolute;bottom:0;left:0;right:0;height:70px;background:#8a4b22;border-radius:10px;border:3px solid #4b2710}
+.suit .case::before{content:"";position:absolute;top:-14px;left:70px;width:60px;height:14px;border:3px solid #4b2710;border-bottom:0;border-radius:8px 8px 0 0}
+.suit img{position:absolute;left:62px;top:-70px;width:76px;height:76px;object-fit:cover;border-radius:10px;border:2px solid #fff;z-index:2;animation:drop .7s cubic-bezier(.5,0,.8,.5) forwards}
+@keyframes drop{70%{top:34px}85%{top:24px}100%{top:30px;opacity:.95}}
+[data-reduced-motion="on"] .suit img{animation:none;top:30px}
+
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin:.6em 0}
+.pgrid button{border:3px solid var(--line);background:var(--paper);border-radius:12px;padding:0;overflow:hidden;cursor:pointer}
+.pgrid img{width:100%;height:120px;object-fit:cover;display:block}
+.pgrid button.is-ok{border-color:var(--positive,#2e8b57)}.pgrid button.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+@media(min-width:700px){.pgrid{grid-template-columns:repeat(4,1fr)}}
+
+.chat{display:flex;flex-direction:column;gap:.4em;margin:.6em 0}
+.bubble{max-width:82%;padding:.5em .8em;border-radius:14px;font-family:var(--font-data)}
+.bubble small{display:block;font-size:.68rem;opacity:.75;text-transform:uppercase}
+.bubble.v{align-self:flex-start;background:#ffe3b5}.bubble.c{align-self:flex-end;background:#cde6ff}
+.bubble .en{display:none;font-family:var(--font-body,inherit);font-style:italic;font-weight:400;font-size:.8rem;margin-top:.2em}
+.show-en .bubble .en{display:block}
+.pool{display:flex;flex-direction:column;gap:.4em}.pool .chip{text-align:left}
+.postcard{background:#fff8ec;border:2px dashed #c58a12;border-radius:8px;padding:.8em 1em;font-family:var(--font-data);margin:.6em 0;display:flex;gap:1em;align-items:flex-start;flex-wrap:wrap}
+.postcard img{width:150px;height:112px;object-fit:cover;border-radius:6px}
+.postcard span.s{cursor:pointer;border-bottom:1px dotted var(--ink-3)}.postcard span.s:hover{background:#ffe3b5}
+.blog-en{font-size:.85rem;color:var(--ink-2);min-height:1.3em;font-style:italic}
+
+.done-card{text-align:center;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:16px;padding:var(--sp-5)}
+.done-card h3{margin:0;font-size:1.6rem}.done-card .big{font-size:2.4rem;font-weight:800;font-family:var(--font-data)}
+.burst{position:absolute;pointer-events:none;width:8px;height:8px;border-radius:50%;animation:burst .8s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+[data-reduced-motion="on"] .burst{display:none}
+
+/* Past-Tense Express (3D runner) */
+.ex{background:#0e2238;color:#fff;border-radius:16px;padding:var(--sp-3);text-align:center}
+.ex h3{margin:0;color:#ffd27a}
+.ex-hud{display:flex;justify-content:space-between;font-family:var(--font-data);font-size:.9rem;margin:.3em 0}
+.ex-q{display:flex;gap:.8em;align-items:center;justify-content:center;background:#16385c;border-radius:10px;padding:.5em .8em;margin:.4em 0;text-align:left}
+.ex-q img{width:84px;height:63px;object-fit:cover;border-radius:8px}
+.ex-q .es{font-size:1.25rem}.ex-q small{display:block;opacity:.8}
+.ex-stage{position:relative;height:260px;border-radius:12px;overflow:hidden;background:#8ecbff}
+.ex-stage canvas{width:100%;height:100%;display:block}
+.ex-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em;margin:.5em 0}
+.ex-btns button{border:3px solid transparent;border-radius:10px;padding:.7em .3em;font-family:var(--font-data);font-weight:800;font-size:1.05rem;color:#fff;cursor:pointer;min-height:48px}
+.ex-btns button.sel{outline:4px solid #fff}
+.ex-msg{min-height:1.6em;font-weight:700;color:#ffd27a}
+.ex-flat{display:flex;align-items:center;justify-content:center;height:100%;color:#0e2238;font-weight:700;padding:1em}
+
+.photo-wrap{position:relative;max-width:340px;margin:var(--sp-3) auto 0;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.photo-wrap img{width:100%;display:block}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid #fff;box-shadow:0 0 0 2px var(--accent),0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.hotspot i{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.hotspot.is-done{border-color:var(--positive,#2e8b57);box-shadow:0 0 0 2px var(--positive,#2e8b57)}.hotspot.is-done i{background:var(--positive,#2e8b57)}
+.hotspot.is-wrong{animation:hsshake .32s}
+@keyframes hsshake{0%,100%{transform:translate(-50%,-50%)}30%{transform:translate(calc(-50% - 6px),-50%)}60%{transform:translate(calc(-50% + 6px),-50%)}}
+.tin{font-family:var(--font-data);font-size:1.1rem;padding:.5em .8em;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:inherit;min-height:44px;max-width:100%}
+.tin.shake{animation:pzshake .35s}
+.chiprow{display:flex;gap:.5em;flex-wrap:wrap;align-items:center;margin:.5em 0}
+.sortbtns{display:grid;grid-template-columns:1fr 1fr;gap:.6em;margin:.6em 0}
+.sb{display:flex;flex-direction:column;align-items:center;padding:.9em .4em;font-size:1.1rem}.sb small{font-weight:400;opacity:.8}
+.sb--m{border-color:#2d62c8}.sb--f{border-color:#d2562b}
+.wordcard{font-size:2rem;padding:.8em 1.2em;background:var(--wash);border-radius:14px;border:2px solid var(--line)}
+.info{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.5em 0;min-height:2.6em}
+.listen{min-height:36px;padding:.2em .8em;font-size:.85rem;margin-top:.4em}
+.rule-card .listen{display:inline-block}
+.photo-wrap+.credit{text-align:center}
+
+
+.duelc{background:#16201c;color:#fff;border-radius:16px;padding:var(--sp-4);text-align:center}.duelc .pz-title{color:#ffd27a}.duelc .row-label{color:#bfe3d4}
+.duel-hud{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-data);margin-bottom:.4em}
+.rope{display:flex;align-items:center;gap:.6em;margin:.4em 0}.rope__l,.rope__r{font-family:var(--font-data);font-weight:800;font-size:.9rem}.rope__l{color:#6fa8ff}.rope__r{color:#ff9e6b}
+.rope__track{position:relative;flex:1;height:12px;border-radius:99px;background:linear-gradient(90deg,#2d62c8,#555 50%,#d2562b)}
+.rope__flag{position:absolute;top:-8px;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:#ffd23f;border:3px solid #fff;transition:left .5s cubic-bezier(.3,1.5,.5,1)}
+[data-reduced-motion="on"] .rope__flag{transition:none}
+.duel-q{font-size:1.5rem;margin:.4em 0}.duelc .chip{color:#fff;border-color:#4a5a52;background:#22302a}.duelc .fb.good{color:#7fe3a5}.duelc .fb.bad{color:#ff9e8f}
+</style>
+<meta name="description" content="True-beginner Spanish, Unit 2: School Life & The To Be Showdown. Sounds, greetings, pronouns, the verb ser, el/la, numbers 0-30, adjectives and a TikTok-style video intro, with a 3D globe of the 21 Spanish-speaking nations.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Discovery Lab"><meta property="og:title" content="La Escuela: Ser vs Estar | Discovery Lab">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+<main id="main" class="shell"><div id="lab-root"></div></main>
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+import { setTTS } from "../../../../../../../engine/accessibility.js?v=6";
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstElementChild; };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const loadThree = () => new Promise((res, rej) => { if (window.THREE) return res(window.THREE); const s = document.createElement("script"); s.src = THREE_URL; s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("no THREE")); s.onerror = rej; document.head.appendChild(s); });
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* ================= GLOBE (3D hero scene) ================= */
+function earthTexture(THREE, WORLD) {
+  const W = 4096, H = 2048, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  const X = (lon) => (lon + 180) / 360 * W, Y = (lat) => (90 - lat) / 180 * H;
+  const og = g.createLinearGradient(0, 0, 0, H); og.addColorStop(0, "#0b3a6e"); og.addColorStop(.5, "#0f6fb8"); og.addColorStop(1, "#0b3a6e"); g.fillStyle = og; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(255,255,255,${Math.random() * .035})`; g.fillRect(Math.random() * W, Math.random() * H, 20 + Math.random() * 90, 2 + Math.random() * 4); }
+  const path = (pl) => { g.beginPath(); pl.forEach(ring => ring.forEach(([lo, la], k) => k ? g.lineTo(X(lo), Y(la)) : g.moveTo(X(lo), Y(la)))); };
+  // coastal shallow-water halo
+  g.save(); g.shadowColor = "rgba(90,200,230,.9)"; g.shadowBlur = 26; g.fillStyle = "#2a9d8f";
+  WORLD.forEach(c0 => c0.p.forEach(pl => { path(pl); g.fill("evenodd"); })); g.restore();
+  // land: natural terrain by latitude for the rest of the world, vivid gold for the Spanish-speaking world
+  WORLD.forEach(c0 => c0.p.forEach(pl => {
+    path(pl);
+    const lg = g.createLinearGradient(0, 0, 0, H);
+    if (c0.s) { lg.addColorStop(0, "#ffd23f"); lg.addColorStop(.5, "#ff9f1c"); lg.addColorStop(1, "#ffd23f"); }
+    else { lg.addColorStop(0, "#e6ede6"); lg.addColorStop(.14, "#7a9a5a"); lg.addColorStop(.3, "#5f8a45"); lg.addColorStop(.48, "#4d8a3a"); lg.addColorStop(.58, "#c2a867"); lg.addColorStop(.68, "#5a9140"); lg.addColorStop(.88, "#8fa56a"); lg.addColorStop(1, "#f2f6f2"); }
+    g.fillStyle = lg; g.fill("evenodd");
+    g.lineWidth = c0.s ? 2.4 : 1.2; g.strokeStyle = c0.s ? "#d9480f" : "rgba(30,50,20,.55)"; g.lineJoin = "round"; g.stroke();
+  }));
+  // Equatorial Guinea is tiny: add a glowing ring so it still stands out
+  const gx = X(10.4), gy = Y(1.8); const rg = g.createRadialGradient(gx, gy, 4, gx, gy, 46); rg.addColorStop(0, "rgba(255,210,63,.95)"); rg.addColorStop(.4, "rgba(255,159,28,.55)"); rg.addColorStop(1, "rgba(255,159,28,0)"); g.fillStyle = rg; g.beginPath(); g.arc(gx, gy, 46, 0, 6.3); g.fill();
+  g.lineWidth = 4; g.strokeStyle = "#d9480f"; g.beginPath(); g.arc(gx, gy, 22, 0, 6.3); g.stroke();
+  const t = new THREE.CanvasTexture(c); if ("encoding" in t) t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+function cloudTexture(THREE) {
+  const W = 512, H = 256, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  for (let i = 0; i < 160; i++) { const x = Math.random() * W, y = 30 + Math.random() * (H - 60), r = 6 + Math.random() * 22; const rg = g.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, "rgba(255,255,255,.55)"); rg.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  return new THREE.CanvasTexture(c);
+}
+function glowTexture(THREE, col) {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const rg = g.createRadialGradient(64, 64, 20, 64, 64, 64); rg.addColorStop(0, col); rg.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = rg; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+async function mountGlobe(wrap, tag) {
+  let WORLD = []; try { WORLD = await (await fetch("world.json")).json(); } catch (e) { WORLD = []; }
+  let THREE; try { THREE = await loadThree(); } catch (e) { THREE = null; }
+  const test = document.createElement("canvas"); const gl = test.getContext("webgl") || test.getContext("experimental-webgl");
+  const api = { flyTo() {}, dispose() {} };
+  if (!THREE || !gl) { wrap.innerHTML = `<div class="globe-fallback">Your device cannot show the 3D globe — no problem! Your plane still follows you: <br><b id="gf"></b></div>`; api.flyTo = (i) => { const f = wrap.querySelector("#gf"); if (f) f.textContent = "✈ " + STOPS[Math.min(i, STOPS.length - 1)].n; }; return api; }
+  const w = wrap.clientWidth || 600, h = wrap.clientHeight || 280;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(w, h);
+  if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  wrap.prepend(renderer.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(40, w / h, .1, 100); cam.position.set(0, 0, 6.2);
+  scene.add(new THREE.AmbientLight(0x6688aa, .6)); const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(4, 2, 5); scene.add(sun);
+  const stars = (() => { const n = 500, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const r = 30 + Math.random() * 20, a = Math.random() * 6.28, b = Math.acos(2 * Math.random() - 1); p[i * 3] = r * Math.sin(b) * Math.cos(a); p[i * 3 + 1] = r * Math.cos(b); p[i * 3 + 2] = r * Math.sin(b) * Math.sin(a); } const gm = new THREE.BufferGeometry(); gm.setAttribute("position", new THREE.BufferAttribute(p, 3)); const s = new THREE.Points(gm, new THREE.PointsMaterial({ color: 0xffffff, size: .12 })); scene.add(s); return s; })();
+  const globe = new THREE.Group(); scene.add(globe); const R = 2;
+  globe.add(new THREE.Mesh(new THREE.SphereGeometry(R, 64, 48), new THREE.MeshStandardMaterial({ map: earthTexture(THREE, WORLD), roughness: .85, metalness: 0 })));
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(R * 1.012, 48, 36), new THREE.MeshBasicMaterial({ map: cloudTexture(THREE), transparent: true, opacity: .55, depthWrite: false })); globe.add(clouds);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(110,180,255,.9)"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(R * 3.1, R * 3.1, 1); scene.add(halo);
+  const ll = (lat, lon, r) => { const ph = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)); };
+  const pins = STOPS.map(s => { const m = new THREE.Mesh(new THREE.SphereGeometry(.05, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffd27a })); m.position.copy(ll(s.lat, s.lon, R * 1.01)); globe.add(m); const gl2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(255,200,80,.9)"), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); gl2.scale.set(.4, .4, 1); gl2.position.copy(m.position); globe.add(gl2); return { m, gl2 }; });
+  const plane = new THREE.Group(); const body = new THREE.Mesh(new THREE.ConeGeometry(.045, .2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff })); body.rotation.x = Math.PI / 2; plane.add(body);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(.2, .01, .06), new THREE.MeshStandardMaterial({ color: 0xd2562b })); plane.add(wing); globe.add(plane); plane.position.copy(ll(STOPS[0].lat, STOPS[0].lon, R * 1.04));
+  const trailN = 60, trailPos = new Float32Array(trailN * 3), tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.BufferAttribute(trailPos, 3)); const trail = new THREE.Line(tg, new THREE.LineBasicMaterial({ color: 0xffd27a })); trail.frustumCulled = false; globe.add(trail);
+  let trailLen = 0; const pushTrail = (v) => { for (let i = Math.min(trailLen, trailN - 1); i > 0; i--) { trailPos[i * 3] = trailPos[(i - 1) * 3]; trailPos[i * 3 + 1] = trailPos[(i - 1) * 3 + 1]; trailPos[i * 3 + 2] = trailPos[(i - 1) * 3 + 2]; } trailPos[0] = v.x; trailPos[1] = v.y; trailPos[2] = v.z; trailLen = Math.min(trailLen + 1, trailN); tg.setDrawRange(0, trailLen); tg.attributes.position.needsUpdate = true; };
+  let cur = 0, fly = null, spin = 0, drag = null, userY = 0, userX = 0, focus = new THREE.Quaternion();
+  const faceQ = (i) => { const v = ll(STOPS[i].lat, STOPS[i].lon, 1).normalize(); const q = new THREE.Quaternion().setFromUnitVectors(v, new THREE.Vector3(0, .25, 1).normalize()); return q; };
+  focus.copy(faceQ(0)); globe.quaternion.copy(focus);
+  api.flyTo = (i) => { i = Math.min(i, STOPS.length - 1); if (i === cur) return; fly = { a: cur, b: i, t0: performance.now(), dur: reduced() ? 1 : 2600 }; tag.textContent = "✈ " + STOPS[cur].n + " → " + STOPS[i].n; cur = i; };
+  const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", e => { if (!drag) return; userY += (e.clientX - drag.x) * .008; userX += (e.clientY - drag.y) * .008; drag = { x: e.clientX, y: e.clientY }; });
+  const up = () => { drag = null; cv.style.cursor = "grab"; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  let alive = true, raf = 0, last = performance.now();
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), P = new THREE.Vector3();
+  const loop = (now) => {
+    if (!alive) return; raf = requestAnimationFrame(loop); const dt = Math.min(.05, (now - last) / 1000); last = now;
+    clouds.rotation.y += dt * (reduced() ? 0 : .05); stars.rotation.y += dt * (reduced() ? 0 : .01);
+    pins.forEach((p, i) => { const s = 1 + (reduced() ? 0 : .25 * Math.sin(now / 350 + i)); p.gl2.scale.set(.4 * s, .4 * s, 1); p.gl2.material.opacity = i <= cur ? 1 : .35; });
+    if (fly) {
+      const k = Math.min(1, (now - fly.t0) / fly.dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      A.copy(ll(STOPS[fly.a].lat, STOPS[fly.a].lon, 1)).normalize(); B.copy(ll(STOPS[fly.b].lat, STOPS[fly.b].lon, 1)).normalize();
+      const om = Math.acos(Math.max(-1, Math.min(1, A.dot(B)))) || .001; const sa = Math.sin((1 - e) * om) / Math.sin(om), sb = Math.sin(e * om) / Math.sin(om);
+      P.copy(A).multiplyScalar(sa).addScaledVector(B, sb).normalize(); const alt = 1.03 + Math.sin(e * Math.PI) * .22; const prev = plane.position.clone(); plane.position.copy(P).multiplyScalar(R * alt);
+      plane.lookAt(plane.position.clone().add(plane.position.clone().sub(prev).multiplyScalar(5))); pushTrail(plane.position);
+      const fq = faceQ(fly.a).slerp(faceQ(fly.b), e); focus.copy(fq);
+      if (k >= 1) { fly = null; tag.textContent = "📍 " + STOPS[cur].n; trailLen = 0; tg.setDrawRange(0, 0); }
+    }
+    const uq = new THREE.Quaternion().setFromEuler(new THREE.Euler(userX, userY, 0));
+    if (!drag && !fly) { userY *= .97; userX *= .97; if (!reduced()) { spin += dt * .12; } }
+    globe.quaternion.copy(uq).multiply(focus); globe.rotateY(0); if (!reduced()) globe.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0); const wob = reduced() ? 0 : Math.sin(spin * 3) * .04; globe.rotation.z += 0; cam.position.x = Math.sin(spin) * .15; cam.position.y = wob; cam.lookAt(0, 0, 0);
+    renderer.render(scene, cam);
+  };
+  raf = requestAnimationFrame(loop);
+  api.dispose = () => { alive = false; cancelAnimationFrame(raf); renderer.dispose(); };
+  const ro = new ResizeObserver(() => { const ww = wrap.clientWidth, hh = wrap.clientHeight; if (ww && hh) { renderer.setSize(ww, hh); cam.aspect = ww / hh; cam.updateProjectionMatrix(); } }); ro.observe(wrap);
+  tag.textContent = "📍 " + STOPS[0].n;
+  return api;
+}
+
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const strip = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¡!¿?.,]/g, "").replace(/\s+/g, " ").trim();
+/* ===== UNIT 2 CONTENT ===== */
+const NUM = ["cero","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez","once","doce","trece","catorce","quince","dieciséis","diecisiete","dieciocho","diecinueve","veinte","veintiuno","veintidós","veintitrés","veinticuatro","veinticinco","veintiséis","veintisiete","veintiocho","veintinueve","treinta"];
+const HOUR_W = ["", "una","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez","once","doce"];
+const timeWord = (h, m) => {
+  if (m === 45) { const nh = h % 12 + 1; return (nh === 1 ? "Es la una" : `Son las ${HOUR_W[nh]}`) + " menos cuarto"; }
+  const base = h === 1 ? "Es la una" : `Son las ${HOUR_W[h]}`;
+  return m === 0 ? base + " en punto" : m === 15 ? base + " y cuarto" : base + " y media";
+};
+const clockSVG = (h, m) => {
+  const ha = ((h % 12) + m / 60) * 30, ma = m * 6; const tk = [...Array(12)].map((_, i) => `<line x1="50" y1="8" x2="50" y2="${i % 3 ? 12 : 15}" stroke="#2b2030" stroke-width="2" transform="rotate(${i * 30} 50 50)"/>`).join("");
+  return `<svg viewBox="0 0 100 100" width="130" height="130" role="img" aria-label="${h}:${String(m).padStart(2, "0")}"><circle cx="50" cy="50" r="46" fill="#fffaf0" stroke="#2b2030" stroke-width="4"/>${tk}<line x1="50" y1="50" x2="50" y2="26" stroke="#d2562b" stroke-width="5" stroke-linecap="round" transform="rotate(${ha} 50 50)"/><line x1="50" y1="50" x2="50" y2="14" stroke="#0e3a5f" stroke-width="3" stroke-linecap="round" transform="rotate(${ma} 50 50)"/><circle cx="50" cy="50" r="3" fill="#2b2030"/></svg>`;
+};
+const IMG = (k, px = 130) => `<img class="cphoto" src="photos/aula/${k}.jpg" width="${px}" height="${px}" alt="${k}" style="object-fit:cover">`;
+const STOPS = [{ n:"Salamanca", lat:40.97, lon:-5.66 }, { n:"Madrid", lat:40.4, lon:-3.7 }, { n:"Ciudad de México", lat:19.4, lon:-99.1 }, { n:"Bogotá", lat:4.7, lon:-74.1 }, { n:"Lima", lat:-12.0, lon:-77.0 }, { n:"Santiago", lat:-33.4, lon:-70.7 }, { n:"Buenos Aires", lat:-34.6, lon:-58.4 }, { n:"San José", lat:9.9, lon:-84.1 }];
+const STOP = (n) => STOPS.findIndex(s => s.n === n);
+const STAGE_STOP = [STOP("Madrid"), STOP("Madrid"), STOP("Bogotá"), STOP("Ciudad de México"), STOP("Lima"), STOP("Santiago"), STOP("Salamanca"), STOP("Buenos Aires")];
+const RANKS = [[0,"Novato/a"],[100,"Estudiante"],[250,"Alumno/a Estrella"],[420,"Delegado/a de Clase"],[600,"Director/a del Showdown"]];
+const rankFor = (xp) => RANKS.filter(r => xp >= r[0]).pop()[1];
+const mkOpts = (ok, pool, n = 3) => shuffle(pool.filter(x => x !== ok)).slice(0, n).concat([ok]);
+
+const CRED = { pizarra:"Tomwsulcer", libro:"OMCV" };
+/* ---------- orient ---------- */
+function drawOrient(host) {
+  const cards = [
+    [L("Hours 1–3","Horas 1–3"), L("The Showdown","El Showdown"), L("SER vs ESTAR — both mean “to be”, but Spanish splits reality in two. The most important idea in Spanish!","SER vs ESTAR: los dos significan “to be”, pero el español divide la realidad en dos. ¡La idea más importante del español!"), "Soy · Estoy"],
+    [L("Hours 4–7","Horas 4–7"), L("School Life","La vida escolar"), L("The verb TENER, classroom objects (Spain vs Latin America) and how school systems compare.","El verbo TENER, objetos del aula (España vs Latinoamérica) y cómo se comparan los sistemas escolares."), "Tengo un lápiz"],
+    [L("Hours 8–10","Horas 8–10"), L("Time & Culture","Hora y cultura"), L("Telling the time, days of the week, question words and the siesta reality.","Decir la hora, los días de la semana, las palabras interrogativas y la realidad de la siesta."), "¿Qué hora es?"]
+  ];
+  host.innerHTML = `<p class="q__hint">${L("Tap each card and press Listen. Never studied Unit 1? No problem — Level 1 teaches the essentials again from zero.","Toca cada tarjeta y pulsa Escuchar. ¿No hiciste la Unidad 1? No pasa nada: el Nivel 1 enseña lo esencial desde cero.")}</p><div class="rule-cards"></div>`;
+  const wrap = host.querySelector(".rule-cards");
+  cards.forEach(([when, big, more, sp]) => {
+    const b = $(`<div class="rule-card" role="button" tabindex="0"><div class="row-label">${when}</div><div class="rule-card__big">${big}</div><div class="es" style="font-size:1.4rem">${sp}</div><div class="rule-card__more">${more}</div></div>`);
+    const open = () => { b.classList.toggle("is-open"); speak(sp); };
+    b.addEventListener("click", open); b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    wrap.append(b);
+  });
+}
+
+let muted = false;
+const speak = (txt, lang = "es-ES") => {
+  if (muted || !("speechSynthesis" in window)) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang = lang; u.rate = .8; setTimeout(() => speechSynthesis.speak(u), 60); } catch (e) {}
+};
+const listenBtn = (txt, lang) => { const b = $(`<button type="button" class="chip listen" aria-label="${L("Listen","Escuchar")}: ${txt}">🔊 ${L("Listen","Escuchar")}</button>`); b.addEventListener("click", () => speak(txt, lang)); return b; };
+
+
+/* ================= INVESTIGATE ================= */
+function drawInvestigate(host, sim) {
+  sim.state.custom = sim.state.custom || {};
+  const S = sim.state.custom;
+  S.stage = S.stage || 0; S.xp = S.xp || 0; S.streak = S.streak || 0; S.best = S.best || 0; S.p = S.p || {}; S.firstTry = S.firstTry || 0; S.answered = S.answered || 0; 
+  const STAGES = ["Repaso","El Showdown","Estoy…","El Aula","Tener","La hora","Escuelas","Mi Trabajo"];
+
+  host.innerHTML = `<div class="globe-wrap" id="gw"><div class="globe-tag" id="gt"></div><div class="globe-hint">${L("drag to spin the globe","arrastra para girar el globo")}</div><div class="globe-key"><i></i>${L("Spanish-speaking world","Mundo hispanohablante")}</div></div><div class="pz-hud"><span class="pz-hud__rank" id="rk"></span><span class="pz-hud__bar"><i id="bar"></i></span><span><b id="xp"></b> XP · 🔥 <b id="st"></b> <button type="button" class="chip" id="mute" style="min-height:30px;padding:.1em .6em;font-size:.8rem" aria-pressed="false">🔊</button></span></div><div class="pz-tabs" id="tabs"></div><div id="body"></div><div id="bonus" style="margin-top:var(--sp-5)"></div>`;
+  const body = host.querySelector("#body");
+  let globe = { flyTo() {} };
+  mountGlobe(host.querySelector("#gw"), host.querySelector("#gt")).then(g => { globe = g; g.flyTo(STAGE_STOP[Math.min(S.stage, 7)]); });
+  host.querySelector("#mute").addEventListener("click", e => { muted = !muted; if (muted) { try { speechSynthesis.cancel(); } catch (x) {} setTTS(false); } e.currentTarget.textContent = muted ? "🔇" : "🔊"; e.currentTarget.setAttribute("aria-pressed", muted); e.currentTarget.setAttribute("aria-label", muted ? L("Sound off","Sonido desactivado") : L("Sound on","Sonido activado")); });
+
+  function hud() {
+    host.querySelector("#rk").textContent = rankFor(S.xp);
+    host.querySelector("#xp").textContent = S.xp; host.querySelector("#st").textContent = S.streak;
+    host.querySelector("#bar").style.width = Math.min(100, S.xp / 6.5) + "%";
+    host.querySelector("#tabs").innerHTML = STAGES.map((n, i) => `<span class="pz-tab ${i < S.stage ? "is-done" : i === S.stage ? "is-now" : ""}">${i + 1}. ${n}${i < S.stage ? " ✓" : ""}</span>`).join("");
+  }
+  function burst(el) {
+    if (reduced()) return;
+    const r = el.getBoundingClientRect(), root = el.closest(".pz-panel") || el, rr = root.getBoundingClientRect(); root.style.position = "relative";
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("i"); s.className = "burst";
+      s.style.left = (r.left - rr.left + r.width / 2) + "px"; s.style.top = (r.top - rr.top + r.height / 2) + "px";
+      s.style.background = ["#f0a030", "#1a7f8e", "#0e3a5f", "#2e8b57"][i % 4];
+      const a = Math.random() * 6.28, d = 30 + Math.random() * 50; s.style.setProperty("--dx", Math.cos(a) * d + "px"); s.style.setProperty("--dy", Math.sin(a) * d + "px");
+      root.append(s); setTimeout(() => s.remove(), 850);
+    }
+  }
+  function award(nivel, tarea, respuesta, tries, ok, anchor) {
+    if (ok) { S.xp += tries === 1 ? 10 + Math.min(S.streak, 5) * 2 : 5; S.streak = tries === 1 ? S.streak + 1 : 0; if (tries === 1) S.firstTry++; }
+    else S.streak = 0;
+    S.best = Math.max(S.best, S.streak); S.answered++;
+    sim.recordTrial({ nivel, tarea, respuesta, correcto: ok ? "Yes" : "No", intentos: tries });
+    if (ok && anchor) burst(anchor);
+    sim.saveState(); hud();
+  }
+  const panel = (title, how) => { const p = $(`<section class="pz-panel"><h3 class="pz-title">${title}</h3><div class="pz-how">${how}</div><div class="slot"></div></section>`); body.append(p); return p.querySelector(".slot"); };
+  const nextBtn = (slot, label, fn) => { const b = $(`<button type="button" class="btn btn--signal pz-next">${label}</button>`); b.addEventListener("click", fn); slot.append(b); };
+
+  /* run a list of parts one after another; progress persists */
+  function parts(slot, key, fns, done) {
+    const i = S.p[key] || 0;
+    if (i >= fns.length) { done(); return; }
+    slot.innerHTML = `<div class="pz-count">${L("Part","Parte")} ${i + 1} / ${fns.length}</div><div class="part"></div>`;
+    fns[i](slot.querySelector(".part"), () => { S.p[key] = i + 1; sim.saveState(); parts(slot, key, fns, done); });
+  }
+
+  /* ---- flip cards: learn first (scaffold) ---- */
+  const Cards = (cards, intro) => (slot, next) => {
+    slot.innerHTML = `${intro ? `<p>${intro}</p>` : ""}<div class="rule-cards"></div><div class="fb" role="status"></div>`;
+    const wrap = slot.querySelector(".rule-cards"); let seen = new Set(); const need = cards.length;
+    const fb = slot.querySelector(".fb");
+    cards.forEach((c, i) => {
+      const b = $(`<div class="rule-card" role="button" tabindex="0">${c.img ? `<img src="${c.img}" alt="" style="height:90px">` : ""}<div class="rule-card__big es">${c.front}</div>${c.sub ? `<div class="row-label">${c.sub}</div>` : ""}<div class="rule-card__more">${c.back}</div></div>`);
+      if (c.say) b.append(listenBtn(c.say, c.lang));
+      const open = (e) => { if (e.target.closest(".listen")) return; b.classList.toggle("is-open"); seen.add(i); fb.textContent = `${seen.size} / ${need} ${L("cards opened","tarjetas abiertas")}`; if (seen.size === need && !slot.querySelector(".pz-next")) { S.xp += 8; hud(); sim.saveState(); nextBtn(slot, L("Practise it →","¡A practicar! →"), next); } };
+      b.addEventListener("click", open); b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e); } });
+      wrap.append(b);
+    });
+  };
+
+  /* ---- one-question-at-a-time multiple choice ---- */
+  const Deck = (id, nivel, qs) => (slot, next) => deck(slot, id, nivel, qs, next);
+  function deck(slot, k, nivel, qs, done) {
+    const i = S.p[k] || 0;
+    if (i >= qs.length) { done(); return; }
+    const q = qs[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${qs.length}</div><div class="vis">${q.visual || ""}</div><p><b>${q.q}</b></p><div class="pz-chips"></div><div class="fb" role="status"></div>`;
+    const chips = slot.querySelector(".pz-chips"), fb = slot.querySelector(".fb");
+    if (q.say) slot.querySelector(".vis").append(listenBtn(q.say, q.lang));
+    shuffle(q.opts).forEach(o => {
+      const c = $(`<button type="button" class="chip es">${o}</button>`);
+      c.addEventListener("click", () => {
+        tries++;
+        if (o === q.ok) {
+          c.classList.add("is-ok"); chips.querySelectorAll("button").forEach(b => b.disabled = true);
+          fb.className = "fb good"; fb.textContent = L("¡Correcto! ","¡Correcto! ") + (q.why || "");
+          award(nivel, q.task || q.q, o, tries, true, c);
+          setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 1500);
+        } else {
+          c.classList.add("is-bad"); c.disabled = true;
+          if (tries >= 2) {
+            chips.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === q.ok) b.classList.add("is-ok"); });
+            fb.className = "fb bad"; fb.textContent = L("The answer is: ","La respuesta es: ") + q.ok + ". " + (q.why || "");
+            award(nivel, q.task || q.q, o, tries, false);
+            setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 2800);
+          } else { fb.className = "fb bad"; fb.textContent = L("Not quite — try once more. ","Casi — inténtalo otra vez. ") + (q.hint || ""); }
+        }
+      });
+      chips.append(c);
+    });
+  }
+
+  /* ---- type-it practice (accent-tolerant) ---- */
+  const Typer = (id, nivel, items) => (slot, next) => typer(slot, id, nivel, items, next);
+  function typer(slot, k, nivel, items, done) {
+    const i = S.p[k] || 0;
+    if (i >= items.length) { done(); return; }
+    const it = items[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${items.length}</div>${it.visualHtml ? `<div class="vis">${it.visualHtml}</div>` : ""}<p><b>${it.q}</b></p><div class="chiprow"><input type="text" class="tin es" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${L("Type your answer","Escribe tu respuesta")}"> <button type="button" class="btn btn--signal go">${L("Check","Comprobar")}</button></div><div class="pz-chips acc"></div><div class="fb" role="status"></div>`;
+    const inp = slot.querySelector(".tin"), fb = slot.querySelector(".fb"), acc = slot.querySelector(".acc");
+    ["á","é","í","ó","ú","ñ","¿","¡"].forEach(ch => { const b = $(`<button type="button" class="chip" style="min-height:36px;padding:.2em .7em">${ch}</button>`); b.addEventListener("click", () => { inp.value += ch; inp.focus(); }); acc.append(b); });
+    const check = () => {
+      const v = strip(inp.value); if (!v) return; tries++;
+      const ok = it.a.some(a => strip(a) === v);
+      if (ok) {
+        fb.className = "fb good"; fb.textContent = "¡Correcto! " + (it.why || ""); inp.disabled = true; slot.querySelector(".go").disabled = true;
+        award(nivel, it.task || it.q, inp.value, tries, true, slot.querySelector(".go")); speak(it.a[0]);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); typer(slot, k, nivel, items, done); }, 1500);
+      } else if (tries >= 2) {
+        fb.className = "fb bad"; fb.textContent = L("The answer is: ","La respuesta es: ") + it.a[0] + ". " + (it.why || ""); inp.disabled = true; slot.querySelector(".go").disabled = true;
+        award(nivel, it.task || it.q, inp.value, tries, false);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); typer(slot, k, nivel, items, done); }, 3000);
+      } else { fb.className = "fb bad"; fb.textContent = L("Not quite — check the spelling and try once more. ","Casi — revisa la ortografía e inténtalo otra vez. ") + (it.hint || ""); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
+    };
+    slot.querySelector(".go").addEventListener("click", check);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  }
+
+  /* ---- Sorting Hat: el/un or la/una ---- */
+  const Sorter = (id, nivel, items) => (slot, next) => sorter(slot, id, nivel, items, next);
+  function sorter(slot, k, nivel, items, done) {
+    const i = S.p[k] || 0;
+    if (i >= items.length) { done(); return; }
+    const it = items[i]; let tries = 0;
+    const vis = it.photo ? `<img class="cphoto" src="${it.src || ("photos/clothes/" + it.n + ".jpg")}" width="150" height="150" alt="${it.en}">` : `<div class="wordcard es">${it.n}</div>`;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${items.length}</div><div class="vis">${vis}</div><p style="text-align:center"><b class="es">${it.n}</b> <small>(${it.en})</small></p><div class="sortbtns"><button type="button" class="chip sb sb--m" data-a="el"><b>EL / UN</b><small>${L("masculine","masculino")}</small></button><button type="button" class="chip sb sb--f" data-a="la"><b>LA / UNA</b><small>${L("feminine","femenino")}</small></button></div><div class="fb" role="status"></div>`;
+    const fb = slot.querySelector(".fb");
+    slot.querySelectorAll(".sb").forEach(b => b.addEventListener("click", () => {
+      tries++;
+      if (b.dataset.a === it.a) {
+        slot.querySelectorAll(".sb").forEach(x => x.disabled = true); b.classList.add("is-ok");
+        fb.className = "fb good"; fb.textContent = `¡Correcto! ${it.a} ${it.n}. ${it.why || ""}`; award(nivel, `${it.n}: el or la?`, `${it.a} ${it.n}`, tries, true, b); speak(`${it.a} ${it.n}`);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); sorter(slot, k, nivel, items, done); }, 1400);
+      } else {
+        b.classList.add("is-bad"); b.disabled = true; fb.className = "fb bad"; fb.textContent = L("Not that one. ","Esa no. ") + (it.why || "");
+        if (tries >= 2) { award(nivel, `${it.n}: el or la?`, b.dataset.a + " " + it.n, tries, false); slot.querySelectorAll(".sb").forEach(x => { x.disabled = true; if (x.dataset.a === it.a) x.classList.add("is-ok"); }); setTimeout(() => { S.p[k] = i + 1; sim.saveState(); sorter(slot, k, nivel, items, done); }, 2600); }
+      }
+    }));
+  }
+
+
+
+  const AULA_HS = [{ key:"pizarra", fx:.08, fy:.22, es:"la pizarra", en:"the blackboard" }, { key:"ventana", fx:.40, fy:.12, es:"la ventana", en:"the window" }, { key:"sillas", fx:.60, fy:.72, es:"las sillas", en:"the chairs" }];
+  const AulaLabel = (slot, next) => {
+    const paint = () => {
+      const n = S.p.alab || 0; if (n >= AULA_HS.length) { next(); return; }
+      const t = AULA_HS[n];
+      slot.innerHTML = `<p><b>${L("Tap the photo where you see:","Toca la foto donde ves:")}</b> <span class="es">${t.es}</span> <small>(${t.en})</small></p><div class="photo-wrap" style="max-width:420px"><img src="photos/aula/pizarra.jpg" alt="${L("A classroom with a blackboard, windows and wooden chairs","Un aula con pizarra, ventanas y sillas de madera")}"></div><p class="credit">Photo: Tomwsulcer — Wikimedia Commons, CC0</p><p class="fb" role="status"></p>`;
+      const w = slot.querySelector(".photo-wrap"), f = slot.querySelector(".fb"); let wrong = 0;
+      AULA_HS.forEach((h, j) => {
+        const b = $(`<button type="button" class="hotspot" style="left:${h.fx * 100}%;top:${h.fy * 100}%" aria-label="${L("Spot","Punto")} ${j + 1}"><i></i></button>`);
+        if (j < n) b.classList.add("is-done");
+        b.addEventListener("click", () => {
+          if (h.key === t.key) { b.classList.add("is-done"); f.className = "fb good"; f.textContent = "¡Correcto! " + h.es; award("4 Foto", "Tap " + h.es, h.es, wrong + 1, true, b); S.p.alab = n + 1; sim.saveState(); setTimeout(paint, 800); }
+          else { wrong++; b.classList.remove("is-wrong"); void b.offsetWidth; b.classList.add("is-wrong"); f.className = "fb bad"; f.textContent = L("Not that one — look again for ","Esa no — busca de nuevo ") + t.en + "."; }
+        });
+        w.append(b);
+      });
+    };
+    paint();
+  };
+
+
+  /* ---------- helper to build mc questions quickly ---------- */
+  const Q = (q, ok, pool, why, extra) => Object.assign({ q, ok, opts: mkOpts(ok, pool), why }, extra || {});
+  const FORMS_SER = ["soy","eres","es","somos","sois","son"], FORMS_ESTAR = ["estoy","estás","está","estamos","estáis","están"], FORMS_TENER = ["tengo","tienes","tiene","tenemos","tenéis","tienen"];
+  const PR6 = ["Yo","Tú","Él / Ella / Usted","Nosotros","Vosotros","Ellos / Ustedes"];
+
+  /* ===== LEVEL 1: Repaso de la Unidad 1 (from zero) ===== */
+  const recapCards = [
+    { front:"Hola · Me llamo… · Adiós", say:"Hola, me llamo Ana", back:L("Hello · My name is… · Goodbye. Spain greets with two kisses; Argentina one; Mexico a hug or handshake.","Hola · Me llamo… · Adiós. En España se saludan con dos besos; en Argentina uno; en México un abrazo o apretón.") },
+    { front:"yo · tú · él/ella · nosotros · vosotros · ellos", back:L("Subject pronouns: I · you · he/she · we · you all (Spain only) · they. Latin America says ustedes for “you all”.","Pronombres sujeto. Latinoamérica dice ustedes para “you all”; vosotros es solo de España.") },
+    { front:"SER: soy · eres · es · somos · sois · son", say:"soy, eres, es, somos, sois, son", back:L("SER = to be (identity, origin, description, time). Yo soy de Perú. Ella es alta.","SER = ser/estar para identidad, origen, descripción y hora. Yo soy de Perú. Ella es alta.") },
+    { front:"el · la · un · una", back:L("Every noun is masculine or feminine: el libro, la casa. Adjectives agree: el chico alto, la chica alta.","Todo sustantivo es masculino o femenino: el libro, la casa. Los adjetivos concuerdan: el chico alto, la chica alta.") },
+    { front:"0 · 10 · 15 · 21 · 30", say:"cero, diez, quince, veintiuno, treinta", back:L("cero, diez, quince, veintiuno, treinta. Numbers 11–15 are irregular; 16–19 are dieci + number.","cero, diez, quince, veintiuno, treinta. Los números 11–15 son irregulares; 16–19 son dieci + número.") },
+    { front:L("21 Spanish-speaking nations","21 naciones hispanohablantes"), back:L("Spain (Europe), Equatorial Guinea (Africa) and 19 places in the Americas — across the Atlantic Ocean. Spain says “th” for z/ce/ci, Latin America says “s”.","España (Europa), Guinea Ecuatorial (África) y 19 lugares en América, al otro lado del océano Atlántico. España dice “th” para z/ce/ci y Latinoamérica dice “s”.") }
+  ];
+  const recapQs = [
+    Q(L("Which means “Hello, my name is Ana”?","¿Cuál significa “Hello, my name is Ana”?"), "Hola, me llamo Ana", ["Hola, me llamo Ana","Adiós, soy Ana","Buenas noches, tienes Ana","Hola, está Ana"], L("Me llamo = my name is.","Me llamo = my name is.")),
+    Q(L("In Mexico you talk to a group of friends. “You all” =","En México hablas con un grupo de amigos. “You all” ="), "ustedes", ["ustedes","vosotros","nosotros","ella"], L("Latin America: ustedes. Spain: vosotros.","Latinoamérica: ustedes. España: vosotros.")),
+    Q(L("Choose the right form: Nosotros ___ amigos.","Elige la forma correcta: Nosotros ___ amigos."), "somos", FORMS_SER, "Nosotros somos."),
+    Q(L("Choose the right form: Ella ___ de Colombia.","Elige la forma correcta: Ella ___ de Colombia."), "es", FORMS_SER, "Ella es de Colombia."),
+    Q(L("Which noun is feminine?","¿Qué sustantivo es femenino?"), "la ciudad", ["la ciudad","el problema","el libro","el doctor"], L("-dad words are feminine.","Las palabras en -dad son femeninas.")),
+    Q(L("The tall girl: la chica ___","La chica ___ (tall)"), "alta", ["alta","alto","altas","altos"], L("Adjectives agree with the noun.","Los adjetivos concuerdan con el sustantivo.")),
+    Q(L("Which word is the number 15?","¿Qué palabra es el número 15?"), "quince", ["quince","catorce","cincuenta","cinco"], "15 = quince", { say:"quince" }),
+    Q(L("Which ocean lies between Spain and the Americas?","¿Qué océano está entre España y América?"), L("The Atlantic","El Atlántico"), [L("The Atlantic","El Atlántico"),L("The Pacific","El Pacífico"),L("The Indian","El Índico"),L("The Arctic","El Ártico")], L("Spanish crossed the Atlantic in the 1490s.","El español cruzó el Atlántico en el siglo XV."))
+  ];
+  const recapT = [
+    { q:L("Type the Spanish for “I am” (the verb SER).","Escribe “I am” en español (verbo SER)."), a:["soy","yo soy"], why:"soy" },
+    { q:L("Type: We are friends. (use SER)","Escribe: We are friends. (usa SER)"), a:["nosotros somos amigos","somos amigos"], why:"Nosotros somos amigos." },
+    { q:L("Type the number 12 in Spanish.","Escribe el número 12 en español."), a:["doce"], why:"12 = doce" }
+  ];
+
+  /* ===== LEVEL 2: The Showdown — SER vs ESTAR ===== */
+  const estarCards = FORMS_ESTAR.map((f, i) => ({ front:`${PR6[i].split(" /")[0]} → ${f}`, back:`<b>${["Yo estoy feliz.","Tú estás en la escuela.","Ella está enferma.","Nosotros estamos cansados.","Vosotros estáis jugando al fútbol.","Ellos están en Madrid."][i]}</b><br>${[L("I am happy.","Estoy feliz."),L("You are at school.","Estás en la escuela."),L("She is sick.","Está enferma."),L("We are tired.","Estamos cansados."),L("You all are playing football.","Estáis jugando al fútbol."),L("They are in Madrid.","Están en Madrid.")][i]}`, say:["Yo estoy feliz","Tú estás en la escuela","Ella está enferma","Nosotros estamos cansados","Vosotros estáis jugando al fútbol","Ellos están en Madrid"][i] }))
+    .concat([
+      { front:L("SER = who you are","SER = quién eres"), back:L("Essential characteristics: identity, origin, description, time. Soy alto. Soy de Perú. Son las tres.","Características esenciales: identidad, origen, descripción, hora. Soy alto. Soy de Perú. Son las tres.") },
+      { front:"P.L.A.C.E. = ESTAR", back:L("Position & Location (Madrid está en España) · Condition & Emotion (Estoy triste; La sopa está fría) · Action (Estás comiendo).","Posición y Ubicación (Madrid está en España) · Condición y Emoción (Estoy triste; La sopa está fría) · Acción (Estás comiendo).") }
+    ]);
+  const seQs = [
+    ["_____ las tres de la tarde. (time)","Son",["Son","Están","Estamos","Es"],L("Time uses SER.","La hora usa SER.")],
+    ["Mi casa _____ en el centro. (location)","está",["está","es","son","soy"],L("Location uses ESTAR.","La ubicación usa ESTAR.")],
+    ["Nosotros _____ americanos. (origin)","somos",["somos","estamos","están","son"],L("Origin uses SER.","El origen usa SER.")],
+    ["Madrid _____ en España. (location)","está",["está","es","estoy","somos"],"P.L.A.C.E."],
+    ["Yo _____ triste hoy. (emotion)","estoy",["estoy","soy","somos","es"],L("Emotions use ESTAR.","Las emociones usan ESTAR.")],
+    ["Ella _____ doctora. (occupation)","es",["es","está","estoy","están"],L("Occupation uses SER.","La ocupación usa SER.")],
+    ["La sopa _____ fría. (condition now)","está",["está","es","son","estás"],L("A condition now uses ESTAR.","Una condición ahora usa ESTAR.")],
+    ["Tú _____ inteligente. (description)","eres",["eres","estás","soy","es"],L("A lasting trait uses SER.","Un rasgo permanente usa SER.")],
+    ["Vosotros _____ en la escuela. (location, Spain)","estáis",["estáis","sois","son","están"],L("Vosotros + estar = estáis.","Vosotros + estar = estáis.")],
+    ["Ellos _____ cansados. (state)","están",["están","son","somos","estamos"],L("A temporary state uses ESTAR.","Un estado temporal usa ESTAR.")]
+  ].map(([q, ok, o, why]) => ({ q, ok, opts:shuffle(o), why, task:q }));
+  const seTypes = [["Yo ___ feliz hoy. (estar)","estoy"],["Tú ___ en la escuela. (estar)","estás"],["Ella ___ enferma. (estar)","está"],["Nosotros ___ cansados. (estar)","estamos"],["Ellos ___ en Madrid. (estar)","están"],["Vosotros ___ en casa. (estar)","estáis"]].map(([q,a]) => ({ q:L("Type the missing form: ","Escribe la forma que falta: ") + q, a:[a], why:q.replace("___", a), task:q }));
+  const dangerQs = [
+    Q(L("“Es aburrido” (SER) means…","“Es aburrido” (SER) significa…"), L("He is a boring person","Es una persona aburrida"), [L("He is a boring person","Es una persona aburrida"),L("He is bored right now","Está aburrido ahora"),L("He is ready","Está listo"),L("He is tall","Es alto")], L("SER = permanent trait.","SER = rasgo permanente.")),
+    Q(L("“Está aburrido” (ESTAR) means…","“Está aburrido” (ESTAR) significa…"), L("He is bored right now","Está aburrido ahora"), [L("He is a boring person","Es una persona aburrida"),L("He is bored right now","Está aburrido ahora"),L("He is clever","Es listo"),L("He is a doctor","Es doctor")], L("ESTAR = current state.","ESTAR = estado actual.")),
+    Q(L("“Es listo” means…","“Es listo” significa…"), L("He is smart / clever","Es inteligente"), [L("He is smart / clever","Es inteligente"),L("He is ready to go","Está preparado"),L("He is hungry","Tiene hambre"),L("He is tall","Es alto")], L("Es listo = clever.","Es listo = inteligente.")),
+    Q(L("“Está listo” means…","“Está listo” significa…"), L("He is ready (to go)","Está preparado"), [L("He is smart / clever","Es inteligente"),L("He is ready (to go)","Está preparado"),L("He is a boring person","Es aburrido"),L("He is cold","Tiene frío")], L("Está listo = ready.","Está listo = preparado."))
+  ];
+
+  /* ===== LEVEL 3: Estados y lugares (ESTAR in action) ===== */
+  const stateCards = [["feliz","happy"],["triste","sad"],["cansado / cansada","tired"],["enfermo / enferma","sick"],["contento / contenta","pleased"],["nervioso / nerviosa","nervous"]].map(([w,en]) => ({ front:w, sub:en, back:L(`Estoy ${w.split(" /")[0]}. (Match the ending to who is speaking: o for a boy, a for a girl.)`,`Estoy ${w.split(" /")[0]}. (La terminación depende de quién habla: o chico, a chica.)`), say:`Estoy ${w.split(" /")[0]}` }))
+    .concat([{ front:L("Places","Lugares"), back:L("en la escuela · en casa · en el parque · en Madrid — always with ESTAR: Estoy en la escuela.","en la escuela · en casa · en el parque · en Madrid: siempre con ESTAR: Estoy en la escuela."), say:"Estoy en la escuela" }]);
+  const stateQs = [
+    Q(L("You feel very sad. You say: “Yo ___ triste.”","Estás muy triste. Dices: “Yo ___ triste.”"), "estoy", FORMS_ESTAR, L("Emotion → ESTAR.","Emoción → ESTAR.")),
+    Q(L("“We are tired” (boys) =","“We are tired” (chicos) ="), "Estamos cansados", ["Estamos cansados","Somos cansados","Estamos cansada","Estoy cansados"], L("estamos + plural adjective in -os.","estamos + adjetivo plural en -os.")),
+    Q(L("“She is sick” =","“She is sick” ="), "Ella está enferma", ["Ella está enferma","Ella es enferma","Ella estoy enferma","Ella está enfermo"], L("Condition → está; girl → enferma.","Condición → está; chica → enferma.")),
+    Q(L("“You are at school” (to a friend) =","“You are at school” (a un amigo) ="), "Tú estás en la escuela", ["Tú estás en la escuela","Tú eres en la escuela","Tú está en la escuela","Tú estoy en la escuela"], L("Location → estás.","Ubicación → estás.")),
+    Q(L("“They are in Madrid” =","“They are in Madrid” ="), "Ellos están en Madrid", ["Ellos están en Madrid","Ellos son en Madrid","Ellos estamos en Madrid","Ellos está en Madrid"], L("They + estar = están.","Ellos + estar = están.")),
+    Q(L("Which sentence is NOT correct?","¿Qué frase NO es correcta?"), "Madrid es en España", ["Madrid es en España","Madrid está en España","Estoy en casa","Estamos en el parque"], L("Location always needs ESTAR.","La ubicación siempre necesita ESTAR."))
+  ];
+  const stateT = [["Type: I am tired. (a girl)","estoy cansada",["Estoy cansada","estoy cansada"]],["Type: You are in Madrid. (friend)","estás en Madrid",["Tú estás en Madrid","Estás en Madrid"]],["Type: We are happy.","estamos felices",["Estamos felices","Nosotros estamos felices","Estamos contentos"]]].map(([q,w,a]) => ({ q:L(q,q.replace("Type","Escribe")), a, why:a[0] }));
+  const stateSort = (() => {
+    const items = [["Soy de Perú","ser",L("Origin → SER","Origen → SER")],["Estoy en casa","estar",L("Location → ESTAR","Ubicación → ESTAR")],["Son las dos","ser",L("Time → SER","Hora → SER")],["Estoy feliz","estar",L("Emotion → ESTAR","Emoción → ESTAR")],["Es alta","ser",L("Description → SER","Descripción → SER")],["Está en el parque","estar",L("Location → ESTAR","Ubicación → ESTAR")],["Es profesora","ser",L("Occupation → SER","Ocupación → SER")],["La sopa está fría","estar",L("Condition → ESTAR","Condición → ESTAR")]];
+    return shuffle(items).map(([n, a, why]) => ({ n, a, en:"", why, kind:"ser" }));
+  })();
+
+  /* ===== LEVEL 4: El Aula (Vocab Duel) ===== */
+  const AULA = [
+    ["ordenador","el","computer (Spain)","la computadora (Latin America)","ordenador","computadora"],
+    ["boligrafo","el","pen (Spain: el bolígrafo / el boli)","la pluma / el lapicero (Latin America)","bolígrafo","pluma"],
+    ["pizarra","la","blackboard (Spain)","el pizarrón (Latin America)","pizarra","pizarrón"],
+    ["lapiz","el","pencil","el lápiz","lápiz","lápiz"],
+    ["mochila","la","backpack","la mochila","mochila","mochila"],
+    ["cuaderno","el","notebook","el cuaderno","cuaderno","cuaderno"],
+    ["pupitre","el","school desk","el pupitre","pupitre","pupitre"]
+  ];
+  const aulaCards = AULA.map(([k, art, en, lat, es1, es2]) => ({ img:`photos/aula/${k}.jpg`, front:`${art} ${es1}`, sub:en, back:`🇪🇸 <b>${art} ${es1}</b> · 🌎 <b>${lat}</b>`, say:`${art} ${es1}` }));
+  const aulaSort = shuffle(AULA.map(([k, art, en, , es1]) => ({ n:es1, a:art, en, photo:true, src:`photos/aula/${k}.jpg`, why:"" })).concat([{ n:"computadora", a:"la", en:"computer (Latin America)", why:L("Ends in -a: feminine.","Termina en -a: femenino.") }, { n:"pluma", a:"la", en:"pen (Latin America)", why:L("Ends in -a: feminine.","Termina en -a: femenino.") }, { n:"pizarrón", a:"el", en:"blackboard (Latin America)", why:L("Ends in -ón: masculine.","Termina en -ón: masculino.") }]));
+  const aulaQs = [
+    { q:L("In Spain the computer is “el ordenador”. In Latin America…","En España es “el ordenador”. En Latinoamérica…"), ok:"la computadora", opts:["la computadora","el pizarrón","la pluma","la regla"], why:"🇪🇸 el ordenador · 🌎 la computadora", visual:IMG("ordenador"), say:"computadora", lang:"es-MX" },
+    { q:L("Which of these is a pen in Latin America?","¿Cuál de estas es un pen en Latinoamérica?"), ok:"la pluma", opts:["la pluma","la pizarra","el cuaderno","la mochila"], why:"🇪🇸 el bolígrafo (el boli) · 🌎 la pluma / el lapicero", visual:IMG("boligrafo"), say:"pluma", lang:"es-MX" },
+    { q:L("The blackboard: Spain says “la pizarra”. Latin America says…","La pizarra en España; en Latinoamérica dicen…"), ok:"el pizarrón", opts:["el pizarrón","la computadora","el boli","el libro"], why:"🇪🇸 la pizarra · 🌎 el pizarrón", visual:IMG("pizarra"), say:"pizarrón", lang:"es-MX" },
+    { q:L("Which word is masculine?","¿Qué palabra es masculina?"), ok:"el cuaderno", opts:["el cuaderno","la mochila","la regla","la pizarra"], why:L("-o words are usually masculine.","Las palabras en -o suelen ser masculinas."), visual:IMG("cuaderno") },
+    { q:L("“Tengo un lápiz” — what do I have?","“Tengo un lápiz”: ¿qué tengo?"), ok:L("A pencil","Un lápiz"), opts:[L("A pencil","Un lápiz"),L("A ruler","Una regla"),L("A book","Un libro"),L("A backpack","Una mochila")], why:"lápiz = pencil", visual:IMG("lapiz"), say:"Tengo un lápiz" }
+  ];
+  const aulaTypes = [["Type “the backpack” with its article.","la mochila"],["Type “the notebook” with its article.","el cuaderno"],["Type “the pencil” with its article.","el lápiz"]].map(([q,a]) => ({ q:L(q,q.replace("Type","Escribe").replace("with its article","con su artículo")), a:[a], why:a }));
+
+  /* ===== LEVEL 5: TENER ===== */
+  const tenerCards = FORMS_TENER.map((f, i) => ({ front:`${PR6[i].split(" /")[0]} → ${f}`, back:`<b>${["Yo tengo un perro.","¿Tienes un lápiz?","Él tiene clase ahora.","Tenemos hambre.","Tenéis frío.","Ellos tienen libros."][i]}</b><br>${[L("I have a dog.","Tengo un perro."),L("Do you have a pencil?","¿Tienes un lápiz?"),L("He has class now.","Tiene clase ahora."),L("We are hungry (we have hunger).","Tenemos hambre."),L("You all are cold.","Tenéis frío."),L("They have books.","Tienen libros.")][i]}`, say:["Yo tengo un perro","¿Tienes un lápiz?","Él tiene clase ahora","Tenemos hambre","Tenéis frío","Ellos tienen libros"][i] }))
+    .concat([{ front:L("Irregular!","¡Irregular!"), back:L("TENER has a “go” in the yo form (tengo) and a stem change e→ie (tienes, tiene, tienen).","TENER tiene “go” en yo (tengo) y cambio e→ie (tienes, tiene, tienen).") }]);
+  const IDIOMS = [["hambre","hungry"],["sed","thirsty"],["frío","cold"],["calor","hot"],["miedo","scared"],["sueño","sleepy"],["razón","right"],["suerte","lucky"]];
+  const idiomCards = IDIOMS.map(([w, en]) => ({ front:`Tengo ${w}`, sub:`I am ${en}`, back:L(`Spanish doesn’t say “I am ${en}” — it says “I have ${w}”. Tengo ${w}.`,`En español no se dice “soy/estoy”: se dice “tengo ${w}”.`), say:`Tengo ${w}` })).concat([{ front:"Tengo 15 años", sub:"I am 15", back:L("Age uses TENER too: I have 15 years.","La edad también usa TENER: tengo 15 años."), say:"Tengo quince años" }]);
+  const tenerQs = [
+    Q(L("Choose: Yo ___ un perro.","Elige: Yo ___ un perro."), "tengo", FORMS_TENER, L("yo → tengo","yo → tengo")),
+    Q(L("Choose: ¿Tú ___ un lápiz?","Elige: ¿Tú ___ un lápiz?"), "tienes", FORMS_TENER, L("tú → tienes","tú → tienes")),
+    Q(L("Choose: Ellos ___ libros.","Elige: Ellos ___ libros."), "tienen", FORMS_TENER, L("ellos → tienen","ellos → tienen")),
+    Q(L("Choose: Nosotros ___ hambre.","Elige: Nosotros ___ hambre."), "tenemos", FORMS_TENER, L("nosotros → tenemos","nosotros → tenemos")),
+    Q(L("“I am thirsty” =","“I am thirsty” ="), "Tengo sed", ["Tengo sed","Soy sed","Estoy sed","Tienes sed"], L("Spanish HAS thirst.","El español TIENE sed.")),
+    Q(L("“I am cold” =","“I am cold” ="), "Tengo frío", ["Tengo frío","Estoy frío","Soy frío","Tiene frío"], L("tener frío = to be cold (about you).","tener frío = tener frío.")),
+    Q(L("“I am 15 years old” =","“I am 15 years old” ="), "Tengo 15 años", ["Tengo 15 años","Soy 15 años","Estoy 15 años","Tienes 15 años"], L("Age: tener + años.","Edad: tener + años.")),
+    Q(L("“I am right” =","“I am right” ="), "Tengo razón", ["Tengo razón","Estoy razón","Soy razón","Tiene razón"], L("Tengo razón = I have reason.","Tengo razón = I am right."))
+  ];
+  const tenerT = [["Type: I am hungry.","tengo hambre"],["Type: We are cold.","tenemos frío"],["Type: She is sleepy.","tiene sueño"],["Type: I am scared.","tengo miedo"]].map(([q,a]) => ({ q:L(q,q.replace("Type","Escribe")), a:[a], why:a }));
+  const charades = IDIOMS.map(([w, en]) => Q(L(`Charades! Someone shivers and hugs themselves. The phrase is…`,`¡Mímica! Alguien tiembla y se abraza. La frase es…`), "Tiene frío", ["Tiene frío","Tiene calor","Tiene hambre","Tiene sed"], "")).slice(0, 0);
+
+  /* ===== LEVEL 6: La hora y los días ===== */
+  const timeCards = [
+    { front:L("¿Qué hora es?","¿Qué hora es?"), say:"¿Qué hora es?", back:L("What time is it? Es la una… (1:00, singular) · Son las dos / tres… (plural). Time always uses SER.","¿Qué hora es? Es la una (singular) · Son las dos / tres (plural). La hora siempre usa SER.") },
+    { front:"… y cuarto", back:L("Quarter past: Son las tres y cuarto (3:15).","y cuarto = :15 (Son las tres y cuarto).") },
+    { front:"… y media", back:L("Half past: Son las cinco y media (5:30).","y media = :30 (Son las cinco y media).") },
+    { front:"… menos cuarto", say:"Son las tres menos cuarto", back:L("Quarter to: 2:45 is “Son las tres menos cuarto” (three minus a quarter).","Faltan 15: 2:45 es “Son las tres menos cuarto”.") }
+  ];
+  const DAYS = [["lunes","Luna = moon","🌙"],["martes","Marte = Mars",""],["miércoles","Mercurio = Mercury",""],["jueves","Júpiter = Jupiter",""],["viernes","Venus",""],["sábado","Saturno = Saturn",""],["domingo","",""]];
+  const dayCards = DAYS.map(([d, o]) => ({ front:d, sub:o, back:L(`${d}${o ? " comes from " + o : " (day of rest)"}. Not capitalised in Spanish!`,`${d}${o ? " viene de " + o : " (día de descanso)"}. ¡En español se escribe con minúscula!`), say:d }));
+  const clockPool = [[3,0],[1,0],[4,15],[5,30],[2,45],[7,30],[9,0],[12,15],[6,45],[10,30]];
+  const clockQs = clockPool.map(([h, m]) => { const ok = timeWord(h, m); const pool = [timeWord(h, (m + 15) % 60 || 0), timeWord(h % 12 + 1, m), timeWord(h, m === 30 ? 0 : 30), timeWord((h + 1) % 12 + 1, m)].filter(x => x !== ok); return { q:L("What time is it?","¿Qué hora es?"), task:`Clock ${h}:${String(m).padStart(2, "0")}`, ok, opts:shuffle(Array.from(new Set(pool))).slice(0, 3).concat([ok]), why:`${h}:${String(m).padStart(2, "0")} = ${ok}`, visual:clockSVG(h, m), say:ok }; });
+  const dayQs = [
+    Q(L("Which day comes from the Moon (Luna)?","¿Qué día viene de la Luna?"), "lunes", DAYS.map(d => d[0]), "Luna → lunes"),
+    Q(L("Which day comes from Mars (Marte)?","¿Qué día viene de Marte?"), "martes", DAYS.map(d => d[0]), "Marte → martes"),
+    Q(L("Which day comes from Venus?","¿Qué día viene de Venus?"), "viernes", DAYS.map(d => d[0]), "Venus → viernes"),
+    Q(L("Which day comes from Saturn (Saturno)?","¿Qué día viene de Saturno?"), "sábado", DAYS.map(d => d[0]), "Saturno → sábado"),
+    Q(L("Which day follows jueves?","¿Qué día va después de jueves?"), "viernes", DAYS.map(d => d[0]), "")
+  ];
+  const timeT = [[1,0,"es la una en punto"],[3,0,"son las tres en punto"],[2,45,"son las tres menos cuarto"],[6,30,"son las seis y media"]].map(([h,m,a]) => ({ q:L("Type the time shown. Start with Es / Son.","Escribe la hora que se ve. Empieza con Es / Son."), visualHtml:clockSVG(h, m), a:[a, a.replace(" en punto","")], why:timeWord(h, m), task:`Type clock ${h}:${String(m).padStart(2, "0")}` }));
+
+  /* ===== LEVEL 7: Preguntas y escuelas del mundo ===== */
+  const qwCards = [["¿Quién?","Who?","¿Quién es? — Es mi profesor."],["¿Qué?","What?","¿Qué es? — Es un lápiz."],["¿Dónde?","Where?","¿Dónde está Madrid? — En España."],["¿Cuándo?","When?","¿Cuándo es la clase? — A las ocho."]].map(([w, en, ex]) => ({ front:w, sub:en, back:`<b>${ex}</b>`, say:ex.split(" — ")[0] }));
+  const qwQs = [
+    Q(L("¿___ es tu profesor? — Es el señor Guevara.","¿___ es tu profesor? — Es el señor Guevara."), "Quién", ["Quién","Qué","Dónde","Cuándo"], L("Who → quién","Who → quién")),
+    Q(L("¿___ está la pizarra? — En el aula.","¿___ está la pizarra? — En el aula."), "Dónde", ["Dónde","Quién","Qué","Cuándo"], L("Where → dónde","Where → dónde")),
+    Q(L("¿___ es la clase? — A las ocho.","¿___ es la clase? — A las ocho."), "Cuándo", ["Cuándo","Dónde","Quién","Qué"], L("When → cuándo","When → cuándo")),
+    Q(L("¿___ es? — Es un lápiz.","¿___ es? — Es un lápiz."), "Qué", ["Qué","Quién","Dónde","Cuándo"], L("What → qué","What → qué")),
+    Q(L("“¿Dónde estás?” means…","“¿Dónde estás?” significa…"), "Where are you?", ["Where are you?","Who are you?","When are you?","What are you?"], L("dónde = where; estás = you are (location).","dónde = where; estás = location."))
+  ];
+  const schoolCards = [
+    { front:"🇪🇸 ESO", sub:L("ages 12–16","12–16 años"), back:L("La ESO (Educación Secundaria Obligatoria), then Bachillerato at 16–18 (optional, pre-university). Grades 0–10; 5 passes.","La ESO (Educación Secundaria Obligatoria) y luego el Bachillerato de 16 a 18 (opcional, preuniversitario). Notas de 0 a 10; el 5 aprueba.") },
+    { front:"🌎 Secundaria", sub:L("ages 12–16","12–16 años"), back:L("Secundaria / Media, then Preparatoria / Bachillerato at 16–18. Grades 0–10 or 0–100 (6 or 60 passes).","Secundaria / Media y luego Preparatoria / Bachillerato de 16 a 18. Notas de 0 a 10 o de 0 a 100 (6 o 60 aprueba).") },
+    { front:"Universidad de Salamanca", back:L("Founded in 1218 — one of the oldest universities still open! Legend: find the little frog on a skull carved in the facade without help and you will pass your exams.","Fundada en 1218: ¡una de las universidades más antiguas aún abiertas! Leyenda: si encuentras sin ayuda la ranita sobre una calavera de la fachada, aprobarás tus exámenes.") }
+  ];
+  const schoolQs = [
+    Q(L("What do students in Spain call lower secondary school (ages 12–16)?","¿Cómo se llama la secundaria en España (12–16 años)?"), "La ESO", ["La ESO","La Preparatoria","El Bachillerato","La Pizarra"], L("ESO = Educación Secundaria Obligatoria.","ESO = Educación Secundaria Obligatoria.")),
+    Q(L("In Spain, which grade is the lowest passing grade?","En España, ¿cuál es la nota mínima para aprobar?"), "5 out of 10", ["5 out of 10","6 out of 10","60 out of 100","A"], L("Spain: 0–10, 5 passes.","España: 0–10, el 5 aprueba.")),
+    Q(L("In many Latin American countries which can be a passing mark?","En muchos países de Latinoamérica, ¿qué puede ser nota de aprobado?"), "6 out of 10 or 60 out of 100", ["6 out of 10 or 60 out of 100","A or B only","5 out of 10 only","10 out of 10 only"], L("It depends on the country.","Depende del país.")),
+    Q(L("When was the University of Salamanca founded?","¿Cuándo se fundó la Universidad de Salamanca?"), "1218", ["1218","1518","1818","1018"], L("One of the oldest in the world.","Una de las más antiguas del mundo."), { visual:"" }),
+    Q(L("What is hidden on the Salamanca facade?","¿Qué hay escondido en la fachada de Salamanca?"), L("A frog on a skull","Una rana sobre una calavera"), [L("A frog on a skull","Una rana sobre una calavera"),L("A pen","Un bolígrafo"),L("A clock","Un reloj"),L("A computer","Un ordenador")], L("Legend says finding it brings exam luck.","La leyenda dice que da suerte en los exámenes."))
+  ];
+
+  /* ===== LEVEL 8: Mi trabajo ideal ===== */
+  const JobBuilder = (slot, next) => {
+    const I = S.job = S.job || { name:"", fem:null, job:"", time:"", place:"", day:"", mood:"", idiom:"" };
+    const JOBS = [["doctor","doctora"],["profesor","profesora"],["piloto","piloto"],["ingeniero","ingeniera"],["cocinero","cocinera"],["artista","artista"]];
+    const PLACES = ["Madrid","Salamanca","Ciudad de México","Bogotá","Lima","Santiago","Buenos Aires","Nueva York","Londres"];
+    const MOODS = [["feliz","feliz"],["cansado","cansada"],["contento","contenta"],["nervioso","nerviosa"]];
+    const TIMES = [[8,0],[9,0],[11,0],[1,0],[2,45],[3,30]];
+    const lines = () => {
+      const jb = JOBS.find(x => x[0] === I.job), md = MOODS.find(x => x[0] === I.mood), tm = I.time ? TIMES[+I.time] : null;
+      const a = I.fem ? 1 : 0; const hour = tm ? (tm[0] === 1 ? "la una" : "las " + HOUR_W[tm[0]]) : "…";
+      const clock = tm ? (tm[1] === 0 ? `a ${hour}` : tm[1] === 30 ? `a ${hour} y media` : `a ${tm[0] === 2 ? "las tres" : hour} menos cuarto`) : "a …";
+      return [`Me llamo ${I.name || "…"}.`, `Mi trabajo ideal es ser ${jb ? jb[a] : "…"}.`, `Trabajo en ${I.place || "…"}.`, `Empiezo ${clock}.`, `Hoy es ${I.day || "…"} y estoy ${md ? md[a] : "…"}.`, `Tengo ${I.idiom || "…"}.`];
+    };
+    slot.innerHTML = `<p>${L("Design your dream job: a mini work-schedule using SER, ESTAR and TENER, a time and a day. Then type it to lock it in!","Diseña tu trabajo ideal: un mini horario con SER, ESTAR y TENER, una hora y un día. ¡Luego escríbelo para fijarlo!")}</p>
+      <p class="row-label">1 · ${L("Your name","Tu nombre")}</p><input type="text" class="tin es" id="nm" maxlength="14" value="${I.name}" aria-label="${L("Your name","Tu nombre")}">
+      <p class="row-label">2 · ${L("Boy or girl? (endings change)","¿Chico o chica? (las terminaciones cambian)")}</p><div class="pz-chips" id="gd"></div>
+      <p class="row-label">3 · ${L("Dream job (ser + job)","Trabajo ideal (ser + profesión)")}</p><div class="pz-chips" id="jb"></div>
+      <p class="row-label">4 · ${L("Where? (Trabajo en…)","¿Dónde? (Trabajo en…)")}</p><select id="pl" class="tin es" aria-label="${L("Place","Lugar")}"><option value="">—</option>${PLACES.map(p => `<option ${I.place === p ? "selected" : ""}>${p}</option>`).join("")}</select>
+      <p class="row-label">5 · ${L("What time do you start?","¿A qué hora empiezas?")}</p><div class="pz-chips" id="tm"></div>
+      <p class="row-label">6 · ${L("Day (hoy es…)","Día (hoy es…)")}</p><div class="pz-chips" id="dy"></div>
+      <p class="row-label">7 · ${L("How are you today? (estar)","¿Cómo estás hoy? (estar)")}</p><div class="pz-chips" id="md"></div>
+      <p class="row-label">8 · ${L("A tener idiom","Una expresión con tener")}</p><div class="pz-chips" id="id"></div>
+      <div class="preview" id="pv"></div><div id="act"></div><div class="fb" role="status"></div>`;
+    const pv = slot.querySelector("#pv"), act = slot.querySelector("#act"), fb = slot.querySelector(".fb");
+    const set = (sel, arr, key, lab) => arr.forEach((o, n) => { const v = typeof o === "object" && !Array.isArray(o) ? o.v : Array.isArray(o) ? (key === "time" ? String(n) : o[0]) : o; const t = lab(o, n); const b = $(`<button type="button" class="chip es ${String(I[key]) === String(v) ? "is-on" : ""}">${t}</button>`); b.addEventListener("click", () => { I[key] = v; slot.querySelectorAll(sel + " .chip").forEach(x => x.classList.remove("is-on")); b.classList.add("is-on"); sim.saveState(); render(); speak(String(t).replace(/<[^>]+>/g, "")); }); slot.querySelector(sel).append(b); });
+    set("#gd", [{ v:false, l:L("Boy (-o)","Chico (-o)") }, { v:true, l:L("Girl (-a)","Chica (-a)") }], "fem", o => o.l);
+    set("#jb", JOBS, "job", o => `${o[0]} / ${o[1]}`);
+    set("#tm", TIMES, "time", ([h, m]) => timeWord(h, m).replace(/^(Es|Son) /, ""));
+    set("#dy", DAYS, "day", o => o[0]);
+    set("#md", MOODS, "mood", o => `${o[0]} / ${o[1]}`);
+    set("#id", IDIOMS.map(x => x[0]).map(w => ({ v:w })), "idiom", o => `tengo ${o.v}`);
+    slot.querySelector("#nm").addEventListener("input", e => { I.name = e.target.value.trim(); sim.saveState(); render(); });
+    slot.querySelector("#pl").addEventListener("change", e => { I.place = e.target.value; sim.saveState(); render(); });
+    function render() {
+      const ls = lines(); pv.innerHTML = ls.join(" ");
+      const ready = I.name && I.fem !== null && I.job && I.place && I.time !== "" && I.day && I.mood && I.idiom;
+      act.innerHTML = "";
+      if (ready) {
+        const script = ls.join(" ");
+        const w = $(`<div><p><b>${L("Now type your schedule yourself (copy it from above).","Ahora escribe tu horario tú mismo (cópialo de arriba).")}</b></p><div class="chiprow"><input type="text" class="tin es" id="cp" style="min-width:min(100%,420px)" autocomplete="off" spellcheck="false" aria-label="${L("Type your script","Escribe tu guion")}"> <button type="button" class="btn btn--signal go">${L("Check","Comprobar")}</button></div></div>`);
+        w.querySelector(".go").addEventListener("click", () => {
+          if (strip(w.querySelector("#cp").value) === strip(script)) {
+            fb.className = "fb good"; fb.textContent = L("¡Genial! Your dream-job schedule is ready.","¡Genial! Tu horario de trabajo ideal está listo."); speak(script);
+            award("8 Mi Trabajo", "Dream job schedule", script, 1, true, w.querySelector(".go")); act.innerHTML = ""; act.append(listenBtn(script));
+            nextBtn(act, L("Finish Unit 2 →","Terminar la Unidad 2 →"), next);
+          } else { fb.className = "fb bad"; fb.textContent = L("Not an exact match yet — check spelling, accents and full stops.","Aún no es idéntico — revisa ortografía, acentos y puntos."); }
+        });
+        act.append(w);
+      }
+    }
+    render();
+  };
+
+  /* ===== STAGES ===== */
+  const STAGE_DEFS = [
+    { t:"1 · Repaso", how:L("Level 1: A quick restart of Unit 1 — hello, ser, el/la, numbers — from zero. Never did Unit 1? Start here!","Nivel 1: un repaso de la Unidad 1 — hola, ser, el/la, números — desde cero. ¿No hiciste la Unidad 1? ¡Empieza aquí!"), parts:[Cards(recapCards), Deck("rc","1 Repaso",recapQs), Typer("rcT","1 Repaso",recapT)] },
+    { t:"2 · El Showdown", how:L("Level 2: SER vs ESTAR. Learn ESTAR, then pick the right “to be”.","Nivel 2: SER vs ESTAR. Aprende ESTAR y elige el “to be” correcto."), parts:[Cards(estarCards), Deck("se","2 SER/ESTAR",seQs), Typer("seT","2 SER/ESTAR",seTypes), Deck("dz","2 SER/ESTAR",dangerQs)] },
+    { t:"3 · Estoy…", how:L("Level 3: ESTAR in action — feelings and places. Then sort SER or ESTAR.","Nivel 3: ESTAR en acción — sentimientos y lugares. Luego clasifica SER o ESTAR."), parts:[Cards(stateCards), Deck("st","3 Estados",stateQs), Typer("stT","3 Estados",stateT), (slot, next) => serEstarSort(slot, next)] },
+    { t:"4 · El Aula", how:L("Level 4: Classroom vocab with real photos — and what Spain and Latin America call things.","Nivel 4: vocabulario del aula con fotos reales — y cómo lo llaman en España y Latinoamérica."), parts:[Cards(aulaCards), Sorter("as","4 Aula",aulaSort), AulaLabel, Deck("aq","4 Aula",aulaQs), Typer("aT","4 Aula",aulaTypes)] },
+    { t:"5 · Tener", how:L("Level 5: TENER (to have) — and why Spanish HAS hunger instead of BEING hungry.","Nivel 5: TENER — y por qué en español TIENES hambre en vez de ESTAR hambriento."), parts:[Cards(tenerCards), Cards(idiomCards), Deck("tn","5 Tener",tenerQs), Typer("tnT","5 Tener",tenerT)] },
+    { t:"6 · La hora", how:L("Level 6: Read the clock and learn the days — the planets are hiding in the names!","Nivel 6: lee el reloj y aprende los días — ¡los planetas se esconden en los nombres!"), parts:[Cards(timeCards), Deck("tm","6 Hora",clockQs), Typer("tmT","6 Hora",timeT), Cards(dayCards), Deck("dy","6 Hora",dayQs)] },
+    { t:"7 · Escuelas", how:L("Level 7: Question words and school systems around the Spanish-speaking world.","Nivel 7: palabras interrogativas y sistemas escolares del mundo hispanohablante."), parts:[Cards(qwCards), Deck("qw","7 Escuelas",qwQs), Cards(schoolCards), Deck("sc","7 Escuelas",schoolQs)] },
+    { t:"8 · Mi Trabajo", how:L("Final project: your dream-job schedule — it reuses Unit 1 and Unit 2 together.","Proyecto final: tu horario de trabajo ideal — reúne la Unidad 1 y la Unidad 2."), parts:[JobBuilder] }
+  ];
+  const STAGES_LABELS = ["Repaso","El Showdown","Estoy…","El Aula","Tener","La hora","Escuelas","Mi Trabajo"];
+
+  /* ---- SER or ESTAR sort buttons ---- */
+  function serEstarSort(slot, done) {
+    const k = "sesort", items = stateSort;
+    const i = S.p[k] || 0; if (i >= items.length) { done(); return; }
+    const it = items[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${items.length}</div><div class="vis"><div class="wordcard es">${it.n}</div></div><div class="sortbtns"><button type="button" class="chip sb sb--m" data-a="ser"><b>SER</b><small>${L("who you are","quién eres")}</small></button><button type="button" class="chip sb sb--f" data-a="estar"><b>ESTAR</b><small>${L("state / place","estado / lugar")}</small></button></div><div class="fb" role="status"></div>`;
+    const fb = slot.querySelector(".fb");
+    slot.querySelectorAll(".sb").forEach(b => b.addEventListener("click", () => {
+      tries++;
+      if (b.dataset.a === it.a) { slot.querySelectorAll(".sb").forEach(x => x.disabled = true); b.classList.add("is-ok"); fb.className = "fb good"; fb.textContent = "¡Correcto! " + it.why; award("3 Estados", it.n + ": SER or ESTAR?", it.a, tries, true, b); speak(it.n); setTimeout(() => { S.p[k] = i + 1; sim.saveState(); serEstarSort(slot, done); }, 1400); }
+      else { b.classList.add("is-bad"); b.disabled = true; fb.className = "fb bad"; fb.textContent = L("Not that one. ","Esa no. ") + it.why; if (tries >= 2) { award("3 Estados", it.n + ": SER or ESTAR?", b.dataset.a, tries, false); slot.querySelectorAll(".sb").forEach(x => { x.disabled = true; if (x.dataset.a === it.a) x.classList.add("is-ok"); }); setTimeout(() => { S.p[k] = i + 1; sim.saveState(); serEstarSort(slot, done); }, 2600); } }
+    }));
+  }
+
+  function paint() {
+    body.innerHTML = ""; hud();
+    if (S.stage >= STAGE_DEFS.length) { finale(); return; }
+    const def = STAGE_DEFS[S.stage];
+    globe.flyTo(STAGE_STOP[S.stage]);
+    const slot = panel(def.t, def.how);
+    parts(slot, "st" + S.stage, def.parts, () => {
+      slot.innerHTML = `<p class="fb good">${L("¡Nivel completo!","¡Nivel completado!")}</p>`;
+      nextBtn(slot, S.stage < STAGE_DEFS.length - 1 ? L("Next level →","Siguiente nivel →") : L("Finish Unit 2 →","Terminar la Unidad 2 →"), () => { S.stage++; sim.saveState(); paint(); window.scrollTo({ top: host.offsetTop - 20, behavior: reduced() ? "auto" : "smooth" }); });
+    });
+  }
+  function finale() {
+    body.innerHTML = `<div class="done-card"><h3>¡Unidad 2 completa!</h3><div class="big">${rankFor(S.xp)}</div><p>${S.xp} XP · ${L("best streak","mejor racha")} ${S.best} · ${S.firstTry} ${L("first-try answers","respuestas a la primera")}</p><p>${L("Scroll down to check your Record, answer Explain and Apply, and generate your evidence PDF.","Baja para revisar tu Registro, responder Explica y Aplica, y generar tu PDF de evidencias.")}</p></div>`;
+    bonusSection();
+  }
+
+
+
+  /* ---- bonus: El Duelo — SER vs ESTAR tug-of-war (auto-battler tug, 2 min wall-clock, no fail state) ---- */
+  const DUEL = [
+    ["La pizarra ___ en el aula.","estar",L("Location → ESTAR","Ubicación → ESTAR"),"pizarra"],["Yo ___ de Nueva Zelanda.","ser",L("Origin → SER","Origen → SER")],["Mi mochila ___ en casa.","estar",L("Location → ESTAR","Ubicación → ESTAR"),"mochila"],
+    ["___ las cuatro y media.","ser",L("Time → SER","Hora → SER")],["Ella ___ cansada hoy.","estar",L("Feeling now → ESTAR","Sentimiento ahora → ESTAR")],["Tú ___ inteligente.","ser",L("Trait → SER","Rasgo → SER")],
+    ["Mi ordenador ___ nuevo.","ser",L("Description → SER","Descripción → SER"),"ordenador"],["Nosotros ___ en la escuela.","estar",L("Location → ESTAR","Ubicación → ESTAR")],["El bolígrafo ___ azul.","ser",L("Colour/description → SER","Color/descripción → SER"),"boligrafo"],
+    ["Ellos ___ tristes.","estar",L("Emotion → ESTAR","Emoción → ESTAR")],["Madrid ___ en España.","estar",L("Location → ESTAR","Ubicación → ESTAR")],["Ustedes ___ estudiantes.","ser",L("Identity → SER","Identidad → SER")],
+    ["El cuaderno ___ en la mesa.","estar",L("Location → ESTAR","Ubicación → ESTAR"),"cuaderno"],["Vosotros ___ de España.","ser",L("Origin → SER","Origen → SER")],["La sopa ___ fría.","estar",L("Condition now → ESTAR","Condición ahora → ESTAR")],
+    ["El lápiz ___ amarillo.","ser",L("Description → SER","Descripción → SER"),"lapiz"],["Hoy ___ lunes.","ser",L("Day → SER","Día → SER")],["Yo ___ enfermo.","estar",L("Condition → ESTAR","Condición → ESTAR")]
+  ];
+  function bonusSection() {
+    const box = host.querySelector("#bonus"); if (!box || box.dataset.on) return; box.dataset.on = "1";
+    box.innerHTML = `<div class="duelc"><div class="row-label">${L("Bonus round","Ronda extra")}</div><h3 class="pz-title">${L("El Duelo: SER vs ESTAR","El Duelo: SER vs ESTAR")}</h3><p>${L("Tug of war! Pick SER or ESTAR for each sentence. Right answers pull the flag to your side. 2 minutes, no lives — a wrong pick just resets your streak.","¡Tira y afloja! Elige SER o ESTAR en cada frase. Los aciertos tiran de la bandera. 2 minutos, sin vidas: un fallo solo reinicia tu racha.")}</p><button type="button" class="btn btn--signal" id="dgo">🎮 ${L("Play (2 min)","Jugar (2 min)")}</button> <button type="button" class="btn" id="dsk">${L("Skip →","Saltar →")}</button></div>`;
+    box.querySelector("#dsk").onclick = () => { box.innerHTML = ""; box.dataset.on = ""; };
+    box.querySelector("#dgo").onclick = () => play();
+    function play() {
+      const DUR = 120000, t0 = Date.now(); let score = 0, streak = 0, best = 0, hits = 0, total = 0, pos = 50, idx = 0, locked = false, timer = null, qTimer = null;
+      const order = shuffle(DUEL);
+      box.innerHTML = `<div class="duelc"><div class="duel-hud"><span>${L("Time","Tiempo")} <b id="dt">2:00</b></span><span>${L("Score","Puntos")} <b id="ds">0</b></span><span>🔥 <b id="dk">0</b></span><button type="button" class="chip" id="dm" style="min-height:30px;padding:.1em .6em" aria-pressed="false">${muted ? "🔇" : "🔊"}</button></div>
+        <div class="rope"><span class="rope__l">SER</span><div class="rope__track"><i class="rope__flag" id="fl" style="left:50%"></i></div><span class="rope__r">ESTAR</span></div>
+        <div class="vis" id="dv"></div><p class="duel-q es" id="dq"></p><div class="sortbtns"><button type="button" class="chip sb sb--m" data-a="ser"><b>SER</b><small>1</small></button><button type="button" class="chip sb sb--f" data-a="estar"><b>ESTAR</b><small>2</small></button></div><div class="fb" id="df" role="status"></div></div>`;
+      const q = (s) => box.querySelector(s);
+      q("#dm").onclick = (e) => { muted = !muted; if (muted) { try { speechSynthesis.cancel(); } catch (x) {} setTTS(false); } e.currentTarget.textContent = muted ? "🔇" : "🔊"; };
+      const flag = (p) => { pos = Math.max(0, Math.min(100, p)); q("#fl").style.left = pos + "%"; };
+      const hudT = () => { const left = Math.max(0, DUR - (Date.now() - t0)); q("#dt").textContent = Math.floor(left / 60000) + ":" + String(Math.floor(left % 60000 / 1000)).padStart(2, "0"); q("#ds").textContent = score; q("#dk").textContent = streak; };
+      function next() {
+        locked = false; clearTimeout(qTimer); const it = order[idx % order.length]; idx++;
+        q("#dq").textContent = it[0]; q("#df").textContent = ""; q("#dv").innerHTML = it[3] ? IMG(it[3], 110) : "";
+        box.querySelectorAll(".sb").forEach(b => { b.disabled = false; b.classList.remove("is-ok", "is-bad"); b.onclick = () => answer(b, it); });
+        qTimer = setTimeout(() => { if (locked) return; locked = true; total++; streak = 0; flag(pos - 5); q("#df").className = "fb bad"; q("#df").textContent = L("Time! ","¡Tiempo! ") + it[2]; setTimeout(() => { if (Date.now() - t0 < DUR) next(); }, 1600); }, 9000);
+      }
+      function answer(b, it) {
+        if (locked) return; locked = true; clearTimeout(qTimer); total++;
+        const ok = b.dataset.a === it[1];
+        if (ok) { hits++; streak++; best = Math.max(best, streak); score += 10 + Math.min(streak, 5) * 2; flag(pos + 6 + Math.min(streak, 4)); b.classList.add("is-ok"); q("#df").className = "fb good"; q("#df").textContent = "¡Sí! " + it[2]; sim.recordTrial({ nivel:"Bonus", tarea:it[0], respuesta:it[1], correcto:"Yes", intentos:1 }); burst(b); }
+        else { streak = 0; flag(pos - 8); b.classList.add("is-bad"); q("#df").className = "fb bad"; q("#df").textContent = L("Answer: ","Respuesta: ") + it[1].toUpperCase() + ". " + it[2]; }
+        hudT(); setTimeout(() => { if (Date.now() - t0 < DUR) next(); }, ok ? 1000 : 2000);
+      }
+      const keyH = (e) => { if (!document.body.contains(box.querySelector(".duelc"))) { document.removeEventListener("keydown", keyH); return; } if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return; if (e.key === "1") box.querySelector('.sb[data-a="ser"]').click(); if (e.key === "2") box.querySelector('.sb[data-a="estar"]').click(); };
+      document.addEventListener("keydown", keyH);
+      timer = setInterval(() => { hudT(); if (Date.now() - t0 >= DUR) { clearInterval(timer); clearTimeout(qTimer); document.removeEventListener("keydown", keyH); end(); } }, 250);
+      function end() {
+        box.innerHTML = `<div class="duelc"><h3 class="pz-title">${L("¡Duelo terminado!","¡Duelo terminado!")}</h3><p>${L("Score","Puntos")} <b>${score}</b> · ${L("Accuracy","Precisión")} <b>${total ? Math.round(hits / total * 100) : 0}%</b> · ${L("Best streak","Mejor racha")} <b>${best}</b></p><p class="row-label">${L("Remember: SER = who/what/when it is; ESTAR = where and how you are.","Recuerda: SER = quién/qué/cuándo es; ESTAR = dónde y cómo estás.")}</p><button type="button" class="btn btn--signal" id="dag">${L("Play again","Jugar otra vez")}</button> <button type="button" class="btn" id="dcl">${L("Close","Cerrar")}</button></div>`;
+        box.querySelector("#dag").onclick = () => play(); box.querySelector("#dcl").onclick = () => { box.innerHTML = ""; box.dataset.on = ""; };
+        sim.toast(L(`El Duelo: score ${score}, ${total ? Math.round(hits / total * 100) : 0}% accuracy.`, `El Duelo: ${score} puntos, ${total ? Math.round(hits / total * 100) : 0}% de precisión.`), "info");
+      }
+      next(); hudT();
+    }
+  }
+
+  paint();
+  fetch("photos/aula/credits.json").then(r => r.json()).then(c => {
+    const d = document.createElement("details"); d.className = "credit"; d.style.marginTop = "var(--sp-4)";
+    d.innerHTML = "<summary>Photo credits (Wikimedia Commons)</summary>" + Object.entries(c).map(([k, v]) => `<div>${k}: <a href="${v.page}" target="_blank" rel="noopener noreferrer">${v.file.replace("File:", "")}</a> — ${v.author || "unknown"} (${v.license})</div>`).join("");
+    host.append(d);
+  }).catch(() => {});
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
