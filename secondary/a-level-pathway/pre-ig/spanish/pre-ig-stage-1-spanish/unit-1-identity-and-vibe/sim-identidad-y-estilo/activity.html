@@ -548,7 +548,7 @@ function drawInvestigate(host, sim) {
   const IntroBuilder = (slot, next) => {
     const I = S.intro = S.intro || { greet:"", name:"", from:"", fem:null, trait:"", bye:"" };
     const TRAITS = [["creativo","creativa","creative"],["simpático","simpática","nice"],["inteligente","inteligente","intelligent"],["alto","alta","tall"],["feliz","feliz","happy"],["rubio","rubia","blond"],["moreno","morena","dark-haired"],["bajo","baja","short"]];
-    const FROM = NATIONS.map(n => n.n).concat(["los Estados Unidos","Nueva Zelanda","Inglaterra","Canadá","Francia","Alemania","Italia","Brasil","China","la India"]);
+    const FROM = NATIONS.map(n => n.n).concat(["los Estados Unidos","Nueva Zelanda","Inglaterra","Escocia","Gales","Irlanda","Canadá","Australia","Francia","Alemania","Italia","Portugal","Brasil","Japón","Corea del Sur","China","la India","Rusia","Turquía","Sudáfrica","Nigeria","Egipto","Marruecos","Filipinas","Tailandia","Vietnam","Indonesia"]).sort((a, b) => a.replace(/^(los|la) /, "").localeCompare(b.replace(/^(los|la) /, ""), "es"));
     const mk = () => {
       const tr = TRAITS.find(t => t[0] === I.trait); const adj = tr ? (I.fem ? tr[1] : tr[0]) : "…";
       const line = [I.greet || "…", `Me llamo ${I.name || "…"}.`, `Soy de ${I.from || "…"}.`, `Soy ${adj}.`, I.bye || "…"];
@@ -557,7 +557,7 @@ function drawInvestigate(host, sim) {
     slot.innerHTML = `<p>${L("Build your 15-second video intro. Choose, then type it out yourself to lock it in!","Crea tu presentación de 15 segundos. ¡Elige y luego escríbela tú para que se te quede!")}</p>
       <p class="row-label">1 · ${L("Greeting (pick a style)","Saludo (elige un estilo)")}</p><div class="pz-chips" id="g"></div>
       <p class="row-label">2 · ${L("Your name","Tu nombre")}</p><input type="text" class="tin es" id="nm" maxlength="14" aria-label="${L("Your name","Tu nombre")}" value="${I.name}">
-      <p class="row-label">3 · ${L("Where are you from? (Soy de…)","¿De dónde eres? (Soy de…)")}</p><select id="fr" class="tin es" aria-label="${L("Country","País")}"><option value="">—</option>${FROM.map(f => `<option ${I.from === f ? "selected" : ""}>${f}</option>`).join("")}</select>
+      <p class="row-label">3 · ${L("Where are you from? (Soy de…)","¿De dónde eres? (Soy de…)")}</p><select id="fr" class="tin es" aria-label="${L("Country","País")}"><option value="">—</option>${FROM.map(f => `<option ${I.from === f ? "selected" : ""}>${f}</option>`).join("")}<option value="__other" ${I.from && !FROM.includes(I.from) ? "selected" : ""}>${L("Other country… (type it)","Otro país… (escríbelo)")}</option></select> <input type="text" class="tin es" id="fro" maxlength="24" placeholder="${L("Type your country in Spanish","Escribe tu país en español")}" value="${I.from && !FROM.includes(I.from) ? I.from : ""}" style="${I.from && !FROM.includes(I.from) ? "" : "display:none"}" aria-label="${L("Other country","Otro país")}">
       <p class="row-label">4 · ${L("Are you a boy or a girl? (the ending changes!)","¿Eres chico o chica? (¡la terminación cambia!)")}</p><div class="pz-chips" id="gd"></div>
       <p class="row-label">5 · ${L("One personality trait","Un rasgo de personalidad")}</p><div class="pz-chips" id="tr"></div>
       <p class="row-label">6 · ${L("Goodbye","Despedida")}</p><div class="pz-chips" id="by"></div>
@@ -570,7 +570,9 @@ function drawInvestigate(host, sim) {
     chipSet("#by", [{ v:"¡Adiós!", l:"¡Adiós!" }, { v:"¡Chau!", l:"¡Chau! (Latin America)" }], "bye", o => o.l);
     slot.querySelectorAll("#by .chip").forEach((b, n) => b.addEventListener("click", () => { I.bye = ["¡Adiós!", "¡Chau!"][n]; render(); }));
     slot.querySelector("#nm").addEventListener("input", e => { I.name = e.target.value.trim(); sim.saveState(); render(); });
-    slot.querySelector("#fr").addEventListener("change", e => { I.from = e.target.value; sim.saveState(); render(); });
+    const fro = slot.querySelector("#fro");
+    slot.querySelector("#fr").addEventListener("change", e => { if (e.target.value === "__other") { fro.style.display = ""; I.from = fro.value.trim(); fro.focus(); } else { fro.style.display = "none"; I.from = e.target.value; } sim.saveState(); render(); });
+    fro.addEventListener("input", () => { I.from = fro.value.trim(); sim.saveState(); render(); });
     function render() {
       const L5 = mk(); pv.innerHTML = L5.join(" ");
       const ready = I.greet && I.name && I.from && I.fem !== null && I.trait && I.bye;
