@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Identidad y Estilo — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right}.credit a{color:inherit}
+.rule-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--sp-3);margin-top:var(--sp-3)}
+.rule-card{border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:var(--sp-3);cursor:pointer;text-align:center;font:inherit;color:inherit;transition:transform .2s,box-shadow .2s}
+.rule-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-2)}
+.rule-card img{width:100%;height:110px;object-fit:cover;border-radius:10px;display:block;margin-bottom:.5em}
+.rule-card__big{font-family:var(--font-data);font-weight:800;font-size:1.25rem;color:var(--accent)}
+.rule-card__more{margin-top:.5em;font-size:.85rem;color:var(--ink-2);display:none;text-align:left}
+.rule-card.is-open{background:var(--wash);border-color:var(--accent)}.rule-card.is-open .rule-card__more{display:block}
+.ctab{width:100%;border-collapse:collapse;font-family:var(--font-data);margin-top:.4em}
+.ctab td{padding:.15em .3em;border-bottom:1px dotted var(--line)}.ctab td:first-child{color:var(--ink-3);font-size:.8rem}
+.ctab b{color:var(--accent);text-decoration:underline;text-decoration-thickness:2px}
+@media(max-width:600px){.rule-cards{grid-template-columns:1fr}}
+
+.pz-hud{display:flex;flex-wrap:wrap;gap:.5em;align-items:center;justify-content:space-between;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:14px;padding:.7em 1em}
+.pz-hud b{font-family:var(--font-data)}
+.pz-hud__rank{font-weight:800;font-size:1.05rem}
+.pz-hud__bar{flex:1 1 140px;height:8px;background:rgba(255,255,255,.3);border-radius:99px;overflow:hidden}
+.pz-hud__bar i{display:block;height:100%;background:#fff;transition:width .5s}
+.pz-tabs{display:flex;gap:.4em;flex-wrap:wrap;margin:var(--sp-3) 0}
+.pz-tab{border:2px solid var(--line);background:var(--paper);border-radius:99px;padding:.3em .8em;font-size:.82rem;font-family:var(--font-data)}
+.pz-tab.is-now{border-color:var(--accent);background:var(--accent);color:#fff}.pz-tab.is-done{border-color:var(--positive,#2e8b57);color:var(--positive,#2e8b57)}
+.pz-panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:var(--sp-4)}
+.pz-title{font-family:var(--font-data);font-weight:800;font-size:1.15rem;color:var(--accent);margin:0}
+.pz-how{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.6em 0;font-size:.92rem}
+.pz-count{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.es{font-family:var(--font-data);font-weight:700}
+.pz-chips{display:flex;flex-wrap:wrap;gap:.5em;margin:.3em 0 .8em}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:.5em .9em;font-family:var(--font-data);font-size:1rem;cursor:pointer;color:inherit;transition:transform .12s;min-height:44px}
+.chip:hover:not(:disabled){transform:translateY(-2px)}
+.chip.is-on{border-color:var(--accent);background:var(--wash)}
+.chip.is-ok{border-color:var(--positive,#2e8b57);background:color-mix(in srgb,var(--positive,#2e8b57) 16%,var(--paper))}
+.chip.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+.chip:disabled{cursor:default}
+@keyframes pzshake{0%,100%{transform:translateX(0)}30%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+[data-reduced-motion="on"] .chip.is-bad{animation:none;outline:3px solid var(--negative,#b3392c)}
+.row-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.preview{font-family:var(--font-data);font-size:1.3rem;font-weight:700;padding:.5em .8em;border-radius:10px;background:var(--wash);margin:.5em 0;min-height:2.4em}
+.preview u{color:var(--accent);text-decoration-thickness:2px}
+.fb{min-height:1.5em;font-weight:600;margin:.4em 0}.fb.good{color:var(--positive,#2e8b57)}.fb.bad{color:var(--negative,#b3392c)}
+.pz-next{margin-top:.6em}
+.vis{display:flex;justify-content:center;margin:.6em 0}
+.cphoto{border-radius:12px;object-fit:cover;border:2px solid var(--line);background:#fff;display:block}
+
+/* globe */
+.globe-wrap{position:relative;height:280px;border-radius:14px;overflow:hidden;background:radial-gradient(#10243f,#050a16);margin-bottom:var(--sp-3);touch-action:pan-y}
+.globe-wrap canvas{width:100%;height:100%;display:block;cursor:grab}
+.globe-tag{position:absolute;left:10px;top:10px;background:rgba(5,10,22,.7);color:#fff;border-radius:99px;padding:.25em .8em;font-family:var(--font-data);font-size:.85rem}
+.globe-key{position:absolute;left:10px;bottom:8px;color:#fff;font-size:.75rem;display:flex;gap:.4em;align-items:center;background:rgba(5,10,22,.7);padding:.2em .7em;border-radius:99px}.globe-key i{width:.9em;height:.9em;border-radius:50%;background:#ff9f1c;border:2px solid #d9480f}.globe-hint{position:absolute;right:10px;bottom:8px;color:#cfe3ff;font-size:.7rem}
+.globe-fallback{display:flex;height:100%;align-items:center;justify-content:center;color:#fff;font-family:var(--font-data);text-align:center;padding:1em}
+
+/* time machine & passport & suitcase */
+.tm{width:100%;max-width:300px}
+.tm .hand{transform-origin:60px 60px;transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+.tm.rew .hand{transform:rotate(-300deg)}
+.timeword{font-family:var(--font-data);font-weight:800;font-size:1.8rem;color:var(--accent)}
+.passport{display:flex;gap:1em;align-items:center;background:#16385c;color:#fff;border-radius:12px;padding:.8em;max-width:560px;width:100%;position:relative;overflow:hidden}
+.passport img{width:120px;height:90px;border-radius:8px;object-fit:cover;border:2px solid #fff6}
+.passport .meta{font-family:var(--font-data)}.passport .meta small{opacity:.8;display:block}
+.stamp{position:absolute;right:10px;top:8px;border:3px solid #ffd27a;color:#ffd27a;border-radius:10px;padding:.1em .5em;font-family:var(--font-data);font-weight:800;transform:rotate(-12deg) scale(3);opacity:0}
+.stamp.go{animation:thump .55s ease-out forwards}
+@keyframes thump{60%{transform:rotate(-12deg) scale(.9);opacity:1}100%{transform:rotate(-12deg) scale(1);opacity:1}}
+[data-reduced-motion="on"] .stamp.go{animation:none;opacity:1;transform:rotate(-12deg)}
+.suit{position:relative;width:200px;height:120px;margin:0 auto}
+.suit .case{position:absolute;bottom:0;left:0;right:0;height:70px;background:#8a4b22;border-radius:10px;border:3px solid #4b2710}
+.suit .case::before{content:"";position:absolute;top:-14px;left:70px;width:60px;height:14px;border:3px solid #4b2710;border-bottom:0;border-radius:8px 8px 0 0}
+.suit img{position:absolute;left:62px;top:-70px;width:76px;height:76px;object-fit:cover;border-radius:10px;border:2px solid #fff;z-index:2;animation:drop .7s cubic-bezier(.5,0,.8,.5) forwards}
+@keyframes drop{70%{top:34px}85%{top:24px}100%{top:30px;opacity:.95}}
+[data-reduced-motion="on"] .suit img{animation:none;top:30px}
+
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin:.6em 0}
+.pgrid button{border:3px solid var(--line);background:var(--paper);border-radius:12px;padding:0;overflow:hidden;cursor:pointer}
+.pgrid img{width:100%;height:120px;object-fit:cover;display:block}
+.pgrid button.is-ok{border-color:var(--positive,#2e8b57)}.pgrid button.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+@media(min-width:700px){.pgrid{grid-template-columns:repeat(4,1fr)}}
+
+.chat{display:flex;flex-direction:column;gap:.4em;margin:.6em 0}
+.bubble{max-width:82%;padding:.5em .8em;border-radius:14px;font-family:var(--font-data)}
+.bubble small{display:block;font-size:.68rem;opacity:.75;text-transform:uppercase}
+.bubble.v{align-self:flex-start;background:#ffe3b5}.bubble.c{align-self:flex-end;background:#cde6ff}
+.bubble .en{display:none;font-family:var(--font-body,inherit);font-style:italic;font-weight:400;font-size:.8rem;margin-top:.2em}
+.show-en .bubble .en{display:block}
+.pool{display:flex;flex-direction:column;gap:.4em}.pool .chip{text-align:left}
+.postcard{background:#fff8ec;border:2px dashed #c58a12;border-radius:8px;padding:.8em 1em;font-family:var(--font-data);margin:.6em 0;display:flex;gap:1em;align-items:flex-start;flex-wrap:wrap}
+.postcard img{width:150px;height:112px;object-fit:cover;border-radius:6px}
+.postcard span.s{cursor:pointer;border-bottom:1px dotted var(--ink-3)}.postcard span.s:hover{background:#ffe3b5}
+.blog-en{font-size:.85rem;color:var(--ink-2);min-height:1.3em;font-style:italic}
+
+.done-card{text-align:center;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:16px;padding:var(--sp-5)}
+.done-card h3{margin:0;font-size:1.6rem}.done-card .big{font-size:2.4rem;font-weight:800;font-family:var(--font-data)}
+.burst{position:absolute;pointer-events:none;width:8px;height:8px;border-radius:50%;animation:burst .8s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+[data-reduced-motion="on"] .burst{display:none}
+
+/* Past-Tense Express (3D runner) */
+.ex{background:#0e2238;color:#fff;border-radius:16px;padding:var(--sp-3);text-align:center}
+.ex h3{margin:0;color:#ffd27a}
+.ex-hud{display:flex;justify-content:space-between;font-family:var(--font-data);font-size:.9rem;margin:.3em 0}
+.ex-q{display:flex;gap:.8em;align-items:center;justify-content:center;background:#16385c;border-radius:10px;padding:.5em .8em;margin:.4em 0;text-align:left}
+.ex-q img{width:84px;height:63px;object-fit:cover;border-radius:8px}
+.ex-q .es{font-size:1.25rem}.ex-q small{display:block;opacity:.8}
+.ex-stage{position:relative;height:260px;border-radius:12px;overflow:hidden;background:#8ecbff}
+.ex-stage canvas{width:100%;height:100%;display:block}
+.ex-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em;margin:.5em 0}
+.ex-btns button{border:3px solid transparent;border-radius:10px;padding:.7em .3em;font-family:var(--font-data);font-weight:800;font-size:1.05rem;color:#fff;cursor:pointer;min-height:48px}
+.ex-btns button.sel{outline:4px solid #fff}
+.ex-msg{min-height:1.6em;font-weight:700;color:#ffd27a}
+.ex-flat{display:flex;align-items:center;justify-content:center;height:100%;color:#0e2238;font-weight:700;padding:1em}
+
+.photo-wrap{position:relative;max-width:340px;margin:var(--sp-3) auto 0;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.photo-wrap img{width:100%;display:block}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid #fff;box-shadow:0 0 0 2px var(--accent),0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.hotspot i{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.hotspot.is-done{border-color:var(--positive,#2e8b57);box-shadow:0 0 0 2px var(--positive,#2e8b57)}.hotspot.is-done i{background:var(--positive,#2e8b57)}
+.hotspot.is-wrong{animation:hsshake .32s}
+@keyframes hsshake{0%,100%{transform:translate(-50%,-50%)}30%{transform:translate(calc(-50% - 6px),-50%)}60%{transform:translate(calc(-50% + 6px),-50%)}}
+.tin{font-family:var(--font-data);font-size:1.1rem;padding:.5em .8em;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:inherit;min-height:44px;max-width:100%}
+.tin.shake{animation:pzshake .35s}
+.chiprow{display:flex;gap:.5em;flex-wrap:wrap;align-items:center;margin:.5em 0}
+.sortbtns{display:grid;grid-template-columns:1fr 1fr;gap:.6em;margin:.6em 0}
+.sb{display:flex;flex-direction:column;align-items:center;padding:.9em .4em;font-size:1.1rem}.sb small{font-weight:400;opacity:.8}
+.sb--m{border-color:#2d62c8}.sb--f{border-color:#d2562b}
+.wordcard{font-size:2rem;padding:.8em 1.2em;background:var(--wash);border-radius:14px;border:2px solid var(--line)}
+.info{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.5em 0;min-height:2.6em}
+.listen{min-height:36px;padding:.2em .8em;font-size:.85rem;margin-top:.4em}
+.rule-card .listen{display:inline-block}
+.photo-wrap+.credit{text-align:center}
+
+</style>
+<meta name="description" content="True-beginner Spanish, Unit 1: Identity & Vibe. Sounds, greetings, pronouns, the verb ser, el/la, numbers 0-30, adjectives and a TikTok-style video intro, with a 3D globe of the 21 Spanish-speaking nations.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Discovery Lab"><meta property="og:title" content="Identidad y Estilo | Discovery Lab">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+<main id="main" class="shell"><div id="lab-root"></div></main>
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=21";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+import { setTTS } from "../../../../../../../engine/accessibility.js?v=6";
+import { mountConveyorSort, renderConveyorLaunch } from "../../../../../../../engine/conveyor.js?v=3";
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstElementChild; };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const loadThree = () => new Promise((res, rej) => { if (window.THREE) return res(window.THREE); const s = document.createElement("script"); s.src = THREE_URL; s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("no THREE")); s.onerror = rej; document.head.appendChild(s); });
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* ================= GLOBE (3D hero scene) ================= */
+function earthTexture(THREE, WORLD) {
+  const W = 4096, H = 2048, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  const X = (lon) => (lon + 180) / 360 * W, Y = (lat) => (90 - lat) / 180 * H;
+  const og = g.createLinearGradient(0, 0, 0, H); og.addColorStop(0, "#0b3a6e"); og.addColorStop(.5, "#0f6fb8"); og.addColorStop(1, "#0b3a6e"); g.fillStyle = og; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(255,255,255,${Math.random() * .035})`; g.fillRect(Math.random() * W, Math.random() * H, 20 + Math.random() * 90, 2 + Math.random() * 4); }
+  const path = (pl) => { g.beginPath(); pl.forEach(ring => ring.forEach(([lo, la], k) => k ? g.lineTo(X(lo), Y(la)) : g.moveTo(X(lo), Y(la)))); };
+  // coastal shallow-water halo
+  g.save(); g.shadowColor = "rgba(90,200,230,.9)"; g.shadowBlur = 26; g.fillStyle = "#2a9d8f";
+  WORLD.forEach(c0 => c0.p.forEach(pl => { path(pl); g.fill("evenodd"); })); g.restore();
+  // land: natural terrain by latitude for the rest of the world, vivid gold for the Spanish-speaking world
+  WORLD.forEach(c0 => c0.p.forEach(pl => {
+    path(pl);
+    const lg = g.createLinearGradient(0, 0, 0, H);
+    if (c0.s) { lg.addColorStop(0, "#ffd23f"); lg.addColorStop(.5, "#ff9f1c"); lg.addColorStop(1, "#ffd23f"); }
+    else { lg.addColorStop(0, "#e6ede6"); lg.addColorStop(.14, "#7a9a5a"); lg.addColorStop(.3, "#5f8a45"); lg.addColorStop(.48, "#4d8a3a"); lg.addColorStop(.58, "#c2a867"); lg.addColorStop(.68, "#5a9140"); lg.addColorStop(.88, "#8fa56a"); lg.addColorStop(1, "#f2f6f2"); }
+    g.fillStyle = lg; g.fill("evenodd");
+    g.lineWidth = c0.s ? 2.4 : 1.2; g.strokeStyle = c0.s ? "#d9480f" : "rgba(30,50,20,.55)"; g.lineJoin = "round"; g.stroke();
+  }));
+  // Equatorial Guinea is tiny: add a glowing ring so it still stands out
+  const gx = X(10.4), gy = Y(1.8); const rg = g.createRadialGradient(gx, gy, 4, gx, gy, 46); rg.addColorStop(0, "rgba(255,210,63,.95)"); rg.addColorStop(.4, "rgba(255,159,28,.55)"); rg.addColorStop(1, "rgba(255,159,28,0)"); g.fillStyle = rg; g.beginPath(); g.arc(gx, gy, 46, 0, 6.3); g.fill();
+  g.lineWidth = 4; g.strokeStyle = "#d9480f"; g.beginPath(); g.arc(gx, gy, 22, 0, 6.3); g.stroke();
+  const t = new THREE.CanvasTexture(c); if ("encoding" in t) t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+function cloudTexture(THREE) {
+  const W = 512, H = 256, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  for (let i = 0; i < 160; i++) { const x = Math.random() * W, y = 30 + Math.random() * (H - 60), r = 6 + Math.random() * 22; const rg = g.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, "rgba(255,255,255,.55)"); rg.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  return new THREE.CanvasTexture(c);
+}
+function glowTexture(THREE, col) {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const rg = g.createRadialGradient(64, 64, 20, 64, 64, 64); rg.addColorStop(0, col); rg.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = rg; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+async function mountGlobe(wrap, tag) {
+  let WORLD = []; try { WORLD = await (await fetch("world.json")).json(); } catch (e) { WORLD = []; }
+  let THREE; try { THREE = await loadThree(); } catch (e) { THREE = null; }
+  const test = document.createElement("canvas"); const gl = test.getContext("webgl") || test.getContext("experimental-webgl");
+  const api = { flyTo() {}, dispose() {} };
+  if (!THREE || !gl) { wrap.innerHTML = `<div class="globe-fallback">Your device cannot show the 3D globe — no problem! Your plane still follows you: <br><b id="gf"></b></div>`; api.flyTo = (i) => { const f = wrap.querySelector("#gf"); if (f) f.textContent = "✈ " + STOPS[Math.min(i, STOPS.length - 1)].n; }; return api; }
+  const w = wrap.clientWidth || 600, h = wrap.clientHeight || 280;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(w, h);
+  if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  wrap.prepend(renderer.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(40, w / h, .1, 100); cam.position.set(0, 0, 6.2);
+  scene.add(new THREE.AmbientLight(0x6688aa, .6)); const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(4, 2, 5); scene.add(sun);
+  const stars = (() => { const n = 500, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const r = 30 + Math.random() * 20, a = Math.random() * 6.28, b = Math.acos(2 * Math.random() - 1); p[i * 3] = r * Math.sin(b) * Math.cos(a); p[i * 3 + 1] = r * Math.cos(b); p[i * 3 + 2] = r * Math.sin(b) * Math.sin(a); } const gm = new THREE.BufferGeometry(); gm.setAttribute("position", new THREE.BufferAttribute(p, 3)); const s = new THREE.Points(gm, new THREE.PointsMaterial({ color: 0xffffff, size: .12 })); scene.add(s); return s; })();
+  const globe = new THREE.Group(); scene.add(globe); const R = 2;
+  globe.add(new THREE.Mesh(new THREE.SphereGeometry(R, 64, 48), new THREE.MeshStandardMaterial({ map: earthTexture(THREE, WORLD), roughness: .85, metalness: 0 })));
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(R * 1.012, 48, 36), new THREE.MeshBasicMaterial({ map: cloudTexture(THREE), transparent: true, opacity: .55, depthWrite: false })); globe.add(clouds);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(110,180,255,.9)"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(R * 3.1, R * 3.1, 1); scene.add(halo);
+  const ll = (lat, lon, r) => { const ph = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)); };
+  const pins = STOPS.map(s => { const m = new THREE.Mesh(new THREE.SphereGeometry(.05, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffd27a })); m.position.copy(ll(s.lat, s.lon, R * 1.01)); globe.add(m); const gl2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(255,200,80,.9)"), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); gl2.scale.set(.4, .4, 1); gl2.position.copy(m.position); globe.add(gl2); return { m, gl2 }; });
+  const plane = new THREE.Group(); const body = new THREE.Mesh(new THREE.ConeGeometry(.045, .2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff })); body.rotation.x = Math.PI / 2; plane.add(body);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(.2, .01, .06), new THREE.MeshStandardMaterial({ color: 0xd2562b })); plane.add(wing); globe.add(plane); plane.position.copy(ll(STOPS[0].lat, STOPS[0].lon, R * 1.04));
+  const trailN = 60, trailPos = new Float32Array(trailN * 3), tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.BufferAttribute(trailPos, 3)); const trail = new THREE.Line(tg, new THREE.LineBasicMaterial({ color: 0xffd27a })); trail.frustumCulled = false; globe.add(trail);
+  let trailLen = 0; const pushTrail = (v) => { for (let i = Math.min(trailLen, trailN - 1); i > 0; i--) { trailPos[i * 3] = trailPos[(i - 1) * 3]; trailPos[i * 3 + 1] = trailPos[(i - 1) * 3 + 1]; trailPos[i * 3 + 2] = trailPos[(i - 1) * 3 + 2]; } trailPos[0] = v.x; trailPos[1] = v.y; trailPos[2] = v.z; trailLen = Math.min(trailLen + 1, trailN); tg.setDrawRange(0, trailLen); tg.attributes.position.needsUpdate = true; };
+  let cur = 0, fly = null, spin = 0, drag = null, userY = 0, userX = 0, focus = new THREE.Quaternion();
+  const faceQ = (i) => { const v = ll(STOPS[i].lat, STOPS[i].lon, 1).normalize(); const q = new THREE.Quaternion().setFromUnitVectors(v, new THREE.Vector3(0, .25, 1).normalize()); return q; };
+  focus.copy(faceQ(0)); globe.quaternion.copy(focus);
+  api.flyTo = (i) => { i = Math.min(i, STOPS.length - 1); if (i === cur) return; fly = { a: cur, b: i, t0: performance.now(), dur: reduced() ? 1 : 2600 }; tag.textContent = "✈ " + STOPS[cur].n + " → " + STOPS[i].n; cur = i; };
+  const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", e => { if (!drag) return; userY += (e.clientX - drag.x) * .008; userX += (e.clientY - drag.y) * .008; drag = { x: e.clientX, y: e.clientY }; });
+  const up = () => { drag = null; cv.style.cursor = "grab"; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  let alive = true, raf = 0, last = performance.now();
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), P = new THREE.Vector3();
+  const loop = (now) => {
+    if (!alive) return; raf = requestAnimationFrame(loop); const dt = Math.min(.05, (now - last) / 1000); last = now;
+    clouds.rotation.y += dt * (reduced() ? 0 : .05); stars.rotation.y += dt * (reduced() ? 0 : .01);
+    pins.forEach((p, i) => { const s = 1 + (reduced() ? 0 : .25 * Math.sin(now / 350 + i)); p.gl2.scale.set(.4 * s, .4 * s, 1); p.gl2.material.opacity = i <= cur ? 1 : .35; });
+    if (fly) {
+      const k = Math.min(1, (now - fly.t0) / fly.dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      A.copy(ll(STOPS[fly.a].lat, STOPS[fly.a].lon, 1)).normalize(); B.copy(ll(STOPS[fly.b].lat, STOPS[fly.b].lon, 1)).normalize();
+      const om = Math.acos(Math.max(-1, Math.min(1, A.dot(B)))) || .001; const sa = Math.sin((1 - e) * om) / Math.sin(om), sb = Math.sin(e * om) / Math.sin(om);
+      P.copy(A).multiplyScalar(sa).addScaledVector(B, sb).normalize(); const alt = 1.03 + Math.sin(e * Math.PI) * .22; const prev = plane.position.clone(); plane.position.copy(P).multiplyScalar(R * alt);
+      plane.lookAt(plane.position.clone().add(plane.position.clone().sub(prev).multiplyScalar(5))); pushTrail(plane.position);
+      const fq = faceQ(fly.a).slerp(faceQ(fly.b), e); focus.copy(fq);
+      if (k >= 1) { fly = null; tag.textContent = "📍 " + STOPS[cur].n; trailLen = 0; tg.setDrawRange(0, 0); }
+    }
+    const uq = new THREE.Quaternion().setFromEuler(new THREE.Euler(userX, userY, 0));
+    if (!drag && !fly) { userY *= .97; userX *= .97; if (!reduced()) { spin += dt * .12; } }
+    globe.quaternion.copy(uq).multiply(focus); globe.rotateY(0); if (!reduced()) globe.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0); const wob = reduced() ? 0 : Math.sin(spin * 3) * .04; globe.rotation.z += 0; cam.position.x = Math.sin(spin) * .15; cam.position.y = wob; cam.lookAt(0, 0, 0);
+    renderer.render(scene, cam);
+  };
+  raf = requestAnimationFrame(loop);
+  api.dispose = () => { alive = false; cancelAnimationFrame(raf); renderer.dispose(); };
+  const ro = new ResizeObserver(() => { const ww = wrap.clientWidth, hh = wrap.clientHeight; if (ww && hh) { renderer.setSize(ww, hh); cam.aspect = ww / hh; cam.updateProjectionMatrix(); } }); ro.observe(wrap);
+  tag.textContent = "📍 " + STOPS[0].n;
+  return api;
+}
+
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const strip = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[¡!¿?.,]/g, "").replace(/\s+/g, " ").trim();
+const ART = { el: "m", la: "f" };
+
+/* 21 Spanish-speaking nations (20 countries + Puerto Rico) */
+const NATIONS = [
+  { n:"España", r:"E", cap:"Madrid", lat:40.4, lon:-3.7 },
+  { n:"Guinea Ecuatorial", r:"A", cap:"Malabo", lat:3.75, lon:8.78 },
+  { n:"México", r:"N", cap:"Ciudad de México", lat:19.4, lon:-99.1 },
+  { n:"Guatemala", r:"C", cap:"Ciudad de Guatemala", lat:14.6, lon:-90.5 },
+  { n:"Honduras", r:"C", cap:"Tegucigalpa", lat:14.1, lon:-87.2 },
+  { n:"El Salvador", r:"C", cap:"San Salvador", lat:13.7, lon:-89.2 },
+  { n:"Nicaragua", r:"C", cap:"Managua", lat:12.1, lon:-86.3 },
+  { n:"Costa Rica", r:"C", cap:"San José", lat:9.9, lon:-84.1 },
+  { n:"Panamá", r:"C", cap:"Ciudad de Panamá", lat:9.0, lon:-79.5 },
+  { n:"Cuba", r:"K", cap:"La Habana", lat:23.1, lon:-82.4 },
+  { n:"República Dominicana", r:"K", cap:"Santo Domingo", lat:18.5, lon:-69.9 },
+  { n:"Puerto Rico", r:"K", cap:"San Juan", lat:18.4, lon:-66.1 },
+  { n:"Colombia", r:"S", cap:"Bogotá", lat:4.7, lon:-74.1 },
+  { n:"Venezuela", r:"S", cap:"Caracas", lat:10.5, lon:-66.9 },
+  { n:"Ecuador", r:"S", cap:"Quito", lat:-0.2, lon:-78.5 },
+  { n:"Perú", r:"S", cap:"Lima", lat:-12.0, lon:-77.0 },
+  { n:"Bolivia", r:"S", cap:"La Paz / Sucre", lat:-16.5, lon:-68.1 },
+  { n:"Chile", r:"S", cap:"Santiago", lat:-33.4, lon:-70.7 },
+  { n:"Argentina", r:"S", cap:"Buenos Aires", lat:-34.6, lon:-58.4 },
+  { n:"Uruguay", r:"S", cap:"Montevideo", lat:-34.9, lon:-56.2 },
+  { n:"Paraguay", r:"S", cap:"Asunción", lat:-25.3, lon:-57.6 }
+];
+const REGION = { E:["Europe","Europa"], A:["Africa","África"], N:["North America","Norteamérica"], C:["Central America","Centroamérica"], K:["The Caribbean","El Caribe"], S:["South America","Sudamérica"] };
+/* globe stops: the 21 nations, plus the Canary Islands and the USA */
+const STOPS = NATIONS.map(n => ({ n:n.n, lat:n.lat, lon:n.lon })).concat([{ n:"Islas Canarias", lat:28.3, lon:-16.6 }, { n:"Estados Unidos", lat:34.0, lon:-98.0 }]);
+const STOP = (name) => STOPS.findIndex(s => s.n === name);
+const STAGE_STOP = [STOP("España"), STOP("Islas Canarias"), STOP("México"), STOP("España"), STOP("Argentina"), STOP("Colombia"), STOP("Perú"), STOP("Chile"), STOP("Estados Unidos")];
+const RANKS = [[0,"Novato/a"],[100,"Curioso/a"],[250,"Explorador/a"],[420,"Hablante"],[600,"Embajador/a del Español"]];
+const rankFor = (xp) => RANKS.filter(r => xp >= r[0]).pop()[1];
+
+const WORDS_0_30 = ["cero","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez","once","doce","trece","catorce","quince","dieciséis","diecisiete","dieciocho","diecinueve","veinte","veintiuno","veintidós","veintitrés","veinticuatro","veinticinco","veintiséis","veintisiete","veintiocho","veintinueve","treinta"];
+const PRON = [
+  { p:"Yo", en:"I", v:"soy", ex:"Yo soy alto.", exen:"I am tall." },
+  { p:"Tú", en:"you (friend)", v:"eres", ex:"Tú eres inteligente.", exen:"You are intelligent." },
+  { p:"Él / Ella / Usted", en:"he / she / you (formal)", v:"es", ex:"Ella es doctora.", exen:"She is a doctor." },
+  { p:"Nosotros / Nosotras", en:"we", v:"somos", ex:"Nosotros somos amigos.", exen:"We are friends." },
+  { p:"Vosotros / Vosotras", en:"you all (Spain only)", v:"sois", ex:"Vosotros sois de España.", exen:"You all are from Spain." },
+  { p:"Ellos / Ellas / Ustedes", en:"they / you all (Latin America)", v:"son", ex:"Ellos son simpáticos.", exen:"They are nice." }
+];
+const NOUNS_PHOTO = [["falda","la","skirt"],["vestido","el","dress"],["bufanda","la","scarf"],["gorro","el","hat"],["abrigo","el","coat"],["camiseta","la","T-shirt"],["jersey","el","sweater"],["chaqueta","la","jacket"]];
+const NOUNS_TEXT = [
+  ["problema","el","problem","Ends in -ma (Greek origin): masculine!"],["sistema","el","system","Ends in -ma (Greek origin): masculine!"],
+  ["doctor","el","doctor (man)","Ends in -or: usually masculine."],["computadora","la","computer (Latin America)","Ends in -a: usually feminine."],
+  ["chica","la","girl","Ends in -a: feminine."],["chico","el","boy","Ends in -o: masculine."],
+  ["estación","la","station","Ends in -ción: feminine."],["ciudad","la","city","Ends in -dad: feminine."],
+  ["libertad","la","freedom","Ends in -tad: feminine."],["libro","el","book","Ends in -o: masculine."]
+];
+const HOTSPOTS = [
+  { key:"gorro", fx:.50, fy:.06, es:"el gorro", en:"the hat" }, { key:"guantes", fx:.65, fy:.08, es:"los guantes", en:"the gloves" },
+  { key:"abrigo", fx:.23, fy:.45, es:"el abrigo", en:"the coat" }, { key:"vestido", fx:.60, fy:.52, es:"el vestido", en:"the dress" },
+  { key:"botas", fx:.55, fy:.90, es:"las botas", en:"the boots" }
+];
+const CREDIT_OUTFIT = 'Photo: Tobias ToMar Maier — Wikimedia Commons, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>';
+
+/* ---------- speech (on click only; own mute button) ---------- */
+let muted = false;
+const speak = (txt, lang = "es-ES") => {
+  if (muted || !("speechSynthesis" in window)) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang = lang; u.rate = .8; setTimeout(() => speechSynthesis.speak(u), 60); } catch (e) {}
+};
+const listenBtn = (txt, lang) => { const b = $(`<button type="button" class="chip listen" aria-label="${L("Listen","Escuchar")}: ${txt}">🔊 ${L("Listen","Escuchar")}</button>`); b.addEventListener("click", () => speak(txt, lang)); return b; };
+
+/* ================= ORIENT ================= */
+function drawOrient(host) {
+  const cards = [
+    [L("Hours 1–3","Horas 1–3"), L("The Sounds","Los sonidos"), L("Spanish vowels never change. You will hear the difference between Spain and Latin America — and bust the “lisp” myth.","Las vocales del español no cambian. Oirás la diferencia entre España y Latinoamérica y desmentirás el mito del “ceceo del rey”."), "Hola"],
+    [L("Hours 4–7","Horas 4–7"), L("The Grammar","La gramática"), L("Pronouns (yo, tú, él…), the verb SER (to be) and el / la — the three tools for talking about who people are.","Pronombres (yo, tú, él…), el verbo SER y el / la: tres herramientas para decir quién es cada persona."), "Yo soy"],
+    [L("Hours 8–10","Horas 8–10"), L("The Details","Los detalles"), L("Numbers 0–30, adjectives and your own 15-second TikTok-style video intro.","Números 0–30, adjetivos y tu propia presentación de 15 segundos estilo TikTok."), "Uno, dos, tres"]
+  ];
+  host.innerHTML = `<p class="q__hint">${L("Tap each card, then press Listen. You do NOT need to know any Spanish yet — we start from zero.","Toca cada tarjeta y pulsa Escuchar. NO necesitas saber nada de español: empezamos desde cero.")}</p><div class="rule-cards"></div>`;
+  const wrap = host.querySelector(".rule-cards");
+  cards.forEach(([when, big, more, sp]) => {
+    const b = $(`<div class="rule-card" role="button" tabindex="0"><div class="row-label">${when}</div><div class="rule-card__big">${big}</div><div class="es" style="font-size:1.4rem">${sp}</div><div class="rule-card__more">${more}</div></div>`);
+    const open = () => { b.classList.toggle("is-open"); speak(sp); };
+    b.addEventListener("click", open); b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    wrap.append(b);
+  });
+}
+
+/* ================= INVESTIGATE ================= */
+function drawInvestigate(host, sim) {
+  sim.state.custom = sim.state.custom || {};
+  const S = sim.state.custom;
+  S.stage = S.stage || 0; S.xp = S.xp || 0; S.streak = S.streak || 0; S.best = S.best || 0; S.p = S.p || {}; S.firstTry = S.firstTry || 0; S.answered = S.answered || 0; S.disc = S.disc || [];
+  const STAGES = ["El Mundo","Sonidos","Saludos","Pronombres","SER","Género","Números","Adjetivos","Mi Intro"];
+
+  host.innerHTML = `<div class="globe-wrap" id="gw"><div class="globe-tag" id="gt"></div><div class="globe-hint">${L("drag to spin the globe","arrastra para girar el globo")}</div><div class="globe-key"><i></i>${L("Spanish-speaking world","Mundo hispanohablante")}</div></div><div class="pz-hud"><span class="pz-hud__rank" id="rk"></span><span class="pz-hud__bar"><i id="bar"></i></span><span><b id="xp"></b> XP · 🔥 <b id="st"></b> <button type="button" class="chip" id="mute" style="min-height:30px;padding:.1em .6em;font-size:.8rem" aria-pressed="false">🔊</button></span></div><div class="pz-tabs" id="tabs"></div><div id="body"></div><div id="bonus" style="margin-top:var(--sp-5)"></div>`;
+  const body = host.querySelector("#body");
+  let globe = { flyTo() {} };
+  mountGlobe(host.querySelector("#gw"), host.querySelector("#gt")).then(g => { globe = g; g.flyTo(STAGE_STOP[Math.min(S.stage, 8)]); });
+  host.querySelector("#mute").addEventListener("click", e => { muted = !muted; if (muted) { try { speechSynthesis.cancel(); } catch (x) {} setTTS(false); } e.currentTarget.textContent = muted ? "🔇" : "🔊"; e.currentTarget.setAttribute("aria-pressed", muted); e.currentTarget.setAttribute("aria-label", muted ? L("Sound off","Sonido desactivado") : L("Sound on","Sonido activado")); });
+
+  function hud() {
+    host.querySelector("#rk").textContent = rankFor(S.xp);
+    host.querySelector("#xp").textContent = S.xp; host.querySelector("#st").textContent = S.streak;
+    host.querySelector("#bar").style.width = Math.min(100, S.xp / 7) + "%";
+    host.querySelector("#tabs").innerHTML = STAGES.map((n, i) => `<span class="pz-tab ${i < S.stage ? "is-done" : i === S.stage ? "is-now" : ""}">${i + 1}. ${n}${i < S.stage ? " ✓" : ""}</span>`).join("");
+  }
+  function burst(el) {
+    if (reduced()) return;
+    const r = el.getBoundingClientRect(), root = el.closest(".pz-panel") || el, rr = root.getBoundingClientRect(); root.style.position = "relative";
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("i"); s.className = "burst";
+      s.style.left = (r.left - rr.left + r.width / 2) + "px"; s.style.top = (r.top - rr.top + r.height / 2) + "px";
+      s.style.background = ["#f0a030", "#1a7f8e", "#0e3a5f", "#2e8b57"][i % 4];
+      const a = Math.random() * 6.28, d = 30 + Math.random() * 50; s.style.setProperty("--dx", Math.cos(a) * d + "px"); s.style.setProperty("--dy", Math.sin(a) * d + "px");
+      root.append(s); setTimeout(() => s.remove(), 850);
+    }
+  }
+  function award(nivel, tarea, respuesta, tries, ok, anchor) {
+    if (ok) { S.xp += tries === 1 ? 10 + Math.min(S.streak, 5) * 2 : 5; S.streak = tries === 1 ? S.streak + 1 : 0; if (tries === 1) S.firstTry++; }
+    else S.streak = 0;
+    S.best = Math.max(S.best, S.streak); S.answered++;
+    sim.recordTrial({ nivel, tarea, respuesta, correcto: ok ? "Yes" : "No", intentos: tries });
+    if (ok && anchor) burst(anchor);
+    sim.saveState(); hud();
+  }
+  const panel = (title, how) => { const p = $(`<section class="pz-panel"><h3 class="pz-title">${title}</h3><div class="pz-how">${how}</div><div class="slot"></div></section>`); body.append(p); return p.querySelector(".slot"); };
+  const nextBtn = (slot, label, fn) => { const b = $(`<button type="button" class="btn btn--signal pz-next">${label}</button>`); b.addEventListener("click", fn); slot.append(b); };
+
+  /* run a list of parts one after another; progress persists */
+  function parts(slot, key, fns, done) {
+    const i = S.p[key] || 0;
+    if (i >= fns.length) { done(); return; }
+    slot.innerHTML = `<div class="pz-count">${L("Part","Parte")} ${i + 1} / ${fns.length}</div><div class="part"></div>`;
+    fns[i](slot.querySelector(".part"), () => { S.p[key] = i + 1; sim.saveState(); parts(slot, key, fns, done); });
+  }
+
+  /* ---- flip cards: learn first (scaffold) ---- */
+  const Cards = (cards, intro) => (slot, next) => {
+    slot.innerHTML = `${intro ? `<p>${intro}</p>` : ""}<div class="rule-cards"></div><div class="fb" role="status"></div>`;
+    const wrap = slot.querySelector(".rule-cards"); let seen = new Set(); const need = cards.length;
+    const fb = slot.querySelector(".fb");
+    cards.forEach((c, i) => {
+      const b = $(`<div class="rule-card" role="button" tabindex="0">${c.img ? `<img src="${c.img}" alt="" style="height:90px">` : ""}<div class="rule-card__big es">${c.front}</div>${c.sub ? `<div class="row-label">${c.sub}</div>` : ""}<div class="rule-card__more">${c.back}</div></div>`);
+      if (c.say) b.append(listenBtn(c.say, c.lang));
+      const open = (e) => { if (e.target.closest(".listen")) return; b.classList.toggle("is-open"); seen.add(i); fb.textContent = `${seen.size} / ${need} ${L("cards opened","tarjetas abiertas")}`; if (seen.size === need && !slot.querySelector(".pz-next")) { S.xp += 8; hud(); sim.saveState(); nextBtn(slot, L("Practise it →","¡A practicar! →"), next); } };
+      b.addEventListener("click", open); b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e); } });
+      wrap.append(b);
+    });
+  };
+
+  /* ---- one-question-at-a-time multiple choice ---- */
+  const Deck = (id, nivel, qs) => (slot, next) => deck(slot, id, nivel, qs, next);
+  function deck(slot, k, nivel, qs, done) {
+    const i = S.p[k] || 0;
+    if (i >= qs.length) { done(); return; }
+    const q = qs[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${qs.length}</div><div class="vis">${q.visual || ""}</div><p><b>${q.q}</b></p><div class="pz-chips"></div><div class="fb" role="status"></div>`;
+    const chips = slot.querySelector(".pz-chips"), fb = slot.querySelector(".fb");
+    if (q.say) slot.querySelector(".vis").append(listenBtn(q.say, q.lang));
+    shuffle(q.opts).forEach(o => {
+      const c = $(`<button type="button" class="chip es">${o}</button>`);
+      c.addEventListener("click", () => {
+        tries++;
+        if (o === q.ok) {
+          c.classList.add("is-ok"); chips.querySelectorAll("button").forEach(b => b.disabled = true);
+          fb.className = "fb good"; fb.textContent = L("¡Correcto! ","¡Correcto! ") + (q.why || "");
+          award(nivel, q.task || q.q, o, tries, true, c);
+          setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 1500);
+        } else {
+          c.classList.add("is-bad"); c.disabled = true;
+          if (tries >= 2) {
+            chips.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === q.ok) b.classList.add("is-ok"); });
+            fb.className = "fb bad"; fb.textContent = L("The answer is: ","La respuesta es: ") + q.ok + ". " + (q.why || "");
+            award(nivel, q.task || q.q, o, tries, false);
+            setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 2800);
+          } else { fb.className = "fb bad"; fb.textContent = L("Not quite — try once more. ","Casi — inténtalo otra vez. ") + (q.hint || ""); }
+        }
+      });
+      chips.append(c);
+    });
+  }
+
+  /* ---- type-it practice (accent-tolerant) ---- */
+  const Typer = (id, nivel, items) => (slot, next) => typer(slot, id, nivel, items, next);
+  function typer(slot, k, nivel, items, done) {
+    const i = S.p[k] || 0;
+    if (i >= items.length) { done(); return; }
+    const it = items[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${items.length}</div><p><b>${it.q}</b></p><div class="chiprow"><input type="text" class="tin es" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${L("Type your answer","Escribe tu respuesta")}"> <button type="button" class="btn btn--signal go">${L("Check","Comprobar")}</button></div><div class="pz-chips acc"></div><div class="fb" role="status"></div>`;
+    const inp = slot.querySelector(".tin"), fb = slot.querySelector(".fb"), acc = slot.querySelector(".acc");
+    ["á","é","í","ó","ú","ñ","¿","¡"].forEach(ch => { const b = $(`<button type="button" class="chip" style="min-height:36px;padding:.2em .7em">${ch}</button>`); b.addEventListener("click", () => { inp.value += ch; inp.focus(); }); acc.append(b); });
+    const check = () => {
+      const v = strip(inp.value); if (!v) return; tries++;
+      const ok = it.a.some(a => strip(a) === v);
+      if (ok) {
+        fb.className = "fb good"; fb.textContent = "¡Correcto! " + (it.why || ""); inp.disabled = true; slot.querySelector(".go").disabled = true;
+        award(nivel, it.task || it.q, inp.value, tries, true, slot.querySelector(".go")); speak(it.a[0]);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); typer(slot, k, nivel, items, done); }, 1500);
+      } else if (tries >= 2) {
+        fb.className = "fb bad"; fb.textContent = L("The answer is: ","La respuesta es: ") + it.a[0] + ". " + (it.why || ""); inp.disabled = true; slot.querySelector(".go").disabled = true;
+        award(nivel, it.task || it.q, inp.value, tries, false);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); typer(slot, k, nivel, items, done); }, 3000);
+      } else { fb.className = "fb bad"; fb.textContent = L("Not quite — check the spelling and try once more. ","Casi — revisa la ortografía e inténtalo otra vez. ") + (it.hint || ""); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
+    };
+    slot.querySelector(".go").addEventListener("click", check);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  }
+
+  /* ---- Sorting Hat: el/un or la/una ---- */
+  const Sorter = (id, nivel, items) => (slot, next) => sorter(slot, id, nivel, items, next);
+  function sorter(slot, k, nivel, items, done) {
+    const i = S.p[k] || 0;
+    if (i >= items.length) { done(); return; }
+    const it = items[i]; let tries = 0;
+    const vis = it.photo ? `<img class="cphoto" src="photos/clothes/${it.n}.jpg" width="150" height="150" alt="${it.en}">` : `<div class="wordcard es">${it.n}</div>`;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${items.length}</div><div class="vis">${vis}</div><p style="text-align:center"><b class="es">${it.n}</b> <small>(${it.en})</small></p><div class="sortbtns"><button type="button" class="chip sb sb--m" data-a="el"><b>EL / UN</b><small>${L("masculine","masculino")}</small></button><button type="button" class="chip sb sb--f" data-a="la"><b>LA / UNA</b><small>${L("feminine","femenino")}</small></button></div><div class="fb" role="status"></div>`;
+    const fb = slot.querySelector(".fb");
+    slot.querySelectorAll(".sb").forEach(b => b.addEventListener("click", () => {
+      tries++;
+      if (b.dataset.a === it.a) {
+        slot.querySelectorAll(".sb").forEach(x => x.disabled = true); b.classList.add("is-ok");
+        fb.className = "fb good"; fb.textContent = `¡Correcto! ${it.a} ${it.n}. ${it.why || ""}`; award(nivel, `${it.n}: el or la?`, `${it.a} ${it.n}`, tries, true, b); speak(`${it.a} ${it.n}`);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); sorter(slot, k, nivel, items, done); }, 1400);
+      } else {
+        b.classList.add("is-bad"); b.disabled = true; fb.className = "fb bad"; fb.textContent = L("Not that one. ","Esa no. ") + (it.why || "");
+        if (tries >= 2) { award(nivel, `${it.n}: el or la?`, b.dataset.a + " " + it.n, tries, false); slot.querySelectorAll(".sb").forEach(x => { x.disabled = true; if (x.dataset.a === it.a) x.classList.add("is-ok"); }); setTimeout(() => { S.p[k] = i + 1; sim.saveState(); sorter(slot, k, nivel, items, done); }, 2600); }
+      }
+    }));
+  }
+
+  /* ---- real-photo labelling ---- */
+  const PhotoLabel = (slot, next) => {
+    const paint = () => {
+      const n = S.p.lab || 0;
+      if (n >= HOTSPOTS.length) { next(); return; }
+      const t = HOTSPOTS[n];
+      slot.innerHTML = `<p><b>${L("Tap the photo where you see:","Toca la foto donde ves:")}</b> <span class="es">${t.es}</span> <small>(${t.en})</small></p><div class="photo-wrap"><img src="photos/outfit.jpg" alt="${L("A winter outfit with a hat, gloves, coat, dress and boots","Un conjunto de invierno con gorro, guantes, abrigo, vestido y botas")}"></div><p class="credit">${CREDIT_OUTFIT}</p><p class="fb" role="status"></p>`;
+      const w = slot.querySelector(".photo-wrap"), f = slot.querySelector(".fb"); let wrong = 0;
+      HOTSPOTS.forEach((h, j) => {
+        const b = $(`<button type="button" class="hotspot" style="left:${h.fx * 100}%;top:${h.fy * 100}%" aria-label="${L("Spot","Punto")} ${j + 1}"><i></i></button>`);
+        if (j < n) b.classList.add("is-done");
+        b.addEventListener("click", () => {
+          if (h.key === t.key) { b.classList.add("is-done"); f.className = "fb good"; f.textContent = "¡Correcto! " + h.es; award("6 Foto", "Tap " + h.es, h.es, wrong + 1, true, b); S.p.lab = n + 1; sim.saveState(); setTimeout(paint, 800); }
+          else { wrong++; b.classList.remove("is-wrong"); void b.offsetWidth; b.classList.add("is-wrong"); f.className = "fb bad"; f.textContent = L("Not that one — look again for ","Esa no — busca de nuevo ") + t.en + "."; }
+        });
+        w.append(b);
+      });
+    };
+    paint();
+  };
+
+  /* ---- Mapa: discover all 21 nations on the 3D globe ---- */
+  const MapTour = (slot, next) => {
+    slot.innerHTML = `<p>${L("Tap every nation to fly the globe there. Find all 21!","Toca cada país para volar allí con el globo. ¡Encuentra los 21!")}</p><div class="pz-count" id="cnt"></div><div class="info" id="info" role="status">${L("Tap a country…","Toca un país…")}</div><div id="regs"></div>`;
+    const cnt = slot.querySelector("#cnt"), info = slot.querySelector("#info");
+    const upd = () => { cnt.textContent = `${S.disc.length} / 21 ${L("discovered","descubiertos")}`; };
+    Object.keys(REGION).forEach(rk => {
+      const g = $(`<div><p class="row-label">${REGION[rk][getLang() === "es" ? 1 : 0]}</p><div class="pz-chips"></div></div>`);
+      NATIONS.filter(n => n.r === rk).forEach(n => {
+        const b = $(`<button type="button" class="chip es ${S.disc.includes(n.n) ? "is-ok" : ""}">${n.n}</button>`);
+        b.addEventListener("click", () => {
+          globe.flyTo(STOP(n.n)); speak(n.n);
+          info.innerHTML = `<b class="es">${n.n}</b> — ${L("capital","capital")}: <span class="es">${n.cap}</span> · ${REGION[rk][getLang() === "es" ? 1 : 0]}${n.n === "Puerto Rico" ? " · " + L("a US territory where Spanish is official","territorio de EE. UU. donde el español es oficial") : ""}`;
+          if (!S.disc.includes(n.n)) { S.disc.push(n.n); b.classList.add("is-ok"); S.xp += 3; burst(b); hud(); sim.saveState(); upd(); if (S.disc.length === 21) { sim.recordTrial({ nivel:"1 Mundo", tarea:"Found all 21 Spanish-speaking nations on the globe", respuesta:"21 / 21", correcto:"Yes", intentos:1 }); nextBtn(slot, L("Quiz time →","¡Hora del quiz! →"), next); } }
+        });
+        g.querySelector(".pz-chips").append(b);
+      });
+      slot.querySelector("#regs").append(g);
+    });
+    upd(); if (S.disc.length === 21) nextBtn(slot, L("Quiz time →","¡Hora del quiz! →"), next);
+  };
+
+  /* ---- Mi Intro: TikTok script builder ---- */
+  const IntroBuilder = (slot, next) => {
+    const I = S.intro = S.intro || { greet:"", name:"", from:"", fem:null, trait:"", bye:"" };
+    const TRAITS = [["creativo","creativa","creative"],["simpático","simpática","nice"],["inteligente","inteligente","intelligent"],["alto","alta","tall"],["feliz","feliz","happy"],["rubio","rubia","blond"],["moreno","morena","dark-haired"],["bajo","baja","short"]];
+    const FROM = NATIONS.map(n => n.n).concat(["los Estados Unidos","Nueva Zelanda","Inglaterra","Canadá","Francia","Alemania","Italia","Brasil","China","la India"]);
+    const mk = () => {
+      const tr = TRAITS.find(t => t[0] === I.trait); const adj = tr ? (I.fem ? tr[1] : tr[0]) : "…";
+      const line = [I.greet || "…", `Me llamo ${I.name || "…"}.`, `Soy de ${I.from || "…"}.`, `Soy ${adj}.`, I.bye || "…"];
+      return line;
+    };
+    slot.innerHTML = `<p>${L("Build your 15-second video intro. Choose, then type it out yourself to lock it in!","Crea tu presentación de 15 segundos. ¡Elige y luego escríbela tú para que se te quede!")}</p>
+      <p class="row-label">1 · ${L("Greeting (pick a style)","Saludo (elige un estilo)")}</p><div class="pz-chips" id="g"></div>
+      <p class="row-label">2 · ${L("Your name","Tu nombre")}</p><input type="text" class="tin es" id="nm" maxlength="14" aria-label="${L("Your name","Tu nombre")}" value="${I.name}">
+      <p class="row-label">3 · ${L("Where are you from? (Soy de…)","¿De dónde eres? (Soy de…)")}</p><select id="fr" class="tin es" aria-label="${L("Country","País")}"><option value="">—</option>${FROM.map(f => `<option ${I.from === f ? "selected" : ""}>${f}</option>`).join("")}</select>
+      <p class="row-label">4 · ${L("Are you a boy or a girl? (the ending changes!)","¿Eres chico o chica? (¡la terminación cambia!)")}</p><div class="pz-chips" id="gd"></div>
+      <p class="row-label">5 · ${L("One personality trait","Un rasgo de personalidad")}</p><div class="pz-chips" id="tr"></div>
+      <p class="row-label">6 · ${L("Goodbye","Despedida")}</p><div class="pz-chips" id="by"></div>
+      <div class="preview" id="pv"></div><div id="act"></div><div class="fb" role="status"></div>`;
+    const pv = slot.querySelector("#pv"), act = slot.querySelector("#act"), fb = slot.querySelector(".fb");
+    const chipSet = (sel, arr, key, fmt) => arr.forEach(o => { const lab = fmt ? fmt(o) : o; const b = $(`<button type="button" class="chip es ${I[key] === (o.v ?? o) ? "is-on" : ""}">${lab}</button>`); b.addEventListener("click", () => { I[key] = (o.v ?? o); slot.querySelectorAll(sel + " .chip").forEach(x => x.classList.remove("is-on")); b.classList.add("is-on"); sim.saveState(); render(); speak(lab); }); slot.querySelector(sel).append(b); });
+    chipSet("#g", [{ v:"¡Hola!", l:"¡Hola! (Spain / everywhere)" }, { v:"¡Qué onda!", l:"¡Qué onda! (Mexico)" }, { v:"Buenos días.", l:"Buenos días." }, { v:"Buenas tardes.", l:"Buenas tardes." }], "greet", o => o.l.split(" (")[0] + (o.l.includes("(") ? ` <small>(${o.l.split("(")[1]}</small>` : ""));
+    chipSet("#gd", [{ v:false, l:L("Boy / chico (-o)","Chico (-o)") }, { v:true, l:L("Girl / chica (-a)","Chica (-a)") }], "fem", o => o.l);
+    chipSet("#tr", TRAITS.map(t => ({ v:t[0], l:`${t[0]} / ${t[1]} <small>(${t[2]})</small>` })), "trait", o => o.l);
+    chipSet("#by", [{ v:"¡Adiós!", l:"¡Adiós!" }, { v:"¡Chau!", l:"¡Chau! (Latin America)" }], "bye", o => o.l);
+    slot.querySelectorAll("#by .chip").forEach((b, n) => b.addEventListener("click", () => { I.bye = ["¡Adiós!", "¡Chau!"][n]; render(); }));
+    slot.querySelector("#nm").addEventListener("input", e => { I.name = e.target.value.trim(); sim.saveState(); render(); });
+    slot.querySelector("#fr").addEventListener("change", e => { I.from = e.target.value; sim.saveState(); render(); });
+    function render() {
+      const L5 = mk(); pv.innerHTML = L5.join(" ");
+      const ready = I.greet && I.name && I.from && I.fem !== null && I.trait && I.bye;
+      act.innerHTML = "";
+      if (ready) {
+        const script = L5.join(" ");
+        const wrap = $(`<div><p><b>${L("Now type your script yourself (copy it from above).","Ahora escribe tu guion tú mismo (cópialo de arriba).")}</b></p><div class="chiprow"><input type="text" class="tin es" id="cp" style="min-width:min(100%,420px)" autocomplete="off" spellcheck="false" aria-label="${L("Type your script","Escribe tu guion")}"> <button type="button" class="btn btn--signal go">${L("Check","Comprobar")}</button></div></div>`);
+        wrap.querySelector(".go").addEventListener("click", () => {
+          if (strip(wrap.querySelector("#cp").value) === strip(script)) {
+            fb.className = "fb good"; fb.textContent = L("¡Genial! Your intro is ready — read it aloud.","¡Genial! Tu presentación está lista: léela en voz alta."); speak(script); S.intro.done = true;
+            award("9 Intro", "TikTok intro script", script, 1, true, wrap.querySelector(".go")); act.innerHTML = ""; act.append(listenBtn(script));
+            nextBtn(act, L("Finish Unit 1 →","Terminar la Unidad 1 →"), next);
+          } else { fb.className = "fb bad"; fb.textContent = L("Not an exact match yet — check spelling, accents and the full stops.","Aún no es idéntico — revisa la ortografía, los acentos y los puntos."); }
+        });
+        act.append(wrap);
+      }
+    }
+    render();
+  };
+
+  /* ================= CONTENT ================= */
+  const geoQs = [
+    { q:L("Which ocean separates Spain from Latin America?","¿Qué océano separa España de Latinoamérica?"), ok:L("The Atlantic Ocean","El océano Atlántico"), opts:[L("The Atlantic Ocean","El océano Atlántico"),L("The Pacific Ocean","El océano Pacífico"),L("The Indian Ocean","El océano Índico"),L("The Arctic Ocean","El océano Ártico")], why:L("Spanish sailors crossed the Atlantic and the language travelled with them.","Los marineros españoles cruzaron el Atlántico y el idioma viajó con ellos.") },
+    { q:L("On which continent is Equatorial Guinea?","¿En qué continente está Guinea Ecuatorial?"), ok:L("Africa","África"), opts:[L("Africa","África"),L("Europe","Europa"),L("South America","Sudamérica"),L("Asia","Asia")], why:L("It is the only Spanish-speaking country in Africa.","Es el único país hispanohablante de África.") },
+    { q:L("The Canary Islands (Islas Canarias) belong to…","Las Islas Canarias pertenecen a…"), ok:L("Spain","España"), opts:[L("Spain","España"),L("Morocco","Marruecos"),L("Portugal","Portugal"),L("Cuba","Cuba")], why:L("They are Spanish islands in the Atlantic, close to the coast of Africa.","Son islas españolas en el Atlántico, cerca de la costa de África.") },
+    { q:L("Which is the ONLY Spanish-speaking country in Europe?","¿Cuál es el ÚNICO país hispanohablante de Europa?"), ok:"España", opts:["España","Portugal","Francia","Italia"], why:L("Portugal is next door but speaks Portuguese.","Portugal está al lado pero habla portugués.") },
+    { q:L("Which of these big countries is NOT Spanish-speaking?","¿Cuál de estos países grandes NO habla español?"), ok:"Brasil", opts:["Brasil","México","Argentina","Colombia"], why:L("Brazil speaks Portuguese.","Brasil habla portugués.") },
+    { q:L("Spanish in the United States is…","El español en Estados Unidos…"), ok:L("growing fast — over 60 million speakers","crece rápido: más de 60 millones de hablantes"), opts:[L("growing fast — over 60 million speakers","crece rápido: más de 60 millones de hablantes"),L("disappearing","está desapareciendo"),L("spoken only in Florida","solo se habla en Florida"),L("not used in business","no se usa en los negocios")], why:L("Spanish is also growing in business, music, film and food worldwide.","El español también crece en negocios, música, cine y gastronomía en todo el mundo.") }
+  ];
+  const mapCards = [
+    { front:"21", back:L("Spanish is official in 20 countries plus Puerto Rico (a US territory): 21 places in total. Spain is in Europe, Equatorial Guinea in Africa, and the other 19 are in the Americas.","El español es oficial en 20 países más Puerto Rico (territorio de EE. UU.): 21 lugares. España está en Europa, Guinea Ecuatorial en África y los otros 19 en América.") },
+    { front:"Atlántico", say:"océano Atlántico", back:L("The Atlantic Ocean lies between Spain and the Americas.","El océano Atlántico queda entre España y América.") },
+    { front:"Islas Canarias", say:"Islas Canarias", back:L("The Canary Islands are Spanish islands in the Atlantic, near Africa. Their accent sounds more like Latin America!","Las Islas Canarias son españolas, en el Atlántico, cerca de África. ¡Su acento se parece al latinoamericano!") },
+    { front:"Guinea Ecuatorial", say:"Guinea Ecuatorial", back:L("The only Spanish-speaking country in Africa.","El único país hispanohablante de África.") },
+    { front:"EE. UU.", back:L("Over 60 million people speak Spanish in the USA — one of the biggest Spanish-speaking communities in the world.","Más de 60 millones de personas hablan español en EE. UU.: una de las comunidades hispanohablantes más grandes del mundo.") },
+    { front:L("Business & culture","Negocios y cultura"), back:L("Spanish opens markets, music, film, football, food and travel across three continents — a language that adds value to almost any career.","El español abre mercados, música, cine, fútbol, gastronomía y viajes en tres continentes: un idioma que aporta valor a casi cualquier carrera.") }
+  ];
+  const vowelCards = [["A","Ah","casa"],["E","Eh","elefante"],["I","Ee","iglesia"],["O","Oh","oso"],["U","Oo","uva"]].map(([v,s,w]) => ({ front:v, sub:s, back:`<b class="es">${w}</b> — ${L("always the same short, crisp sound","siempre el mismo sonido corto y claro")}`, say:w }));
+  const zCards = [
+    { front:L("Spain 🇪🇸","España 🇪🇸"), sub:"cero = Theh-ro", back:L("Z and soft C (ce, ci) sound like “th” in think. This is called distinción.","La Z y la C suave (ce, ci) suenan como “th” de think. Se llama distinción."), say:"cero", lang:"es-ES" },
+    { front:L("Latin America 🌎","Latinoamérica 🌎"), sub:"cero = Seh-ro", back:L("Z and soft C sound like “s”. Same for the Canary Islands.","La Z y la C suave suenan como “s”. Igual en las Islas Canarias."), say:"cero", lang:"es-MX" },
+    { front:L("The “lisp” myth","El mito del ceceo"), back:L("No king with a lisp. The “th” evolved naturally in medieval Castilian to tell words like caza and casa apart. It took about 200 years — and not all of Spain uses it.","Ningún rey tenía ceceo. La “th” evolucionó de forma natural en el castellano medieval para distinguir palabras como caza y casa. Tardó unos 200 años, y no toda España la usa.") }
+  ];
+  const sounds1 = [
+    { q:L("Which word starts with the “Oh” sound?","¿Qué palabra empieza con el sonido “Oh”?"), ok:"oso", opts:["oso","uva","casa","iglesia"], why:L("O = Oh: oso (bear).","O = Oh: oso.") , say:"oso" },
+    { q:L("Which word starts with the “Oo” sound?","¿Qué palabra empieza con el sonido “Oo”?"), ok:"uva", opts:["uva","oso","elefante","casa"], why:L("U = Oo: uva (grape).","U = Oo: uva.") , say:"uva" },
+    { q:L("Which word starts with the “Ee” sound?","¿Qué palabra empieza con el sonido “Ee”?"), ok:"iglesia", opts:["iglesia","elefante","uva","oso"], why:L("I = Ee: iglesia (church).","I = Ee: iglesia.") , say:"iglesia" },
+    { q:L("Which word starts with the “Eh” sound?","¿Qué palabra empieza con el sonido “Eh”?"), ok:"elefante", opts:["elefante","iglesia","casa","uva"], why:L("E = Eh: elefante.","E = Eh: elefante.") , say:"elefante" },
+    { q:L("In Latin America, how does “cero” sound at the start?","En Latinoamérica, ¿cómo suena el inicio de “cero”?"), ok:"Seh-ro", opts:["Seh-ro","Theh-ro","Keh-ro","Heh-ro"], why:L("Latin America: Z/ce/ci = “s”.","Latinoamérica: Z/ce/ci = “s”."), say:"cero", lang:"es-MX" },
+    { q:L("In Spain, how does “cero” sound at the start?","En España, ¿cómo suena el inicio de “cero”?"), ok:"Theh-ro", opts:["Theh-ro","Seh-ro","Keh-ro","Heh-ro"], why:L("Spain: Z/ce/ci = “th”.","España: Z/ce/ci = “th”."), say:"cero", lang:"es-ES" },
+    { q:L("Did a lisping king make everyone in Spain say “th”?","¿Hizo un rey con ceceo que toda España dijera “th”?"), ok:L("No — it is a myth","No: es un mito"), opts:[L("No — it is a myth","No: es un mito"),L("Yes, King Ferdinand","Sí, el rey Fernando")], why:L("The sound changed naturally over about 200 years, and not all of Spain uses it.","El sonido cambió de forma natural durante unos 200 años y no toda España lo usa.") }
+  ];
+  const greetCards = [
+    { front:L("Spain","España"), sub:"Dos besos", back:L("Two kisses: right cheek first, then left. Usually girl–girl and boy–girl.","Dos besos: primero la mejilla derecha, luego la izquierda. Normalmente chica–chica y chico–chica.") },
+    { front:"Argentina", sub:"Un beso", back:L("Just one! Even men greet men with a kiss on the cheek here.","¡Solo uno! Incluso los hombres se saludan con un beso en la mejilla.") },
+    { front:"México", sub:L("Handshake / hug","Apretón / abrazo"), back:L("A handshake or hug; guys often add a friendly back-pat (palmada). Women often give one cheek kiss.","Un apretón de manos o abrazo; los chicos suelen dar una palmada en la espalda. Las mujeres suelen dar un beso en la mejilla.") },
+    { front:"Hola", say:"Hola", back:L("Hello","Hola") }, { front:"Buenos días", say:"Buenos días", back:L("Good morning","Buenos días") }, { front:"Buenas tardes", say:"Buenas tardes", back:L("Good afternoon","Buenas tardes") }, { front:"Buenas noches", say:"Buenas noches", back:L("Good evening / night","Buenas noches") },
+    { front:"¡Qué onda!", say:"¡Qué onda!", back:L("What’s up! (Mexico — casual)","¡Qué onda! (México, informal)"), lang:"es-MX" },
+    { front:"Me llamo…", say:"Me llamo Ana", back:L("My name is… (literally: I call myself)","Me llamo… (literalmente: me llamo a mí mismo)") }, { front:"Adiós", say:"Adiós", back:L("Goodbye","Adiós") }, { front:"¡Chau!", say:"Chau", back:L("Bye! (very common in Latin America)","¡Chau! (muy común en Latinoamérica)"), lang:"es-MX" }
+  ];
+  const greetQs = [
+    { q:L("You greet a girl at school in Madrid. What do you do?","Saludas a una chica en el cole en Madrid. ¿Qué haces?"), ok:L("Two kisses (right, then left)","Dos besos (derecha y luego izquierda)"), opts:[L("Two kisses (right, then left)","Dos besos (derecha y luego izquierda)"),L("One kiss","Un beso"),L("Only a bow","Solo una reverencia"),L("A high-five","Chocar los cinco")], why:L("Spain = dos besos.","España = dos besos.") },
+    { q:L("A friend in Buenos Aires (Argentina) greets you. Expect…","Un amigo en Buenos Aires (Argentina) te saluda. Espera…"), ok:L("One kiss — even between boys","Un beso, incluso entre chicos"), opts:[L("One kiss — even between boys","Un beso, incluso entre chicos"),L("Two kisses","Dos besos"),L("No contact","Ningún contacto")], why:L("Argentina = un beso.","Argentina = un beso.") },
+    { q:L("Which greeting is casual Mexican Spanish for “What’s up?”","¿Qué saludo informal mexicano significa “What’s up?”"), ok:"¡Qué onda!", opts:["¡Qué onda!","Buenas noches","Adiós","Me llamo"], why:"¡Qué onda!" },
+    { q:L("“Me llamo Sofía” means…","“Me llamo Sofía” significa…"), ok:L("My name is Sofía","Mi nombre es Sofía"), opts:[L("My name is Sofía","Mi nombre es Sofía"),L("I like Sofía","Me gusta Sofía"),L("Goodbye Sofía","Adiós, Sofía"),L("Sofía is tall","Sofía es alta")], why:L("Me llamo = my name is.","Me llamo = mi nombre es."), say:"Me llamo Sofía" },
+    { q:L("Which word means “Goodbye” (very common in Latin America: ¡Chau!)?","¿Qué palabra significa “Goodbye”?"), ok:"Adiós", opts:["Adiós","Hola","Buenos días","Me llamo"], why:L("Adiós (Spain & everywhere); ¡Chau! (Latin America).","Adiós (España y todas partes); ¡Chau! (Latinoamérica).") },
+    { q:L("It is 9 am. You say…","Son las 9 de la mañana. Dices…"), ok:"Buenos días", opts:["Buenos días","Buenas noches","Buenas tardes","Adiós"], why:L("Buenos días = good morning.","Buenos días = buenos días.") }
+  ];
+  const greetTypes = [
+    { q:L("Type “Hello” in Spanish (one word).","Escribe “Hello” en español (una palabra)."), a:["Hola"], why:"Hola" },
+    { q:L("Type: Hello, my name is Ana.","Escribe: Hello, my name is Ana."), a:["Hola, me llamo Ana","Hola me llamo Ana","Me llamo Ana"], why:"Hola, me llamo Ana.", hint:L("Hola, me llamo…","Hola, me llamo…") },
+    { q:L("Type “Goodbye” in Spanish.","Escribe “Goodbye” en español."), a:["Adiós","Adios","Chau"], why:"Adiós / ¡Chau!" }
+  ];
+  const pronCards = PRON.map(p => ({ front:p.p, sub:p.en, back:`<b>${p.ex}</b><br>${p.exen}`, say:p.ex }))
+    .concat([{ front:"Vosotros 🇪🇸", back:L("Informal plural (“you guys”) — Spain ONLY. ¿Vosotros sois estudiantes?","Plural informal — SOLO España. ¿Vosotros sois estudiantes?") }, { front:"Ustedes 🌎", back:L("Latin America uses ustedes for EVERYONE (formal and informal). In Spain it is for formal groups. ¿Ustedes son estudiantes?","Latinoamérica usa ustedes para TODOS (formal e informal). En España es para grupos formales. ¿Ustedes son estudiantes?") }]);
+  const pronQs = [
+    ["My sister","Mi hermana","ella"],["You and I","Tú y yo","nosotros"],["The King","El rey","él"],["Pablo and Juan","Pablo y Juan","ellos"],["Maria and Ana","María y Ana","ellas"],["I","Yo","yo"],["You (to a friend)","Tú (a un amigo)","tú"],["You (to your teacher — formal)","Usted (a tu profesor)","usted"]
+  ].map(([en,es,ok]) => ({ q:L(`Which pronoun for: “${en}”?`,`¿Qué pronombre para: “${es}”?`), ok, opts:shuffle(["yo","tú","él","ella","nosotros","ellos","ellas","usted"].filter(x => x !== ok)).slice(0,3).concat([ok]), why:L("Match who is speaking or being spoken about.","Piensa en quién habla o de quién se habla.") }))
+    .concat([
+      { q:L("In Madrid you talk to a group of friends: “you all” =","En Madrid hablas con un grupo de amigos: “you all” ="), ok:"vosotros", opts:["vosotros","ustedes","ellos","nosotros"], why:L("Vosotros = informal plural, Spain only.","Vosotros = plural informal, solo España.") },
+      { q:L("In Colombia you talk to a group of friends: “you all” =","En Colombia hablas con un grupo de amigos: “you all” ="), ok:"ustedes", opts:["ustedes","vosotros","ellas","tú"], why:L("Latin America: ustedes for everyone.","Latinoamérica: ustedes para todos.") }
+    ]);
+  const serForm = { "Yo":"soy","Tú":"eres","Él":"es","Ella":"es","Usted":"es","Nosotros":"somos","Vosotros":"sois","Ellos":"son","Ustedes":"son" };
+  const serCards = PRON.map(p => ({ front:`${p.p.split(" /")[0]} → ${p.v}`, sub:p.en, back:`<b>${p.ex}</b><br>${p.exen}`, say:p.ex })).concat([{ front:"D.O.C.T.O.R.", back:L("We use SER for: Description (Soy alto), Occupation (Ella es doctora), Characteristic, Time, Origin (Soy de Perú), Relationship. It is irregular — memorise it!","Usamos SER para: Descripción (Soy alto), Ocupación (Ella es doctora), Característica, Hora, Origen (Soy de Perú), Relación. ¡Es irregular: memorízalo!") }]);
+  const serQs = ["Yo","Tú","Ella","Nosotros","Vosotros","Ellos","Usted","Ustedes"].map(p => ({ q:L(`Choose the right form of SER: ${p} ___`,`Elige la forma correcta de SER: ${p} ___`), ok:serForm[p], opts:["soy","eres","es","somos","sois","son"].filter(x => x === serForm[p] || Math.random() < .5).slice(0,4).concat(serForm[p]).filter((x,i,a) => a.indexOf(x) === i).slice(0,4).length >= 4 ? null : null, why:`${p} ${serForm[p]}` })).map(q => { const all = ["soy","eres","es","somos","sois","son"]; q.opts = shuffle(all.filter(x => x !== q.ok)).slice(0,3).concat([q.ok]); return q; });
+  const serTypes = [
+    ["Yo ___ de Nueva Zelanda.","soy","Yo soy de Nueva Zelanda."],["Tú ___ inteligente.","eres","Tú eres inteligente."],["Ella ___ doctora.","es","Ella es doctora."],["Nosotros ___ amigos.","somos","Nosotros somos amigos."],["Vosotros ___ de España.","sois","Vosotros sois de España."],["Ellos ___ simpáticos.","son","Ellos son simpáticos."]
+  ].map(([q,a,why]) => ({ q:L("Type the missing form of SER: ","Escribe la forma que falta de SER: ") + q, a:[a], why, task:q }));
+  const doctorQs = [
+    { q:L("“Soy de Perú” uses SER for…","“Soy de Perú” usa SER para…"), ok:L("Origin","Origen"), opts:[L("Origin","Origen"),L("Time","Hora"),L("Colour","Color"),L("A feeling","Un sentimiento")], why:"O = Origin" },
+    { q:L("“Ella es doctora” uses SER for…","“Ella es doctora” usa SER para…"), ok:L("Occupation","Ocupación"), opts:[L("Occupation","Ocupación"),L("Origin","Origen"),L("Time","Hora"),L("Relationship","Relación")], why:"O = Occupation" },
+    { q:L("“El coche es rojo” uses SER for…","“El coche es rojo” usa SER para…"), ok:L("Description / colour","Descripción / color"), opts:[L("Description / colour","Descripción / color"),L("Origin","Origen"),L("Occupation","Ocupación"),L("Time","Hora")], why:"D = Description" }
+  ];
+  const genCards = [
+    { front:"EL (m)", back:L("Usually ends in -O (el libro, el chico) · -MA from Greek (el problema, el sistema) · -OR (el doctor).","Suele terminar en -O (el libro, el chico) · -MA de origen griego (el problema, el sistema) · -OR (el doctor)."), say:"el libro" },
+    { front:"LA (f)", back:L("Usually ends in -A (la casa, la chica) · -CIÓN / -SIÓN (la estación) · -DAD / -TAD (la ciudad, la libertad).","Suele terminar en -A (la casa, la chica) · -CIÓN / -SIÓN (la estación) · -DAD / -TAD (la ciudad, la libertad)."), say:"la ciudad" },
+    { front:"el · la · los · las", sub:L("The","El / La"), back:L("el gato / la gata / los gatos / las gatas — definite articles = “the”.","el gato / la gata / los gatos / las gatas: artículos definidos = “the”.") },
+    { front:"un · una · unos · unas", sub:L("A / some","Un / unos"), back:L("un gato / una gata / unos gatos / unas gatas — indefinite articles = “a / some”.","un gato / una gata / unos gatos / unas gatas: artículos indefinidos = “a / some”.") },
+    { front:"Al-…", back:L("700 years of Moorish rule left over 4,000 Arabic words: alfombra (carpet), almohada (pillow), ojalá (hopefully). Look for “Al-”!","700 años de dominio musulmán dejaron más de 4.000 palabras árabes: alfombra, almohada, ojalá. ¡Busca “Al-”!"), say:"alfombra" },
+    { front:"Anglicismo", back:L("Words borrowed from English also get a gender: el fútbol, el email, la web.","Las palabras prestadas del inglés también tienen género: el fútbol, el email, la web.") }
+  ];
+  const sortItems = shuffle(NOUNS_PHOTO.map(([n,a,en]) => ({ n, a, en, photo:true, why:"" })).concat(NOUNS_TEXT.map(([n,a,en,why]) => ({ n, a, en, why }))));
+  const artQs = [
+    ["___ gato (the, masculine singular)","el"],["___ gata (the, feminine singular)","la"],["___ gatos (the, masculine plural)","los"],["___ gatas (the, feminine plural)","las"],["___ chico (a, masculine singular)","un"],["___ chica (a, feminine singular)","una"],["___ libros (some, masculine plural)","unos"],["___ casas (some, feminine plural)","unas"]
+  ].map(([q,ok]) => ({ q, ok, opts:shuffle(["el","la","los","las","un","una","unos","unas"].filter(x => x !== ok)).slice(0,3).concat([ok]), why:"" }));
+  const regQs = [
+    { q:L("In Spain a computer is “el ordenador”. In Latin America it is…","En España un computer es “el ordenador”. En Latinoamérica es…"), ok:"la computadora", opts:["la computadora","el libro","la ciudad","el sistema"], why:"Spain: el ordenador · LatAm: la computadora", say:"computadora", lang:"es-MX" },
+    { q:L("Which of these words comes from Arabic (look for “Al-”)?","¿Cuál de estas palabras viene del árabe (busca “Al-”)?"), ok:"alfombra", opts:["alfombra","chica","libro","ciudad"], why:L("alfombra = carpet; almohada = pillow; ojalá = hopefully.","alfombra, almohada, ojalá.") }
+  ];
+  const numCards = WORDS_0_30.map((w, n) => ({ front:String(n), back:`<b class="es">${w}</b>`, say:w })).filter((c, n) => [0,1,2,5,10,11,12,13,14,15,16,20,21,22,30].includes(n));
+  const numQs = [3,7,12,15,16,21,22,30].map(n => ({ q:L(`Which word is the number ${n}?`,`¿Qué palabra es el número ${n}?`), ok:WORDS_0_30[n], opts:shuffle(WORDS_0_30.filter(w => w !== WORDS_0_30[n]).filter((w,i) => Math.abs(i - n) < 9 || i < 3)).slice(0,3).concat([WORDS_0_30[n]]), why:`${n} = ${WORDS_0_30[n]}`, say:WORDS_0_30[n] }))
+    .concat([{ q:L("What number is “veintiuno”?","¿Qué número es “veintiuno”?"), ok:"21", opts:["21","12","20","31"], why:"veinte = 20 → veintiuno = 21", say:"veintiuno" },{ q:L("dos + tres = ?","dos + tres = ?"), ok:"cinco", opts:["cinco","seis","cuatro","siete"], why:"2 + 3 = 5" },{ q:L("Which group is irregular (you must memorise them)?","¿Qué grupo es irregular (hay que memorizarlo)?"), ok:"once, doce, trece, catorce, quince", opts:["once, doce, trece, catorce, quince","dieciséis, diecisiete","veinte, veintiuno","uno, dos, tres"], why:L("11–15 are irregular; 16–19 combine dieci + number.","11–15 son irregulares; 16–19 combinan dieci + número.") }]);
+  const numTypes = [[3,"tres"],[8,"ocho"],[12,"doce"],[15,"quince"],[16,"dieciséis"],[21,"veintiuno"],[22,"veintidós"],[30,"treinta"]].map(([n,w]) => ({ q:L(`Type the Spanish word for ${n}.`,`Escribe en español el número ${n}.`), a:[w], why:`${n} = ${w}`, task:`Number ${n}` }));
+  const adjCards = [["alto","alta","tall"],["bajo","baja","short"],["moreno","morena","dark-haired"],["rubio","rubia","blond"],["feliz","feliz","happy"],["simpático","simpática","nice"],["inteligente","inteligente","intelligent"],["creativo","creativa","creative"]].map(([m,f,en]) => ({ front:`${m} / ${f}`, sub:en, back:L("Adjectives MATCH the noun: El chico alto · La chica alta · Los chicos altos · Las chicas altas.","Los adjetivos CONCUERDAN con el sustantivo: El chico alto · La chica alta · Los chicos altos · Las chicas altas."), say:f }))
+    .concat([{ front:L("The rule","La regla"), back:L("Match gender AND number. English: the red cars. Spanish: los coches rojos (the adjective goes AFTER the noun).","Concuerda en género Y número. Inglés: the red cars. Español: los coches rojos (el adjetivo va DESPUÉS del sustantivo).") }, { front:L("Pen: Spain vs LatAm","Bolígrafo: España vs Latam"), back:L("Spain: el bolígrafo (el boli). Latin America: la pluma (literally “feather”).","España: el bolígrafo (el boli). Latinoamérica: la pluma (literalmente “pluma de ave”).") , say:"bolígrafo" }]);
+  const adjQs = [
+    ["El chico ___ (tall)","alto",["alto","alta","altos","altas"]],["La chica ___ (tall)","alta",["alta","alto","altas","altos"]],["Los chicos ___ (tall)","altos",["altos","alto","alta","altas"]],["Las chicas ___ (tall)","altas",["altas","altos","alta","alto"]],
+    ["Ella es ___ (nice)","simpática",["simpática","simpático","simpáticos","simpáticas"]],["Nosotros somos ___ (creative, boys)","creativos",["creativos","creativo","creativa","creativas"]],["Los coches ___ (red)","rojos",["rojos","rojo","roja","rojas"]],["Yo soy ___ (blond, a girl)","rubia",["rubia","rubio","rubios","rubias"]]
+  ].map(([q,ok,opts]) => ({ q, ok, opts, why:L("The adjective matches the noun in gender and number.","El adjetivo concuerda en género y número con el sustantivo.") }))
+    .concat([
+      { q:L("Spain says “el bolígrafo”. In Latin America a pen is…","En España es “el bolígrafo”. En Latinoamérica un pen es…"), ok:"la pluma", opts:["la pluma","el coche","la chica","el libro"], why:"boli (Spain) · pluma (LatAm)", say:"pluma", lang:"es-MX" },
+      { q:L("“Ella es alta y simpática” means…","“Ella es alta y simpática” significa…"), ok:L("She is tall and nice","Ella es alta y simpática"), opts:[L("She is tall and nice","Ella es alta y simpática"),L("He is short and happy","Él es bajo y feliz"),L("They are blond","Ellos son rubios"),L("I am creative","Yo soy creativo")], why:"alta = tall · simpática = nice", say:"Ella es alta y simpática" }
+    ]);
+  const adjTypes = [["La chica ___ (tall)","alta"],["Los chicos ___ (blond)","rubios"],["Las chicas ___ (happy)","felices"],["El chico ___ (short)","bajo"]].map(([q,a]) => ({ q:L("Type the adjective with the right ending: ","Escribe el adjetivo con la terminación correcta: ") + q, a:[a], why:q.replace("___", a), task:q }));
+
+  /* ================= STAGES ================= */
+  const STAGE_DEFS = [
+    { t:"1 · El Mundo", how:L("Level 1: Where is Spanish spoken? Discover all 21 nations on the 3D globe, then take the geography quiz.","Nivel 1: ¿Dónde se habla español? Descubre las 21 naciones en el globo 3D y haz el quiz de geografía."), parts:[Cards(mapCards), MapTour, Deck("geo","1 Mundo",geoQs)] },
+    { t:"2 · Sonidos", how:L("Level 2: The five vowels, “th” vs “s”, and the lisp myth. Press Listen!","Nivel 2: Las cinco vocales, “th” vs “s” y el mito del ceceo. ¡Pulsa Escuchar!"), parts:[Cards(vowelCards), Cards(zCards), Deck("snd","2 Sonidos",sounds1)] },
+    { t:"3 · Saludos", how:L("Level 3: Greetings — Besos vs. Abrazos, plus the first words you will ever say.","Nivel 3: Saludos — besos y abrazos, y las primeras palabras que dirás."), parts:[Cards(greetCards), Deck("greet","3 Saludos",greetQs), Typer("greetT","3 Saludos",greetTypes)] },
+    { t:"4 · Pronombres", how:L("Level 4: Subject pronouns — yo, tú, él… and the vosotros / ustedes divide.","Nivel 4: Pronombres sujeto — yo, tú, él… y la diferencia vosotros / ustedes."), parts:[Cards(pronCards), Deck("pron","4 Pronombres",pronQs)] },
+    { t:"5 · SER", how:L("Level 5: SER (to be). Learn the six forms, type them, then use them in real sentences.","Nivel 5: SER. Aprende las seis formas, escríbelas y úsalas en frases reales."), parts:[Cards(serCards), Deck("ser","5 SER",serQs), Typer("serT","5 SER",serTypes), Deck("doc","5 SER",doctorQs)] },
+    { t:"6 · Género", how:L("Level 6: el / la, un / una — sort real objects, label a real photo.","Nivel 6: el / la, un / una — clasifica objetos reales y etiqueta una foto real."), parts:[Cards(genCards), Sorter("sort","6 Género",sortItems), PhotoLabel, Deck("art","6 Género",artQs), Deck("reg","6 Género",regQs)] },
+    { t:"7 · Números", how:L("Level 7: Numbers 0–30 — irregular 11–15, dieci- 16–19, veinti- 21–29.","Nivel 7: Números 0–30 — irregulares 11–15, dieci- 16–19, veinti- 21–29."), parts:[Cards(numCards), Deck("num","7 Números",numQs), Typer("numT","7 Números",numTypes)] },
+    { t:"8 · Adjetivos", how:L("Level 8: Adjectives agree with the noun. Describe people with ser + adjective.","Nivel 8: Los adjetivos concuerdan con el sustantivo. Describe personas con ser + adjetivo."), parts:[Cards(adjCards), Deck("adj","8 Adjetivos",adjQs), Typer("adjT","8 Adjetivos",adjTypes)] },
+    { t:"9 · Mi Intro", how:L("Final project: your 15-second TikTok intro — greeting, name, where you are from, a trait, goodbye.","Proyecto final: tu presentación TikTok de 15 segundos: saludo, nombre, de dónde eres, un rasgo, despedida."), parts:[IntroBuilder] }
+  ];
+
+  function paint() {
+    body.innerHTML = ""; hud();
+    if (S.stage >= STAGE_DEFS.length) { finale(); return; }
+    const def = STAGE_DEFS[S.stage];
+    globe.flyTo(STAGE_STOP[S.stage]);
+    const slot = panel(def.t, def.how);
+    parts(slot, "st" + S.stage, def.parts, () => {
+      slot.innerHTML = `<p class="fb good">${L("¡Nivel completo!","¡Nivel completado!")}</p>`;
+      nextBtn(slot, S.stage < STAGE_DEFS.length - 1 ? L("Next level →","Siguiente nivel →") : L("Finish Unit 1 →","Terminar la Unidad 1 →"), () => { S.stage++; sim.saveState(); paint(); window.scrollTo({ top: host.offsetTop - 20, behavior: reduced() ? "auto" : "smooth" }); });
+    });
+  }
+  function finale() {
+    body.innerHTML = `<div class="done-card"><h3>¡Unidad 1 completa!</h3><div class="big">${rankFor(S.xp)}</div><p>${S.xp} XP · ${L("best streak","mejor racha")} ${S.best} · ${S.firstTry} ${L("first-try answers","respuestas a la primera")}</p><p>${L("Scroll down to check your Record, answer Explain and Apply, and generate your evidence PDF.","Baja para revisar tu Registro, responder Explica y Aplica, y generar tu PDF de evidencias.")}</p></div>`;
+    bonusSection();
+  }
+
+  /* ---- bonus: El / La Conveyor (sorting conveyor, real photos) ---- */
+  function bonusSection() {
+    const box = host.querySelector("#bonus"); if (!box || box.dataset.on) return; box.dataset.on = "1";
+    const items = NOUNS_PHOTO.map(([n,a,en]) => ({ id:n, label:`${n} (${en})`, binId:a === "el" ? "m" : "f", img:`photos/clothes/${n}.jpg` }));
+    const bins = [{ id:"m", label:"EL / UN", color:"#2d62c8" }, { id:"f", label:"LA / UNA", color:"#d2562b" }];
+    renderConveyorLaunch(box, { strings:{ title:L("Bonus round — La Cinta: EL or LA?","Ronda extra — La Cinta: ¿EL o LA?"), instructions:L("Real photos ride the belt. Sort each into EL (masculine) or LA (feminine) before it reaches the end. No lives, just fun.","Fotos reales viajan por la cinta. Clasifica cada una en EL (masculino) o LA (femenino) antes del final. Sin vidas, solo diversión."), play:L("Play bonus round (2 min)","Jugar ronda extra (2 min)"), skip:L("Skip","Saltar") },
+      onSkip() { box.innerHTML = ""; },
+      onPlay() {
+        box.innerHTML = ""; const gh = document.createElement("div"); box.append(gh);
+        mountConveyorSort(gh, { rounds:24, bins, items, strings:{ title:L("La Cinta: EL or LA?","La Cinta: ¿EL o LA?"), instructions:L("Tap the bin, or press 1 / 2, before the photo reaches the end.","Toca el cubo, o pulsa 1 / 2, antes de que la foto llegue al final."), score:L("Score","Puntos"), streak:L("Streak","Racha"), best:L("Best streak","Mejor racha"), progress:L("Item","Objeto"), correct:L("¡Sí!","¡Sí!"), wrong:L("Wrong bin.","Cubo equivocado."), missed:L("Missed it.","Se te escapó."), finishTitle:L("¡Cinta vacía!","¡Cinta vacía!"), accuracy:L("Accuracy","Precisión"), playAgain:L("Play again","Jugar de nuevo"), continueLabel:L("Continue","Continuar"), soundOn:L("Sound on","Sonido activado"), soundOff:L("Sound off","Sonido desactivado") },
+          onExit(st) { gh.remove(); box.dataset.on = ""; sim.toast(L(`La Cinta: score ${st.score}, ${st.accuracy}% accuracy.`,`La Cinta: ${st.score} puntos, ${st.accuracy}% de precisión.`), "info"); } });
+      } });
+  }
+
+  paint();
+  fetch("photos/clothes/credits.json").then(r => r.json()).then(c => {
+    const d = document.createElement("details"); d.className = "credit"; d.style.marginTop = "var(--sp-4)";
+    d.innerHTML = "<summary>Photo credits (Wikimedia Commons)</summary><div>outfit: " + CREDIT_OUTFIT + "</div>" + Object.entries(c).map(([k, v]) => `<div>${k}: <a href="${v.page}" target="_blank" rel="noopener noreferrer">${v.file.replace("File:", "")}</a> — ${v.author || "unknown"} (${v.license})</div>`).join("");
+    host.append(d);
+  }).catch(() => {});
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
