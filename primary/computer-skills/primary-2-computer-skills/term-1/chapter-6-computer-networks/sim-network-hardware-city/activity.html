@@ -89,11 +89,11 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 .nl.g{border-color:rgba(43,240,160,.7);color:#2bf0a0}.nl.r{border-color:rgba(255,84,104,.8);color:#ff8d9c}
 .pcb{width:46px;height:46px;border-radius:50%;border:3px solid transparent;font:inherit;font-weight:900;font-size:1.1rem;color:#06101f;background:var(--pc);cursor:pointer;touch-action:manipulation}
 .pcb[aria-pressed=true]{border-color:#fff;box-shadow:0 0 16px var(--pc);transform:scale(1.12)}.pcb:disabled{opacity:.25}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.row>b{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#8fa7d8;min-width:3.4rem}
-.dev{display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 8px;border-radius:12px;border:1px solid #2c3f68;background:#14213f;font-weight:800;font-size:.85rem}
-.dev.ok{border-color:var(--ok);background:rgba(43,240,160,.12)}.dev span{flex:1}.dev button{min-width:46px;min-height:44px;border-radius:10px;border:1px solid #2c3f68;background:#0f1a33;color:#e8f0ff;cursor:pointer;font-size:1.1rem;touch-action:manipulation}
-.dev button svg{width:1.4rem;height:1.4rem;vertical-align:middle}
-.dev svg.i{width:2rem;height:2rem}
+.rw{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.rw>b{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#8fa7d8;min-width:3.4rem}
+.dvc{display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 8px;border-radius:12px;border:1px solid #2c3f68;background:#14213f;font-weight:800;font-size:.85rem}
+.dvc.ok{border-color:var(--ok);background:rgba(43,240,160,.12)}.dvc span{flex:1}.dvc button{min-width:46px;min-height:44px;border-radius:10px;border:1px solid #2c3f68;background:#0f1a33;color:#e8f0ff;cursor:pointer;font-size:1.1rem;touch-action:manipulation}
+.dvc button svg{width:1.4rem;height:1.4rem;vertical-align:middle}
+.dvc svg.i{width:2rem;height:2rem}
 .shk{animation:shk .35s}@keyframes shk{20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
 [data-reduced-motion=on] .shk{animation:none}
 .ar-chip.shk{border-color:var(--bad)}
@@ -513,7 +513,7 @@ function mkSim(host, api) {
     const drawDevs = () => { devs.innerHTML = ""; DEVS.forEach(d => { const row = $(`<div class="dvc ${R.dev[d.id] ? "ok" : ""}">${d.ico.replace("<svg", '<svg class="i"')}<span>${d.n}</span></div>`);
       [["cable", IC.cable, L("Cable", "Cable")], ["air", IC.air, "Wi-Fi"]].forEach(([k, ic, nm]) => { const b = $(`<button aria-label="${nm}">${ic}</button>`); if (R.dev[d.id]) b.disabled = true;
         b.addEventListener("click", () => { if (R.stage < 2) { wrong(b, L("Finish the modem and router first!", "¡Termina primero el módem y el router!")); return; }
-          if (k === d.ok) { R.dev[d.id] = true; api.save(); S.state(d.id, "on"); S.link("d" + d.id, "router", d.id, { kind: k === "air" ? "wifi" : "cable", col: k === "air" ? 0xff5fd2 : 0x2bf0a0 }); S.burst(d.id, 0x2bf0a0, 24); S.send(["router", d.id], { dur: 700, col: 0x2bf0a0 }); gain(5); rec(L("Home Router", "Router de casa"), `${d.n}: ${k === "air" ? "Wi-Fi" : L("cable", "cable")}`, L("online", "en línea")); cdone("devs"); drawDevs(); say(d.hint, "good");
+          if (k === d.ok) { R.dev[d.id] = true; api.save(); S.state(d.id, "on"); S.link("d" + d.id, "router", d.id, { kind: k === "air" ? "wifi" : "cable", col: k === "air" ? 0xff5fd2 : 0x2bf0a0 }); S.burst(d.id, 0x2bf0a0, 24); S.send(["router", d.id], { dur: 700, col: 0x2bf0a0 }); gain(5); rec(L("Home Router", "Router de casa"), `${d.n}: ${k === "air" ? "Wi-Fi" : L("cable", "cable")}`, L("online", "en línea")); cdone("devs"); drawDevs(); say(L("Connected! ", "¡Conectado! ") + d.hint, "good");
             if (DEVS.every(x => R.dev[x.id])) { mark("router"); later(() => { burstAll(0x2bf0a0); say(L("The whole home network is online!", "¡Toda la red de casa está en línea!"), "good"); traffic(); }, 900); } }
           else wrong(b, d.hint); }); row.append(b); }); devs.append(row); }); };
     drawTray(); drawDevs(); rt.routerHint = stageMsg; cA.append(tray); cB.append(devs);
