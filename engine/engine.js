@@ -737,7 +737,8 @@ export async function mountActivity({ simulation = {} } = {}) {
       const resetRow = el("div", "cluster");
       resetRow.style.justifyContent = "flex-end";
       resetRow.style.marginBottom = "var(--sp-2)";
-      const resetBtn = el("button", "btn btn--ghost", t("reset-investigation"));
+      const resetBtn = el("button", "btn btn--signal");
+      resetBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>' + t("reset-investigation").replace(/^↺\s*/, "");
       resetBtn.type = "button";
       resetBtn.addEventListener("click", () => {
         if (!window.confirm(t("reset-investigation-confirm"))) return;

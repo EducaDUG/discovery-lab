@@ -324,7 +324,8 @@ export async function mountExternalActivity(opts = {}) {
     }
     /* Restart the simulation only: clears the sim's own progress, keeps quiz answers and name. */
     const restartRow = el("div", "cluster"); restartRow.style.marginTop = "var(--sp-3)";
-    const restartBtn = el("button", "btn", S("Restart the simulation", "Reiniciar la simulación"));
+    const restartBtn = el("button", "btn btn--signal");
+    restartBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>' + S("Restart the simulation", "Reiniciar la simulación");
     restartBtn.type = "button";
     restartBtn.addEventListener("click", () => {
       if (!window.confirm(S("Restart the simulation from the beginning? Your quiz answers and name are kept.", "¿Reiniciar la simulación desde el principio? Se conservan tus respuestas del cuestionario y tu nombre."))) return;
