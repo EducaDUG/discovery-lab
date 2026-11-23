@@ -15,7 +15,7 @@
 
    Contract — activity.html does only this:
 
-     import { mountActivity } from "../../.../engine/engine.js?v=1";
+     import { mountActivity } from "../../.../engine/engine.js?v=22";
      mountActivity({
        simulation: {
          orient(host, sim)      { ... draw the teaching diagram ... },
@@ -32,6 +32,7 @@
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=12";
 import { t, getLang, localizeConfig } from "./i18n.js?v=10";
+import { stampHeader, introText, closingText } from "./pdf-personal.js?v=1";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 const SCHEMA = 3;                                   // bump discards incompatible saves
@@ -1129,7 +1130,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     const autoPct = autoMax ? Math.round((autoScore / autoMax) * 100) : 0;
 
     const core = {
-      activity_id: config.activityId, activity_version: config.version,
+      activity_id: config.activityId, activity_version: config.version, differentiated: !!config.adaptiveLevels,
       student: state.student.trim(), course: config.course, pathway: config.pathway,
       module: config.module, activity_name: config.title,
       simulation_url: simURL,
@@ -1351,6 +1352,9 @@ function buildPDF(jsPDF, p) {
     if (lf.summary) para(lf.summary, 9.5, "normal", ink, 8);
   }
 
+  { const intro = introText({ student: pdfSafe(p.student), activity: pdfSafe(p.activity_name), differentiated: !!p.differentiated });
+    if (intro) para(intro, 9.5, "italic", mut, 8); }
+
   // Score summary
   h(t("pdf.result"));
   const autoPct = p.auto_marked_percent;
@@ -1483,12 +1487,16 @@ function buildPDF(jsPDF, p) {
   y += 15; setColor(ink);
   para(t("pdf.checksum", { checksum: p.integrity_checksum, note: p.integrity_note }), 8, "normal", mut, 0);
 
+  { const closing = closingText({ student: pdfSafe(p.student), pct: p.auto_marked_percent });
+    if (closing) { y += 6; para(closing, 10, "italic", accent, 0); } }
+
   footer();
 
   /* Page numbers — a plain formal-report cue (and useful once a report runs
      to several pages) — stamped in one final pass now that every page
      exists, centred on the footer rule so it never collides with the
      activity name/checksum (left) or "Discovery Lab" (right). */
+  stampHeader(doc, { W, M, name: pdfSafe(p.student), title: pdfSafe(p.activity_name) });
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
@@ -1562,6 +1570,8 @@ function buildStudentPDF(jsPDF, p) {
 
   const lf = p.learning_focus;
   if (lf && lf.summary) { h(t("pdf.about-activity")); para(lf.summary, 9.5, "normal", ink, 8); }
+  { const intro = introText({ student: pdfSafe(p.student), activity: pdfSafe(p.activity_name), differentiated: !!p.differentiated });
+    if (intro) para(intro, 9.5, "italic", mut, 8); }
 
   h(t("pdf.result"));
   para(t("pdf.auto-summary-receipt", { score: p.auto_marked_score, pct: p.auto_marked_percent }), 10);
@@ -1629,7 +1639,10 @@ function buildStudentPDF(jsPDF, p) {
   rule();
   para(t("pdf.checksum", { checksum: p.integrity_checksum, note: p.integrity_note }), 8, "normal", mut, 0);
 
+  { const closing = closingText({ student: pdfSafe(p.student), pct: p.auto_marked_percent });
+    if (closing) { y += 6; para(closing, 10, "italic", accent, 0); } }
   footer();
+  stampHeader(doc, { W, M, name: pdfSafe(p.student), title: pdfSafe(p.activity_name) });
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);

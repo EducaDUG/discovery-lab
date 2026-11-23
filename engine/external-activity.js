@@ -10,7 +10,7 @@
 
    Contract — activity.html does only this:
 
-     import { mountExternalActivity } from "../../.../engine/external-activity.js?v=1";
+     import { mountExternalActivity } from "../../.../engine/external-activity.js?v=4";
      mountExternalActivity();
 
    config.json (fetched from ./config.json) supplies everything: the source
@@ -24,6 +24,7 @@
 
 import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=12";
 import { t, getLang, localizeConfig } from "./i18n.js?v=10";
+import { stampHeader, introText, closingText } from "./pdf-personal.js?v=1";
 
 const ENGINE_URL = new URL(".", import.meta.url);
 
@@ -602,6 +603,9 @@ function buildExternalPDF(jsPDF, p) {
     y += 6;
   }
 
+  { const intro = introText({ student: pdfSafe(student), activity: pdfSafe(config.title), differentiated: !!config.adaptiveLevels });
+    if (intro) para(intro, 9.5, "italic", mut, 8); }
+
   // Score summary
   h(t("pdf.result"));
   const pct = kcScore.max ? Math.round((kcScore.got / kcScore.max) * 100) : 0;
@@ -631,8 +635,10 @@ function buildExternalPDF(jsPDF, p) {
   rule();
   para(t("upload-note"), 9, "italic", mut, 0);
 
+  { const closing = closingText({ student: pdfSafe(student), pct: kcScore.max ? Math.round((kcScore.got / kcScore.max) * 100) : undefined });
+    if (closing) { y += 6; para(closing, 10, "italic", accent, 0); } }
   footer();
-
+  stampHeader(doc, { W, M, name: pdfSafe(student), title: pdfSafe(config.title) });
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
