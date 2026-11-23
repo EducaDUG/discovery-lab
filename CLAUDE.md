@@ -2041,3 +2041,17 @@ Diego: besides standard Discovery Labs (Sections 3-5, 14) and External Simulatio
 
 ### 12.19 Lesson from `sim-identidad-y-estilo` feedback - pickers must not exclude the student's own country (2026-11-19, standing rule)
 A student could not find Japan in the Unit 1 "Mi Intro" country picker. **Any picker where students describe themselves (country, city, job, language) must offer a broad, alphabetised list AND an "Other (type it)" free-text route**, so no student is ever unable to say who they are. Applied to Unit 1 (about 50 countries + Other) and Unit 2 (more cities). Check this in every future Spanish unit builder.
+
+---
+
+## 20. Location-aware simulations: units and hemisphere (agreed 2026-11-23, standing rule)
+
+Student feedback: a simulation should adapt to where the student is. In the USA use US customary (imperial) units; everywhere else use metric. Southern-hemisphere students must not be taught "June = summer".
+
+- **Shared module: `engine/locale.js`** (no network, no tracking). It guesses from the device time zone, the same way `engine/weather.js` does, and the student can override both choices in the accessibility panel (`dl-units`: auto/metric/us, `dl-hemi`: auto/north/south, stored per device; changing either reloads the page). It sets `data-units` and `data-hemisphere` on `<html>`.
+- **Compute in SI, convert only at display.** Models, trial logs and marking use metric. Anything a student reads goes through `fmtTemp`, `fmtLengthM/Cm`, `fmtDistanceKm`, `fmtMassKg/G`, `fmtVolumeL`, `fmtSpeedKmh`, `fmtAreaM2`, `fmtPressureKPa`. Science-standard SI units (N, J, W, mol, s, V, A) are never converted. Do not hardcode "°C", "km", "kg", "litres" in student-facing text of a new simulation.
+- **Hemisphere:** use `hemisphere()`, `seasonOfMonth()`, `seasonMonths()`, `summerSolsticeMonth()`, `noonSunDirection()`; never state "June is summer", "the Sun is in the south at noon", "winter is Dec-Feb", or a compass direction for the Sun/seasons/stars/moon phases/Coriolis as fact for everyone. Default city/example = the student's hemisphere; keep both hemispheres visible when comparing is the lesson (Sun & Seasons does).
+- **Also take into account where relevant:** date format (month/day for US, day/month elsewhere, via `toLocaleDateString`), decimal comma in Spanish (already via language), currency symbol where a sim uses money ($ stays default per 12.18 unless a task says otherwise), school-year/term wording, local weather chip (already unit-aware).
+- **Assessment safety:** if a quiz/numeric question's correct answer depends on a unit, either keep the question in the unit the curriculum uses (state it explicitly, and accept both) or convert the expected value with the same `fmt*` helper. `marking.json` and PDF evidence always record the metric value plus the displayed unit. Never change a question's meaning silently.
+- **Checklist for every new sim (add to the §11 pre-flight):** grep your activity for hardcoded units and season/month claims; test it once with `localStorage.setItem("dl-units","us")` and `dl-hemi` = `south`.
+- **Retrofit status (2026-11-23):** engine module + panel switch shipped; `sim-sun-seasons-tides` made hemisphere-aware. Remaining existing sims still show fixed units; about 35 activity folders mention units (C, km, kg, cm, litres, km/h, plus the 18 US-customary mentions). Retrofit them case by case when next opened, converting display text only and re-checking quiz answers.

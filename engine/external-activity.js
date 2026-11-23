@@ -22,7 +22,7 @@
    is formative, not a secure exam).
    ========================================================================== */
 
-import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=6";
+import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=10";
 import { t, getLang, localizeConfig } from "./i18n.js?v=10";
 
 const ENGINE_URL = new URL(".", import.meta.url);

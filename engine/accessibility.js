@@ -16,6 +16,10 @@
    ========================================================================== */
 
 import { t } from "./i18n.js?v=8";
+import { overrides, setUnits, setHemisphere, unitSystem, hemisphere } from "./locale.js?v=1";
+
+const ES = (() => { try { return (localStorage.getItem("dl-lang") || "en") === "es"; } catch { return false; } })();
+const L = (en, es) => ES ? es : en;
 
 const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
@@ -202,6 +206,15 @@ function buildPanel(prefs, update) {
   panel.append(segmented(t("a11y.text-size"), TEXT_SIZES(), prefs.textSize, v => update({ textSize: v })));
   panel.append(segmented(t("a11y.background"), TINTS(), prefs.tint, v => update({ tint: v })));
   panel.append(segmented(t("a11y.motion"), MOTIONS(), prefs.motion, v => update({ motion: v })));
+
+  /* Where am I: units + hemisphere (auto from time zone, student can override) */
+  const ov = overrides();
+  panel.append(segmented(L("Units", "Unidades"), [
+    ["auto", L("Auto", "Auto") + " (" + (unitSystem() === "us" ? "US" : L("metric", "métrico")) + ")"],
+    ["metric", L("Metric", "Métrico")], ["us", L("US customary", "EE. UU.")]], ov.units, v => { setUnits(v); location.reload(); }));
+  panel.append(segmented(L("Hemisphere", "Hemisferio"), [
+    ["auto", L("Auto", "Auto") + " (" + (hemisphere() === "south" ? L("south", "sur") : L("north", "norte")) + ")"],
+    ["north", L("Northern", "Norte")], ["south", L("Southern", "Sur")]], ov.hemi, v => { setHemisphere(v); location.reload(); }));
 
   panel.append(toggleRow(
     t("a11y.dyslexia"),

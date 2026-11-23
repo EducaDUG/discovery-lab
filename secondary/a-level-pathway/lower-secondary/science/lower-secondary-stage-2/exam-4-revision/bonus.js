@@ -4,7 +4,7 @@
    - Quiz-in-the-action: the answer is where the flask lands. A wrong board (or a miss) never ends the round; it names the right answer with a hook.
    - Game state runs on setInterval wall-clock time and setTimeout. requestAnimationFrame only draws.
    - Real <button>s and the arrow keys aim, Space fires; always-visible mute button; reduced motion respected; button-only fallback without WebGL. */
-import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=6";
+import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=10";
 import { T, reduced, shuffle } from "../../../../../../engine/revision-kit.js?v=16";
 
 const TOTAL_MS = 120000, G = 9.8, ANG = Math.PI / 4, R_BOARD = 2.7;

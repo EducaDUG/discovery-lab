@@ -156,6 +156,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountActivity } from "../../../../../../engine/engine.js?v=21";
 import { getLang } from "../../../../../../engine/i18n.js?v=10";
+import { hemisphere } from "../../../../../../engine/locale.js?v=1";
 
 const THREE_OK = typeof THREE !== "undefined";
 const L = (en, es) => getLang() === "es" ? es : en;
@@ -527,11 +528,13 @@ const CITIES2 = [
   { id: "quito", en: "Quito (0°)", es: "Quito (0°)", lat: -0.2, lon: -78.5 },
   { id: "sydney", en: "Sydney (34°S)", es: "Sídney (34°S)", lat: -33.9, lon: 151.2 },
 ];
+const SOUTHERN = hemisphere() === "south";
+/* Season names follow the student's own hemisphere (June solstice = their winter in the south). */
 const JUMPS = [
-  { d: 80, en: "Spring equinox (Mar 21)", es: "Equinoccio de primavera (21 mar)" },
-  { d: 172, en: "Summer solstice (Jun 21)", es: "Solsticio de verano (21 jun)" },
-  { d: 265, en: "Autumn equinox (Sep 22)", es: "Equinoccio de otoño (22 sep)" },
-  { d: 355, en: "Winter solstice (Dec 21)", es: "Solsticio de invierno (21 dic)" },
+  { d: 80, en: `${SOUTHERN ? "Autumn" : "Spring"} equinox (Mar 21)`, es: `Equinoccio de ${SOUTHERN ? "otoño" : "primavera"} (21 mar)` },
+  { d: 172, en: `June solstice (Jun 21) - your ${SOUTHERN ? "winter" : "summer"}`, es: `Solsticio de junio (21 jun) - tu ${SOUTHERN ? "invierno" : "verano"}` },
+  { d: 265, en: `${SOUTHERN ? "Spring" : "Autumn"} equinox (Sep 22)`, es: `Equinoccio de ${SOUTHERN ? "primavera" : "otoño"} (22 sep)` },
+  { d: 355, en: `December solstice (Dec 21) - your ${SOUTHERN ? "summer" : "winter"}`, es: `Solsticio de diciembre (21 dic) - tu ${SOUTHERN ? "verano" : "invierno"}` },
 ];
 function seasonMath(lat, tiltDeg, d1) {
   const t = tiltDeg * D2R, dec = Math.asin(Math.sin(t) * Math.cos(TAU * (d1 - 172) / 365)), phi = lat * D2R;
@@ -549,7 +552,7 @@ function buildSeasons(mount, sim, onDone) {
   const card = stationShell(2, "Orbit the Sun: The Seasons", "Orbita el Sol: Las Estaciones", "Slide Earth round its orbit. Pick a city, try different dates — and switch the tilt off to run a fair test!", "Desliza la Tierra por su órbita. Elige una ciudad, prueba fechas distintas — ¡y apaga la inclinación para hacer una prueba justa!");
   const stage = document.createElement("div"); stage.className = "ssl-stage"; card.append(stage);
   const sp = makeSpace(stage, { dist: 13, yaw: 0.4, pitch: 0.62, auto: 0.03 });
-  const S = { d1: sim.state.seasonD || 172, tilt: sim.state.seasonTilt === 0 ? 0 : 23.4, city: sim.state.seasonCity || "madrid" };
+  const S = { d1: sim.state.seasonD || 172, tilt: sim.state.seasonTilt === 0 ? 0 : 23.4, city: sim.state.seasonCity || (SOUTHERN ? "sydney" : "madrid") };
   let earth = null, pinMeshes = {}, ray = null, orb = null;
   const R = 5.2, wp = new THREE.Vector3();
   if (sp) {
