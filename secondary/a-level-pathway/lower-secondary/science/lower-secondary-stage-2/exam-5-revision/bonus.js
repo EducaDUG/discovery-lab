@@ -4,7 +4,7 @@
    - Quiz-in-the-action: wrong answers never stop the game: they show the right answer and a hook, and the same part is asked again.
    - Game state runs on setInterval wall-clock time. requestAnimationFrame only draws.
    - Real <button>s and keys 1-3 answer; own mute button; reduced motion respected; button-only fallback without WebGL. */
-import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=10";
+import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=12";
 import { T, reduced, shuffle } from "../../../../../../engine/revision-kit.js?v=17";
 
 const TOTAL_MS = 120000;

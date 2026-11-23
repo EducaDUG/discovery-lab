@@ -75,6 +75,78 @@ export const noonSunDirection = () => hemisphere() === "south" ? "north" : "sout
 document.documentElement.setAttribute("data-units", unitSystem());
 document.documentElement.setAttribute("data-hemisphere", hemisphere());
 
-export default { unitSystem, hemisphere, setUnits, setHemisphere, overrides, fmtTemp, fmtTempDelta, fmtLengthM, fmtLengthCm,
+export default { autoConvert, unitSystem, hemisphere, setUnits, setHemisphere, overrides, fmtTemp, fmtTempDelta, fmtLengthM, fmtLengthCm,
   fmtDistanceKm, fmtMassKg, fmtMassG, fmtVolumeL, fmtSpeedKmh, fmtAreaM2, fmtPressureKPa, seasonOfMonth, seasonMonths,
   summerSolsticeMonth, winterSolsticeMonth, noonSunDirection };
+
+/* ---------- Automatic display conversion for US students (opt-in per activity) ----------
+   An activity opts in with <html data-unit-convert>. For a US student, metric quantities in the page text
+   ("20 °C", "5 km", "2 kg", "3 L", "10 m²", ranges like "18 and 26 °C") are shown as "68 °F (20 °C)":
+   the US value first, the original metric value kept in brackets so answers, marking and the curriculum
+   still line up. Skipped: changes/differences ("rises by 6 °C"), text already converted, inputs, scripts,
+   canvases, and anything inside [data-unit-lock]. Canvas/WebGL text is not touched; use fmt*() there. */
+const NUM = String.raw`[-\u2212]?(?:\d{1,3}(?:[.,]\d{3})+|\d+(?:[.,]\d+)?)`;
+const UNIT = String.raw`(?:\u00b0C|km/h|km|kg|cm|mL|L|m\u00b2|m2|m)`;
+const SEP = String.raw`\s?(?:-|\u2013|to|and|y|a)\s?`;
+const RE = new RegExp(String.raw`(${NUM})((?:${SEP}${NUM})?)\s?(${UNIT})(?![\p{L}\d\u00b2\u00b3/])`, "gu");
+const SKIP_BEFORE = /(\bby|\bper|\bevery|\beach|\banother|\bextra|\b(?:rise|rises|fall|falls|drop|drops|change|difference|increase|decrease|gain|loss)(?: of| in)?|\bmás de|\bcada|\bpor|\bde)\s*$/i;
+
+function parseNum(s) {
+  let x = s.replace("−", "-");
+  const m = x.match(/^(-?\d{1,3})([.,])(\d{3})$/);
+  if (m && m[1].replace("-", "") !== "0") return parseFloat(m[1] + m[3]);       // 1.000 / 1,000 = thousand
+  if (/^-?\d{1,3}(?:[.,]\d{3})+$/.test(x)) return parseFloat(x.replace(/[.,]/g, ""));
+  return parseFloat(x.replace(",", "."));
+}
+function show(n, es) {
+  const a = Math.abs(n), d = a >= 100 ? 0 : a >= 10 ? 1 : 2;
+  const v = Math.round(n * 10 ** d) / 10 ** d;
+  return v.toLocaleString(es ? "es-ES" : "en-US", { maximumFractionDigits: d, useGrouping: Math.abs(v) >= 10000 });
+}
+const CONV = {
+  "°C": [c => c * 9 / 5 + 32, "°F"], "km": [v => v / 1.609344, "mi"], "km/h": [v => v / 1.609344, "mph"],
+  "kg": [v => v * 2.20462, "lb"], "cm": [v => v / 2.54, "in"], "m": [v => v * 3.28084, "ft"],
+  "m²": [v => v * 10.7639, "ft²"], "m2": [v => v * 10.7639, "ft²"],
+  "L": [v => v / 3.78541, "gal"], "mL": [v => v / 29.5735, "fl oz"],
+};
+function convertText(str, es) {
+  if (!/\d/.test(str)) return str;
+  return str.replace(RE, (whole, n1, rest, unit, off) => {
+    const before = str.slice(Math.max(0, off - 22), off);
+    if (/\($/.test(before) || SKIP_BEFORE.test(before)) return whole;
+    let [f, us] = CONV[unit];
+    if (unit === "L") { const v = parseNum(n1); if (v < 3.785) { f = x => x * 33.814; us = "fl oz"; } }
+    const first = show(f(parseNum(n1)), es);
+    let out = first;
+    if (rest) {
+      const sm = rest.match(new RegExp(String.raw`^(${SEP})(${NUM})$`));
+      out += sm[1] + show(f(parseNum(sm[2])), es);
+    }
+    return `${out} ${us} (${whole.trim()})`;
+  });
+}
+export function autoConvert(root) {
+  const es = (document.documentElement.lang || (() => { try { return localStorage.getItem("dl-lang"); } catch { return ""; } })() || "en").slice(0, 2) === "es";
+  const bad = ["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CANVAS", "NOSCRIPT", "OPTION"];
+  const walk = node => {
+    if (node.nodeType === 3) {
+      const p = node.parentElement;
+      if (!p || p.closest("script,style,textarea,input,canvas,noscript,option,[data-unit-lock]")) return;
+      const nv = convertText(node.nodeValue, es);
+      if (nv !== node.nodeValue) node.nodeValue = nv;
+    } else if (node.nodeType === 1 && !bad.includes(node.tagName)) node.childNodes.forEach(walk);
+  };
+  walk(root || document.body);
+}
+if (isUS() && document.documentElement.hasAttribute("data-unit-convert")) {
+  const start = () => {
+    autoConvert(document.body);
+    let queued = false; const pending = new Set();
+    new MutationObserver(recs => {
+      recs.forEach(r => { if (r.type === "characterData") pending.add(r.target); else r.addedNodes.forEach(n => pending.add(n)); });
+      if (queued) return; queued = true;
+      queueMicrotask(() => { queued = false; const items = [...pending]; pending.clear(); items.forEach(n => n.isConnected && autoConvert(n)); });
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  };
+  if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
+}

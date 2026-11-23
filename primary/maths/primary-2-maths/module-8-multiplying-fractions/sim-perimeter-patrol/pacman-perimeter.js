@@ -5,7 +5,7 @@
    - Arrow keys / WASD or on-screen d-pad buttons. No lives, no fail state.
    - Own always-visible mute button (setTTS) per CLAUDE.md section 6.
    - Reduced motion: slower movement, no particles, no shake. */
-import { ttsEnabled, setTTS } from "../../../../../engine/accessibility.js?v=10";
+import { ttsEnabled, setTTS } from "../../../../../engine/accessibility.js?v=12";
 
 const SHAPES = [[3, 2], [4, 2], [3, 3], [5, 2], [4, 3], [5, 3], [6, 2], [4, 4], [6, 3], [5, 4]];
 const W = 480, H = 320;

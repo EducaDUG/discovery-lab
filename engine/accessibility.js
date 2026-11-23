@@ -16,7 +16,7 @@
    ========================================================================== */
 
 import { t } from "./i18n.js?v=8";
-import { overrides, setUnits, setHemisphere, unitSystem, hemisphere } from "./locale.js?v=1";
+import { overrides, setUnits, setHemisphere, unitSystem, hemisphere } from "./locale.js?v=4";
 
 const ES = (() => { try { return (localStorage.getItem("dl-lang") || "en") === "es"; } catch { return false; } })();
 const L = (en, es) => ES ? es : en;

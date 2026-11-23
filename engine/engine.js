@@ -30,7 +30,7 @@
    spec never pretends otherwise.
    ========================================================================== */
 
-import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=10";
+import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=12";
 import { t, getLang, localizeConfig } from "./i18n.js?v=10";
 
 const ENGINE_URL = new URL(".", import.meta.url);
