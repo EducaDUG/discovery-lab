@@ -322,6 +322,19 @@ export async function mountExternalActivity(opts = {}) {
       console.error(e);
       simCardHost.append(el("p", "nav-empty", t("activity-load-error")));
     }
+    /* Restart the simulation only: clears the sim's own progress, keeps quiz answers and name. */
+    const restartRow = el("div", "cluster"); restartRow.style.marginTop = "var(--sp-3)";
+    const restartBtn = el("button", "btn", S("Restart the simulation", "Reiniciar la simulación"));
+    restartBtn.type = "button";
+    restartBtn.addEventListener("click", () => {
+      if (!window.confirm(S("Restart the simulation from the beginning? Your quiz answers and name are kept.", "¿Reiniciar la simulación desde el principio? Se conservan tus respuestas del cuestionario y tu nombre."))) return;
+      clearTimeout(saveTimer);
+      state.sim = {};
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+      window.location.reload();
+    });
+    restartRow.append(restartBtn);
+    simCardHost.after(restartRow);
   }
 
   /* --- 3. learning focus --------------------------------------------------- */
