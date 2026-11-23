@@ -8,7 +8,7 @@
    marks. Wrong hits name the right answer plus a memory hook, in place. */
 import { L, reduced, SPEC, GROUPS, GROUP_ORDER, img } from "./data.js?v=1";
 import { hasWebGL, makeStage, glowTexture, photoTexture, burst3D, burstAt, shake, floatText, blip, sound, noiseTexture } from "./fx.js?v=1";
-import { setTTS, ttsEnabled } from "../../../../../../../../engine/accessibility.js?v=12";
+import { setTTS, ttsEnabled } from "../../../../../../../../engine/accessibility.js?v=13";
 
 const DURATION = 120;
 const REP = { virus: "influenza", bacteria: "lactobacillus", fungi: "mushroom", protoctist: "amoeba", plant: "maize", animal: "polar-bear" };

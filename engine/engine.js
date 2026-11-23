@@ -15,7 +15,7 @@
 
    Contract — activity.html does only this:
 
-     import { mountActivity } from "../../.../engine/engine.js?v=22";
+     import { mountActivity } from "../../.../engine/engine.js?v=24";
      mountActivity({
        simulation: {
          orient(host, sim)      { ... draw the teaching diagram ... },
@@ -30,7 +30,7 @@
    spec never pretends otherwise.
    ========================================================================== */
 
-import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=12";
+import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=13";
 import { t, getLang, localizeConfig } from "./i18n.js?v=10";
 import { stampHeader, introText, closingText } from "./pdf-personal.js?v=1";
 
@@ -394,6 +394,10 @@ export async function mountActivity({ simulation = {} } = {}) {
     locked: false, submittedAt: null,
   });
   let state = load() || fresh();
+  const AL = config.adaptiveLevels && config.adaptiveLevels.enabled ? config.adaptiveLevels : null;
+  const bank = () => config.knowledgeCheckBank || [];
+  /* The questions this student actually received: the plain list, or the adaptive plan. */
+  const kcList = () => !(AL && bank().length) ? (config.knowledgeCheck || []) : (state.kcPlan || []).map(id => bank().find(b => b.id === id)).filter(Boolean);
   function load() {
     try {
       const raw = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
@@ -871,15 +875,20 @@ export async function mountActivity({ simulation = {} } = {}) {
     stageHead(host, t("knowledge-check"), t("show-what-know"), t("check.lede"));
     const list = el("div", "stack"); list.style.setProperty("--flow", "var(--sp-5)");
     controllers.kc = [];
-    (config.knowledgeCheck || []).forEach((q, i) => {
+    const addQuestion = (q, i) => {
       const ctl = makeQuestion(q, i);
       controllers.kc.push({ ctl, q });
       if (state.kc[q.id] != null) ctl.set(state.kc[q.id]);
       ctl.onChange(() => { if (state.locked) return; state.kc[q.id] = ctl.get(); save(); });
       list.append(ctl.node);
-    });
+      return ctl;
+    };
+    const adaptive = !!(AL && bank().length);
+    if (!adaptive) (config.knowledgeCheck || []).forEach(addQuestion);
+    if (adaptive) host.append(adaptiveHeader(host, list));
     host.append(list);
 
+    function mountBar() {
     const bar = el("div", "cluster no-print"); bar.style.marginTop = "var(--sp-5)";
     const checkBtn = el("button", "btn", t("check-answers"));
     const result = el("div"); result.id = "kc-result";
@@ -900,6 +909,118 @@ export async function mountActivity({ simulation = {} } = {}) {
       renderKCResult(result, state.kcScore.got, state.kcScore.max);
       checkBtn.textContent = t("answers-checked"); checkBtn.disabled = true;
     }
+    }
+    if (adaptive) adaptiveFlow(host, list, addQuestion, mountBar); else mountBar();
+  }
+
+  /* ---------------- Adaptive Levels (CLAUDE.md section 21.1) ----------------
+     config.adaptiveLevels = { enabled, startLevel (3), openingSlots (2), names:{en:[5],es:[5]} }
+     config.knowledgeCheckBank = [ { id, slot, level 1-5, ...normal question fields } ]
+     One question per slot is served; the level moves one step at a time from the last two
+     signals (question/hypothesis answers that carry an `answer`, then each quiz answer).
+     Opening slots are served at the start level to everyone. The level is recorded beside the
+     grade and never subtracted from it: every level is out of 100%. ?level=1..5 is a teacher
+     override; in practice (formative) mode the student may pick a level or leave it on Auto. */
+  function levelNames() {
+    const lang = getLang() === "es" ? "es" : "en";
+    const d = { en: ["Explorer", "Navigator", "Pathfinder", "Trailblazer", "Pioneer"], es: ["Explorador", "Navegante", "Buscador", "Pionero", "Vanguardia"] };
+    const n = (AL && AL.names && (AL.names[lang] || AL.names.en)) || d[lang];
+    return n.length >= 5 ? n : d[lang];
+  }
+  function slotOrder() { return [...new Set(bank().map(b => b.slot))]; }
+  function pickFor(slot, level) {
+    const items = bank().filter(b => b.slot === slot);
+    let best = null, bd = 99;
+    items.forEach(b => { const d = b.level ? Math.abs(b.level - level) + (b.level > level ? 0.1 : 0) : 0; if (d < bd) { bd = d; best = b; } });
+    return best;
+  }
+  function urlLevel() { const m = /[?&]level=([1-5])\b/.exec(location.search); return m ? +m[1] : 0; }
+  function sameAnswer(a, b) { return JSON.stringify(Array.isArray(a) ? [...a].sort() : a) === JSON.stringify(Array.isArray(b) ? [...b].sort() : b); }
+  function ensureAdaptiveState() {
+    if (state.kcPlan) return;
+    state.kcPlan = []; state.levelPath = []; state.signals = [];
+    const fixed = urlLevel();
+    state.levelFixed = !!fixed; state.levelSource = fixed ? "teacher" : "adaptive";
+    state.level = fixed || AL.startLevel || 3;
+    if (!fixed) {
+      [["question", config.question, state.question], ["hypothesis", config.predict, state.predict]].forEach(([src, cfg, val]) => {
+        if (cfg && cfg.answer != null && val != null) recordSignal(sameAnswer(val, cfg.answer), src);
+      });
+    }
+    save();
+  }
+  function recordSignal(correct, src) {
+    if (state.levelFixed) return;
+    state.signals.push(!!correct);
+    const last = state.signals.slice(-2);
+    let move = 0;
+    if (last.length === 2 && last.every(Boolean)) move = 1; else if (last.length === 2 && last.every(x => !x)) move = -1;
+    state.level = Math.max(1, Math.min(5, state.level + move));
+    state.levelPath.push({ src, correct: !!correct, level: state.level });
+  }
+  function adaptiveHeader(host, list) {
+    ensureAdaptiveState();
+    const wrap = el("div", "cluster no-print"); wrap.style.marginBottom = "var(--sp-4)";
+    const chip = el("span", "score-chip"); chip.id = "lvl-chip";
+    const paint = () => { chip.textContent = (getLang() === "es" ? "Tu nivel: " : "Your level: ") + levelNames()[state.level - 1]; };
+    paint(); state.paintLevel = paint;
+    wrap.append(chip);
+    if (!AL.assessed && config.assessmentMode !== "assessed" && !state.locked && !urlLevel()) {
+      const sel = el("select", "input"); sel.style.maxWidth = "14rem";
+      sel.setAttribute("aria-label", getLang() === "es" ? "Elige tu nivel" : "Choose your level");
+      const names = levelNames();
+      [["auto", getLang() === "es" ? "Automático (recomendado)" : "Automatic (recommended)"], ...names.map((n, i) => [String(i + 1), n])].forEach(([v, l]) => { const o = el("option", null, l); o.value = v; sel.append(o); });
+      sel.value = state.levelSource === "self" ? String(state.level) : "auto";
+      sel.addEventListener("change", () => {
+        if (Object.keys(state.kc).length) { sel.value = state.levelSource === "self" ? String(state.level) : "auto"; toast(getLang() === "es" ? "Ya empezaste: termina esta ronda para cambiar de nivel." : "You have already started: finish this round to change level.", "info"); return; }
+        state.kcPlan = null; state.kcMarked = false; ensureAdaptiveState();
+        if (sel.value !== "auto") { state.levelFixed = true; state.levelSource = "self"; state.level = +sel.value; state.levelPath = [{ src: "self-chosen", correct: null, level: state.level }]; }
+        save(); location.reload();
+      });
+      wrap.append(sel);
+    }
+    return wrap;
+  }
+  function adaptiveFlow(host, list, addQuestion, mountBar) {
+    const slots = slotOrder(), opening = AL.openingSlots == null ? 2 : AL.openingSlots;
+    const names = () => levelNames()[state.level - 1];
+    function showPlanned() {
+      state.kcPlan.forEach((id, i) => {
+        const q = bank().find(b => b.id === id); if (!q) return;
+        const ctl = addQuestion(q, i);
+        if (i < state.kcPlan.length - 1) ctl.lock();
+      });
+    }
+    function addNext() {
+      const i = state.kcPlan.length, slot = slots[i];
+      const q = pickFor(slot, i < opening ? (AL.startLevel || 3) : state.level);
+      state.kcPlan.push(q.id); save();
+      return addQuestion(q, i);
+    }
+    if (!state.kcPlan.length) addNext(); else showPlanned();
+    const done = () => state.kcPlan.length >= slots.length;
+    const nextBar = el("div", "cluster no-print"); nextBar.style.marginTop = "var(--sp-4)";
+    const nextBtn = el("button", "btn", getLang() === "es" ? "Siguiente pregunta" : "Next question");
+    nextBar.append(nextBtn);
+    function refresh() {
+      const cur = controllers.kc[controllers.kc.length - 1];
+      nextBtn.disabled = !cur || !cur.ctl.answered();
+      if (done() && !state.kcMarked) { nextBar.remove(); }
+    }
+    controllers.kc.forEach(k => k.ctl.onChange(refresh));
+    nextBtn.addEventListener("click", () => {
+      const cur = controllers.kc[controllers.kc.length - 1];
+      if (!cur.ctl.answered()) return;
+      cur.ctl.lock();
+      recordSignal(cur.ctl.score() > 0, "quiz");
+      save();
+      if (state.paintLevel) state.paintLevel();
+      const ctl = addNext(); ctl.onChange(refresh);
+      if (done()) { nextBar.remove(); mountBar(); } else refresh();
+    });
+    if (done()) { mountBar(); } else { host.append(nextBar); refresh(); }
+    if (state.kcMarked) { nextBar.remove(); }
+    void names;
   }
 
   function renderKCResult(host, got, max) {
@@ -1086,13 +1207,13 @@ export async function mountActivity({ simulation = {} } = {}) {
   function buildPayload(marking) {
     const completed = todayISO();
     const autoScore = state.kcScore ? state.kcScore.got : 0;
-    const autoMax = state.kcScore ? state.kcScore.max : (config.knowledgeCheck || []).reduce((n, q) => n + (q.marks || 1), 0);
+    const autoMax = state.kcScore ? state.kcScore.max : kcList().reduce((n, q) => n + (q.marks || 1), 0);
 
-    const autoMarked = (config.knowledgeCheck || []).map(q => {
+    const autoMarked = kcList().map(q => {
       const ctl = controllers.kc.find(k => k.q.id === q.id)?.ctl;
       const ans = state.kc[q.id];
       return {
-        id: q.id, question: q.prompt, type: q.type,
+        id: q.id, question: q.prompt, type: q.type, level: q.level || null,
         student_answer: ans, correct_answer: q.answer,
         marks_available: q.marks || 1,
         marks_awarded: ctl ? round1(ctl.score()) : 0,
@@ -1130,7 +1251,8 @@ export async function mountActivity({ simulation = {} } = {}) {
     const autoPct = autoMax ? Math.round((autoScore / autoMax) * 100) : 0;
 
     const core = {
-      activity_id: config.activityId, activity_version: config.version, differentiated: !!config.adaptiveLevels,
+      activity_id: config.activityId, activity_version: config.version, differentiated: !!AL,
+      adaptive_levels: AL ? { final_level: state.level, final_name: levelNames()[(state.level || 3) - 1], source: state.levelSource || "adaptive", path: state.levelPath || [] } : null,
       student: state.student.trim(), course: config.course, pathway: config.pathway,
       module: config.module, activity_name: config.title,
       simulation_url: simURL,
@@ -1354,6 +1476,10 @@ function buildPDF(jsPDF, p) {
 
   { const intro = introText({ student: pdfSafe(p.student), activity: pdfSafe(p.activity_name), differentiated: !!p.differentiated });
     if (intro) para(intro, 9.5, "italic", mut, 8); }
+  if (p.adaptive_levels) {
+    const a = p.adaptive_levels;
+    para(`Adaptive Levels (teacher note): final level L${a.final_level} (${pdfSafe(a.final_name)}), placed by ${pdfSafe(a.source)}. Path: ${(a.path || []).map(x => "L" + x.level + (x.correct === true ? "+" : x.correct === false ? "-" : "")).join(" > ") || "-"}. Every level is marked out of 100%; the level is recorded beside the grade and never subtracted from it.`, 8.5, "normal", mut, 8);
+  }
 
   // Score summary
   h(t("pdf.result"));

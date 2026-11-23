@@ -8,7 +8,7 @@
    just resets the streak and shows the right answer plus a one-line memory hook, in place); the round is
    time-boxed on wall-clock time (setInterval + Date.now, never rAF, which only draws); the bins are real
    <button>s and keys 1-3 work; reduced motion is respected; a mute button is always visible. */
-import { setTTS, ttsEnabled, speak } from "../../../../../../../engine/accessibility.js?v=12";
+import { setTTS, ttsEnabled, speak } from "../../../../../../../engine/accessibility.js?v=13";
 
 const CSS = `
 .cv{background:#04120d;border:1px solid #2f6b4d;border-radius:var(--radius-lg,14px);overflow:hidden;color:#e8fff2;font-family:var(--font-data,monospace);}

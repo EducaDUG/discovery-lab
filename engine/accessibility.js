@@ -25,7 +25,7 @@ const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
 const DYSLEXIA_CSS = new URL("vendor/fonts/dyslexia-font.css", ENGINE_URL).href;
 
-const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false };
+const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false, spacing: "normal", plain: false, ruler: false };
 
 const TEXT_SIZES = () => [
   ["s", t("a11y.size.s"), "A"], ["m", t("a11y.size.m"), "A"], ["l", t("a11y.size.l"), "A"], ["xl", t("a11y.size.xl"), "A"],
@@ -33,7 +33,50 @@ const TEXT_SIZES = () => [
 const TINTS = () => [
   ["paper", t("a11y.tint.paper")], ["warm", t("a11y.tint.warm")], ["cool", t("a11y.tint.cool")],
   ["dusk", t("a11y.tint.dusk")], ["dark", t("a11y.tint.dark")],
+  /* Extra colours for visual stress / Irlen-type light sensitivity: the colour that helps is personal. */
+  ["rose", L("Rose", "Rosa")], ["peach", L("Peach", "Melocotón")], ["yellow", L("Yellow", "Amarillo")],
+  ["mint", L("Mint", "Menta")], ["aqua", L("Aqua", "Aguamarina")], ["lilac", L("Lilac", "Lila")],
 ];
+const SPACINGS = () => [["normal", L("Normal", "Normal")], ["roomy", L("Roomy", "Amplio")], ["xroomy", L("Extra roomy", "Muy amplio")]];
+
+/* Styles for the extra reading supports live here (not in style.css) so one cache-busted file
+   delivers them to every page at once. */
+function injectReadingStyles() {
+  if (document.getElementById("dl-reading-css")) return;
+  const st = document.createElement("style"); st.id = "dl-reading-css";
+  st.textContent = `
+[data-tint="rose"]  { --paper: #F7E6EA; --surface: #FFF4F6; --surface-2: #EBD3D9; }
+[data-tint="peach"] { --paper: #F8EAD9; --surface: #FFF6EC; --surface-2: #EDD9C2; }
+[data-tint="yellow"]{ --paper: #F6F0C9; --surface: #FFFBE0; --surface-2: #EBE3B0; }
+[data-tint="mint"]  { --paper: #E0F0E4; --surface: #F1FAF3; --surface-2: #CFE5D5; }
+[data-tint="aqua"]  { --paper: #DDEFEF; --surface: #EFFAFA; --surface-2: #C9E3E3; }
+[data-tint="lilac"] { --paper: #E9E4F3; --surface: #F6F3FC; --surface-2: #DAD2EA; }
+[data-spacing="roomy"]  body { letter-spacing: 0.04em; word-spacing: 0.16em; line-height: 1.85; }
+[data-spacing="xroomy"] body { letter-spacing: 0.08em; word-spacing: 0.3em;  line-height: 2.1; }
+[data-spacing="roomy"] p, [data-spacing="roomy"] li, [data-spacing="xroomy"] p, [data-spacing="xroomy"] li { text-align: left; max-width: 68ch; }
+[data-plainfont="on"] { --font-ui: Verdana, Tahoma, Arial, ui-sans-serif, sans-serif; --font-display: Verdana, Tahoma, Arial, ui-sans-serif, sans-serif; }
+[data-dyslexia="on"][data-plainfont="on"] { --font-ui: "Atkinson Hyperlegible", Verdana, sans-serif; --font-display: "Atkinson Hyperlegible", Verdana, sans-serif; }
+.dl-ruler { position: fixed; inset: 0; z-index: 2147483000; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,.38) calc(var(--ry, 40%) - 30px), transparent calc(var(--ry, 40%) - 30px), transparent calc(var(--ry, 40%) + 30px), rgba(0,0,0,.38) calc(var(--ry, 40%) + 30px)); }
+`;
+  document.head.appendChild(st);
+}
+
+/* Reading ruler: dims everything except a band that follows the pointer / finger / keyboard focus. */
+let rulerEl = null, rulerBound = false;
+function setRuler(on) {
+  if (on && !rulerEl) {
+    rulerEl = document.createElement("div"); rulerEl.className = "dl-ruler"; rulerEl.setAttribute("aria-hidden", "true");
+    document.body.appendChild(rulerEl);
+    if (!rulerBound) {
+      rulerBound = true;
+      const move = y => { if (rulerEl) rulerEl.style.setProperty("--ry", Math.round(y) + "px"); };
+      addEventListener("pointermove", e => move(e.clientY), { passive: true });
+      addEventListener("touchmove", e => { if (e.touches[0]) move(e.touches[0].clientY); }, { passive: true });
+      addEventListener("focusin", e => { const r = e.target.getBoundingClientRect && e.target.getBoundingClientRect(); if (r) move(r.top + r.height / 2); });
+    }
+  } else if (!on && rulerEl) { rulerEl.remove(); rulerEl = null; }
+}
 const MOTIONS = () => [
   ["auto", t("a11y.motion.auto")], ["off", t("a11y.motion.off")], ["on", t("a11y.motion.on")],
 ];
@@ -63,6 +106,10 @@ export function applyPrefs(prefs) {
   root.setAttribute("data-text-size", prefs.textSize);
   root.setAttribute("data-tint", prefs.tint);
 
+  injectReadingStyles();
+  root.setAttribute("data-spacing", prefs.spacing || "normal");
+  if (prefs.plain) root.setAttribute("data-plainfont", "on"); else root.removeAttribute("data-plainfont");
+  if (document.body) setRuler(!!prefs.ruler); else document.addEventListener("DOMContentLoaded", () => setRuler(!!prefs.ruler));
   if (prefs.dyslexia) { ensureDyslexiaFont(); root.setAttribute("data-dyslexia", "on"); }
   else root.removeAttribute("data-dyslexia");
 
@@ -220,6 +267,16 @@ function buildPanel(prefs, update) {
     t("a11y.dyslexia"),
     t("a11y.dyslexia-hint"),
     prefs.dyslexia, on => update({ dyslexia: on })));
+
+  panel.append(segmented(L("Reading spacing", "Espaciado de lectura"), SPACINGS(), prefs.spacing || "normal", v => update({ spacing: v })));
+  panel.append(toggleRow(
+    L("Clear plain font", "Letra clara y sencilla"),
+    L("Verdana-style letters that are easy to tell apart.", "Letras tipo Verdana, fáciles de distinguir."),
+    prefs.plain, on => update({ plain: on })));
+  panel.append(toggleRow(
+    L("Reading ruler", "Regla de lectura"),
+    L("Dims the page except a band that follows your pointer or finger.", "Oscurece la página salvo una franja que sigue tu puntero o dedo."),
+    prefs.ruler, on => update({ ruler: on })));
 
   const ttsRow = toggleRow(
     t("a11y.read-aloud"),
