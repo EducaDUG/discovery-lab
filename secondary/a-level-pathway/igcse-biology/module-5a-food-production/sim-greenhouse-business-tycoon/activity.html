@@ -180,6 +180,7 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 <script type="module">
 import { mountExternalActivity } from "../../../../../engine/external-activity.js?v=3";
 import { getLang } from "../../../../../engine/i18n.js?v=10";
+import { hemisphere } from "../../../../../engine/locale.js?v=4";
 import * as M from "./gh-model.js?v=22";
 const L = (en, es) => getLang() === "es" ? es : en;
 const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on" ||
@@ -664,7 +665,7 @@ function mkSim(host, api) {
     const mo = MONTHS(), mi = Math.min(11, Math.floor(g.day / 10));
     q("#s-cash").textContent = GBP(g.cash); q("#s-cash").classList.toggle("neg", g.cash < 0);
     q("#s-rep").textContent = Math.round(g.rep) + " / 100"; q("#s-repbar").style.width = g.rep + "%";
-    q("#s-day").textContent = `${st.year} · ${g.day >= M.YEAR_DAYS ? L("End","Fin") : mo[mi] + " " + (g.day % 10 + 1)}`;
+    q("#s-day").textContent = `${st.year} · ${g.day >= M.YEAR_DAYS ? L("End","Fin") : mo[(mi + (hemisphere() === "south" ? 6 : 0)) % 12] + " " + (g.day % 10 + 1)}`;
     const w = M.weather(Math.min(g.day, M.YEAR_DAYS - 1), g.seed); q("#s-out").textContent = Math.round(w.tOut) + " °C · " + Math.round(w.sun * 100) + "% " + L("sun","sol");
     q("#s-min").textContent = Math.round(g.minerals) + "%"; q("#s-minbar").style.width = g.minerals + "%";
     const hasHouse = g.slots.some(x => x !== "field"); renderBuy(); renderView(); sumFarm(); renderMkt(); renderDeal();

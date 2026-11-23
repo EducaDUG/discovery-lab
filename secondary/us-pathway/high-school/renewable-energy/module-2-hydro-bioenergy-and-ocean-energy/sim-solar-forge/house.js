@@ -1,6 +1,7 @@
 /* Solar Forge — Station 2: Passive House (passive solar design, thermal mass, heat transfer).
    A cutaway house seen from the side. Real shading geometry: the roof overhang blocks the
    high summer Sun and lets the low winter Sun in. Results come from simulate(); the scene only reads. */
+import { hemisphere } from "../../../../../../engine/locale.js?v=4";
 import { L, T, C, clamp, lerp, rng, shell, track, goalsHTML, mesh, std, glassMat, noiseTex, canvasTex, liveSky, sunDisc, glowSprite, sfx, burstAt, shake, reduced, esc } from "./kit.js?v=3";
 
 const TOP = 2.3, SILL = .5, EAVE = 2.6;
@@ -107,7 +108,7 @@ export function mountHouse(host, ctx) {
 
   /* --------------------------------------------------------------- panel */
   const FEAT = () => ({
-    face: [L("Window faces the Sun", "Ventana orientada al Sol"), L("North in New Zealand, south in the Northern Hemisphere", "Norte en Nueva Zelanda, sur en el hemisferio norte")],
+    face: [L("Window faces the Sun", "Ventana orientada al Sol"), hemisphere() === "south" ? L("North-facing in the southern hemisphere (this house is in New Zealand)", "Orientada al norte en el hemisferio sur (esta casa está en Nueva Zelanda)") : L("South-facing in the northern hemisphere (a house in New Zealand would face north)", "Orientada al sur en el hemisferio norte (una casa en Nueva Zelanda miraría al norte)")],
     win: [L("Large window", "Ventana grande"), L("10 m² of glass instead of 3 m²", "10 m² de vidrio en lugar de 3 m²")],
     floor: [L("Concrete floor (thermal mass)", "Suelo de hormigón (masa térmica)"), L("Instead of a thin timber floor", "En lugar de un suelo fino de madera")],
     ins: [L("Insulated walls and roof", "Paredes y techo aislados"), L("The yellow layer", "La capa amarilla")],
