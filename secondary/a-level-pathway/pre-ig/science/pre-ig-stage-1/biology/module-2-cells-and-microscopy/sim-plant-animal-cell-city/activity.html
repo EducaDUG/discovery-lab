@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cell City Command — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+/* ---- Cell City Command - activity-local styles (base copied from Clone Command) ---- */
+.cc-credit{font-size:.68rem;color:var(--ink-3);margin-top:10px;line-height:1.5;}
+.cc-credit a{color:inherit;}
+.cc-game .cc-credit,.cc-dash .cc-credit{color:#9db4c4;}
+
+/* orient + observation (light page) */
+.cc-terms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+@media (max-width:640px){.cc-terms{grid-template-columns:repeat(2,1fr);}}
+.cc-term{position:relative;padding:0;border:0;border-radius:16px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;background:#0b1820;color:#fff;font:inherit;text-align:left;box-shadow:0 8px 22px rgba(10,40,60,.25);}
+.cc-term img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s,filter .3s;}
+.cc-term:hover img{transform:scale(1.06);}
+.cc-term b{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;font-family:var(--font-display);font-size:1.05rem;background:linear-gradient(transparent,rgba(4,14,22,.92));}
+.cc-term span{position:absolute;inset:0;padding:12px;display:flex;align-items:center;font-size:.86rem;line-height:1.35;background:rgba(6,24,36,.93);opacity:0;transition:opacity .25s;}
+.cc-term.is-open span{opacity:1;}
+.cc-term.is-open b{background:none;top:6px;bottom:auto;padding:4px 12px;font-size:.8rem;color:#7dffb4;z-index:1;}
+.cc-term.is-open span{padding-top:30px;align-items:flex-start;}
+.cc-quick{padding:12px 14px;border-radius:14px;background:var(--accent-wash);border:2px solid var(--accent);margin-top:10px;}
+.cc-quick .cc-row{margin-top:8px;}
+.cc-qbtn{font:inherit;font-weight:700;padding:9px 16px;min-height:44px;border-radius:12px;border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;}
+.cc-qbtn.good{background:#e3f7ea;border-color:#2fbf71;}.cc-qbtn.bad{background:#fdeaee;border-color:#d9475e;}
+.cc-obs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+@media (max-width:760px){.cc-obs{grid-template-columns:1fr;}}
+.cc-photo{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+.cc-photo>img{display:block;width:100%;height:auto;}
+.cc-pin{position:absolute;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;border:3px solid #fff;background:rgba(14,120,110,.92);color:#fff;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 0 0 6px rgba(94,230,200,.35);animation:cc-pin 2.4s ease-in-out infinite;}
+.cc-pin.ok,.cc-pin.seen{background:#2fbf71;animation:none;}.cc-pin.seen{background:#3a7bd5;}.cc-pin.bad{background:#d9475e;}
+@keyframes cc-pin{0%,100%{box-shadow:0 0 0 4px rgba(94,230,200,.35);}50%{box-shadow:0 0 0 12px rgba(94,230,200,.08);}}
+.cc-note{min-height:3.2em;margin-top:8px;padding:9px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:.9rem;}
+
+/* ---------------- the game console (dark) ---------------- */
+.cc-game{--g1:#7dffb4;--g2:#4de3ff;color:#e8f4fb;background:radial-gradient(1200px 500px at 10% -10%,#17445c 0,transparent 60%),linear-gradient(160deg,#0a1a26,#0d2434 55%,#10303f);border-radius:22px;padding:14px;box-shadow:0 18px 50px rgba(6,30,46,.45);}
+.cc-game a{color:#9fe6ff;}
+.cc-game [hidden]{display:none !important;}
+.cc-hud{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);}
+.cc-hud__rank{display:flex;flex-direction:column;line-height:1.1;}
+.cc-hud__rank small{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:#9db4c4;}
+.cc-hud__rank b{font-family:var(--font-display);font-size:1.05rem;color:var(--g1);}
+.cc-hud__xp{flex:1;min-width:140px;}
+.cc-hud__xp span{font-family:var(--font-data);font-size:.72rem;color:#c8dbe6;}
+.cc-hud__bar{height:10px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:3px;}
+.cc-hud__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g2),var(--g1));transition:width .6s;border-radius:99px;}
+.cc-hud__stars{font-size:1rem;letter-spacing:2px;color:#ffd75e;white-space:nowrap;}
+.cc-mute{font:inherit;font-size:.78rem;padding:6px 12px;min-height:36px;border-radius:99px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;}
+.cc-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.cc-tab{font:inherit;text-align:left;padding:10px 12px;min-height:58px;border-radius:14px;border:2px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#e8f4fb;cursor:pointer;transition:transform .2s,border-color .2s;}
+.cc-tab:hover{transform:translateY(-2px);border-color:var(--g2);}
+.cc-tab.is-on{border-color:var(--g1);background:linear-gradient(140deg,rgba(125,255,180,.18),rgba(77,227,255,.10));box-shadow:0 0 0 3px rgba(125,255,180,.15);}
+.cc-tab small{display:block;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:#9db4c4;}
+.cc-tab b{display:block;font-family:var(--font-display);font-size:.95rem;}
+.cc-tab i{font-style:normal;color:#ffd75e;font-size:.8rem;letter-spacing:1px;}
+@media (max-width:600px){.cc-tab b{font-size:.78rem;}.cc-tab{padding:8px;}}
+
+.cc-split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start;}
+.cc-view{position:sticky;top:8px;}
+.cc-stage3d,.cc-dash__stage{position:relative;height:440px;border-radius:16px;overflow:hidden;background:#07131c;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}
+.cc-stage canvas{display:block;width:100%;height:100%;cursor:grab;}
+.cc-nogl::after,.cc-lost::after{content:attr(data-fallback);position:absolute;inset:auto 12px 12px 12px;padding:10px 12px;border-radius:10px;background:rgba(5,20,28,.85);color:#d9f3ff;font-size:.82rem;}
+.cc-cams{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.cc-cams button{font:inherit;font-size:.76rem;padding:6px 12px;min-height:36px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.07);color:#fff;cursor:pointer;}
+.cc-cams button:hover{border-color:var(--g2);}
+@media (max-width:900px){.cc-split{grid-template-columns:1fr;}.cc-view{top:0;z-index:5;background:#0b1e2b;padding-bottom:6px;border-radius:0 0 14px 14px;}.cc-stage3d{height:250px;}.cc-dash__stage{height:320px;}}
+.cc-panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;min-height:300px;}
+.cc-h{font-family:var(--font-display);font-size:1.25rem;margin:.2em 0 .3em;color:#fff;}
+.cc-sub{font-size:.9rem;line-height:1.45;color:#d5e6f0;margin:0 0 10px;}
+.cc-sub b{color:#fff;}.cc-sub small{display:block;color:#9db4c4;margin-top:4px;}
+.cc-steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.cc-step,.cc-chip{font:inherit;font-size:.74rem;font-weight:700;padding:5px 11px;min-height:32px;border-radius:99px;border:1px solid rgba(255,255,255,.28);background:transparent;color:#c8dbe6;cursor:pointer;}
+.cc-step.is-on,.cc-chip.is-on{background:var(--g1);border-color:var(--g1);color:#06281a;}
+.cc-step:disabled{opacity:.4;cursor:not-allowed;}
+.cc-track{list-style:none;display:flex;flex-wrap:wrap;gap:4px;padding:0;margin:0 0 8px;counter-reset:s;}
+.cc-track li{counter-increment:s;font-size:.68rem;font-weight:700;padding:4px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.22);color:#9db4c4;}
+.cc-track li::before{content:counter(s) " ";}
+.cc-track li.done{background:#1f7a4a;border-color:#1f7a4a;color:#fff;}.cc-track li.now{border-color:var(--g2);color:#fff;background:rgba(77,227,255,.18);}
+.cc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.cc-card{font:inherit;text-align:left;display:flex;flex-direction:column;gap:5px;padding:10px;min-height:44px;border-radius:14px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#e8f4fb;cursor:pointer;transition:transform .15s,border-color .15s;}
+.cc-card:hover{transform:translateY(-2px);border-color:var(--c,var(--g2));}
+.cc-card b{font-family:var(--font-display);}
+.cc-card span{font-size:.72rem;color:#c8dbe6;}
+.cc-cards--sheep .cc-card{border-color:var(--c);}.cc-cards--sheep .cc-card b{color:var(--c);}
+.cc-bar{display:block;height:7px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin-top:2px;}
+.cc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g2),var(--g1));}
+.cc-fb{min-height:1.4em;font-size:.88rem;line-height:1.45;border-radius:12px;margin:8px 0;color:#c8dbe6;}
+.cc-fb.good{padding:9px 12px;background:#123a27;border:1px solid #2fbf71;color:#d6ffe6;}
+.cc-fb.bad{padding:9px 12px;background:#3d1a24;border:1px solid #d9475e;color:#ffdce2;}
+.cc-fb b{color:#fff;}
+.cc-tag{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:99px;background:#ffd75e;color:#2b2000;font-weight:800;font-size:.74rem;}
+.cc-btn{font:inherit;font-weight:800;padding:9px 16px;min-height:44px;border-radius:12px;border:0;background:linear-gradient(120deg,#35c9f5,#5be3a7);color:#04202c;cursor:pointer;box-shadow:0 6px 16px rgba(60,200,220,.3);transition:transform .12s;}
+.cc-btn:hover{transform:translateY(-2px);}.cc-btn:active{transform:translateY(1px);}
+.cc-btn:disabled{opacity:.5;cursor:default;transform:none;}
+.cc-btn--big{font-size:1rem;padding:12px 20px;}
+.cc-btn--ghost{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;box-shadow:none;}
+.cc-next{margin-top:8px;}
+.cc-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;}
+.cc-opts{display:flex;flex-direction:column;gap:7px;}
+.cc-opts--row{flex-direction:row;flex-wrap:wrap;}
+.cc-opt{font:inherit;text-align:left;padding:10px 14px;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;}
+.cc-opt:hover{border-color:var(--g2);}
+.cc-opt.good{background:#1f7a4a;border-color:#2fbf71;}.cc-opt.bad{background:#7a2436;border-color:#d9475e;}
+.cc-q{font-weight:700;margin:8px 0;}
+.cc-dish{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;padding:10px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);width:max-content;max-width:100%;}
+.cc-dish i{width:16px;height:16px;border-radius:40% 60% 55% 45%;background:rgba(255,255,255,.14);}
+.cc-dish i.on{background:radial-gradient(circle at 35% 30%,#c9f59a,#4a9a37);box-shadow:0 0 8px rgba(155,224,106,.6);}
+.cc-tgs{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media (max-width:480px){.cc-tgs,.cc-cards{grid-template-columns:1fr;}}
+.cc-tg{display:flex;gap:9px;align-items:center;padding:8px 10px;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.05);cursor:pointer;}
+.cc-tg input{width:20px;height:20px;accent-color:#5be3a7;flex:none;}
+.cc-tg b{display:block;font-size:.82rem;}.cc-tg small{font-size:.7rem;color:#9db4c4;}
+.cc-range{display:block;margin:10px 0;font-size:.85rem;}
+.cc-range input{width:100%;accent-color:#5be3a7;min-height:30px;}
+.cc-prog{position:relative;height:22px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin:8px 0;}
+.cc-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6ad5,#ffd75e);}
+.cc-prog span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;text-shadow:0 1px 2px #000;}
+.cc-goals{list-style:none;padding:0;margin:10px 0;display:grid;gap:5px;}
+.cc-goals li{position:relative;padding:6px 10px 6px 32px;border-radius:10px;border:1px solid rgba(255,255,255,.16);font-size:.8rem;color:#c8dbe6;}
+.cc-goals li::before{content:"";position:absolute;left:9px;top:50%;width:14px;height:14px;margin-top:-8px;border-radius:50%;border:2px solid rgba(255,255,255,.4);}
+.cc-goals li.done{background:#123a27;border-color:#2fbf71;color:#d6ffe6;}
+.cc-goals li.done::before{content:"✓";border-color:#2fbf71;background:#2fbf71;color:#fff;font-size:.66rem;font-weight:900;text-align:center;line-height:14px;}
+.cc-log{display:grid;gap:6px;margin-top:8px;}
+.cc-run{font:inherit;text-align:left;color:#e8f4fb;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.12);font-size:.74rem;display:block;width:100%;}
+button.cc-run{cursor:pointer;}.cc-run.is-sel{border-color:var(--g1);}
+.cc-run b{display:block;font-size:.84rem;color:#fff;}.cc-run span{color:#b6cad6;}
+.cc-jars{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.cc-jars i,.cc-jar{position:relative;display:inline-block;width:17px;height:23px;border-radius:3px 3px 5px 5px;border:1.5px solid rgba(255,255,255,.65);background:linear-gradient(transparent 62%,#e0a93f 62%);}
+.cc-jars i::after,.cc-jar::after{content:"";position:absolute;left:50%;bottom:36%;width:9px;height:9px;margin-left:-4.5px;border-radius:50% 50% 0 50%;transform:rotate(45deg);}
+.cc-jars i.j-healthy::after,.cc-jar::after{background:#4fd15f;box-shadow:0 0 5px rgba(79,209,95,.8);}
+.cc-jars i.j-mould{background:linear-gradient(transparent 40%,#7d8a76 40%);}.cc-jars i.j-mould::after{background:#3a4436;border-radius:50%;width:11px;height:7px;transform:none;margin-left:-5.5px;}
+.cc-jars i.j-starved::after{background:#7a6233;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;}
+.cc-jars i.j-callus::after{background:#dcd9a8;width:8px;height:5px;margin-left:-4px;border-radius:50%;transform:none;}
+.cc-jars i.j-stunted::after{background:#9fbf5a;width:5px;height:5px;margin-left:-2.5px;}
+.cc-jars i.s-on,.cc-jars i.s-off{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:#f1ead8;}
+.cc-jars i.s-on{border-color:#4de3ff;box-shadow:0 0 8px rgba(77,227,255,.9);}
+.cc-jars i.s-on::after,.cc-jars i.s-off::after{content:"DNA";transform:none;width:auto;height:auto;margin:0;left:0;right:0;bottom:6px;text-align:center;font:900 .5rem/1 system-ui;color:#0a6f88;background:none;border-radius:0;box-shadow:none;}
+.cc-jars i.s-off{opacity:.55;}.cc-jars i.s-off::after{content:"—";color:#555;}
+.cc-counter{display:flex;flex-direction:column;align-items:center;padding:10px;border-radius:14px;background:rgba(0,0,0,.25);margin-bottom:8px;}
+.cc-counter b{font-family:var(--font-display);font-size:2.4rem;color:var(--g1);line-height:1;}
+.cc-counter small{color:#9db4c4;font-size:.72rem;margin-top:3px;}
+.cc-shelf{display:flex;flex-wrap:wrap;gap:3px;max-height:150px;overflow:hidden;padding:8px;border-radius:12px;background:linear-gradient(#2a1830,#1b2030);border:1px solid rgba(255,106,213,.4);margin-bottom:8px;align-items:center;}
+.cc-shelf b{margin-left:6px;color:#ffd75e;}
+
+/* nuclear transfer */
+.cc-aim{display:grid;grid-template-columns:46px 1fr;gap:12px;align-items:center;margin:8px 0;}
+.cc-gauge{position:relative;height:150px;border-radius:99px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25);}
+.cc-g-nuc,.cc-g-needle{position:absolute;left:50%;transform:translate(-50%,-50%);}
+.cc-g-nuc{width:26px;height:26px;border-radius:50%;border:2px solid #fff;top:50%;}
+.cc-g-needle{width:46px;height:4px;background:#fff;border-radius:2px;top:50%;box-shadow:0 0 6px #fff;}
+.cc-aimctl label{display:block;font-size:.82rem;font-weight:700;}
+.cc-aimr{width:100%;accent-color:#5be3a7;min-height:34px;}
+.cc-hint{font-size:.74rem;color:#9db4c4;margin:4px 0 0;}
+.cc-meter{position:relative;height:26px;border-radius:99px;background:linear-gradient(90deg,#27405a,#d9475e);border:1px solid rgba(255,255,255,.3);margin:10px 0;overflow:hidden;}
+.cc-band{position:absolute;left:36%;width:28%;top:0;bottom:0;background:#2fbf71;}
+.cc-mark{position:absolute;top:-3px;bottom:-3px;width:6px;margin-left:-3px;background:#fff;border-radius:3px;box-shadow:0 0 8px #fff;}
+.cc-fig{margin:8px 0;display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;}
+.cc-fig img{width:100%;border-radius:12px;display:block;}
+.cc-fig figcaption{font-size:.76rem;color:#c8dbe6;line-height:1.4;}
+.cc-clue{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(77,227,255,.12);border:1px solid var(--g2);margin-bottom:8px;}
+.cc-clue small{color:#9db4c4;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;}
+.cc-clue b{font-family:var(--font-display);font-size:1.1rem;}.cc-clue span{font-size:.84rem;color:#d5e6f0;}
+
+/* pharming */
+.cc-flocksel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.cc-hudrow{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--font-data);}
+.cc-time{font-size:1.5rem;font-weight:900;color:#ffd75e;}
+.cc-doses b{font-size:1.5rem;color:var(--g1);}
+.cc-vials{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;margin:6px 0 10px;}
+.cc-vials i{height:14px;border-radius:2px 2px 6px 6px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.06);}
+.cc-vials i.on{background:linear-gradient(#fff 20%,#9fe6ff);box-shadow:0 0 6px rgba(159,230,255,.8);}
+.cc-ewes{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.cc-ewe{position:relative;font:inherit;font-weight:900;font-size:1.1rem;min-height:58px;border-radius:14px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;overflow:hidden;}
+.cc-ewe span{position:relative;z-index:1;}
+.cc-ewe span::after{content:" 🐑";}
+.cc-ewe i{position:absolute;left:0;bottom:0;height:6px;width:0;background:#9fe6ff;}
+.cc-ewe.rdy{border-color:var(--g2);box-shadow:0 0 10px rgba(77,227,255,.5);}
+.cc-ewe.no{border-color:#d9475e;opacity:.7;}
+.cc-ewe:disabled{opacity:.45;cursor:default;}
+
+/* finish + bonus */
+.cc-finish{display:flex;gap:16px;align-items:center;margin-top:14px;padding:16px;border-radius:18px;background:linear-gradient(120deg,#123a55,#1a6a6f 60%,#2a8f5e);box-shadow:0 12px 34px rgba(10,60,80,.35);}
+.cc-finish__badge{font-size:2.8rem;}
+.cc-finish p{margin:.2em 0;}
+.cc-stats{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+.cc-stats span{display:flex;flex-direction:column;padding:8px 14px;border-radius:12px;background:rgba(0,0,0,.25);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#b6cad6;}
+.cc-stats b{font-family:var(--font-display);font-size:1.3rem;color:var(--g1);letter-spacing:0;}
+.cc-bonus{margin-top:14px;}
+.cc-launch{display:flex;gap:16px;align-items:center;padding:14px;border-radius:18px;background:linear-gradient(120deg,#3b1a5c,#7a2a8f 55%,#d9578f);box-shadow:0 12px 34px rgba(80,20,110,.4);}
+.cc-launch img{width:130px;height:100px;object-fit:cover;border-radius:14px;flex:none;border:3px solid rgba(255,255,255,.6);}
+.cc-launch__t{font-family:var(--font-display);font-size:1.3rem;font-weight:800;margin:0;}
+.cc-launch p{margin:.3em 0;font-size:.9rem;}
+@media (max-width:560px){.cc-launch,.cc-finish{flex-direction:column;align-items:flex-start;}.cc-fig{grid-template-columns:1fr;}}
+.cc-dash{margin-top:12px;}
+.cc-dash__hud{position:absolute;left:10px;right:10px;top:8px;display:flex;gap:8px;align-items:center;pointer-events:none;font-family:var(--font-data);font-weight:900;}
+.cc-dash__hud span{padding:4px 12px;border-radius:99px;background:rgba(5,20,30,.72);color:#fff;}
+.d-score{color:#7dffb4 !important;}.d-score::before{content:"★ ";}
+.d-streak:empty{display:none;}.d-streak{color:#ffd75e !important;}
+.cc-dash__q{position:absolute;left:50%;top:46px;transform:translateX(-50%);display:flex;gap:10px;align-items:center;max-width:min(92%,560px);padding:8px 14px 8px 8px;border-radius:16px;background:rgba(255,255,255,.95);color:#10202c;box-shadow:0 10px 26px rgba(0,0,0,.35);}
+.cc-dash__q[hidden]{display:none;}
+.cc-dash__q img{width:64px;height:48px;object-fit:cover;border-radius:10px;flex:none;}
+.cc-dash__q b{font-size:1rem;line-height:1.25;}
+.cc-dash__toast{position:absolute;left:50%;bottom:12px;transform:translate(-50%,20px);max-width:92%;padding:8px 14px;border-radius:12px;font-size:.86rem;font-weight:700;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;background:rgba(5,20,30,.85);color:#fff;text-align:center;}
+.cc-dash__toast.show{opacity:1;transform:translate(-50%,0);}
+.cc-dash__toast.good{background:#14633c;}.cc-dash__toast.bad{background:#7a2436;}
+.cc-dash__ans{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.d-ans{font:inherit;display:flex;gap:8px;align-items:center;text-align:left;padding:8px 10px;min-height:58px;border-radius:14px;border:3px solid var(--c);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;}
+.d-ans i{flex:none;font-style:normal;font-weight:900;width:30px;height:30px;border-radius:50%;background:var(--c);color:#08202c;display:flex;align-items:center;justify-content:center;}
+.d-ans span{font-size:.84rem;font-weight:700;line-height:1.2;}
+.d-ans.is-on{background:color-mix(in srgb,var(--c) 30%,transparent);box-shadow:0 0 0 3px rgba(255,255,255,.5);}
+.d-ans.good{background:#1f7a4a;}.d-ans.bad{background:#7a2436;}
+.cc-dash__foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:8px;font-size:.76rem;color:#b6cad6;}
+.cc-dashend{padding:16px;border-radius:18px;background:linear-gradient(140deg,#24123f,#3d1f6b);}
+.cc-miss{list-style:none;padding:0;display:grid;gap:6px;}
+.cc-miss li{display:flex;gap:10px;align-items:center;padding:6px;border-radius:10px;background:rgba(0,0,0,.25);font-size:.82rem;}
+.cc-miss img{width:54px;height:40px;object-fit:cover;border-radius:8px;flex:none;}
+.cc-miss b{color:var(--g1);}.cc-miss small{display:block;color:#b6cad6;}
+@media (max-width:560px){.d-ans{flex-direction:column;align-items:flex-start;}.d-ans span{font-size:.74rem;}.cc-dash__q b{font-size:.84rem;}}
+
+.cc-spark{position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:9999;animation:cc-spark .7s ease-out forwards;}
+@keyframes cc-spark{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0;}}
+.cc-float{position:absolute;z-index:9999;font-weight:900;font-size:1.1rem;pointer-events:none;transform:translateX(-50%);animation:cc-float 1.1s ease-out forwards;text-shadow:0 1px 3px #000;}
+@keyframes cc-float{to{transform:translate(-50%,-52px);opacity:0;}}
+.cc-shake{animation:cc-shake .45s;}
+@keyframes cc-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.cc-rankup{position:fixed;left:50%;top:22%;transform:translate(-50%,0);z-index:9998;padding:14px 26px;border-radius:18px;background:linear-gradient(120deg,#ffd75e,#ff9f43);color:#2b1a00;font-family:var(--font-display);font-size:1.3rem;font-weight:900;box-shadow:0 16px 40px rgba(0,0,0,.4);animation:cc-rank 2.6s ease forwards;pointer-events:none;text-align:center;}
+.cc-rankup small{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;}
+@keyframes cc-rank{0%{opacity:0;transform:translate(-50%,20px) scale(.8);}12%,80%{opacity:1;transform:translate(-50%,0) scale(1);}100%{opacity:0;transform:translate(-50%,-20px);}}
+[data-reduced-motion="on"] .cc-spark,[data-reduced-motion="on"] .cc-float{display:none;}
+[data-reduced-motion="on"] .cc-shake,[data-reduced-motion="on"] .cc-pin,[data-reduced-motion="on"] .cc-rankup{animation:none;}
+[data-reduced-motion="on"] .cc-tab:hover,[data-reduced-motion="on"] .cc-card:hover,[data-reduced-motion="on"] .cc-btn:hover,[data-reduced-motion="on"] .cc-term:hover img{transform:none;}
+
+/* ---- Cell City additions ---- */
+.cc-tabs--4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:640px){.cc-tabs--4{grid-template-columns:repeat(2,1fr);}}
+.cc-tag3d{position:absolute;transform:translate(-50%,0);padding:3px 11px;border-radius:99px;background:var(--c,#7dffb4);color:#06141c;font-weight:800;font-size:.78rem;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.45);z-index:3;white-space:nowrap;}
+.cc-orgchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:7px;margin:8px 0;}
+.cc-orgchip{font:inherit;display:flex;align-items:center;gap:6px;padding:5px 8px;min-height:46px;border-radius:12px;border:2px solid var(--c);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;text-align:left;font-size:.78rem;font-weight:700;transition:transform .15s,background .2s;}
+.cc-orgchip:hover:not(:disabled){transform:translateY(-2px);background:color-mix(in srgb,var(--c) 24%,transparent);}
+.cc-orgchip:disabled{opacity:.5;cursor:default;}
+.cc-orgchip.is-in{background:color-mix(in srgb,var(--c) 32%,transparent);opacity:1;}
+.cc-card3{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:14px;border:2px solid var(--c);background:rgba(255,255,255,.07);}
+.cc-card3 b{font-family:var(--font-display);font-size:1.05rem;color:#fff;}.cc-card3 em{margin-left:8px;font-size:.7rem;color:#ffd75e;font-style:normal;font-weight:800;}
+.cc-card3 p{margin:.3em 0 .4em;font-size:.86rem;line-height:1.45;color:#d5e6f0;}
+.cc-info{min-height:110px;margin:8px 0;}
+.cc-finish2{padding:14px;border-radius:14px;background:#123a27;border:1px solid #2fbf71;color:#d6ffe6;}
+.cc-finish2 b{font-family:var(--font-display);font-size:1.15rem;}
+.cc-split--photo{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);}
+.cc-split--photo .cc-view .cc-photo{max-height:none;}
+.cc-pin.sel{box-shadow:0 0 0 7px rgba(255,215,94,.55);background:#e0a800;}
+.cc-pin.ok{background:#2fbf71;animation:none;}
+.cc-meterbox{margin:6px 0 10px;}
+.cc-gauge2{display:grid;gap:3px;margin:8px 0;}.cc-gauge2 span{font-size:.76rem;color:#c8dbe6;}.cc-gauge2 b{font-family:var(--font-data);font-size:.8rem;color:#fff;}
+.cc-bar2{position:relative;height:16px;border-radius:99px;background:rgba(255,255,255,.14);}
+.cc-bar2 i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ff7a45,#ffc65a);transition:width .25s;}
+.cc-bar2--s i{background:linear-gradient(90deg,#42c25a,#d9ff6a);}
+.cc-bar2[data-ok="true"]{box-shadow:0 0 0 2px #2fbf71;}
+.cc-bar2 u{position:absolute;top:-4px;bottom:-4px;width:3px;background:#fff;border-radius:2px;text-decoration:none;box-shadow:0 0 6px #fff;}
+.cc-lightbox{display:flex;gap:10px;align-items:center;font-size:.84rem;margin:6px 0;color:#d5e6f0;}
+.cc-lightbox i{display:inline-block;width:130px;height:14px;border-radius:99px;background:linear-gradient(90deg,#ffd75e var(--l),#2a2f3d var(--l));border:1px solid rgba(255,255,255,.3);}
+.cn-ctl{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-top:8px;}
+.cn-ctl label{font-size:.82rem;display:grid;gap:4px;color:#d5e6f0;}.cn-ctl input[type=range]{width:100%;accent-color:#5be3a7;min-height:30px;}
+@media (max-width:640px){.cn-ctl{grid-template-columns:1fr 1fr;}.cn-ctl button{grid-column:1/-1;}}
+.cn-label{position:absolute;transform:translate(-50%,-100%);padding:2px 9px;border-radius:99px;background:rgba(6,20,30,.8);border:2px solid var(--c);color:#fff;font-size:.7rem;font-weight:800;pointer-events:none;white-space:nowrap;z-index:2;}
+.cn-label--s{border-style:dashed;opacity:.9;}
+.cc-tg2{display:inline-flex;gap:6px;align-items:center;color:#d5e6f0;}
+.cc-dash__q{z-index:3;}.cc-qicon{flex:none;}
+.cc-dash__stage canvas{touch-action:none;}
+/* orient tiles */
+.cc-ot{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0;}
+@media (max-width:760px){.cc-ot{grid-template-columns:repeat(2,1fr);}}
+.cc-otile{font:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;padding:10px;min-height:128px;border-radius:16px;border:2px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;transition:transform .2s,border-color .2s;}
+.cc-otile:hover{transform:translateY(-3px);border-color:var(--c);}
+.cc-otile b{font-family:var(--font-display);}.cc-otile small{color:var(--ink-3);font-weight:700;}
+.cc-otile .more{display:none;font-size:.78rem;line-height:1.35;}
+.cc-otile.is-open{background:var(--accent-wash);border-color:var(--c);}.cc-otile.is-open .more{display:block;}
+.cc-otile.is-open .ico{display:none;}
+.cc-obs3{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+@media (max-width:760px){.cc-obs3{grid-template-columns:1fr;}}
+.cc-lbl{font-size:.8rem;font-weight:800;margin:0 0 4px;color:var(--ink-2);}
+.cc-tabs--4 .cc-tab.done{border-color:#2fbf71;}
+</style>
+
+<!-- seo:start -->
+<meta name="description" content="Students take command of Cell City, a hyper-real 3D animal cell and plant cell they can orbit, zoom into and explore. Working through the Pre-IG Stage 1 Biology content on cell structure, they name each organelle (cell membrane, cytoplasm, nucleus, mitochondria, ribosomes, and in plant cells the...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/pre-ig/science/pre-ig-stage-1/biology/module-2-cells-and-microscopy/sim-plant-animal-cell-city/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Cell City Command | Discovery Lab">
+<meta property="og:description" content="Students take command of Cell City, a hyper-real 3D animal cell and plant cell they can orbit, zoom into and explore. Working through the Pre-IG Stage 1 Biology content on cell structure, they name each organelle (cell membrane, cytoplasm, nucleus, mitochondria, ribosomes, and in plant cells the...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/pre-ig/science/pre-ig-stage-1/biology/module-2-cells-and-microscopy/sim-plant-animal-cell-city/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Cell City Command", "description": "Students take command of Cell City, a hyper-real 3D animal cell and plant cell they can orbit, zoom into and explore. Working through the Pre-IG Stage 1 Biology content on cell structure, they name each organelle (cell membrane, cytoplasm, nucleus, mitochondria, ribosomes, and in plant cells the cell wall, chloroplasts and permanent vacuole) and state its function, label real micrographs of human cheek cells and Elodea leaf cells, and decide which parts an animal cell, a leaf cell and a root cell need. In the Energy and Light Lab they link structure to function with a live model: many mitochondria release the energy a muscle cell demands by aerobic respiration, while chloroplasts need light to make a leaf cell's sugar and are useless in a root cell in the dark. In doing so they practise scientific enquiry (observing, hypothesising, collecting evidence and drawing conclusions), comparing and classifying, and precise scientific communication, the foundations for specialised cells, transport across membranes and photosynthesis later in IGCSE Biology.", "url": "https://educadug.github.io/discovery-lab/secondary/a-level-pathway/pre-ig/science/pre-ig-stage-1/biology/module-2-cells-and-microscopy/sim-plant-animal-cell-city/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Scientific enquiry", "Analytical skills", "Critical thinking", "Visual literacy", "Communication"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "Pre-IG · Stage 1 · Biology"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <nav class="crumbs" aria-label="Breadcrumb" data-lang="en">
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secondary</a></li>
+      <li><a href="../../../../../../">A-Level Pathway</a></li>
+      <li><a href="../../../../../">Pre-IG</a></li>
+      <li><a href="../../../../">Science</a></li>
+      <li><a href="../../../">Stage 1</a></li>
+      <li><a href="../../">Biology</a></li>
+      <li><a href="../">Module 2: Cells and Microscopy</a></li>
+      <li><span aria-current="page">Cell City Command</span></li>
+    </ol>
+  </nav>
+  <nav class="crumbs" aria-label="Ruta de navegación" data-lang="es" hidden>
+    <ol class="crumbs__list">
+      <li><a href="../../../../../../../../">Discovery Lab</a></li>
+      <li><a href="../../../../../../../">Secundaria</a></li>
+      <li><a href="../../../../../../">Itinerario británico (A-Level)</a></li>
+      <li><a href="../../../../../">Pre-IG</a></li>
+      <li><a href="../../../../">Ciencias</a></li>
+      <li><a href="../../../">Etapa 1</a></li>
+      <li><a href="../../">Biología</a></li>
+      <li><a href="../">Módulo 2: Células y microscopía</a></li>
+      <li><span aria-current="page">Mando de Ciudad Celular</span></li>
+    </ol>
+  </nav>
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../../engine/engine.js?v=25";
+import { L, esc, burstAt, floatText, reduced } from "./kit.js?v=1";
+import { ORG, icon, photoCredits } from "./data.js?v=1";
+import { station1, station2, station3, station4 } from "./stations.js?v=1";
+import { mountCannonLaunch } from "./cannon.js?v=1";
+
+const RANKS = [[0, L("Cell Cadet", "Cadete celular")], [120, L("Organelle Scout", "Explorador de orgánulos")], [280, L("Cell Engineer", "Ingeniero celular")], [450, L("Mayor of Cell City", "Alcalde de Ciudad Celular")]];
+const MAXXP = 600;
+const rankOf = xp => RANKS.filter(r => xp >= r[0]).pop()[1];
+
+/* city analogies for the eight parts (Orient) */
+const CITY = [
+  ["nucleus", () => L("Town Hall", "Ayuntamiento")], ["mito", () => L("Power Station", "Central eléctrica")], ["ribosome", () => L("Factory Workers", "Obreros de fábrica")], ["membrane", () => L("City Gates", "Puertas de la ciudad")],
+  ["cytoplasm", () => L("The Streets", "Las calles")], ["chloroplast", () => L("Solar Farm", "Granja solar")], ["wall", () => L("City Wall", "Muralla")], ["vacuole", () => L("Water Tank", "Depósito de agua")],
+];
+
+/* observation pins on the two REAL micrographs (ungraded: tap to notice) */
+const NOTICE = {
+  cheek: [
+    { x: 0.139, y: 0.209, t: () => L("Each cell has one small dark dot inside it. Something sits in the middle of the cell.", "Cada célula tiene un pequeño punto oscuro dentro. Hay algo en el centro de la célula.") },
+    { x: 0.281, y: 0.191, t: () => L("The edge of the cell is thin and soft. There is no thick outline.", "El borde de la célula es fino y blando. No hay un contorno grueso.") },
+    { x: 0.37, y: 0.60, t: () => L("The shapes are irregular and squashed, and there is no green anywhere in these cells.", "Las formas son irregulares y aplastadas, y no hay nada verde en estas células.") },
+  ],
+  elodea: [
+    { x: 0.74, y: 0.40, t: () => L("Hundreds of small green discs are packed into these cells. A lot is going on inside a leaf cell.", "Cientos de pequeños discos verdes están apretados en estas células. Dentro de una célula de hoja pasan muchas cosas.") },
+    { x: 0.573, y: 0.43, t: () => L("Each cell has a thick, regular, box-shaped outline, and the cells fit together like bricks.", "Cada célula tiene un contorno grueso, regular y en forma de caja, y las células encajan como ladrillos.") },
+    { x: 0.63, y: 0.505, t: () => L("There is a big clear space in the middle of the cell, with no green in it.", "Hay un gran espacio transparente en el centro de la célula, sin nada verde.") },
+  ],
+};
+
+const simulation = {
+  /* ============================== ORIENT ============================== */
+  orient(host) {
+    host.innerHTML = `<p class="q__hint">${L("Every cell is a tiny city, and every part has a job. Tap a building to see which part of the cell it matches.", "Cada célula es una ciudad diminuta y cada parte tiene su trabajo. Toca un edificio para ver con qué parte de la célula coincide.")}</p>
+      <div class="cc-ot">${CITY.map(([k, c]) => `<button type="button" class="cc-otile" style="--c:${ORG[k].color}" aria-expanded="false"><span class="ico">${icon(k, 52)}</span><small>${L("City:", "Ciudad:")}</small><b>${esc(c())}</b><span class="more"><b>${esc(ORG[k].name())}</b>: ${esc(ORG[k].fn())}</span></button>`).join("")}</div>`;
+    host.querySelectorAll(".cc-otile").forEach(b => b.addEventListener("click", () => { const o = b.classList.toggle("is-open"); b.setAttribute("aria-expanded", o); burstAt(b, "#7dffb4", 10); }));
+  },
+
+  /* ============================ OBSERVATION =========================== */
+  observation(host, sim) {
+    sim.state.obs = sim.state.obs || {}; const seen = sim.state.obs;
+    host.innerHTML = `<p class="q__hint">${L("These are REAL photos taken through a microscope: left, cells from a human cheek; right, cells from a pondweed leaf (Elodea). Tap each pin and notice what is there. There are no wrong answers.", "Estas son fotos REALES tomadas con un microscopio: a la izquierda, células de una mejilla humana; a la derecha, células de una hoja de planta acuática (Elodea). Toca cada punto y fíjate en lo que hay. No hay respuestas incorrectas.")}</p>
+      <div class="cc-obs3">${["cheek", "elodea"].map(id => `<div><p class="cc-lbl">${id === "cheek" ? L("Human cheek cells", "Células de la mejilla humana") : L("Elodea leaf cells", "Células de hoja de Elodea")}</p><div class="cc-photo"><img src="photos/${id}.jpg" alt="${id === "cheek" ? L("Human cheek cells stained blue", "Células de la mejilla humana teñidas de azul") : L("Elodea leaf cells with green discs and thick outlines", "Células de hoja de Elodea con discos verdes y contornos gruesos")}"><div class="cc-pins" data-id="${id}"></div></div></div>`).join("")}</div>
+      <div class="cc-note" role="status" aria-live="polite">${L("Tap a pin.", "Toca un punto.")}</div><p class="cc-credit">${photoCredits(["cheek", "elodea"])}</p>`;
+    const note = host.querySelector(".cc-note"); const total = 6;
+    host.querySelectorAll(".cc-pins").forEach(wrap => NOTICE[wrap.dataset.id].forEach((n, i) => {
+      const key = wrap.dataset.id + i, b = document.createElement("button"); b.type = "button"; b.className = "cc-pin" + (seen[key] ? " seen" : ""); b.style.left = n.x * 100 + "%"; b.style.top = n.y * 100 + "%"; b.textContent = i + 1; b.setAttribute("aria-label", `${L("Notice", "Observación")} ${i + 1}`);
+      b.addEventListener("click", () => {
+        note.textContent = n.t(); b.classList.add("seen"); burstAt(b, "#6fd6ff", 10);
+        if (!seen[key]) { seen[key] = 1; sim.saveState(); sim.recordTrial({ station: L("Observation", "Observación"), step: `${wrap.dataset.id === "cheek" ? L("Cheek", "Mejilla") : "Elodea"} ${i + 1}`, part: "-", result: n.t() }); }
+        if (Object.keys(seen).length >= total) note.textContent += "  ✔ " + L("You noticed all six: now choose the scientific question.", "Lo has visto todo: ahora elige la pregunta científica.");
+      });
+      wrap.append(b);
+    }));
+  },
+
+  /* ============================ EXPERIMENT ============================ */
+  investigate(host, sim) {
+    host.innerHTML = ""; sim.state.lab = sim.state.lab || {}; const lab = sim.state.lab;
+    const game = document.createElement("div"); game.className = "cc-game"; host.append(game);
+    const hud = document.createElement("div"); hud.className = "cc-hud"; game.append(hud);
+    const tabsEl = document.createElement("div"); tabsEl.className = "cc-tabs cc-tabs--4"; game.append(tabsEl);
+    const box = document.createElement("div"); box.className = "cc-box"; game.append(box);
+    const finish = document.createElement("div"); game.append(finish);
+    const bonus = document.createElement("div"); bonus.className = "cc-bonus"; game.append(bonus);
+    const doneKeys = ["s1done", "s2done", "s3done", "s4done"];
+    const NAMES = [[L("Station 1", "Estación 1"), L("Dive Inside", "Sumérgete")], [L("Station 2", "Estación 2"), L("Photo Lab", "Lab de fotos")], [L("Station 3", "Estación 3"), L("Build-a-Cell", "Construye la célula")], [L("Station 4", "Estación 4"), L("Energy & Light Lab", "Lab de energía y luz")]];
+    let stop = null, rankSeen = rankOf(sim.state.xp || 0);
+    sim.hud = () => {
+      const xp = sim.state.xp || 0, n = doneKeys.filter(k => lab[k]).length;
+      hud.innerHTML = `<div class="cc-hud__rank"><small>${L("Rank", "Rango")}</small><b>${rankOf(xp)}</b></div><div class="cc-hud__xp"><span>${xp} XP</span><div class="cc-hud__bar"><i style="width:${Math.min(100, xp / MAXXP * 100)}%"></i></div></div><div class="cc-hud__stars" aria-label="${n}/4">${"★".repeat(n)}${"☆".repeat(4 - n)}</div>`;
+    };
+    function addXp(n, el) {
+      sim.state.xp = (sim.state.xp || 0) + n; sim.saveState(); sim.hud(); if (el) floatText(el, "+" + n + " XP", "#7dffb4");
+      const r = rankOf(sim.state.xp); if (r !== rankSeen) { rankSeen = r; const b = document.createElement("div"); b.className = "cc-rankup"; b.innerHTML = `<small>${L("Rank up!", "¡Subes de rango!")}</small>${esc(r)}`; document.body.append(b); setTimeout(() => b.remove(), 2600); }
+    }
+    const paintTabs = () => { tabsEl.innerHTML = NAMES.map((n, i) => `<button type="button" class="cc-tab ${(lab.tab || 0) === i ? "is-on" : ""} ${lab[doneKeys[i]] ? "done" : ""}" data-i="${i}"><small>${n[0]}</small><b>${n[1]}</b><i>${lab[doneKeys[i]] ? "★ " + L("done", "hecho") : "☆"}</i></button>`).join(""); tabsEl.querySelectorAll(".cc-tab").forEach(b => b.addEventListener("click", () => show(+b.dataset.i))); };
+    const ctx = { sim, lab, addXp, done: k => { lab[k + "done"] = true; sim.saveState(); sim.hud(); paintTabs(); check(); } };
+    function show(i) {
+      if (stop) { try { stop(); } catch (e) {} stop = null; } lab.tab = i; sim.saveState(); paintTabs();
+      box.innerHTML = ""; stop = [station1, station2, station3, station4][i](box, ctx);
+    }
+    function check() {
+      if (!doneKeys.every(k => lab[k])) { bonus.innerHTML = `<p class="cc-hint">${L("Bonus round (Organelle Cannon) unlocks when all four stations are done.", "La ronda bonus (Cañón de orgánulos) se desbloquea al completar las cuatro estaciones.")}</p>`; return; }
+      const tr = sim.trials;
+      finish.innerHTML = `<div class="cc-finish"><div class="cc-finish__badge" aria-hidden="true">🏙️</div><div><p class="cc-h">${L("Cell City complete!", "¡Ciudad Celular completa!")}</p><p>${L("All four stations done. Every step is in your Record. Play the bonus round below, then move on to Record and Explain.", "Las cuatro estaciones completas. Cada paso está en tu Registro. Juega la ronda bonus y luego sigue con Registrar y Explicar.")}</p>
+        <div class="cc-stats"><span>${L("Rank", "Rango")}<b>${esc(rankOf(sim.state.xp || 0))}</b></span><span>XP<b>${sim.state.xp || 0}</b></span><span>${L("Logged steps", "Pasos registrados")}<b>${tr.length}</b></span></div></div></div>`;
+      if (!lab.awarded) { lab.awarded = true; sim.saveState(); sim.award("cc-mission", L("Cell City Mayor", "Alcalde de Ciudad Celular")); burstAt(finish.firstElementChild, "#7dffb4", 24); }
+      sim.setScienceMethod({
+        observation: L("Under the microscope, cheek cells are soft, irregular and colourless with one dark dot, while leaf cells are neat boxes with a thick outline, a big clear space and hundreds of green discs.", "Al microscopio, las células de la mejilla son blandas, irregulares e incoloras con un punto oscuro, mientras que las de la hoja son cajas ordenadas con un contorno grueso, un gran espacio transparente y cientos de discos verdes."),
+        question: L("Which parts do plant and animal cells have, what does each part do, and how do the parts match the work each cell does?", "¿Qué partes tienen las células vegetales y animales, qué hace cada una y cómo se ajustan las partes al trabajo de cada célula?"),
+        hypothesis: L("If I compare a plant cell with an animal cell, then the plant cell will have extra parts (a cell wall, chloroplasts and a large vacuole), because plants make their own food from light and need support.", "Si comparo una célula vegetal con una animal, la vegetal tendrá partes extra (pared celular, cloroplastos y una vacuola grande), porque las plantas fabrican su alimento con la luz y necesitan sostén."),
+        variables: L("Independent: the type of cell (animal, leaf, root) and the number of mitochondria or chloroplasts and the light level. Dependent: which parts are present, and whether the energy and sugar made meet the cell's demand. Controlled: the demand set for each cell and the rule that each mitochondrion releases 10 energy units.", "Independiente: el tipo de célula (animal, hoja, raíz), el número de mitocondrias o cloroplastos y el nivel de luz. Dependiente: qué partes hay y si la energía y el azúcar fabricados cubren la demanda de la célula. Controladas: la demanda fijada para cada célula y la regla de que cada mitocondria libera 10 unidades de energía."),
+        results: L("See the Investigation Record: parts discovered, job adverts answered, pins labelled on real photos, each cell built with its wrong tries, and every Energy Lab order with mitochondria, chloroplasts, light, energy and sugar.", "Ver el Registro de investigación: partes descubiertas, anuncios respondidos, puntos etiquetados en fotos reales, cada célula construida con sus errores y cada pedido del laboratorio de energía con mitocondrias, cloroplastos, luz, energía y azúcar."),
+        analysis: L("Animal and plant cells share a cell membrane, cytoplasm, nucleus, mitochondria and ribosomes. Plant cells add a cell wall, chloroplasts and a large vacuole. Muscle cells needed many mitochondria for lots of energy, leaf cells needed chloroplasts and light, and root cells needed no chloroplasts in the dark.", "Las células animales y vegetales comparten membrana celular, citoplasma, núcleo, mitocondrias y ribosomas. Las vegetales añaden pared celular, cloroplastos y una vacuola grande. Las musculares necesitaron muchas mitocondrias para mucha energía, las de hoja necesitaron cloroplastos y luz, y las de raíz no necesitaron cloroplastos en la oscuridad."),
+        conclusion: L("Plant and animal cells have the same basic parts, but plant cells also have a cell wall, chloroplasts and a permanent vacuole. The number of each organelle matches the cell's job: many mitochondria where energy is needed, chloroplasts only where there is light.", "Las células vegetales y animales tienen las mismas partes básicas, pero las vegetales también tienen pared celular, cloroplastos y una vacuola permanente. El número de cada orgánulo se ajusta al trabajo de la célula: muchas mitocondrias donde hace falta energía, cloroplastos solo donde hay luz."),
+        reflection: L("The hardest part was deciding which parts a root cell needs. Next time I would check each part's job before choosing, and look for the extra plant-only parts first.", "Lo más difícil fue decidir qué partes necesita una célula de raíz. La próxima vez revisaría el trabajo de cada parte antes de elegir y buscaría primero las partes extra solo de plantas."),
+      });
+      if (!bonus.dataset.on) { bonus.dataset.on = "1"; mountCannonLaunch(bonus, sim); }
+    }
+    sim.hud(); show(lab.tab || 0); check();
+  },
+};
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+
+</script>
+</body>
+</html>
