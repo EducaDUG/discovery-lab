@@ -56,7 +56,7 @@ function injectReadingStyles() {
 [data-spacing="roomy"] p, [data-spacing="roomy"] li, [data-spacing="xroomy"] p, [data-spacing="xroomy"] li { text-align: left; max-width: 68ch; }
 [data-plainfont="on"] { --font-ui: Verdana, Tahoma, Arial, ui-sans-serif, sans-serif; --font-display: Verdana, Tahoma, Arial, ui-sans-serif, sans-serif; }
 [data-dyslexia="on"][data-plainfont="on"] { --font-ui: "Atkinson Hyperlegible", Verdana, sans-serif; --font-display: "Atkinson Hyperlegible", Verdana, sans-serif; }
-.dl-ruler { position: fixed; inset: 0; z-index: 2147483000; pointer-events: none;
+.dl-ruler { position: fixed; inset: 0; z-index: 150; pointer-events: none;
   background: linear-gradient(to bottom, rgba(0,0,0,.38) calc(var(--ry, 40%) - 30px), transparent calc(var(--ry, 40%) - 30px), transparent calc(var(--ry, 40%) + 30px), rgba(0,0,0,.38) calc(var(--ry, 40%) + 30px)); }
 `;
   document.head.appendChild(st);
@@ -222,6 +222,41 @@ function segmented(legend, items, current, onPick) {
   return group;
 }
 
+const SWATCH = { paper:"#F3F4F2", warm:"#F6EFDF", cool:"#E7EEF2", dusk:"#DCD7CE", dark:"#1B1F23", rose:"#F7E6EA", peach:"#F8EAD9", yellow:"#F6F0C9", mint:"#E0F0E4", aqua:"#DDEFEF", lilac:"#E9E4F3" };
+function swatches(legend, items, current, onPick) {
+  const group = el("div", "a11y-field");
+  group.append(el("p", "a11y-field__label", legend));
+  const row = el("div", "a11y-sw"); row.setAttribute("role", "group"); row.setAttribute("aria-label", legend);
+  const btns = [];
+  items.forEach(([value, label]) => {
+    const b = el("button", "a11y-sw__btn"); b.type = "button"; b.title = label;
+    b.style.setProperty("--c", SWATCH[value] || "#fff");
+    b.append(el("span", "a11y-sw__dot"), el("span", "a11y-sw__name", label));
+    b.setAttribute("aria-label", label); b.setAttribute("aria-pressed", String(value === current));
+    if (value === current) b.classList.add("is-on");
+    b.addEventListener("click", () => { btns.forEach(x => { x.classList.toggle("is-on", x === b); x.setAttribute("aria-pressed", String(x === b)); }); onPick(value); });
+    btns.push(b); row.append(b);
+  });
+  group.append(row); return group;
+}
+const TILE_ICONS = {
+  dys: '<text x="12" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor" stroke="none">Ab</text>',
+  plain: '<text x="12" y="17" text-anchor="middle" font-size="14" fill="currentColor" stroke="none" font-family="Verdana">Aa</text>',
+  ruler: '<rect x="3" y="9" width="18" height="6" rx="1.5"/><path d="M3 5h18M3 19h18" opacity=".45"/>',
+  tts: '<path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8 8 0 0 1 0 12" stroke-linecap="round"/>',
+};
+function tile(icon, label, hint, on, onChange, disabled) {
+  const b = el("button", "a11y-tile"); b.type = "button"; b.title = hint || label;
+  b.setAttribute("role", "switch"); b.setAttribute("aria-checked", String(!!on));
+  if (disabled) b.disabled = true;
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7">' + TILE_ICONS[icon] + '</svg>';
+  const st = el("span", "a11y-tile__state", on ? L("On", "Sí") : L("Off", "No"));
+  b.append(el("span", "a11y-tile__label", label), st);
+  if (on) b.classList.add("is-on");
+  b.addEventListener("click", () => { const v = b.getAttribute("aria-checked") !== "true"; b.setAttribute("aria-checked", String(v)); b.classList.toggle("is-on", v); st.textContent = v ? L("On", "Sí") : L("Off", "No"); onChange(v); });
+  return b;
+}
+
 function toggleRow(label, hint, on, onChange) {
   const wrap = el("label", "a11y-toggle");
   const box = el("input");
@@ -248,42 +283,30 @@ function buildPanel(prefs, update) {
   head.append(close);
   panel.append(head);
 
-  panel.append(el("p", "a11y-panel__lede", t("a11y.lede")));
-
   panel.append(segmented(t("a11y.text-size"), TEXT_SIZES(), prefs.textSize, v => update({ textSize: v })));
-  panel.append(segmented(t("a11y.background"), TINTS(), prefs.tint, v => update({ tint: v })));
+  panel.append(swatches(t("a11y.background"), TINTS(), prefs.tint, v => update({ tint: v })));
+  panel.append(segmented(L("Reading spacing", "Espaciado de lectura"), SPACINGS(), prefs.spacing || "normal", v => update({ spacing: v })));
+
+  const grid = el("div", "a11y-tiles");
+  grid.append(
+    tile("dys", t("a11y.dyslexia"), t("a11y.dyslexia-hint"), prefs.dyslexia, on => update({ dyslexia: on })),
+    tile("plain", L("Plain font", "Letra sencilla"), L("Verdana-style letters that are easy to tell apart.", "Letras tipo Verdana, fáciles de distinguir."), prefs.plain, on => update({ plain: on })),
+    tile("ruler", L("Reading ruler", "Regla de lectura"), L("Dims the page except a band that follows your pointer or finger.", "Oscurece la página salvo una franja que sigue tu puntero o dedo."), prefs.ruler, on => update({ ruler: on })),
+    tile("tts", t("a11y.read-aloud"), speech ? t("a11y.tts-hint") : t("a11y.tts-unavailable"), prefs.tts, on => update({ tts: on }), !speech));
+  panel.append(grid);
+
   panel.append(segmented(t("a11y.motion"), MOTIONS(), prefs.motion, v => update({ motion: v })));
 
   /* Where am I: units + hemisphere (auto from time zone, student can override) */
   const ov = overrides();
-  panel.append(segmented(L("Units", "Unidades"), [
-    ["auto", L("Auto", "Auto") + " (" + (unitSystem() === "us" ? "US" : L("metric", "métrico")) + ")"],
-    ["metric", L("Metric", "Métrico")], ["us", L("US customary", "EE. UU.")]], ov.units, v => { setUnits(v); location.reload(); }));
-  panel.append(segmented(L("Hemisphere", "Hemisferio"), [
-    ["auto", L("Auto", "Auto") + " (" + (hemisphere() === "south" ? L("south", "sur") : L("north", "norte")) + ")"],
-    ["north", L("Northern", "Norte")], ["south", L("Southern", "Sur")]], ov.hemi, v => { setHemisphere(v); location.reload(); }));
-
-  panel.append(toggleRow(
-    t("a11y.dyslexia"),
-    t("a11y.dyslexia-hint"),
-    prefs.dyslexia, on => update({ dyslexia: on })));
-
-  panel.append(segmented(L("Reading spacing", "Espaciado de lectura"), SPACINGS(), prefs.spacing || "normal", v => update({ spacing: v })));
-  panel.append(toggleRow(
-    L("Clear plain font", "Letra clara y sencilla"),
-    L("Verdana-style letters that are easy to tell apart.", "Letras tipo Verdana, fáciles de distinguir."),
-    prefs.plain, on => update({ plain: on })));
-  panel.append(toggleRow(
-    L("Reading ruler", "Regla de lectura"),
-    L("Dims the page except a band that follows your pointer or finger.", "Oscurece la página salvo una franja que sigue tu puntero o dedo."),
-    prefs.ruler, on => update({ ruler: on })));
-
-  const ttsRow = toggleRow(
-    t("a11y.read-aloud"),
-    speech ? t("a11y.tts-hint") : t("a11y.tts-unavailable"),
-    prefs.tts, on => update({ tts: on }));
-  if (!speech) ttsRow.querySelector(".a11y-toggle__box").disabled = true;
-  panel.append(ttsRow);
+  const loc = el("div", "a11y-loc");
+  loc.append(segmented(L("Units", "Unidades"), [
+    ["auto", "Auto"],
+    ["metric", L("Metric", "Métrico")], ["us", L("US", "EE. UU.")]], ov.units, v => { setUnits(v); location.reload(); }));
+  loc.append(segmented(L("Hemisphere", "Hemisferio"), [
+    ["auto", "Auto"],
+    ["north", L("North", "Norte")], ["south", L("South", "Sur")]], ov.hemi, v => { setHemisphere(v); location.reload(); }));
+  panel.append(loc);
 
   const foot = el("div", "a11y-panel__foot");
   const reset = el("button", "a11y-panel__reset", t("a11y.reset"));
@@ -357,6 +380,38 @@ function injectStyles() {
     color:var(--ink-3);border:1px solid var(--line);background:var(--surface);vertical-align:middle;}
   .a11y-speak:hover{color:var(--accent);border-color:var(--accent);}
   .a11y-speak svg{width:1.05rem;height:1.05rem;}
+  .a11y-panel{width:min(25rem,calc(100vw - 2rem));max-height:min(86vh,44rem);gap:.7rem;padding:0 0 1rem;overflow:auto;}
+  .a11y-panel > *:not(.a11y-panel__head){margin-left:1.1rem;margin-right:1.1rem;}
+  .a11y-panel__head{padding:.9rem 1.1rem;color:#fff;background:linear-gradient(120deg,var(--accent),var(--accent-hi,var(--accent)) 60%,var(--signal,var(--accent)));
+    border-radius:var(--radius-lg) var(--radius-lg) 0 0;position:sticky;top:0;z-index:1;}
+  .a11y-panel__title{color:#fff;}
+  .a11y-panel__close{color:#fff;} .a11y-panel__close:hover{background:rgba(255,255,255,.22);color:#fff;}
+  .a11y-field{gap:.35rem;}
+  .a11y-field__label{font-size:.68rem;}
+  .a11y-seg__btn{min-height:36px;font-size:.78rem;padding:0 .25rem;}
+  .a11y-sw{display:grid;grid-template-columns:repeat(6,1fr);gap:.45rem .3rem;}
+  .a11y-sw__btn{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.2rem 0;border-radius:var(--radius);font-size:.62rem;color:var(--ink-3);min-height:44px;}
+  .a11y-sw__dot{width:1.9rem;height:1.9rem;border-radius:50%;background:var(--c);border:2px solid var(--line-strong);box-shadow:inset 0 -3px 5px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.15);
+    transition:transform .15s var(--ease),box-shadow .15s var(--ease);position:relative;}
+  .a11y-sw__btn:hover .a11y-sw__dot{transform:scale(1.12);}
+  .a11y-sw__btn.is-on{color:var(--ink);font-weight:700;}
+  .a11y-sw__btn.is-on .a11y-sw__dot{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash,rgba(0,0,0,.12)),0 0 0 5px var(--accent);transform:scale(1.05);}
+  .a11y-sw__btn.is-on .a11y-sw__dot::after{content:"";position:absolute;left:50%;top:46%;width:.35rem;height:.7rem;border:solid var(--accent);border-width:0 2.5px 2.5px 0;transform:translate(-50%,-50%) rotate(45deg);}
+  [data-tint="dark"] .a11y-sw__btn.is-on .a11y-sw__dot::after{border-color:#fff;}
+  .a11y-tiles{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+  .a11y-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:.55rem;align-items:center;text-align:left;
+    padding:.55rem .65rem;border-radius:var(--radius);background:var(--surface-2);border:1.5px solid var(--line);color:var(--ink-2);min-height:48px;
+    transition:transform .15s var(--ease),background-color .15s var(--ease),border-color .15s var(--ease);}
+  .a11y-tile svg{grid-row:1 / 3;width:1.6rem;height:1.6rem;}
+  .a11y-tile__label{font-weight:700;font-size:.78rem;line-height:1.15;color:var(--ink);}
+  .a11y-tile__state{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);}
+  .a11y-tile:hover:not(:disabled){transform:translateY(-1px);border-color:var(--accent);}
+  .a11y-tile.is-on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:var(--shadow-1);}
+  .a11y-tile.is-on .a11y-tile__label,.a11y-tile.is-on .a11y-tile__state{color:var(--accent-ink);}
+  .a11y-tile:disabled{opacity:.5;cursor:not-allowed;}
+  .a11y-loc .a11y-seg__btn{font-size:.72rem;}
+  .a11y-loc{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;padding-top:.6rem;border-top:1px dashed var(--line-strong);}
+  @media (prefers-reduced-motion:reduce){.a11y-sw__dot,.a11y-tile{transition:none;}}
   @media print{.a11y-fab,.a11y-panel,.a11y-speak{display:none !important;}}`;
   const style = document.createElement("style");
   style.id = "a11y-styles";

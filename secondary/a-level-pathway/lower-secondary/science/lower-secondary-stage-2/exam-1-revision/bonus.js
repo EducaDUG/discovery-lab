@@ -3,7 +3,7 @@
    - The 2-minute round is time-boxed on setInterval wall-clock time; requestAnimationFrame only draws the belt.
    - No lives and no fail state: a wrong or late answer resets the streak and names the right method plus a memory hook.
    - Bins are real <button>s (keys 1-6 mirror them). Reduced-motion aware. Has its own always-visible mute button. */
-import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=13";
+import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=16";
 import { T } from "../../../../../../engine/revision-kit.js?v=12";
 
 const BINS = [

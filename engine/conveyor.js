@@ -33,7 +33,7 @@
    - Reduced-motion aware; its own always-visible mute button (CLAUDE.md §6).
    ========================================================================== */
 
-import { ttsEnabled, setTTS } from "./accessibility.js?v=13";
+import { ttsEnabled, setTTS } from "./accessibility.js?v=16";
 
 export const DEFAULT_STRINGS = {
   title: "Bonus round — Sorting Conveyor",
