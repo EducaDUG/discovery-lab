@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6 - Term 2 - Module 5 Support, Control and Defence - Frame and Defence.
+     Content lives here + config.json/marking.json only. Hyper-real 3D arm + bone (CLAUDE.md 18); bonus: Anatomy Wordle (classic reskin). -->
+<html data-unit-convert lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frame &amp; Defence: Support, Control and Defence - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .eco-fwstage.cyc-shake, .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  /* ---- Ecosystem Ranger extras ---- */
+  .eco-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slot { border: 2px dashed var(--line); border-radius: 12px; min-height: 7.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: .78rem; color: var(--ink-3); position: relative; overflow: hidden; background: var(--surface); }
+  .eco-slot[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); }
+  .eco-slot img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-slot b { display: block; padding: .15rem .3rem 0; font-size: .8rem; }
+  .eco-slot__n { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font: 800 .75rem var(--font-data); display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .eco-slot.eco-pop { animation: eco-pop .45s ease; }
+  @keyframes eco-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .eco-pop { animation: none !important; }
+  .eco-tab-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+  .eco-card { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); font: inherit; display: flex; flex-direction: column; }
+  .eco-card:hover, .eco-card:focus-visible { border-color: var(--accent); outline: none; }
+  .eco-card[data-used="true"] { opacity: .35; }
+  .eco-card[aria-pressed="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px #ffd24d88; }
+  .eco-card img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-card span { padding: .3rem .45rem; font-size: .76rem; font-weight: 700; }
+  .eco-fact { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; min-height: 2.4rem; }
+
+  .eco-fwstage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; background: linear-gradient(#8fd0ff, #d8f0c8); }
+  @media (max-width: 640px) { .eco-fwstage { aspect-ratio: 1/1; } }
+  .eco-fwstage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .eco-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-top: .45rem; }
+  .eco-chips > b { font-size: .78rem; min-width: 8.2rem; }
+  .eco-tok { display: inline-flex; align-items: center; gap: .35rem; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .15rem .65rem .15rem .2rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .eco-tok img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+  .eco-tok[aria-pressed="true"][data-side="from"] { border-color: #e8a400; background: #fff3c4; }
+  .eco-tok[aria-pressed="true"][data-side="to"] { border-color: #1d9bd6; background: #d7f0ff; }
+  .eco-arrows { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; min-height: 1.6rem; }
+  .eco-arrows span { font-size: .74rem; font-weight: 700; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: .15rem .6rem; }
+
+  .eco-pop-stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #0e2a1a; }
+  .eco-pop-stage canvas { display: block; width: 100%; height: auto; }
+  .eco-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .eco-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .3rem; }
+  .eco-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .eco-readout div { border: 1px solid var(--line); border-radius: 10px; padding: .35rem .6rem; background: var(--surface); font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .eco-readout div b { display: block; font: 800 1.15rem var(--font-data); color: var(--accent); }
+
+  .eco-bonus canvas { cursor: crosshair; touch-action: none; }
+  .eco-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-role { border: 2px solid #ffffff33; background: #ffffff10; color: #fff; border-radius: 12px; padding: 0; cursor: pointer; font: inherit; overflow: hidden; text-align: left; }
+  .eco-role:hover, .eco-role:focus-visible { border-color: #ffd24d; outline: none; }
+  .eco-role img { width: 100%; height: 4.6rem; object-fit: cover; display: block; }
+  .eco-role span { display: block; padding: .3rem .5rem; font-size: .76rem; font-weight: 700; }
+  .eco-q { margin-top: .5rem; border: 2px solid #ffd24d; border-radius: 12px; padding: .55rem .75rem; background: #1b2a10; font-size: .9rem; }
+  .eco-q .cyc-row { margin-top: .4rem; }
+  .eco-board { display: flex; flex-wrap: wrap; gap: .6rem; font: 700 .76rem var(--font-data); color: #cfe8ff; margin-top: .3rem; }
+  .eco-board span[data-me="true"] { color: #ffe08a; }
+
+  .dg-stage { aspect-ratio: 4/5; max-height: 640px; background: radial-gradient(120% 120% at 50% 30%, #1d4a5a 0%, #0a1c2a 70%) !important; }
+  @media (max-width: 640px) { .dg-stage { aspect-ratio: 3/4; } }
+  .dg-tok { padding-left: .8rem; }
+
+</style>
+<!-- seo:start -->
+<meta name="description" content="In this lab students become fuel engineers who follow a meal through the whole digestive system. They tap the organs of a hyper-real 3D digestive tract and send a meal on its journey to learn what each organ does (including the liver, gallbladder and pancreas that food never enters), sort real...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-2/module-3-digestive-system/sim-digestive-journey/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Frame &amp; Defence: Support, Control and Defence | Discovery Lab">
+<meta property="og:description" content="In this lab students become fuel engineers who follow a meal through the whole digestive system. They tap the organs of a hyper-real 3D digestive tract and send a meal on its journey to learn what each organ does (including the liver, gallbladder and pancreas that food never enters), sort real...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-2/module-3-digestive-system/sim-digestive-journey/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Frame &amp; Defence: Support, Control and Defence", "description": "In this lab students become fuel engineers who follow a meal through the whole digestive system. They tap the organs of a hyper-real 3D digestive tract and send a meal on its journey to learn what each organ does (including the liver, gallbladder and pancreas that food never enters), sort real foods into carbohydrates, fats and proteins, find calcium and vitamin C sources, take a protein chain apart into amino acids and rebuild it, and feed a living cell different amounts of sugar and oxygen to discover that cellular respiration needs both. This builds scientific enquiry and systems thinking as students see digestion, nutrients and respiration as one connected energy system, strengthens data interpretation as they read and compare energy-output readings, and practises communication by explaining their own logged evidence. The content practised is Life Science 6, Term 2, Module 3: The Digestive System: the organs of the alimentary canal and the accessory organs, mechanical versus chemical digestion, absorption and villi, cellular respiration as controlled oxidation, the energy loop between photosynthesis and respiration, the macronutrients (carbohydrates, fats, proteins), amino acids and essential amino acids, vitamins and minerals, and fibre.", "url": "https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-2/module-3-digestive-system/sim-digestive-journey/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Scientific enquiry", "Systems thinking", "Data interpretation", "Critical thinking", "Communication"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "USDP Junior High Life Science 6"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=25";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const PH = k => `photos/${k}.jpg`;
+const PA = (k, en, es) => `<img src="${PH(k)}" alt="${L(en, es)}" loading="lazy">`;
+let CREDITS = null;
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit";
+  cr.textContent = L("Photo credits loading...", "Cargando créditos de fotos...");
+  (CREDITS ? Promise.resolve(CREDITS) : fetch("photos/credits.json").then(r => r.json()).then(j => (CREDITS = j))).then(j => {
+    const seen = {}, bits = [];
+    Object.keys(j).forEach(k => { const c = j[k], key = c.author + "|" + c.license; if (seen[key]) return; seen[key] = 1; bits.push(`<a href="${c.page}">${c.author.split(" from ")[0].replace(/\s*\(.*$/, "")}</a> (${c.licenseUrl ? `<a href="${c.licenseUrl}">${c.license}</a>` : c.license})`); });
+    cr.innerHTML = L("Real photos via Wikimedia Commons / OpenStax: ", "Fotos reales vía Wikimedia Commons / OpenStax: ") + bits.join("; ") + ".";
+  }).catch(() => { cr.textContent = L("Photos via Wikimedia Commons (credits on each photo's page).", "Fotos vía Wikimedia Commons (créditos en la página de cada foto)."); });
+  return cr;
+}
+
+/* Orders queue (persisted in sim.state - CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete - keep exploring, or lock in more readings.", "Todos los pedidos completos - sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    if (card.__onOrder) card.__onOrder(st.idx);
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" - order met", " - pedido cumplido") : t ? L(" - not the order yet", " - todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("eco-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#7be08a", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged - but that is not the order. Re-read it and try again.", "Registrado - pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st, paint };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+const shuffled = (a, seed) => { const r = a.slice(); let s = seed || 7; for (let i = r.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor(s / 233280 * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+
+
+
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+function noiseTex() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 900; i++) { x.fillStyle = Math.random() > 0.5 ? "#b0b0b0" : "#505050"; x.globalAlpha = 0.28; x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+/* Shared "pick the parts" panel used by the lungs and the heart (chips = keyboard route) */
+function pickPanel(card, keys, label, onPickHook) {
+  const chipRow = document.createElement("div"); chipRow.className = "eco-chips"; chipRow.innerHTML = `<b>${L("Parts:", "Partes:")}</b>`;
+  const picksEl = document.createElement("div"); picksEl.className = "eco-arrows";
+  const cap = document.createElement("div"); cap.className = "eco-fact"; cap.textContent = L("Tap a part (in 3D or with the buttons) to read what it does.", "Toca una parte (en 3D o con los botones) para leer qué hace.");
+  const P = { picks: [], chips: {}, cap, hi: null };
+  keys.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(label(k).en, label(k).es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => P.pick(k)); chipRow.append(b); P.chips[k] = b; });
+  P.paint = () => {
+    keys.forEach(k => P.chips[k].setAttribute("aria-pressed", String(P.picks[P.picks.length - 1] === k)));
+    picksEl.innerHTML = P.picks.length ? "" : `<small style="color:var(--ink-3)">${L("No picks yet.", "Aún no hay selecciones.")}</small>`;
+    P.picks.forEach((k, i) => { const s = document.createElement("span"); s.textContent = (i + 1) + ". " + L(label(k).en, label(k).es); picksEl.append(s); });
+    if (P.hi) P.hi(P.picks[P.picks.length - 1]);
+  };
+  P.pick = k => { P.picks.push(k); if (P.picks.length > 8) P.picks.shift(); onPickHook(k, cap); P.paint(); };
+  P.clear = () => { P.picks = []; P.paint(); };
+  card.append(chipRow, picksEl, cap);
+  return P;
+}
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Welcome, Body Engineer! Tap each real picture to meet four big ideas about what holds you up, moves you, controls you and defends you.", "¡Bienvenido, Ingeniero del Cuerpo! Toca cada imagen real para conocer cuatro grandes ideas sobre lo que te sostiene, te mueve, te controla y te defiende.");
+  host.append(p);
+  const items = [
+    { f: "femurcut", en: "Inside a bone", es: "Dentro de un hueso", t: { en: "This real bone is cut open: a tough, dense outer layer (compact bone) surrounds a lightweight, honeycomb-like inside (spongy bone). Soft marrow in the middle makes new blood cells.", es: "Este hueso real está cortado: una capa externa dura y densa (hueso compacto) rodea un interior ligero como un panal (hueso esponjoso). La médula blanda del centro fabrica células sanguíneas nuevas." } },
+    { f: "biceps", en: "Muscles in pairs", es: "Músculos en parejas", t: { en: "Skeletal muscles are attached to bones and work in pairs: one contracts (pulls) while the other relaxes. Bend your elbow and your biceps pulls while your triceps relaxes.", es: "Los músculos esqueléticos están unidos a los huesos y trabajan en parejas: uno se contrae (tira) mientras el otro se relaja. Dobla el codo y tu bíceps tira mientras tu tríceps se relaja." } },
+    { f: "lymph", en: "A lymph node", es: "Un ganglio linfático", t: { en: "This is a lymph node under the microscope. Lymph nodes filter the clear fluid called lymph and fight bacteria and viruses. The lymphatic system drains leaked fluid back to the blood.", es: "Este es un ganglio linfático al microscopio. Los ganglios filtran el líquido claro llamado linfa y combaten bacterias y virus. El sistema linfático devuelve a la sangre el líquido que se escapa." } },
+    { f: "helmet", en: "Staying safe", es: "Mantenerse seguro", t: { en: "A helmet protects the skull and brain. Warming up, wearing protective gear and listening to your body keep bones, joints and muscles healthy during sport.", es: "Un casco protege el cráneo y el cerebro. Calentar, usar equipo de protección y escuchar a tu cuerpo mantienen sanos los huesos, las articulaciones y los músculos durante el deporte." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo">${PA(it.f, it.en, it.es)}</span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at this real model of a knee joint before you learn any names. Then play photo detective: tap what each clue describes.", "Mira de cerca este modelo real de una articulación de rodilla antes de aprender ningún nombre. Luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo";
+  wrap.innerHTML = `<img src="${PH("knee")}" alt="${L("Model of a knee joint: cream bones with holes, blue cartilage pads and a grey band of ligament", "Modelo de una articulación de rodilla: huesos color crema con agujeros, almohadillas azules de cartílago y una banda gris de ligamento")}">`;
+  const targets = [
+    { x: 52, y: 14, en: "the hard, cream-coloured BONE at the top - rigid, with a rich blood supply", es: "el HUESO duro color crema de arriba - rígido, con abundante riego sanguíneo" },
+    { x: 57, y: 37, en: "the smooth blue pad - CARTILAGE, flexible and a cushion with no blood vessels of its own", es: "la almohadilla azul lisa - CARTÍLAGO, flexible y amortiguador sin vasos sanguíneos propios" },
+    { x: 48, y: 66, en: "the tough grey band - a LIGAMENT, which ties bone to bone at the joint", es: "la banda gris resistente - un LIGAMENTO, que une hueso con hueso en la articulación" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one - read the clue again.", "Esa no - vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! One joint already shows bone, cartilage and ligament working together: support, cushioning and connection.", "¡Detective de fotos completado! Una sola articulación ya muestra hueso, cartílago y ligamento trabajando juntos: soporte, amortiguación y conexión.") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("Bones need muscles to move them, glands and nerves to control them, and a defence system to protect them. How do these body systems support, control and defend you? Keep that in mind for your hypothesis.", "Los huesos necesitan músculos que los muevan, glándulas y nervios que los controlen y un sistema de defensa que los proteja. ¿Cómo te sostienen, controlan y defienden estos sistemas del cuerpo? Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   STATION 1 - SKELETON & MUSCLES (hyper-real 3D arm, muscle pair)
+   ============================================================ */
+const AP = {
+  humerus: { en: "Humerus (upper-arm bone)", es: "Húmero (hueso del brazo)", fact: { en: "Humerus: the long bone of the upper arm. Bones support the body and act as levers that muscles pull on.", es: "Húmero: el hueso largo del brazo. Los huesos sostienen el cuerpo y actúan como palancas sobre las que tiran los músculos." } },
+  forearm: { en: "Radius and ulna (forearm bones)", es: "Radio y cúbito (huesos del antebrazo)", fact: { en: "Radius and ulna: the two forearm bones. They swing as a lever when the biceps or triceps pulls.", es: "Radio y cúbito: los dos huesos del antebrazo. Se mueven como una palanca cuando tira el bíceps o el tríceps." } },
+  shoulder: { en: "Shoulder joint", es: "Articulación del hombro", fact: { en: "Shoulder: a BALL-AND-SOCKET joint. The round head of the humerus sits in a cup, so the arm can rotate in a circle.", es: "Hombro: una articulación de BOLA Y CAVIDAD. La cabeza redonda del húmero encaja en una copa, así que el brazo puede girar en círculo." } },
+  elbow: { en: "Elbow joint", es: "Articulación del codo", fact: { en: "Elbow: a HINGE joint. Like a door hinge, it only moves backward and forward. Ligaments hold the bones together here.", es: "Codo: una articulación de BISAGRA. Como la bisagra de una puerta, solo se mueve hacia atrás y hacia adelante. Aquí los ligamentos mantienen unidos los huesos." } },
+  wrist: { en: "Wrist joint", es: "Articulación de la muñeca", fact: { en: "Wrist: a GLIDING joint. Small bones slide over each other for sliding movements.", es: "Muñeca: una articulación DESLIZANTE. Huesecillos pequeños se deslizan unos sobre otros." } },
+  biceps: { en: "Biceps", es: "Bíceps", fact: { en: "Biceps: a skeletal muscle on the front of the upper arm. When it contracts it pulls the forearm up and BENDS the elbow.", es: "Bíceps: un músculo esquelético en la parte delantera del brazo. Al contraerse tira del antebrazo hacia arriba y DOBLA el codo." } },
+  triceps: { en: "Triceps", es: "Tríceps", fact: { en: "Triceps: the partner muscle on the back of the arm. When it contracts it STRAIGHTENS the elbow while the biceps relaxes.", es: "Tríceps: el músculo pareja en la parte trasera del brazo. Al contraerse ENDEREZA el codo mientras el bíceps se relaja." } },
+  ligament: { en: "Ligament", es: "Ligamento", fact: { en: "Ligament: a tough band of connective tissue that ties bone to bone at a joint.", es: "Ligamento: una banda resistente de tejido conectivo que une hueso con hueso en una articulación." } },
+};
+const APK = Object.keys(AP);
+function buildArm(mount, sim, onDone) {
+  const card = stationShell("1", "Skeleton & Muscles Lab", "Laboratorio de Esqueleto y Músculos", "A hyper-real 3D arm. Hold a muscle button to bend or straighten the elbow and watch the muscle pair work, tap parts to learn their names and joint types, then answer the orders. Drag to turn it.", "Un brazo 3D hiperrealista. Mantén pulsado un botón de músculo para doblar o enderezar el codo y mira trabajar la pareja de músculos, toca partes para aprender sus nombres y tipos de articulación y responde los pedidos. Arrastra para girarlo.");
+  mount.append(card);
+  const stage = document.createElement("div"); stage.className = "cyc-stage dg-stage"; card.append(stage);
+  const A = { th: 170, dir: 0, bic: 0, tri: 0 };
+  const hud = document.createElement("div"); hud.className = "eco-readout"; hud.innerHTML = `<div>${L("Elbow angle", "Ángulo del codo")}<b id="ar-a"></b></div><div>${L("Biceps", "Bíceps")}<b id="ar-b"></b></div><div>${L("Triceps", "Tríceps")}<b id="ar-t"></b></div>`;
+  const P = pickPanel(card, APK, k => AP[k], (k, cap) => { cap.textContent = L(AP[k].fact.en, AP[k].fact.es); burst(stage, 50, 50, ["#ffb3a0", "#ffe08a", "#fff"], 10); });
+  const tasks = [
+    { en: "BEND the elbow: hold Contract biceps until the elbow angle is 60 degrees or less, then lock in while the triceps is relaxed.", es: "DOBLA el codo: mantén pulsado Contraer bíceps hasta que el ángulo del codo sea de 60 grados o menos y fija mientras el tríceps está relajado.", test: r => r.th <= 60 },
+    { en: "STRAIGHTEN the elbow: hold Contract triceps until the angle is 160 degrees or more, then lock in while the biceps is relaxed.", es: "ENDEREZA el codo: mantén pulsado Contraer tríceps hasta que el ángulo sea de 160 grados o más y fija mientras el bíceps está relajado.", test: r => r.th >= 160 },
+    { en: "Select the HINGE joint - the one that only moves backward and forward, like a door.", es: "Selecciona la articulación de BISAGRA - la que solo se mueve hacia atrás y hacia adelante, como una puerta.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "elbow" },
+    { en: "Select the BALL-AND-SOCKET joint - the one that can rotate in a circle.", es: "Selecciona la articulación de BOLA Y CAVIDAD - la que puede girar en círculo.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "shoulder" },
+  ];
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; b.style.touchAction = "none"; return b; };
+  const bBic = mkBtn(L("Contract biceps (hold)", "Contraer bíceps (mantener)"), true), bTri = mkBtn(L("Contract triceps (hold)", "Contraer tríceps (mantener)"), true), bClear = mkBtn(L("Clear my picks", "Borrar mis selecciones"), true);
+  const hold = (b, d) => { const on = () => { A.dir = d; }, off = () => { if (A.dir === d) A.dir = 0; };
+    b.addEventListener("pointerdown", e => { on(); b.setPointerCapture && b.setPointerCapture(e.pointerId); }); b.addEventListener("pointerup", off); b.addEventListener("pointercancel", off); b.addEventListener("pointerleave", off);
+    b.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); on(); } }); b.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter") off(); }); };
+  hold(bBic, -1); hold(bTri, 1); bClear.addEventListener("click", () => P.clear());
+  const ord = makeOrders(card, sim, "st1", tasks, () => { const th = Math.round(A.th); return { th, picks: P.picks.slice(), setting: L(`Elbow angle ${th} degrees`, `Ángulo del codo ${th} grados`), reading: P.picks.length ? P.picks.map(k => AP[k].en).join(" > ") : L(`Biceps ${A.dir < 0 ? "contracting" : "relaxed"}, triceps ${A.dir > 0 ? "contracting" : "relaxed"}`, `Bíceps ${A.dir < 0 ? "contrayéndose" : "relajado"}, tríceps ${A.dir > 0 ? "contrayéndose" : "relajado"}`), result: th <= 60 ? L("Elbow bent by the biceps", "Codo doblado por el bíceps") : th >= 160 ? L("Elbow straightened by the triceps", "Codo enderezado por el tríceps") : L("Elbow part-way", "Codo a medias") }; },
+    L("Skeleton & Muscles", "Esqueleto y Músculos"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("arm", L("Joint Genius", "Genio de las Articulaciones")); onDone(); });
+  card.__onOrder = () => { P.clear(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bBic, bTri, bClear, ord.lock);
+  stage.after(hud); card.append(ord.bar, row);
+  const hudUpd = () => { hud.querySelector("#ar-a").textContent = Math.round(A.th) + "°"; hud.querySelector("#ar-b").textContent = A.dir < 0 ? L("Contracting", "Contrayéndose") : L("Relaxed", "Relajado"); hud.querySelector("#ar-t").textContent = A.dir > 0 ? L("Contracting", "Contrayéndose") : L("Relaxed", "Relajado"); };
+  let lastA = performance.now(); const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); return; } const now = performance.now(), dt = Math.min(0.3, (now - lastA) / 1000); lastA = now; A.th = Math.max(25, Math.min(172, A.th + A.dir * 75 * dt)); hudUpd(); }, 50);
+  const sp = makeSpace(stage, { fov: 38, dist: 11.5, pitch: 0.05, yaw: 1.35, ty: 0.3 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, camera, hooks, renderer } = sp; renderer.toneMappingExposure = 1.15; scene.add(new THREE.HemisphereLight(0xe8f1ff, 0x2a1030, 0.95)); const key = new THREE.DirectionalLight(0xfff2e6, 1.7); key.position.set(3, 5, 6); scene.add(key); const rimL = new THREE.PointLight(0x66ccff, 1.3, 16); rimL.position.set(-4, 2, -3); scene.add(rimL);
+    const bump = noiseTex(), meshes = [];
+    const mat = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.3, bumpMap: bump, bumpScale: 0.5, emissive: C3(hex), emissiveIntensity: 0.12 }, o || {}));
+    const reg = (m, k, parent) => { m.userData.k = k; meshes.push(m); (parent || scene).add(m); return m; };
+    const BONE = 0xf0e4c8, MUSC = 0xc2403c, TEND = 0xe8dcc8;
+    const bone = (len, r, parent, k, y0) => { const g = new THREE.Group(); const shaft = reg(new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.05, len, 20), mat(BONE)), k, g); shaft.position.y = y0 - len / 2; [0, -len].forEach(dy => { const kn = reg(new THREE.Mesh(new THREE.SphereGeometry(r * 1.5, 20, 16), mat(BONE)), k, g); kn.position.y = y0 + dy; }); parent.add(g); return g; };
+    /* shoulder: socket plate + ball */
+    const sh = new THREE.Group(); sh.position.set(0, 2.1, 0); scene.add(sh);
+    const plate = reg(new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.3, 0.18), mat(BONE)), "shoulder", sh); plate.position.set(0, 0.2, -0.45);
+    const cup = reg(new THREE.Mesh(new THREE.SphereGeometry(0.46, 24, 16, 0, TAU, 0, Math.PI / 2), mat(0xcfc2a6, { side: THREE.DoubleSide })), "shoulder", sh); cup.rotation.x = Math.PI / 2; cup.position.set(0, 0, -0.28);
+    const ball = reg(new THREE.Mesh(new THREE.SphereGeometry(0.36, 24, 18), mat(BONE)), "shoulder", sh);
+    /* humerus (fixed) */
+    bone(2.3, 0.17, sh, "humerus", 0);
+    /* elbow pivot */
+    const el = new THREE.Group(); el.position.set(0, 2.1 - 2.3, 0); scene.add(el);
+    const fa = new THREE.Group(); el.add(fa);
+    [-0.07, 0.07].forEach((dx, i) => { const b = reg(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 2.0, 16), mat(BONE)), "forearm", fa); b.position.set(dx * 1.4, -1.0, 0); });
+    const hand = reg(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.65, 0.16), mat(0xe8b898)), "wrist", fa); hand.position.set(0, -2.45, 0);
+    [-0.18, 0, 0.18].forEach(dx => { const w = reg(new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.12, 0.15), mat(BONE)), "wrist", fa); w.position.set(dx, -2.0, 0); });
+    const joint = reg(new THREE.Mesh(new THREE.SphereGeometry(0.27, 20, 16), mat(0xe6d8bb)), "elbow", el);
+    const lig = []; [-0.17, 0.17].forEach(dz => { const l = reg(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.05), mat(0xf6f0e0, { roughness: 0.3 })), "ligament", el); l.position.set(0, 0, dz * 1.1); lig.push(l); });
+    /* muscles */
+    const mkMus = k => { const m = reg(new THREE.Mesh(new THREE.SphereGeometry(1, 28, 20), mat(MUSC, { bumpScale: 1.2 })), k); return m; };
+    const bic = mkMus("biceps"), tri = mkMus("triceps");
+    const cylB = (a, b, r, mt, k) => { const m = reg(new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1, 10), mt), k); m.userData.a = a; m.userData.b = b; return m; };
+    const tendB = cylB(null, null, 0.055, mat(TEND, { roughness: 0.3 }), "biceps"), tendT = cylB(null, null, 0.055, mat(TEND, { roughness: 0.3 }), "triceps");
+    const place = (m, a, b) => { const d = b.clone().sub(a), len = d.length(); m.position.copy(a.clone().add(b).multiplyScalar(0.5)); m.scale.set(1, len, 1); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize()); };
+    const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(150 * 3).map((_, i) => (i % 3 === 1 ? (Math.random() - 0.3) * 8 : (Math.random() - 0.5) * 6)), 3)), new THREE.PointsMaterial({ size: 0.04, color: 0x9fe6ff, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(motes);
+    let hiK = null; P.hi = k => { hiK = k; };
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(4, 40), new THREE.MeshStandardMaterial({ color: C3(0x12303c), roughness: 0.9 })); floor.rotation.x = -Math.PI / 2; floor.position.y = -3.2; scene.add(floor);
+    hooks.push((dt, t) => {
+      const phi = (180 - A.th) * Math.PI / 180; el.rotation.x = -phi;
+      const cb = A.dir < 0 ? 1 : 0, ct = A.dir > 0 ? 1 : 0; A.bic += (cb - A.bic) * Math.min(1, dt * 8); A.tri += (ct - A.tri) * Math.min(1, dt * 8);
+      const bl = 1.35 - 0.35 * A.bic, br = 0.26 + 0.2 * A.bic; bic.scale.set(br, bl * 0.8, br * 0.9); bic.position.set(0, 2.1 - 1.05, 0.38);
+      const tl = 1.35 - 0.3 * A.tri, tr2 = 0.24 + 0.18 * A.tri; tri.scale.set(tr2, tl * 0.8, tr2 * 0.9); tri.position.set(0, 2.1 - 1.05, -0.38);
+      const bTop = new THREE.Vector3(0, 2.1 - 1.05 - bl * 0.8, 0.38), tTop = new THREE.Vector3(0, 2.1 - 1.05 - tl * 0.8, -0.38);
+      const fAttachB = new THREE.Vector3(0, -0.5, 0.18); fa.localToWorld(fAttachB); const fAttachT = new THREE.Vector3(0, 0.15, -0.2); fa.localToWorld(fAttachT);
+      el.updateMatrixWorld(true); const fb = new THREE.Vector3(0, -0.5, 0.18); fa.localToWorld(fb); const ft = new THREE.Vector3(0, 0.12, -0.2); fa.localToWorld(ft);
+      place(tendB, bTop, fb); place(tendT, tTop, ft);
+      meshes.forEach(m => { if (!m.material || !m.material.emissive) return; const on = m.userData.k === hiK; m.material.emissiveIntensity = on ? 0.55 + 0.25 * Math.sin(t * 5) : 0.12; });
+      const mp = motes.geometry.attributes.position; for (let i = 0; i < 150; i++) { let y = mp.getY(i) + dt * 0.1; if (y > 5) y = -3; mp.setY(i, y); } mp.needsUpdate = true;
+    });
+    const cv = renderer.domElement, ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let trk = null;
+    cv.addEventListener("pointerdown", e => { trk = { x: e.clientX, y: e.clientY, d: 0 }; });
+    cv.addEventListener("pointermove", e => { if (trk) { trk.d += Math.hypot(e.clientX - trk.x, e.clientY - trk.y); trk.x = e.clientX; trk.y = e.clientY; } });
+    cv.addEventListener("click", e => { if (trk && trk.d > 8) return; const r = cv.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, camera); const hits = ray.intersectObjects(meshes, false); if (hits.length) { const h = hits[0]; P.pick(h.object.userData.k); } });
+  }
+  P.paint(); hudUpd();
+}
+
+/* ============================================================
+   STATION 2 - THE BONE LAB (3D cut-open bone + real femur photo)
+   ============================================================ */
+const BP = {
+  peri: { en: "Periosteum", es: "Periostio", fact: { en: "Periosteum: the tough outer membrane of a bone (Greek peri = around, osteon = bone).", es: "Periostio: la membrana externa y resistente de un hueso (del griego peri = alrededor, osteon = hueso)." } },
+  compact: { en: "Compact bone", es: "Hueso compacto", fact: { en: "Compact bone: the hard, dense middle layer that gives a bone its strength and rigidity.", es: "Hueso compacto: la capa media dura y densa que da al hueso su fuerza y rigidez." } },
+  spongy: { en: "Spongy bone", es: "Hueso esponjoso", fact: { en: "Spongy bone: a lightweight inner layer full of holes, like a honeycomb. It keeps the bone strong without being heavy.", es: "Hueso esponjoso: una capa interna ligera llena de agujeros, como un panal. Mantiene el hueso fuerte sin hacerlo pesado." } },
+  marrow: { en: "Bone marrow", es: "Médula ósea", fact: { en: "Bone marrow: the soft tissue in the centre that makes new blood cells.", es: "Médula ósea: el tejido blando del centro que fabrica nuevas células sanguíneas." } },
+};
+const BPK = Object.keys(BP);
+function buildBone(mount, sim, onDone) {
+  const card = stationShell("2", "The Bone Lab", "El Laboratorio de Huesos", "Cut open a 3D long bone and pull its layers apart, then find the same layers on a real cut femur. Drag to turn the bone.", "Corta un hueso largo en 3D y separa sus capas, y luego encuentra las mismas capas en un fémur real cortado. Arrastra para girar el hueso.");
+  mount.append(card);
+  const stage = document.createElement("div"); stage.className = "cyc-stage dg-stage"; card.append(stage);
+  const B = sim.state.bn || (sim.state.bn = { ex: 0 });
+  const P = pickPanel(card, BPK, k => BP[k], (k, cap) => { cap.textContent = L(BP[k].fact.en, BP[k].fact.es); burst(stage, 50, 50, ["#ffe08a", "#ff9a8a", "#fff"], 10); });
+  const ctr = document.createElement("div"); ctr.className = "cyc-controls";
+  ctr.innerHTML = `<div class="cyc-row"><label for="bn-ex">${L("Pull the layers apart", "Separa las capas")}</label><input id="bn-ex" type="range" min="0" max="100" value="${B.ex}"><span class="cyc-val" id="bn-exv"></span></div>`;
+  const ex = ctr.querySelector("#bn-ex"), exv = ctr.querySelector("#bn-exv"); const syncEx = () => { exv.textContent = Math.round(B.ex) + "%"; };
+  ex.addEventListener("input", () => { B.ex = +ex.value; syncEx(); }); ex.addEventListener("change", () => sim.saveState()); syncEx();
+  /* real photo panel with two hotspots */
+  const ph = document.createElement("div"); ph.className = "cyc-photo"; ph.style.maxWidth = "17rem"; ph.innerHTML = `<img src="${PH("femurcut")}" alt="${L("A real thigh bone (femur) cut open: dense solid bone on the shaft and a honeycomb of spongy bone in the rounded head", "Un hueso real del muslo (fémur) cortado: hueso denso y sólido en el cuerpo y un panal de hueso esponjoso en la cabeza redondeada")}">`;
+  [["spongy", 60, 28, "Spongy bone (honeycomb)", "Hueso esponjoso (panal)"], ["compact", 35, 72, "Compact bone (solid)", "Hueso compacto (sólido)"]].forEach(([k, x, y, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = x + "%"; b.style.top = y + "%"; b.setAttribute("aria-label", L(en, es)); b.addEventListener("click", () => P.pick(k)); ph.append(b); });
+  const phCap = document.createElement("p"); phCap.className = "q__hint"; phCap.textContent = L("Real femur: tap the two kinds of bone you can see.", "Fémur real: toca los dos tipos de hueso que puedes ver.");
+  const tasks = [
+    { en: "Pull the layers apart (70% or more), then select them from the OUTSIDE in: periosteum, compact bone, spongy bone, bone marrow (4 picks).", es: "Separa las capas (70% o más) y selecciónalas de FUERA hacia dentro: periostio, hueso compacto, hueso esponjoso, médula ósea (4 selecciones).", test: r => r.ex >= 70 && r.picks.slice(-4).join() === "peri,compact,spongy,marrow" },
+    { en: "Select the soft tissue in the middle of a bone that makes new blood cells.", es: "Selecciona el tejido blando del centro de un hueso que fabrica nuevas células sanguíneas.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "marrow" },
+    { en: "On the REAL femur photo, tap the lightweight bone full of holes (spongy bone).", es: "En la foto del fémur REAL, toca el hueso ligero lleno de agujeros (hueso esponjoso).", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "spongy" },
+    { en: "On the REAL femur photo, tap the hard, dense bone that gives strength (compact bone).", es: "En la foto del fémur REAL, toca el hueso duro y denso que da fuerza (hueso compacto).", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "compact" },
+  ];
+  const bClear = document.createElement("button"); bClear.type = "button"; bClear.className = "cyc-btn cyc-btn--ghost"; bClear.textContent = L("Clear my picks", "Borrar mis selecciones"); bClear.addEventListener("click", () => P.clear());
+  const ord = makeOrders(card, sim, "st2", tasks, () => ({ ex: Math.round(B.ex), picks: P.picks.slice(), setting: L(`Layers pulled apart ${Math.round(B.ex)}%`, `Capas separadas ${Math.round(B.ex)}%`), reading: P.picks.length ? P.picks.map(k => BP[k].en).join(" > ") : "-", result: P.picks.length ? L("Last pick: " + BP[P.picks[P.picks.length - 1]].en, "Última selección: " + BP[P.picks[P.picks.length - 1]].es) : L("Nothing selected", "Nada seleccionado") }),
+    L("Bone Lab", "Laboratorio de Huesos"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("bone", L("Bone Detective", "Detective de Huesos")); onDone(); });
+  card.__onOrder = () => { P.clear(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bClear, ord.lock);
+  stage.after(ctr); card.append(phCap, ph, ord.bar, row);
+  const sp = makeSpace(stage, { fov: 38, dist: 9, pitch: 0.2, yaw: 0.9, ty: 0.0 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, camera, hooks, renderer } = sp; renderer.toneMappingExposure = 1.2; scene.add(new THREE.HemisphereLight(0xe8f1ff, 0x2a1030, 0.95)); const key = new THREE.DirectionalLight(0xfff2e6, 1.7); key.position.set(3, 5, 6); scene.add(key);
+    const bump = noiseTex(), meshes = [], clip = [new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0)];
+    const mat = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.5, clearcoat: 0.3, bumpMap: bump, bumpScale: 0.6, emissive: C3(hex), emissiveIntensity: 0.12, clippingPlanes: clip, side: THREE.DoubleSide }, o || {}));
+    const reg = (m, k) => { m.userData.k = k; meshes.push(m); return m; };
+    const grp = { peri: new THREE.Group(), compact: new THREE.Group(), spongy: new THREE.Group(), marrow: new THREE.Group() }; Object.values(grp).forEach(g => scene.add(g));
+    const L0 = 3.2;
+    grp.peri.add(reg(new THREE.Mesh(new THREE.CylinderGeometry(1.08, 1.08, L0, 40, 1, true), mat(0xd9b88a, { transparent: true, opacity: 0.55, roughness: 0.3 })), "peri"));
+    const comp = reg(new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, L0, 40, 1, true), mat(0xf2e6c8)), "compact"); const compIn = reg(new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, L0, 40, 1, true), mat(0xe8d8b0)), "compact"); grp.compact.add(comp, compIn);
+    [-1, 1].forEach(sd => { const kn = reg(new THREE.Mesh(new THREE.SphereGeometry(1.25, 28, 20), mat(0xf2e6c8)), "compact"); kn.position.y = sd * (L0 / 2 + 0.3); kn.scale.y = 0.75; grp.compact.add(kn); });
+    const tr = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5, 5), mat(0xeadbb8), 700), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), eu = new THREE.Euler(); tr.userData.k = "spongy"; meshes.push(tr);
+    for (let i = 0; i < 700; i++) { const a = Math.random() * TAU, r = 0.38 + Math.random() * 0.32, y = (Math.random() - 0.5) * L0 * 0.95; eu.set(Math.random() * 3, Math.random() * 3, Math.random() * 3); q.setFromEuler(eu); m4.compose(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r), q, new THREE.Vector3(1, 0.6 + Math.random() * 1.2, 1)); tr.setMatrixAt(i, m4); }
+    grp.spongy.add(tr);
+    grp.marrow.add(reg(new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, L0, 28), mat(0xc8283a, { emissiveIntensity: 0.3, roughness: 0.35 })), "marrow"));
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(4, 40), new THREE.MeshStandardMaterial({ color: C3(0x12303c), roughness: 0.9 })); floor.rotation.x = -Math.PI / 2; floor.position.y = -3.4; scene.add(floor);
+    const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(150 * 3).map((_, i) => (i % 3 === 1 ? (Math.random() - 0.3) * 8 : (Math.random() - 0.5) * 6)), 3)), new THREE.PointsMaterial({ size: 0.04, color: 0x9fe6ff, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(motes);
+    let hiK = null; P.hi = k => { hiK = k; };
+    hooks.push((dt, t) => { const e = B.ex / 100; grp.peri.position.y = 1.9 * e; grp.compact.position.y = 0.65 * e; grp.spongy.position.y = -0.65 * e; grp.marrow.position.y = -1.9 * e;
+      meshes.forEach(m => { if (!m.material || !m.material.emissive) return; const on = m.userData.k === hiK; m.material.emissiveIntensity = on ? 0.55 + 0.25 * Math.sin(t * 5) : (m.userData.k === "marrow" ? 0.3 : 0.12); });
+      const mp = motes.geometry.attributes.position; for (let i = 0; i < 150; i++) { let y = mp.getY(i) + dt * 0.1; if (y > 5) y = -3; mp.setY(i, y); } mp.needsUpdate = true; });
+    const cv = renderer.domElement, ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let trk = null;
+    cv.addEventListener("pointerdown", e => { trk = { x: e.clientX, y: e.clientY, d: 0 }; });
+    cv.addEventListener("pointermove", e => { if (trk) { trk.d += Math.hypot(e.clientX - trk.x, e.clientY - trk.y); trk.x = e.clientX; trk.y = e.clientY; } });
+    cv.addEventListener("click", e => { if (trk && trk.d > 8) return; const r = cv.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, camera); const hits = ray.intersectObjects(meshes, false).filter(h => { const c = clip[0]; return c.distanceToPoint(h.point) >= 0 || false; }); const h = hits.find(x => x.object.userData.k !== "peri") || hits[0]; if (h) P.pick(h.object.userData.k); });
+  }
+  P.paint();
+}
+
+/* ============================================================
+   STATION 3 - LYMPH DRAIN (fluid balance + germ filters)
+   ============================================================ */
+function buildLymph(mount, sim, onDone) {
+  const card = stationShell("3", "The Lymph Drain", "El Drenaje Linfático", "Fluid leaks from blood vessels into your tissues all the time. Run the lymph drainage system, keep the swelling down and send germs to the lymph nodes.", "Del sistema sanguíneo se escapa líquido hacia los tejidos todo el tiempo. Dirige el drenaje linfático, evita la hinchazón y envía los gérmenes a los ganglios linfáticos.");
+  mount.append(card);
+  const S = sim.state.ly || (sim.state.ly = { leak: 30, act: 1, F: 15, germs: 0, cleared: 0 });
+  S.germList = []; S.sel = null;
+  const img = {}; ["lymph", "mrsa"].forEach(k => { const im = new Image(); im.src = PH(k); img[k] = im; });
+  const stage = document.createElement("div"); stage.className = "eco-pop-stage"; const cv = document.createElement("canvas"); cv.width = 680; cv.height = 300; cv.setAttribute("aria-label", L("Blood capillary leaking fluid into tissue, lymph vessels draining it through lymph nodes", "Capilar sanguíneo que filtra líquido a los tejidos y vasos linfáticos que lo drenan por los ganglios")); stage.append(cv); card.append(stage);
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Tissue swelling", "Hinchazón del tejido")}<b id="ly-f"></b></div><div>${L("Germs in the body", "Gérmenes en el cuerpo")}<b id="ly-g"></b></div><div>${L("Germs cleared", "Gérmenes eliminados")}<b id="ly-c"></b></div>`; card.append(ro);
+  const ctr = document.createElement("div"); ctr.className = "cyc-controls";
+  ctr.innerHTML = `<div class="cyc-row"><label for="ly-leak">${L("Fluid leaking from blood vessels", "Líquido que se escapa de los vasos sanguíneos")}</label><input id="ly-leak" type="range" min="0" max="100" value="${S.leak}"><span class="cyc-val" id="ly-lv"></span></div><div class="cyc-row" id="ly-acts"><b style="font-size:.84rem">${L("Movement (squeezes lymph vessels):", "Movimiento (aprieta los vasos linfáticos):")}</b></div>`;
+  const acts = ctr.querySelector("#ly-acts"); [["Rest", "Reposo"], ["Walk", "Caminar"], ["Run", "Correr"]].forEach((a, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(a[0], a[1]); b.setAttribute("aria-pressed", String(S.act === i + 1)); b.addEventListener("click", () => { S.act = i + 1; acts.querySelectorAll("button").forEach((x, j) => x.setAttribute("aria-pressed", String(j === i))); sim.saveState(); burst(stage, 50, 60, ["#7be08a", "#fff"], 8); }); acts.append(b); });
+  const lk = ctr.querySelector("#ly-leak"), lv = ctr.querySelector("#ly-lv"); const syncL = () => { lv.textContent = Math.round(S.leak) + "%"; };
+  lk.addEventListener("input", () => { S.leak = +lk.value; syncL(); }); lk.addEventListener("change", () => sim.saveState()); syncL();
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Lymph = the clear fluid that drains your tissues. The lymph nodes filter it and fight bacteria and viruses before it returns to the blood.", "Linfa = el líquido claro que drena tus tejidos. Los ganglios linfáticos lo filtran y combaten bacterias y virus antes de que vuelva a la sangre.");
+  const tasks = [
+    { mode: "sim", en: "Let the fluid build up: set the leak to 70% or more at REST and lock in when the tissue swelling reaches 60% or more.", es: "Deja que se acumule el líquido: pon la fuga en 70% o más en REPOSO y fija cuando la hinchazón del tejido llegue a 60% o más.", test: r => r.leak >= 70 && r.act === 1 && r.F >= 60 },
+    { mode: "sim", en: "Now RUN (keep the leak at 70% or more) so the muscles squeeze the lymph vessels, and lock in when the swelling falls below 30%.", es: "Ahora CORRE (mantén la fuga en 70% o más) para que los músculos aprieten los vasos linfáticos y fija cuando la hinchazón baje de 30%.", test: r => r.leak >= 70 && r.act === 3 && r.F < 30 },
+    { mode: "sim", en: "Press Cut a finger to let germs in, and lock in once the lymph nodes have cleared ALL the germs (at least 8 cleared, none left).", es: "Pulsa Cortar un dedo para que entren gérmenes y fija cuando los ganglios linfáticos hayan eliminado TODOS los gérmenes (al menos 8 eliminados y ninguno restante).", test: r => r.cleared >= 8 && r.germs === 0 },
+    { mode: "pick", deck: ["femur", "tonsil", "biceps", "skull"], en: "Pick the photo that shows a lymphatic organ in your throat that helps fight germs.", es: "Elige la foto que muestra un órgano linfático de tu garganta que ayuda a combatir gérmenes.", test: r => r.mode === "pick" && r.sel === "tonsil" },
+  ];
+  const NM = { femur: { en: "Thigh bone", es: "Hueso del muslo" }, tonsil: { en: "Throat with tonsils", es: "Garganta con amígdalas" }, biceps: { en: "Flexed arm", es: "Brazo flexionado" }, skull: { en: "Skull", es: "Cráneo" } };
+  const deckEl = document.createElement("div"); deckEl.className = "eco-deck";
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bCut = mkBtn(L("Cut a finger (germs enter)", "Cortar un dedo (entran gérmenes)"), true);
+  const ord = makeOrders(card, sim, "st3", tasks, () => { const t = tasks[Math.min(ord.st.idx, tasks.length - 1)]; const F = Math.round(S.F); return t.mode === "pick" ? { mode: "pick", sel: S.sel, setting: L("Lymphatic organ pick", "Elección de órgano linfático"), reading: S.sel ? NM[S.sel].en : "-", result: S.sel ? L("Picked " + NM[S.sel].en, "Elegido " + NM[S.sel].es) : L("Nothing picked", "Nada elegido") } : { mode: "sim", leak: S.leak, act: S.act, F, germs: S.germs, cleared: S.cleared, setting: L(`Leak ${Math.round(S.leak)}% · ${["Rest", "Walk", "Run"][S.act - 1]}`, `Fuga ${Math.round(S.leak)}% · ${["Reposo", "Caminar", "Correr"][S.act - 1]}`), reading: L(`Swelling ${F}%; germs in body ${S.germs}; germs cleared ${S.cleared}`, `Hinchazón ${F}%; gérmenes en el cuerpo ${S.germs}; gérmenes eliminados ${S.cleared}`), result: F >= 60 ? L("Fluid building up - tissue swollen", "Se acumula líquido - tejido hinchado") : F < 30 ? L("Fluid balance kept by lymph drainage", "Equilibrio de líquido mantenido por el drenaje linfático") : L("Moderate swelling", "Hinchazón moderada") }; },
+    L("Lymph Drain", "Drenaje Linfático"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("lymph", L("Drain Master", "Maestro del Drenaje")); onDone(); });
+  card.__onOrder = () => { S.sel = null; paintDeck(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bCut, ord.lock);
+  card.append(ctr, fact, ord.bar, deckEl, row);
+  function paintDeck() { const t = tasks[Math.min(ord.st.idx, tasks.length - 1)]; deckEl.innerHTML = ""; deckEl.style.display = t.mode === "pick" ? "grid" : "none"; if (t.mode !== "pick") return;
+    t.deck.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-card"; b.setAttribute("aria-pressed", String(S.sel === k)); b.innerHTML = `${PA(k, NM[k].en, NM[k].es)}<span>${L(NM[k].en, NM[k].es)}</span>`; b.addEventListener("click", () => { S.sel = k; fact.textContent = k === "tonsil" ? L("Tonsils are lymphatic tissue at the back of your throat. Along with lymph nodes and the spleen they help fight germs.", "Las amígdalas son tejido linfático al fondo de la garganta. Junto con los ganglios y el bazo ayudan a combatir gérmenes.") : L("That is not part of the lymphatic system. Look for tissue in the throat.", "Eso no es parte del sistema linfático. Busca tejido en la garganta."); burst(card, 50, 60, ["#ffd24d", "#fff"], 8); paintDeck(); }); deckEl.append(b); }); }
+  bCut.addEventListener("click", () => { for (let i = 0; i < 8; i++) { S.germList.push({ x: 60 + Math.random() * 180, y: 118 + Math.random() * 40, st: 0, t: 0 }); } S.germs = S.germList.length; fact.textContent = L("Germs have entered through a cut! They drift into the lymph vessels, and the lymph nodes filter them out.", "¡Han entrado gérmenes por un corte! Se deslizan a los vasos linfáticos y los ganglios los filtran."); burst(stage, 40, 50, ["#7be08a", "#fff"], 12); });
+  let lastT = performance.now(), alive = true; const NODES = [{ x: 300 }, { x: 440 }, { x: 570 }];
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); alive = false; return; } const now = performance.now(), dt = Math.min(0.25, (now - lastT) / 1000); lastT = now;
+    const pump = S.act; S.F = Math.max(0, Math.min(100, S.F + (S.leak * 0.1 - 3.2 * pump * pump * S.F / 50) * dt));
+    S.germList.forEach(g => { if (g.st === 0) { g.x += 14 * dt; g.y += (212 - g.y) * Math.min(1, dt * 1.2); if (g.y > 196) g.st = 1; } else if (g.st === 1) { g.x += (60 * pump) * dt; const n = NODES.find(nd => g.x >= nd.x - 12 && g.x <= nd.x + 30); if (n) { g.st = 2; g.t = 0; g.n = n; } } else if (g.st === 2) { g.t += dt; if (g.t > 1.3) { g.st = 3; S.cleared++; } } else { } });
+    S.germList = S.germList.filter(g => g.st !== 3 && g.x < 720); S.germs = S.germList.length;
+    ro.querySelector("#ly-f").textContent = Math.round(S.F) + "%"; ro.querySelector("#ly-g").textContent = S.germs; ro.querySelector("#ly-c").textContent = S.cleared; }, 100);
+  function draw(now) {
+    if (!alive || !card.isConnected) return; const c = cv.getContext("2d"), t = now / 1000;
+    c.fillStyle = "#1b0f1c"; c.fillRect(0, 0, 680, 300);
+    const puff = S.F / 100; const ty = 78 - puff * 14, th = 112 + puff * 28; const tg = c.createLinearGradient(0, ty, 0, ty + th); tg.addColorStop(0, `rgb(${200 + puff * 40},${120 - puff * 40},${130 - puff * 30})`); tg.addColorStop(1, `rgb(${160 + puff * 30},${80 - puff * 20},${100 - puff * 20})`); c.fillStyle = tg; c.beginPath(); c.moveTo(20, ty); c.quadraticCurveTo(340, ty - 18 * puff - 6, 660, ty); c.lineTo(660, ty + th); c.quadraticCurveTo(340, ty + th + 8, 20, ty + th); c.closePath(); c.fill();
+    c.fillStyle = "#fff"; c.font = "bold 12px sans-serif"; c.fillText(L("Tissue (swells when fluid builds up)", "Tejido (se hincha cuando se acumula líquido)"), 30, ty + 20);
+    c.fillStyle = "#b02030"; c.fillRect(0, 28, 680, 28); c.fillStyle = "#e84a5a"; c.fillRect(0, 28, 680, 4); c.fillStyle = "#fff"; c.fillText(L("Blood capillary (fluid leaks out)", "Capilar sanguíneo (el líquido se escapa)"), 14, 46);
+    const nd = Math.round(S.F / 3) + 3; for (let i = 0; i < nd; i++) { const px = (i * 61 + t * (12 + i % 5)) % 640 + 20, py = ty + 34 + ((i * 37) % Math.max(20, th - 60)) + Math.sin(t * 2 + i) * 3; c.fillStyle = "rgba(120,190,255,.8)"; c.beginPath(); c.arc(px, py, 3.2, 0, TAU); c.fill(); }
+    if (S.leak > 5) for (let i = 0; i < Math.round(S.leak / 10); i++) { const px = (i * 71 + 30) % 640 + 15, py = 56 + ((t * (30 + S.leak / 3) + i * 23) % (ty + 20 - 56)); c.fillStyle = "rgba(160,215,255,.9)"; c.beginPath(); c.arc(px, py, 3, 0, TAU); c.fill(); }
+    c.fillStyle = "#1f7a52"; c.fillRect(0, 205, 680, 14); c.fillStyle = "#3fd28a"; c.fillRect(0, 205, 680, 3); c.fillStyle = "#fff"; c.font = "bold 11px sans-serif"; c.fillText(L("Lymph vessel (drains the fluid)", "Vaso linfático (drena el líquido)"), 14, 236);
+    c.fillStyle = "#cfe8ff"; for (let i = 0; i < 16; i++) { const px = (i * 44 + t * 40 * S.act) % 680; c.beginPath(); c.arc(px, 212, 3, 0, TAU); c.fill(); }
+    NODES.forEach(n => { const busy = S.germList.some(g => g.n === n && g.st === 2); const r = busy ? 26 : 22; c.save(); c.beginPath(); c.ellipse(n.x, 212, r + 6, r, 0, 0, TAU); c.clip(); if (img.lymph.complete && img.lymph.naturalWidth) c.drawImage(img.lymph, 120, 60, 400, 330, n.x - r - 6, 212 - r, (r + 6) * 2, r * 2); else { c.fillStyle = "#c8a0d8"; c.fill(); } c.restore(); c.strokeStyle = busy ? "#ffe08a" : "#fff"; c.lineWidth = busy ? 4 : 2; c.beginPath(); c.ellipse(n.x, 212, r + 6, r, 0, 0, TAU); c.stroke(); });
+    c.fillStyle = "#ffd9a0"; c.font = "bold 11px sans-serif"; c.fillText(L("Lymph nodes filter germs", "Los ganglios filtran gérmenes"), 300, 256); c.fillText(L("→ back to the blood", "→ vuelve a la sangre"), 580, 290);
+    S.germList.forEach(g => { c.save(); c.beginPath(); c.arc(g.x, g.y || 212, 9, 0, TAU); c.clip(); if (img.mrsa.complete && img.mrsa.naturalWidth) c.drawImage(img.mrsa, 170, 140, 70, 70, g.x - 9, (g.y || 212) - 9, 18, 18); else { c.fillStyle = "#cc3"; c.fill(); } c.restore(); c.strokeStyle = g.st === 2 ? "#ff6" : "#fff"; c.lineWidth = 1.5; c.beginPath(); c.arc(g.x, g.y || 212, 9, 0, TAU); c.stroke(); });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw); paintDeck();
+}
+
+/* ============================================================
+   STATION 4 - THE HORMONE MESSENGER (endocrine glands)
+   ============================================================ */
+const GL = {
+  pituitary: { en: "Pituitary", es: "Hipófisis", x: 150, y: 52, hor: { en: "growth hormone", es: "hormona del crecimiento" }, fx: { en: "The master gland: its hormones control growth and tell other glands what to do.", es: "La glándula maestra: sus hormonas controlan el crecimiento y dicen a otras glándulas qué hacer." }, tg: "legs" },
+  thyroid: { en: "Thyroid", es: "Tiroides", x: 150, y: 104, hor: { en: "thyroxine", es: "tiroxina" }, fx: { en: "Thyroid hormone sets your metabolism - how fast your cells use energy.", es: "La hormona tiroidea fija tu metabolismo - qué tan rápido usan energía tus células." }, tg: "body" },
+  adrenals: { en: "Adrenals", es: "Suprarrenales", x: 150, y: 176, hor: { en: "adrenaline", es: "adrenalina" }, fx: { en: "Sitting on the kidneys, the adrenals release adrenaline when you are scared or excited: your heart races and you are ready to act.", es: "Situadas sobre los riñones, las suprarrenales liberan adrenalina cuando tienes miedo o emoción: el corazón se acelera y estás listo para actuar." }, tg: "heart" },
+  pancreas: { en: "Pancreas", es: "Páncreas", x: 150, y: 200, hor: { en: "insulin", es: "insulina" }, fx: { en: "The pancreas releases insulin, which tells cells to take sugar out of the blood, controlling blood sugar.", es: "El páncreas libera insulina, que ordena a las células sacar azúcar de la sangre, controlando el azúcar en sangre." }, tg: "sugar" },
+};
+const GLK = Object.keys(GL);
+function buildHormones(mount, sim, onDone) {
+  const card = stationShell("4", "The Hormone Messenger", "El Mensajero Hormonal", "Glands make hormones - chemical messengers that travel through the blood to control growth, mood and metabolism. Pick a gland and release its hormone.", "Las glándulas fabrican hormonas - mensajeros químicos que viajan por la sangre para controlar el crecimiento, el ánimo y el metabolismo. Elige una glándula y libera su hormona.");
+  mount.append(card);
+  const S = { sel: null, rel: null, anim: null };
+  const stage = document.createElement("div"); stage.className = "eco-pop-stage"; const cv = document.createElement("canvas"); cv.width = 680; cv.height = 300; cv.setAttribute("aria-label", L("A body outline showing the four endocrine glands", "Contorno del cuerpo con las cuatro glándulas endocrinas")); stage.append(cv); card.append(stage);
+  const chipRow = document.createElement("div"); chipRow.className = "eco-chips"; chipRow.innerHTML = `<b>${L("Glands:", "Glándulas:")}</b>`; const chips = {};
+  GLK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(GL[k].en, GL[k].es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => choose(k)); chipRow.append(b); chips[k] = b; });
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Tap a gland on the body (or a button), then press Release hormone.", "Toca una glándula en el cuerpo (o un botón) y luego pulsa Liberar hormona.");
+  const tasks = [
+    { en: "Release the hormone that controls BLOOD SUGAR: pick the gland that makes insulin, press Release hormone, then lock in.", es: "Libera la hormona que controla el AZÚCAR EN SANGRE: elige la glándula que fabrica insulina, pulsa Liberar hormona y fija.", g: "pancreas" },
+    { en: "Release the hormone from the MASTER GLAND in the head that controls growth, then lock in.", es: "Libera la hormona de la GLÁNDULA MAESTRA de la cabeza que controla el crecimiento y fija.", g: "pituitary" },
+    { en: "A fright makes your heart race: release the stress hormone adrenaline from the glands that sit on the kidneys, then lock in.", es: "Un susto acelera tu corazón: libera la hormona del estrés adrenalina de las glándulas situadas sobre los riñones y fija.", g: "adrenals" },
+    { en: "Release the hormone that sets your METABOLISM (how fast cells use energy) from the gland in the neck, then lock in.", es: "Libera la hormona que fija tu METABOLISMO (qué tan rápido usan energía las células) de la glándula del cuello y fija.", g: "thyroid" },
+  ];
+  tasks.forEach(t => { t.test = r => r.rel === t.g; });
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bRel = mkBtn(L("Release hormone", "Liberar hormona"), true);
+  const ord = makeOrders(card, sim, "st4", tasks, () => ({ rel: S.rel, setting: S.sel ? L("Gland: " + GL[S.sel].en, "Glándula: " + GL[S.sel].es) : L("No gland chosen", "Ninguna glándula elegida"), reading: S.rel ? L(`Released ${GL[S.rel].hor.en} from the ${GL[S.rel].en}`, `Liberada ${GL[S.rel].hor.es} desde ${GL[S.rel].es}`) : "-", result: S.rel ? L(GL[S.rel].fx.en, GL[S.rel].fx.es) : L("No hormone released yet", "Aún no se liberó ninguna hormona") }),
+    L("Hormone Messenger", "Mensajero Hormonal"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("hormone", L("Gland Commander", "Comandante de Glándulas")); onDone(); });
+  card.__onOrder = () => { S.rel = null; S.sel = null; paintChips(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bRel, ord.lock);
+  card.append(chipRow, fact, ord.bar, row);
+  function paintChips() { GLK.forEach(k => chips[k].setAttribute("aria-pressed", String(S.sel === k))); }
+  function choose(k) { S.sel = k; S.rel = null; fact.textContent = L(GL[k].en + ": " + GL[k].fx.en, GL[k].es + ": " + GL[k].fx.es); burst(stage, 30, 50, ["#ffd24d", "#fff"], 8); paintChips(); }
+  bRel.addEventListener("click", () => { if (!S.sel) { fact.textContent = L("Choose a gland first.", "Elige primero una glándula."); stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); return; } S.rel = S.sel; S.anim = { t: 0, g: S.sel }; fact.textContent = L(`The ${GL[S.sel].en} released ${GL[S.sel].hor.en} into the blood. ${GL[S.sel].fx.en}`, `${GL[S.sel].es} liberó ${GL[S.sel].hor.es} en la sangre. ${GL[S.sel].fx.es}`); burst(stage, 30, 50, ["#ffe08a", "#ff9a8a", "#fff"], 14); });
+  cv.addEventListener("click", e => { const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 680, y = (e.clientY - r.top) / r.height * 300; let best = null, bd = 30; GLK.forEach(k => { const d = Math.hypot(x - (GL[k].x + 130), y - GL[k].y); if (d < bd) { bd = d; best = k; } }); if (best) choose(best); });
+  const TGT = { legs: { x: 280, y: 270, en: "Bones grow longer", es: "Los huesos crecen" }, body: { x: 280, y: 150, en: "Cells use energy faster", es: "Las células usan energía más rápido" }, heart: { x: 280, y: 130, en: "Heart rate goes up", es: "El pulso sube" }, sugar: { x: 280, y: 205, en: "Blood sugar goes down", es: "Baja el azúcar en sangre" } };
+  let alive = true, lastT = performance.now(), sugar = 70;
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); alive = false; return; } const now = performance.now(), dt = Math.min(0.25, (now - lastT) / 1000); lastT = now; if (S.anim) { S.anim.t += dt; if (S.anim.t > 4) S.anim = null; } if (S.anim && S.anim.g === "pancreas") sugar = Math.max(30, sugar - 18 * dt); else sugar += (70 - sugar) * dt * 0.3; }, 100);
+  function draw(now) {
+    if (!alive || !card.isConnected) return; const c = cv.getContext("2d"), t = now / 1000;
+    c.fillStyle = "#101a2e"; c.fillRect(0, 0, 680, 300);
+    const bx = 280; c.fillStyle = "#26395e"; c.strokeStyle = "#7aa0d8"; c.lineWidth = 3; c.beginPath(); c.arc(bx, 52, 36, 0, TAU); c.fill(); c.stroke(); c.beginPath(); c.moveTo(bx - 50, 100); c.quadraticCurveTo(bx - 70, 150, bx - 52, 240); c.lineTo(bx - 20, 292); c.lineTo(bx + 20, 292); c.lineTo(bx + 52, 240); c.quadraticCurveTo(bx + 70, 150, bx + 50, 100); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = "#ff6a7a"; c.beginPath(); const hb = 1 + (S.anim && S.anim.g === "adrenals" ? 0.12 * Math.sin(t * 16) : 0.04 * Math.sin(t * 5)); c.arc(bx - 10, 130, 12 * hb, 0, TAU); c.fill();
+    c.fillStyle = "#cfe8ff"; c.font = "11px sans-serif"; c.fillText(L("Heart", "Corazón"), bx + 6, 120);
+    GLK.forEach(k => { const g = GL[k], gx = g.x + 130, sel = S.sel === k; const pts = k === "adrenals" ? [-24, 24] : [0]; pts.forEach(dx => { c.fillStyle = sel ? "#ffd24d" : "#f6a0d0"; c.beginPath(); c.arc(gx + dx, g.y, sel ? 12 : 9, 0, TAU); c.fill(); c.strokeStyle = "#fff"; c.lineWidth = 2; c.stroke(); }); c.fillStyle = "#fff"; c.font = "bold 12px sans-serif"; c.fillText(L(g.en, g.es), gx + 34, g.y + 4); });
+    if (S.anim) { const g = GL[S.anim.g], tg = TGT[g.tg], u = Math.min(1, S.anim.t / 2.2); for (let i = 0; i < 14; i++) { const q = Math.max(0, Math.min(1, u * 1.3 - i * 0.05)); if (q <= 0) continue; const x = g.x + 130 + (tg.x - (g.x + 130)) * q + Math.sin(i * 2.1 + t * 6) * 8, y = g.y + (tg.y - g.y) * q; c.fillStyle = "rgba(255,220,120,.95)"; c.beginPath(); c.arc(x, y, 4, 0, TAU); c.fill(); } if (u >= 1) { c.fillStyle = "#ffe08a"; c.font = "bold 13px sans-serif"; c.fillText("→ " + L(tg.en, tg.es), tg.x + 40, tg.y); c.strokeStyle = "#ffe08a"; c.lineWidth = 3; c.beginPath(); c.arc(tg.x, tg.y, 16 + 4 * Math.sin(t * 6), 0, TAU); c.stroke(); } }
+    c.fillStyle = "#cfe8ff"; c.font = "bold 12px sans-serif"; c.fillText(L("Blood sugar", "Azúcar en sangre"), 520, 40); c.fillStyle = "#2a3556"; c.fillRect(520, 48, 120, 12); c.fillStyle = sugar > 60 ? "#ffb340" : "#7be08a"; c.fillRect(520, 48, sugar * 1.2, 12);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw); paintChips();
+}
+
+/* ============================================================
+   BONUS - ANATOMY WORDLE (classic reskin of a word-guessing format)
+   Real photo + clue for each body-system word. 6 guesses per word,
+   120 s on setInterval, silent. No fail state: a missed word just
+   reveals the answer and a memory hook.
+   ============================================================ */
+const WW = [
+  { en: "FEMUR", es: "FEMUR", img: "femur", clue: { en: "The longest, strongest bone in the body - found in the thigh.", es: "El hueso más largo y fuerte del cuerpo - está en el muslo." }, fact: { en: "The femur is the longest bone; bones support the body and act as levers.", es: "El fémur es el hueso más largo; los huesos sostienen el cuerpo y actúan como palancas." } },
+  { en: "SKULL", es: "CRANEO", img: "skull", clue: { en: "The hard bone box that protects the brain.", es: "La caja de hueso duro que protege el cerebro." }, fact: { en: "The skull is hard bone so it can protect the soft brain.", es: "El cráneo es de hueso duro para proteger el cerebro blando." } },
+  { en: "LYMPH", es: "LINFA", img: "lymph", clue: { en: "The clear fluid drained from your tissues and filtered by lymph nodes.", es: "El líquido claro que se drena de tus tejidos y filtran los ganglios linfáticos." }, fact: { en: "Lymph comes from the Latin for 'clear water'; nodes filter it and fight germs.", es: "Linfa viene del latín 'agua clara'; los ganglios la filtran y combaten gérmenes." } },
+  { en: "MUSCLE", es: "MUSCULO", img: "biceps", clue: { en: "Tissue that pulls on bones to make you move - biceps and triceps are a pair of these.", es: "Tejido que tira de los huesos para moverte - el bíceps y el tríceps son una pareja de estos." }, fact: { en: "Muscle comes from 'little mouse' - rippling muscles look like mice under the skin.", es: "Músculo viene de 'ratoncito' - los músculos que se mueven parecen ratones bajo la piel." } },
+  { en: "JOINT", es: "RODILLA", img: "knee", clue: { en: "Where two bones meet - the one in the knee works like a door hinge.", es: "La articulación de bisagra que une el muslo con la pierna." }, fact: { en: "A joint joins bones; ligaments tie bone to bone and cartilage cushions.", es: "La rodilla es una articulación de bisagra; los ligamentos unen hueso con hueso y el cartílago amortigua." } },
+  { en: "HELMET", es: "CASCO", img: "helmet", clue: { en: "Protective gear that cushions the head during sport.", es: "Equipo de protección que amortigua la cabeza durante el deporte." }, fact: { en: "Wear protective gear like a helmet to protect your skull and brain.", es: "Usa equipo de protección como un casco para proteger tu cráneo y tu cerebro." } },
+];
+function mountWordle(host, sim, onExit) {
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus eco-bonus"; host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: Anatomy Wordle", "Bonus: Wordle de Anatomía")}</h3><p>${L("A famous word game with a real photo and a clue. Guess the body-system word in 6 tries: green = right letter, right place; yellow = right letter, wrong place; grey = not in the word. Any letters are allowed. Two minutes, no lives, nothing can go wrong. A silent game.", "Un famoso juego de palabras con una foto real y una pista. Adivina la palabra del sistema del cuerpo en 6 intentos: verde = letra correcta en su lugar; amarillo = letra correcta en otro lugar; gris = no está en la palabra. Se permiten letras cualesquiera. Dos minutos, sin vidas, nada puede salir mal. Un juego silencioso.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="wd-start">${L("Play (2 minutes)", "Jugar (2 minutos)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="wd-skip">${L("Skip", "Omitir")}</button></div>`;
+  wrap.querySelector("#wd-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#wd-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Anatomy Wordle", "Wordle de Anatomía")}</h3><div class="cyc-hud"><span id="wd-time"></span><span id="wd-score"></span><span id="wd-n"></span></div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start"><div style="flex:0 0 11rem;max-width:100%"><img id="wd-img" alt="" style="width:100%;border-radius:12px;border:1px solid #ffffff44;display:block"><p id="wd-clue" style="font-size:.84rem;margin:.4rem 0"></p></div><div id="wd-grid" style="display:grid;gap:5px;flex:1 1 14rem;max-width:22rem"></div></div>
+      <div id="wd-kb" style="margin-top:.6rem;display:grid;gap:4px"></div><div class="cyc-row" style="margin-top:.5rem"><button type="button" class="cyc-btn cyc-btn--ghost" id="wd-hint" style="background:#ffffff1c;color:#fff">${L("Hint: reveal a letter", "Pista: revelar una letra")}</button></div><div class="cyc-toast" id="wd-toast">${L("Type letters or tap the keys, then press Enter.", "Escribe letras o toca las teclas y pulsa Enter.")}</div>`;
+    const q = s => wrap.querySelector(s), grid = q("#wd-grid"), kb = q("#wd-kb"), toast = q("#wd-toast");
+    const order = shuffled(WW.map((_, i) => i), Date.now() % 977), G = { left: 120, score: 0, i: 0, solved: 0, missed: [], rows: [], cur: "", hint: false, over: false, done: [], keyst: {} };
+    const word = () => WW[order[G.i % order.length]];
+    const secret = () => word()[getLang() === "es" ? "es" : "en"];
+    const say = (t, col) => { toast.textContent = t; toast.style.color = col || "#ffe08a"; };
+    function paintWord() { const w = word(), s = secret(); q("#wd-img").src = PH(w.img); q("#wd-img").alt = L("Photo clue", "Foto pista"); q("#wd-clue").textContent = L(w.clue.en, w.clue.es) + " (" + s.length + " " + L("letters", "letras") + ")"; grid.style.gridTemplateRows = ""; G.rows = []; G.cur = ""; G.hint = false; G.keyst = {}; paintGrid(); paintKb(); q("#wd-n").textContent = L("Word ", "Palabra ") + (G.i + 1); }
+    function evalGuess(g, s) { const res = Array(s.length).fill("x"), rem = {}; for (let i = 0; i < s.length; i++) { if (g[i] === s[i]) res[i] = "g"; else rem[s[i]] = (rem[s[i]] || 0) + 1; } for (let i = 0; i < s.length; i++) { if (res[i] === "g") continue; if (rem[g[i]] > 0) { res[i] = "y"; rem[g[i]]--; } } return res; }
+    function paintGrid() { const s = secret(); grid.innerHTML = ""; for (let r = 0; r < 6; r++) { const row = document.createElement("div"); row.style.cssText = `display:grid;grid-template-columns:repeat(${s.length},1fr);gap:5px`; for (let i = 0; i < s.length; i++) { const cell = document.createElement("div"); const done = G.rows[r], cur = r === G.rows.length; let ch = "", st = ""; if (done) { ch = done.g[i]; st = done.res[i]; } else if (cur) ch = G.cur[i] || (G.hint && i === 0 ? s[0] : ""); const bg = st === "g" ? "#2f9e57" : st === "y" ? "#d1a329" : st === "x" ? "#4a4f63" : "#1b2440"; cell.style.cssText = `aspect-ratio:1;max-height:3rem;display:flex;align-items:center;justify-content:center;font:800 1.2rem sans-serif;border:2px solid ${cur && !done && ch ? "#ffd24d" : "#ffffff30"};border-radius:6px;background:${bg};color:#fff;position:relative`; cell.textContent = ch; if (st) { const m = document.createElement("span"); m.textContent = st === "g" ? "✓" : st === "y" ? "~" : "×"; m.style.cssText = "position:absolute;right:3px;top:0;font-size:.6rem;opacity:.85"; cell.append(m); cell.setAttribute("aria-label", ch + " " + (st === "g" ? L("correct place", "lugar correcto") : st === "y" ? L("wrong place", "otro lugar") : L("not in word", "no está"))); } row.append(cell); } grid.append(row); } }
+    function paintKb() { kb.innerHTML = ""; ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"].forEach((r, ri) => { const row = document.createElement("div"); row.style.cssText = "display:flex;gap:4px;justify-content:center"; if (ri === 2) { const en = document.createElement("button"); en.type = "button"; en.className = "cyc-btn"; en.style.cssText = "padding:.4rem .7rem;min-height:40px"; en.textContent = "Enter"; en.addEventListener("click", submit); row.append(en); } r.split("").forEach(ch => { const b = document.createElement("button"); b.type = "button"; b.textContent = ch; const st = G.keyst[ch]; b.style.cssText = `min-width:28px;min-height:40px;border-radius:6px;border:0;font:700 .9rem sans-serif;cursor:pointer;color:#fff;background:${st === "g" ? "#2f9e57" : st === "y" ? "#d1a329" : st === "x" ? "#3a3f52" : "#5a6486"}`; b.addEventListener("click", () => typeCh(ch)); row.append(b); }); if (ri === 2) { const bs = document.createElement("button"); bs.type = "button"; bs.className = "cyc-btn"; bs.style.cssText = "padding:.4rem .7rem;min-height:40px"; bs.textContent = "←"; bs.setAttribute("aria-label", L("Backspace", "Borrar")); bs.addEventListener("click", back); row.append(bs); } kb.append(row); }); }
+    function typeCh(ch) { if (G.over) return; const s = secret(); if (G.cur.length < s.length) { G.cur += ch; paintGrid(); } }
+    function back() { G.cur = G.cur.slice(0, -1); paintGrid(); }
+    function next() { G.i++; paintWord(); }
+    function submit() {
+      if (G.over) return; const s = secret(); if (G.cur.length < s.length) { say(L("Not enough letters yet.", "Aún faltan letras."), "#cfe8ff"); grid.classList.remove("cyc-shake"); void grid.offsetWidth; grid.classList.add("cyc-shake"); return; }
+      const res = evalGuess(G.cur, s); G.rows.push({ g: G.cur, res }); res.forEach((r, i) => { const ch = G.cur[i], pr = G.keyst[ch]; if (r === "g" || (r === "y" && pr !== "g") || (r === "x" && !pr)) G.keyst[ch] = r; });
+      const w = word();
+      if (G.cur === s) { const pts = 60 + (7 - G.rows.length) * 10 - (G.hint ? 10 : 0); G.score += pts; G.solved++; say(L(`Solved in ${G.rows.length}! +${pts}. ${w.fact.en}`, `¡Resuelta en ${G.rows.length}! +${pts}. ${w.fact.es}`), "#9dffb0"); burst(wrap, 50, 40, ["#9dffb0", "#ffe08a", "#fff"], 18); G.cur = ""; paintGrid(); paintKb(); setTimeout(() => { if (!G.over) next(); }, 1600); }
+      else if (G.rows.length >= 6) { G.missed.push(w); say(L(`The word was ${s}. ${w.fact.en}`, `La palabra era ${s}. ${w.fact.es}`), "#ffb3a0"); G.cur = ""; paintGrid(); paintKb(); setTimeout(() => { if (!G.over) next(); }, 2200); }
+      else { G.cur = ""; say(L(`${res.filter(r => r === "g").length} letters in the right place. Try again.`, `${res.filter(r => r === "g").length} letras en su lugar. Inténtalo otra vez.`), "#cfe8ff"); paintGrid(); paintKb(); }
+    }
+    q("#wd-hint").addEventListener("click", () => { if (G.hint) { say(L("One hint per word.", "Una pista por palabra."), "#cfe8ff"); return; } G.hint = true; if (!G.cur) G.cur = secret()[0]; say(L("First letter revealed (-10 points if you solve it).", "Primera letra revelada (-10 puntos si la resuelves)."), "#ffe08a"); paintGrid(); });
+    const kd = e => { if (G.over) return; if (e.key === "Enter") { e.preventDefault(); submit(); } else if (e.key === "Backspace") { e.preventDefault(); back(); } else if (/^[a-zA-Z]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) { typeCh(e.key.toUpperCase()); } };
+    window.addEventListener("keydown", kd);
+    const last = { v: performance.now() };
+    const timer = setInterval(() => { const now = performance.now(), dt = Math.min(0.25, (now - last.v) / 1000); last.v = now; if (G.over) return; G.left -= dt; if (G.left <= 0) { finish(); return; } q("#wd-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(G.left)) + " s"; q("#wd-score").textContent = L("Score ", "Puntos ") + G.score; }, 200);
+    paintWord(); q("#wd-time").textContent = L("Time ", "Tiempo ") + 120 + " s"; q("#wd-score").textContent = L("Score ", "Puntos ") + 0;
+    function finish() {
+      if (G.over) return; G.over = true; clearInterval(timer); window.removeEventListener("keydown", kd);
+      const miss = G.missed.map(w => `<li><b>${L(w.en, w.es)}</b> - ${L(w.fact.en, w.fact.es)}</li>`).join("");
+      wrap.innerHTML = `<h3>${L("Wordle complete!", "¡Wordle completado!")}</h3><p>${L(`Words solved: ${G.solved}. Score ${G.score}.`, `Palabras resueltas: ${G.solved}. Puntos ${G.score}.`)}</p>${miss ? `<p>${L("Words to remember:", "Palabras para recordar:")}</p><ul>${miss}</ul>` : `<p>${L("No missed words - a true anatomy expert!", "Ninguna palabra fallada - ¡un verdadero experto en anatomía!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="wd-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="wd-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#wd-again").addEventListener("click", () => { wrap.remove(); mountWordle(host, sim, onExit); }); wrap.querySelector("#wd-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: G.score, solved: G.solved });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: how long you hold each muscle button, the layers you pull apart, the fluid leak and movement level you choose, the germs you let in and the gland you release. Dependent: the elbow angle, which parts you identify correctly, the tissue swelling, the number of germs cleared and the hormone's effect. Controlled: the same arm, bone, tissue model and body outline for every reading.",
+    "Independiente: cuánto tiempo mantienes cada botón de músculo, las capas que separas, la fuga de líquido y el nivel de movimiento que eliges, los gérmenes que dejas entrar y la glándula que liberas. Dependiente: el ángulo del codo, qué partes identificas bien, la hinchazón del tejido, el número de gérmenes eliminados y el efecto de la hormona. Controladas: el mismo brazo, hueso, modelo de tejido y contorno del cuerpo en cada lectura.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (["st1", "st2", "st3", "st4"].every(k => s[k] && s[k].idx >= 4) && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Body Engineer mission complete! You bent an elbow with a muscle pair, opened a bone, drained the tissues and sent hormones round the body. Now explain what you found.", "¡Misión de Ingeniero del Cuerpo completada! Doblaste un codo con una pareja de músculos, abriste un hueso, drenaste los tejidos y enviaste hormonas por el cuerpo. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildArm(host, sim, check); buildBone(host, sim, check); buildLymph(host, sim, check); buildHormones(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining how bones, muscles, the lymphatic system and hormones help your body?", "¿Qué tan seguro te sientes explicando cómo ayudan a tu cuerpo los huesos, los músculos, el sistema linfático y las hormonas?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "nerve", label: L("The nervous system", "El sistema nervioso") }, { id: "vacc", label: L("How vaccines train the immune system", "Cómo las vacunas entrenan al sistema inmune") }, { id: "fit", label: L("How exercise strengthens bones and muscles", "Cómo el ejercicio fortalece huesos y músculos") }], "next");
+  host.append(creditLine());
+  document.addEventListener("eco-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountWordle(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete - score ${st.score}.`, `Bonus completo - ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
