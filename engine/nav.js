@@ -66,6 +66,18 @@ function metaFor(node) {
    browsable so a student can see what is coming. A course can be worth opening
    for its own featured game or recommended links even before any of its own
    units are built, so those count as walkable too. */
+
+/* Default tile picture for a simulation with no photo/thumbnail (or a broken one):
+   a themed gradient with a simple drawn glyph. External activities get a "portal" glyph. */
+function defaultThumb(node) {
+  const ext = node.kind === "external";
+  const box = el("span", "tile__default");
+  box.setAttribute("aria-hidden", "true");
+  box.innerHTML = ext
+    ? '<svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="22" stroke-dasharray="5 5"/><path d="M24 40l16-16M28 24h12v12"/></svg>'
+    : '<svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8h16M28 8v18L12 54a4 4 0 003.5 6h33a4 4 0 003.5-6L36 26V8"/><path d="M20 42h24"/></svg>';
+  return box;
+}
 let photoCount = 0;
 function tile(node, href, photo, root) {
   const hasExtras = !!node.featuredGame || (node.resources || []).length > 0;
@@ -107,8 +119,18 @@ function tile(node, href, photo, root) {
     img.src = href.replace(/[^/]*$/, node.thumbnail);
     img.alt = "";
     img.loading = "lazy";
+    // brandplus.css fades thumbnails in from opacity 0 once .is-ready is set;
+    // without this they stayed invisible (dark empty box).
+    const ready = () => img.classList.add("is-ready");
+    if (img.complete && img.naturalWidth) ready(); else img.addEventListener("load", ready, { once: true });
+    img.addEventListener("error", () => { img.remove(); media.append(defaultThumb(node)); }, { once: true });
     img.setAttribute("aria-hidden", "true");
     media.append(img);
+    n.append(media);
+  } else if (node.type === "simulation") {
+    // No photo and no thumbnail: show a default picture, never a blank space.
+    const media = el("span", "tile__media tile__media--default");
+    media.append(defaultThumb(node));
     n.append(media);
   }
 
