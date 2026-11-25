@@ -182,6 +182,16 @@ function injectExternalStyles() {
     text-transform:uppercase;color:var(--signal);border:1px solid var(--signal);border-radius:999px;
     padding:.22em .85em;margin-bottom:.5em;}
   .ext-portal__title{margin:0;}
+  .ext-preview{position:relative;margin:var(--sp-4) 0 0;border-radius:14px;overflow:hidden;aspect-ratio:16/9;
+    background:#111;box-shadow:var(--shadow-1);}
+  .ext-preview__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .ext-preview__shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,.18) 0%,rgba(0,0,0,.5) 100%);}
+  .ext-preview__cta{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;text-align:center;padding:1rem;}
+  .ext-preview__cta .btn{box-shadow:0 6px 24px rgba(0,0,0,.45);}
+  .ext-preview__cta .btn:hover{transform:scale(1.04);}
+  .ext-preview__tag{color:#fff;font-family:var(--font-data);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+    background:rgba(0,0,0,.55);padding:.3em .9em;border-radius:999px;}
+  @media (max-width:560px){.ext-preview{aspect-ratio:4/3;}}
 
   .ext-steps{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-4);list-style:none;padding:0;}
   .ext-steps li{display:flex;gap:var(--sp-3);align-items:flex-start;}
@@ -292,11 +302,23 @@ export async function mountExternalActivity(opts = {}) {
     credit.textContent = `${t("ext.credit-lede")} ${config.source}.`;
     simCard.append(credit);
   }
-  const openRow = el("div", "cluster"); openRow.style.marginTop = "var(--sp-4)";
   const openBtn = el("a", "btn btn--lg btn--signal", t("ext.open"));
   openBtn.href = config.externalUrl; openBtn.target = "_blank"; openBtn.rel = "noopener";
-  openRow.append(openBtn);
-  simCard.append(openRow);
+  if (config.preview) {
+    /* A real screenshot of the simulation's most exciting moment, with the Open button in the middle. */
+    const fig = el("figure", "ext-preview");
+    const img = document.createElement("img");
+    img.className = "ext-preview__img"; img.src = config.preview; img.loading = "lazy";
+    img.alt = config.previewAlt || `${config.title}`;
+    const cta = el("div", "ext-preview__cta");
+    cta.append(openBtn, el("span", "ext-preview__tag", S("Opens in a new tab", "Se abre en una pestaña nueva")));
+    fig.append(img, el("div", "ext-preview__shade"), cta);
+    simCard.append(fig);
+  } else {
+    const openRow = el("div", "cluster"); openRow.style.marginTop = "var(--sp-4)";
+    openRow.append(openBtn);
+    simCard.append(openRow);
+  }
   simCard.append(el("p", "q__hint", t("ext.open-note")));
 
   /* --- 2. what to do ------------------------------------------------------ */

@@ -1557,6 +1557,8 @@ teacher/student PDF split (Section 5's Assessed Mode machinery) — the one PDF 
 already contains nothing but their own answers and objective marking, so there is nothing to hide
 from them.
 
+**Amendment - preview image behind the Open button (agreed 2026-11-25, standing rule).** Diego: show the most exciting moment of the external simulation so students get excited, with the "Open the simulation" button in the middle of it. `engine/external-activity.js` (v7) renders this when `config.preview` is set: a 16:9 (4:3 on phones) figure with the screenshot, a soft dark vignette and the button centred on it. Every new external activity must set `"preview": "preview.jpg"` and a descriptive `"previewAlt"`. Capture a real screenshot of the running simulation at its best moment (something moving, not a loading or empty screen), crop it, keep it under about 150 KB, save it as `preview.jpg` in the activity folder. Never use a stock image. Activities without `preview` still render the plain button, so older external activities are backlog: add a preview when next touching them.
+
 **Reference implementation:** `primary/science/primary-2-science/physics/module-1-our-solar-system-and-beyond/ext-gravity-and-orbits-phet/`
 (PhET's "Gravity and Orbits") — use it and `_external-template/` as the worked examples for the
 next one.
