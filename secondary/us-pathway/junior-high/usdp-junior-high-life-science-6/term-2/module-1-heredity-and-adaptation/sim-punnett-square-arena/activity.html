@@ -101,6 +101,8 @@ if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==
 @keyframes gsp{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
 .q-text{font-weight:800;font-size:1rem;color:#fff;margin:.2em 0 .5em;line-height:1.4;}
 .ar-fb{margin-top:8px;padding:.6em .9em;border-radius:12px;font-weight:700;font-size:.9rem;line-height:1.45;} .ar-fb.good{background:rgba(43,240,160,.12);border:1px solid rgba(43,240,160,.5);color:#c9ffe8;} .ar-fb.bad{background:rgba(255,84,104,.12);border:1px solid rgba(255,84,104,.5);color:#ffd3d9;}
+.pgbar{height:18px;border-radius:10px;background:#18283d;overflow:hidden;border:1px solid #2c5068;margin:8px 0;} .pgbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb347,#ff6fae);transition:width .25s;}
+.pgwk{font-family:var(--font-data);font-weight:900;font-size:1.6rem;color:#ffb347;} .pill{display:inline-block;margin:3px 4px 3px 0;padding:.3em .7em;border-radius:999px;border:1px solid #2c5068;background:#0f2236;font-size:.78rem;font-weight:800;color:#e8f0ff;}
 .ar-stat{display:flex;gap:14px;flex-wrap:wrap;font-weight:800;font-size:.8rem;color:#9fe6c6;margin-bottom:6px;}
 [data-reduced-motion=on] .ar-pop,[data-reduced-motion=on] .shake,[data-reduced-motion=on] .pq-gam .g{animation:none;}
 </style>
@@ -306,8 +308,9 @@ async function initScene(view, vm, rt) {
         const wm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .65, side: THREE.DoubleSide }); const w1 = new THREE.Mesh(new THREE.PlaneGeometry(.2, .09), wm), w2 = w1.clone(); w1.position.set(.1, .1, 0); w2.position.set(-.1, .1, 0); bg.add(w1, w2); g.add(bg);
         idle.push((t) => { bg.position.set(Math.cos(t * 2) * .95, H + .25 + Math.sin(t * 3) * .18, Math.sin(t * 2) * .95); bg.rotation.y = -t * 2 + Math.PI; const f = Math.sin(t * 70) * .6; w1.rotation.z = f; w2.rotation.z = -f; }); }
     };
-    if (id === "flower") peaPlant(1.9, dom ? [0x9b45e8, 0x7a2fc4, 0xd2aaff] : [0xffffff, 0xf0eefc, 0xdff3df], 3, true);
-    else if (id === "height") { const H = dom ? 2.6 : 1.0; peaPlant(H, [0xffc4e1, 0xff9ad0, 0xffe3f1], dom ? 2 : 1, false);
+    const momPod = (H) => { if (role !== "mom") return; const pod = sp(.14, 0x5fc24a, .4); pod.scale.setScalar(.01); add(pod, .34, H * .55, .05); idle.push(() => { const k = vm.preg || 0; pod.scale.set(.02 + k * 1.4, .02 + k * 3, .02 + k * .9); }); };
+    if (id === "flower") peaPlant(1.9, dom ? [0x9b45e8, 0x7a2fc4, 0xd2aaff] : [0xffffff, 0xf0eefc, 0xdff3df], 3, true), momPod(1.9);
+    else if (id === "height") { const H = dom ? 2.6 : 1.0; momPod(H); peaPlant(H, [0xffc4e1, 0xff9ad0, 0xffe3f1], dom ? 2 : 1, false);
       add(new THREE.Mesh(new THREE.BoxGeometry(.06, 3, .06), mat(0xdfe6ee, .4, .5)), .95, 1.5, 0);
       for (let i = 0; i <= 6; i++) add(new THREE.Mesh(new THREE.BoxGeometry(.3, .05, .05), mat(0xffd34d, .3, 0, { emissive: C(0xffd34d), emissiveIntensity: .8 })), .95, i * .5, 0);
       const flag = new THREE.Mesh(new THREE.PlaneGeometry(.5, .22), new THREE.MeshBasicMaterial({ color: dom ? 0x2bf0a0 : 0xffd34d, side: THREE.DoubleSide })); flag.position.set(1.22, H + .1, 0); g.add(flag);
@@ -321,7 +324,7 @@ async function initScene(view, vm, rt) {
         if (!dom) { const p = geo.attributes.position; for (let k = 0; k < p.count; k++) { const x = p.getX(k), y = p.getY(k), z = p.getZ(k); const w = 1 + .13 * Math.sin(x*22) * Math.sin(y*19 + 1) + .09 * Math.sin(z*25); p.setXYZ(k, x*w, y*w*.72, z*w*.9); } geo.computeVertexNormals(); }
         const m = new THREE.Mesh(geo, dom ? mat(0xf0d43c, .22, 0, { emissive: C(0x8a7410), emissiveIntensity: .25 }) : mat(0xb59a36, .98)); const s = add(m, -.96 + i*.48, .56, .5); seeds.push(s); }
       glow(dom ? 0xffe36a : 0x9a8a40, 3.2, g, 0, .6, .5, dom ? .35 : .15);
-      idle.push((t) => seeds.forEach((s, i) => { s.position.y = .56 + Math.sin(t*1.6 + i) * .04; }));
+      idle.push((t) => seeds.forEach((s, i) => { s.position.y = .56 + Math.sin(t*1.6 + i) * .04; if (role === "mom" && vm.pregOn) s.scale.setScalar(.3 + .7 * (vm.preg || 0)); }));
     } else if (id === "dog") {
       fwd = [1, 0];
       const col = dom ? 0x1b1c22 : 0x6b3a18; const fur = new THREE.MeshStandardMaterial({ color: C(col), roughness: .85, bumpMap: noiseBump, bumpScale: .5 });
@@ -338,7 +341,7 @@ async function initScene(view, vm, rt) {
       const collar = new THREE.Mesh(new THREE.TorusGeometry(.31, .05, 10, 24), mat(0xe5484d, .4)); collar.rotation.y = Math.PI/2; add(collar, .78, 1.25, 0); collar.rotation.z = .5;
       add(sp(.05, 0xffd34d, .3, .8), .78, 1.0, .0);
       const ball = sp(.2, 0xe5484d, .25); add(ball, .2, .26, 1.0); const stripe = new THREE.Mesh(new THREE.TorusGeometry(.2, .02, 6, 20), mat(0xffffff, .4)); stripe.rotation.x = Math.PI / 2; ball.add(stripe);
-      idle.push((t) => { tail.rotation.x = Math.sin(t * 8) * .4; head.rotation.z = Math.sin(t * 1.4) * .06; body.position.y = .95 + Math.abs(Math.sin(t * 2.2)) * .05; ball.position.y = .26 + Math.abs(Math.sin(t * 3)) * .22; });
+      idle.push((t) => { tail.rotation.x = Math.sin(t * 8) * .4; head.rotation.z = Math.sin(t * 1.4) * .06; body.position.y = .95 + Math.abs(Math.sin(t * 2.2)) * .05; if (role === "mom") { const k = vm.preg || 0; body.scale.set(1.3 + k * .3, .8 + k * .3, .8 + k * .3); } ball.position.y = .26 + Math.abs(Math.sin(t * 3)) * .22; });
     } else if (id === "eyes") {
       /* a person with big, unmistakable eyes: warm brown or bright blue */
       const kid = role === "kid", skin = kid ? skinTones[idx % 4] : (role === "mom" ? 0xdba57a : 0x9a6a44);
@@ -369,7 +372,8 @@ async function initScene(view, vm, rt) {
       const nose = sp(.07, skin, .6); nose.position.set(0, -.08, .54); head.add(nose);
       const mouth = new THREE.Mesh(new THREE.TorusGeometry(.14, .022, 8, 20, Math.PI), new THREE.MeshStandardMaterial({ color: C(0x8a2a3a), roughness: .5 })); mouth.rotation.z = Math.PI; mouth.position.set(0, -.2, .5); head.add(mouth);
       glow(dom ? 0xff9a3c : 0x2aa0ff, 1.3, head, 0, 0, .1, .0);
-      idle.push((t) => { head.rotation.y = Math.sin(t * 1.1) * .25; head.rotation.z = Math.sin(t * .8) * .05; const blink = (t % 3.6) < .13 ? .12 : 1; eyes.forEach(e => e.scale.y = .215 * blink);
+      let belly = null; if (role === "mom") { belly = sp(.44, shirt, .6); belly.position.set(0, 1.45, .36); belly.scale.setScalar(.01); belly.castShadow = true; pg.add(belly); }
+      idle.push((t) => { if (belly) { const k = vm.preg || 0; belly.scale.setScalar(.01 + k * 1.0 + (k > 0 ? Math.sin(t * 7) * .015 : 0)); } head.rotation.y = Math.sin(t * 1.1) * .25; head.rotation.z = Math.sin(t * .8) * .05; const blink = (t % 3.6) < .13 ? .12 : 1; eyes.forEach(e => e.scale.y = .215 * blink);
         armR.rotation.z = role === "mom" ? -2.5 + Math.sin(t * 5) * .35 : (kid ? -2.2 + Math.sin(t * 6 + idx) * .4 : -.12); armL.rotation.z = role === "dad" ? 2.5 - Math.sin(t * 5) * .35 : .12; });
     }
     g.userData = { idle, fwd };
@@ -484,11 +488,12 @@ function mkSim(host, api) {
   st.tab ??= "learn"; st.explored ??= {}; st.xp ??= 0; st.trait ??= "flower"; st.mom ??= "Pp"; st.dad ??= "Pp"; st.terms ??= {};
   const blankB = () => ({ step: 1, split: { m: false, d: false }, tok: null, top: [null, null], side: [null, null], cells: [null, null, null, null], sel: null, ans: null, fb: "" });
   st.b ??= blankB(); st.p ??= { n: 0, ok: 0, streak: 0, best: 0, cur: null, last: null }; st.br ??= { counts: [0,0,0,0], total: 0, last: null };
+  st.pg ??= { album: [] }; st.pg.phase = "idle"; st.pg.week = 0;
   const vm = { trait: st.trait, mom: st.mom, dad: st.dad, kids: null, solo: false, hot: null, fx: null };
   const rt = {};
   const $ = h => { const n = document.createElement("div"); n.innerHTML = h.trim(); return n.firstElementChild; };
   const root = $(`<div></div>`);
-  const labels = { terms:L("Decode the Terms","Descifra los términos"), build:L("Build a Square","Construye un cuadro"), practice:L("Cross Master (8 right)","Maestro de cruces (8 bien)"), breed:L("Nursery: 100 babies","Guardería: 100 bebés") };
+  const labels = { terms:L("Decode the Terms","Descifra los términos"), build:L("Build a Square","Construye un cuadro"), practice:L("Cross Master (8 right)","Maestro de cruces (8 bien)"), breed:L("Nursery: 100 babies","Guardería: 100 bebés"), birth:L("Birth Day (3 births)","Día del parto (3 partos)") };
   const top = $(`<div class="ar-top"><div class="ar-rank"><div class="ar-rank__badge">1</div><div><div class="ar-rank__name"></div><div class="ar-xpbar"><i></i></div><div class="ar-xp"></div></div></div><div class="ar-miss" aria-live="polite"></div></div>`);
   const view = $(`<div class="ar-view"><div class="ar-cam" role="group" aria-label="${L("Camera","Cámara")}"></div><div class="ar-msg" role="status"></div></div>`);
   const msgEl = view.querySelector(".ar-msg");
@@ -496,6 +501,7 @@ function mkSim(host, api) {
   const dock = $(`<div class="ar-dock"><div class="ar-panel" role="tabpanel"></div></div>`); const panel = dock.firstElementChild;
   root.append(top, view, stationsEl, dock);
   let scene3d = null, camName = "all";
+  const setCam = id => { camName = id; scene3d?.goto(id); view.querySelectorAll(".ar-cam button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.cam === id))); };
 
   const say = (t, k = "") => { msgEl.className = "ar-msg " + k; msgEl.textContent = t; };
   const pop = text => { const p = $(`<div class="ar-pop">${text}</div>`); view.append(p); setTimeout(() => p.remove(), 1150); };
@@ -518,9 +524,9 @@ function mkSim(host, api) {
     return true; }
   const shake = el => { if (!el || reduced()) return; el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); };
 
-  const TAB = [["learn",L("1 · Decode","1 · Descifra"),"#ffd34d"],["build",L("2 · Build a Square","2 · Construye"),"#2bf0a0"],["practice",L("3 · Practice","3 · Practica"),"#ff6fae"],["breed",L("4 · Nursery","4 · Guardería"),"#4aa8ff"]];
+  const TAB = [["learn",L("1 · Decode","1 · Descifra"),"#ffd34d"],["build",L("2 · Build a Square","2 · Construye"),"#2bf0a0"],["practice",L("3 · Practice","3 · Practica"),"#ff6fae"],["breed",L("4 · Nursery","4 · Guardería"),"#4aa8ff"],["birth",L("5 · Birth Day","5 · Día del parto"),"#ffb347"]];
   TAB.forEach(([id, n, c]) => { const b = $(`<button class="ar-st" role="tab" style="--c:${c}">${n}</button>`); b.dataset.id = id; b.addEventListener("click", () => select(id)); stationsEl.append(b); });
-  [["all",L("Overview","Vista general")],["parents",L("Parents","Padres")],["kids",L("Offspring","Crías")]].forEach(([id, n]) => { const b = $(`<button aria-pressed="${id === "all"}">${n}</button>`); b.dataset.cam = id; b.addEventListener("click", () => { camName = id; scene3d?.goto(id); view.querySelectorAll(".ar-cam button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.cam === id))); }); view.querySelector(".ar-cam").append(b); });
+  [["all",L("Overview","Vista general")],["parents",L("Parents","Padres")],["kids",L("Offspring","Crías")]].forEach(([id, n]) => { const b = $(`<button aria-pressed="${id === "all"}">${n}</button>`); b.dataset.cam = id; b.addEventListener("click", () => setCam(id)); view.querySelector(".ar-cam").append(b); });
 
   /* ---------- shared bits ---------- */
   const tr = () => T(st.trait);
@@ -652,6 +658,26 @@ function mkSim(host, api) {
       <h3 style="margin-top:10px">${L("Phenotypes","Fenotipos")}</h3>${pd ? bar(t.dom(), pd, ad) : ""}${pr ? bar(t.rec(), pr, tot - ad) : ""}
       <p>${tot < 4 ? L("Have some babies and compare them with the Punnett prediction!","¡Ten crías y compáralas con la predicción de Punnett!") : tot < 100 ? L("With few babies the real numbers can look odd. Probability is a PREDICTION, not a promise. Try 100!","Con pocas crías los números reales pueden verse raros. La probabilidad es una PREDICCIÓN, no una promesa. ¡Prueba con 100!") : L("With lots of babies the real results sit close to the prediction. That is why a Punnett square works best for big numbers.","Con muchas crías los resultados reales se acercan a la predicción. Por eso un cuadro de Punnett funciona mejor con números grandes.")}</p></div>`; };
 
+
+  /* ---------- Birth Day: a forecast versus a single reality ---------- */
+  const gestOf = id => id === "eyes" ? { w: 40, baby: L("baby","bebé") } : id === "dog" ? { w: 9, baby: L("puppy","cachorro") } : { w: 8, baby: L("seedling","plántula") };
+  const MS = id => { const gs = gestOf(id).w; if (id === "eyes") return [[0,L("Week 0: the egg and sperm meet. The baby's genotype is settled right now, hidden inside.","Semana 0: el óvulo y el espermatozoide se encuentran. El genotipo del bebé queda decidido ahora, escondido dentro.")],[5,L("Week 5: a tiny heart starts to beat.","Semana 5: empieza a latir un corazón diminuto.")],[12,L("Week 12: all the main organs have started to form.","Semana 12: ya empezaron a formarse todos los órganos principales.")],[20,L("Week 20: halfway! An ultrasound can show the baby moving.","Semana 20: ¡a la mitad! Una ecografía muestra al bebé moviéndose.")],[28,L("Week 28: the baby can open its eyes.","Semana 28: el bebé ya puede abrir los ojos.")],[36,L("Week 36: nearly ready to meet the world.","Semana 36: casi listo para conocer el mundo.")],[40,L("Week 40: birth day!","Semana 40: ¡el día del parto!")]];
+    return [[0,L("Week 0: the gametes meet and the genotype is settled, hidden from view.","Semana 0: los gametos se encuentran y el genotipo queda decidido, oculto a la vista.")],[Math.round(gs * .35),L("Growing well…","Creciendo bien…")],[Math.round(gs * .75),L("Nearly ready…","Casi listo…")],[gs,L("Birth day!","¡Día del parto!")]]; };
+  const msText = (id, wk) => { let t = ""; MS(id).forEach(([w, x]) => { if (wk >= w) t = x; }); return t; };
+  const pgUpdate = () => { const pg = st.pg, gs = gestOf(st.trait); const bar = panel.querySelector(".pgbar i"), wk = panel.querySelector("#pgwk"), ms = panel.querySelector("#pgms"); if (bar) bar.style.width = (pg.week / gs.w * 100) + "%"; if (wk) wk.textContent = `${L("Week","Semana")} ${pg.week} / ${gs.w}`; if (ms) ms.textContent = msText(st.trait, pg.week); };
+  R.birth = () => { const pg = st.pg, t = tr(), gs = gestOf(t.id), cs = cellsOf(st.mom, st.dad), run = pg.phase === "running", pd = cs.filter(isDom).length * 25, pr = 100 - pd;
+    const pb = (lab, v) => `<div class="bar"><span>${lab}</span><span class="tr"><i style="width:${v}%"></i></span><span>${v}%</span></div>`;
+    const album = pg.album.map(a => `<span class="pill">${a.cross} → ${a.pheno} (${L("chance","probabilidad")} ${a.chance}%)</span>`).join("") || `<em>${L("No births yet.","Aún no hay partos.")}</em>`;
+    const last = pg.album[pg.album.length - 1];
+    let result = "";
+    if (pg.phase === "born" && last) result = `<div class="ar-fb good"><b>${L("It's a","Es")} ${gs.baby}! ${last.pheno}.</b><br>${last.chance === 100 ? L("The probability said 100%, so there was no surprise.", "La probabilidad decía 100%, así que no hubo sorpresa.") : last.chance >= 50 ? L(`The forecast gave this phenotype a ${last.chance}% chance, and that is what happened this time. But the other outcome was possible too.`, `El pronóstico daba a este fenotipo un ${last.chance}% de probabilidad, y eso pasó esta vez. Pero el otro resultado también era posible.`) : L(`The forecast gave this phenotype only a ${last.chance}% chance, and it still happened! A low chance is not "never".`, `El pronóstico daba a este fenotipo solo un ${last.chance}% de probabilidad, ¡y aun así pasó! Una probabilidad baja no es "nunca".`)}<br>${L("Probability is the forecast. The birth is the reality: just ONE outcome.", "La probabilidad es el pronóstico. El parto es la realidad: solo UN resultado.")}</div>`;
+    const ctrl = run ? `<div class="pgwk" id="pgwk">${L("Week","Semana")} ${pg.week} / ${gs.w}</div><div class="pgbar"><i style="width:${pg.week / gs.w * 100}%"></i></div><p id="pgms" role="status">${msText(t.id, pg.week)}</p><button class="ar-go ar-go--ghost ar-go--sm" data-act="pgskip">${L("Skip to birth day","Saltar al parto")}</button>`
+      : `${traitPick()}<h3 style="margin-top:8px"><span class="tag m">♀ ${L("MOM (carries the baby)","MAMÁ (lleva al bebé)")}</span></h3>${genoPick("mom", st.mom)}<h3><span class="tag d">♂ ${L("DAD","PAPÁ")}</span></h3>${genoPick("dad", st.dad)}<button class="ar-go" data-act="pgstart">${pg.phase === "born" ? L("Another pregnancy","Otro embarazo") : L(`Start the ${gs.w}-week journey`,`Empezar el viaje de ${gs.w} semanas`)} →</button>`;
+    return `<div class="ar-card" style="--c:#ffb347"><h3>${L("Pregnancy simulator","Simulador de embarazo")}</h3>${result}${ctrl}</div>
+      <div class="ar-card" style="--c:#ffb347"><h3>${L("The forecast (Punnett probabilities)","El pronóstico (probabilidades de Punnett)")}</h3>${pd ? pb(t.dom(), pd) : ""}${pr ? pb(t.rec(), pr) : ""}
+      <h3 style="margin-top:10px">${L("The reality: every birth so far","La realidad: todos los partos hasta ahora")}</h3><div>${album}</div>
+      <p>${pg.album.length >= 3 ? L("Look at your family album: each birth is one result. The percentages only describe what to expect over MANY births.","Mira tu álbum de familia: cada parto es un resultado. Los porcentajes solo describen lo que se espera en MUCHOS partos.") : L("Run at least 3 pregnancies and compare each real birth with the forecast.","Haz al menos 3 embarazos y compara cada parto real con el pronóstico.")}</p></div>`; };
+
   /* ================= ACTIONS ================= */
   const resetBuild = () => { st.b = blankB(); };
   function act(a, v) {
@@ -688,19 +714,29 @@ function mkSim(host, api) {
       case "pnext": newChallenge(); st.trait = st.p.cur.trait; break;
       case "baby": { const n = +v, cs = cellsOf(st.mom, st.dad), b2 = st.br; let lastK = 0; for (let i = 0; i < n; i++) { lastK = Math.floor(Math.random() * 4); b2.counts[lastK]++; b2.total++; }
         vm.hot = lastK; scene3d?.bounce(lastK); vm.fx = [["k" + lastK, 0x4aa8ff, 35]]; gain(n === 1 ? 1 : n === 4 ? 2 : 4); say(L(`Newest baby: ${cs[lastK]} (${phenoOf(tr(), cs[lastK])}).`, `Última cría: ${cs[lastK]} (${phenoOf(tr(), cs[lastK])}).`), "good"); if (b2.total >= 100) mark("breed"); break; }
+      case "pgstart": { const pg = st.pg; if (pg.phase === "running") break; const gs = gestOf(st.trait); Object.assign(pg, { phase: "running", week: 0, k: Math.floor(Math.random() * 4), t0: performance.now() }); vm.preg = 0; setCam("parents");
+        say(L("The pregnancy begins. The genotype is already decided, but nobody can see it yet.", "Empieza el embarazo. El genotipo ya está decidido, pero nadie puede verlo todavía."), "good"); clearInterval(pgTimer); const step = 9000 / gs.w;
+        pgTimer = setInterval(() => { if (st.pg.phase !== "running") { clearInterval(pgTimer); return; } const wk = Math.min(gs.w, Math.floor((performance.now() - st.pg.t0) / step)); if (wk !== st.pg.week) { st.pg.week = wk; vm.preg = wk / gs.w; if (st.tab === "birth") pgUpdate(); } if (wk >= gs.w) finishBirth(); }, 120); break; }
+      case "pgskip": finishBirth(); return;
       case "breset": st.br = { counts: [0,0,0,0], total: 0, last: null }; vm.hot = null; break;
     }
     api.save(); paint();
   }
+  let pgTimer = null;
+  function finishBirth() { clearInterval(pgTimer); const pg = st.pg; if (pg.phase !== "running") return; const cs = cellsOf(st.mom, st.dad), g = cs[pg.k], t = tr();
+    pg.phase = "born"; pg.week = gestOf(t.id).w; vm.preg = 0; pg.kids = [null, null, null, null]; pg.kids[pg.k] = g;
+    pg.album.push({ cross: st.mom + "×" + st.dad, pheno: phenoOf(t, g), chance: cs.filter(x => isDom(x) === isDom(g)).length * 25 });
+    vm.fx = [["k" + pg.k, 0xffd34d, 70], ["k" + pg.k, 0xff6fae, 40]]; scene3d?.bounce(pg.k); setCam("kids"); gain(6); say(L(`It's here! ${phenoOf(t, g)}.`, `¡Ya llegó! ${phenoOf(t, g)}.`), "good"); if (pg.album.length >= 3) mark("birth"); api.save(); if (st.tab === "birth") paint(); }
   function finish(c, good) { c.done = true; c.ok = good; const p = st.p; p.n++; if (good) { p.ok++; p.streak++; p.best = Math.max(p.best, p.streak); gain(c.hint ? 6 : 10 + Math.min(6, Math.max(0, p.streak - 2) * 2)); vm.fx = [["k0", 0x2bf0a0, 25], ["k1", 0x2bf0a0, 25], ["k2", 0x2bf0a0, 25], ["k3", 0x2bf0a0, 25]]; say(L("Correct!","¡Correcto!"), "good"); if (p.ok >= 8) mark("practice"); } else { p.streak = 0; vm.fx = [["mom", 0xff5468, 20]]; say(L("Not this time. Read why and try the next one.","Esta vez no. Lee por qué y prueba el siguiente.", "bad"), "bad"); } api.save(); }
 
   /* ================= PAINT + 3D SYNC ================= */
   function syncVm() {
-    const c = st.p.cur; vm.trait = st.trait; vm.hot = st.tab === "breed" ? vm.hot : null; vm.momLabel = vm.dadLabel = null;
+    const c = st.p.cur; vm.trait = st.trait; vm.hot = st.tab === "breed" ? vm.hot : null; vm.momLabel = vm.dadLabel = null; vm.pregOn = st.tab === "birth"; if (st.tab !== "birth") vm.preg = 0;
     if (st.tab === "learn") { Object.assign(vm, { mom: st.mom, dad: st.dad, kids: null, solo: true }); scene3d?.goto("solo"); }
     else if (st.tab === "build") { const b = st.b; Object.assign(vm, { mom: st.mom, dad: st.dad, solo: false, kids: b.cells.map(x => x) }); scene3d?.goto(camName === "all" ? "all" : camName); }
     else if (st.tab === "practice") { if (!c) return; vm.trait = c.trait; vm.solo = false; vm.mom = c.mom; vm.dad = c.dad; if (c.type === "mystery" && !c.done) { vm.momLabel = L("MOM  ??","MAMÁ  ??"); vm.dadLabel = c.v === "A" ? L("DAD  ??","PAPÁ  ??") : L("DAD  ","PAPÁ  ") + c.dad; if (c.v === "A") { vm.mom = c.mom; } }
       vm.kids = c.done ? c.cells : null; scene3d?.goto(camName); }
+    else if (st.tab === "birth") { Object.assign(vm, { mom: st.mom, dad: st.dad, solo: false, kids: st.pg.phase === "born" ? st.pg.kids : null }); if (st.pg.phase === "running") vm.preg = st.pg.week / gestOf(st.trait).w; else vm.preg = 0; scene3d?.goto(camName); }
     else { Object.assign(vm, { mom: st.mom, dad: st.dad, solo: false, kids: cellsOf(st.mom, st.dad) }); scene3d?.goto(camName === "all" ? "all" : camName); }
   }
   function paint() {
@@ -709,7 +745,7 @@ function mkSim(host, api) {
     if (key) { const n = panel.querySelector(`[data-act="${key[0]}"]` + (key[1] != null ? `[data-v="${key[1]}"]` : "")); if (n && !n.disabled) n.focus({ preventScroll: true }); }
     syncVm(); renderTop(); }
   function select(id) { st.tab = id; api.save(); stationsEl.querySelectorAll(".ar-st").forEach(b => b.setAttribute("aria-selected", String(b.dataset.id === id))); paint();
-    say({ learn: L("Decode the words of genetics, one tap at a time.","Descifra las palabras de la genética, un toque a la vez."), build: L("Let's build a Punnett square step by step.","Construyamos un cuadro de Punnett paso a paso."), practice: L("Practice crosses: new traits and parents every time.","Cruces de práctica: rasgos y padres nuevos cada vez."), breed: L("Have babies and compare real results with the prediction.","Ten crías y compara los resultados reales con la predicción.") }[id]); }
+    say({ learn: L("Decode the words of genetics, one tap at a time.","Descifra las palabras de la genética, un toque a la vez."), build: L("Let's build a Punnett square step by step.","Construyamos un cuadro de Punnett paso a paso."), practice: L("Practice crosses: new traits and parents every time.","Cruces de práctica: rasgos y padres nuevos cada vez."), breed: L("Have babies and compare real results with the prediction.","Ten crías y compara los resultados reales con la predicción."), birth: L("Follow one pregnancy from the first week to birth day.","Sigue un embarazo desde la primera semana hasta el parto.") }[id]); }
   panel.addEventListener("click", e => { const x = e.target.closest("[data-act]"); if (!x || x.disabled) return; act(x.dataset.act, x.dataset.v); });
   rt.onKid = k => { if (st.tab === "breed" || st.tab === "build") { vm.hot = k; scene3d?.bounce(k); const g = cellsOf(st.mom, st.dad)[k]; say(L(`Offspring ${k + 1}: ${g} → ${phenoOf(tr(), g)}`, `Cría ${k + 1}: ${g} → ${phenoOf(tr(), g)}`), "good"); } };
 
