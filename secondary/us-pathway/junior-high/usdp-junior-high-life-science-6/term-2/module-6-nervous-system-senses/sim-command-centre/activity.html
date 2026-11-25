@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6 - Term 2 - Module 6 Nervous System and Senses - Command Centre.
+     Content lives here + config.json/marking.json only. Hyper-real 3D brain + eye (CLAUDE.md 18); bonus: Reflex Ruler Catch (reaction-time timing). -->
+<html data-unit-convert lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Command Centre: Nervous System and Senses - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=34">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .eco-fwstage.cyc-shake, .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  /* ---- Ecosystem Ranger extras ---- */
+  .eco-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slot { border: 2px dashed var(--line); border-radius: 12px; min-height: 7.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: .78rem; color: var(--ink-3); position: relative; overflow: hidden; background: var(--surface); }
+  .eco-slot[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); }
+  .eco-slot img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-slot b { display: block; padding: .15rem .3rem 0; font-size: .8rem; }
+  .eco-slot__n { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font: 800 .75rem var(--font-data); display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .eco-slot.eco-pop { animation: eco-pop .45s ease; }
+  @keyframes eco-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .eco-pop { animation: none !important; }
+  .eco-tab-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+  .eco-card { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); font: inherit; display: flex; flex-direction: column; }
+  .eco-card:hover, .eco-card:focus-visible { border-color: var(--accent); outline: none; }
+  .eco-card[data-used="true"] { opacity: .35; }
+  .eco-card[aria-pressed="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px #ffd24d88; }
+  .eco-card img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-card span { padding: .3rem .45rem; font-size: .76rem; font-weight: 700; }
+  .eco-fact { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; min-height: 2.4rem; }
+
+  .eco-fwstage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; background: linear-gradient(#8fd0ff, #d8f0c8); }
+  @media (max-width: 640px) { .eco-fwstage { aspect-ratio: 1/1; } }
+  .eco-fwstage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .eco-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-top: .45rem; }
+  .eco-chips > b { font-size: .78rem; min-width: 8.2rem; }
+  .eco-tok { display: inline-flex; align-items: center; gap: .35rem; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .15rem .65rem .15rem .2rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .eco-tok img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+  .eco-tok[aria-pressed="true"][data-side="from"] { border-color: #e8a400; background: #fff3c4; }
+  .eco-tok[aria-pressed="true"][data-side="to"] { border-color: #1d9bd6; background: #d7f0ff; }
+  .eco-arrows { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; min-height: 1.6rem; }
+  .eco-arrows span { font-size: .74rem; font-weight: 700; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: .15rem .6rem; }
+
+  .eco-pop-stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #0e2a1a; }
+  .eco-pop-stage canvas { display: block; width: 100%; height: auto; }
+  .eco-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .eco-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .3rem; }
+  .eco-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .eco-readout div { border: 1px solid var(--line); border-radius: 10px; padding: .35rem .6rem; background: var(--surface); font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .eco-readout div b { display: block; font: 800 1.15rem var(--font-data); color: var(--accent); }
+
+  .eco-bonus canvas { cursor: crosshair; touch-action: none; }
+  .eco-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-role { border: 2px solid #ffffff33; background: #ffffff10; color: #fff; border-radius: 12px; padding: 0; cursor: pointer; font: inherit; overflow: hidden; text-align: left; }
+  .eco-role:hover, .eco-role:focus-visible { border-color: #ffd24d; outline: none; }
+  .eco-role img { width: 100%; height: 4.6rem; object-fit: cover; display: block; }
+  .eco-role span { display: block; padding: .3rem .5rem; font-size: .76rem; font-weight: 700; }
+  .eco-q { margin-top: .5rem; border: 2px solid #ffd24d; border-radius: 12px; padding: .55rem .75rem; background: #1b2a10; font-size: .9rem; }
+  .eco-q .cyc-row { margin-top: .4rem; }
+  .eco-board { display: flex; flex-wrap: wrap; gap: .6rem; font: 700 .76rem var(--font-data); color: #cfe8ff; margin-top: .3rem; }
+  .eco-board span[data-me="true"] { color: #ffe08a; }
+
+  .dg-stage { aspect-ratio: 4/5; max-height: 640px; background: radial-gradient(120% 120% at 50% 30%, #1d4a5a 0%, #0a1c2a 70%) !important; }
+  @media (max-width: 640px) { .dg-stage { aspect-ratio: 3/4; } }
+  .dg-tok { padding-left: .8rem; }
+
+</style>
+<!-- seo:start -->
+<meta name="description" content="In this lab students become fuel engineers who follow a meal through the whole digestive system. They tap the organs of a hyper-real 3D digestive tract and send a meal on its journey to learn what each organ does (including the liver, gallbladder and pancreas that food never enters), sort real...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-2/module-3-digestive-system/sim-digestive-journey/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Command Centre: Nervous System and Senses | Discovery Lab">
+<meta property="og:description" content="In this lab students become fuel engineers who follow a meal through the whole digestive system. They tap the organs of a hyper-real 3D digestive tract and send a meal on its journey to learn what each organ does (including the liver, gallbladder and pancreas that food never enters), sort real...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-2/module-3-digestive-system/sim-digestive-journey/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Command Centre: Nervous System and Senses", "description": "In this lab students become fuel engineers who follow a meal through the whole digestive system. They tap the organs of a hyper-real 3D digestive tract and send a meal on its journey to learn what each organ does (including the liver, gallbladder and pancreas that food never enters), sort real foods into carbohydrates, fats and proteins, find calcium and vitamin C sources, take a protein chain apart into amino acids and rebuild it, and feed a living cell different amounts of sugar and oxygen to discover that cellular respiration needs both. This builds scientific enquiry and systems thinking as students see digestion, nutrients and respiration as one connected energy system, strengthens data interpretation as they read and compare energy-output readings, and practises communication by explaining their own logged evidence. The content practised is Life Science 6, Term 2, Module 3: The Digestive System: the organs of the alimentary canal and the accessory organs, mechanical versus chemical digestion, absorption and villi, cellular respiration as controlled oxidation, the energy loop between photosynthesis and respiration, the macronutrients (carbohydrates, fats, proteins), amino acids and essential amino acids, vitamins and minerals, and fibre.", "url": "https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-2/module-3-digestive-system/sim-digestive-journey/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Scientific enquiry", "Systems thinking", "Data interpretation", "Critical thinking", "Communication"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "USDP Junior High Life Science 6"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=25";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const PH = k => `photos/${k}.jpg`;
+const PA = (k, en, es) => `<img src="${PH(k)}" alt="${L(en, es)}" loading="lazy">`;
+let CREDITS = null;
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit";
+  cr.textContent = L("Photo credits loading...", "Cargando créditos de fotos...");
+  (CREDITS ? Promise.resolve(CREDITS) : fetch("photos/credits.json").then(r => r.json()).then(j => (CREDITS = j))).then(j => {
+    const seen = {}, bits = [];
+    Object.keys(j).forEach(k => { const c = j[k], key = c.author + "|" + c.license; if (seen[key]) return; seen[key] = 1; bits.push(`<a href="${c.page}">${c.author.split(" from ")[0].replace(/\s*\(.*$/, "")}</a> (${c.licenseUrl ? `<a href="${c.licenseUrl}">${c.license}</a>` : c.license})`); });
+    cr.innerHTML = L("Real photos via Wikimedia Commons / OpenStax: ", "Fotos reales vía Wikimedia Commons / OpenStax: ") + bits.join("; ") + ".";
+  }).catch(() => { cr.textContent = L("Photos via Wikimedia Commons (credits on each photo's page).", "Fotos vía Wikimedia Commons (créditos en la página de cada foto)."); });
+  return cr;
+}
+
+/* Orders queue (persisted in sim.state - CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete - keep exploring, or lock in more readings.", "Todos los pedidos completos - sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    if (card.__onOrder) card.__onOrder(st.idx);
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" - order met", " - pedido cumplido") : t ? L(" - not the order yet", " - todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("eco-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#7be08a", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged - but that is not the order. Re-read it and try again.", "Registrado - pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st, paint };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+const shuffled = (a, seed) => { const r = a.slice(); let s = seed || 7; for (let i = r.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor(s / 233280 * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+
+
+
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+function noiseTex() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 900; i++) { x.fillStyle = Math.random() > 0.5 ? "#b0b0b0" : "#505050"; x.globalAlpha = 0.28; x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+/* Shared "pick the parts" panel used by the lungs and the heart (chips = keyboard route) */
+function pickPanel(card, keys, label, onPickHook) {
+  const chipRow = document.createElement("div"); chipRow.className = "eco-chips"; chipRow.innerHTML = `<b>${L("Parts:", "Partes:")}</b>`;
+  const picksEl = document.createElement("div"); picksEl.className = "eco-arrows";
+  const cap = document.createElement("div"); cap.className = "eco-fact"; cap.textContent = L("Tap a part (in 3D or with the buttons) to read what it does.", "Toca una parte (en 3D o con los botones) para leer qué hace.");
+  const P = { picks: [], chips: {}, cap, hi: null };
+  keys.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(label(k).en, label(k).es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => P.pick(k)); chipRow.append(b); P.chips[k] = b; });
+  P.paint = () => {
+    keys.forEach(k => P.chips[k].setAttribute("aria-pressed", String(P.picks[P.picks.length - 1] === k)));
+    picksEl.innerHTML = P.picks.length ? "" : `<small style="color:var(--ink-3)">${L("No picks yet.", "Aún no hay selecciones.")}</small>`;
+    P.picks.forEach((k, i) => { const s = document.createElement("span"); s.textContent = (i + 1) + ". " + L(label(k).en, label(k).es); picksEl.append(s); });
+    if (P.hi) P.hi(P.picks[P.picks.length - 1]);
+  };
+  P.pick = k => { P.picks.push(k); if (P.picks.length > 8) P.picks.shift(); onPickHook(k, cap); P.paint(); };
+  P.clear = () => { P.picks = []; P.paint(); };
+  card.append(chipRow, picksEl, cap);
+  return P;
+}
+
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Welcome, Command Centre Chief! Tap each real picture to meet four big ideas about the nervous system and your senses.", "¡Bienvenido, Jefe del Centro de Mando! Toca cada imagen real para conocer cuatro grandes ideas sobre el sistema nervioso y tus sentidos.");
+  host.append(p);
+  const items = [
+    { f: "brain", en: "The master controller", es: "El controlador maestro", t: { en: "This is a real human brain cut in half. The brain and spinal cord are the central nervous system (CNS), the main server that makes the big decisions. Nerves branching out to the body are the peripheral nervous system (PNS), the wires.", es: "Este es un cerebro humano real cortado por la mitad. El cerebro y la médula espinal son el sistema nervioso central (SNC), el servidor principal que toma las grandes decisiones. Los nervios que se ramifican hacia el cuerpo son el sistema nervioso periférico (SNP), los cables." } },
+    { f: "eyebright", en: "Sight", es: "La vista", t: { en: "Your eye captures light. The pupil gets smaller in bright light and bigger in dim light, the lens focuses the light, and the retina at the back senses it and sends signals along the optic nerve.", es: "Tu ojo capta la luz. La pupila se hace más pequeña con luz intensa y más grande con poca luz, el cristalino enfoca la luz y la retina del fondo la detecta y envía señales por el nervio óptico." } },
+    { f: "lemon", en: "Taste and smell", es: "Gusto y olfato", t: { en: "Your tongue detects five basic tastes: sweet, sour, salty, bitter and umami. About 80% of what we call taste is really smell, so food tastes bland when your nose is blocked.", es: "Tu lengua detecta cinco sabores básicos: dulce, ácido, salado, amargo y umami. Cerca del 80% de lo que llamamos sabor es en realidad olfato, por eso la comida sabe insípida con la nariz tapada." } },
+    { f: "ruler", en: "Reaction time", es: "Tiempo de reacción", t: { en: "A ruler dropped without warning is a classic way to measure how fast a message travels from eye to brain to hand. Voluntary actions take a fraction of a second; reflexes are even faster.", es: "Una regla que se suelta sin aviso es una forma clásica de medir qué tan rápido viaja un mensaje del ojo al cerebro y a la mano. Las acciones voluntarias tardan una fracción de segundo; los reflejos son aún más rápidos." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo">${PA(it.f, it.en, it.es)}</span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("Look closely at this real human brain, cut in half, before you learn any names. Then play photo detective: tap what each clue describes.", "Mira de cerca este cerebro humano real, cortado por la mitad, antes de aprender ningún nombre. Luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo";
+  wrap.innerHTML = `<img src="${PH("brain")}" alt="${L("A real human brain cut in half from front to back, showing the folded cerebrum, the frilly cerebellum and the brain stem", "Un cerebro humano real cortado por la mitad de adelante hacia atrás, que muestra el cerebro plegado, el cerebelo con aspecto de encaje y el tronco encefálico")}">`;
+  const targets = [
+    { x: 62, y: 9, en: "the big, wrinkled outer part - the CEREBRUM, for thinking, memory and voluntary movement", es: "la parte exterior grande y arrugada - el CEREBRO, para pensar, la memoria y el movimiento voluntario" },
+    { x: 11, y: 38, en: "the finely branched 'little brain' at the back - the CEREBELLUM, for balance and coordination", es: "el 'cerebro pequeño' de ramas finas en la parte de atrás - el CEREBELO, para el equilibrio y la coordinación" },
+    { x: 27, y: 72, en: "the stem that runs down toward the spinal cord - the BRAIN STEM, which keeps you breathing and your heart beating", es: "el tallo que baja hacia la médula espinal - el TRONCO ENCEFÁLICO, que mantiene la respiración y el latido del corazón" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one - read the clue again.", "Esa no - vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! Three brain parts, three different jobs. The brain is wrinkled so more thinking surface fits inside the skull.", "¡Detective de fotos completado! Tres partes del cerebro, tres funciones distintas. El cerebro está arrugado para que quepa más superficie de pensamiento dentro del cráneo.") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("Messages must travel between the brain, the spinal cord and your senses in a fraction of a second. How does the nervous system gather information and respond? Keep that in mind for your hypothesis.", "Los mensajes deben viajar entre el cerebro, la médula espinal y tus sentidos en una fracción de segundo. ¿Cómo reúne información y responde el sistema nervioso? Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   STATION 1 - THE MESSAGE LOOP (hyper-real 3D brain, spinal cord, nerves)
+   ============================================================ */
+const NP2 = {
+  cerebrum: { en: "Cerebrum", es: "Cerebro", fact: { en: "Cerebrum: the largest part of the brain. It handles memory and learning, reasoning and emotions, and controls voluntary muscles. Its folds give it more surface for thinking.", es: "Cerebro: la parte más grande del cerebro. Se encarga de la memoria y el aprendizaje, el razonamiento y las emociones, y controla los músculos voluntarios. Sus pliegues le dan más superficie para pensar." } },
+  cerebellum: { en: "Cerebellum", es: "Cerebelo", fact: { en: "Cerebellum ('little brain'): at the back of the brain, it handles balance and coordination - it helps you ride a bike or catch a ball.", es: "Cerebelo ('cerebro pequeño'): en la parte de atrás del cerebro, se encarga del equilibrio y la coordinación - te ayuda a montar en bici o atrapar una pelota." } },
+  brainstem: { en: "Brain stem", es: "Tronco encefálico", fact: { en: "Brain stem: the survival centre. It joins the brain to the spinal cord and controls involuntary actions like breathing and heartbeat.", es: "Tronco encefálico: el centro de supervivencia. Une el cerebro con la médula espinal y controla acciones involuntarias como la respiración y el latido del corazón." } },
+  cord: { en: "Spinal cord", es: "Médula espinal", fact: { en: "Spinal cord: the trunk line of the body. With the brain it forms the central nervous system (CNS). It carries messages between the brain and body and handles reflexes.", es: "Médula espinal: la línea troncal del cuerpo. Con el cerebro forma el sistema nervioso central (SNC). Lleva mensajes entre el cerebro y el cuerpo y gestiona los reflejos." } },
+  vertebrae: { en: "Vertebrae", es: "Vértebras", fact: { en: "Vertebrae: the bones of the spinal column. They protect the delicate spinal cord and let you bend and twist - that is why the spine is not one solid bone.", es: "Vértebras: los huesos de la columna. Protegen la delicada médula espinal y te permiten doblarte y girar - por eso la columna no es un solo hueso sólido." } },
+  nerve: { en: "Nerves (PNS)", es: "Nervios (SNP)", fact: { en: "Nerves: the peripheral nervous system (PNS), the wires branching from the CNS to limbs and organs. Sensory nerves send information TO the brain; motor nerves send commands FROM it to muscles.", es: "Nervios: el sistema nervioso periférico (SNP), los cables que salen del SNC hacia las extremidades y los órganos. Los nervios sensoriales envían información AL cerebro; los motores envían órdenes DESDE él a los músculos." } },
+};
+const NPK = Object.keys(NP2);
+function buildNerve(mount, sim, onDone) {
+  const card = stationShell("1", "The Message Loop", "El Circuito de Mensajes", "A hyper-real 3D brain, spinal cord and nerves. Pick up a pencil (a voluntary message through the brain) or touch a hot pan (a reflex through the spinal cord) and watch the signals race. Drag to turn it.", "Un cerebro, una médula espinal y nervios 3D hiperrealistas. Recoge un lápiz (un mensaje voluntario por el cerebro) o toca una sartén caliente (un reflejo por la médula) y mira correr las señales. Arrastra para girarlo.");
+  mount.append(card);
+  const stage = document.createElement("div"); stage.className = "cyc-stage dg-stage"; card.append(stage);
+  const M = { mode: null, t: 0, last: null, hi: "off" };
+  const hud = document.createElement("div"); hud.className = "eco-readout"; hud.innerHTML = `<div>${L("Message route", "Ruta del mensaje")}<b id="nv-r" style="font-size:.9rem"></b></div><div>${L("Response time (typical)", "Tiempo de respuesta (típico)")}<b id="nv-t"></b></div><div>${L("Stage", "Etapa")}<b id="nv-s" style="font-size:.9rem"></b></div>`;
+  const P = pickPanel(card, NPK, k => NP2[k], (k, cap) => { cap.textContent = L(NP2[k].fact.en, NP2[k].fact.es); burst(stage, 50, 50, ["#ffb3c1", "#ffe08a", "#fff"], 10); });
+  const tasks = [
+    { en: "VOLUNTARY: press Pick up a pencil and lock in after the whole message loop (hand to brain to hand) has finished.", es: "VOLUNTARIO: pulsa Recoger un lápiz y fija cuando haya terminado todo el circuito del mensaje (mano al cerebro a la mano).", test: r => r.last === "voluntary" },
+    { en: "REFLEX: press Touch a hot pan and lock in after the reflex has pulled the hand away. Notice which part handled it first.", es: "REFLEJO: pulsa Tocar una sartén caliente y fija cuando el reflejo haya apartado la mano. Fíjate qué parte lo gestionó primero.", test: r => r.last === "reflex" },
+    { en: "Select the part of the brain at the back that handles balance and coordination.", es: "Selecciona la parte del cerebro, en la parte de atrás, que se encarga del equilibrio y la coordinación.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "cerebellum" },
+    { en: "Select the survival centre that connects to the spinal cord and controls breathing and heartbeat.", es: "Selecciona el centro de supervivencia que se conecta con la médula espinal y controla la respiración y el latido del corazón.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "brainstem" },
+  ];
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bVol = mkBtn(L("Pick up a pencil (voluntary)", "Recoger un lápiz (voluntario)"), true), bRef = mkBtn(L("Touch a hot pan (reflex)", "Tocar una sartén caliente (reflejo)"), true), bClear = mkBtn(L("Clear my picks", "Borrar mis selecciones"), true);
+  const hiRow = document.createElement("div"); hiRow.className = "cyc-row"; hiRow.innerHTML = `<b style="font-size:.84rem">${L("Highlight:", "Resaltar:")}</b>`;
+  [["off", "Off", "No"], ["cns", "CNS (brain + spinal cord)", "SNC (cerebro + médula)"], ["pns", "PNS (nerves)", "SNP (nervios)"]].forEach(([k, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(en, es); b.setAttribute("aria-pressed", String(k === "off")); b.addEventListener("click", () => { M.hi = k; hiRow.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); }); hiRow.append(b); });
+  bClear.addEventListener("click", () => P.clear());
+  const ord = makeOrders(card, sim, "st1", tasks, () => ({ last: M.last, picks: P.picks.slice(), setting: M.last && !P.picks.length ? L(M.last === "reflex" ? "Reflex: hot pan" : "Voluntary: pick up a pencil", M.last === "reflex" ? "Reflejo: sartén caliente" : "Voluntario: recoger un lápiz") : L(`Selected ${P.picks.length} part(s)`, `Seleccionadas ${P.picks.length} parte(s)`), reading: P.picks.length ? P.picks.map(k => NP2[k].en).join(" > ") : (M.last === "reflex" ? L("Sensory nerve > spinal cord > motor nerve (about 50 ms); the brain was told afterwards", "Nervio sensorial > médula espinal > nervio motor (unos 50 ms); al cerebro se le avisó después") : M.last === "voluntary" ? L("Sensory nerve > spinal cord > brain (cerebrum) > spinal cord > motor nerve (about 250 ms)", "Nervio sensorial > médula espinal > cerebro > médula espinal > nervio motor (unos 250 ms)") : "-"), result: M.last === "reflex" ? L("Reflex handled by the spinal cord", "Reflejo gestionado por la médula espinal") : M.last === "voluntary" ? L("Voluntary action decided by the brain", "Acción voluntaria decidida por el cerebro") : (P.picks.length ? L("Last pick: " + NP2[P.picks[P.picks.length - 1]].en, "Última selección: " + NP2[P.picks[P.picks.length - 1]].es) : "-") }),
+    L("Message Loop", "Circuito de Mensajes"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("nerve", L("Signal Master", "Maestro de Señales")); onDone(); });
+  card.__onOrder = () => { P.clear(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bVol, bRef, bClear, ord.lock);
+  stage.after(hud); card.append(hiRow, ord.bar, row);
+  const STG = { v: [[2.2, L("SENSORY nerve carries the message UP to the brain", "El nervio SENSORIAL lleva el mensaje HACIA ARRIBA, al cerebro")], [3.4, L("CEREBRUM decides (thinking)", "El CEREBRO decide (pensando)")], [5.6, L("MOTOR nerve carries the command DOWN to the hand", "El nervio MOTOR lleva la orden HACIA ABAJO, a la mano")], [6.2, L("The hand moves", "La mano se mueve")]], r: [[1.0, L("SENSORY nerve reaches the spinal cord", "El nervio SENSORIAL llega a la médula espinal")], [1.3, L("SPINAL CORD reacts at once (reflex)", "La MÉDULA ESPINAL reacciona de inmediato (reflejo)")], [2.4, L("MOTOR nerve pulls the hand away", "El nervio MOTOR aparta la mano")], [3.6, L("Now the brain finds out: 'Ouch!'", "Ahora el cerebro se entera: '¡Ay!'")]] };
+  function setBtns(dis) { bVol.disabled = bRef.disabled = dis; }
+  const start = mode => { if (M.mode) return; M.mode = mode; M.t = 0; setBtns(true); hud.querySelector("#nv-r").textContent = mode === "v" ? L("Hand > spinal cord > BRAIN > spinal cord > hand", "Mano > médula > CEREBRO > médula > mano") : L("Hand > SPINAL CORD > hand (brain told later)", "Mano > MÉDULA > mano (al cerebro se le avisa después)"); hud.querySelector("#nv-t").textContent = mode === "v" ? "≈ 250 ms" : "≈ 50 ms"; };
+  bVol.addEventListener("click", () => start("v")); bRef.addEventListener("click", () => start("r"));
+  let lastT = performance.now();
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); return; } const now = performance.now(), dt = Math.min(0.3, (now - lastT) / 1000); lastT = now; if (!M.mode) return; M.t += dt; const st = STG[M.mode], s = st.find(x => M.t < x[0]); hud.querySelector("#nv-s").textContent = s ? s[1] : L("Done", "Terminado");
+    if (M.t >= st[st.length - 1][0]) { M.last = M.mode === "v" ? "voluntary" : "reflex"; M.mode = null; setBtns(false); burst(stage, 50, 50, ["#ffe08a", "#7be08a", "#fff"], 16); } }, 50);
+  const sp = makeSpace(stage, { fov: 40, dist: 12.5, pitch: 0.08, yaw: 0.6, ty: 0.0 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, camera, hooks, renderer } = sp; renderer.toneMappingExposure = 1.15; scene.add(new THREE.HemisphereLight(0xe8f1ff, 0x2a1030, 0.95)); const key = new THREE.DirectionalLight(0xfff2e6, 1.6); key.position.set(3, 5, 6); scene.add(key); const rimL = new THREE.PointLight(0x66ccff, 1.2, 18); rimL.position.set(-4, 2, -3); scene.add(rimL);
+    const bump = noiseTex(), meshes = [];
+    const mat = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.3, bumpMap: bump, bumpScale: 0.8, emissive: C3(hex), emissiveIntensity: 0.12 }, o || {}));
+    const reg = (m, k) => { m.userData.k = k; meshes.push(m); scene.add(m); return m; };
+    const fold = (g, a) => { const p = g.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.set(p.getX(i), p.getY(i), p.getZ(i)); const n = v.clone().normalize(), d = a * (Math.sin(9 * v.x + 3 * v.y) * Math.sin(8 * v.z + 2 * v.x) + 0.7 * Math.sin(13 * v.y + 4 * v.z)); v.copy(n.multiplyScalar(1 + d)); p.setXYZ(i, v.x, v.y, v.z); } g.computeVertexNormals(); return g; };
+    [-1, 1].forEach(sd => { const h = reg(new THREE.Mesh(fold(new THREE.SphereGeometry(1, 64, 48), 0.045), mat(0xe8a9b4, { bumpScale: 1.4 })), "cerebrum"); h.scale.set(0.62, 0.78, 0.95); h.position.set(sd * 0.6, 2.9, 0); });
+    const cb = reg(new THREE.Mesh(fold(new THREE.SphereGeometry(1, 48, 36), 0.05), mat(0xc88994)), "cerebellum"); cb.scale.set(0.55, 0.34, 0.42); cb.position.set(0, 2.2, -0.8);
+    const bs = reg(new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.15, 1.0, 20), mat(0xe0b0a0)), "brainstem"); bs.position.set(0, 1.85, -0.25);
+    const cord = reg(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 4.4, 16), mat(0xf4ecd4, { emissiveIntensity: 0.18 })), "cord"); cord.position.set(0, -0.6, -0.25);
+    for (let i = 0; i < 14; i++) { const v = reg(new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.1, 10, 22), mat(0xe8dcc0, { clearcoat: 0.3 })), "vertebrae"); v.rotation.x = Math.PI / 2; v.position.set(0, 1.25 - i * 0.31, -0.25); v.scale.set(1, 1, 1.2); }
+    const nerveMat = () => mat(0xffa43c, { emissiveIntensity: 0.3, roughness: 0.3 });
+    const nvC = (pts) => { const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(p[0], p[1], p[2]))); const t = reg(new THREE.Mesh(new THREE.TubeGeometry(c, 40, 0.04, 8), nerveMat()), "nerve"); return c; };
+    const armN = nvC([[2.25, -0.85, 0], [1.6, -0.2, -0.1], [0.8, 0.45, -0.2], [0.0, 0.55, -0.25]]); nvC([[-2.25, -0.85, 0], [-1.6, -0.2, -0.1], [-0.8, 0.45, -0.2], [0.0, 0.55, -0.25]]);
+    [-1, 1].forEach(sd => nvC([[0, -1.6, -0.25], [sd * 0.5, -2.2, -0.2], [sd * 0.7, -3.1, -0.1], [sd * 0.8, -3.7, 0]]));
+    const hand = reg(new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 16), mat(0xe8b898)), "nerve"); hand.scale.set(1.1, 0.8, 0.6); hand.position.set(2.25, -0.85, 0);
+    const pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.8, 8), new THREE.MeshStandardMaterial({ color: C3(0xf2c230) })); pencil.rotation.z = Math.PI / 2.4; pencil.position.set(3.05, -1.0, 0); scene.add(pencil);
+    const pan = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.1, 24), new THREE.MeshStandardMaterial({ color: C3(0x2a2a2e), emissive: C3(0xff3a20), emissiveIntensity: 0.6, roughness: 0.4 })); pan.position.set(3.0, -0.35, 0); scene.add(pan);
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(4.5, 40), new THREE.MeshStandardMaterial({ color: C3(0x12303c), roughness: 0.9 })); floor.rotation.x = -Math.PI / 2; floor.position.y = -4; scene.add(floor);
+    const upPts = [armN.getPoint(0), armN.getPoint(0.4), armN.getPoint(0.75), armN.getPoint(1), new THREE.Vector3(0, 0.55, -0.25), new THREE.Vector3(0, 1.3, -0.25), new THREE.Vector3(0, 1.9, -0.25), new THREE.Vector3(0, 2.7, 0)];
+    const upC = new THREE.CatmullRomCurve3(upPts), toCord = new THREE.CatmullRomCurve3([armN.getPoint(0), armN.getPoint(0.4), armN.getPoint(0.75), armN.getPoint(1)]);
+    const pulse = (hex) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 12), new THREE.MeshBasicMaterial({ color: hex })); m.visible = false; scene.add(m); return m; };
+    const pS = pulse(0x4aa8ff), pM = pulse(0xffa43c), pS2 = pulse(0x4aa8ff);
+    const glow = new THREE.PointLight(0xffe08a, 0, 6); scene.add(glow);
+    const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(150 * 3).map((_, i) => (i % 3 === 1 ? (Math.random() - 0.4) * 9 : (Math.random() - 0.5) * 7)), 3)), new THREE.PointsMaterial({ size: 0.04, color: 0x9fe6ff, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(motes);
+    let hiK = null; P.hi = k => { hiK = k; };
+    const cnsK = ["cerebrum", "cerebellum", "brainstem", "cord"];
+    hooks.push((dt, t) => {
+      meshes.forEach(m => { if (!m.material || !m.material.emissive) return; const k = m.userData.k; let e = 0.12; if (k === hiK) e = 0.55 + 0.25 * Math.sin(t * 5); else if (M.hi === "cns" && cnsK.includes(k)) e = 0.5; else if (M.hi === "pns" && k === "nerve") e = 0.7; else if (k === "nerve") e = 0.3; m.material.emissiveIntensity = e; });
+      pS.visible = pM.visible = pS2.visible = false; glow.intensity = 0; hand.position.x = 2.25; hand.position.y = -0.85;
+      if (M.mode === "v") { const tt = M.t; if (tt < 2.2) { pS.visible = true; pS.position.copy(upC.getPoint(tt / 2.2)); } else if (tt < 3.4) { glow.intensity = 2.4 * Math.sin((tt - 2.2) / 1.2 * Math.PI); glow.position.set(0, 3.0, 0.6); } else if (tt < 5.6) { pM.visible = true; pM.position.copy(upC.getPoint(1 - (tt - 3.4) / 2.2)); } else { hand.position.x = 2.25 + 0.5 * Math.min(1, (tt - 5.6) / 0.6); hand.position.y = -0.85 - 0.15 * Math.min(1, (tt - 5.6) / 0.6); } }
+      else if (M.mode === "r") { const tt = M.t; if (tt < 1.0) { pS.visible = true; pS.position.copy(toCord.getPoint(tt / 1.0)); } if (tt >= 0.3 && tt < 3.2) { pS2.visible = true; pS2.position.copy(upC.getPoint(Math.min(1, (tt - 0.3) / 2.9))); } if (tt >= 1.0 && tt < 1.3) { glow.intensity = 2.0; glow.position.set(0.2, 0.6, 0.5); } if (tt >= 1.3 && tt < 2.4) { pM.visible = true; pM.position.copy(toCord.getPoint(1 - (tt - 1.3) / 1.1)); hand.position.x = 2.25 - 0.55 * Math.min(1, (tt - 2.0) / 0.4); } if (tt >= 2.4) hand.position.x = 1.7; if (tt >= 3.2 && tt < 3.6) { glow.intensity = 2.0 * Math.sin((tt - 3.2) / 0.4 * Math.PI); glow.position.set(0, 3.0, 0.6); } }
+      const mp = motes.geometry.attributes.position; for (let i = 0; i < 150; i++) { let y = mp.getY(i) + dt * 0.1; if (y > 5) y = -4; mp.setY(i, y); } mp.needsUpdate = true;
+    });
+    const cv = renderer.domElement, ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let trk = null;
+    cv.addEventListener("pointerdown", e => { trk = { x: e.clientX, y: e.clientY, d: 0 }; });
+    cv.addEventListener("pointermove", e => { if (trk) { trk.d += Math.hypot(e.clientX - trk.x, e.clientY - trk.y); trk.x = e.clientX; trk.y = e.clientY; } });
+    cv.addEventListener("click", e => { if (trk && trk.d > 8) return; const r = cv.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, camera); const hits = ray.intersectObjects(meshes, false); const h = hits.find(x => x.object.userData.k !== "vertebrae") && hits[0].object.userData.k === "vertebrae" ? hits[0] : hits[0]; if (h) P.pick(h.object.userData.k); });
+  }
+  P.paint();
+}
+
+/* ============================================================
+   STATION 2 - THE EYE LAB (3D eye, pupil, focus, glasses)
+   ============================================================ */
+const EP = {
+  cornea: { en: "Cornea", es: "Córnea", fact: { en: "Cornea: the clear front cover of the eye. It starts bending the light.", es: "Córnea: la cubierta transparente delante del ojo. Empieza a desviar la luz." } },
+  pupil: { en: "Pupil", es: "Pupila", fact: { en: "Pupil: the opening that lets light in. It gets SMALLER in bright light to protect the retina and BIGGER in dim light to let in more.", es: "Pupila: la abertura que deja entrar la luz. Se hace MÁS PEQUEÑA con luz intensa para proteger la retina y MÁS GRANDE con poca luz para dejar entrar más." } },
+  lens: { en: "Lens", es: "Cristalino", fact: { en: "Lens: focuses the light so a sharp picture lands on the retina.", es: "Cristalino: enfoca la luz para que una imagen nítida caiga sobre la retina." } },
+  retina: { en: "Retina", es: "Retina", fact: { en: "Retina (Latin rete = net): the 'screen' at the back that senses light and sends signals along the optic nerve to the brain.", es: "Retina (del latín rete = red): la 'pantalla' del fondo que detecta la luz y envía señales por el nervio óptico al cerebro." } },
+  optic: { en: "Optic nerve", es: "Nervio óptico", fact: { en: "Optic nerve: carries the signals from the retina to the brain.", es: "Nervio óptico: lleva las señales de la retina al cerebro." } },
+};
+const EPK = Object.keys(EP);
+function buildEye(mount, sim, onDone) {
+  const card = stationShell("2", "The Eye Lab", "El Laboratorio del Ojo", "A hyper-real 3D eye cut in half. Change the light, look near or far, try different eyes and fit glasses, and watch where the light focuses. Drag to turn it.", "Un ojo 3D hiperrealista cortado por la mitad. Cambia la luz, mira cerca o lejos, prueba distintos ojos y pon gafas, y mira dónde se enfoca la luz. Arrastra para girarlo.");
+  mount.append(card);
+  const S = sim.state.ey || (sim.state.ey = { light: 50, cond: "normal", dist: "far", gl: "none" });
+  const stage = document.createElement("div"); stage.className = "cyc-stage dg-stage"; card.append(stage);
+  const calcBlur = () => { let b = 0; if (S.cond === "near" && S.dist === "far") b = S.gl === "concave" ? 0 : S.gl === "convex" ? 1.5 : 1; else if (S.cond === "far" && S.dist === "near") b = S.gl === "convex" ? 0 : S.gl === "concave" ? 1.5 : 1; else if (S.gl !== "none") b = 0.6; return b; };
+  const view = document.createElement("div"); view.style.cssText = "display:flex;gap:.8rem;flex-wrap:wrap;margin-top:.6rem;align-items:flex-start";
+  view.innerHTML = `<figure style="margin:0;flex:1 1 9rem;max-width:14rem"><img id="ey-pup" alt="" style="width:100%;border-radius:10px;border:1px solid var(--line);display:block"><figcaption class="q__hint" style="margin:.2rem 0 0">${L("Your pupil (real photos)", "Tu pupila (fotos reales)")}</figcaption></figure><figure style="margin:0;flex:1 1 9rem;max-width:14rem;overflow:hidden"><div style="overflow:hidden;border-radius:10px;border:1px solid var(--line)"><img id="ey-see" alt="" style="width:100%;display:block;transition:filter .3s"></div><figcaption class="q__hint" style="margin:.2rem 0 0">${L("What you see", "Lo que ves")}</figcaption></figure>`;
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Pupil size", "Tamaño de la pupila")}<b id="ey-p"></b></div><div>${L("Picture on retina", "Imagen en la retina")}<b id="ey-b" style="font-size:.95rem"></b></div>`;
+  const P = pickPanel(card, EPK, k => EP[k], (k, cap) => { cap.textContent = L(EP[k].fact.en, EP[k].fact.es); burst(stage, 50, 50, ["#cfe8ff", "#ffe08a", "#fff"], 10); });
+  const ctr = document.createElement("div"); ctr.className = "cyc-controls";
+  ctr.innerHTML = `<div class="cyc-row"><label for="ey-l">${L("Light level", "Nivel de luz")}</label><input id="ey-l" type="range" min="0" max="100" value="${S.light}"><span class="cyc-val" id="ey-lv"></span></div><div class="cyc-row" id="ey-c"><b style="font-size:.84rem;min-width:7rem">${L("Eye type:", "Tipo de ojo:")}</b></div><div class="cyc-row" id="ey-d"><b style="font-size:.84rem;min-width:7rem">${L("Looking at:", "Mirando:")}</b></div><div class="cyc-row" id="ey-g"><b style="font-size:.84rem;min-width:7rem">${L("Glasses:", "Gafas:")}</b></div>`;
+  const chipRow = (sel, opts, key) => { const el = ctr.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(o[1], o[2]); b.setAttribute("aria-pressed", String(S[key] === o[0])); b.addEventListener("click", () => { S[key] = o[0]; el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); sim.saveState(); upd(); burst(stage, 50, 60, ["#cfe8ff", "#fff"], 8); }); el.append(b); }); };
+  chipRow("#ey-c", [["normal", "Normal", "Normal"], ["near", "Nearsighted (eyeball too long)", "Miope (globo ocular largo)"], ["far", "Farsighted (eyeball too short)", "Hipermétrope (globo ocular corto)"]], "cond");
+  chipRow("#ey-d", [["far", "A far mountain", "Una montaña lejana"], ["near", "A near ruler", "Una regla cercana"]], "dist");
+  chipRow("#ey-g", [["none", "None", "Ninguna"], ["concave", "Concave lenses", "Lentes cóncavas"], ["convex", "Convex lenses", "Lentes convexas"]], "gl");
+  const lv = ctr.querySelector("#ey-l"), lvv = ctr.querySelector("#ey-lv");
+  const upd = () => { const bl = calcBlur(); lvv.textContent = Math.round(S.light) + "%"; view.querySelector("#ey-pup").src = PH(S.light >= 50 ? "eyebright" : "eyedim"); view.querySelector("#ey-pup").alt = L(S.light >= 50 ? "A real eye in bright light with a small pupil" : "A real eye in dim light with a big pupil", S.light >= 50 ? "Un ojo real con luz intensa y pupila pequeña" : "Un ojo real con poca luz y pupila grande"); const im = view.querySelector("#ey-see"); im.src = PH(S.dist === "far" ? "mountain" : "ruler"); im.alt = L(S.dist === "far" ? "A far mountain" : "A near ruler", S.dist === "far" ? "Una montaña lejana" : "Una regla cercana"); im.style.filter = `blur(${(bl * 7).toFixed(1)}px) brightness(${(0.55 + S.light / 220).toFixed(2)})`; ro.querySelector("#ey-p").textContent = (S.light >= 50 ? "2" : "6") + " mm " + (S.light >= 80 ? L("(small)", "(pequeña)") : S.light <= 20 ? L("(big)", "(grande)") : ""); ro.querySelector("#ey-b").textContent = bl < 0.15 ? L("Sharp ✓", "Nítida ✓") : bl <= 1 ? L("Blurry", "Borrosa") : L("Very blurry", "Muy borrosa"); };
+  lv.addEventListener("input", () => { S.light = +lv.value; upd(); }); lv.addEventListener("change", () => sim.saveState());
+  const tasks = [
+    { en: "BRIGHT sunlight: set the light level to 80% or more so the pupil shrinks, then lock in.", es: "Sol INTENSO: pon el nivel de luz en 80% o más para que la pupila se encoja y fija.", test: r => r.light >= 80 },
+    { en: "DIM room: set the light level to 20% or less so the pupil opens wide, then lock in.", es: "Habitación con POCA luz: pon el nivel de luz en 20% o menos para que la pupila se abra y fija.", test: r => r.light <= 20 },
+    { en: "Choose the Nearsighted eye looking at the far mountain, then fit the right glasses so the picture is sharp, and lock in.", es: "Elige el ojo Miope mirando la montaña lejana y pon las gafas correctas para que la imagen sea nítida y fija.", test: r => r.cond === "near" && r.dist === "far" && r.blur < 0.15 && r.gl !== "none" },
+    { en: "Choose the Farsighted eye looking at the near ruler, then fit the right glasses so the picture is sharp, and lock in.", es: "Elige el ojo Hipermétrope mirando la regla cercana y pon las gafas correctas para que la imagen sea nítida y fija.", test: r => r.cond === "far" && r.dist === "near" && r.blur < 0.15 && r.gl !== "none" },
+  ];
+  const mkBtn = (txt) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn cyc-btn--ghost"; b.textContent = txt; return b; };
+  const bClear = mkBtn(L("Clear my picks", "Borrar mis selecciones")); bClear.addEventListener("click", () => P.clear());
+  const ord = makeOrders(card, sim, "st2", tasks, () => { const bl = calcBlur(); return { light: S.light, cond: S.cond, dist: S.dist, gl: S.gl, blur: bl, setting: L(`Light ${Math.round(S.light)}% · ${S.cond === "normal" ? "normal eye" : S.cond === "near" ? "nearsighted eye" : "farsighted eye"} · looking ${S.dist === "far" ? "far" : "near"} · glasses ${S.gl}`, `Luz ${Math.round(S.light)}% · ${S.cond === "normal" ? "ojo normal" : S.cond === "near" ? "ojo miope" : "ojo hipermétrope"} · mirando ${S.dist === "far" ? "lejos" : "cerca"} · gafas ${S.gl === "none" ? "ninguna" : S.gl === "concave" ? "cóncavas" : "convexas"}`), reading: L(`Pupil about ${S.light >= 50 ? 2 : 6} mm; picture ${bl < 0.15 ? "sharp" : "blurry"} on the retina`, `Pupila de unos ${S.light >= 50 ? 2 : 6} mm; imagen ${bl < 0.15 ? "nítida" : "borrosa"} en la retina`), result: bl < 0.15 ? L("Light focused exactly on the retina", "Luz enfocada justo en la retina") : L("Light focused in front of or behind the retina", "Luz enfocada delante o detrás de la retina") }; },
+    L("Eye Lab", "Laboratorio del Ojo"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("eye", L("Vision Expert", "Experto en Visión")); onDone(); });
+  card.__onOrder = () => { P.clear(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bClear, ord.lock);
+  stage.after(view); view.after(ro); card.append(ctr, ord.bar, row);
+  const sp = makeSpace(stage, { fov: 38, dist: 7.2, pitch: 0.05, yaw: 0.1, ty: 0.0 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, camera, hooks, renderer } = sp; renderer.toneMappingExposure = 1.2; scene.add(new THREE.HemisphereLight(0xe8f1ff, 0x2a1030, 1.0)); const key = new THREE.DirectionalLight(0xfff2e6, 1.5); key.position.set(3, 4, 6); scene.add(key);
+    const bump = noiseTex(), meshes = [], clip = [new THREE.Plane(new THREE.Vector3(0, 0, -1), 0)];
+    const mat = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.4, clearcoat: 0.7, bumpMap: bump, bumpScale: 0.3, emissive: C3(hex), emissiveIntensity: 0.1, clippingPlanes: clip, side: THREE.DoubleSide }, o || {}));
+    const reg = (m, k, par) => { m.userData.k = k; meshes.push(m); (par || scene).add(m); return m; };
+    const eye = new THREE.Group(); scene.add(eye);
+    const scl = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 36), mat(0xf6f0ea, { roughness: 0.35 })); eye.add(scl);
+    const ret = reg(new THREE.Mesh(new THREE.SphereGeometry(0.97, 48, 36, 0, TAU, 0, Math.PI), mat(0xd8503c, { emissiveIntensity: 0.35, side: THREE.BackSide })), "retina", eye);
+    const cor = reg(new THREE.Mesh(new THREE.SphereGeometry(0.75, 32, 20, 0, TAU, 0, 0.8), mat(0xdfeeff, { transparent: true, opacity: 0.35, roughness: 0.05 })), "cornea", eye); cor.rotation.z = -Math.PI / 2; cor.position.x = 0.3;
+    const iris = reg(new THREE.Mesh(new THREE.CircleGeometry(0.62, 48), mat(0x6a8a4a, { emissiveIntensity: 0.15 })), "pupil", eye); iris.rotation.y = Math.PI / 2; iris.position.x = 0.84;
+    const pup = reg(new THREE.Mesh(new THREE.CircleGeometry(1, 40), new THREE.MeshBasicMaterial({ color: 0x050505, clippingPlanes: clip, side: THREE.DoubleSide })), "pupil", eye); pup.rotation.y = Math.PI / 2; pup.position.x = 0.845;
+    const lens = reg(new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), mat(0xcfe8ff, { transparent: true, opacity: 0.5, roughness: 0.05, clearcoat: 1 })), "lens", eye); lens.scale.set(0.2, 0.36, 0.36); lens.position.x = 0.58;
+    const on = reg(new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.3, 16), mat(0xf4e8b8)), "optic", eye); on.rotation.z = Math.PI / 2; on.position.x = -1.5;
+    const raysG = new THREE.Group(); scene.add(raysG); const NR = 7, rays = []; for (let i = 0; i < NR; i++) { const g = new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(4 * 3), 3)); const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xfff0a0, transparent: true, opacity: 0.9 })); l.frustumCulled = false; raysG.add(l); rays.push(l); }
+    const spot = new THREE.Mesh(new THREE.CircleGeometry(1, 28), new THREE.MeshBasicMaterial({ color: 0xffffe0, transparent: true, opacity: 0.9, depthWrite: false })); spot.rotation.y = Math.PI / 2; scene.add(spot);
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(4, 40), new THREE.MeshStandardMaterial({ color: C3(0x12303c), roughness: 0.9 })); floor.rotation.x = -Math.PI / 2; floor.position.y = -2; scene.add(floor);
+    const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(120 * 3).map((_, i) => (i % 3 === 1 ? (Math.random() - 0.3) * 5 : (Math.random() - 0.5) * 7)), 3)), new THREE.PointsMaterial({ size: 0.04, color: 0x9fe6ff, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(motes);
+    let hiK = null; P.hi = k => { hiK = k; }; let sx = 1, curBlur = 0;
+    hooks.push((dt, t) => {
+      const tx = S.cond === "near" ? 1.2 : S.cond === "far" ? 0.82 : 1; sx += (tx - sx) * Math.min(1, dt * 5); scl.scale.x = sx; ret.scale.x = sx; on.position.x = -sx - 0.5; const retX = -0.97 * sx;
+      const L01 = S.light / 100, pr = 0.36 - 0.22 * L01; pup.scale.set(pr, pr, 1); const bl = calcBlur(); curBlur += (bl - curBlur) * Math.min(1, dt * 6);
+      const xo = S.dist === "far" ? 5.5 : 2.4, lensX = 0.58; const dev = S.cond === "near" ? 1 : S.cond === "far" ? -1 : 0; const sign = (S.cond === "near" && S.dist === "far") || (S.cond === "far" && S.dist === "near") ? dev : 0; const xf = retX + sign * 0.85 * curBlur;
+      for (let i = 0; i < NR; i++) { const f = (i / (NR - 1)) * 2 - 1, yl = f * 0.33, ok = Math.abs(yl) <= pr + 0.001; const p = rays[i].geometry.attributes.position; const yo = S.dist === "far" ? yl : yl * 0.4; p.setXYZ(0, xo, yo * 0.0 + (S.dist === "far" ? yl : 0), 0); p.setXYZ(1, lensX + 0.05, ok ? yl : yl, 0); if (ok) { p.setXYZ(2, xf, 0, 0); const k = (retX - (lensX + 0.05)) / (xf - (lensX + 0.05) || 1); p.setXYZ(3, retX, yl + (0 - yl) * k, 0); } else { p.setXYZ(2, 0.9, yl, 0); p.setXYZ(3, 0.9, yl, 0); } p.needsUpdate = true; rays[i].material.opacity = ok ? 0.5 + 0.5 * L01 : 0.15; }
+      const rr = 0.05 + 0.3 * Math.min(1.6, curBlur); spot.position.set(retX + 0.02, 0, 0); spot.scale.set(rr, rr, 1); spot.material.opacity = Math.max(0.15, (0.95 - 0.5 * curBlur) * (0.4 + 0.6 * (pr / 0.36)));
+      meshes.forEach(m => { if (!m.material || !m.material.emissive) return; const on2 = m.userData.k === hiK; m.material.emissiveIntensity = on2 ? 0.55 + 0.25 * Math.sin(t * 5) : (m.userData.k === "retina" && m === ret ? 0.35 : 0.1); });
+      const mp = motes.geometry.attributes.position; for (let i = 0; i < 120; i++) { let y = mp.getY(i) + dt * 0.1; if (y > 3) y = -2; mp.setY(i, y); } mp.needsUpdate = true;
+    });
+    const cv = renderer.domElement, ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let trk = null;
+    cv.addEventListener("pointerdown", e => { trk = { x: e.clientX, y: e.clientY, d: 0 }; });
+    cv.addEventListener("pointermove", e => { if (trk) { trk.d += Math.hypot(e.clientX - trk.x, e.clientY - trk.y); trk.x = e.clientX; trk.y = e.clientY; } });
+    cv.addEventListener("click", e => { if (trk && trk.d > 8) return; const r = cv.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(mouse, camera); const hits = ray.intersectObjects(meshes, false).filter(h => clip[0].distanceToPoint(h.point) >= 0); const h = hits.find(x => x.object !== scl) || hits[0]; if (h) P.pick(h.object.userData.k); });
+  }
+  P.paint(); upd();
+}
+
+/* ============================================================
+   STATION 3 - THE EAR LAB (sound path + protecting the hair cells)
+   ============================================================ */
+const EA = {
+  outer: { en: "Outer ear", es: "Oído externo", fact: { en: "Outer ear: acts like a funnel that catches sound waves.", es: "Oído externo: actúa como un embudo que recoge las ondas sonoras." } },
+  drum: { en: "Eardrum", es: "Tímpano", fact: { en: "Eardrum: a thin skin that vibrates when sound hits it.", es: "Tímpano: una piel fina que vibra cuando el sonido la golpea." } },
+  bones: { en: "Middle-ear bones", es: "Huesecillos del oído medio", fact: { en: "Middle-ear bones (hammer, anvil, stirrup): three tiny bones that amplify the vibrations.", es: "Huesecillos del oído medio (martillo, yunque y estribo): tres huesos diminutos que amplifican las vibraciones." } },
+  cochlea: { en: "Cochlea", es: "Cóclea", fact: { en: "Cochlea (Greek for 'snail'): the snail-shaped part in the inner ear that turns vibrations into nerve signals using tiny hairs.", es: "Cóclea (del griego 'caracol'): la parte con forma de caracol del oído interno que convierte las vibraciones en señales nerviosas usando pelitos diminutos." } },
+  nerve: { en: "Auditory nerve", es: "Nervio auditivo", fact: { en: "Auditory nerve: carries the signals from the cochlea to the brain, which makes the sound you hear.", es: "Nervio auditivo: lleva las señales de la cóclea al cerebro, que crea el sonido que oyes." } },
+};
+const EAK = Object.keys(EA);
+function buildEar(mount, sim, onDone) {
+  const card = stationShell("3", "The Ear Lab", "El Laboratorio del Oído", "Follow a sound from the outer ear to the brain, then test how loud sounds affect the tiny hair cells in the cochlea.", "Sigue un sonido desde el oído externo hasta el cerebro y luego comprueba cómo los sonidos fuertes afectan a las diminutas células ciliadas de la cóclea.");
+  mount.append(card);
+  const S = sim.state.er || (sim.state.er = { db: 60, hairs: 100, playedSafe: 0, playedLoud: 0 });
+  S.playing = false; S.stage = 0; S.pt = 0;
+  const stage = document.createElement("div"); stage.className = "eco-pop-stage"; const cv = document.createElement("canvas"); cv.width = 680; cv.height = 300; cv.setAttribute("aria-label", L("Cross-section of the ear showing outer ear, eardrum, middle-ear bones and the snail-shaped cochlea", "Corte del oído que muestra el oído externo, el tímpano, los huesecillos y la cóclea con forma de caracol")); stage.append(cv); card.append(stage);
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Sound level", "Nivel de sonido")}<b id="er-d"></b></div><div>${L("Hair cells working", "Células ciliadas funcionando")}<b id="er-h"></b></div><div>${L("Sound is at", "El sonido está en")}<b id="er-s" style="font-size:.9rem"></b></div>`; card.append(ro);
+  const ctr = document.createElement("div"); ctr.className = "cyc-controls";
+  ctr.innerHTML = `<div class="cyc-row"><label for="er-v">${L("Volume (decibels)", "Volumen (decibelios)")}</label><input id="er-v" type="range" min="30" max="120" value="${S.db}"><span class="cyc-val" id="er-vv"></span></div>`;
+  const vv = ctr.querySelector("#er-v"), vvv = ctr.querySelector("#er-vv"); const syncV = () => { vvv.textContent = Math.round(S.db) + " dB " + (S.db >= 100 ? L("(very loud)", "(muy fuerte)") : S.db >= 85 ? L("(harmful)", "(dañino)") : S.db >= 60 ? L("(talking)", "(conversación)") : L("(quiet)", "(suave)")); };
+  vv.addEventListener("input", () => { S.db = +vv.value; syncV(); }); vv.addEventListener("change", () => sim.saveState()); syncV();
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Press Play sound to send a sound wave through the ear, or tap a part (buttons below) to read what it does.", "Pulsa Reproducir sonido para enviar una onda sonora por el oído, o toca una parte (botones de abajo) para leer lo que hace.");
+  const P = pickPanel(card, EAK, k => EA[k], (k, cap) => { fact.textContent = L(EA[k].fact.en, EA[k].fact.es); burst(stage, 50, 50, ["#ffe08a", "#fff"], 8); });
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bPlay = mkBtn(L("Play sound (hold)", "Reproducir sonido (mantener)"), true), bReset = mkBtn(L("Rest and reset my ears", "Descansar y reiniciar mis oídos"), true), bClear = mkBtn(L("Clear my picks", "Borrar mis selecciones"), true);
+  bPlay.style.touchAction = "none"; const on = () => { S.playing = true; }, off = () => { S.playing = false; };
+  bPlay.addEventListener("pointerdown", e => { on(); bPlay.setPointerCapture && bPlay.setPointerCapture(e.pointerId); }); ["pointerup", "pointercancel", "pointerleave"].forEach(ev => bPlay.addEventListener(ev, off));
+  bPlay.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); on(); } }); bPlay.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter") off(); });
+  bReset.addEventListener("click", () => { S.hairs = 100; S.playedSafe = 0; S.playedLoud = 0; sim.saveState(); fact.textContent = L("Reset for the lab. In real life, damaged hair cells do NOT grow back - protect your hearing with lower volume and ear protection.", "Reiniciado para el laboratorio. En la vida real, las células ciliadas dañadas NO vuelven a crecer - protege tu oído con menos volumen y protección auditiva."); });
+  bClear.addEventListener("click", () => P.clear());
+  const tasks = [
+    { en: "Trace the path of sound: select the parts in order - outer ear, eardrum, middle-ear bones, cochlea, auditory nerve (5 picks).", es: "Traza el camino del sonido: selecciona las partes en orden - oído externo, tímpano, huesecillos del oído medio, cóclea, nervio auditivo (5 selecciones).", test: r => r.picks.slice(-5).join() === "outer,drum,bones,cochlea,nerve" },
+    { en: "Select the snail-shaped part that turns vibrations into nerve signals.", es: "Selecciona la parte con forma de caracol que convierte las vibraciones en señales nerviosas.", test: r => r.picks.length >= 1 && r.picks[r.picks.length - 1] === "cochlea" },
+    { en: "SAFE listening: set the volume to 70 dB or less, hold Play sound for at least 5 seconds, and lock in with all the hair cells still working.", es: "Escucha SEGURA: pon el volumen en 70 dB o menos, mantén Reproducir sonido al menos 5 segundos y fija con todas las células ciliadas aún funcionando.", test: r => r.db <= 70 && r.safe >= 5 && r.hairs >= 99 },
+    { en: "LOUD music: set the volume to 110 dB and hold Play sound until at least 20% of the hair cells are damaged (about 6 seconds), then lock in.", es: "Música FUERTE: pon el volumen en 110 dB y mantén Reproducir sonido hasta que al menos el 20% de las células ciliadas esté dañado (unos 6 segundos) y fija.", test: r => r.hairs <= 80 },
+  ];
+  const ord = makeOrders(card, sim, "st3", tasks, () => ({ picks: P.picks.slice(), db: S.db, safe: S.playedSafe, hairs: Math.round(S.hairs), setting: P.picks.length ? L(`Selected ${P.picks.length} part(s)`, `Seleccionadas ${P.picks.length} parte(s)`) : L(`Volume ${Math.round(S.db)} dB`, `Volumen ${Math.round(S.db)} dB`), reading: P.picks.length ? P.picks.map(k => EA[k].en).join(" > ") : L(`Hair cells working ${Math.round(S.hairs)}% after listening (${S.playedSafe.toFixed(0)} s safe, ${S.playedLoud.toFixed(0)} s loud)`, `Células ciliadas funcionando ${Math.round(S.hairs)}% tras escuchar (${S.playedSafe.toFixed(0)} s seguros, ${S.playedLoud.toFixed(0)} s fuertes)`), result: S.hairs < 100 ? L("Loud sound damaged hair cells", "El sonido fuerte dañó células ciliadas") : L("Hearing protected", "Oído protegido") }),
+    L("Ear Lab", "Laboratorio del Oído"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("ear", L("Sound Guardian", "Guardián del Sonido")); onDone(); });
+  card.__onOrder = () => { P.clear(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bPlay, bReset, bClear, ord.lock);
+  card.append(ctr, fact, ord.bar, row);
+  let last = performance.now(), alive = true;
+  const names = [L("Outer ear (funnel)", "Oído externo (embudo)"), L("Eardrum vibrates", "El tímpano vibra"), L("Bones amplify", "Los huesecillos amplifican"), L("Cochlea fluid moves", "El líquido de la cóclea se mueve"), L("Nerve signal to brain", "Señal nerviosa al cerebro")];
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); alive = false; return; } const now = performance.now(), dt = Math.min(0.3, (now - last) / 1000); last = now;
+    if (S.playing) { S.pt += dt; S.stage = Math.min(4, Math.floor((S.pt * 1.6) % 6)); if (S.stage > 4) S.stage = 4; if (S.db > 85) { S.playedLoud += dt; S.hairs = Math.max(0, S.hairs - (S.db - 85) * 0.15 * dt); } else S.playedSafe += dt; ro.querySelector("#er-s").textContent = names[Math.min(4, Math.floor((S.pt * 1.6) % 5))]; } else ro.querySelector("#er-s").textContent = "-";
+    ro.querySelector("#er-d").textContent = Math.round(S.db) + " dB"; ro.querySelector("#er-h").textContent = Math.round(S.hairs) + "%"; }, 100);
+  const hairPos = Array.from({ length: 20 }, (_, i) => i);
+  function draw(now) {
+    if (!alive || !card.isConnected) return; const c = cv.getContext("2d"), t = now / 1000, amp = Math.max(0, (S.db - 30) / 90);
+    c.fillStyle = "#14101f"; c.fillRect(0, 0, 680, 300); const g0 = c.createLinearGradient(0, 0, 680, 0); g0.addColorStop(0, "#2a1a3a"); g0.addColorStop(1, "#1a2a44"); c.fillStyle = g0; c.fillRect(20, 30, 640, 240);
+    /* outer ear funnel */ c.fillStyle = "#e8b0a0"; c.beginPath(); c.moveTo(30, 60); c.quadraticCurveTo(110, 20, 150, 120); c.lineTo(150, 180); c.quadraticCurveTo(110, 280, 30, 240); c.quadraticCurveTo(80, 150, 30, 60); c.fill(); c.fillStyle = "#c98a7a"; c.fillRect(150, 130, 120, 40);
+    c.fillStyle = "#fff"; c.font = "bold 11px sans-serif"; c.fillText(L("Outer ear", "Oído externo"), 36, 262); c.fillText(L("Ear canal", "Conducto"), 168, 124);
+    /* eardrum */ const vib = S.playing ? Math.sin(t * 40) * 3 * amp : 0; c.strokeStyle = "#ffd9a0"; c.lineWidth = 4; c.beginPath(); c.moveTo(272 + vib, 120); c.lineTo(272 - vib, 180); c.stroke(); c.fillStyle = "#fff"; c.fillText(L("Eardrum", "Tímpano"), 250, 112);
+    /* bones */ const bv = S.playing ? Math.sin(t * 40 + 1) * 2.5 * amp : 0; ["#f0e4c8", "#e8dcc0", "#f4ecd4"].forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.ellipse(310 + i * 34 + bv, 152 + (i === 1 ? -8 : 0), 14, 8, 0.3 * i, 0, TAU); c.fill(); }); c.fillStyle = "#fff"; c.fillText(L("Hammer · Anvil · Stirrup", "Martillo · Yunque · Estribo"), 296, 196);
+    /* cochlea spiral */ c.strokeStyle = "#e8a0b8"; c.lineWidth = 16; c.lineCap = "round"; c.beginPath(); for (let a = 0; a < 11; a += 0.1) { const r = 74 - a * 5.3, x = 520 + Math.cos(a) * r, y = 150 + Math.sin(a) * r * 0.9; a === 0 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke(); c.lineCap = "butt"; c.fillStyle = "#fff"; c.fillText(L("Cochlea (snail-shaped)", "Cóclea (con forma de caracol)"), 462, 250);
+    /* fluid waves */ if (S.playing && S.pt > 0.8) { c.strokeStyle = "rgba(160,220,255,.8)"; c.lineWidth = 2; for (let i = 0; i < 3; i++) { c.beginPath(); c.arc(520, 150, 20 + ((t * 40 + i * 20) % 60), 0, TAU); c.stroke(); } }
+    /* nerve */ c.strokeStyle = "#ffe08a"; c.lineWidth = 4; c.beginPath(); c.moveTo(560, 70); c.lineTo(640, 40); c.stroke(); c.fillStyle = "#ffe08a"; c.fillText(L("Auditory nerve → brain", "Nervio auditivo → cerebro"), 540, 34);
+    /* sound waves entering */ if (S.playing) { c.strokeStyle = `rgba(255,255,255,${0.3 + amp * 0.6})`; c.lineWidth = 2 + amp * 3; for (let i = 0; i < 4; i++) { const px = (30 + ((t * 120 + i * 60) % 240)); c.beginPath(); c.arc(px, 150, 10 + i * 6, -0.9, 0.9); c.stroke(); } }
+    /* hair cells */ const nh = hairPos.length, working = Math.round(nh * S.hairs / 100); hairPos.forEach(i => { const a = 1 + i * 0.4, r = 74 - a * 5.3, bx = 520 + Math.cos(a) * r, by = 150 + Math.sin(a) * r * 0.9; if (r < 6) return; const ok = i < working; c.strokeStyle = ok ? "#7be08a" : "#6a4a4a"; c.lineWidth = 2; c.beginPath(); c.moveTo(bx, by); const sw = ok ? (S.playing ? Math.sin(t * 30 + i) * 4 * amp : 0) : 6; c.lineTo(bx + sw + 4, by - (ok ? 12 : 5)); c.stroke(); });
+    c.fillStyle = "#cfe8ff"; c.font = "11px sans-serif"; c.fillText(L("Green hairs = working hair cells. Grey bent hairs = damaged.", "Pelitos verdes = células ciliadas que funcionan. Grises y doblados = dañados."), 24, 290);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw); P.paint();
+}
+
+/* ============================================================
+   STATION 4 - TASTE, SMELL & TOUCH LAB
+   ============================================================ */
+const FD = {
+  lemon: { en: "Lemon", es: "Limón", taste: "sour", fl: { en: "sharp, fresh, lemony", es: "ácido, fresco, a limón" } },
+  jelly: { en: "Jelly beans", es: "Gominolas", taste: "sweet", fl: { en: "fruity - cherry, lime or grape", es: "afrutado - cereza, lima o uva" } },
+  pretzel: { en: "Salted pretzels", es: "Pretzels salados", taste: "salty", fl: { en: "baked, toasty and salty", es: "horneado, tostado y salado" } },
+  coffee: { en: "Coffee beans", es: "Granos de café", taste: "bitter", fl: { en: "roasted, rich and coffee-like", es: "tostado, intenso y a café" } },
+  cheese: { en: "Cheese", es: "Queso", taste: "umami", fl: { en: "creamy, savoury and cheesy", es: "cremoso, sabroso y a queso" } },
+};
+const TN = { sweet: { en: "SWEET", es: "DULCE" }, sour: { en: "SOUR", es: "ÁCIDO" }, salty: { en: "SALTY", es: "SALADO" }, bitter: { en: "BITTER", es: "AMARGO" }, umami: { en: "UMAMI (savoury)", es: "UMAMI (sabroso)" } };
+const SPOT = { fingertip: { en: "Fingertip", es: "Yema del dedo", th: 3 }, palm: { en: "Palm", es: "Palma", th: 12 }, elbow: { en: "Elbow", es: "Codo", th: 40 }, back: { en: "Back", es: "Espalda", th: 45 } };
+function buildSenses(mount, sim, onDone) {
+  const card = stationShell("4", "Taste, Smell & Touch Lab", "Laboratorio de Gusto, Olfato y Tacto", "Taste real foods with and without your nose, then test how sensitive different parts of your skin are.", "Prueba alimentos reales con y sin la nariz y comprueba qué tan sensibles son distintas partes de tu piel.");
+  mount.append(card);
+  const S = { food: null, nose: false, res: null, spot: "elbow", gap: 4, touch: null, tasted: {}, last: null };
+  const deck = document.createElement("div"); deck.className = "eco-deck";
+  const res = document.createElement("div"); res.className = "eco-fact"; res.textContent = L("Pick a food, decide whether to hold your nose, then press Taste it.", "Elige un alimento, decide si te tapas la nariz y pulsa Probar.");
+  const nose = document.createElement("button"); nose.type = "button"; nose.className = "cyc-chip"; nose.setAttribute("aria-pressed", "false"); nose.textContent = L("Hold my nose: off", "Taparme la nariz: no"); nose.addEventListener("click", () => { S.nose = !S.nose; nose.setAttribute("aria-pressed", String(S.nose)); nose.textContent = S.nose ? L("Hold my nose: ON", "Taparme la nariz: SÍ") : L("Hold my nose: off", "Taparme la nariz: no"); });
+  const bTaste = document.createElement("button"); bTaste.type = "button"; bTaste.className = "cyc-btn cyc-btn--ghost"; bTaste.textContent = L("Taste it", "Probar");
+  const meter = document.createElement("div"); meter.className = "eco-readout"; meter.innerHTML = `<div>${L("Basic taste (tongue)", "Sabor básico (lengua)")}<b id="sn-t" style="font-size:.95rem"></b></div><div>${L("Flavour strength (taste + smell)", "Intensidad del sabor (gusto + olfato)")}<b id="sn-f"></b></div><div>${L("Flavour you identify", "Sabor que identificas")}<b id="sn-i" style="font-size:.85rem"></b></div>`;
+  const touchBox = document.createElement("div"); touchBox.className = "cyc-controls"; touchBox.style.marginTop = ".8rem";
+  touchBox.innerHTML = `<div class="cyc-row"><b style="font-size:.9rem">${L("Two-point touch test", "Prueba táctil de dos puntos")}</b></div><div class="cyc-row" id="sn-sp"><b style="font-size:.84rem;min-width:7rem">${L("Skin spot:", "Zona de piel:")}</b></div><div class="cyc-row"><label for="sn-g">${L("Gap between two pins", "Distancia entre dos alfileres")}</label><input id="sn-g" type="range" min="1" max="60" value="${S.gap}"><span class="cyc-val" id="sn-gv"></span></div>`;
+  const spRow = touchBox.querySelector("#sn-sp"); Object.keys(SPOT).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(SPOT[k].en, SPOT[k].es); b.setAttribute("aria-pressed", String(S.spot === k)); b.addEventListener("click", () => { S.spot = k; spRow.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); }); spRow.append(b); });
+  const g = touchBox.querySelector("#sn-g"), gv = touchBox.querySelector("#sn-gv"); const syncG = () => { gv.textContent = S.gap + " mm"; }; g.addEventListener("input", () => { S.gap = +g.value; syncG(); }); syncG();
+  const bPoke = document.createElement("button"); bPoke.type = "button"; bPoke.className = "cyc-btn cyc-btn--ghost"; bPoke.textContent = L("Press the two pins on the skin", "Presionar los dos alfileres en la piel");
+  const tres = document.createElement("div"); tres.className = "eco-fact"; tres.textContent = L("Your skin has receptors for pressure, temperature and pain. Choose a spot and a gap, then press the pins.", "Tu piel tiene receptores de presión, temperatura y dolor. Elige una zona y una distancia y presiona los alfileres.");
+  const tasks = [
+    { en: "Taste the LEMON with your nose free and lock in the basic taste your tongue detects.", es: "Prueba el LIMÓN con la nariz libre y fija el sabor básico que detecta tu lengua.", test: r => r.last === "taste" && r.food === "lemon" && !r.nose },
+    { en: "Hold your nose and taste the JELLY BEANS, then lock in. Notice how much of the flavour disappears.", es: "Tápate la nariz y prueba las GOMINOLAS, y fija. Fíjate cuánto sabor desaparece.", test: r => r.last === "taste" && r.food === "jelly" && r.nose },
+    { en: "Touch test on the ELBOW: set the gap to 4 mm, press the pins and lock in what you feel.", es: "Prueba táctil en el CODO: pon la distancia en 4 mm, presiona los alfileres y fija lo que sientes.", test: r => r.last === "touch" && r.touch === "elbow" && r.gap <= 5 && r.felt === 1 },
+    { en: "Touch test on the FINGERTIP: set the gap to 4 mm, press the pins and lock in what you feel.", es: "Prueba táctil en la YEMA DEL DEDO: pon la distancia en 4 mm, presiona los alfileres y fija lo que sientes.", test: r => r.last === "touch" && r.touch === "fingertip" && r.gap <= 5 && r.felt === 2 },
+  ];
+  const ord = makeOrders(card, sim, "st4", tasks, () => { const o = { last: S.last, food: S.food, nose: S.nose, touch: S.touch, gap: S.gap, felt: S.felt }; if (S.last === "touch") return Object.assign(o, { setting: L(`${SPOT[S.touch].en}, gap ${S.gap} mm`, `${SPOT[S.touch].es}, distancia ${S.gap} mm`), reading: L(`Felt as ${S.felt === 2 ? "TWO points" : "ONE point"} (this spot needs about ${SPOT[S.touch].th} mm)`, `Se sintió como ${S.felt === 2 ? "DOS puntos" : "UN punto"} (esta zona necesita unos ${SPOT[S.touch].th} mm)`), result: S.felt === 2 ? L("Many receptors: very sensitive skin", "Muchos receptores: piel muy sensible") : L("Fewer receptors: less sensitive skin", "Menos receptores: piel menos sensible") }); const f = S.food ? FD[S.food] : null; return Object.assign(o, { setting: f ? L(`${f.en}, nose ${S.nose ? "held" : "free"}`, `${f.es}, nariz ${S.nose ? "tapada" : "libre"}`) : "-", reading: f ? L(`Basic taste ${TN[f.taste].en}; flavour strength ${S.nose ? 20 : 100}%`, `Sabor básico ${TN[f.taste].es}; intensidad ${S.nose ? 20 : 100}%`) : "-", result: f ? (S.nose ? L("Smell blocked: most of the flavour lost", "Olfato bloqueado: se pierde casi todo el sabor") : L("Taste + smell combined into full flavour", "Gusto + olfato combinados en sabor completo")) : L("Nothing tasted", "Nada probado") }); },
+    L("Senses Lab", "Laboratorio de Sentidos"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("senses", L("Senses Scientist", "Científico de los Sentidos")); onDone(); });
+  card.__onOrder = () => { S.last = null; S.felt = null; paintDeck(); };
+  const row1 = document.createElement("div"); row1.className = "cyc-row"; row1.style.marginTop = ".6rem"; row1.append(nose, bTaste);
+  const row2 = document.createElement("div"); row2.className = "cyc-row"; row2.style.marginTop = ".5rem"; row2.append(bPoke); const row3 = document.createElement("div"); row3.className = "cyc-row"; row3.style.marginTop = ".6rem"; row3.append(ord.lock);
+  card.append(deck, row1, meter, res, touchBox, row2, tres, ord.bar, row3);
+  function paintDeck() { deck.innerHTML = ""; Object.keys(FD).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-card"; b.setAttribute("aria-pressed", String(S.food === k)); b.innerHTML = `${PA(k, FD[k].en, FD[k].es)}<span>${L(FD[k].en, FD[k].es)}</span>`; b.addEventListener("click", () => { S.food = k; paintDeck(); }); deck.append(b); }); }
+  bTaste.addEventListener("click", () => { if (!S.food) { res.textContent = L("Pick a food first.", "Elige primero un alimento."); deck.classList.remove("cyc-shake"); void deck.offsetWidth; deck.classList.add("cyc-shake"); return; } const f = FD[S.food]; S.last = "taste"; S.tasted[S.food] = true;
+    meter.querySelector("#sn-t").textContent = L(TN[f.taste].en, TN[f.taste].es); meter.querySelector("#sn-f").textContent = (S.nose ? 20 : 100) + "%"; meter.querySelector("#sn-i").textContent = S.nose ? L("Just " + TN[f.taste].en.toLowerCase() + " - hard to say what it is!", "Solo " + TN[f.taste].es.toLowerCase() + " - ¡difícil saber qué es!") : L(f.fl.en, f.fl.es);
+    res.textContent = S.nose ? L("With your nose held, only the five basic tastes reach your brain. About 80% of flavour is smell, so the food seems bland.", "Con la nariz tapada solo llegan al cerebro los cinco sabores básicos. Cerca del 80% del sabor es olfato, así que la comida parece insípida.") : L("Food chemicals travel up the back of your throat to the nose, so smell and taste combine into full flavour.", "Los químicos de la comida suben por el fondo de la garganta hasta la nariz, así que olfato y gusto se combinan en el sabor completo."); burst(card, 50, 30, S.nose ? ["#ffb3a0", "#fff"] : ["#9dffb0", "#ffe08a"], 12); });
+  bPoke.addEventListener("click", () => { S.touch = S.spot; S.last = "touch"; S.felt = S.gap >= SPOT[S.spot].th ? 2 : 1; tres.textContent = S.felt === 2 ? L(`On the ${SPOT[S.spot].en.toLowerCase()} a ${S.gap} mm gap feels like TWO points - receptors are packed closely here.`, `En ${SPOT[S.spot].es.toLowerCase()} una distancia de ${S.gap} mm se siente como DOS puntos - aquí los receptores están muy juntos.`) : L(`On the ${SPOT[S.spot].en.toLowerCase()} a ${S.gap} mm gap feels like only ONE point - receptors are further apart here, so it needs about ${SPOT[S.spot].th} mm.`, `En ${SPOT[S.spot].es.toLowerCase()} una distancia de ${S.gap} mm se siente como UN solo punto - aquí los receptores están más separados, así que necesita unos ${SPOT[S.spot].th} mm.`); burst(card, 50, 70, S.felt === 2 ? ["#9dffb0", "#fff"] : ["#ffb3a0", "#fff"], 10); });
+  paintDeck();
+}
+
+/* ============================================================
+   BONUS - REFLEX RULER CATCH (the classic reaction-time test)
+   A real ruler photo drops without warning. Catch it as fast as you can.
+   Distance fallen d = 1/2 g t^2, so the reading gives your reaction time.
+   120 s on setInterval/performance.now. Silent. No fail state.
+   ============================================================ */
+const RFACTS = [
+  { en: "A message from your eye to your brain to your hand takes about a fifth of a second.", es: "Un mensaje de tu ojo a tu cerebro y a tu mano tarda cerca de una quinta parte de un segundo." },
+  { en: "Reflexes are faster than voluntary actions because the spinal cord handles them without waiting for the brain.", es: "Los reflejos son más rápidos que las acciones voluntarias porque la médula espinal los gestiona sin esperar al cerebro." },
+  { en: "The cerebellum helps coordinate your hand so you can catch things smoothly.", es: "El cerebelo ayuda a coordinar tu mano para que puedas atrapar cosas con suavidad." },
+  { en: "Sensory nerves carry information TO the brain; motor nerves carry commands FROM the brain to the muscles.", es: "Los nervios sensoriales llevan información AL cerebro; los nervios motores llevan órdenes DESDE el cerebro a los músculos." },
+  { en: "Practice makes the brain's pathways faster and smoother - learned skills get quicker.", es: "La práctica hace que las vías del cerebro sean más rápidas y suaves - las habilidades aprendidas se vuelven más rápidas." },
+  { en: "Distraction slows reactions because the cerebrum is busy with another thought.", es: "La distracción hace más lentas las reacciones porque el cerebro está ocupado con otro pensamiento." },
+];
+function mountRulerCatch(host, sim, onExit) {
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus eco-bonus"; host.append(wrap);
+  const img = new Image(); img.src = PH("ruler");
+  wrap.innerHTML = `<h3>${L("Bonus: Reflex Ruler Catch", "Bonus: Atrapa la Regla")}</h3><p>${L("The classic reaction-time experiment! A real ruler hangs between your fingers. When it starts to fall, catch it with the Catch button, Space or a tap. The distance it fell shows your reaction time. Every third round is a 'distracted' round: count backwards in your head while you wait. Two minutes, no lives, nothing can go wrong. A silent game.", "¡El clásico experimento de tiempo de reacción! Una regla real cuelga entre tus dedos. Cuando empiece a caer, atrápala con el botón Atrapar, la barra espaciadora o un toque. La distancia que cayó muestra tu tiempo de reacción. Cada tercera ronda es una ronda 'distraída': cuenta hacia atrás mentalmente mientras esperas. Dos minutos, sin vidas, nada puede salir mal. Un juego silencioso.")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="rr-start">${L("Play (2 minutes)", "Jugar (2 minutos)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="rr-skip">${L("Skip", "Omitir")}</button></div>`;
+  wrap.querySelector("#rr-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#rr-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Reflex Ruler Catch", "Atrapa la Regla")}</h3><div class="cyc-hud"><span id="rr-time"></span><span id="rr-score"></span><span id="rr-round"></span></div>
+      <canvas width="680" height="320" id="rr-cv" aria-label="${L("A ruler hanging between two fingers; catch it when it falls", "Una regla colgando entre dos dedos; atrápala cuando caiga")}" tabindex="0"></canvas>
+      <div class="cyc-row" style="margin-top:.6rem"><button type="button" class="cyc-btn" id="rr-catch" style="font-size:1.1rem;padding:.8rem 1.6rem;touch-action:none">${L("Catch! (Space)", "¡Atrapar! (Espacio)")}</button></div><div class="cyc-toast" id="rr-toast">${L("Get ready... press Catch when the ruler moves.", "Prepárate... pulsa Atrapar cuando la regla se mueva.")}</div>`;
+    const q = s => wrap.querySelector(s), cv = q("#rr-cv"), c = cv.getContext("2d"), toast = q("#rr-toast");
+    const PXCM = 3, G = 980, FY = 250, RL = 240, RX = 340;
+    const R = { left: 120, score: 0, n: 0, st: "wait", t0: 0, rel: 0, y: 0, d: 0, res: null, tms: [], foc: [], dis: [], best: null, over: false, fact: 0, early: 0 };
+    const say = (t, col) => { toast.textContent = t; toast.style.color = col || "#ffe08a"; };
+    function arm() { R.n++; R.dist = R.n % 3 === 0; R.st = "armed"; R.t0 = performance.now(); R.delay = 1200 + Math.random() * 2200; R.y = 0; R.res = null; q("#rr-round").textContent = L("Round ", "Ronda ") + R.n + (R.dist ? L(" (distracted: count backwards from 50!)", " (distraída: ¡cuenta hacia atrás desde 50!)") : ""); say(R.dist ? L("Count backwards from 50 in your head... and wait for the ruler.", "Cuenta hacia atrás desde 50 mentalmente... y espera la regla.") : L("Wait for the ruler to move...", "Espera a que la regla se mueva..."), "#cfe8ff"); }
+    function catchIt() {
+      if (R.over) return; const now = performance.now();
+      if (R.st === "armed") { R.early++; R.t0 = now; R.delay = 1500 + Math.random() * 1500; say(L("Too early! Wait until the ruler actually moves (no penalty).", "¡Muy pronto! Espera hasta que la regla se mueva (sin penalización)."), "#ffb3a0"); cv.classList.remove("cyc-shake"); void cv.offsetWidth; cv.classList.add("cyc-shake"); return; }
+      if (R.st !== "fall") return; const t = (now - R.rel) / 1000, d = 0.5 * G * t * t; R.st = "result"; R.d = d; R.tcatch = t; R.res = d > 80 ? "miss" : "ok"; R.t0 = now;
+      if (d <= 80) { R.tms.push(t); (R.dist ? R.dis : R.foc).push(t); R.best = R.best === null ? t : Math.min(R.best, t); const pts = Math.max(5, Math.round(150 - t * 400)); R.score += pts; const cls = t < 0.15 ? L("Lightning fast!", "¡Rapidísimo!") : t < 0.22 ? L("Great reflexes!", "¡Grandes reflejos!") : t < 0.3 ? L("Typical human reaction.", "Reacción humana típica.") : L("A bit slow - try again!", "Un poco lento - ¡inténtalo de nuevo!"); say(L(`Caught at ${d.toFixed(1)} cm: reaction time ${(t * 1000).toFixed(0)} ms. ${cls} +${pts}`, `Atrapada a ${d.toFixed(1)} cm: tiempo de reacción ${(t * 1000).toFixed(0)} ms. ${cls} +${pts}`), "#9dffb0"); burst(wrap, 50, 40, ["#9dffb0", "#ffe08a", "#fff"], 14); } else say(L("The ruler fell all the way. Try again!", "La regla cayó por completo. ¡Inténtalo de nuevo!"), "#ffb3a0");
+    }
+    const kd = e => { if (e.key === " " || e.key === "Enter") { if (document.activeElement === q("#rr-catch")) return; e.preventDefault(); catchIt(); } };
+    window.addEventListener("keydown", kd); q("#rr-catch").addEventListener("pointerdown", e => { e.preventDefault(); catchIt(); }); q("#rr-catch").addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); catchIt(); } }); cv.addEventListener("pointerdown", () => catchIt());
+    arm();
+    const last = { v: performance.now() };
+    const timer = setInterval(() => { const now = performance.now(), dt = Math.min(0.25, (now - last.v) / 1000); last.v = now; if (R.over) return; R.left -= dt; if (R.left <= 0) { finish(); return; }
+      if (R.st === "armed" && now - R.t0 >= R.delay) { R.st = "fall"; R.rel = now; }
+      if (R.st === "fall") { const t = (now - R.rel) / 1000, d = 0.5 * G * t * t; R.y = d * PXCM; if (d > 110) { R.st = "result"; R.res = "miss"; R.t0 = now; say(L("The ruler fell all the way. Try again!", "La regla cayó por completo. ¡Inténtalo de nuevo!"), "#ffb3a0"); } }
+      if (R.st === "result" && now - R.t0 > 2300) { R.fact = (R.fact + 1) % RFACTS.length; arm(); }
+      q("#rr-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(R.left)) + " s"; q("#rr-score").textContent = L("Score ", "Puntos ") + R.score; }, 50);
+    function draw(now) {
+      if (!cv.isConnected || R.over) return; const tt = now / 1000;
+      c.fillStyle = "#101a2e"; c.fillRect(0, 0, 680, 320); const bg = c.createLinearGradient(0, 0, 0, 320); bg.addColorStop(0, "#1a2a48"); bg.addColorStop(1, "#0c1424"); c.fillStyle = bg; c.fillRect(0, 0, 680, 320);
+      /* ruler photo rotated: zero end at bottom */ const y = R.st === "fall" || R.st === "result" ? (R.st === "result" && R.res === "ok" ? R.d * PXCM : R.y) : 0; c.save(); c.translate(RX, FY - RL + y + RL); c.rotate(-Math.PI / 2); if (img.complete && img.naturalWidth) c.drawImage(img, 0, -31, RL, 62); else { c.fillStyle = "#d8b878"; c.fillRect(0, -31, RL, 62); } c.restore();
+      /* ticks every 10 cm */ c.fillStyle = "#ffe08a"; c.font = "bold 11px sans-serif"; for (let cm = 0; cm <= 80; cm += 10) { const ty = FY + y - cm * PXCM; if (ty > 4 && ty < 316) { c.fillRect(RX + 34, ty, 10, 2); c.fillText(cm + " cm", RX + 48, ty + 4); } }
+      /* fingers */ c.fillStyle = "#e8b898"; c.beginPath(); c.roundRect ? c.roundRect(RX - 62, FY - 6, 34, 24, 10) : c.rect(RX - 62, FY - 6, 34, 24); c.fill(); c.beginPath(); c.roundRect ? c.roundRect(RX + 28, FY - 6, 34, 24, 10) : c.rect(RX + 28, FY - 6, 34, 24); c.fill(); c.strokeStyle = "#ffe08a"; c.setLineDash([6, 4]); c.beginPath(); c.moveTo(RX - 90, FY); c.lineTo(RX + 90, FY); c.stroke(); c.setLineDash([]); c.fillStyle = "#cfe8ff"; c.font = "11px sans-serif"; c.fillText(L("Your fingers (the zero line)", "Tus dedos (la línea cero)"), 20, FY - 8);
+      c.fillStyle = "#fff"; c.font = "bold 14px sans-serif"; if (R.st === "armed") c.fillText(L("Wait...", "Espera..."), 20, 40); if (R.st === "fall") { c.fillStyle = "#9dffb0"; c.fillText(L("NOW!", "¡YA!"), 20, 40); } if (R.st === "result" && R.res === "ok") { c.fillStyle = "#ffe08a"; c.fillText(L(`Caught at ${R.d.toFixed(1)} cm = ${(R.tcatch * 1000).toFixed(0)} ms`, `Atrapada a ${R.d.toFixed(1)} cm = ${(R.tcatch * 1000).toFixed(0)} ms`), 20, 40); c.font = "12px sans-serif"; c.fillStyle = "#cfe8ff"; c.fillText(L(RFACTS[R.fact].en, RFACTS[R.fact].es), 20, 62); }
+      c.fillStyle = "#9fb4e6"; c.font = "11px sans-serif"; c.fillText(L("Typical: about 20 cm = 0.2 seconds", "Típico: unos 20 cm = 0,2 segundos"), 440, 20); c.fillText(L("d = 1/2 × g × t²", "d = 1/2 × g × t²"), 440, 36);
+      requestAnimationFrame(draw);
+    }
+    R.left = 120; requestAnimationFrame(draw); cv.focus();
+    function avg(a) { return a.length ? a.reduce((x, y) => x + y, 0) / a.length : null; }
+    function finish() {
+      if (R.over) return; R.over = true; clearInterval(timer); window.removeEventListener("keydown", kd); const f = avg(R.foc), d = avg(R.dis), fm = v => v === null ? "-" : (v * 1000).toFixed(0) + " ms";
+      wrap.innerHTML = `<h3>${L("Reflex test complete!", "¡Prueba de reflejos completada!")}</h3><p>${L(`Catches: ${R.tms.length}. Best reaction: ${R.best === null ? "-" : (R.best * 1000).toFixed(0) + " ms"}. Focused average: ${fm(f)}. Distracted average: ${fm(d)}. Score ${R.score}.`, `Atrapadas: ${R.tms.length}. Mejor reacción: ${R.best === null ? "-" : (R.best * 1000).toFixed(0) + " ms"}. Promedio concentrado: ${fm(f)}. Promedio distraído: ${fm(d)}. Puntos ${R.score}.`)}</p><p>${f !== null && d !== null ? (d > f ? L("Your distracted rounds were slower: a busy cerebrum takes longer to respond.", "Tus rondas distraídas fueron más lentas: un cerebro ocupado tarda más en responder.") : L("Interesting - you stayed just as quick when distracted. Practice builds fast pathways!", "Interesante - fuiste igual de rápido distraído. ¡La práctica crea vías rápidas!")) : ""}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="rr-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="rr-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#rr-again").addEventListener("click", () => { wrap.remove(); mountRulerCatch(host, sim, onExit); }); wrap.querySelector("#rr-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: R.score, best: R.best });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the message type you trigger (voluntary or reflex), the parts you select, the light level, eye type, viewing distance and glasses, the sound volume and listening time, the food, whether your nose is held, and the skin spot and pin gap. Dependent: the route the message takes, pupil size, how sharp the picture is, how many hair cells keep working, the flavour strength and whether two points are felt. Controlled: the same body model, eye, ear and foods for every reading.",
+    "Independiente: el tipo de mensaje que activas (voluntario o reflejo), las partes que seleccionas, el nivel de luz, el tipo de ojo, la distancia y las gafas, el volumen y el tiempo de escucha, el alimento, si te tapas la nariz y la zona de piel y la distancia entre alfileres. Dependiente: la ruta del mensaje, el tamaño de la pupila, qué tan nítida es la imagen, cuántas células ciliadas siguen funcionando, la intensidad del sabor y si se sienten dos puntos. Controladas: el mismo modelo de cuerpo, ojo, oído y alimentos en cada lectura.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (["st1", "st2", "st3", "st4"].every(k => s[k] && s[k].idx >= 4) && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Command Centre mission complete! You traced a voluntary message and a reflex, focused an eye, protected the cochlea and tested taste, smell and touch. Now explain what you found.", "¡Misión del Centro de Mando completada! Trazaste un mensaje voluntario y un reflejo, enfocaste un ojo, protegiste la cóclea y probaste el gusto, el olfato y el tacto. Ahora explica lo que descubriste."); host.insertBefore(c, bonusHost); } paintBonus(); };
+  buildNerve(host, sim, check); buildEye(host, sim, check); buildEar(host, sim, check); buildSenses(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining how the nervous system and the senses work together?", "¿Qué tan seguro te sientes explicando cómo trabajan juntos el sistema nervioso y los sentidos?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:.4rem 0 0">${L("What would you like to learn next?", "¿Qué te gustaría aprender a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "mem", label: L("How the brain makes memories", "Cómo el cerebro crea recuerdos") }, { id: "sleep", label: L("Why sleep matters for the brain", "Por qué el sueño importa para el cerebro") }, { id: "hear", label: L("How to protect hearing and eyes", "Cómo proteger el oído y los ojos") }], "next");
+  host.append(creditLine());
+  document.addEventListener("eco-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountRulerCatch(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete - score ${st.score}.`, `Bonus completo - ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
