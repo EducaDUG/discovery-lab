@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6 - Term 1 - Module 1 The Basics of Life - Detective Academy.
+     Content lives here + config.json/marking.json only. Hyper-real 3D seed lab, detective desk, life scanner and meadow (CLAUDE.md 18); bonus: Evidence Crossing (Frogger-style classic reskin). -->
+<html data-unit-convert lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detective Academy: The Basics of Life - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=35">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .eco-fwstage.cyc-shake, .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  /* ---- Ecosystem Ranger extras ---- */
+  .eco-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slot { border: 2px dashed var(--line); border-radius: 12px; min-height: 7.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: .78rem; color: var(--ink-3); position: relative; overflow: hidden; background: var(--surface); }
+  .eco-slot[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); }
+  .eco-slot img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-slot b { display: block; padding: .15rem .3rem 0; font-size: .8rem; }
+  .eco-slot__n { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font: 800 .75rem var(--font-data); display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .eco-slot.eco-pop { animation: eco-pop .45s ease; }
+  @keyframes eco-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .eco-pop { animation: none !important; }
+  .eco-tab-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+  .eco-card { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); font: inherit; display: flex; flex-direction: column; }
+  .eco-card:hover, .eco-card:focus-visible { border-color: var(--accent); outline: none; }
+  .eco-card[data-used="true"] { opacity: .35; }
+  .eco-card[aria-pressed="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px #ffd24d88; }
+  .eco-card img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-card span { padding: .3rem .45rem; font-size: .76rem; font-weight: 700; }
+  .eco-fact { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; min-height: 2.4rem; }
+
+  .eco-fwstage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; background: linear-gradient(#8fd0ff, #d8f0c8); }
+  @media (max-width: 640px) { .eco-fwstage { aspect-ratio: 1/1; } }
+  .eco-fwstage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .eco-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-top: .45rem; }
+  .eco-chips > b { font-size: .78rem; min-width: 8.2rem; }
+  .eco-tok { display: inline-flex; align-items: center; gap: .35rem; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .15rem .65rem .15rem .2rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .eco-tok img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+  .eco-tok[aria-pressed="true"][data-side="from"] { border-color: #e8a400; background: #fff3c4; }
+  .eco-tok[aria-pressed="true"][data-side="to"] { border-color: #1d9bd6; background: #d7f0ff; }
+  .eco-arrows { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; min-height: 1.6rem; }
+  .eco-arrows span { font-size: .74rem; font-weight: 700; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: .15rem .6rem; }
+
+  .eco-pop-stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #0e2a1a; }
+  .eco-pop-stage canvas { display: block; width: 100%; height: auto; }
+  .eco-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .eco-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .3rem; }
+  .eco-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .eco-readout div { border: 1px solid var(--line); border-radius: 10px; padding: .35rem .6rem; background: var(--surface); font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .eco-readout div b { display: block; font: 800 1.15rem var(--font-data); color: var(--accent); }
+
+  .eco-bonus canvas { cursor: crosshair; touch-action: none; }
+  .eco-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-role { border: 2px solid #ffffff33; background: #ffffff10; color: #fff; border-radius: 12px; padding: 0; cursor: pointer; font: inherit; overflow: hidden; text-align: left; }
+  .eco-role:hover, .eco-role:focus-visible { border-color: #ffd24d; outline: none; }
+  .eco-role img { width: 100%; height: 4.6rem; object-fit: cover; display: block; }
+  .eco-role span { display: block; padding: .3rem .5rem; font-size: .76rem; font-weight: 700; }
+  .eco-q { margin-top: .5rem; border: 2px solid #ffd24d; border-radius: 12px; padding: .55rem .75rem; background: #1b2a10; font-size: .9rem; }
+  .eco-q .cyc-row { margin-top: .4rem; }
+  .eco-board { display: flex; flex-wrap: wrap; gap: .6rem; font: 700 .76rem var(--font-data); color: #cfe8ff; margin-top: .3rem; }
+  .eco-board span[data-me="true"] { color: #ffe08a; }
+
+  .dg-stage { aspect-ratio: 4/5; max-height: 640px; background: radial-gradient(120% 120% at 50% 30%, #1d4a5a 0%, #0a1c2a 70%) !important; }
+  @media (max-width: 640px) { .dg-stage { aspect-ratio: 3/4; } }
+  .dg-tok { padding-left: .8rem; }
+  .ba-stage { background: radial-gradient(120% 120% at 50% 30%, #1d3a4a 0%, #0a1620 70%) !important; aspect-ratio: 16/10; }
+  .ba-meadow { background: linear-gradient(#8fd0ff, #d8f0c8) !important; }
+  @media (max-width: 640px) { .ba-stage { aspect-ratio: 4/5; } }
+  .ba-ladder { margin-top: .6rem; }
+  .ba-slots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .35rem; }
+  .ba-slots li { border: 2px dashed var(--line); border-radius: 10px; padding: .3rem .6rem; font-size: .8rem; color: var(--ink-3); min-height: 2.2rem; display: flex; align-items: center; gap: .4rem; }
+  .ba-slots li[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); background: var(--accent-wash); }
+  .ba-pool { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+  .ba-pots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .ba-pot { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .6rem; background: var(--surface); display: grid; gap: .25rem; }
+  .ba-pot label { font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .ba-pot select { font: inherit; font-size: .82rem; padding: .3rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); min-height: 40px; }
+  @media (max-width: 520px) { .ba-pots { grid-template-columns: 1fr; } }
+  .eco-tok[data-res="ok"] { border-color: #1f9d55; background: #d6f5e1; }
+  .eco-tok[data-res="miss"] { border-color: #1d6fd6; background: #d7e8ff; }
+  .eco-tok[data-res="bad"] { border-color: #c0392b; background: #fbd9d4; }
+
+</style>
+<!-- seo:start -->
+<meta name="description" content="In this lab students train as science detectives. They put the seven steps of the scientific method in order, then grow three seedlings in a 3D chamber to run a fair test of light, an unfair test that changes two things at once, and a fair test of water, reading real heights from rulers beside...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-1/sim-detective-academy/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Detective Academy: The Basics of Life | Discovery Lab">
+<meta property="og:description" content="In this lab students train as science detectives. They put the seven steps of the scientific method in order, then grow three seedlings in a 3D chamber to run a fair test of light, an unfair test that changes two things at once, and a fair test of water, reading real heights from rulers beside...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-1/sim-detective-academy/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Detective Academy: The Basics of Life", "description": "In this lab students train as science detectives. They put the seven steps of the scientific method in order, then grow three seedlings in a 3D chamber to run a fair test of light, an unfair test that changes two things at once, and a fair test of water, reading real heights from rulers beside each plant. They stamp ten claims as real science or pseudoscience using the ideas of testability, empirical evidence and willingness to change, scan a dog, a car, a sunflower and a campfire against the eight characteristics of life to decide what is truly alive, and explore a 3D meadow to sort biotic and abiotic factors and trace energy from the Sun through grass, rabbit, fox and hawk. This builds scientific enquiry and critical thinking as students judge the quality of evidence, strengthens data interpretation as they compare logged plant heights across conditions, and practises communication by explaining their own evidence. The content practised is Life Science 6, Term 1, Module 1: The Basics of Life: observation and empirical evidence, the 7-step scientific method and fair testing, real science versus pseudoscience, biology as the study of life, ecology with biotic and abiotic factors, energy flow in food chains, and the characteristics of living things.", "url": "https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-1/sim-detective-academy/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Scientific enquiry", "Critical thinking", "Data interpretation", "Systems thinking", "Communication"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "USDP Junior High Life Science 6"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=25";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const PH = k => `photos/${k}.jpg`;
+const PA = (k, en, es) => `<img src="${PH(k)}" alt="${L(en, es)}" loading="lazy">`;
+let CREDITS = null;
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit";
+  cr.textContent = L("Photo credits loading...", "Cargando créditos de fotos...");
+  (CREDITS ? Promise.resolve(CREDITS) : fetch("photos/credits.json").then(r => r.json()).then(j => (CREDITS = j))).then(j => {
+    const seen = {}, bits = [];
+    Object.keys(j).forEach(k => { const c = j[k], key = c.author + "|" + c.license; if (seen[key]) return; seen[key] = 1; bits.push(`<a href="${c.page}">${c.author.split(" from ")[0].replace(/\s*\(.*$/, "")}</a> (${c.licenseUrl ? `<a href="${c.licenseUrl}">${c.license}</a>` : c.license})`); });
+    cr.innerHTML = L("Real photos via Wikimedia Commons / OpenStax: ", "Fotos reales vía Wikimedia Commons / OpenStax: ") + bits.join("; ") + ".";
+  }).catch(() => { cr.textContent = L("Photos via Wikimedia Commons (credits on each photo's page).", "Fotos vía Wikimedia Commons (créditos en la página de cada foto)."); });
+  return cr;
+}
+
+/* Orders queue (persisted in sim.state - CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete - keep exploring, or lock in more readings.", "Todos los pedidos completos - sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    if (card.__onOrder) card.__onOrder(st.idx);
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" - order met", " - pedido cumplido") : t ? L(" - not the order yet", " - todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("eco-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#7be08a", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged - but that is not the order. Re-read it and try again.", "Registrado - pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st, paint };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+const shuffled = (a, seed) => { const r = a.slice(); let s = seed || 7; for (let i = r.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor(s / 233280 * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+
+
+
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+function noiseTex() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 900; i++) { x.fillStyle = Math.random() > 0.5 ? "#b0b0b0" : "#505050"; x.globalAlpha = 0.28; x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+/* Shared "pick the parts" panel used by the lungs and the heart (chips = keyboard route) */
+function pickPanel(card, keys, label, onPickHook) {
+  const chipRow = document.createElement("div"); chipRow.className = "eco-chips"; chipRow.innerHTML = `<b>${L("Parts:", "Partes:")}</b>`;
+  const picksEl = document.createElement("div"); picksEl.className = "eco-arrows";
+  const cap = document.createElement("div"); cap.className = "eco-fact"; cap.textContent = L("Tap a part (in 3D or with the buttons) to read what it does.", "Toca una parte (en 3D o con los botones) para leer qué hace.");
+  const P = { picks: [], chips: {}, cap, hi: null };
+  keys.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(label(k).en, label(k).es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => P.pick(k)); chipRow.append(b); P.chips[k] = b; });
+  P.paint = () => {
+    keys.forEach(k => P.chips[k].setAttribute("aria-pressed", String(P.picks[P.picks.length - 1] === k)));
+    picksEl.innerHTML = P.picks.length ? "" : `<small style="color:var(--ink-3)">${L("No picks yet.", "Aún no hay selecciones.")}</small>`;
+    P.picks.forEach((k, i) => { const s = document.createElement("span"); s.textContent = (i + 1) + ". " + L(label(k).en, label(k).es); picksEl.append(s); });
+    if (P.hi) P.hi(P.picks[P.picks.length - 1]);
+  };
+  P.pick = k => { P.picks.push(k); if (P.picks.length > 8) P.picks.shift(); onPickHook(k, cap); P.paint(); };
+  P.clear = () => { P.picks = []; P.paint(); };
+  card.append(chipRow, picksEl, cap);
+  return P;
+}
+
+
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Welcome to Detective Academy! Tap each real picture to meet four big ideas: evidence, real science vs pseudoscience, biology, and how living things connect.", "¡Bienvenido a la Academia de Detectives! Toca cada imagen real para conocer cuatro grandes ideas: la evidencia, la ciencia real frente a la pseudociencia, la biología y cómo se conectan los seres vivos.");
+  host.append(p);
+  const items = [
+    { f: "seedlings", en: "Evidence beats guessing", es: "La evidencia vence a las suposiciones", t: { en: "Scientists rely on EMPIRICAL evidence (from the Greek 'empeirikos', experienced): information we can verify with our senses and tools. A detective doesn't just guess who did it; they look for fingerprints. Planting seedlings and measuring how they grow gives evidence.", es: "Los científicos se basan en la evidencia EMPÍRICA (del griego 'empeirikos', experimentado): información que podemos comprobar con los sentidos y las herramientas. Un detective no adivina quién fue; busca huellas. Plantar plántulas y medir cómo crecen da evidencia." } },
+    { f: "telescope", en: "Astronomy is science", es: "La astronomía es ciencia", t: { en: "Astronomy (studying stars with telescopes) is science: it is testable, changeable and based on evidence. Astrology (horoscopes) sounds scientific but is pseudoscience ('pseudes' = false): it can't be tested and ignores evidence that disagrees.", es: "La astronomía (estudiar las estrellas con telescopios) es ciencia: es comprobable, cambia y se basa en evidencia. La astrología (horóscopos) suena científica pero es pseudociencia ('pseudes' = falso): no se puede comprobar e ignora la evidencia que no está de acuerdo." } },
+    { f: "lab", en: "Biology: the study of life", es: "Biología: el estudio de la vida", t: { en: "Biology (from 'bios' = life and 'logos' = study) is the branch of life science that studies living things and their environment. A biologist is like a mechanic for life! Careers: marine biologist, geneticist, zoologist, doctor, ecologist.", es: "La biología (de 'bios' = vida y 'logos' = estudio) es la rama de las ciencias de la vida que estudia a los seres vivos y su entorno. ¡Un biólogo es como un mecánico de la vida! Carreras: biólogo marino, genetista, zoólogo, médico, ecólogo." } },
+    { f: "forest", en: "Everything is connected", es: "Todo está conectado", t: { en: "Ecology (from 'oikos' = home) studies how living (biotic) things interact with each other and with non-living (abiotic) surroundings like sun, water, soil and air. Energy flows from the Sun to plants to animals, like a battery charger.", es: "La ecología (de 'oikos' = hogar) estudia cómo interactúan los seres vivos (bióticos) entre sí y con su entorno no vivo (abiótico) como el sol, el agua, el suelo y el aire. La energía fluye del Sol a las plantas y a los animales, como un cargador de batería." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo">${PA(it.f, it.en, it.es)}</span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("SEE - THINK - WONDER. Humans use about 80% of their brain's sensing power just for sight, so we are built to observe! Look closely at this real forest stream and notice details before you learn any rules. Then play photo detective: tap what each clue describes.", "VER - PENSAR - PREGUNTARSE. Los humanos usamos cerca del 80% de la capacidad sensorial del cerebro solo para la vista, ¡estamos hechos para observar! Mira de cerca este arroyo real del bosque y fíjate en los detalles antes de aprender ninguna regla. Luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo";
+  wrap.innerHTML = `<img src="${PH("forest")}" alt="${L("A real forest valley with a rocky stream running through it, tall pine trees on both sides and a hiker standing by the water", "Un valle de bosque real con un arroyo rocoso que lo atraviesa, altos pinos a ambos lados y un excursionista junto al agua")}">`;
+  const targets = [
+    { x: 12, y: 81, en: "a NON-LIVING thing every plant here needs to survive - the flowing WATER (abiotic)", es: "una cosa NO VIVA que todas las plantas de aquí necesitan para sobrevivir - el AGUA que fluye (abiótica)" },
+    { x: 23, y: 20, en: "a LIVING thing that makes its own food from sunlight - the tall PINE TREES (biotic producers)", es: "un ser VIVO que fabrica su propio alimento con la luz del sol - los altos PINOS (productores bióticos)" },
+    { x: 29, y: 60, en: "a LIVING thing that cannot make its own food and must eat - the HIKER (an animal, a consumer)", es: "un ser VIVO que no puede fabricar su propio alimento y debe comer - el EXCURSIONISTA (un animal, un consumidor)" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one - read the clue again.", "Esa no - vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! One scene, two kinds of things: abiotic (water, rock, air, sunlight) and biotic (trees, people, fungi). Ecology studies how they all interact.", "¡Detective de fotos completado! Una escena, dos tipos de cosas: abióticas (agua, roca, aire, luz del sol) y bióticas (árboles, personas, hongos). La ecología estudia cómo interactúan todas.") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("What do you SEE? What do you THINK is happening? What do you WONDER? Scientists answer questions with evidence from careful observation, fair tests and a method they can repeat. Keep that in mind for your hypothesis.", "¿Qué VES? ¿Qué PIENSAS que está pasando? ¿Qué te PREGUNTAS? Los científicos responden preguntas con evidencia de observaciones cuidadosas, pruebas justas y un método que pueden repetir. Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+/* ============================================================
+   STATION 1 - THE SEED LAB (7-step method ladder + fair-test growth chamber)
+   ============================================================ */
+const STEPS7 = [
+  { k: "q", en: "Question: identify the problem", es: "Pregunta: identifica el problema" },
+  { k: "h", en: "Hypothesis: make a testable prediction", es: "Hipótesis: haz una predicción comprobable" },
+  { k: "e", en: "Experiment: test your hypothesis", es: "Experimento: pon a prueba tu hipótesis" },
+  { k: "o", en: "Observations: gather data during the test", es: "Observaciones: reúne datos durante la prueba" },
+  { k: "a", en: "Analyze: look for patterns in the results", es: "Análisis: busca patrones en los resultados" },
+  { k: "c", en: "Conclusion: answer the original question", es: "Conclusión: responde la pregunta original" },
+  { k: "v", en: "Evaluate: was your test fair? What next?", es: "Evaluación: ¿fue justa tu prueba? ¿Y ahora qué?" },
+];
+const LIGHTN = [{ en: "Dark cupboard", es: "Armario oscuro" }, { en: "Dim shade", es: "Sombra tenue" }, { en: "Bright window", es: "Ventana luminosa" }];
+const WATERN = [{ en: "No water", es: "Sin agua" }, { en: "30 ml a day", es: "30 ml al día" }, { en: "80 ml a day", es: "80 ml al día" }];
+const LF = [0.12, 0.55, 1], WF = [0.2, 1, 0.75];
+const POTN = ["A", "B", "C"];
+function plantH(l, w) { return Math.round(8.5 * LF[l] * WF[w] * 10) / 10; }
+const allSame = a => a.every(v => v === a[0]);
+const allDiff = a => new Set(a).size === a.length;
+
+function buildSeed(mount, sim, onDone) {
+  const card = stationShell("1", "The Seed Lab", "El Laboratorio de Semillas", "First put the 7 steps of the scientific method in order. Then run real fair and unfair tests: grow three seedlings for 7 days and see what you can (and cannot) conclude.", "Primero pon en orden los 7 pasos del método científico. Luego haz pruebas justas e injustas: cultiva tres plántulas durante 7 días y descubre qué puedes (y qué no) concluir.");
+  mount.append(card);
+  const S = sim.state.sd || (sim.state.sd = { ladder: [], light: [2, 2, 2], water: [1, 1, 1] });
+  S.ran = false; S.res = null; S.t = 0; S.running = false;
+  /* --- method ladder --- */
+  const lad = document.createElement("div"); lad.className = "ba-ladder";
+  const slots = document.createElement("ol"); slots.className = "ba-slots"; const pool = document.createElement("div"); pool.className = "ba-pool";
+  const ladMsg = document.createElement("div"); ladMsg.className = "eco-fact"; ladMsg.textContent = L("Tap the steps in the order a scientist does them. Step 1 first!", "Toca los pasos en el orden en que los hace un científico. ¡El paso 1 primero!");
+  const order = shuffled(STEPS7.map(s => s.k), 11);
+  function paintLadder() {
+    slots.innerHTML = ""; STEPS7.forEach((s, i) => { const li = document.createElement("li"); const done = i < S.ladder.length; li.dataset.full = String(done); li.innerHTML = done ? `<b>${i + 1}.</b> ${L(s.en, s.es)}` : `<b>${i + 1}.</b> <i>?</i>`; slots.append(li); });
+    pool.innerHTML = ""; order.filter(k => !S.ladder.includes(k)).forEach(k => { const s = STEPS7.find(x => x.k === k); const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = L(s.en.split(":")[0], s.es.split(":")[0]) + " - " + L(s.en.split(": ")[1], s.es.split(": ")[1]); b.addEventListener("click", () => place(k, b)); pool.append(b); });
+    if (S.ladder.length >= 7) ladMsg.textContent = L("Ladder complete! Notice step 7 (Evaluate) asks 'was your test fair?' - that is what you test next.", "¡Escalera completa! Fíjate en que el paso 7 (Evaluación) pregunta '¿fue justa tu prueba?' - eso es lo que probarás ahora.");
+  }
+  function place(k, b) {
+    if (S.ladder.length >= 7) return;
+    if (STEPS7[S.ladder.length].k === k) { S.ladder.push(k); sim.saveState(); burst(card, 30, 18, ["#7be08a", "#ffd24d", "#fff"], 10); paintLadder(); if (S.ladder.length < 7) ladMsg.textContent = L(`Correct! Now step ${S.ladder.length + 1}.`, `¡Correcto! Ahora el paso ${S.ladder.length + 1}.`); }
+    else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); ladMsg.textContent = L(`Not step ${S.ladder.length + 1}. Hint: you must ask a question, then predict, before you can test.`, `No es el paso ${S.ladder.length + 1}. Pista: primero preguntas, luego predices, antes de probar.`); }
+  }
+  lad.append(slots, pool, ladMsg); card.append(lad); paintLadder();
+  /* --- stage --- */
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage";
+  stage.setAttribute("aria-label", L("Three seedlings in pots A, B and C under lamps, with rulers beside them", "Tres plántulas en macetas A, B y C bajo lámparas, con reglas al lado")); card.append(stage);
+  const hud = document.createElement("div"); hud.className = "eco-readout"; hud.innerHTML = `<div>${L("Day", "Día")}<b id="sd-d">0 / 7</b></div>` + POTN.map((n, i) => `<div>${L("Pot ", "Maceta ")}${n}<b id="sd-h${i}">-</b></div>`).join(""); card.append(hud);
+  const ctr = document.createElement("div"); ctr.className = "ba-pots";
+  POTN.forEach((n, i) => { const d = document.createElement("div"); d.className = "ba-pot"; d.innerHTML = `<b>${L("Pot ", "Maceta ")}${n}</b><label for="sd-l${i}">${L("Light", "Luz")}</label><select id="sd-l${i}">${LIGHTN.map((o, j) => `<option value="${j}" ${S.light[i] === j ? "selected" : ""}>${L(o.en, o.es)}</option>`).join("")}</select><label for="sd-w${i}">${L("Water", "Agua")}</label><select id="sd-w${i}">${WATERN.map((o, j) => `<option value="${j}" ${S.water[i] === j ? "selected" : ""}>${L(o.en, o.es)}</option>`).join("")}</select>`; ctr.append(d);
+    d.querySelector(`#sd-l${i}`).addEventListener("change", e => { S.light[i] = +e.target.value; changed(); }); d.querySelector(`#sd-w${i}`).addEventListener("change", e => { S.water[i] = +e.target.value; changed(); }); });
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Choose the light and water for each pot, then press Grow for 7 days. A FAIR test changes only ONE thing between the pots.", "Elige la luz y el agua de cada maceta y pulsa Crecer 7 días. Una prueba JUSTA cambia solo UNA cosa entre las macetas.");
+  function changed() { S.ran = false; S.res = null; sim.saveState(); paintHud(); const lc = !allSame(S.light), wc = !allSame(S.water); fact.textContent = lc && wc ? L("Careful: you changed BOTH light and water. If the plants differ, you won't know which caused it.", "Cuidado: cambiaste LUZ y AGUA. Si las plantas son distintas, no sabrás cuál lo causó.") : lc ? L("Fair so far: only the light differs (water is the same in every pot).", "Justo por ahora: solo cambia la luz (el agua es igual en todas las macetas).") : wc ? L("Fair so far: only the water differs (light is the same in every pot).", "Justo por ahora: solo cambia el agua (la luz es igual en todas las macetas).") : L("Nothing is different between the pots yet - change one thing to test it.", "Aún no hay nada distinto entre las macetas - cambia una cosa para probarla."); }
+  function paintHud() { const hv = S.res || POTN.map(() => null); POTN.forEach((n, i) => { const cur = S.running || S.ran ? (S.res ? S.res[i] * Math.min(1, S.t) : 0) : null; hud.querySelector("#sd-h" + i).textContent = cur === null ? "-" : cur.toFixed(1) + " cm"; }); hud.querySelector("#sd-d").textContent = Math.round(7 * Math.min(1, S.t)) + " / 7"; }
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bRun = mkBtn(L("Grow for 7 days", "Crecer 7 días")), bReset = mkBtn(L("Reset the pots", "Reiniciar las macetas"), true);
+  bRun.addEventListener("click", () => { if (S.running) return; S.res = POTN.map((n, i) => plantH(S.light[i], S.water[i])); S.t = 0; S.running = true; S.ran = false; S.t0 = performance.now(); bRun.disabled = true; burst(stage, 50, 30, ["#8fd0ff", "#fff"], 12); });
+  bReset.addEventListener("click", () => { if (S.running) return; S.light = [2, 2, 2]; S.water = [1, 1, 1]; POTN.forEach((n, i) => { ctr.querySelector("#sd-l" + i).value = 2; ctr.querySelector("#sd-w" + i).value = 1; }); S.t = 0; changed(); });
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); return; } if (!S.running) return; S.t = Math.min(1, (performance.now() - S.t0) / 4200); paintHud();
+    if (S.t >= 1) { S.running = false; S.ran = true; bRun.disabled = false; const lc = !allSame(S.light), wc = !allSame(S.water); const tall = Math.max(...S.res); fact.textContent = lc && wc ? L(`Result: ${S.res.join(", ")} cm. But light AND water were different, so you cannot tell which one caused the difference. That is an UNFAIR test.`, `Resultado: ${S.res.join(", ")} cm. Pero la luz Y el agua eran distintas, así que no puedes saber cuál causó la diferencia. Eso es una prueba INJUSTA.`) : (lc || wc) ? L(`Result: ${S.res.join(", ")} cm. Only ${lc ? "light" : "water"} was different, so the difference IS caused by it. The tallest plant reached ${tall} cm. That is a FAIR test.`, `Resultado: ${S.res.join(", ")} cm. Solo ${lc ? "la luz" : "el agua"} era distinta, así que la diferencia SÍ la causa. La planta más alta llegó a ${tall} cm. Eso es una prueba JUSTA.`) : L(`Result: ${S.res.join(", ")} cm. Nothing was different between the pots, so all three grew the same - a good CONTROL check.`, `Resultado: ${S.res.join(", ")} cm. No había nada distinto entre las macetas, así que las tres crecieron igual - una buena comprobación de CONTROL.`); burst(stage, 50, 40, ["#7be08a", "#ffd24d", "#fff"], 16); } }, 60);
+  const tasks = [
+    { en: "Put all 7 steps of the scientific method in the correct order (the ladder above), then lock in.", es: "Pon los 7 pasos del método científico en el orden correcto (la escalera de arriba) y fija.", test: r => r.ladderDone },
+    { en: "A FAIR test of light: give all three pots the SAME water but three DIFFERENT lights, press Grow for 7 days, then lock in.", es: "Una prueba JUSTA de la luz: da a las tres macetas la MISMA agua pero tres luces DISTINTAS, pulsa Crecer 7 días y fija.", test: r => r.ran && allSame(r.water) && allDiff(r.light) },
+    { en: "An UNFAIR test: change BOTH the light and the water between pots, press Grow for 7 days, and lock in. Notice you cannot tell which one caused the difference.", es: "Una prueba INJUSTA: cambia la luz Y el agua entre las macetas, pulsa Crecer 7 días y fija. Fíjate en que no puedes saber cuál causó la diferencia.", test: r => r.ran && !allSame(r.light) && !allSame(r.water) },
+    { en: "A FAIR test of water: give all three pots the SAME bright light but three DIFFERENT amounts of water, press Grow for 7 days, then lock in.", es: "Una prueba JUSTA del agua: da a las tres macetas la MISMA luz brillante pero tres cantidades de agua DISTINTAS, pulsa Crecer 7 días y fija.", test: r => r.ran && allSame(r.light) && r.light[0] === 2 && allDiff(r.water) },
+  ];
+  const ord = makeOrders(card, sim, "st1", tasks, () => {
+    const lc = !allSame(S.light), wc = !allSame(S.water);
+    if (S.ran) return { ran: true, light: S.light.slice(), water: S.water.slice(), ladderDone: S.ladder.length >= 7, setting: lc && wc ? L("Changed light AND water (unfair)", "Cambió luz Y agua (injusta)") : lc ? L("Changed light only (fair)", "Cambió solo la luz (justa)") : wc ? L("Changed water only (fair)", "Cambió solo el agua (justa)") : L("Nothing changed (control check)", "Nada cambió (control)"), reading: POTN.map((n, i) => `${n}: ${L(LIGHTN[S.light[i]].en, LIGHTN[S.light[i]].es)}, ${L(WATERN[S.water[i]].en, WATERN[S.water[i]].es)} = ${S.res[i]} cm`).join(" | "), result: lc && wc ? L("Unfair test - cause unclear", "Prueba injusta - causa poco clara") : (lc || wc) ? L(`Fair test - tallest ${Math.max(...S.res)} cm`, `Prueba justa - la más alta ${Math.max(...S.res)} cm`) : L("Control check - same result in every pot", "Control - mismo resultado en todas") };
+    return { ran: false, light: S.light.slice(), water: S.water.slice(), ladderDone: S.ladder.length >= 7, setting: L("7-step method ladder", "Escalera de los 7 pasos"), reading: L(`${S.ladder.length} of 7 steps placed in order`, `${S.ladder.length} de 7 pasos en orden`), result: S.ladder.length >= 7 ? L("Ladder complete", "Escalera completa") : L("Ladder not finished", "Escalera sin terminar") };
+  }, L("Seed Lab", "Laboratorio de Semillas"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("seed", L("Fair Tester", "Probador Justo")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bRun, bReset, ord.lock);
+  card.append(ctr, fact, ord.bar, row);
+  /* --- 3D chamber --- */
+  const sp = makeSpace(stage, { fov: 36, dist: 8.6, pitch: 0.12, yaw: 0, ty: 1.9 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer } = sp; renderer.toneMappingExposure = 1.05; scene.fog = new THREE.Fog(0x0e1a22, 14, 30);
+    scene.add(new THREE.HemisphereLight(0xcfe6ff, 0x2a1a10, 0.55)); const key = new THREE.DirectionalLight(0xfff0dc, 0.8); key.position.set(3, 6, 6); scene.add(key);
+    const bump = noiseTex(); const mat = (hex, o) => new THREE.MeshStandardMaterial(Object.assign({ color: C3(hex), roughness: 0.75, bumpMap: bump, bumpScale: 0.6 }, o || {}));
+    const bench = new THREE.Mesh(new THREE.BoxGeometry(9.5, 0.4, 3.6), mat(0x8a6a48, { roughness: 0.6 })); bench.position.set(0, -0.2, 0); scene.add(bench);
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(14, 7), mat(0x24394a, { roughness: 1, bumpScale: 0.05 })); wall.position.set(0, 3, -1.9); scene.add(wall);
+    const rulerTex = (() => { const c = document.createElement("canvas"); c.width = 64; c.height = 512; const x = c.getContext("2d"); x.fillStyle = "#f4e6bd"; x.fillRect(0, 0, 64, 512); x.fillStyle = "#3a2a10"; x.font = "bold 22px sans-serif"; for (let cm = 0; cm <= 10; cm++) { const y = 502 - cm * 48; x.fillRect(0, y, cm % 5 === 0 ? 34 : 20, 3); if (cm % 2 === 0) x.fillText(String(cm), 36, y + 7); } const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; })();
+    const plants = POTN.map((n, i) => {
+      const g = new THREE.Group(); g.position.set((i - 1) * 2.7, 0, 0); scene.add(g);
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.45, 0.7, 28), mat(0xb5532e, { roughness: 0.8 })); pot.position.y = 0.35; g.add(pot);
+      const soil = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 0.05, 28), mat(0x3b2616)); soil.position.y = 0.7; g.add(soil);
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 1, 10), mat(0x4caf50, { roughness: 0.6 })); stem.position.y = 0.72; g.add(stem);
+      const leaves = []; for (let k = 0; k < 6; k++) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 10), mat(0x4caf50, { roughness: 0.55, side: THREE.DoubleSide })); lf.scale.set(1, 0.14, 0.55); g.add(lf); leaves.push(lf); }
+      const rl = new THREE.Mesh(new THREE.BoxGeometry(0.34, 2.8, 0.03), new THREE.MeshBasicMaterial({ map: rulerTex })); rl.position.set(0.95, 0.72 + 1.4, 0.2); g.add(rl);
+      const lamp = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.45, 24, 1, true), mat(0x333a44, { side: THREE.DoubleSide, roughness: 0.4, metalness: 0.5 })); lamp.position.y = 4.3; g.add(lamp);
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffe9a8 })); bulb.position.y = 4.1; g.add(bulb);
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#ffe08a"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); glow.position.y = 4.1; g.add(glow);
+      const beam = new THREE.Mesh(new THREE.ConeGeometry(1.15, 3.4, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff1b8, transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); beam.position.y = 2.4; g.add(beam);
+      const pl = new THREE.PointLight(0xfff0c8, 1, 9); pl.position.set(0, 3.7, 0.6); g.add(pl);
+      const drops = []; for (let k = 0; k < 8; k++) { const dr = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshBasicMaterial({ color: 0x8fd0ff })); dr.visible = false; g.add(dr); drops.push(dr); }
+      return { g, stem, leaves, bulb, glow, beam, pl, drops, lamp };
+    });
+    hooks.push((dt, t) => {
+      plants.forEach((P, i) => {
+        const l = S.light[i], w = S.water[i], full = S.res ? S.res[i] : 0, cur = S.res ? full * Math.min(1, S.t) : 0, shown = (S.ran || S.running) ? cur : 0.6;
+        const lv = [0.0, 0.55, 1][l]; P.pl.intensity = 0.25 + lv * 1.6; P.glow.material.opacity = 0.2 + lv * 0.8; P.glow.scale.setScalar(0.7 + lv * 1.3); P.beam.material.opacity = 0.02 + lv * 0.16; P.bulb.material.color.setHex(lv < 0.1 ? 0x3a3a3a : 0xffe9a8);
+        const hh = Math.max(0.15, shown * 0.28); P.stem.scale.y = hh; P.stem.position.y = 0.72 + hh / 2;
+        const health = Math.min(1, (S.res ? full : plantH(l, w)) / 8.5); const col = new THREE.Color().setHSL(0.08 + 0.25 * health, 0.35 + 0.4 * health, 0.32 + 0.1 * health);
+        P.stem.material.color.copy(col); P.leaves.forEach((lf, k) => { lf.material.color.copy(col); const f = (k + 1) / 7; const sc = Math.min(1, hh / 0.5) * (0.4 + 0.6 * health); lf.visible = hh > 0.35 + f * 0.5; lf.position.set(Math.cos(k * 2.1) * 0.3 * sc, 0.72 + hh * (0.35 + f * 0.62), Math.sin(k * 2.1) * 0.3 * sc); lf.scale.set(sc * 1.1, 0.14, sc * 0.6); lf.rotation.y = k * 2.1 + Math.sin(t * 1.4 + k) * 0.18 * (reducedMotion() ? 0 : 1); lf.rotation.z = (k % 2 ? 1 : -1) * (0.3 + 0.25 * (1 - health)); });
+        P.drops.forEach((d, k) => { const on = S.running && w > 0 && k < w * 4; d.visible = on; if (on) { const ph = ((t * 1.6 + k * 0.37) % 1); d.position.set(Math.sin(k * 3.3) * 0.35, 3.6 - ph * 2.9, Math.cos(k * 2.1) * 0.35); } });
+      });
+    });
+  }
+  changed(); S.ran = false; paintHud();
+}
+
+/* Shared 3D click-to-pick (tap vs drag by cumulative travel, real "click" event - CLAUDE.md section 4) */
+function attachPick(renderer, camera, getMeshes, cb) {
+  const cv = renderer.domElement, ray = new THREE.Raycaster(), m = new THREE.Vector2(); let trav = 0, last = null;
+  cv.addEventListener("pointerdown", e => { trav = 0; last = { x: e.clientX, y: e.clientY }; });
+  cv.addEventListener("pointermove", e => { if (last && e.buttons) { trav += Math.hypot(e.clientX - last.x, e.clientY - last.y); last = { x: e.clientX, y: e.clientY }; } });
+  cv.addEventListener("click", e => {
+    if (trav > 8) return; const r = cv.getBoundingClientRect(); m.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(m, camera);
+    const hit = ray.intersectObjects(getMeshes(), false)[0]; if (hit) { let o = hit.object; while (o && !o.userData.k && o.parent) o = o.parent; if (o && o.userData.k) cb(o.userData.k, o); }
+  });
+}
+function wrapLines(ctx, text, maxW) { const w = text.split(" "), lines = []; let cur = ""; w.forEach(x => { const t = cur ? cur + " " + x : x; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = x; } else cur = t; }); if (cur) lines.push(cur); return lines; }
+
+/* ============================================================
+   STATION 2 - THE DETECTIVE DESK (real science vs pseudoscience)
+   ============================================================ */
+const CLAIMS = [
+  { id: "k1", sci: true, en: "Astronomers study the stars and planets with telescopes and record what they measure.", es: "Los astrónomos estudian las estrellas y los planetas con telescopios y registran lo que miden.", why: { en: "Real science: it uses tools, gathers evidence anyone can check and can be tested.", es: "Ciencia real: usa herramientas, reúne evidencia que cualquiera puede comprobar y se puede poner a prueba." } },
+  { id: "k2", sci: false, en: "Your horoscope can tell you exactly what will happen to you this week.", es: "Tu horóscopo puede decirte exactamente qué te pasará esta semana.", why: { en: "Pseudoscience: the predictions are so vague they can't be tested, and followers ignore the times they are wrong.", es: "Pseudociencia: las predicciones son tan vagas que no se pueden comprobar y los seguidores ignoran cuando fallan." } },
+  { id: "k3", sci: true, en: "We grew 12 pots in different light for two weeks and measured every plant. More light gave taller plants.", es: "Cultivamos 12 macetas con distinta luz durante dos semanas y medimos cada planta. Más luz dio plantas más altas.", why: { en: "Real science: a fair test with measurements (empirical evidence) that others can repeat.", es: "Ciencia real: una prueba justa con mediciones (evidencia empírica) que otros pueden repetir." } },
+  { id: "k4", sci: false, en: "A magnet bracelet makes you run faster. Don't test it; just trust me and ignore the studies that say no.", es: "Una pulsera magnética te hace correr más rápido. No lo pruebes; confía en mí e ignora los estudios que dicen que no.", why: { en: "Pseudoscience: it ignores evidence that disagrees. Real science changes its mind when tests say so.", es: "Pseudociencia: ignora la evidencia que no está de acuerdo. La ciencia real cambia de opinión cuando las pruebas lo dicen." } },
+  { id: "k5", sci: true, en: "When new evidence shows our model is wrong, scientists change the model.", es: "Cuando una evidencia nueva muestra que nuestro modelo está mal, los científicos cambian el modelo.", why: { en: "Real science is changeable: it follows the evidence wherever it leads.", es: "La ciencia real cambia: sigue la evidencia adonde lleve." } },
+  { id: "k6", sci: false, en: "This crystal's invisible 'energy' protects you, but no instrument can measure it and nothing could ever prove it wrong.", es: "La 'energía' invisible de este cristal te protege, pero ningún instrumento puede medirla y nada podría demostrar que está mal.", why: { en: "Pseudoscience: a claim that can't be tested or measured can never be shown false, so it isn't science.", es: "Pseudociencia: una afirmación que no se puede comprobar ni medir nunca puede demostrarse falsa, así que no es ciencia." } },
+  { id: "k7", sci: true, en: "Fingerprints and DNA at a crime scene are evidence that help detectives reach a conclusion.", es: "Las huellas y el ADN en la escena de un crimen son evidencia que ayuda a los detectives a llegar a una conclusión.", why: { en: "Real science: physical evidence that can be checked, not just a guess.", es: "Ciencia real: evidencia física que se puede comprobar, no solo una suposición." } },
+  { id: "k8", sci: false, en: "The phase of the Moon decides which days you should make new friends.", es: "La fase de la Luna decide qué días debes hacer nuevos amigos.", why: { en: "Pseudoscience: no test has ever shown the Moon controls friendships.", es: "Pseudociencia: ninguna prueba ha demostrado que la Luna controle las amistades." } },
+  { id: "k9", sci: true, en: "Scientists grew the bacteria that cause strep throat in a dish and showed that antibiotics kill them.", es: "Los científicos cultivaron en una placa las bacterias que causan la faringitis estreptocócica y demostraron que los antibióticos las matan.", why: { en: "Real science: a testable claim, repeated by many labs with the same result.", es: "Ciencia real: una afirmación comprobable, repetida por muchos laboratorios con el mismo resultado." } },
+  { id: "k10", sci: false, en: "Everybody just knows it's true, so we don't need any evidence or experiments.", es: "Todo el mundo sabe que es cierto, así que no necesitamos evidencia ni experimentos.", why: { en: "Pseudoscience: 'everybody knows' is a feeling, not empirical evidence.", es: "Pseudociencia: 'todo el mundo sabe' es una sensación, no evidencia empírica." } },
+];
+function buildDesk(mount, sim, onDone) {
+  const card = stationShell("2", "The Detective Desk", "El Escritorio del Detective", "A scientist is a detective who needs evidence. Read each claim on the case file and thump the right stamp: REAL SCIENCE (testable, changeable, evidence-based) or PSEUDOSCIENCE.", "Un científico es un detective que necesita evidencia. Lee cada afirmación del expediente y estampa el sello correcto: CIENCIA REAL (comprobable, cambiante, basada en evidencia) o PSEUDOCIENCIA.");
+  mount.append(card);
+  const S = sim.state.dk || (sim.state.dk = { deck: shuffled(CLAIMS.map(c => c.id), 5), ok: 0, wrong: 0, base: 0, last: null });
+  const cl = id => CLAIMS.find(c => c.id === id);
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A detective desk with a case file card and two stamps: Real Science and Pseudoscience", "Un escritorio de detective con un expediente y dos sellos: Ciencia Real y Pseudociencia")); card.append(stage);
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Claims stamped right", "Afirmaciones bien selladas")}<b id="dk-ok"></b></div><div>${L("Stamped wrong", "Selladas mal")}<b id="dk-w"></b></div><div>${L("Files left in the pile", "Expedientes pendientes")}<b id="dk-p"></b></div>`; card.append(ro);
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Ask: Can it be tested? Is there evidence? Would the claim change if evidence disagreed? Then stamp.", "Pregunta: ¿Se puede comprobar? ¿Hay evidencia? ¿Cambiaría la afirmación si la evidencia no estuviera de acuerdo? Luego sella.");
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bSci = mkBtn(L("Stamp: REAL SCIENCE", "Sellar: CIENCIA REAL")), bPse = mkBtn(L("Stamp: PSEUDOSCIENCE", "Sellar: PSEUDOCIENCIA"), true); bPse.style.borderColor = "#e8766a"; bPse.style.color = "#c0392b";
+  let busy = false, cur = null, textureRefresh = () => {}, animStamp = null;
+  function paint() { ro.querySelector("#dk-ok").textContent = S.ok; ro.querySelector("#dk-w").textContent = S.wrong; ro.querySelector("#dk-p").textContent = S.deck.length; }
+  function nextCard() { if (!S.deck.length) S.deck = shuffled(CLAIMS.map(c => c.id), 9 + S.ok); cur = cl(S.deck[0]); textureRefresh(); paint(); }
+  function stamp(sci) {
+    if (busy || !cur) return; busy = true; bSci.disabled = bPse.disabled = true; const right = cur.sci === sci;
+    const done = () => { if (right) { S.ok++; S.deck.shift(); burst(stage, 50, 40, ["#5ee08a", "#fff", "#ffd24d"], 18); } else { S.wrong++; S.deck.push(S.deck.shift()); burst(stage, 50, 40, ["#e8766a", "#fff"], 10); stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); }
+      S.last = { claim: cur.id, stamp: sci, right }; sim.saveState(); fact.innerHTML = `<b>${right ? L("Correct! ", "¡Correcto! ") : L("Not quite. ", "Casi. ")}</b>${L(cur.why.en, cur.why.es)}${right ? "" : " " + L("That file goes back in the pile - try again later.", "Ese expediente vuelve a la pila - inténtalo de nuevo más tarde.")}`;
+      sim.recordTrial({ station: L("Detective Desk", "Escritorio del Detective"), setting: L("Stamped: ", "Sellado: ") + (sci ? L("REAL SCIENCE", "CIENCIA REAL") : L("PSEUDOSCIENCE", "PSEUDOCIENCIA")), reading: L(cur.en, cur.es), outcome: right ? L("Correct", "Correcto") : L("Wrong stamp", "Sello incorrecto") }); document.dispatchEvent(new CustomEvent("eco-trial"));
+      paint(); setTimeout(() => { nextCard(); busy = false; bSci.disabled = bPse.disabled = false; }, 650); };
+    if (animStamp) animStamp(sci, right, done); else setTimeout(done, 300);
+  }
+  bSci.addEventListener("click", () => stamp(true)); bPse.addEventListener("click", () => stamp(false));
+  const tasks = [0, 1, 2, 3].map(n => ({ en: `Stamp 2 more claims correctly (order ${n + 1} of 4), then lock in. Wrong stamps send the file back to the pile.`, es: `Sella correctamente 2 afirmaciones más (pedido ${n + 1} de 4) y fija. Los sellos incorrectos devuelven el expediente a la pila.`, test: r => r.ok - r.base >= 2 }));
+  const ord = makeOrders(card, sim, "st2", tasks, () => ({ ok: S.ok, base: S.base, setting: L(`${S.ok} right, ${S.wrong} wrong so far`, `${S.ok} bien, ${S.wrong} mal hasta ahora`), reading: S.last ? L(cl(S.last.claim).en, cl(S.last.claim).es) : L("No claim stamped yet", "Aún no has sellado ninguna afirmación"), result: S.last ? (S.last.right ? L("Last stamp correct", "Último sello correcto") : L("Last stamp wrong", "Último sello incorrecto")) : L("-", "-") }),
+    L("Detective Desk", "Escritorio del Detective"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("desk", L("Evidence Detective", "Detective de Evidencias")); onDone(); });
+  card.__onOrder = idx => { S.base = S.ok; sim.saveState(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bSci, bPse, ord.lock);
+  card.append(fact, ord.bar, row);
+  const sp = makeSpace(stage, { fov: 36, dist: 10.5, pitch: 0.55, yaw: 0, ty: 0.3 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; nextCard(); fact.textContent += " " + L("(3D desk not available, but you can still stamp.)", "(El escritorio 3D no está disponible, pero aún puedes sellar.)"); /* show the claim as text */ const t = document.createElement("div"); t.className = "eco-fact"; stage.append(t); textureRefresh = () => { t.textContent = L(cur.en, cur.es); }; textureRefresh(); }
+  else {
+    const { scene, hooks, renderer, camera } = sp; renderer.toneMappingExposure = 1.0; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    scene.add(new THREE.HemisphereLight(0xffeedd, 0x2a1810, 0.7)); const key = new THREE.DirectionalLight(0xfff0dc, 1.3); key.position.set(-3, 7, 4); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); Object.assign(key.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6 }); scene.add(key);
+    const lamp = new THREE.PointLight(0xffd9a0, 0.9, 14); lamp.position.set(2, 4, 1); scene.add(lamp);
+    const bump = noiseTex(); const desk = new THREE.Mesh(new THREE.BoxGeometry(10, 0.4, 6), new THREE.MeshStandardMaterial({ color: C3(0x6b3f22), roughness: 0.55, bumpMap: bump, bumpScale: 1.2 })); desk.position.y = -0.2; desk.receiveShadow = true; scene.add(desk);
+    const blot = new THREE.Mesh(new THREE.PlaneGeometry(9.2, 5.4), new THREE.MeshStandardMaterial({ color: C3(0x2f4a3a), roughness: 0.9 })); blot.rotation.x = -Math.PI / 2; blot.position.y = 0.01; blot.receiveShadow = true; scene.add(blot);
+    const cvT = document.createElement("canvas"); cvT.width = 640; cvT.height = 400; const tx = cvT.getContext("2d"); const tex = new THREE.CanvasTexture(cvT); tex.encoding = THREE.sRGBEncoding;
+    const cardGroup = new THREE.Group(); scene.add(cardGroup);
+    const paper = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.06, 2.9), [0, 1, 2, 3, 4, 5].map(i => i === 2 ? new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }) : new THREE.MeshStandardMaterial({ color: C3(0xe9dcb8) }))); paper.position.y = 0.05; paper.castShadow = true; paper.receiveShadow = true; cardGroup.add(paper);
+    const inkTex = n => { const c = document.createElement("canvas"); c.width = 512; c.height = 160; const x = c.getContext("2d"); x.translate(256, 80); x.rotate(-0.12); x.strokeStyle = n[1]; x.fillStyle = n[1]; x.lineWidth = 10; x.strokeRect(-230, -62, 460, 124); x.font = "900 54px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(n[0], 0, 4); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; };
+    const mark = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.06), new THREE.MeshBasicMaterial({ map: inkTex(["REAL SCIENCE", "#1f9d55"]), transparent: true, opacity: 0, depthWrite: false })); mark.rotation.x = -Math.PI / 2; mark.position.set(0.3, 0.09, 0.5); cardGroup.add(mark);
+    const stampMesh = (hex, x) => { const g = new THREE.Group(); const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.34, 0.9), new THREE.MeshStandardMaterial({ color: C3(hex), roughness: 0.4, metalness: 0.2 })); base.castShadow = true; const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.9, 16), new THREE.MeshStandardMaterial({ color: C3(0x3a2415), roughness: 0.5 })); handle.position.y = 0.62; handle.castShadow = true; const knob = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), new THREE.MeshStandardMaterial({ color: C3(0x3a2415), roughness: 0.5 })); knob.position.y = 1.16; g.add(base, handle, knob); g.position.set(x, 0.3, 2.3); g.scale.setScalar(0.75); scene.add(g); return g; };
+    const stS = stampMesh(0x1f9d55, -2.6), stP = stampMesh(0xc0392b, 2.6); const rest = { s: stS.position.clone(), p: stP.position.clone() };
+    const sway = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd24d })); sway.visible = false; scene.add(sway);
+    function renderCard() { tx.fillStyle = "#f1e6c6"; tx.fillRect(0, 0, 640, 400); tx.strokeStyle = "#c9b67e"; tx.lineWidth = 6; tx.strokeRect(14, 14, 612, 372); tx.fillStyle = "#a02a2a"; tx.font = "bold 24px sans-serif"; tx.fillText(L("CASE FILE", "EXPEDIENTE") + " #" + (S.ok + S.wrong + 1), 36, 58); tx.fillStyle = "#2b2a28"; tx.font = "bold 31px sans-serif"; wrapLines(tx, L(cur.en, cur.es), 560).slice(0, 6).forEach((ln, i) => tx.fillText(ln, 36, 118 + i * 44)); tex.needsUpdate = true; }
+    textureRefresh = () => { renderCard(); mark.material.opacity = 0; cardGroup.position.set(0, 0, 0); cardGroup.rotation.y = 0; cardGroup.scale.setScalar(1); };
+    animStamp = (sci, right, done) => {
+      const st = sci ? stS : stP, from = st.position.clone(), over = new THREE.Vector3(0.3, 0.55, 0.5), down = new THREE.Vector3(0.3, 0.12, 0.5);
+      mark.material.map = inkTex(sci ? ["REAL SCIENCE", "#1f9d55"] : ["PSEUDOSCIENCE", "#c0392b"]);
+      tween(280, e => st.position.lerpVectors(from, over, e), () => tween(130, e => st.position.lerpVectors(over, down, e), () => { mark.material.opacity = 0.95; cardGroup.position.y = -0.04; camera.position.y += 0; burst(stage, 50, 46, right ? ["#5ee08a", "#fff"] : ["#e8766a", "#fff"], 8);
+        tween(160, e => st.position.lerpVectors(down, over, e), () => tween(260, e => st.position.lerpVectors(over, st === stS ? rest.s : rest.p, e), () => { cardGroup.position.y = 0; done(); tween(350, e => { cardGroup.position.x = 0; }, null); })); }));
+      setTimeout(() => { if (right) tween(500, e => { cardGroup.position.x = -e * 7; cardGroup.rotation.y = e * 0.6; }); else tween(500, e => { cardGroup.position.x = e * 7; cardGroup.rotation.y = -e * 0.6; }); }, 620);
+    };
+    hooks.push((dt, t) => { if (!busy) { cardGroup.position.y = Math.sin(t * 1.6) * 0.03; cardGroup.rotation.z = Math.sin(t * 1.1) * 0.01; } lamp.intensity = 0.85 + Math.sin(t * 0.9) * 0.05; if (!busy) { stS.position.y = rest.s.y + Math.sin(t * 1.4) * 0.03; stP.position.y = rest.p.y + Math.cos(t * 1.4) * 0.03; } });
+  }
+  nextCard(); paint();
+}
+
+/* ============================================================
+   STATION 3 - THE LIFE SCANNER (what defines life: MRS C GREN)
+   ============================================================ */
+const CH8 = [
+  { k: "mov", en: "Movement", es: "Movimiento", d: { en: "Movement: living things move (animals move whole bodies, plants move by growing and turning toward light).", es: "Movimiento: los seres vivos se mueven (los animales mueven todo su cuerpo, las plantas se mueven al crecer y girar hacia la luz)." } },
+  { k: "res", en: "Respiration", es: "Respiración", d: { en: "Respiration: cells release energy from food, usually using oxygen.", es: "Respiración: las células liberan energía del alimento, normalmente usando oxígeno." } },
+  { k: "sen", en: "Sensitivity", es: "Sensibilidad", d: { en: "Sensitivity: sensing and responding to changes around them.", es: "Sensibilidad: detectar y responder a los cambios a su alrededor." } },
+  { k: "con", en: "Control", es: "Control", d: { en: "Control: keeping conditions inside the body steady (like temperature).", es: "Control: mantener estables las condiciones dentro del cuerpo (como la temperatura)." } },
+  { k: "gro", en: "Growth", es: "Crecimiento", d: { en: "Growth: getting bigger and developing, by making new cells.", es: "Crecimiento: hacerse más grande y desarrollarse, fabricando células nuevas." } },
+  { k: "rep", en: "Reproduction", es: "Reproducción", d: { en: "Reproduction: making new living things of the same kind.", es: "Reproducción: producir nuevos seres vivos de la misma especie." } },
+  { k: "exc", en: "Excretion", es: "Excreción", d: { en: "Excretion: getting rid of waste made by the body's own chemistry.", es: "Excreción: eliminar los desechos que produce la propia química del cuerpo." } },
+  { k: "nut", en: "Nutrition", es: "Nutrición", d: { en: "Nutrition: taking in (or making) food for energy and growth.", es: "Nutrición: tomar (o fabricar) alimento para obtener energía y crecer." } },
+];
+const CHK = CH8.map(c => c.k);
+const SPECS = {
+  dog: { en: "Dog", es: "Perro", living: true, truth: CHK, note: { en: "A dog shows ALL eight: it moves, respires, senses, keeps its temperature steady, grows, reproduces, excretes and feeds.", es: "Un perro muestra LAS OCHO: se mueve, respira, siente, mantiene su temperatura, crece, se reproduce, excreta y se alimenta." } },
+  car: { en: "Car", es: "Coche", living: false, truth: ["mov"], note: { en: "A car moves and burns fuel, but it does not grow, sense its surroundings like a living thing, reproduce, respire or excrete waste from cells. Non-living things may show one or two characteristics - only living things show ALL eight.", es: "Un coche se mueve y quema combustible, pero no crece, no siente como un ser vivo, no se reproduce, no respira ni excreta desechos de células. Las cosas no vivas pueden mostrar una o dos características - solo los seres vivos muestran LAS OCHO." } },
+  sun: { en: "Sunflower", es: "Girasol", living: true, truth: CHK, note: { en: "Plants show all eight too! They grow and turn toward the Sun, make food by photosynthesis, sense light, reproduce with seeds and release waste gases.", es: "¡Las plantas también muestran las ocho! Crecen y giran hacia el Sol, fabrican alimento por fotosíntesis, sienten la luz, se reproducen con semillas y liberan gases de desecho." } },
+  fire: { en: "Campfire", es: "Fogata", living: false, truth: ["mov", "gro"], note: { en: "Fire seems to move, grow and 'eat' fuel, but it is not made of cells and cannot sense, control itself, reproduce or excrete. It only imitates one or two characteristics, so it is NOT alive.", es: "El fuego parece moverse, crecer y 'comer' combustible, pero no está hecho de células y no puede sentir, controlarse, reproducirse ni excretar. Solo imita una o dos características, así que NO está vivo." } },
+};
+const SPECK = Object.keys(SPECS);
+function buildScanner(mount, sim, onDone) {
+  const card = stationShell("3", "The Life Scanner", "El Escáner de la Vida", "Is it alive? Choose a specimen, tap the life characteristics it truly shows (MRS C GREN: Movement, Respiration, Sensitivity, Control, Growth, Reproduction, Excretion, Nutrition), decide living or non-living, then run the scan.", "¿Está vivo? Elige una muestra, toca las características de la vida que realmente muestra (las 8 características: movimiento, respiración, sensibilidad, control, crecimiento, reproducción, excreción y nutrición), decide si está viva o no y ejecuta el escáner.");
+  mount.append(card);
+  const S = sim.state.ls || (sim.state.ls = { spec: "dog" }); S.picks = []; S.verdict = null; S.scan = null; S.scanT = -1;
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A scanner booth with a specimen photo and eight indicator orbs, one for each characteristic of life", "Una cabina de escaneo con la foto de una muestra y ocho esferas indicadoras, una por cada característica de la vida")); card.append(stage);
+  const specRow = document.createElement("div"); specRow.className = "eco-chips"; specRow.innerHTML = `<b>${L("Specimen:", "Muestra:")}</b>`; const specBtn = {};
+  SPECK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.innerHTML = `<img src="${PH(k === "sun" ? "sunflower" : k === "fire" ? "fire" : k)}" alt=""><span>${L(SPECS[k].en, SPECS[k].es)}</span>`; b.setAttribute("aria-pressed", String(S.spec === k)); b.addEventListener("click", () => { S.spec = k; S.picks = []; S.verdict = null; S.scan = null; S.scanT = -1; sim.saveState(); paint(); swapTex(); }); specRow.append(b); specBtn[k] = b; });
+  const chRow = document.createElement("div"); chRow.className = "eco-chips"; chRow.innerHTML = `<b>${L("It shows:", "Muestra:")}</b>`; const chBtn = {};
+  CH8.forEach(c => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(c.en, c.es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => togglePick(c.k)); chRow.append(b); chBtn[c.k] = b; });
+  const vRow = document.createElement("div"); vRow.className = "eco-chips"; vRow.innerHTML = `<b>${L("Verdict:", "Veredicto:")}</b>`; const vBtn = {};
+  [["living", "It is LIVING", "Está VIVO"], ["non", "It is NON-LIVING", "Es NO VIVO"]].forEach(([k, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(en, es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => { S.verdict = k; S.scan = null; paint(); }); vRow.append(b); vBtn[k] = b; });
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Tap a characteristic (or an orb in 3D) to say the specimen shows it. Then choose a verdict and press Run scan.", "Toca una característica (o una esfera en 3D) para decir que la muestra la tiene. Luego elige un veredicto y pulsa Ejecutar escáner.");
+  function togglePick(k) { S.picks = S.picks.includes(k) ? S.picks.filter(x => x !== k) : S.picks.concat(k); S.scan = null; const c = CH8.find(x => x.k === k); fact.textContent = L(c.d.en, c.d.es); burst(stage, 50, 40, ["#ffd24d", "#fff"], 6); paint(); }
+  function paint() { SPECK.forEach(k => specBtn[k].setAttribute("aria-pressed", String(S.spec === k))); CH8.forEach(c => { const on = S.picks.includes(c.k); chBtn[c.k].setAttribute("aria-pressed", String(on)); chBtn[c.k].dataset.res = S.scan ? (S.scan.truth.includes(c.k) ? (on ? "ok" : "miss") : (on ? "bad" : "")) : ""; chBtn[c.k].textContent = (S.scan ? (S.scan.truth.includes(c.k) ? (on ? "✓ " : "○ ") : (on ? "✗ " : "")) : "") + L(c.en, c.es); }); Object.keys(vBtn).forEach(k => vBtn[k].setAttribute("aria-pressed", String(S.verdict === k))); }
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bScan = mkBtn(L("Run scan", "Ejecutar escáner")), bClear = mkBtn(L("Clear my picks", "Borrar mis selecciones"), true);
+  bClear.addEventListener("click", () => { S.picks = []; S.verdict = null; S.scan = null; paint(); });
+  bScan.addEventListener("click", () => {
+    if (!S.verdict) { vRow.classList.remove("cyc-shake"); void vRow.offsetWidth; vRow.classList.add("cyc-shake"); fact.textContent = L("Choose a verdict first: living or non-living?", "Elige primero un veredicto: ¿vivo o no vivo?"); return; }
+    const sp = SPECS[S.spec], same = S.picks.length === sp.truth.length && sp.truth.every(k => S.picks.includes(k)), vOk = (S.verdict === "living") === sp.living;
+    S.scan = { spec: S.spec, truth: sp.truth, picks: S.picks.slice(), verdict: S.verdict, perfect: same && vOk, vOk }; S.scanT = 0; S.scanT0 = performance.now(); paint();
+    const miss = sp.truth.filter(k => !S.picks.includes(k)).length, extra = S.picks.filter(k => !sp.truth.includes(k)).length;
+    fact.innerHTML = `<b>${S.scan.perfect ? L("Perfect scan! ", "¡Escaneo perfecto! ") : L("Scan finished. ", "Escaneo terminado. ")}</b>${vOk ? L("Your verdict is right. ", "Tu veredicto es correcto. ") : L("Your verdict is wrong. ", "Tu veredicto es incorrecto. ")}${same ? "" : L(`(${miss} characteristic(s) missed, ${extra} wrongly ticked.) `, `(${miss} característica(s) omitida(s), ${extra} marcada(s) por error.) `)}${L(sp.note.en, sp.note.es)}`;
+    if (S.scan.perfect) burst(stage, 50, 45, ["#7be08a", "#ffd24d", "#fff"], 18); else { stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); }
+  });
+  const tasks = [
+    { en: "Scan the DOG: tap all eight characteristics it shows, choose LIVING, run the scan and get a perfect scan, then lock in.", es: "Escanea el PERRO: toca las ocho características que muestra, elige VIVO, ejecuta el escáner, consigue un escaneo perfecto y fija.", test: r => r.spec === "dog" && r.perfect },
+    { en: "Scan the CAR: tick only what a car truly shows (it moves), choose NON-LIVING and get a perfect scan, then lock in.", es: "Escanea el COCHE: marca solo lo que un coche realmente muestra (se mueve), elige NO VIVO, consigue un escaneo perfecto y fija.", test: r => r.spec === "car" && r.perfect },
+    { en: "Scan the SUNFLOWER: plants are alive too. Tick all eight, choose LIVING and get a perfect scan, then lock in.", es: "Escanea el GIRASOL: las plantas también están vivas. Marca las ocho, elige VIVO, consigue un escaneo perfecto y fija.", test: r => r.spec === "sun" && r.perfect },
+    { en: "Scan the CAMPFIRE: it looks alive (it seems to move and grow) but is it? Tick only what it imitates, choose NON-LIVING and get a perfect scan, then lock in.", es: "Escanea la FOGATA: parece viva (parece moverse y crecer), ¿pero lo está? Marca solo lo que imita, elige NO VIVO, consigue un escaneo perfecto y fija.", test: r => r.spec === "fire" && r.perfect },
+  ];
+  const ord = makeOrders(card, sim, "st3", tasks, () => { const sc = S.scan; return { spec: sc ? sc.spec : S.spec, perfect: !!(sc && sc.perfect), setting: L(SPECS[S.spec].en, SPECS[S.spec].es), reading: sc ? L(`Ticked ${sc.picks.length}/8: ${sc.picks.map(k => CH8.find(c => c.k === k).en).join(", ") || "none"}; verdict ${sc.verdict === "living" ? "living" : "non-living"}`, `Marcó ${sc.picks.length}/8: ${sc.picks.map(k => CH8.find(c => c.k === k).es).join(", ") || "ninguna"}; veredicto ${sc.verdict === "living" ? "vivo" : "no vivo"}`) : L("No scan run yet", "Aún no se ejecutó el escáner"), result: sc ? (sc.perfect ? L("Perfect scan", "Escaneo perfecto") : L("Scan had mistakes", "El escaneo tuvo errores")) : L("Not scanned", "Sin escanear") }; },
+    L("Life Scanner", "Escáner de la Vida"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("scan", L("Life Detective", "Detective de la Vida")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bScan, bClear, ord.lock);
+  card.append(specRow, chRow, vRow, fact, ord.bar, row);
+  let swapTex = () => {};
+  const sp3 = makeSpace(stage, { fov: 38, dist: 9.2, pitch: 0.14, yaw: 0, ty: 2.0 });
+  if (!sp3) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer, camera } = sp3; renderer.toneMappingExposure = 1.0; scene.fog = new THREE.Fog(0x06101e, 12, 26);
+    scene.add(new THREE.HemisphereLight(0xaad4ff, 0x10182a, 0.8)); const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(2, 5, 6); scene.add(key); const rim = new THREE.PointLight(0x39d0ff, 1.4, 14); rim.position.set(-3, 3, 3); scene.add(rim);
+    const bump = noiseTex(); const floor = new THREE.Mesh(new THREE.CylinderGeometry(4.6, 4.8, 0.3, 48), new THREE.MeshStandardMaterial({ color: C3(0x16263d), roughness: 0.35, metalness: 0.6, bumpMap: bump, bumpScale: 0.4 })); floor.position.y = -0.15; scene.add(floor);
+    const ringE = new THREE.Mesh(new THREE.TorusGeometry(4.5, 0.06, 8, 64), new THREE.MeshBasicMaterial({ color: 0x39d0ff })); ringE.rotation.x = Math.PI / 2; ringE.position.y = 0.02; scene.add(ringE);
+    const loader = new THREE.TextureLoader(), texs = {}; SPECK.forEach(k => { const t = loader.load(PH(k === "sun" ? "sunflower" : k)); t.encoding = THREE.sRGBEncoding; texs[k] = t; });
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(3.7, 2.5, 0.12), new THREE.MeshStandardMaterial({ color: C3(0x2c3e5a), roughness: 0.4, metalness: 0.7 })); frame.position.set(0, 1.7, -0.1); scene.add(frame);
+    const pic = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.2), new THREE.MeshBasicMaterial({ map: texs[S.spec] })); pic.position.set(0, 1.7, -0.03); scene.add(pic);
+    swapTex = () => { pic.material.map = texs[S.spec]; pic.material.needsUpdate = true; };
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.08, 0.5), new THREE.MeshBasicMaterial({ color: 0x66e0ff, transparent: true, opacity: 0.85 })); beam.visible = false; scene.add(beam);
+    const orbs = CH8.map((c, i) => { const o = new THREE.Mesh(new THREE.SphereGeometry(0.25, 24, 18), new THREE.MeshStandardMaterial({ color: C3(0x39455c), emissive: C3(0x000000), roughness: 0.2, metalness: 0.3 })); o.position.set((i - 3.5) * 0.66, 3.45 + Math.cos((i - 3.5) * 0.3) * 0.18, -0.1); o.userData.k = c.k; o.userData.by = o.position.y; scene.add(o); return o; });
+    attachPick(renderer, camera, () => orbs, k => togglePick(k));
+    const parts = new THREE.Points((() => { const g = new THREE.BufferGeometry(), n = 160, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() - 0.5) * 9; p[i * 3 + 1] = Math.random() * 5; p[i * 3 + 2] = (Math.random() - 0.5) * 5; } g.setAttribute("position", new THREE.BufferAttribute(p, 3)); return g; })(), new THREE.PointsMaterial({ color: 0x66e0ff, size: 0.05, transparent: true, opacity: 0.6 })); parts.frustumCulled = false; scene.add(parts);
+    hooks.push((dt, t) => {
+      if (S.scanT >= 0) { S.scanT = Math.min(1, (performance.now() - S.scanT0) / 1700); } beam.visible = S.scanT >= 0 && S.scanT < 1; if (beam.visible) beam.position.set(0, 0.55 + S.scanT * 2.3, 0.1);
+      orbs.forEach((o, i) => { const c = CH8[i].k, on = S.picks.includes(c); let col = on ? 0xffb02e : 0x39455c; if (S.scan && S.scanT >= 1) { const tr = S.scan.truth.includes(c); col = tr ? (on ? 0x2ecc71 : 0x39a0ff) : (on ? 0xe74c3c : 0x39455c); } o.material.color.set(C3(col)); o.material.emissive.set(C3(on || (S.scan && S.scan.truth.includes(c) && S.scanT >= 1) ? col : 0x000000)); o.material.emissiveIntensity = 0.7; const pulse = (S.scan && S.scanT >= 1 && S.scan.truth.includes(c) && !on) ? 1 + Math.sin(t * 3) * 0.12 : 1; o.scale.setScalar(pulse * (on ? 1.15 : 1)); o.position.y = o.userData.by + Math.sin(t * 1.5 + i) * 0.05; });
+      pic.position.y = 1.7 + Math.sin(t * 1.2) * 0.03; frame.position.y = pic.position.y; ringE.material.opacity = 1; parts.rotation.y += dt * 0.05;
+    });
+  }
+  paint();
+}
+
+/* ============================================================
+   STATION 4 - THE LIVING MEADOW (biotic vs abiotic + energy flow)
+   ============================================================ */
+const EC = {
+  sun: { en: "The Sun", es: "El Sol", abiotic: true, fact: { en: "The Sun is ABIOTIC (non-living). It is the power outlet: almost all the energy in an ecosystem starts as sunlight.", es: "El Sol es ABIÓTICO (no vivo). Es el enchufe: casi toda la energía de un ecosistema empieza como luz solar." } },
+  water: { en: "Water", es: "Agua", abiotic: true, fact: { en: "Water is ABIOTIC. Every living thing needs it, but it is not alive.", es: "El agua es ABIÓTICA. Todo ser vivo la necesita, pero no está viva." } },
+  soil: { en: "Soil", es: "Suelo", abiotic: true, fact: { en: "Soil is ABIOTIC (non-living), though it is full of living things like worms and fungi.", es: "El suelo es ABIÓTICO (no vivo), aunque está lleno de seres vivos como lombrices y hongos." } },
+  air: { en: "Air", es: "Aire", abiotic: true, fact: { en: "Air is ABIOTIC. It supplies the oxygen animals breathe and the carbon dioxide plants use.", es: "El aire es ABIÓTICO. Aporta el oxígeno que respiran los animales y el dióxido de carbono que usan las plantas." } },
+  grass: { en: "Grass", es: "Hierba", abiotic: false, fact: { en: "Grass is BIOTIC (living) and a PRODUCER: it uses sunlight to make its own food. It is the 'charger' that stores the Sun's energy.", es: "La hierba es BIÓTICA (viva) y PRODUCTORA: usa la luz del sol para fabricar su propio alimento. Es el 'cargador' que guarda la energía del Sol." } },
+  rabbit: { en: "Rabbit", es: "Conejo", abiotic: false, fact: { en: "A rabbit is BIOTIC and a CONSUMER (herbivore): it eats grass, so it gets the energy that grass stored from the Sun.", es: "Un conejo es BIÓTICO y CONSUMIDOR (herbívoro): come hierba, así que obtiene la energía que la hierba guardó del Sol." } },
+  fox: { en: "Fox", es: "Zorro", abiotic: false, fact: { en: "A fox is BIOTIC and a CONSUMER (carnivore): it eats rabbits, so its energy passed from the Sun to grass to rabbit to fox.", es: "Un zorro es BIÓTICO y CONSUMIDOR (carnívoro): come conejos, así que su energía pasó del Sol a la hierba, al conejo y al zorro." } },
+  hawk: { en: "Hawk", es: "Halcón", abiotic: false, fact: { en: "A hawk is BIOTIC and a top consumer. Follow its energy back three steps: hawk, rabbit, grass, and finally the Sun.", es: "Un halcón es BIÓTICO y un consumidor superior. Sigue su energía hacia atrás tres pasos: halcón, conejo, hierba y por último el Sol." } },
+  fungus: { en: "Mushroom", es: "Hongo", abiotic: false, fact: { en: "A mushroom is BIOTIC (fungi are living things). It is a decomposer: it breaks down dead material and returns nutrients to the soil.", es: "Un hongo es BIÓTICO (los hongos son seres vivos). Es un descomponedor: descompone material muerto y devuelve nutrientes al suelo." } },
+};
+const ECK = Object.keys(EC);
+function buildMeadow(mount, sim, onDone) {
+  const card = stationShell("4", "The Living Meadow", "El Prado Viviente", "Explore a 3D meadow. Tap things (in 3D or with the buttons) to sort them into biotic (living) and abiotic (non-living), then trace how energy flows from the Sun through a food chain.", "Explora un prado en 3D. Toca las cosas (en 3D o con los botones) para clasificarlas en bióticas (vivas) y abióticas (no vivas) y luego sigue cómo fluye la energía desde el Sol por una cadena alimentaria.");
+  mount.append(card);
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage ba-meadow"; stage.setAttribute("aria-label", L("A 3D meadow with the Sun, a stream, soil, a cloud, grass, a rabbit, a fox, a hawk and a mushroom", "Un prado 3D con el Sol, un arroyo, suelo, una nube, hierba, un conejo, un zorro, un halcón y un hongo")); card.append(stage);
+  const links = []; let clearLinks = () => {}, addLink = () => {};
+  const P = pickPanel(card, ECK, k => EC[k], (k, cap) => { cap.textContent = L(EC[k].fact.en, EC[k].fact.es); burst(stage, 50, 50, EC[k].abiotic ? ["#8fd0ff", "#fff"] : ["#7be08a", "#ffd24d"], 8); const pv = P.picks[P.picks.length - 2]; if (pv && pv !== k) addLink(pv, k); });
+  const clr = P.clear; P.clear = () => { clr(); clearLinks(); };
+  const tasks = [
+    { en: "Select any THREE different ABIOTIC (non-living) factors, then lock in.", es: "Selecciona TRES factores ABIÓTICOS (no vivos) distintos y fija.", test: r => r.last3.length === 3 && r.last3.every(k => EC[k].abiotic) && new Set(r.last3).size === 3 },
+    { en: "Select any THREE different BIOTIC (living) things, then lock in.", es: "Selecciona TRES seres BIÓTICOS (vivos) distintos y fija.", test: r => r.last3.length === 3 && r.last3.every(k => !EC[k].abiotic) && new Set(r.last3).size === 3 },
+    { en: "Build the energy chain in order: the Sun, grass, rabbit, fox (4 picks), watch the energy pulses, then lock in.", es: "Construye la cadena de energía en orden: el Sol, hierba, conejo, zorro (4 selecciones), mira los pulsos de energía y fija.", test: r => r.last4.join() === "sun,grass,rabbit,fox" },
+    { en: "Zoom in on the hawk: build the chain that ends with the hawk (the Sun, grass, rabbit, hawk). Where did its energy come from three steps ago? Then lock in.", es: "Acércate al halcón: construye la cadena que termina en el halcón (el Sol, hierba, conejo, halcón). ¿De dónde vino su energía hace tres pasos? Luego fija.", test: r => r.last4.join() === "sun,grass,rabbit,hawk" },
+  ];
+  const ord = makeOrders(card, sim, "st4", tasks, () => { const pk = P.picks.slice(); return { last3: pk.slice(-3), last4: pk.slice(-4), setting: L(`Selected ${pk.length} item(s)`, `Seleccionados ${pk.length} elemento(s)`), reading: pk.length ? pk.map(k => EC[k].en).join(" > ") : L("Nothing selected", "Nada seleccionado"), result: pk.length >= 3 && pk.slice(-3).every(k => EC[k].abiotic) ? L("All abiotic", "Todos abióticos") : pk.length >= 3 && pk.slice(-3).every(k => !EC[k].abiotic) ? L("All biotic", "Todos bióticos") : pk.length >= 4 ? L("Energy chain: " + pk.slice(-4).map(k => EC[k].en).join(" > "), "Cadena de energía: " + pk.slice(-4).map(k => EC[k].es).join(" > ")) : L("Mixed picks", "Selecciones mezcladas") }; },
+    L("Living Meadow", "Prado Viviente"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("meadow", L("Ecosystem Explorer", "Explorador de Ecosistemas")); onDone(); });
+  const mkBtn = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+  const bClear = mkBtn(L("Clear my picks", "Borrar mis selecciones"), true); bClear.addEventListener("click", () => P.clear());
+  card.__onOrder = () => { P.clear(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bClear, ord.lock); card.append(ord.bar, row);
+  const sp = makeSpace(stage, { fov: 42, dist: 14.5, pitch: 0.36, yaw: 0.1, ty: 1.8 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; P.hi = null; }
+  else {
+    const { scene, hooks, renderer, camera } = sp; renderer.toneMappingExposure = 1.1; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; scene.fog = new THREE.Fog(0xbfe3ff, 16, 34);
+    scene.add(new THREE.HemisphereLight(0xdff0ff, 0x4a6a2a, 0.9)); const key = new THREE.DirectionalLight(0xfff2d0, 1.5); key.position.set(-5, 8, 4); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 }); scene.add(key);
+    const bump = noiseTex(); const mat = (hex, o) => new THREE.MeshStandardMaterial(Object.assign({ color: C3(hex), roughness: 0.9, bumpMap: bump, bumpScale: 1.1 }, o || {}));
+    const ground = new THREE.Mesh(new THREE.CylinderGeometry(7.5, 7.8, 0.5, 64), mat(0x4f8f3a, { bumpScale: 0.25 })); ground.position.y = -0.25; ground.receiveShadow = true; scene.add(ground);
+    const sky = new THREE.Mesh(new THREE.SphereGeometry(30, 24, 16), new THREE.MeshBasicMaterial({ color: 0x9fd4ff, side: THREE.BackSide })); scene.add(sky);
+    const reg = []; const tag = (obj, k) => { obj.userData.k = k; obj.traverse(o => { if (o.isMesh || o.isSprite) reg.push(o); }); return obj; };
+    const pos = {};
+    /* abiotic: sun */
+    const sunG = new THREE.Group(); const sunM = new THREE.Mesh(new THREE.SphereGeometry(0.7, 28, 20), new THREE.MeshBasicMaterial({ color: 0xffe27a, toneMapped: false })); sunG.add(sunM); const sg = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#ffd24d"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sg.scale.setScalar(4); sunG.add(sg); sunG.position.set(-4.5, 4.4, -3); scene.add(tag(sunG, "sun")); pos.sun = sunG.position;
+    /* water: stream with ripples */
+    const wat = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.1, 1.3), new THREE.MeshPhysicalMaterial({ color: C3(0x2a8fd6), roughness: 0.1, metalness: 0.1, clearcoat: 1, transparent: true, opacity: 0.88 })); wat.position.set(0.4, 0.03, -2.1); wat.rotation.y = 0.08; scene.add(tag(wat, "water")); pos.water = new THREE.Vector3(0.4, 0.4, -2.1);
+    /* soil mound */
+    const soil = new THREE.Mesh(new THREE.ConeGeometry(1.2, 0.9, 24), mat(0x5a3d22, { bumpScale: 2 })); soil.position.set(-4.3, 0.4, -0.6); soil.castShadow = true; scene.add(tag(soil, "soil")); pos.soil = new THREE.Vector3(-4.3, 1.0, -0.6);
+    /* air: cloud */
+    const cloud = new THREE.Group(); [[0, 0, 0, 0.7], [0.7, -0.1, 0.1, 0.55], [-0.7, -0.1, 0, 0.5], [0.2, 0.3, -0.1, 0.5]].forEach(([x, y, z, r]) => { const s = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1 })); s.position.set(x, y, z); cloud.add(s); }); cloud.position.set(4, 4, -2.5); scene.add(tag(cloud, "air")); pos.air = cloud.position;
+    /* biotic photo tokens */
+    const tok = (k, photo, x, y, z, size) => { const cvs = document.createElement("canvas"); cvs.width = cvs.height = 256; const tex = new THREE.CanvasTexture(cvs); tex.encoding = THREE.sRGBEncoding; const im = new Image(); im.onload = () => { const c = cvs.getContext("2d"); c.clearRect(0, 0, 256, 256); c.save(); c.beginPath(); c.arc(128, 128, 118, 0, TAU); c.clip(); const s = Math.max(256 / im.width, 256 / im.height) * 1.0; c.drawImage(im, 128 - im.width * s / 2, 128 - im.height * s / 2, im.width * s, im.height * s); c.restore(); c.lineWidth = 12; c.strokeStyle = "#46d36b"; c.beginPath(); c.arc(128, 128, 120, 0, TAU); c.stroke(); tex.needsUpdate = true; }; im.src = PH(photo);
+      const sp2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true })); sp2.scale.setScalar(size); sp2.position.set(x, y, z); scene.add(tag(sp2, k)); pos[k] = sp2.position; return sp2; };
+    const tGrass = tok("grass", "grass", -1.9, 0.85, 1.1, 1.7), tRabbit = tok("rabbit", "rabbit", 0.3, 0.8, 1.5, 1.6), tFox = tok("fox", "fox", 2.5, 0.85, 0.5, 1.7), tHawk = tok("hawk", "hawk", 2.2, 3.1, -0.4, 1.7), tFungus = tok("fungus", "fungus", -3.1, 0.65, 1.3, 1.3);
+    /* grass blades dressing */
+    for (let i = 0; i < 90; i++) { const b = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.4 + Math.random() * 0.3, 4), mat(0x3d8f2c, { roughness: 0.8 })); const a = Math.random() * TAU, r = 1 + Math.random() * 5.7; b.position.set(Math.cos(a) * r, 0.18, Math.sin(a) * r); scene.add(b); }
+    /* energy links with travelling pulse */
+    const pulseTex = makeGlowTexture("#ffe08a");
+    addLink = (a, b) => { const A = pos[a], B = pos[b]; if (!A || !B) return; const d = new THREE.Vector3().subVectors(B, A), len = d.length(); const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, len, 8), new THREE.MeshBasicMaterial({ color: 0xffd24d, transparent: true, opacity: 0.8 })); cyl.position.copy(A).add(B).multiplyScalar(0.5); cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize()); scene.add(cyl);
+      const pulse = new THREE.Sprite(new THREE.SpriteMaterial({ map: pulseTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); pulse.scale.setScalar(0.9); scene.add(pulse); links.push({ cyl, pulse, A, B, off: Math.random() }); };
+    clearLinks = () => { links.splice(0).forEach(l => { scene.remove(l.cyl); scene.remove(l.pulse); }); };
+    attachPick(renderer, camera, () => reg, k => P.pick(k));
+    P.hi = k => { sunM.scale.setScalar(k === "sun" ? 1.35 : 1); };
+    hooks.push((dt, t) => {
+      tRabbit.position.y = 0.8 + Math.abs(Math.sin(t * 2.2)) * 0.25; tGrass.position.y = 0.85 + Math.sin(t * 1.3) * 0.04; tFox.position.y = 0.85 + Math.sin(t * 1.7 + 1) * 0.05; tHawk.position.set(2.2 + Math.cos(t * 0.5) * 0.9, 3.1 + Math.sin(t * 0.9) * 0.25, -0.4 + Math.sin(t * 0.5) * 0.9);
+      cloud.position.x = 4 + Math.sin(t * 0.25) * 0.8; sg.material.opacity = 0.85 + Math.sin(t * 1.4) * 0.12; sunM.rotation.y += dt * 0.1; wat.position.y = 0.03 + Math.sin(t * 2) * 0.008;
+      links.forEach(l => { const u = (t * 0.45 + l.off) % 1; l.pulse.position.lerpVectors(l.A, l.B, u); });
+    });
+  }
+}
+
+/* ============================================================
+   BONUS - EVIDENCE CROSSING (a Frogger-style river crossing)
+   Each row is a question; the lily pads are the answers. Hop onto the right pad.
+   Wrong pad = splash and try again (costs time only). 120 s on setInterval. Silent.
+   ============================================================ */
+const FQ = [
+  { q: { en: "Which one is ABIOTIC?", es: "¿Cuál es ABIÓTICO?" }, r: { en: "Sunlight", es: "Luz solar" }, w: [{ en: "Fox", es: "Zorro" }, { en: "Grass", es: "Hierba" }, { en: "Mushroom", es: "Hongo" }], h: { en: "Abiotic = non-living: sun, water, soil, air.", es: "Abiótico = no vivo: sol, agua, suelo, aire." } },
+  { q: { en: "Which one is BIOTIC?", es: "¿Cuál es BIÓTICO?" }, r: { en: "Mushroom", es: "Hongo" }, w: [{ en: "Rock", es: "Roca" }, { en: "Water", es: "Agua" }, { en: "Air", es: "Aire" }], h: { en: "Biotic = living, and fungi are living things.", es: "Biótico = vivo, y los hongos son seres vivos." } },
+  { q: { en: "Which step comes right after the hypothesis?", es: "¿Qué paso viene justo después de la hipótesis?" }, r: { en: "Experiment", es: "Experimento" }, w: [{ en: "Conclusion", es: "Conclusión" }, { en: "Question", es: "Pregunta" }, { en: "Evaluate", es: "Evaluación" }], h: { en: "Question, Hypothesis, Experiment, Observations, Analyze, Conclusion, Evaluate.", es: "Pregunta, Hipótesis, Experimento, Observaciones, Análisis, Conclusión, Evaluación." } },
+  { q: { en: "Empirical evidence is...", es: "La evidencia empírica es..." }, r: { en: "Measured data", es: "Datos medidos" }, w: [{ en: "A strong feeling", es: "Un fuerte presentimiento" }, { en: "What most believe", es: "Lo que cree la mayoría" }, { en: "A lucky guess", es: "Una suposición" }], h: { en: "Empirical = from observation or experiments you can verify.", es: "Empírico = de observaciones o experimentos que se pueden comprobar." } },
+  { q: { en: "Which one is PSEUDOSCIENCE?", es: "¿Cuál es PSEUDOCIENCIA?" }, r: { en: "Horoscopes", es: "Horóscopos" }, w: [{ en: "Astronomy", es: "Astronomía" }, { en: "Plant growth test", es: "Prueba de crecimiento" }, { en: "Medicine trial", es: "Ensayo médico" }], h: { en: "It sounds scientific but can't be tested and ignores evidence.", es: "Suena científico pero no se puede comprobar e ignora la evidencia." } },
+  { q: { en: "What studies non-living matter and energy?", es: "¿Qué estudia la materia y la energía no vivas?" }, r: { en: "Physical science", es: "Ciencia física" }, w: [{ en: "Life science", es: "Ciencia de la vida" }, { en: "Biology", es: "Biología" }, { en: "Ecology", es: "Ecología" }], h: { en: "Life science studies the living; physical science studies gravity, light and atoms.", es: "Las ciencias de la vida estudian lo vivo; la ciencia física estudia la gravedad, la luz y los átomos." } },
+  { q: { en: "In a food chain the Sun is the...", es: "En una cadena alimentaria el Sol es..." }, r: { en: "Energy source", es: "La fuente de energía" }, w: [{ en: "Consumer", es: "Consumidor" }, { en: "Decomposer", es: "Descomponedor" }, { en: "Predator", es: "Depredador" }], h: { en: "Sun = power outlet, plants = charger, animals = phones.", es: "Sol = enchufe, plantas = cargador, animales = teléfonos." } },
+  { q: { en: "Which one is a PRODUCER?", es: "¿Cuál es un PRODUCTOR?" }, r: { en: "Grass", es: "Hierba" }, w: [{ en: "Rabbit", es: "Conejo" }, { en: "Fox", es: "Zorro" }, { en: "Hawk", es: "Halcón" }], h: { en: "Producers make their own food using sunlight.", es: "Los productores fabrican su propio alimento con luz solar." } },
+  { q: { en: "A fair test changes how many things?", es: "¿Cuántas cosas cambia una prueba justa?" }, r: { en: "Only one", es: "Solo una" }, w: [{ en: "Two", es: "Dos" }, { en: "Everything", es: "Todo" }, { en: "Nothing", es: "Nada" }], h: { en: "Change one variable, keep the rest the same.", es: "Cambia una variable, mantén el resto igual." } },
+  { q: { en: "Which is NOT a characteristic of life?", es: "¿Cuál NO es una característica de la vida?" }, r: { en: "Never changing", es: "No cambiar nunca" }, w: [{ en: "Growth", es: "Crecimiento" }, { en: "Reproduction", es: "Reproducción" }, { en: "Sensitivity", es: "Sensibilidad" }], h: { en: "Living things grow, reproduce, sense, move, respire, excrete, feed and control.", es: "Los seres vivos crecen, se reproducen, sienten, se mueven, respiran, excretan, se alimentan y se controlan." } },
+  { q: { en: "'Bios' + 'logos' means study of...", es: "'Bios' + 'logos' significa estudio de..." }, r: { en: "Life", es: "La vida" }, w: [{ en: "Home", es: "El hogar" }, { en: "Stars", es: "Las estrellas" }, { en: "Rocks", es: "Las rocas" }], h: { en: "Biology = life. Ecology comes from 'oikos', home.", es: "Biología = vida. Ecología viene de 'oikos', hogar." } },
+  { q: { en: "Ecology studies how living things...", es: "La ecología estudia cómo los seres vivos..." }, r: { en: "Interact with surroundings", es: "Interactúan con su entorno" }, w: [{ en: "Look under glass", es: "Se ven bajo vidrio" }, { en: "Fossilise", es: "Se fosilizan" }, { en: "Were named", es: "Recibieron nombre" }], h: { en: "Ecology = living things plus their non-living surroundings.", es: "Ecología = seres vivos y su entorno no vivo." } },
+  { q: { en: "'Pseudo' means...", es: "'Pseudo' significa..." }, r: { en: "False", es: "Falso" }, w: [{ en: "Study", es: "Estudio" }, { en: "Life", es: "Vida" }, { en: "Home", es: "Hogar" }], h: { en: "Pseudoscience = false science.", es: "Pseudociencia = ciencia falsa." } },
+];
+function mountCrossing(host, sim, onExit) {
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus eco-bonus"; host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: Evidence Crossing", "Bonus: Cruce de Evidencias")}</h3><p>${L("Cross the river by hopping from lily pad to lily pad! Each row asks a question and the pads carry the answers. Hop (Up arrow, Space or the button) onto the right pad. Nudge left and right with the arrow keys to line up. A splash just sends you back a row - nothing can hurt you, it only costs time. Two minutes!", "¡Cruza el río saltando de nenúfar en nenúfar! Cada fila hace una pregunta y los nenúfares llevan las respuestas. Salta (flecha arriba, Espacio o el botón) al nenúfar correcto. Muévete a izquierda y derecha con las flechas para alinearte. Una zambullida solo te devuelve una fila - nada puede hacerte daño, solo cuesta tiempo. ¡Dos minutos!")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="ec-start">${L("Play", "Jugar")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ec-skip">${L("Skip the bonus", "Saltar el bonus")}</button></div>`;
+  wrap.querySelector("#ec-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#ec-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Evidence Crossing", "Cruce de Evidencias")}</h3><div class="cyc-hud"><span id="ec-time"></span><span id="ec-score"></span><span id="ec-cross"></span></div><div class="cyc-target" id="ec-q"></div>
+      <canvas width="680" height="380" id="ec-cv" aria-label="${L("A river with rows of lily pads carrying answers and a frog to hop across", "Un río con filas de nenúfares con respuestas y una rana que debe saltar")}" tabindex="0"></canvas>
+      <div class="cyc-row" style="margin-top:.6rem"><button type="button" class="cyc-btn cyc-btn--ghost" id="ec-l" style="touch-action:none">&#9664;</button><button type="button" class="cyc-btn" id="ec-hop" style="font-size:1.1rem;padding:.8rem 1.6rem;touch-action:none">${L("Hop! (Up / Space)", "¡Saltar! (Arriba / Espacio)")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ec-r" style="touch-action:none">&#9654;</button></div><div class="cyc-toast" id="ec-toast">${L("Line the frog up with the pad you want, then hop.", "Alinea la rana con el nenúfar que quieras y salta.")}</div>`;
+    const q = s => wrap.querySelector(s), cv = q("#ec-cv"), c = cv.getContext("2d"), toast = q("#ec-toast");
+    const ROWS = 5, RY0 = 330, RH = 56, PW = 132, SP = 178, LOOP = SP * 4;
+    const say = (t, col) => { toast.textContent = t; toast.style.color = col || "#ffe08a"; };
+    const R = { left: 120, score: 0, row: 0, fx: 340, over: false, cross: 0, qn: 0, order: shuffled(FQ.map((x, i) => i), 31), splash: 0, hopT: -1, hopY: 0, correct: 0, tried: 0, learn: [] };
+    function setupCrossing() { R.rows = []; for (let r = 0; r < ROWS; r++) { const fq = FQ[R.order[(R.qn + r) % FQ.length]]; const opts = shuffled([{ t: fq.r, ok: true }].concat(fq.w.map(w => ({ t: w, ok: false }))), 3 + R.qn * 7 + r * 5); R.rows.push({ fq, opts, dir: r % 2 ? -1 : 1, sp: 34 + r * 6 + R.cross * 4, off: Math.random() * LOOP }); } R.row = 0; R.fx = 340; qLabel(); }
+    function qLabel() { q("#ec-q").textContent = R.row < ROWS ? L("Row " + (R.row + 1) + ": ", "Fila " + (R.row + 1) + ": ") + L(R.rows[R.row].fq.q.en, R.rows[R.row].fq.q.es) : L("You made it across! A new river is coming...", "¡Lo lograste! Viene un río nuevo..."); }
+    const rowY = r => RY0 - r * RH;
+    const padX = (r, i, t) => { const rw = R.rows[r - 1]; return (((rw.off + rw.dir * rw.sp * t + i * SP) % LOOP) + LOOP) % LOOP - (LOOP - 680) / 2 - 40; };
+    const clock = { v: performance.now(), t: 0 };
+    function hop() {
+      if (R.over || R.hopT >= 0 || R.row >= ROWS) return; const nr = R.row + 1, rw = R.rows[nr - 1]; let hit = -1;
+      for (let i = 0; i < 4; i++) { const x = padX(nr, i, clock.t); if (R.fx >= x && R.fx <= x + PW) hit = i; }
+      R.hopT = 0; R.hopFrom = R.row; R.hopTo = nr; R.hopHit = hit; R.tried++;
+    }
+    function landed() {
+      const nr = R.hopTo, rw = R.rows[nr - 1], hit = R.hopHit;
+      if (hit >= 0 && rw.opts[hit].ok) { R.row = nr; R.correct++; R.score += 20; say(L("Correct! " + rw.fq.h.en, "¡Correcto! " + rw.fq.h.es), "#9dffb0"); if (R.row >= ROWS) { R.score += 100; R.cross++; say(L("River crossed! +100. Here comes a new one...", "¡Río cruzado! +100. Viene uno nuevo..."), "#9dffb0"); setTimeout(() => { if (!R.over) { R.qn += ROWS; setupCrossing(); } }, 1400); } }
+      else { R.splash = 1; R.row = nr - 1; R.learn.push(rw.fq); say(hit < 0 ? L("Splash! You hopped into the water. Line up with a pad. Answer: " + rw.fq.r.en + ". " + rw.fq.h.en, "¡Chapuzón! Saltaste al agua. Alinéate con un nenúfar. Respuesta: " + rw.fq.r.es + ". " + rw.fq.h.es) : L(`Splash! That pad said "${rw.opts[hit].t.en}". Answer: ${rw.fq.r.en}. ${rw.fq.h.en}`, `¡Chapuzón! Ese nenúfar decía "${rw.opts[hit].t.es}". Respuesta: ${rw.fq.r.es}. ${rw.fq.h.es}`), "#ffb3a0"); cv.classList.remove("cyc-shake"); void cv.offsetWidth; cv.classList.add("cyc-shake"); }
+      qLabel();
+    }
+    const kd = e => { if (e.key === "ArrowUp" || e.key === " " || e.key === "w") { if (document.activeElement && document.activeElement.tagName === "BUTTON") return; e.preventDefault(); hop(); } else if (e.key === "ArrowLeft" || e.key === "a") { e.preventDefault(); R.fx = Math.max(30, R.fx - 36); } else if (e.key === "ArrowRight" || e.key === "d") { e.preventDefault(); R.fx = Math.min(650, R.fx + 36); } };
+    window.addEventListener("keydown", kd);
+    q("#ec-hop").addEventListener("pointerdown", e => { e.preventDefault(); hop(); }); q("#ec-hop").addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); hop(); } });
+    q("#ec-l").addEventListener("click", () => { R.fx = Math.max(30, R.fx - 36); }); q("#ec-r").addEventListener("click", () => { R.fx = Math.min(650, R.fx + 36); });
+    setupCrossing();
+    const timer = setInterval(() => { const now = performance.now(), dt = Math.min(0.25, (now - clock.v) / 1000); clock.v = now; if (R.over) return; clock.t += dt; R.left -= dt; if (R.left <= 0) { finish(); return; }
+      if (R.hopT >= 0) { R.hopT += dt / 0.28; R.hopY = Math.sin(Math.min(1, R.hopT) * Math.PI) * 26; if (R.hopT >= 1) { R.hopT = -1; R.hopY = 0; landed(); } }
+      else if (R.row >= 1 && R.row <= ROWS) { const rw = R.rows[R.row - 1]; R.fx += rw.dir * rw.sp * dt; if (R.fx < 8 || R.fx > 672) { R.fx = 340; R.row = 0; say(L("The pad carried you off the edge - back to the bank. Costs time only!", "El nenúfar te llevó al borde - de vuelta a la orilla. ¡Solo cuesta tiempo!"), "#ffb3a0"); qLabel(); } }
+      if (R.splash > 0) R.splash = Math.max(0, R.splash - dt * 1.6);
+      q("#ec-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(R.left)) + " s"; q("#ec-score").textContent = L("Score ", "Puntos ") + R.score; q("#ec-cross").textContent = L("Rivers crossed ", "Ríos cruzados ") + R.cross; }, 40);
+    function draw(now) {
+      if (!cv.isConnected || R.over) return; const t = clock.t;
+      const bg = c.createLinearGradient(0, 0, 0, 380); bg.addColorStop(0, "#0f3a5a"); bg.addColorStop(1, "#0a2238"); c.fillStyle = bg; c.fillRect(0, 0, 680, 380);
+      c.fillStyle = "#1c6a3a"; c.fillRect(0, RY0 + 6, 680, 44); c.fillStyle = "#2a8a50"; c.fillRect(0, 0, 680, 22);
+      for (let k = 0; k < 28; k++) { c.fillStyle = "rgba(160,220,255,.12)"; c.fillRect(((k * 97 + t * 14 * (k % 2 ? 1 : -1)) % 700 + 700) % 700 - 10, 30 + ((k * 53) % 290), 34, 3); }
+      for (let r = 1; r <= ROWS; r++) { const y = rowY(r), act = r === R.row + 1; for (let i = 0; i < 4; i++) { const x = padX(r, i, t), o = R.rows[r - 1].opts[i]; c.fillStyle = act ? "#58c470" : "#3d9a58"; c.strokeStyle = act ? "#c7ffd2" : "#1d6a3a"; c.lineWidth = act ? 3 : 2; c.beginPath(); c.ellipse(x + PW / 2, y + 16, PW / 2, 22, 0, 0, TAU); c.fill(); c.stroke(); c.fillStyle = "#06220f"; c.font = "bold 13px sans-serif"; c.textAlign = "center"; const lb = L(o.t.en, o.t.es), ws = lb.split(" "); if (c.measureText(lb).width > PW - 14 && ws.length > 1) { const mid = Math.ceil(ws.length / 2); c.fillText(ws.slice(0, mid).join(" "), x + PW / 2, y + 12); c.fillText(ws.slice(mid).join(" "), x + PW / 2, y + 27); } else c.fillText(lb, x + PW / 2, y + 20); } }
+      /* frog */
+      const fy = rowY(R.row) + 8 - (R.hopT >= 0 ? R.hopY + (rowY(R.hopTo) - rowY(R.hopFrom)) * 0 : 0); const ty = R.hopT >= 0 ? rowY(R.hopFrom) + (rowY(R.hopTo) - rowY(R.hopFrom)) * Math.min(1, R.hopT) + 8 - R.hopY : fy;
+      c.fillStyle = "#7be08a"; c.strokeStyle = "#0d4a1f"; c.lineWidth = 2; c.beginPath(); c.ellipse(R.fx, ty + 10, 17, 14, 0, 0, TAU); c.fill(); c.stroke(); c.fillStyle = "#fff"; c.beginPath(); c.arc(R.fx - 7, ty - 2, 5, 0, TAU); c.arc(R.fx + 7, ty - 2, 5, 0, TAU); c.fill(); c.fillStyle = "#000"; c.beginPath(); c.arc(R.fx - 7, ty - 2, 2, 0, TAU); c.arc(R.fx + 7, ty - 2, 2, 0, TAU); c.fill();
+      if (R.splash > 0) { c.strokeStyle = `rgba(200,235,255,${R.splash})`; c.lineWidth = 3; c.beginPath(); c.arc(R.fx, rowY(R.row + 1) + 20, 12 + (1 - R.splash) * 36, 0, TAU); c.stroke(); }
+      requestAnimationFrame(draw);
+    }
+    R.left = 120; requestAnimationFrame(draw); cv.focus();
+    function finish() {
+      if (R.over) return; R.over = true; clearInterval(timer); window.removeEventListener("keydown", kd); const seen = {}; const learn = R.learn.filter(f => (seen[f.r.en] ? false : (seen[f.r.en] = 1)));
+      wrap.innerHTML = `<h3>${L("Crossing complete!", "¡Cruce completado!")}</h3><p>${L(`Rivers crossed: ${R.cross}. Correct hops: ${R.correct} of ${R.tried}. Score ${R.score}.`, `Ríos cruzados: ${R.cross}. Saltos correctos: ${R.correct} de ${R.tried}. Puntos ${R.score}.`)}</p>${learn.length ? `<p><b>${L("Worth another look:", "Vale la pena repasar:")}</b></p><ul>${learn.slice(0, 5).map(f => `<li>${L(f.q.en, f.q.es)} <b>${L(f.r.en, f.r.es)}</b> - ${L(f.h.en, f.h.es)}</li>`).join("")}</ul>` : `<p>${L("No slips - brilliant!", "Sin errores - ¡brillante!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="ec-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="ec-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#ec-again").addEventListener("click", () => { wrap.remove(); mountCrossing(host, sim, onExit); }); wrap.querySelector("#ec-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: R.score, cross: R.cross });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the amount of light and water given to each seedling pot, the stamp chosen for each claim, the characteristics ticked for each specimen, and the things selected in the meadow. Dependent: the height each seedling reaches after 7 days, whether the stamp was right, whether the scan was perfect, and the food chain built. Controlled: in a FAIR test every condition except the one being tested is kept the same (same seeds, same soil, same temperature, and same light or water).",
+    "Independiente: la cantidad de luz y agua de cada maceta, el sello elegido para cada afirmación, las características marcadas en cada muestra y los elementos seleccionados en el prado. Dependiente: la altura que alcanza cada plántula tras 7 días, si el sello fue correcto, si el escaneo fue perfecto y la cadena alimentaria construida. Controladas: en una prueba JUSTA se mantiene igual toda condición salvo la que se prueba (mismas semillas, mismo suelo, misma temperatura y la misma luz o agua).") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (["st1", "st2", "st3", "st4"].every(k => s[k] && s[k].idx >= 4) && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Detective Academy mission complete! You ran fair and unfair tests, separated real science from pseudoscience, scanned for the characteristics of life and traced energy through a meadow. Now try the Evidence Crossing bonus, then write your Explain and Apply answers.", "¡Misión de la Academia de Detectives completada! Hiciste pruebas justas e injustas, separaste la ciencia real de la pseudociencia, escaneaste las características de la vida y seguiste la energía por un prado. Ahora prueba el bonus Cruce de Evidencias y luego escribe tus respuestas de Explicar y Aplicar."); host.insertBefore(c, bonusHost); } };
+  buildSeed(host, sim, check); buildDesk(host, sim, check); buildScanner(host, sim, check); buildMeadow(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining how scientists test ideas and what makes something alive?", "¿Qué tan seguro te sientes explicando cómo los científicos ponen a prueba ideas y qué hace que algo esté vivo?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:0">${L("What would you like to investigate next?", "¿Qué te gustaría investigar a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "cells", label: L("How tiny cells build a huge human", "Cómo células diminutas construyen un humano enorme") }, { id: "web", label: L("What happens if one species disappears", "Qué pasa si una especie desaparece") }, { id: "test", label: L("Designing my own fair test", "Diseñar mi propia prueba justa") }], "next");
+  host.append(creditLine());
+  document.addEventListener("eco-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountCrossing(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete - score ${st.score}.`, `Bonus completo - ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
