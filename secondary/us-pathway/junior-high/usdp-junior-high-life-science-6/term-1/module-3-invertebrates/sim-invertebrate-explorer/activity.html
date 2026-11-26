@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6 - Term 1 - Module 3 Invertebrates - Invertebrate Expedition.
+     Content lives here + config.json/marking.json only. Hyper-real 3D seed lab, detective desk, life scanner and meadow (CLAUDE.md 18); bonus: Evidence Crossing (hidden-object Reef Hunt). -->
+<html data-unit-convert lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invertebrate Expedition: Life Without a Backbone - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=35">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .eco-fwstage.cyc-shake, .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  /* ---- Ecosystem Ranger extras ---- */
+  .eco-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slot { border: 2px dashed var(--line); border-radius: 12px; min-height: 7.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: .78rem; color: var(--ink-3); position: relative; overflow: hidden; background: var(--surface); }
+  .eco-slot[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); }
+  .eco-slot img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-slot b { display: block; padding: .15rem .3rem 0; font-size: .8rem; }
+  .eco-slot__n { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font: 800 .75rem var(--font-data); display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .eco-slot.eco-pop { animation: eco-pop .45s ease; }
+  @keyframes eco-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .eco-pop { animation: none !important; }
+  .eco-tab-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+  .eco-card { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); font: inherit; display: flex; flex-direction: column; }
+  .eco-card:hover, .eco-card:focus-visible { border-color: var(--accent); outline: none; }
+  .eco-card[data-used="true"] { opacity: .35; }
+  .eco-card[aria-pressed="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px #ffd24d88; }
+  .eco-card img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-card span { padding: .3rem .45rem; font-size: .76rem; font-weight: 700; }
+  .eco-fact { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; min-height: 2.4rem; }
+
+  .eco-fwstage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; background: linear-gradient(#8fd0ff, #d8f0c8); }
+  @media (max-width: 640px) { .eco-fwstage { aspect-ratio: 1/1; } }
+  .eco-fwstage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .eco-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-top: .45rem; }
+  .eco-chips > b { font-size: .78rem; min-width: 8.2rem; }
+  .eco-tok { display: inline-flex; align-items: center; gap: .35rem; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .15rem .65rem .15rem .2rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .eco-tok img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+  .eco-tok[aria-pressed="true"][data-side="from"] { border-color: #e8a400; background: #fff3c4; }
+  .eco-tok[aria-pressed="true"][data-side="to"] { border-color: #1d9bd6; background: #d7f0ff; }
+  .eco-arrows { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; min-height: 1.6rem; }
+  .eco-arrows span { font-size: .74rem; font-weight: 700; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: .15rem .6rem; }
+
+  .eco-pop-stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #0e2a1a; }
+  .eco-pop-stage canvas { display: block; width: 100%; height: auto; }
+  .eco-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .eco-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .3rem; }
+  .eco-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .eco-readout div { border: 1px solid var(--line); border-radius: 10px; padding: .35rem .6rem; background: var(--surface); font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .eco-readout div b { display: block; font: 800 1.15rem var(--font-data); color: var(--accent); }
+
+  .eco-bonus canvas { cursor: crosshair; touch-action: none; }
+  .eco-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-role { border: 2px solid #ffffff33; background: #ffffff10; color: #fff; border-radius: 12px; padding: 0; cursor: pointer; font: inherit; overflow: hidden; text-align: left; }
+  .eco-role:hover, .eco-role:focus-visible { border-color: #ffd24d; outline: none; }
+  .eco-role img { width: 100%; height: 4.6rem; object-fit: cover; display: block; }
+  .eco-role span { display: block; padding: .3rem .5rem; font-size: .76rem; font-weight: 700; }
+  .eco-q { margin-top: .5rem; border: 2px solid #ffd24d; border-radius: 12px; padding: .55rem .75rem; background: #1b2a10; font-size: .9rem; }
+  .eco-q .cyc-row { margin-top: .4rem; }
+  .eco-board { display: flex; flex-wrap: wrap; gap: .6rem; font: 700 .76rem var(--font-data); color: #cfe8ff; margin-top: .3rem; }
+  .eco-board span[data-me="true"] { color: #ffe08a; }
+
+  .dg-stage { aspect-ratio: 4/5; max-height: 640px; background: radial-gradient(120% 120% at 50% 30%, #1d4a5a 0%, #0a1c2a 70%) !important; }
+  @media (max-width: 640px) { .dg-stage { aspect-ratio: 3/4; } }
+  .dg-tok { padding-left: .8rem; }
+  .ba-stage { background: radial-gradient(120% 120% at 50% 30%, #1d3a4a 0%, #0a1620 70%) !important; aspect-ratio: 16/10; }
+  .ba-meadow { background: linear-gradient(#8fd0ff, #d8f0c8) !important; }
+  @media (max-width: 640px) { .ba-stage { aspect-ratio: 4/5; } }
+  .ba-ladder { margin-top: .6rem; }
+  .ba-slots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .35rem; }
+  .ba-slots li { border: 2px dashed var(--line); border-radius: 10px; padding: .3rem .6rem; font-size: .8rem; color: var(--ink-3); min-height: 2.2rem; display: flex; align-items: center; gap: .4rem; }
+  .ba-slots li[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); background: var(--accent-wash); }
+  .ba-pool { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+  .ba-pots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .ba-pot { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .6rem; background: var(--surface); display: grid; gap: .25rem; }
+  .ba-pot label { font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .ba-pot select { font: inherit; font-size: .82rem; padding: .3rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); min-height: 40px; }
+  @media (max-width: 520px) { .ba-pots { grid-template-columns: 1fr; } }
+  .eco-tok[data-res="ok"] { border-color: #1f9d55; background: #d6f5e1; }
+  .eco-tok[data-res="miss"] { border-color: #1d6fd6; background: #d7e8ff; }
+  .eco-tok[data-res="bad"] { border-color: #c0392b; background: #fbd9d4; }
+
+</style>
+<!-- seo:start -->
+<meta name="description" content="In this lab students explore life without a backbone. They sort thirteen real invertebrates into the phyla Porifera, Cnidaria, Platyhelminthes, Nematoda, Annelida, Mollusca (with its three classes), Arthropoda and Echinodermata, slice 3D animals with a rotating mirror plane to count mirror...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-3-invertebrates/sim-invertebrate-explorer/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Invertebrate Expedition: Life Without a Backbone | Discovery Lab">
+<meta property="og:description" content="In this lab students explore life without a backbone. They sort thirteen real invertebrates into the phyla Porifera, Cnidaria, Platyhelminthes, Nematoda, Annelida, Mollusca (with its three classes), Arthropoda and Echinodermata, slice 3D animals with a rotating mirror plane to count mirror...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-3-invertebrates/sim-invertebrate-explorer/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Invertebrate Expedition: Life Without a Backbone", "description": "In this lab students explore life without a backbone. They sort thirteen real invertebrates into the phyla Porifera, Cnidaria, Platyhelminthes, Nematoda, Annelida, Mollusca (with its three classes), Arthropoda and Echinodermata, slice 3D animals with a rotating mirror plane to count mirror positions and discover radial and bilateral symmetry, feed and molt a 3D crab to see why an exoskeleton forces growth in stages, and inspect three worms from outside and in cross-section to tell flatworms, roundworms and segmented worms apart. They finish by hunting for animals among drifting real photos in the Reef Hunt bonus. This builds scientific enquiry and critical thinking as students classify with evidence, strengthens data interpretation as they count and compare mirror positions and shell-fit readings, and practises communication by explaining their reasoning. The content practised is Life Science 6, Term 1, Module 3: Invertebrates: sponges (Porifera), cnidarians and their medusa and polyp forms, the three worm phyla, mollusks and their classes (bivalves, gastropods, cephalopods), arthropods and molting, and echinoderms with radial symmetry and tube feet.", "url": "https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-3-invertebrates/sim-invertebrate-explorer/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Scientific enquiry", "Critical thinking", "Systems thinking", "Data interpretation", "Communication"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "USDP Junior High Life Science 6"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=25";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const PH = k => `photos/${k}.jpg`;
+const PA = (k, en, es) => `<img src="${PH(k)}" alt="${L(en, es)}" loading="lazy">`;
+let CREDITS = null;
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit";
+  cr.textContent = L("Photo credits loading...", "Cargando créditos de fotos...");
+  (CREDITS ? Promise.resolve(CREDITS) : fetch("photos/credits.json").then(r => r.json()).then(j => (CREDITS = j))).then(j => {
+    const seen = {}, bits = [];
+    Object.keys(j).forEach(k => { const c = j[k], key = c.author + "|" + c.license; if (seen[key]) return; seen[key] = 1; bits.push(`<a href="${c.page}">${c.author.split(" from ")[0].replace(/\s*\(.*$/, "")}</a> (${c.licenseUrl ? `<a href="${c.licenseUrl}">${c.license}</a>` : c.license})`); });
+    cr.innerHTML = L("Real photos via Wikimedia Commons / OpenStax: ", "Fotos reales vía Wikimedia Commons / OpenStax: ") + bits.join("; ") + ".";
+  }).catch(() => { cr.textContent = L("Photos via Wikimedia Commons (credits on each photo's page).", "Fotos vía Wikimedia Commons (créditos en la página de cada foto)."); });
+  return cr;
+}
+
+/* Orders queue (persisted in sim.state - CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete - keep exploring, or lock in more readings.", "Todos los pedidos completos - sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    if (card.__onOrder) card.__onOrder(st.idx);
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" - order met", " - pedido cumplido") : t ? L(" - not the order yet", " - todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("eco-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#7be08a", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged - but that is not the order. Re-read it and try again.", "Registrado - pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st, paint };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+const shuffled = (a, seed) => { const r = a.slice(); let s = seed || 7; for (let i = r.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor(s / 233280 * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+
+
+
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+function noiseTex() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 900; i++) { x.fillStyle = Math.random() > 0.5 ? "#b0b0b0" : "#505050"; x.globalAlpha = 0.28; x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+/* Shared "pick the parts" panel used by the lungs and the heart (chips = keyboard route) */
+function pickPanel(card, keys, label, onPickHook) {
+  const chipRow = document.createElement("div"); chipRow.className = "eco-chips"; chipRow.innerHTML = `<b>${L("Parts:", "Partes:")}</b>`;
+  const picksEl = document.createElement("div"); picksEl.className = "eco-arrows";
+  const cap = document.createElement("div"); cap.className = "eco-fact"; cap.textContent = L("Tap a part (in 3D or with the buttons) to read what it does.", "Toca una parte (en 3D o con los botones) para leer qué hace.");
+  const P = { picks: [], chips: {}, cap, hi: null };
+  keys.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(label(k).en, label(k).es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => P.pick(k)); chipRow.append(b); P.chips[k] = b; });
+  P.paint = () => {
+    keys.forEach(k => P.chips[k].setAttribute("aria-pressed", String(P.picks[P.picks.length - 1] === k)));
+    picksEl.innerHTML = P.picks.length ? "" : `<small style="color:var(--ink-3)">${L("No picks yet.", "Aún no hay selecciones.")}</small>`;
+    P.picks.forEach((k, i) => { const s = document.createElement("span"); s.textContent = (i + 1) + ". " + L(label(k).en, label(k).es); picksEl.append(s); });
+    if (P.hi) P.hi(P.picks[P.picks.length - 1]);
+  };
+  P.pick = k => { P.picks.push(k); if (P.picks.length > 8) P.picks.shift(); onPickHook(k, cap); P.paint(); };
+  P.clear = () => { P.picks = []; P.paint(); };
+  card.append(chipRow, picksEl, cap);
+  return P;
+}
+
+
+
+
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Welcome, Invertebrate Explorer! 97% of all animal species have no backbone. Tap each real picture to meet four big groups of spineless wonders.", "¡Bienvenido, Explorador de Invertebrados! El 97% de todas las especies de animales no tiene columna vertebral. Toca cada imagen real para conocer cuatro grandes grupos de maravillas sin espina.");
+  host.append(p);
+  const items = [
+    { f: "sponge", en: "Sponges: the pore-bearers", es: "Esponjas: portadoras de poros", t: { en: "Porifera (from 'porus' = pore and 'ferre' = to bear) are the simplest animals. They never move as adults (sessile) and filter-feed by pumping water through thousands of tiny pores.", es: "Los poríferos (de 'porus' = poro y 'ferre' = llevar) son los animales más simples. De adultos nunca se mueven (sésiles) y se alimentan filtrando el agua que bombean por miles de poros diminutos." } },
+    { f: "jelly", en: "Cnidarians: stinging beauty", es: "Cnidarios: belleza que pica", t: { en: "Jellyfish, corals and sea anemones share stinging cells and radial symmetry, and catch food with tentacles. The free-swimming bowl shape is a medusa; the vase shape attached to a surface is a polyp.", es: "Las medusas, los corales y las anémonas comparten células urticantes y simetría radial, y atrapan alimento con tentáculos. La forma de cuenco que nada libremente es una medusa; la forma de vaso fija a una superficie es un pólipo." } },
+    { f: "earthworm", en: "Worms: slimy and skilled", es: "Gusanos: viscosos y habilidosos", t: { en: "Biologists sort worms into three phyla by body shape: flatworms (Platyhelminthes), roundworms (Nematoda) and segmented worms (Annelida, from 'annellus' = little ring).", es: "Los biólogos ordenan los gusanos en tres filos según la forma del cuerpo: gusanos planos (Platyhelminthes), gusanos redondos (Nematoda) y gusanos segmentados (Annelida, de 'annellus' = anillito)." } },
+    { f: "crab", en: "Arthropods: nature's armor", es: "Artrópodos: la armadura de la naturaleza", t: { en: "Arthropods (from 'arthron' = joint and 'pous' = foot) are the largest group of invertebrates: jointed legs and a hard exoskeleton. Wearing armor all your life means you must shed it to grow!", es: "Los artrópodos (de 'arthron' = articulación y 'pous' = pie) son el mayor grupo de invertebrados: patas articuladas y un exoesqueleto duro. Llevar armadura toda la vida significa que debes mudarla para crecer." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo">${PA(it.f, it.en, it.es)}</span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("SEE - THINK - WONDER. Without bones, what protects these animals? Look closely at this real beach scene before you learn any names, then play photo detective: tap what each clue describes.", "VER - PENSAR - PREGUNTARSE. Sin huesos, ¿qué protege a estos animales? Mira de cerca esta escena real de playa antes de aprender ningún nombre y luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo";
+  wrap.innerHTML = `<img src="${PH("urchin")}" alt="${L("A purple sea urchin on dark sand beside a pale empty shell and a strand of seaweed", "Un erizo de mar morado sobre arena oscura junto a una concha vacía pálida y una hebra de alga")}">`;
+  const targets = [
+    { x: 54, y: 47, en: "a round animal covered in sharp SPINES that lives in the sea (an echinoderm: 'echinos' = spiny, 'derma' = skin)", es: "un animal redondo cubierto de afiladas ESPINAS que vive en el mar (un equinodermo: 'echinos' = espinoso, 'derma' = piel)" },
+    { x: 32, y: 25, en: "the pale empty SHELL - the hard protective home left behind by a soft-bodied mollusc", es: "la CONCHA pálida y vacía - el hogar duro y protector que dejó un molusco de cuerpo blando" },
+    { x: 20, y: 75, en: "the dark gritty SAND - a non-living (abiotic) part of this habitat", es: "la ARENA oscura y granulosa - una parte no viva (abiótica) de este hábitat" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one - read the clue again.", "Esa no - vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! Spines and shells are two ways invertebrates protect soft bodies. Which groups of invertebrates are there, and how are they different?", "¡Detective de fotos completado! Las espinas y las conchas son dos formas en que los invertebrados protegen sus cuerpos blandos. ¿Qué grupos de invertebrados hay y en qué se diferencian?") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("What invertebrates do you SEE every day? What do you THINK protects them? What do you WONDER about their strength? Keep that in mind for your hypothesis.", "¿Qué invertebrados VES todos los días? ¿Qué PIENSAS que los protege? ¿Qué te PREGUNTAS sobre su fuerza? Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+function attachPick(renderer, camera, getMeshes, cb) {
+  const cv = renderer.domElement, ray = new THREE.Raycaster(), m = new THREE.Vector2(); let trav = 0, last = null;
+  cv.addEventListener("pointerdown", e => { trav = 0; last = { x: e.clientX, y: e.clientY }; });
+  cv.addEventListener("pointermove", e => { if (last && e.buttons) { trav += Math.hypot(e.clientX - last.x, e.clientY - last.y); last = { x: e.clientX, y: e.clientY }; } });
+  cv.addEventListener("click", e => {
+    if (trav > 8) return; const r = cv.getBoundingClientRect(); m.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(m, camera);
+    const hit = ray.intersectObjects(getMeshes(), false)[0]; if (hit) { let o = hit.object; while (o && !o.userData.k && o.parent) o = o.parent; if (o && o.userData.k) cb(o.userData.k, o); }
+  });
+}
+const mkBtnG = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+
+/* ============================================================
+   STATION 1 - THE PHYLUM SORTER (real specimens)
+   ============================================================ */
+const PHY = { porifera: { en: "Porifera (sponges)", es: "Porifera (esponjas)" }, cnidaria: { en: "Cnidaria", es: "Cnidaria" }, platy: { en: "Platyhelminthes (flatworms)", es: "Platyhelminthes (gusanos planos)" }, nema: { en: "Nematoda (roundworms)", es: "Nematoda (gusanos redondos)" }, annel: { en: "Annelida (segmented worms)", es: "Annelida (gusanos segmentados)" }, mollusca: { en: "Mollusca", es: "Mollusca (moluscos)" }, arthro: { en: "Arthropoda", es: "Arthropoda (artrópodos)" }, echino: { en: "Echinodermata", es: "Echinodermata" } };
+const MCL = { bivalve: { en: "Bivalve (2 shells)", es: "Bivalvo (2 conchas)" }, gastropod: { en: "Gastropod (stomach-foot)", es: "Gasterópodo (pie en el estómago)" }, cephalopod: { en: "Cephalopod (head-foot)", es: "Cefalópodo (pie en la cabeza)" } };
+const INV = {
+  sponge: { en: "Sponge", es: "Esponja", p: "porifera", why: { en: "Sponges are the simplest animals: sessile pore-bearers that filter-feed by pumping water through their pores.", es: "Las esponjas son los animales más simples: portadoras de poros sésiles que se alimentan filtrando el agua que bombean por sus poros." } },
+  jelly: { en: "Moon jellyfish", es: "Medusa luna", p: "cnidaria", why: { en: "Stinging cells, tentacles and radial symmetry make it a cnidarian. This bowl-shaped, free-swimming form is a medusa.", es: "Células urticantes, tentáculos y simetría radial lo hacen un cnidario. Esta forma de cuenco que nada libremente es una medusa." } },
+  coral: { en: "Coral polyps", es: "Pólipos de coral", p: "cnidaria", why: { en: "Corals are colonies of tiny polyps, the attached vase-shaped form of a cnidarian, with stinging tentacles.", es: "Los corales son colonias de diminutos pólipos, la forma de vaso fija de un cnidario, con tentáculos urticantes." } },
+  flatworm: { en: "Planarian flatworm", es: "Planaria (gusano plano)", p: "platy", why: { en: "A soft, flattened body with no segments: Platyhelminthes, the flatworms.", es: "Un cuerpo blando y aplanado sin segmentos: Platyhelminthes, los gusanos planos." } },
+  roundworm: { en: "Roundworm (C. elegans)", es: "Gusano redondo (C. elegans)", p: "nema", why: { en: "A thin, unsegmented, round tube of a body: Nematoda, the roundworms.", es: "Un cuerpo delgado, sin segmentos, en forma de tubo redondo: Nematoda, los gusanos redondos." } },
+  earthworm: { en: "Earthworm", es: "Lombriz de tierra", p: "annel", why: { en: "Look at the 'little rings': the body is divided into segments. That makes it an annelid.", es: "Fíjate en los 'anillitos': el cuerpo está dividido en segmentos. Eso lo hace un anélido." } },
+  snail: { en: "Garden snail", es: "Caracol de jardín", p: "mollusca", c: "gastropod", why: { en: "A soft body and a single spiral shell, moving on a muscular foot: a gastropod ('stomach-foot') mollusc.", es: "Un cuerpo blando y una sola concha en espiral, que se mueve sobre un pie muscular: un molusco gasterópodo ('pie en el estómago')." } },
+  mussel: { en: "Mussel shell", es: "Concha de mejillón", p: "mollusca", c: "bivalve", why: { en: "Two hinged shells: a bivalve mollusc, like clams and oysters.", es: "Dos conchas articuladas: un molusco bivalvo, como las almejas y las ostras." } },
+  octopus: { en: "Octopus", es: "Pulpo", p: "mollusca", c: "cephalopod", why: { en: "A soft body with arms attached to its head and no outer shell: a cephalopod ('head-foot') mollusc.", es: "Un cuerpo blando con brazos unidos a la cabeza y sin concha externa: un molusco cefalópodo ('pie en la cabeza')." } },
+  beetle: { en: "Beetle", es: "Escarabajo", p: "arthro", why: { en: "Jointed legs and a hard exoskeleton: Arthropoda, the largest group of invertebrates (it is an insect).", es: "Patas articuladas y un exoesqueleto duro: Arthropoda, el mayor grupo de invertebrados (es un insecto)." } },
+  crab: { en: "Red rock crab", es: "Cangrejo rojo", p: "arthro", why: { en: "Jointed legs and a hard exoskeleton that must be shed to grow: Arthropoda.", es: "Patas articuladas y un exoesqueleto duro que debe mudarse para crecer: Arthropoda." } },
+  starfish: { en: "Starfish", es: "Estrella de mar", p: "echino", why: { en: "Spiny skin, radial symmetry and tube feet: Echinodermata.", es: "Piel espinosa, simetría radial y pies ambulacrales: Echinodermata." } },
+  urchin: { en: "Sea urchin", es: "Erizo de mar", p: "echino", why: { en: "A round body covered in spines with tube feet: an echinoderm, a cousin of the starfish.", es: "Un cuerpo redondo cubierto de espinas con pies ambulacrales: un equinodermo, primo de la estrella de mar." } },
+};
+const INVK = Object.keys(INV);
+function buildSorter(mount, sim, onDone) {
+  const card = stationShell("1", "The Phylum Sorter", "El Clasificador de Filos", "Real invertebrates are on the turntable. Pick one, choose its phylum (and for molluscs, its class), then check. Careful: looks can fool you!", "Hay invertebrados reales en el plato giratorio. Elige uno, escoge su filo (y, si es un molusco, su clase) y comprueba. ¡Cuidado: las apariencias engañan!");
+  mount.append(card);
+  const S = sim.state.ks || (sim.state.ks = { spec: "jelly" }); S.p = null; S.c = null; S.res = null;
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A turntable with a ring of real invertebrate photos", "Un plato giratorio con un anillo de fotos de invertebrados reales")); card.append(stage);
+  const specRow = document.createElement("div"); specRow.className = "eco-chips"; specRow.innerHTML = `<b>${L("Specimen:", "Muestra:")}</b>`; const sb = {};
+  INVK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.innerHTML = `<img src="${PH(k)}" alt=""><span>${L(INV[k].en, INV[k].es)}</span>`; b.addEventListener("click", () => selSpec(k)); specRow.append(b); sb[k] = b; });
+  const pRow = document.createElement("div"); pRow.className = "eco-chips"; pRow.innerHTML = `<b>${L("Phylum:", "Filo:")}</b>`; const pb = {};
+  Object.keys(PHY).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(PHY[k].en, PHY[k].es); b.addEventListener("click", () => { S.p = k; S.res = null; if (k !== "mollusca") S.c = null; paint(); }); pRow.append(b); pb[k] = b; });
+  const cRow = document.createElement("div"); cRow.className = "eco-chips"; cRow.innerHTML = `<b>${L("Mollusc class:", "Clase de molusco:")}</b>`; const cb = {};
+  Object.keys(MCL).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(MCL[k].en, MCL[k].es); b.addEventListener("click", () => { S.c = k; S.res = null; paint(); }); cRow.append(b); cb[k] = b; });
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Pick a specimen and a phylum, then press Check.", "Elige una muestra y un filo y pulsa Comprobar.");
+  function selSpec(k) { S.spec = k; S.p = null; S.c = null; S.res = null; sim.saveState(); paint(); }
+  function paint() { INVK.forEach(k => sb[k].setAttribute("aria-pressed", String(S.spec === k))); Object.keys(pb).forEach(k => pb[k].setAttribute("aria-pressed", String(S.p === k))); Object.keys(cb).forEach(k => cb[k].setAttribute("aria-pressed", String(S.c === k))); cRow.style.display = S.p === "mollusca" ? "" : "none"; }
+  const bCheck = mkBtnG(L("Check", "Comprobar"));
+  bCheck.addEventListener("click", () => {
+    if (!S.p) { pRow.classList.remove("cyc-shake"); void pRow.offsetWidth; pRow.classList.add("cyc-shake"); fact.textContent = L("Choose a phylum first.", "Elige primero un filo."); return; }
+    const sp = INV[S.spec]; if (S.p === "mollusca" && !S.c) { cRow.classList.remove("cyc-shake"); void cRow.offsetWidth; cRow.classList.add("cyc-shake"); fact.textContent = L("It is a mollusc! Now choose its class.", "¡Es un molusco! Ahora elige su clase."); return; }
+    const ok = S.p === sp.p && (sp.p !== "mollusca" || S.c === sp.c); S.res = { spec: S.spec, p: S.p, c: S.c, ok };
+    fact.innerHTML = `<b>${ok ? L("Correct! ", "¡Correcto! ") : L("Not quite. ", "Casi. ")}</b>${L(sp.why.en, sp.why.es)}${ok ? "" : " " + L("Right answer: ", "Respuesta correcta: ") + L(PHY[sp.p].en, PHY[sp.p].es) + (sp.c ? " - " + L(MCL[sp.c].en, MCL[sp.c].es) : "") + "."}`;
+    if (ok) burst(stage, 50, 45, ["#7be08a", "#ffd24d", "#fff"], 18); else { stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); }
+    sim.recordTrial({ station: L("Phylum Sorter", "Clasificador de Filos"), setting: L(sp.en, sp.es), reading: L(PHY[S.p].en, PHY[S.p].es) + (S.c ? " / " + L(MCL[S.c].en, MCL[S.c].es) : ""), outcome: ok ? L("Correct", "Correcto") : L("Incorrect", "Incorrecto") }); document.dispatchEvent(new CustomEvent("eco-trial"));
+  });
+  const tasks = [
+    { en: "Classify the CORAL correctly (it looks like a rock, but it is an animal with stinging cells), then lock in.", es: "Clasifica correctamente el CORAL (parece una roca, pero es un animal con células urticantes) y fija.", test: r => r.ok && r.spec === "coral" },
+    { en: "Classify the EARTHWORM correctly (look for the 'little rings'), then lock in.", es: "Clasifica correctamente la LOMBRIZ DE TIERRA (busca los 'anillitos') y fija.", test: r => r.ok && r.spec === "earthworm" },
+    { en: "Classify the OCTOPUS correctly: its phylum AND its class (head-foot), then lock in.", es: "Clasifica correctamente el PULPO: su filo Y su clase (pie en la cabeza) y fija.", test: r => r.ok && r.spec === "octopus" },
+    { en: "Classify the CRAB correctly (jointed legs and an exoskeleton), then lock in.", es: "Clasifica correctamente el CANGREJO (patas articuladas y exoesqueleto) y fija.", test: r => r.ok && r.spec === "crab" },
+  ];
+  const ord = makeOrders(card, sim, "st1", tasks, () => { const r = S.res; return { ok: !!(r && r.ok), spec: r ? r.spec : S.spec, setting: L(INV[S.spec].en, INV[S.spec].es), reading: r ? L(PHY[r.p].en, PHY[r.p].es) + (r.c ? " / " + L(MCL[r.c].en, MCL[r.c].es) : "") : L("Not checked yet", "Aún sin comprobar"), result: r ? (r.ok ? L("Classified correctly", "Clasificado correctamente") : L("Classified incorrectly", "Clasificado incorrectamente")) : "-" }; },
+    L("Phylum Sorter", "Clasificador de Filos"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("sorter", L("Phylum Keeper", "Guardián de Filos")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bCheck, ord.lock);
+  card.append(specRow, pRow, cRow, fact, ord.bar, row); paint();
+  const sp3 = makeSpace(stage, { fov: 38, dist: 13, pitch: 0.3, yaw: 0, ty: 1.6 });
+  if (!sp3) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer, camera } = sp3; renderer.toneMappingExposure = 1.05; scene.fog = new THREE.Fog(0x061a2a, 16, 34);
+    scene.add(new THREE.HemisphereLight(0xcfeaff, 0x0a1a2a, 0.9)); const key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(2, 7, 6); scene.add(key); const rim = new THREE.PointLight(0x39d0ff, 1.1, 20); rim.position.set(-4, 3, 3); scene.add(rim);
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(6, 6.2, 0.3, 64), new THREE.MeshStandardMaterial({ color: C3(0x10304a), roughness: 0.3, metalness: 0.6, bumpMap: noiseTex(), bumpScale: 0.3 })); plate.position.y = -0.15; scene.add(plate);
+    const ringE = new THREE.Mesh(new THREE.TorusGeometry(5.9, 0.06, 8, 80), new THREE.MeshBasicMaterial({ color: 0x39d0ff })); ringE.rotation.x = Math.PI / 2; scene.add(ringE);
+    const bub = new THREE.Points((() => { const g = new THREE.BufferGeometry(), n = 120, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() - 0.5) * 14; p[i * 3 + 1] = Math.random() * 7; p[i * 3 + 2] = (Math.random() - 0.5) * 9; } g.setAttribute("position", new THREE.BufferAttribute(p, 3)); return g; })(), new THREE.PointsMaterial({ color: 0x9fe8ff, size: 0.07, transparent: true, opacity: 0.6 })); bub.frustumCulled = false; scene.add(bub);
+    const ring = new THREE.Group(); scene.add(ring); const loader = new THREE.TextureLoader(), cards = [], reg = [];
+    INVK.forEach((k, i) => { const a = (i / INVK.length) * TAU, t = loader.load(PH(k)); t.encoding = THREE.sRGBEncoding; const g = new THREE.Group(); g.userData.k = k;
+      const fr = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.75, 0.1), new THREE.MeshStandardMaterial({ color: C3(0x2c3e5a), roughness: 0.4, metalness: 0.7 })); const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.55), new THREE.MeshBasicMaterial({ map: t })); pic.position.z = 0.06; g.add(fr, pic); g.position.set(Math.sin(a) * 4.9, 1.3, Math.cos(a) * 4.9); g.rotation.y = a; ring.add(g); cards.push(g); reg.push(fr, pic); });
+    let rot = 0; attachPick(renderer, camera, () => reg, k => selSpec(k));
+    hooks.push((dt, t) => { const idx = INVK.indexOf(S.spec), want = -(idx / INVK.length) * TAU; let d = want - rot; d = ((d + Math.PI) % TAU + TAU) % TAU - Math.PI; rot += d * Math.min(1, dt * 4); ring.rotation.y = rot; bub.rotation.y += dt * 0.03;
+      cards.forEach(g => { const on = g.userData.k === S.spec; g.scale.setScalar(g.scale.x + ((on ? 1.3 : 0.8) - g.scale.x) * Math.min(1, dt * 6)); g.position.y = 1.3 + (on ? Math.sin(t * 2) * 0.06 : 0); }); });
+  }
+}
+
+/* ============================================================
+   STATION 2 - THE SYMMETRY LAB (cut planes)
+   ============================================================ */
+const SYM = {
+  starfish: { en: "Starfish", es: "Estrella de mar", axes: [0, 36, 72, 108, 144], type: "radial" },
+  jelly: { en: "Jellyfish", es: "Medusa", axes: [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5], type: "radial" },
+  worm: { en: "Worm", es: "Gusano", axes: [0], type: "bilateral" },
+  sponge: { en: "Sponge", es: "Esponja", axes: [], type: "asym" },
+};
+const SYMK = Object.keys(SYM);
+const STYPE = { radial: { en: "Radial symmetry", es: "Simetría radial" }, bilateral: { en: "Bilateral symmetry", es: "Simetría bilateral" }, asym: { en: "Asymmetrical", es: "Asimétrico" } };
+function symModel(kind) {
+  const g = new THREE.Group(), bump = noiseTex();
+  const M = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.4, clearcoat: 0.5, bumpMap: bump, bumpScale: 0.5 }, o || {}));
+  if (kind === "starfish") {
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.9, 0.35, 24), M(0xe0457b)); c.position.y = 0.2; g.add(c);
+    for (let i = 0; i < 5; i++) { const a = i * 72 * Math.PI / 180; const d = new THREE.Group(); const arm = new THREE.Mesh(new THREE.ConeGeometry(0.42, 2.6, 16), M(0xe0457b)); arm.rotation.z = -Math.PI / 2; arm.position.x = 1.7; arm.scale.set(1, 1, 0.45); d.add(arm); d.rotation.y = -a; d.position.y = 0.2; g.add(d);
+      for (let k = 0; k < 6; k++) { const sp = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), M(0xffd0e0)); sp.position.set(0.7 + k * 0.3, 0.2, 0); d.add(sp); } }
+  } else if (kind === "jelly") {
+    const bell = new THREE.Mesh(new THREE.SphereGeometry(1.5, 40, 24, 0, TAU, 0, Math.PI / 2), M(0xcfe8ff, { transparent: true, opacity: 0.6, side: THREE.DoubleSide, emissive: C3(0x6aa0ff), emissiveIntensity: 0.25 })); bell.scale.y = 0.75; bell.position.y = 0.9; g.add(bell);
+    for (let i = 0; i < 8; i++) { const a = i * 45 * Math.PI / 180; const t = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.02, 1.8, 6), M(0xbfe0ff, { transparent: true, opacity: 0.8 })); t.position.set(Math.cos(a) * 1.25, 0.1, Math.sin(a) * 1.25); g.add(t); }
+  } else if (kind === "worm") {
+    const body = new THREE.Mesh(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.45, 3.2, 8, 20) : new THREE.CylinderGeometry(0.45, 0.45, 3.6, 20), M(0xd9867a)); body.rotation.z = Math.PI / 2; body.position.y = 0.5; g.add(body);
+    for (let i = 0; i < 10; i++) { const ring = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.04, 6, 24), M(0xb85f55)); ring.rotation.y = Math.PI / 2; ring.position.set(-1.4 + i * 0.3, 0.5, 0); g.add(ring); }
+    [-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), M(0x111111)); e.position.set(2, 0.65, s * 0.25); g.add(e); });
+  } else {
+    [[0, 0, 0, 0.6, 1.8], [0.9, 0, 0.5, 0.4, 1.2], [-0.8, 0, 0.7, 0.5, 0.9], [0.2, 0, -0.9, 0.35, 1.4], [-0.9, 0, -0.6, 0.3, 0.7]].forEach(([x, y, z, r, h]) => { const t = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.85, r, h, 18, 1, true), M(0xf2d230, { side: THREE.DoubleSide })); t.position.set(x, h / 2, z); g.add(t); const rim = new THREE.Mesh(new THREE.TorusGeometry(r * 0.85, 0.06, 8, 20), M(0xe0b800)); rim.rotation.x = Math.PI / 2; rim.position.set(x, h, z); g.add(rim); });
+  }
+  return g;
+}
+function buildSymmetry(mount, sim, onDone) {
+  const card = stationShell("2", "The Symmetry Lab", "El Laboratorio de Simetría", "Slice each animal with a glowing mirror plane. Turn the plane, test each angle and count how many positions make two matching halves. Then name the body plan.", "Corta cada animal con un plano espejo luminoso. Gira el plano, prueba cada ángulo y cuenta en cuántas posiciones salen dos mitades iguales. Luego nombra el plan corporal.");
+  mount.append(card);
+  const S = sim.state.sy || (sim.state.sy = { m: "starfish", data: {}, ang: 0 }); S.type = null; S.last = null;
+  const D = () => S.data[S.m] || (S.data[S.m] = { tests: 0, found: [] });
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A 3D animal model cut by a rotating glowing plane", "Un modelo 3D de un animal cortado por un plano luminoso giratorio")); card.append(stage);
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Plane angle", "Ángulo del plano")}<b id="sy-a"></b></div><div>${L("Angles tested", "Ángulos probados")}<b id="sy-t"></b></div><div>${L("Mirror positions found", "Posiciones espejo halladas")}<b id="sy-f"></b></div><div>${L("Last test", "Última prueba")}<b id="sy-l" style="font-size:.9rem">-</b></div>`; card.append(ro);
+  const mRow = document.createElement("div"); mRow.className = "eco-chips"; mRow.innerHTML = `<b>${L("Animal:", "Animal:")}</b>`; const mb = {};
+  SYMK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(SYM[k].en, SYM[k].es); b.addEventListener("click", () => { S.m = k; S.type = null; S.last = null; sim.saveState(); paint(); swap(); }); mRow.append(b); mb[k] = b; });
+  const ctr = document.createElement("div"); ctr.className = "cyc-controls"; ctr.innerHTML = `<div class="cyc-row"><label for="sy-r">${L("Turn the plane", "Gira el plano")}</label><input id="sy-r" type="range" min="0" max="179" step="1" value="${S.ang}"><span class="cyc-val" id="sy-v"></span></div>`;
+  const rng = ctr.querySelector("#sy-r"); rng.addEventListener("input", () => { S.ang = +rng.value; paint(); }); rng.addEventListener("change", () => sim.saveState());
+  const tRow = document.createElement("div"); tRow.className = "eco-chips"; tRow.innerHTML = `<b>${L("Body plan:", "Plan corporal:")}</b>`; const tb = {};
+  Object.keys(STYPE).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(STYPE[k].en, STYPE[k].es); b.addEventListener("click", () => { S.type = k; paint(); if (k === SYM[S.m].type) fact.textContent = L("Good call, and your tests back it up.", "Buena decisión, y tus pruebas lo respaldan."); }); tRow.append(b); tb[k] = b; });
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Turn the plane with the slider, press Test this angle, and watch for two matching halves.", "Gira el plano con el control deslizante, pulsa Probar este ángulo y busca dos mitades iguales.");
+  const isMatch = ang => SYM[S.m].axes.some(a => Math.abs(((ang - a + 90) % 180 + 180) % 180 - 90) <= 4);
+  function paint() { const d = D(); ro.querySelector("#sy-a").textContent = S.ang + "°"; ro.querySelector("#sy-t").textContent = d.tests; ro.querySelector("#sy-f").textContent = d.found.length; ctr.querySelector("#sy-v").textContent = S.ang + "°"; rng.value = S.ang; SYMK.forEach(k => mb[k].setAttribute("aria-pressed", String(S.m === k))); Object.keys(tb).forEach(k => tb[k].setAttribute("aria-pressed", String(S.type === k))); }
+  const bTest = mkBtnG(L("Test this angle", "Probar este ángulo")), bClear = mkBtnG(L("Reset this animal's tests", "Reiniciar las pruebas de este animal"), true);
+  let flash = 0, flashOk = false;
+  bTest.addEventListener("click", () => {
+    const d = D(), m = isMatch(S.ang); d.tests++; const key = SYM[S.m].axes.find(a => Math.abs(((S.ang - a + 90) % 180 + 180) % 180 - 90) <= 4); if (m && !d.found.includes(key)) d.found.push(key); S.last = m; flash = 1; flashOk = m; sim.saveState();
+    ro.querySelector("#sy-l").textContent = m ? L("Matching halves!", "¡Mitades iguales!") : L("Halves differ", "Mitades distintas"); fact.textContent = m ? L(`At ${S.ang}° the two halves are mirror images. Mirror positions found so far: ${d.found.length}.`, `A ${S.ang}° las dos mitades son imágenes especulares. Posiciones espejo halladas hasta ahora: ${d.found.length}.`) : L(`At ${S.ang}° the halves do not match. Try other angles.`, `A ${S.ang}° las mitades no coinciden. Prueba otros ángulos.`);
+    if (m) burst(stage, 50, 45, ["#7be08a", "#fff"], 12); else { stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); } paint();
+  });
+  bClear.addEventListener("click", () => { S.data[S.m] = { tests: 0, found: [] }; S.last = null; ro.querySelector("#sy-l").textContent = "-"; paint(); sim.saveState(); });
+  const tasks = [
+    { en: "STARFISH: test angles until you have found at least 3 different mirror positions, name its body plan, then lock in.", es: "ESTRELLA DE MAR: prueba ángulos hasta hallar al menos 3 posiciones espejo distintas, nombra su plan corporal y fija.", test: r => r.m === "starfish" && r.found >= 3 && r.type === "radial" },
+    { en: "WORM: test at least 6 angles; how many mirror positions are there? Name its body plan, then lock in.", es: "GUSANO: prueba al menos 6 ángulos; ¿cuántas posiciones espejo hay? Nombra su plan corporal y fija.", test: r => r.m === "worm" && r.tests >= 6 && r.found === 1 && r.type === "bilateral" },
+    { en: "SPONGE: test at least 6 angles, find out whether any position matches, name its body plan, then lock in.", es: "ESPONJA: prueba al menos 6 ángulos, descubre si alguna posición coincide, nombra su plan corporal y fija.", test: r => r.m === "sponge" && r.tests >= 6 && r.found === 0 && r.type === "asym" },
+    { en: "JELLYFISH: find at least 4 different mirror positions, name its body plan, then lock in.", es: "MEDUSA: halla al menos 4 posiciones espejo distintas, nombra su plan corporal y fija.", test: r => r.m === "jelly" && r.found >= 4 && r.type === "radial" },
+  ];
+  const ord = makeOrders(card, sim, "st2", tasks, () => { const d = D(); return { m: S.m, tests: d.tests, found: d.found.length, type: S.type, setting: L(SYM[S.m].en, SYM[S.m].es) + L(`, plane ${S.ang}°`, `, plano ${S.ang}°`), reading: L(`${d.tests} angles tested, ${d.found.length} mirror position(s) found; body plan chosen: ${S.type ? STYPE[S.type].en : "none"}`, `${d.tests} ángulos probados, ${d.found.length} posición(es) espejo hallada(s); plan corporal elegido: ${S.type ? STYPE[S.type].es : "ninguno"}`), result: S.type ? (S.type === SYM[S.m].type ? L("Body plan correct", "Plan corporal correcto") : L("Body plan incorrect", "Plan corporal incorrecto")) : L("No body plan chosen", "Sin plan corporal elegido") }; },
+    L("Symmetry Lab", "Laboratorio de Simetría"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("sym", L("Symmetry Spotter", "Detective de Simetría")); onDone(); });
+  card.__onOrder = idx => { const k = SYMK[[0, 2, 3, 1][Math.min(idx, 3)]]; };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bTest, bClear, ord.lock);
+  card.append(mRow, ctr, tRow, fact, ord.bar, row); paint();
+  let swap = () => {};
+  const sp = makeSpace(stage, { fov: 38, dist: 9.5, pitch: 0.75, yaw: 0, ty: 0.4 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer } = sp; renderer.toneMappingExposure = 1.1; scene.fog = new THREE.Fog(0x061a2a, 14, 28);
+    scene.add(new THREE.HemisphereLight(0xcfeaff, 0x0a1a2a, 0.9)); const key = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(3, 7, 4); scene.add(key); const rim = new THREE.PointLight(0x39d0ff, 1.0, 16); rim.position.set(-4, 3, 2); scene.add(rim);
+    const floor = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 0.2, 48), new THREE.MeshStandardMaterial({ color: C3(0x14344a), roughness: 0.3, metalness: 0.5, bumpMap: noiseTex(), bumpScale: 0.3 })); floor.position.y = -0.1; scene.add(floor);
+    let mod = null; swap = () => { if (mod) scene.remove(mod); mod = symModel(S.m); scene.add(mod); }; swap();
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(9, 3.6), new THREE.MeshBasicMaterial({ color: 0x66e0ff, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false })); plane.position.y = 1.6; scene.add(plane);
+    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(9, 3.6)), new THREE.LineBasicMaterial({ color: 0xffffff })); plane.add(edge);
+    hooks.push((dt, t) => { plane.rotation.y = -S.ang * Math.PI / 180; if (flash > 0) { flash = Math.max(0, flash - dt * 1.2); plane.material.color.setHex(flashOk ? 0x66ff99 : 0xff7a7a); plane.material.opacity = 0.22 + flash * 0.4; } else { plane.material.color.setHex(0x66e0ff); plane.material.opacity = 0.22; } if (mod) mod.position.y = Math.sin(t * 1.2) * 0.05; });
+  }
+}
+
+/* ============================================================
+   STATION 3 - THE MOLTING LAB (growing inside an exoskeleton)
+   ============================================================ */
+function buildMolt(mount, sim, onDone) {
+  const card = stationShell("3", "The Molting Lab", "El Laboratorio de Muda", "Imagine wearing a suit of armor your whole life! Feed the crab so its soft body grows inside its hard exoskeleton, then molt at the right moment.", "¡Imagina llevar una armadura toda la vida! Alimenta al cangrejo para que su cuerpo blando crezca dentro de su exoesqueleto duro y muda en el momento justo.");
+  mount.append(card);
+  const S = sim.state.ml || (sim.state.ml = { body: 20, shell: 23, molts: 0, good: 0, early: 0, last: null }); S.phase = "ready"; S.mt = 0; S.feeding = false;
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A 3D crab with a soft body inside a hard shell", "Un cangrejo 3D con cuerpo blando dentro de un caparazón duro")); card.append(stage);
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Body size", "Tamaño del cuerpo")}<b id="ml-b"></b></div><div>${L("Shell size", "Tamaño del caparazón")}<b id="ml-s"></b></div><div>${L("Shell fit", "Ajuste del caparazón")}<b id="ml-f"></b></div><div>${L("Molts", "Mudas")}<b id="ml-m"></b></div>`; card.append(ro);
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Hold the Feed button (or Space) to grow the body. The shell cannot stretch! When the fit is tight, press Molt.", "Mantén pulsado Alimentar (o Espacio) para que crezca el cuerpo. ¡El caparazón no se estira! Cuando el ajuste esté apretado, pulsa Mudar.");
+  const fit = () => S.body / S.shell;
+  function paint() { ro.querySelector("#ml-b").textContent = S.body.toFixed(1) + " mm"; ro.querySelector("#ml-s").textContent = S.shell.toFixed(1) + " mm"; const f = Math.round(fit() * 100); ro.querySelector("#ml-f").textContent = f + "% " + (f >= 95 ? L("(tight!)", "(¡apretado!)") : f >= 80 ? L("(snug)", "(justo)") : L("(roomy)", "(holgado)")); ro.querySelector("#ml-m").textContent = S.molts + " (" + S.good + " " + L("good", "buenas") + ")"; }
+  const bFeed = mkBtnG(L("Feed (hold)", "Alimentar (mantener)")), bMolt = mkBtnG(L("Molt!", "¡Mudar!"), true); bFeed.style.touchAction = "none";
+  const on = () => { if (S.phase === "ready") S.feeding = true; }, off = () => { S.feeding = false; };
+  bFeed.addEventListener("pointerdown", e => { on(); try { bFeed.setPointerCapture && bFeed.setPointerCapture(e.pointerId); } catch (_) {} }); ["pointerup", "pointercancel", "pointerleave"].forEach(ev => bFeed.addEventListener(ev, off));
+  bFeed.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); on(); } }); bFeed.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter") off(); });
+  bMolt.addEventListener("click", () => {
+    if (S.phase !== "ready") return; S.feeding = false; S.moltFit = fit(); S.phase = "molting"; S.mt = 0; bFeed.disabled = bMolt.disabled = true;
+    fact.textContent = S.moltFit >= 0.9 ? L("Molting! The old exoskeleton splits and the crab wriggles out. Its new shell is soft for a few seconds, so it is VULNERABLE to predators.", "¡Mudando! El viejo exoesqueleto se abre y el cangrejo sale. Su nuevo caparazón es blando unos segundos, así que es VULNERABLE a los depredadores.") : L("Molting early! The crab squeezes out of a shell that was still roomy. It is vulnerable for nothing: energy wasted, and the new shell is barely bigger.", "¡Muda temprana! El cangrejo sale de un caparazón que aún le quedaba holgado. Es vulnerable para nada: energía desperdiciada y el nuevo caparazón es apenas más grande.");
+    burst(stage, 50, 50, ["#ffd24d", "#fff", "#e8766a"], 16);
+  });
+  const tasks = [
+    { en: "Feed the crab until its shell is TIGHT (fit 95% or more), then lock in.", es: "Alimenta al cangrejo hasta que su caparazón esté APRETADO (ajuste 95% o más) y fija.", test: r => r.fit >= 0.95 },
+    { en: "Molt at the right moment (shell fit 90% or more) and wait for the new shell to harden, then lock in.", es: "Muda en el momento justo (ajuste del caparazón 90% o más) y espera a que el nuevo caparazón se endurezca; luego fija.", test: r => r.good >= 1 && r.phase === "ready" },
+    { en: "Experiment: feed a little, then molt too EARLY (fit under 70%) and see what is wasted. Wait for it to finish, then lock in.", es: "Experimento: alimenta un poco y luego muda demasiado PRONTO (ajuste menor de 70%) y mira qué se desperdicia. Espera a que termine y fija.", test: r => r.early >= 1 && r.phase === "ready" },
+    { en: "Grow the crab through 3 good molts in total, then lock in.", es: "Haz crecer al cangrejo con 3 mudas buenas en total y fija.", test: r => r.good >= 3 && r.phase === "ready" },
+  ];
+  const ord = makeOrders(card, sim, "st3", tasks, () => ({ fit: fit(), good: S.good, early: S.early, phase: S.phase, setting: L(`Shell fit ${Math.round(fit() * 100)}%`, `Ajuste del caparazón ${Math.round(fit() * 100)}%`), reading: L(`Body ${S.body.toFixed(1)} mm, shell ${S.shell.toFixed(1)} mm, molts ${S.molts} (${S.good} good, ${S.early} early)`, `Cuerpo ${S.body.toFixed(1)} mm, caparazón ${S.shell.toFixed(1)} mm, mudas ${S.molts} (${S.good} buenas, ${S.early} tempranas)`), result: S.last === "good" ? L("Last molt: good timing", "Última muda: buen momento") : S.last === "early" ? L("Last molt: too early, energy wasted", "Última muda: demasiado pronto, energía desperdiciada") : L("No molt yet", "Aún sin mudas") }),
+    L("Molting Lab", "Laboratorio de Muda"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("molt", L("Molt Master", "Maestro de la Muda")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bFeed, bMolt, ord.lock);
+  card.append(fact, ord.bar, row);
+  let last = performance.now();
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); return; } const now = performance.now(), dt = Math.min(0.3, (now - last) / 1000); last = now;
+    if (S.phase === "ready" && S.feeding) { S.body = Math.min(S.shell * 1.0, S.body + dt * 4); if (fit() >= 0.995 && !S.tightSaid) { S.tightSaid = true; fact.textContent = L("The shell is tight! The body cannot grow any more. Time to molt.", "¡El caparazón está apretado! El cuerpo no puede crecer más. Es hora de mudar."); burst(stage, 50, 50, ["#ffd24d", "#fff"], 10); } }
+    if (S.phase === "molting") { S.mt += dt; if (S.mt >= 3.2) { const good = S.moltFit >= 0.9; S.molts++; if (good) { S.good++; S.shell = S.body * 1.35; S.last = "good"; } else { S.early++; S.shell = Math.max(S.body * 1.1, S.shell * 1.02); S.last = "early"; } S.phase = "ready"; S.tightSaid = false; bFeed.disabled = bMolt.disabled = false; sim.saveState(); fact.textContent = good ? L(`The new shell has hardened and is bigger: ${S.shell.toFixed(1)} mm. Now the body has room to grow again.`, `El nuevo caparazón se endureció y es más grande: ${S.shell.toFixed(1)} mm. Ahora el cuerpo tiene espacio para crecer otra vez.`) : L("Done, but the shell barely grew. Molting is risky, so a crab should only molt when its shell is tight.", "Listo, pero el caparazón casi no creció. Mudar es arriesgado, así que un cangrejo solo debe mudar cuando su caparazón está apretado."); burst(stage, 50, 50, good ? ["#7be08a", "#fff"] : ["#e8766a", "#fff"], 14); } }
+    paint(); }, 80);
+  paint();
+  const sp = makeSpace(stage, { fov: 38, dist: 9, pitch: 0.4, yaw: 0.4, ty: 0.5 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer } = sp; renderer.toneMappingExposure = 1.1; scene.fog = new THREE.Fog(0x061a2a, 12, 26);
+    scene.add(new THREE.HemisphereLight(0xcfeaff, 0x2a1a0a, 0.9)); const key = new THREE.DirectionalLight(0xfff0d8, 1.3); key.position.set(3, 6, 5); scene.add(key); const rim = new THREE.PointLight(0x39d0ff, 1.0, 16); rim.position.set(-4, 3, 2); scene.add(rim);
+    const bump = noiseTex(); const sand = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.3, 48), new THREE.MeshStandardMaterial({ color: C3(0xcdb88a), roughness: 0.95, bumpMap: bump, bumpScale: 1.2 })); sand.position.y = -0.15; scene.add(sand);
+    const crab = new THREE.Group(); scene.add(crab);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshPhysicalMaterial({ color: C3(0xf0a0a0), roughness: 0.5, clearcoat: 0.3 })); body.scale.set(1.3, 0.55, 1); body.position.y = 0.95; crab.add(body);
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 36, 26), new THREE.MeshPhysicalMaterial({ color: C3(0xd9582b), roughness: 0.3, clearcoat: 0.9, transparent: true, opacity: 0.7, bumpMap: bump, bumpScale: 0.6, side: THREE.DoubleSide, depthWrite: false })); shell.position.y = 0.95; crab.add(shell);
+    const legs = []; for (let i = 0; i < 8; i++) { const side = i < 4 ? 1 : -1, k = i % 4, a = (-0.5 + k * 0.33) ; const lg = new THREE.Group(); const seg = (len, hex) => new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, len, 8), new THREE.MeshStandardMaterial({ color: C3(hex), roughness: 0.4 })); const s1 = seg(0.9, 0xc94a20), s2 = seg(0.9, 0xc94a20), j1 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshStandardMaterial({ color: C3(0xffd24d) })), j2 = j1.clone(); s1.rotation.z = side * 1.2; s1.position.set(side * 0.45, 0.2, 0); j1.position.set(side * 0.9, 0.1, 0); s2.rotation.z = -side * 0.5; s2.position.set(side * 1.1, -0.2, 0); lg.add(s1, j1, s2); lg.rotation.y = a * 1.2; lg.position.set(0, 0.6, 0.15 * k - 0.2); lg.userData.side = side; crab.add(lg); legs.push(lg); }
+    const claw = (sd) => { const c = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), new THREE.MeshStandardMaterial({ color: C3(0xd9582b), roughness: 0.35 })); c.scale.set(1.2, 0.8, 0.9); c.position.set(sd * 1.3, 0.9, 0.9); crab.add(c); return c; }; claw(1); claw(-1);
+    [-1, 1].forEach(sd => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshBasicMaterial({ color: 0x111111 })); e.position.set(sd * 0.35, 1.25, 0.8); crab.add(e); });
+    const shadow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#000000"), transparent: true, opacity: 0.55, depthWrite: false })); shadow.scale.setScalar(6); shadow.position.set(0, 0.05, 0); shadow.visible = false; scene.add(shadow);
+    hooks.push((dt, t) => { const bs = 0.5 + S.body / 40 * 0.9, ss = 0.5 + S.shell / 40 * 0.9; body.scale.set(1.3 * bs * 0.92, 0.55 * bs * 0.92, 1 * bs * 0.92); const ph = S.phase === "molting" ? Math.min(1, S.mt / 3.2) : 0; const sh = ss * (1 + (S.phase === "molting" ? Math.sin(ph * Math.PI) * 0.15 : 0)); shell.scale.set(1.3 * sh + 0.02, 0.55 * sh + 0.02, 1 * sh + 0.02);
+      const f = fit(); shell.material.color.setRGB(0.85 - (1 - f) * 0.25 + (f > 0.95 ? 0.1 : 0), 0.35 + (1 - f) * 0.3, 0.17 + (1 - f) * 0.15); shell.material.opacity = S.phase === "molting" ? 0.25 + 0.3 * ph : 0.65; if (S.phase === "molting") shell.material.color.setRGB(0.95, 0.9, 0.85);
+      legs.forEach((lg, i) => { lg.scale.setScalar(bs); lg.rotation.z = Math.sin(t * 2 + i) * 0.04 * (reducedMotion() ? 0 : 1); }); crab.position.y = Math.sin(t * 1.3) * 0.04; crab.rotation.y = Math.sin(t * 0.4) * 0.15;
+      shadow.visible = S.phase === "molting"; if (shadow.visible) { shadow.position.x = Math.sin(S.mt * 1.2) * 3; shadow.position.z = Math.cos(S.mt * 0.9) * 1.5; } });
+  }
+}
+
+/* ============================================================
+   STATION 4 - THE WORM LAB (three body shapes)
+   ============================================================ */
+const WRM = { flatworm: { en: "Planarian", es: "Planaria", p: "platy", why: { en: "A flattened ribbon of a body with no segments: Platyhelminthes. In cross-section it is a thin, flat oval.", es: "Un cuerpo plano como una cinta, sin segmentos: Platyhelminthes. En corte transversal es un óvalo fino y plano." } }, roundworm: { en: "Roundworm", es: "Gusano redondo", p: "nema", why: { en: "A smooth, round, unsegmented tube: Nematoda. In cross-section it is a circle.", es: "Un tubo liso, redondo y sin segmentos: Nematoda. En corte transversal es un círculo." } }, earthworm: { en: "Earthworm", es: "Lombriz de tierra", p: "annel", why: { en: "A round body divided into many ring-like segments: Annelida (annellus = little ring).", es: "Un cuerpo redondo dividido en muchos segmentos en forma de anillo: Annelida (annellus = anillito)." } } };
+const WRMK = Object.keys(WRM), WPH = ["platy", "nema", "annel"];
+function wormModel(kind, cross) {
+  const g = new THREE.Group(), bump = noiseTex(); const M = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.45, clearcoat: 0.4, bumpMap: bump, bumpScale: 0.4 }, o || {}));
+  if (!cross) {
+    if (kind === "flatworm") { for (let i = 0; i < 20; i++) { const x = -2.4 + i * 0.25, w = 0.55 * Math.sin(Math.PI * (i + 1) / 21) + 0.15; const sgm = new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.1, w), M(0xe8d28a)); sgm.position.set(x, 0.1, Math.sin(i * 0.5) * 0.3); g.add(sgm); } }
+    else if (kind === "roundworm") { for (let i = 0; i < 26; i++) { const x = -2.4 + i * 0.19, sgm = new THREE.Mesh(new THREE.SphereGeometry(0.17 - Math.abs(i - 12) * 0.002, 12, 10), M(0xf2ecdc)); sgm.position.set(x, 0.2, Math.sin(i * 0.45) * 0.35); g.add(sgm); } }
+    else { for (let i = 0; i < 14; i++) { const x = -2.4 + i * 0.34, ring = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.3, 20), M(i % 2 ? 0xc77a7a : 0xdd9a9a)); ring.rotation.z = Math.PI / 2; ring.position.set(x, 0.35, Math.sin(i * 0.4) * 0.25); g.add(ring); const gap = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.04, 6, 20), M(0x9a4f4f)); gap.rotation.y = Math.PI / 2; gap.position.set(x + 0.17, 0.35, Math.sin(i * 0.4) * 0.25); g.add(gap); } const cl = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.45, 20), M(0xe0a0a0)); cl.rotation.z = Math.PI / 2; cl.position.set(-0.7, 0.36, 0); g.add(cl); }
+  } else {
+    const wall = kind === "flatworm" ? new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.5, 40), M(0xe8d28a)) : new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.5, 40), M(kind === "roundworm" ? 0xf2ecdc : 0xdd9a9a)); wall.rotation.x = Math.PI / 2; if (kind === "flatworm") wall.scale.set(1, 1, 0.28); wall.position.y = 1.3; g.add(wall);
+    const gut = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.52, 24), M(0x8a5a3a)); gut.rotation.x = Math.PI / 2; gut.position.y = 1.3; g.add(gut);
+    if (kind === "earthworm") for (let i = 0; i < 8; i++) { const a = i * TAU / 8, ln = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.54, 0.7), M(0x9a4f4f)); ln.position.set(Math.cos(a) * 0.7, 1.3 + Math.sin(a) * 0.7, 0); ln.rotation.z = a; g.add(ln); }
+  }
+  return g;
+}
+function buildWorms(mount, sim, onDone) {
+  const card = stationShell("4", "The Worm Lab", "El Laboratorio de Gusanos", "Worms look alike, but biologists sort them into three phyla by body shape. Inspect each worm from the outside AND in cross-section, then name its phylum.", "Los gusanos se parecen, pero los biólogos los ordenan en tres filos según la forma del cuerpo. Inspecciona cada gusano por fuera Y en corte transversal y nombra su filo.");
+  mount.append(card);
+  const S = sim.state.wm || (sim.state.wm = { w: "flatworm" }); S.p = null; S.res = null; S.seen = {}; S.done = S.done || {};
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A 3D worm model viewed from outside or in cross-section", "Un modelo 3D de gusano visto por fuera o en corte transversal")); card.append(stage);
+  const wRow = document.createElement("div"); wRow.className = "eco-chips"; wRow.innerHTML = `<b>${L("Worm:", "Gusano:")}</b>`; const wb = {};
+  WRMK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.innerHTML = `<img src="${PH(k)}" alt=""><span>${L(WRM[k].en, WRM[k].es)}</span>`; b.addEventListener("click", () => { S.w = k; S.p = null; S.res = null; S.view = "out"; mark(); swap(); paint(); }); wRow.append(b); wb[k] = b; });
+  const vRow = document.createElement("div"); vRow.className = "eco-chips"; vRow.innerHTML = `<b>${L("View:", "Vista:")}</b>`; const vb = {}; S.view = "out";
+  [["out", "Outside", "Por fuera"], ["cut", "Cross-section", "Corte transversal"]].forEach(([k, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(en, es); b.addEventListener("click", () => { S.view = k; mark(); swap(); paint(); }); vRow.append(b); vb[k] = b; });
+  const pRow = document.createElement("div"); pRow.className = "eco-chips"; pRow.innerHTML = `<b>${L("Phylum:", "Filo:")}</b>`; const pb = {};
+  WPH.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(PHY[k].en, PHY[k].es); b.addEventListener("click", () => { S.p = k; S.res = null; paint(); }); pRow.append(b); pb[k] = b; });
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Look at the worm from outside, then switch to the cross-section. What shape is the body? Are there segments?", "Mira el gusano por fuera y luego cambia al corte transversal. ¿Qué forma tiene el cuerpo? ¿Hay segmentos?");
+  const mark = () => { S.seen[S.w] = S.seen[S.w] || {}; S.seen[S.w][S.view] = true; };
+  function paint() { WRMK.forEach(k => wb[k].setAttribute("aria-pressed", String(S.w === k))); Object.keys(vb).forEach(k => vb[k].setAttribute("aria-pressed", String(S.view === k))); Object.keys(pb).forEach(k => pb[k].setAttribute("aria-pressed", String(S.p === k))); }
+  const bGo = mkBtnG(L("Classify", "Clasificar"));
+  bGo.addEventListener("click", () => {
+    const sn = S.seen[S.w] || {}; if (!(sn.out && sn.cut)) { vRow.classList.remove("cyc-shake"); void vRow.offsetWidth; vRow.classList.add("cyc-shake"); fact.textContent = L("Scientists look carefully first! Inspect this worm from outside AND in cross-section.", "¡Los científicos observan con cuidado primero! Inspecciona este gusano por fuera Y en corte transversal."); return; }
+    if (!S.p) { pRow.classList.remove("cyc-shake"); void pRow.offsetWidth; pRow.classList.add("cyc-shake"); fact.textContent = L("Choose a phylum first.", "Elige primero un filo."); return; }
+    const w = WRM[S.w], ok = S.p === w.p; S.res = { w: S.w, p: S.p, ok }; if (ok) S.done[S.w] = true; sim.saveState();
+    fact.innerHTML = `<b>${ok ? L("Correct! ", "¡Correcto! ") : L("Not quite. ", "Casi. ")}</b>${L(w.why.en, w.why.es)}${ok ? "" : " " + L("Right answer: ", "Respuesta correcta: ") + L(PHY[w.p].en, PHY[w.p].es) + "."}`;
+    if (ok) burst(stage, 50, 45, ["#7be08a", "#ffd24d", "#fff"], 18); else { stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); }
+    sim.recordTrial({ station: L("Worm Lab", "Laboratorio de Gusanos"), setting: L(w.en, w.es) + L(" (inspected outside and cross-section)", " (inspeccionado por fuera y en corte)"), reading: L(PHY[S.p].en, PHY[S.p].es), outcome: ok ? L("Correct", "Correcto") : L("Incorrect", "Incorrecto") }); document.dispatchEvent(new CustomEvent("eco-trial"));
+  });
+  const tasks = [
+    { en: "Inspect the PLANARIAN (outside and cross-section), classify it correctly, then lock in.", es: "Inspecciona la PLANARIA (por fuera y en corte), clasifícala correctamente y fija.", test: r => r.ok && r.w === "flatworm" },
+    { en: "Inspect the ROUNDWORM (outside and cross-section), classify it correctly, then lock in.", es: "Inspecciona el GUSANO REDONDO (por fuera y en corte), clasifícalo correctamente y fija.", test: r => r.ok && r.w === "roundworm" },
+    { en: "Inspect the EARTHWORM and spot its 'little rings', classify it correctly, then lock in.", es: "Inspecciona la LOMBRIZ DE TIERRA y fíjate en sus 'anillitos', clasifícala correctamente y fija.", test: r => r.ok && r.w === "earthworm" },
+    { en: "Classify all three worms correctly at least once (use each worm chip), then lock in.", es: "Clasifica correctamente los tres gusanos al menos una vez (usa cada botón de gusano) y fija.", test: r => r.all },
+  ];
+  const ord = makeOrders(card, sim, "st4", tasks, () => { const r = S.res; return { ok: !!(r && r.ok), w: r ? r.w : S.w, all: WRMK.every(k => S.done[k]), setting: L(WRM[S.w].en, WRM[S.w].es), reading: r ? L(PHY[r.p].en, PHY[r.p].es) : L("Not classified yet", "Aún sin clasificar"), result: r ? (r.ok ? L("Classified correctly", "Clasificado correctamente") : L("Classified incorrectly", "Clasificado incorrectamente")) : "-" }; },
+    L("Worm Lab", "Laboratorio de Gusanos"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("worm", L("Worm Whisperer", "Susurrador de Gusanos")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bGo, ord.lock);
+  card.append(wRow, vRow, pRow, fact, ord.bar, row); mark(); paint();
+  let swap = () => {};
+  const sp = makeSpace(stage, { fov: 38, dist: 7.2, pitch: 0.2, yaw: 0.25, ty: 1.1 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer } = sp; renderer.toneMappingExposure = 1.1; scene.fog = new THREE.Fog(0x1a1008, 12, 26);
+    scene.add(new THREE.HemisphereLight(0xffeedd, 0x2a1a0a, 0.9)); const key = new THREE.DirectionalLight(0xfff0d8, 1.3); key.position.set(3, 6, 5); scene.add(key); const rim = new THREE.PointLight(0xffb070, 1.0, 16); rim.position.set(-4, 3, 2); scene.add(rim);
+    const soil = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.6, 0.3, 48), new THREE.MeshStandardMaterial({ color: C3(0x4a3220), roughness: 1, bumpMap: noiseTex(), bumpScale: 1.5 })); soil.position.y = -0.15; scene.add(soil);
+    let mod = null; swap = () => { if (mod) scene.remove(mod); mod = wormModel(S.w, S.view === "cut"); scene.add(mod); }; swap();
+    hooks.push((dt, t) => { if (mod) { mod.position.y = Math.sin(t * 1.2) * 0.04; if (S.view !== "cut") mod.rotation.y = Math.sin(t * 0.5) * 0.15; else mod.rotation.y += dt * 0.3; } });
+  }
+}
+
+/* ============================================================
+   BONUS - REEF HUNT (hidden-object scene hunt)
+   Find the invertebrate that matches the clue among the drifting reef animals.
+   Click it (or press its number). A wrong pick just shows the answer. 120 s on setInterval. Silent.
+   ============================================================ */
+const HCL = [
+  { en: "an animal with STINGING CELLS (a cnidarian)", es: "un animal con CÉLULAS URTICANTES (un cnidario)", ok: ["jelly", "coral"] },
+  { en: "a PORE-BEARER that filters water (a sponge)", es: "un PORTADOR DE POROS que filtra el agua (una esponja)", ok: ["sponge"] },
+  { en: "a SEGMENTED worm (an annelid)", es: "un gusano SEGMENTADO (un anélido)", ok: ["earthworm"] },
+  { en: "a FLATWORM", es: "un GUSANO PLANO", ok: ["flatworm"] },
+  { en: "a ROUNDWORM", es: "un GUSANO REDONDO", ok: ["roundworm"] },
+  { en: "a mollusc with TWO shells (a bivalve)", es: "un molusco con DOS conchas (un bivalvo)", ok: ["mussel"] },
+  { en: "a mollusc with ONE spiral shell (a gastropod)", es: "un molusco con UNA concha en espiral (un gasterópodo)", ok: ["snail"] },
+  { en: "a HEAD-FOOT mollusc with no shell (a cephalopod)", es: "un molusco PIE-EN-LA-CABEZA sin concha (un cefalópodo)", ok: ["octopus"] },
+  { en: "an ARTHROPOD with jointed legs and an exoskeleton", es: "un ARTRÓPODO con patas articuladas y exoesqueleto", ok: ["beetle", "crab"] },
+  { en: "an ECHINODERM with spiny skin and tube feet", es: "un EQUINODERMO con piel espinosa y pies ambulacrales", ok: ["starfish", "urchin"] },
+];
+function mountReefHunt(host, sim, onExit) {
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus eco-bonus"; host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: Reef Hunt", "Bonus: Caza en el Arrecife")}</h3><p>${L("Real invertebrates are drifting through the reef! Read the clue, then find the right animal and click it (or press its number key). A wrong pick just shows you the answer - nothing can hurt you. Two minutes!", "¡Invertebrados reales flotan por el arrecife! Lee la pista, encuentra al animal correcto y haz clic en él (o pulsa su número). Una elección incorrecta solo te muestra la respuesta - nada puede hacerte daño. ¡Dos minutos!")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="rh-start">${L("Play", "Jugar")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="rh-skip">${L("Skip the bonus", "Saltar el bonus")}</button></div>`;
+  wrap.querySelector("#rh-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#rh-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Reef Hunt", "Caza en el Arrecife")}</h3><div class="cyc-hud"><span id="rh-time"></span><span id="rh-score"></span><span id="rh-found"></span></div><div class="cyc-target" id="rh-q"></div>
+      <canvas width="680" height="400" id="rh-cv" aria-label="${L("A reef scene with drifting invertebrates numbered 1 to 10", "Una escena de arrecife con invertebrados numerados del 1 al 10 que flotan")}" tabindex="0"></canvas><div class="cyc-toast" id="rh-toast">${L("Find the animal that matches the clue.", "Encuentra el animal que coincide con la pista.")}</div>`;
+    const q = s => wrap.querySelector(s), cv = q("#rh-cv"), c = cv.getContext("2d"), toast = q("#rh-toast");
+    const say = (t, col) => { toast.textContent = t; toast.style.color = col || "#ffe08a"; };
+    const imgs = {}; INVK.forEach(k => { const im = new Image(); im.src = PH(k); imgs[k] = im; });
+    const R = { left: 120, score: 0, found: 0, tried: 0, over: false, n: 0, toks: [], clue: null, learn: [], flash: null, clueOrder: shuffled(HCL.map((x, i) => i), 23) };
+    function round() {
+      R.clue = HCL[R.clueOrder[R.n % HCL.length]]; const want = R.clue.ok[Math.floor(Math.random() * R.clue.ok.length)];
+      const others = shuffled(INVK.filter(k => !R.clue.ok.includes(k)), 5 + R.n * 3).slice(0, 9), pool = shuffled([want].concat(others), 9 + R.n);
+      R.toks = pool.map((k, i) => ({ k, x: 70 + (i % 5) * 135 + (Math.random() - 0.5) * 30, y: 80 + Math.floor(i / 5) * 160 + (Math.random() - 0.5) * 40, ph: Math.random() * TAU, sp: 0.4 + Math.random() * 0.5 }));
+      q("#rh-q").textContent = L("Find ", "Encuentra ") + L(R.clue.en, R.clue.es);
+    }
+    function pick(i) {
+      if (R.over || i < 0 || i >= R.toks.length) return; const t = R.toks[i], ok = R.clue.ok.includes(t.k); R.tried++; const inf = INV[t.k];
+      if (ok) { R.found++; R.score += 25; say(L("Correct! " + inf.why.en, "¡Correcto! " + inf.why.es), "#9dffb0"); R.flash = { i, ok: true, t: 0 }; R.n++; setTimeout(() => { if (!R.over) round(); }, 900); }
+      else { R.learn.push({ clue: R.clue, k: t.k }); say(L(`That is ${inf.en}: ${PHY[inf.p].en}. ${inf.why.en}`, `Ese es ${inf.es}: ${PHY[inf.p].es}. ${inf.why.es}`), "#ffb3a0"); R.flash = { i, ok: false, t: 0 }; cv.classList.remove("cyc-shake"); void cv.offsetWidth; cv.classList.add("cyc-shake"); }
+    }
+    const rect = () => cv.getBoundingClientRect();
+    cv.addEventListener("click", e => { const r = rect(), x = (e.clientX - r.left) * 680 / r.width, y = (e.clientY - r.top) * 400 / r.height; let best = -1, bd = 1e9; R.toks.forEach((t, i) => { const d = Math.hypot(t.x - x, t.y - y); if (d < 46 && d < bd) { bd = d; best = i; } }); if (best >= 0) pick(best); });
+    const kd = e => { if (/^[0-9]$/.test(e.key)) { e.preventDefault(); pick(e.key === "0" ? 9 : +e.key - 1); } };
+    window.addEventListener("keydown", kd);
+    round();
+    const clock = { v: performance.now(), t: 0 };
+    const timer = setInterval(() => { const now = performance.now(), dt = Math.min(0.25, (now - clock.v) / 1000); clock.v = now; if (R.over) return; clock.t += dt; R.left -= dt; if (R.left <= 0) { finish(); return; } if (R.flash) { R.flash.t += dt; if (R.flash.t > 0.8) R.flash = null; }
+      q("#rh-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(R.left)) + " s"; q("#rh-score").textContent = L("Score ", "Puntos ") + R.score; q("#rh-found").textContent = L("Found ", "Encontrados ") + R.found + "/" + R.tried; }, 50);
+    function draw() {
+      if (!cv.isConnected || R.over) return; const t = clock.t;
+      const bg = c.createLinearGradient(0, 0, 0, 400); bg.addColorStop(0, "#0e5a86"); bg.addColorStop(1, "#06243a"); c.fillStyle = bg; c.fillRect(0, 0, 680, 400);
+      for (let k = 0; k < 6; k++) { const x = 60 + k * 120, w = 30 + (k % 3) * 8; c.strokeStyle = "rgba(180,240,255,.07)"; c.lineWidth = w; c.beginPath(); c.moveTo(x + Math.sin(t * 0.3 + k) * 20, 0); c.lineTo(x - 60, 400); c.stroke(); }
+      c.fillStyle = "#c9b27a"; c.fillRect(0, 372, 680, 28); for (let k = 0; k < 14; k++) { c.fillStyle = k % 2 ? "#e0688a" : "#e8a24a"; c.beginPath(); c.ellipse(20 + k * 50, 376, 18, 12 + (k % 3) * 4, 0, Math.PI, TAU); c.fill(); }
+      for (let k = 0; k < 24; k++) { const bx = (k * 59 + t * (10 + k % 5 * 4)) % 700, by = 400 - ((k * 37 + t * (20 + k % 4 * 9)) % 400); c.fillStyle = "rgba(255,255,255,.28)"; c.beginPath(); c.arc(bx - 10, by, 2 + k % 3, 0, TAU); c.fill(); }
+      R.toks.forEach((o, i) => { const x = o.x + Math.sin(t * o.sp + o.ph) * 16, y = o.y + Math.cos(t * o.sp * 0.8 + o.ph) * 12; o.dx = x; o.dy = y; });
+      R.toks.forEach((o, i) => { const x = o.dx, y = o.dy, im = imgs[o.k], fl = R.flash && R.flash.i === i ? R.flash : null; c.save(); c.beginPath(); c.arc(x, y, 40, 0, TAU); c.clip(); if (im.complete && im.naturalWidth) { const s = Math.max(80 / im.naturalWidth, 80 / im.naturalHeight); c.drawImage(im, x - im.naturalWidth * s / 2, y - im.naturalHeight * s / 2, im.naturalWidth * s, im.naturalHeight * s); } else { c.fillStyle = "#fff"; c.fillRect(x - 40, y - 40, 80, 80); } c.restore();
+        c.lineWidth = 5; c.strokeStyle = fl ? (fl.ok ? "#7be08a" : "#e8766a") : "#e6f4ff"; c.beginPath(); c.arc(x, y, 40, 0, TAU); c.stroke(); c.fillStyle = "#0b2a44"; c.beginPath(); c.arc(x - 30, y - 30, 12, 0, TAU); c.fill(); c.fillStyle = "#fff"; c.font = "bold 14px sans-serif"; c.textAlign = "center"; c.fillText(String((i + 1) % 10), x - 30, y - 25); });
+      requestAnimationFrame(draw);
+    }
+    R.left = 120; requestAnimationFrame(draw);
+    R.toks.forEach(o => { o.dx = o.x; o.dy = o.y; });
+    function finish() {
+      if (R.over) return; R.over = true; clearInterval(timer); window.removeEventListener("keydown", kd); const seen = {}, learn = R.learn.filter(l => (seen[l.k] ? false : (seen[l.k] = 1)));
+      wrap.innerHTML = `<h3>${L("Reef Hunt complete!", "¡Caza en el Arrecife completada!")}</h3><p>${L(`Animals found: ${R.found} of ${R.tried} picks. Score ${R.score}.`, `Animales encontrados: ${R.found} de ${R.tried} elecciones. Puntos ${R.score}.`)}</p>${learn.length ? `<p><b>${L("Worth another look:", "Vale la pena repasar:")}</b></p><ul>${learn.slice(0, 5).map(l => `<li>${L(INV[l.k].en, INV[l.k].es)}: <b>${L(PHY[INV[l.k].p].en, PHY[INV[l.k].p].es)}</b> - ${L(INV[l.k].why.en, INV[l.k].why.es)}</li>`).join("")}</ul>` : `<p>${L("No slips - brilliant!", "Sin errores - ¡brillante!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="rh-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="rh-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#rh-again").addEventListener("click", () => { wrap.remove(); mountReefHunt(host, sim, onExit); }); wrap.querySelector("#rh-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: R.score, found: R.found });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the specimen and phylum chosen, the animal and the mirror-plane angle tested, how long the crab is fed and when it molts, and the worm and view inspected. Dependent: whether each classification was correct, the number of mirror positions found, the shell fit and the success of each molt. Controlled: the same sorting evidence (body shape, symmetry, shell or skeleton type, segments) is used for every animal.",
+    "Independiente: la muestra y el filo elegidos, el animal y el ángulo del plano espejo probados, cuánto se alimenta el cangrejo y cuándo muda, y el gusano y la vista inspeccionados. Dependiente: si cada clasificación fue correcta, el número de posiciones espejo halladas, el ajuste del caparazón y el éxito de cada muda. Controladas: se usa la misma evidencia de clasificación (forma del cuerpo, simetría, tipo de concha o esqueleto, segmentos) para todos los animales.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (["st1", "st2", "st3", "st4"].every(k => s[k] && s[k].idx >= 4) && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Invertebrate Expedition complete! You sorted real animals into their phyla, tested symmetry with a mirror plane, molted a crab and told three worm phyla apart. Now try the Reef Hunt bonus, then write your Explain and Apply answers.", "¡Expedición de Invertebrados completada! Clasificaste animales reales en sus filos, probaste la simetría con un plano espejo, mudaste a un cangrejo y distinguiste tres filos de gusanos. Ahora prueba el bonus Caza en el Arrecife y luego escribe tus respuestas de Explicar y Aplicar."); host.insertBefore(c, bonusHost); } };
+  buildSorter(host, sim, check); buildSymmetry(host, sim, check); buildMolt(host, sim, check); buildWorms(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel telling the invertebrate phyla apart?", "¿Qué tan seguro te sientes distinguiendo los filos de invertebrados?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:0">${L("What would you like to investigate next?", "¿Qué te gustaría investigar a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "insects", label: L("How insects grow and change", "Cómo crecen y cambian los insectos") }, { id: "reef", label: L("Why coral reefs are in danger", "Por qué los arrecifes de coral están en peligro") }, { id: "brain", label: L("How an octopus can be so smart", "Cómo un pulpo puede ser tan inteligente") }], "next");
+  host.append(creditLine());
+  document.addEventListener("eco-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountReefHunt(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete - score ${st.score}.`, `Bonus completo - ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
