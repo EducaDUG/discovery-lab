@@ -22,7 +22,7 @@
    is formative, not a secure exam).
    ========================================================================== */
 
-import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=17";
+import { speak, stopSpeaking, ttsEnabled, speakerButton } from "./accessibility.js?v=18";
 import { t, getLang, localizeConfig } from "./i18n.js?v=10";
 import { stampHeader, introText, closingText } from "./pdf-personal.js?v=1";
 

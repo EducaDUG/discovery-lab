@@ -25,7 +25,7 @@ const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
 const DYSLEXIA_CSS = new URL("vendor/fonts/dyslexia-font.css", ENGINE_URL).href;
 
-const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false, esRegion: "auto", esGender: "any", spacing: "normal", plain: false, ruler: false };
+const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false, esRegion: "auto", esGender: "any", enAccent: "auto", enGender: "any", spacing: "normal", plain: false, ruler: false };
 
 const TEXT_SIZES = () => [
   ["s", t("a11y.size.s"), "A"], ["m", t("a11y.size.m"), "A"], ["l", t("a11y.size.l"), "A"], ["xl", t("a11y.size.xl"), "A"],
@@ -170,6 +170,22 @@ function pickVoiceFor(lang) {
     const score = v => (/natural|neural|online/i.test(v.name) ? 3 : 0) + (/google/i.test(v.name) ? 2 : 0) + (v.localService ? 0 : 1);
     return pool.slice().sort((a, b) => score(b) - score(a))[0];
   }
+  if (prefix === "en") {
+    let pool = voices.filter(v => /^en([-_]|$)/i.test(v.lang));
+    if (!pool.length) return null;
+    const p = prefs || {};
+    const acc = p.enAccent || "auto";
+    const isUK = v => /^en[-_](GB|AU|IE|ZA|IN|NZ)/i.test(v.lang);
+    if (acc === "uk") pool = pool.filter(isUK).length ? pool.filter(isUK) : pool;
+    else if (acc === "us") pool = pool.filter(v => /^en[-_]US/i.test(v.lang)).length ? pool.filter(v => /^en[-_]US/i.test(v.lang)) : pool;
+    else { const same = pool.filter(v => v.lang.toLowerCase() === lang.toLowerCase()); if (same.length && lang.length > 2) pool = same; }
+    const g = p.enGender || "any";
+    if (g !== "any") { const m = pool.filter(v => voiceGender(v) === g); if (m.length) pool = m; }
+    /* Prefer neural/"natural" voices (Edge Online Natural, Apple Premium/Enhanced, Google); avoid robotic legacy ones */
+    const score = v => (/natural|neural|online|premium|enhanced/i.test(v.name) ? 5 : 0) + (/google|siri|samantha|daniel|serena|karen|moira|aria|jenny|guy|sonia|ryan/i.test(v.name) ? 2 : 0)
+      - (/espeak|compact|david|zira|mark|hazel|george|desktop|novelty|albert|bad news|bells|boing|cellos|good news|jester|organ|trinoids|whisper|zarvox|bubbles|deranged|fred|junior|kathy|ralph|superstar/i.test(v.name) ? 4 : 0) + (v.localService ? 0 : 1);
+    return pool.slice().sort((a, b) => score(b) - score(a))[0];
+  }
   return voices.find(v => v.lang.toLowerCase() === lang.toLowerCase())
     || voices.find(v => v.lang.toLowerCase().startsWith(prefix))
     || null;
@@ -180,10 +196,11 @@ export function speak(text, forceLang) {
   speech.resume();
   let lang = forceLang || document.documentElement.lang || "en";
   if (!forceLang && lang.toLowerCase().indexOf("es") !== 0 && looksSpanish(text)) lang = "es";
+  if (lang === "en") { const a = (prefs && prefs.enAccent) || "auto"; lang = a === "uk" ? "en-GB" : a === "us" ? "en-US" : "en"; }
   if (lang === "es") { const r = (prefs && prefs.esRegion) || "auto"; lang = r === "spain" ? "es-ES" : r === "latam" ? "es-MX" : "es"; }
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(String(text));
-    u.rate = 0.96; u.pitch = 1; u.lang = lang;
+    u.rate = 0.92; u.pitch = 1; u.lang = lang;
     const voice = pickVoiceFor(lang);
     if (voice) { u.voice = voice; u.lang = voice.lang; }
     speech.speak(u);
@@ -338,6 +355,14 @@ function buildPanel(prefs, update) {
       ["auto", "Auto"], ["spain", L("Spain", "España")], ["latam", L("Latin America", "Latinoamérica")]], prefs.esRegion || "auto", v => update({ esRegion: v })));
     vox.append(segmented(L("Spanish voice", "Voz en español"), [
       ["any", L("Any", "Cualquiera")], ["female", L("Female", "Mujer")], ["male", L("Male", "Hombre")]], prefs.esGender || "any", v => update({ esGender: v })));
+    vox.append(segmented(L("English voice accent", "Acento de la voz en inglés"), [
+      ["auto", "Auto"], ["uk", L("British", "Británico")], ["us", L("American", "Americano")]], prefs.enAccent || "auto", v => update({ enAccent: v })));
+    vox.append(segmented(L("English voice", "Voz en inglés"), [
+      ["any", L("Any", "Cualquiera")], ["female", L("Female", "Mujer")], ["male", L("Male", "Hombre")]], prefs.enGender || "any", v => update({ enGender: v })));
+    const testEn = el("button", "a11y-panel__reset", L("▶ Test English voice", "▶ Probar la voz en inglés"));
+    testEn.type = "button";
+    testEn.addEventListener("click", () => { ttsOn = true; speak("Hello! This is your reading voice. Let's explore together.", "en"); });
+    vox.append(testEn);
     const test = el("button", "a11y-panel__reset", L("▶ Test Spanish voice", "▶ Probar la voz en español"));
     test.type = "button";
     test.addEventListener("click", () => { ttsOn = true; speak("Hola, soy tu voz en español. ¿Cómo estás hoy?", "es"); });

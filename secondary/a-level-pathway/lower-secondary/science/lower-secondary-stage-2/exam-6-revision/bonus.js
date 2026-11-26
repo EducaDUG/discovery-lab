@@ -4,7 +4,7 @@
    - Quiz-in-the-action: tap the animal in the scene. Wrong picks show the right answer and a hook; nothing ever ends the round.
    - Game state runs on setInterval wall-clock time. requestAnimationFrame only draws.
    - Real <button>s and keys 1-3 also answer; own mute button; reduced motion respected; button-only fallback without WebGL. */
-import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=17";
+import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=18";
 import { T, reduced, shuffle } from "../../../../../../engine/revision-kit.js?v=19";
 
 const TOTAL_MS = 120000;

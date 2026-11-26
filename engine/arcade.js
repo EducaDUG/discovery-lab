@@ -33,7 +33,7 @@
    - Fully keyboard-operable: number keys 1-9 mirror the on-screen buttons.
    ========================================================================== */
 
-import { ttsEnabled, setTTS } from "./accessibility.js?v=17";
+import { ttsEnabled, setTTS } from "./accessibility.js?v=18";
 
 /* Rasterise any image (incl. SVG data-URIs that have no intrinsic width/height, which
    WebGL uploads as black) onto a canvas texture. Shared fix for blank/black item cards. */
