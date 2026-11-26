@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<!-- USDP Junior High Life Science 6 - Term 1 - Module 2 Classification of Living Things - Taxonomy Expedition.
+     Content lives here + config.json/marking.json only. Hyper-real 3D seed lab, detective desk, life scanner and meadow (CLAUDE.md 18); bonus: Evidence Crossing (launch-and-land Kingdom Cannon). -->
+<html data-unit-convert lang="en" data-theme="biology" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taxonomy Expedition: Classification of Living Things - Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=35">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  /* ---- Sun, Seasons & Tides — scoped visual treatment (content-vs-engine rule). */
+  .cyc-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; overflow: hidden; }
+  .cyc-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  .cyc-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cyc-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cyc-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cyc-done[data-show="true"] { display: inline; }
+  .cyc-credit { font-size: .74rem; color: var(--ink-3); margin-top: .5rem; }
+  .cyc-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 8; }
+
+  .cyc-stage { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(140% 160% at 50% 40%, #0a1230 0%, #03050e 72%); border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; width: 100%; box-sizing: border-box; }
+  @media (max-width: 640px) { .cyc-stage { aspect-ratio: 1/1; } .cyc-inset { transform: scale(.82); transform-origin: top right; } }
+  .cyc-stage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cyc-stage canvas.cyc-gl:active { cursor: grabbing; }
+  .cyc-nogl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; text-align: center; color: #cfe0ff; font-size: .9rem; }
+  .cyc-inset { position: absolute; right: 8px; top: 8px; border: 1px solid #ffffff44; border-radius: 12px; background: #050a1ccc; padding: 4px; z-index: 3; text-align: center; color: #dbe7ff; font-family: var(--font-data); font-size: .66rem; }
+  .cyc-inset canvas { display: block; }
+  .cyc-hint-drag { position: absolute; left: 10px; bottom: 8px; font-size: .68rem; color: #9fb4e6; font-family: var(--font-data); z-index: 3; pointer-events: none; }
+
+  .cyc-controls { margin-top: .8rem; display: grid; gap: .65rem; }
+  .cyc-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .cyc-row label { font-weight: 700; font-size: .84rem; }
+  .cyc-controls input[type="range"] { flex: 1 1 12rem; min-width: 9rem; accent-color: var(--accent); }
+  .cyc-val { font-family: var(--font-data); font-weight: 700; font-size: .9rem; color: var(--accent); min-width: 5.5rem; }
+  .cyc-chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .38rem .8rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .cyc-chip:hover, .cyc-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cyc-btn { border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 800; padding: .6rem 1.1rem; cursor: pointer; min-height: 44px; }
+  .cyc-btn:disabled { opacity: .5; cursor: default; }
+  .cyc-btn--ghost { background: var(--accent-wash); color: var(--accent); }
+  .eco-fwstage.cyc-shake, .cyc-btn.cyc-shake, .cyc-order.cyc-shake { animation: cyc-shake .35s ease; }
+  [data-reduced-motion="on"] .cyc-shake { animation: none !important; }
+  @keyframes cyc-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+  .cyc-order { border: 2px dashed var(--accent); background: var(--accent-wash); border-radius: 12px; padding: .6rem .8rem; font-weight: 700; font-size: .92rem; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+  .cyc-order__n { font-family: var(--font-data); font-size: .72rem; background: var(--accent); color: #fff; border-radius: 999px; padding: .12rem .6rem; }
+  .cyc-dots { display: inline-flex; gap: 4px; margin-left: auto; }
+  .cyc-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: block; }
+  .cyc-dots i[data-on="true"] { background: var(--accent); }
+
+  .cyc-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .45rem; }
+  .cyc-city { border: 1px solid var(--line); border-radius: 12px; padding: .45rem .6rem; background: var(--surface); font-size: .8rem; display: flex; gap: .55rem; align-items: center; }
+  .cyc-city b { display: block; font-size: .84rem; }
+  .cyc-city small { color: var(--ink-3); font-family: var(--font-data); }
+  .cyc-orb { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset -4px -3px 0 #0003; }
+  .cyc-orb[data-day="true"] { background: radial-gradient(circle at 35% 35%, #fff4b0, #ffb400); box-shadow: 0 0 10px #ffb40088; }
+  .cyc-orb[data-day="false"] { background: radial-gradient(circle at 35% 35%, #d6dcf0, #55608a); }
+
+  .cyc-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
+  .cyc-gauge { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .7rem; background: var(--surface); }
+  .cyc-gauge__label { font-size: .74rem; color: var(--ink-3); font-weight: 700; }
+  .cyc-gauge__val { font-family: var(--font-data); font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+  .cyc-bar { height: 10px; border-radius: 6px; background: #1c2447; margin-top: .3rem; overflow: hidden; position: relative; }
+  .cyc-bar > i { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #ffd24d, #ff9a3c); border-radius: 6px; transition: left .15s, width .15s; }
+  .cyc-bar--cold > i { background: linear-gradient(90deg, #5fb3ff, #ffd24d 60%, #ff7a3c); left: 0; }
+  .cyc-season { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+
+  /* Observation / Orient */
+  .cyc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; margin-top: .6rem; }
+  .cyc-card { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); display: flex; flex-direction: column; font: inherit; }
+  .cyc-card:hover, .cyc-card:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-card__photo { display: block; aspect-ratio: 4/3; overflow: hidden; background: #111; }
+  .cyc-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cyc-card__text { padding: .5rem .6rem; font-size: .82rem; line-height: 1.4; }
+  .cyc-card__text b { display: block; font-size: .86rem; margin-bottom: .1rem; }
+  .cyc-card[data-done="true"] { border-color: var(--accent); }
+  .cyc-photo { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #111; max-width: 36rem; }
+  .cyc-photo img { display: block; width: 100%; height: auto; }
+  .cyc-photo .cyc-spot { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; border: 2px dashed #ffffffaa; background: #ffffff1c; cursor: pointer; padding: 0; }
+  .cyc-photo .cyc-spot:hover, .cyc-photo .cyc-spot:focus-visible { background: #ffffff44; outline: 2px solid var(--signal); }
+  .cyc-photo .cyc-spot[data-ok="true"] { border: 3px solid #5ee08a; background: #5ee08a44; }
+  .cyc-photo .cyc-spot.cyc-shake { border-color: #E8766A; }
+  .cyc-prompt { font-weight: 800; margin-top: .6rem; font-size: .95rem; }
+  .cyc-reflect { display: grid; gap: .5rem; margin-top: .4rem; }
+  .cyc-chiprow { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .cyc-complete { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: 1rem 1.2rem; background: linear-gradient(135deg, #0b1a45, #2b1456); color: #fff; font-weight: 700; }
+
+  /* Bonus: Tide Pilot */
+  .cyc-bonus { border-radius: 14px; background: linear-gradient(160deg, #0a1c3d, #091127); border: 1px solid #ffffff22; padding: var(--sp-4); color: #e8f0ff; margin-top: var(--sp-5); }
+  .cyc-bonus h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cyc-bonus p { color: #c8d7f5; }
+  .cyc-bonus canvas { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid #ffffff2a; background: #0a1633; }
+  .cyc-hud { display: flex; flex-wrap: wrap; gap: .8rem; font-family: var(--font-data); font-size: .82rem; font-weight: 700; margin: .5rem 0; color: #ffe08a; }
+  .cyc-quiz { min-height: 3.2rem; margin-top: .5rem; border: 1px dashed #ffffff44; border-radius: 12px; padding: .5rem .7rem; font-size: .88rem; }
+  .cyc-quiz .cyc-row { margin-top: .3rem; }
+  .cyc-sail { width: 100%; font-size: 1.05rem; padding: .85rem; margin-top: .6rem; touch-action: none; user-select: none; }
+  .cyc-bonus .cyc-btn--ghost { background: #ffffff1c; color: #fff; }
+  .cyc-toast { font-size: .84rem; margin-top: .4rem; min-height: 1.3rem; color: #ffe08a; font-weight: 700; }
+
+  .cyc-lbl { position: absolute; transform: translate(-50%,-50%); font-size: .68rem; font-weight: 700; color: #fff; background: #1b0f2acc; border: 1px solid #ffffff44; border-radius: 999px; padding: .1rem .5rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+  .cyc-stage { background: radial-gradient(120% 140% at 50% 30%, #3a1740 0%, #170a22 62%, #0b0612 100%) !important; }
+  .cyc-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; max-width: 36rem; }
+  .cyc-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: .72rem; font-weight: 700; padding: .35rem 0; min-height: 36px; cursor: pointer; color: var(--ink); position: relative; }
+  .cyc-cell[data-p="start"] { background: #d63a4b; color: #fff; border-color: #d63a4b; }
+  .cyc-cell[data-p="bleed"] { background: #f7b8bf; border-color: #f0a0a8; }
+  .cyc-cell[data-pick="true"] { outline: 3px solid var(--signal); background: #ffe38a; color: #222; }
+  .cyc-cell:hover, .cyc-cell:focus-visible { border-color: var(--accent); outline: none; }
+  .cyc-cell[data-pick="true"]::after { content: ""; position: absolute; top: -8px; right: 2px; width: 9px; height: 11px; background: #c1272d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .cyc-legend { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-3); }
+  .cyc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .cyc-swatch { display: inline-block; width: 26px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
+  .cyc-note { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; }
+  .cyc-mon canvas { cursor: ew-resize; touch-action: none; }
+  .cyc-target { font-weight: 800; font-size: .95rem; min-height: 2.6rem; color: #fff; }
+
+  /* ---- Ecosystem Ranger extras ---- */
+  .eco-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-slot { border: 2px dashed var(--line); border-radius: 12px; min-height: 7.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: .78rem; color: var(--ink-3); position: relative; overflow: hidden; background: var(--surface); }
+  .eco-slot[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); }
+  .eco-slot img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-slot b { display: block; padding: .15rem .3rem 0; font-size: .8rem; }
+  .eco-slot__n { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font: 800 .75rem var(--font-data); display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .eco-slot.eco-pop { animation: eco-pop .45s ease; }
+  @keyframes eco-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  [data-reduced-motion="on"] .eco-pop { animation: none !important; }
+  .eco-tab-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+  .eco-card { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 0; cursor: pointer; overflow: hidden; color: var(--ink); font: inherit; display: flex; flex-direction: column; }
+  .eco-card:hover, .eco-card:focus-visible { border-color: var(--accent); outline: none; }
+  .eco-card[data-used="true"] { opacity: .35; }
+  .eco-card[aria-pressed="true"] { border-color: var(--signal); box-shadow: 0 0 0 3px #ffd24d88; }
+  .eco-card img { width: 100%; height: 5rem; object-fit: cover; display: block; }
+  .eco-card span { padding: .3rem .45rem; font-size: .76rem; font-weight: 700; }
+  .eco-fact { border-left: 4px solid var(--accent); background: var(--accent-wash); padding: .5rem .8rem; border-radius: 0 10px 10px 0; font-size: .84rem; margin-top: .6rem; min-height: 2.4rem; }
+
+  .eco-fwstage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; aspect-ratio: 16/10; background: linear-gradient(#8fd0ff, #d8f0c8); }
+  @media (max-width: 640px) { .eco-fwstage { aspect-ratio: 1/1; } }
+  .eco-fwstage canvas.cyc-gl { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .eco-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-top: .45rem; }
+  .eco-chips > b { font-size: .78rem; min-width: 8.2rem; }
+  .eco-tok { display: inline-flex; align-items: center; gap: .35rem; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .15rem .65rem .15rem .2rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; min-height: 40px; }
+  .eco-tok img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+  .eco-tok[aria-pressed="true"][data-side="from"] { border-color: #e8a400; background: #fff3c4; }
+  .eco-tok[aria-pressed="true"][data-side="to"] { border-color: #1d9bd6; background: #d7f0ff; }
+  .eco-arrows { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; min-height: 1.6rem; }
+  .eco-arrows span { font-size: .74rem; font-weight: 700; background: var(--accent-wash); color: var(--accent); border-radius: 999px; padding: .15rem .6rem; }
+
+  .eco-pop-stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin-top: .6rem; background: #0e2a1a; }
+  .eco-pop-stage canvas { display: block; width: 100%; height: auto; }
+  .eco-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .eco-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .3rem; }
+  .eco-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .eco-readout div { border: 1px solid var(--line); border-radius: 10px; padding: .35rem .6rem; background: var(--surface); font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .eco-readout div b { display: block; font: 800 1.15rem var(--font-data); color: var(--accent); }
+
+  .eco-bonus canvas { cursor: crosshair; touch-action: none; }
+  .eco-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .eco-role { border: 2px solid #ffffff33; background: #ffffff10; color: #fff; border-radius: 12px; padding: 0; cursor: pointer; font: inherit; overflow: hidden; text-align: left; }
+  .eco-role:hover, .eco-role:focus-visible { border-color: #ffd24d; outline: none; }
+  .eco-role img { width: 100%; height: 4.6rem; object-fit: cover; display: block; }
+  .eco-role span { display: block; padding: .3rem .5rem; font-size: .76rem; font-weight: 700; }
+  .eco-q { margin-top: .5rem; border: 2px solid #ffd24d; border-radius: 12px; padding: .55rem .75rem; background: #1b2a10; font-size: .9rem; }
+  .eco-q .cyc-row { margin-top: .4rem; }
+  .eco-board { display: flex; flex-wrap: wrap; gap: .6rem; font: 700 .76rem var(--font-data); color: #cfe8ff; margin-top: .3rem; }
+  .eco-board span[data-me="true"] { color: #ffe08a; }
+
+  .dg-stage { aspect-ratio: 4/5; max-height: 640px; background: radial-gradient(120% 120% at 50% 30%, #1d4a5a 0%, #0a1c2a 70%) !important; }
+  @media (max-width: 640px) { .dg-stage { aspect-ratio: 3/4; } }
+  .dg-tok { padding-left: .8rem; }
+  .ba-stage { background: radial-gradient(120% 120% at 50% 30%, #1d3a4a 0%, #0a1620 70%) !important; aspect-ratio: 16/10; }
+  .ba-meadow { background: linear-gradient(#8fd0ff, #d8f0c8) !important; }
+  @media (max-width: 640px) { .ba-stage { aspect-ratio: 4/5; } }
+  .ba-ladder { margin-top: .6rem; }
+  .ba-slots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .35rem; }
+  .ba-slots li { border: 2px dashed var(--line); border-radius: 10px; padding: .3rem .6rem; font-size: .8rem; color: var(--ink-3); min-height: 2.2rem; display: flex; align-items: center; gap: .4rem; }
+  .ba-slots li[data-full="true"] { border-style: solid; border-color: var(--accent); color: var(--ink); background: var(--accent-wash); }
+  .ba-pool { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+  .ba-pots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; margin-top: .6rem; }
+  .ba-pot { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .6rem; background: var(--surface); display: grid; gap: .25rem; }
+  .ba-pot label { font-size: .74rem; font-weight: 700; color: var(--ink-3); }
+  .ba-pot select { font: inherit; font-size: .82rem; padding: .3rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); min-height: 40px; }
+  @media (max-width: 520px) { .ba-pots { grid-template-columns: 1fr; } }
+  .eco-tok[data-res="ok"] { border-color: #1f9d55; background: #d6f5e1; }
+  .eco-tok[data-res="miss"] { border-color: #1d6fd6; background: #d7e8ff; }
+  .eco-tok[data-res="bad"] { border-color: #c0392b; background: #fbd9d4; }
+
+</style>
+<!-- seo:start -->
+<meta name="description" content="In this lab students become taxonomists. They zoom a lion down a 3D funnel from Domain to Species to see how the group of relatives shrinks, sort ten real specimens (including surprises like coral and giant kelp) into kingdoms and plant types, and examine five mystery cells under a 3D...">
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-2-classification/sim-taxonomy-expedition/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Taxonomy Expedition: Classification of Living Things | Discovery Lab">
+<meta property="og:description" content="In this lab students become taxonomists. They zoom a lion down a 3D funnel from Domain to Species to see how the group of relatives shrinks, sort ten real specimens (including surprises like coral and giant kelp) into kingdoms and plant types, and examine five mystery cells under a 3D...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-2-classification/sim-taxonomy-expedition/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Taxonomy Expedition: Classification of Living Things", "description": "In this lab students become taxonomists. They zoom a lion down a 3D funnel from Domain to Species to see how the group of relatives shrinks, sort ten real specimens (including surprises like coral and giant kelp) into kingdoms and plant types, and examine five mystery cells under a 3D microscope, asking about the nucleus, cell wall, chloroplasts and number of cells to classify each using evidence. They then watch a virus do nothing on its own and reproduce only inside a host cell to decide whether it is alive, before firing real specimens into kingdom bins in a physics-based cannon game. This builds scientific enquiry and critical thinking as students decide with evidence, strengthens systems thinking as they see how the levels of classification nest inside each other, and practises communication by explaining their reasoning. The content practised is Life Science 6, Term 1, Module 2: Classification of Living Things: taxonomy and the 8 levels from Domain to Species, scientific names, the kingdoms Animalia, Protoctista, Bacteria and Archaea, Fungi and Plantae, seedless plants, gymnosperms and angiosperms, and viruses at the edge of life.", "url": "https://educadug.github.io/discovery-lab/secondary/us-pathway/junior-high/usdp-junior-high-life-science-6/term-1/module-2-classification/sim-taxonomy-expedition/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Scientific enquiry", "Critical thinking", "Systems thinking", "Data interpretation", "Communication"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "USDP Junior High Life Science 6"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=25";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+
+const THREE_OK = typeof THREE !== "undefined";
+const L = (en, es) => getLang() === "es" ? es : en;
+const TAU = Math.PI * 2;
+function reducedMotion() { return document.documentElement.getAttribute("data-reduced-motion") === "on"; }
+function tween(duration, onUpdate, onDone) {
+  if (reducedMotion()) duration = Math.min(duration, 60);
+  const start = performance.now();
+  function step(now) { const t = Math.min(1, (now - start) / duration); onUpdate(1 - Math.pow(1 - t, 3), t); if (t < 1) requestAnimationFrame(step); else onDone && onDone(); }
+  requestAnimationFrame(step);
+}
+function burst(container, xPct, yPct, colors, count) {
+  if (reducedMotion()) return; count = count || 10;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span"); p.className = "cyc-particle"; const size = 4 + Math.random() * 5;
+    p.style.width = size + "px"; p.style.height = size + "px"; p.style.left = xPct + "%"; p.style.top = yPct + "%";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)]; container.append(p);
+    const ang = Math.random() * TAU, dist = 30 + Math.random() * 50;
+    p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: "cubic-bezier(.2,.7,.3,1)" }).onfinish = () => p.remove();
+  }
+}
+let GL_OK = null;
+function hasWebGL() {
+  if (GL_OK !== null) return GL_OK;
+  try { const c = document.createElement("canvas"); GL_OK = !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
+  catch (e) { GL_OK = false; }
+  return GL_OK;
+}
+
+function makeGlowTexture(hex) {
+  const c = document.createElement("canvas"); c.width = c.height = 64; const ctx = c.getContext("2d"), g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, hex + "ff"); g.addColorStop(1, hex + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeBumpTexture() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const ctx = c.getContext("2d"); ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = Math.random() > 0.5 ? "#a0a0a0" : "#606060"; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); ctx.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function makeSpace(stage, o) {
+  if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "cyc-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2; renderer.localClippingEnabled = true;
+  renderer.domElement.className = "cyc-gl"; stage.append(renderer.domElement);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(o.fov || 38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0, pitch: o.pitch || 0.1, dist: o.dist || 6.5, fit: 1, target: new THREE.Vector3(0, o.ty || 0, 0), idle: 0 };
+  let drag = null; const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; ob.yaw = Math.max(-1.7, Math.min(1.7, ob.yaw - dx * 0.008)); ob.pitch = Math.max(-0.9, Math.min(1.1, ob.pitch + dy * 0.006)); ob.idle = performance.now(); });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  const hooks = []; let last = performance.now(), alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.2 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const sway = (!drag && !reducedMotion() && now - ob.idle > 2500) ? Math.sin(now / 2600) * 0.22 : 0;
+    hooks.forEach(h => h(dt, now / 1000));
+    const d = ob.dist * ob.fit, yw = ob.yaw + sway;
+    camera.position.set(ob.target.x + d * Math.cos(ob.pitch) * Math.sin(yw), ob.target.y + d * Math.sin(ob.pitch), ob.target.z + d * Math.cos(ob.pitch) * Math.cos(yw));
+    camera.lookAt(ob.target); renderer.render(scene, camera);
+    if (alive) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const hint = document.createElement("span"); hint.className = "cyc-hint-drag"; hint.textContent = L("Drag to turn the model", "Arrastra para girar el modelo"); stage.append(hint);
+  return { scene, camera, ob, hooks, renderer };
+}
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const PH = k => `photos/${k}.jpg`;
+const PA = (k, en, es) => `<img src="${PH(k)}" alt="${L(en, es)}" loading="lazy">`;
+let CREDITS = null;
+function creditLine() {
+  const cr = document.createElement("p"); cr.className = "cyc-credit";
+  cr.textContent = L("Photo credits loading...", "Cargando créditos de fotos...");
+  (CREDITS ? Promise.resolve(CREDITS) : fetch("photos/credits.json").then(r => r.json()).then(j => (CREDITS = j))).then(j => {
+    const seen = {}, bits = [];
+    Object.keys(j).forEach(k => { const c = j[k], key = c.author + "|" + c.license; if (seen[key]) return; seen[key] = 1; bits.push(`<a href="${c.page}">${c.author.split(" from ")[0].replace(/\s*\(.*$/, "")}</a> (${c.licenseUrl ? `<a href="${c.licenseUrl}">${c.license}</a>` : c.license})`); });
+    cr.innerHTML = L("Real photos via Wikimedia Commons / OpenStax: ", "Fotos reales vía Wikimedia Commons / OpenStax: ") + bits.join("; ") + ".";
+  }).catch(() => { cr.textContent = L("Photos via Wikimedia Commons (credits on each photo's page).", "Fotos vía Wikimedia Commons (créditos en la página de cada foto)."); });
+  return cr;
+}
+
+/* Orders queue (persisted in sim.state - CLAUDE.md 12.16) */
+function makeOrders(card, sim, key, tasks, getReading, station, onDone) {
+  const bar = document.createElement("div"); bar.className = "cyc-order";
+  bar.innerHTML = `<span class="cyc-order__n"></span><span class="cyc-order__text"></span><span class="cyc-dots"></span>`;
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "cyc-btn"; lock.textContent = L("Lock it in", "Fijar lectura");
+  const st = sim.state[key] || (sim.state[key] = { idx: 0 });
+  const dots = bar.querySelector(".cyc-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  function paint() {
+    bar.querySelector(".cyc-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Order ${st.idx + 1} of ${tasks.length}`, `Pedido ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cyc-order__text").textContent = st.idx >= tasks.length ? L("Every order complete - keep exploring, or lock in more readings.", "Todos los pedidos completos - sigue explorando, o fija más lecturas.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    if (card.__onOrder) card.__onOrder(st.idx);
+  }
+  paint();
+  lock.addEventListener("click", () => {
+    const r = getReading(), t = tasks[st.idx], ok = t ? t.test(r) : false;
+    sim.recordTrial({ station, setting: r.setting, reading: r.reading, outcome: r.result + (ok ? L(" - order met", " - pedido cumplido") : t ? L(" - not the order yet", " - todavía no es el pedido") : "") });
+    document.dispatchEvent(new CustomEvent("eco-trial"));
+    if (ok) { st.idx++; sim.saveState(); paint(); burst(card, 50, 12, ["#7be08a", "#ffd24d", "#fff"], 16); sim.toast(L("Order complete!", "¡Pedido completado!"), "correct"); if (st.idx >= tasks.length) onDone(); }
+    else if (t) { bar.classList.remove("cyc-shake"); void bar.offsetWidth; bar.classList.add("cyc-shake"); lock.classList.remove("cyc-shake"); void lock.offsetWidth; lock.classList.add("cyc-shake"); sim.toast(L("Logged - but that is not the order. Re-read it and try again.", "Registrado - pero ese no es el pedido. Relee e inténtalo de nuevo."), "info"); }
+    else sim.toast(L("Reading logged.", "Lectura registrada."), "info");
+  });
+  return { bar, lock, st, paint };
+}
+function stationShell(n, titleEn, titleEs, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cyc-station";
+  c.innerHTML = `<div class="cyc-head"><span class="cyc-n">${n}</span><h3 class="cyc-title">${L(titleEn, titleEs)}</h3><span class="cyc-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+const shuffled = (a, seed) => { const r = a.slice(); let s = seed || 7; for (let i = r.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor(s / 233280 * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+
+
+
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+function noiseTex() {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 900; i++) { x.fillStyle = Math.random() > 0.5 ? "#b0b0b0" : "#505050"; x.globalAlpha = 0.28; x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 4, 0, TAU); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+/* Shared "pick the parts" panel used by the lungs and the heart (chips = keyboard route) */
+function pickPanel(card, keys, label, onPickHook) {
+  const chipRow = document.createElement("div"); chipRow.className = "eco-chips"; chipRow.innerHTML = `<b>${L("Parts:", "Partes:")}</b>`;
+  const picksEl = document.createElement("div"); picksEl.className = "eco-arrows";
+  const cap = document.createElement("div"); cap.className = "eco-fact"; cap.textContent = L("Tap a part (in 3D or with the buttons) to read what it does.", "Toca una parte (en 3D o con los botones) para leer qué hace.");
+  const P = { picks: [], chips: {}, cap, hi: null };
+  keys.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(label(k).en, label(k).es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => P.pick(k)); chipRow.append(b); P.chips[k] = b; });
+  P.paint = () => {
+    keys.forEach(k => P.chips[k].setAttribute("aria-pressed", String(P.picks[P.picks.length - 1] === k)));
+    picksEl.innerHTML = P.picks.length ? "" : `<small style="color:var(--ink-3)">${L("No picks yet.", "Aún no hay selecciones.")}</small>`;
+    P.picks.forEach((k, i) => { const s = document.createElement("span"); s.textContent = (i + 1) + ". " + L(label(k).en, label(k).es); picksEl.append(s); });
+    if (P.hi) P.hi(P.picks[P.picks.length - 1]);
+  };
+  P.pick = k => { P.picks.push(k); if (P.picks.length > 8) P.picks.shift(); onPickHook(k, cap); P.paint(); };
+  P.clear = () => { P.picks = []; P.paint(); };
+  card.append(chipRow, picksEl, cap);
+  return P;
+}
+
+
+
+
+/* ============================================================
+   ORIENT + OBSERVATION
+   ============================================================ */
+function orient(host) {
+  host.innerHTML = "";
+  const p = document.createElement("p"); p.className = "q__hint";
+  p.textContent = L("Welcome, Taxonomist! Tap each real picture to meet four big ideas about sorting the millions of living things on Earth.", "¡Bienvenido, Taxónomo! Toca cada imagen real para conocer cuatro grandes ideas sobre cómo ordenar los millones de seres vivos de la Tierra.");
+  host.append(p);
+  const items = [
+    { f: "lion", en: "Living or non-living?", es: "¿Vivo o no vivo?", t: { en: "A rock doesn't use energy or grow: it is non-living. A plant or a lion does both: living. Compare a robot toy to a puppy: it may move, but only the puppy shows all the characteristics of life.", es: "Una roca no usa energía ni crece: no está viva. Una planta o un león hacen ambas cosas: están vivos. Compara un robot de juguete con un cachorro: puede moverse, pero solo el cachorro muestra todas las características de la vida." } },
+    { f: "fern", en: "Taxonomy sorts life", es: "La taxonomía ordena la vida", t: { en: "Scientists have named over 1.7 million species! Taxonomy is the system for sorting them: it helps us find information, shows how living things are related and gives everyone a universal naming system.", es: "¡Los científicos han nombrado más de 1,7 millones de especies! La taxonomía es el sistema para ordenarlas: nos ayuda a encontrar información, muestra cómo se relacionan los seres vivos y da a todos un sistema universal de nombres." } },
+    { f: "logmush", en: "Recyclers and green power", es: "Recicladores y poder verde", t: { en: "Fungi are the Earth's clean-up crew: decomposers that absorb nutrients from dead matter. Plants are autotrophs that make their own food. Animals are heterotrophs that must eat others.", es: "Los hongos son el equipo de limpieza de la Tierra: descomponedores que absorben nutrientes de la materia muerta. Las plantas son autótrofas y fabrican su propio alimento. Los animales son heterótrofos y deben comer a otros." } },
+    { f: "ecoli", en: "Tiny and ancient", es: "Diminutos y antiguos", t: { en: "Bacteria are prokaryotes: single cells with no nucleus, found in soil, water and your gut. Archaea live in extreme places like boiling vents. Protists, the 'junk drawer' kingdom, are mostly single-celled.", es: "Las bacterias son procariotas: células únicas sin núcleo, que viven en el suelo, el agua y tu intestino. Las arqueas viven en lugares extremos, como fuentes hirvientes. Los protistas, el reino 'cajón de sastre', son sobre todo unicelulares." } },
+  ];
+  const grid = document.createElement("div"); grid.className = "cyc-grid";
+  items.forEach(it => {
+    const c = document.createElement("button"); c.type = "button"; c.className = "cyc-card";
+    c.innerHTML = `<span class="cyc-card__photo">${PA(it.f, it.en, it.es)}</span><span class="cyc-card__text"><b>${L(it.en, it.es)}</b><span>${L("Tap to find out more", "Toca para saber más")}</span></span>`;
+    c.addEventListener("click", () => { c.dataset.done = "true"; c.querySelector(".cyc-card__text span").textContent = L(it.t.en, it.t.es); });
+    grid.append(c);
+  });
+  host.append(grid); host.append(creditLine());
+}
+function observation(host, sim) {
+  host.innerHTML = "";
+  const intro = document.createElement("p"); intro.className = "q__hint";
+  intro.textContent = L("SEE - THINK - WONDER. Look closely at this real log in a forest before you learn any names. What do you SEE? Then play photo detective: tap what each clue describes.", "VER - PENSAR - PREGUNTARSE. Mira de cerca este tronco real de un bosque antes de aprender ningún nombre. ¿Qué VES? Luego juega a detective de fotos: toca lo que describe cada pista.");
+  host.append(intro);
+  const h = document.createElement("p"); h.className = "cyc-prompt"; host.append(h);
+  const wrap = document.createElement("div"); wrap.className = "cyc-photo"; wrap.style.maxWidth = "22rem";
+  wrap.innerHTML = `<img src="${PH("logmush")}" alt="${L("A mossy fallen log with a cluster of small orange mushrooms growing out of it", "Un tronco caído cubierto de musgo con un grupo de pequeños hongos naranjas que crecen de él")}">`;
+  const targets = [
+    { x: 54, y: 53, en: "the small orange MUSHROOMS - living things that do not make their own food but absorb nutrients from dead wood (FUNGI)", es: "los pequeños HONGOS naranjas - seres vivos que no fabrican su propio alimento sino que absorben nutrientes de la madera muerta (HONGOS)" },
+    { x: 28, y: 22, en: "the soft green MOSS - a tiny plant that makes its own food with sunlight (PLANTAE, a seedless plant)", es: "el suave MUSGO verde - una plantita que fabrica su propio alimento con la luz del sol (PLANTAE, una planta sin semillas)" },
+    { x: 14, y: 70, en: "the old brown BARK of the log - once part of a tree, now dead matter being broken down", es: "la vieja CORTEZA marrón del tronco - antes parte de un árbol, ahora materia muerta que se descompone" },
+  ];
+  let step = sim.state.detective | 0;
+  targets.forEach((t, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cyc-spot"; b.style.left = t.x + "%"; b.style.top = t.y + "%"; b.setAttribute("aria-label", L("Photo spot " + (i + 1), "Zona de la foto " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (step >= targets.length) return;
+      if (i === step) { burst(wrap, t.x, t.y, ["#5ee08a", "#fff", "#ffd24d"], 12); step++; sim.state.detective = step; sim.saveState(); paint(); }
+      else { b.classList.remove("cyc-shake"); void b.offsetWidth; b.classList.add("cyc-shake"); h.textContent = L("Not that one - read the clue again.", "Esa no - vuelve a leer la pista."); }
+    });
+    wrap.append(b);
+  });
+  host.append(wrap);
+  function paint() {
+    wrap.querySelectorAll(".cyc-spot").forEach((s, i) => { s.dataset.ok = String(i < step); });
+    h.textContent = step >= targets.length ? L("Photo detective done! One small log, three different groups of living things plus dead matter. How could we sort millions of living things so scientists everywhere agree?", "¡Detective de fotos completado! Un pequeño tronco, tres grupos distintos de seres vivos y materia muerta. ¿Cómo podríamos ordenar millones de seres vivos para que los científicos de todo el mundo estén de acuerdo?") : L(`Clue ${step + 1}/${targets.length}: tap ${targets[step].en}.`, `Pista ${step + 1}/${targets.length}: toca ${targets[step].es}.`);
+  }
+  paint();
+  const sub = document.createElement("p"); sub.className = "q__hint"; sub.style.marginTop = "var(--sp-4)";
+  sub.textContent = L("What do you THINK about the variety of life? What do you WONDER about how living things are related? Keep that in mind for your hypothesis.", "¿Qué PIENSAS de la variedad de la vida? ¿Qué te PREGUNTAS sobre cómo se relacionan los seres vivos? Tenlo presente para tu hipótesis."); host.append(sub);
+  host.append(creditLine());
+}
+
+function attachPick(renderer, camera, getMeshes, cb) {
+  const cv = renderer.domElement, ray = new THREE.Raycaster(), m = new THREE.Vector2(); let trav = 0, last = null;
+  cv.addEventListener("pointerdown", e => { trav = 0; last = { x: e.clientX, y: e.clientY }; });
+  cv.addEventListener("pointermove", e => { if (last && e.buttons) { trav += Math.hypot(e.clientX - last.x, e.clientY - last.y); last = { x: e.clientX, y: e.clientY }; } });
+  cv.addEventListener("click", e => {
+    if (trav > 8) return; const r = cv.getBoundingClientRect(); m.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(m, camera);
+    const hit = ray.intersectObjects(getMeshes(), false)[0]; if (hit) { let o = hit.object; while (o && !o.userData.k && o.parent) o = o.parent; if (o && o.userData.k) cb(o.userData.k, o); }
+  });
+}
+const mkBtnG = (txt, ghost) => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-btn" + (ghost ? " cyc-btn--ghost" : ""); b.textContent = txt; return b; };
+
+/* ============================================================
+   STATION 1 - THE RANK FUNNEL (8 levels of classification)
+   ============================================================ */
+const RK = {
+  domain: { en: "Domain", es: "Dominio", ex: "Eukarya", fact: { en: "DOMAIN is the broadest, most inclusive level: all life is sorted into just three domains (Bacteria, Archaea and Eukarya). The lion is in Eukarya. The group of 'cousins' is HUGE.", es: "El DOMINIO es el nivel más amplio e inclusivo: toda la vida se ordena en solo tres dominios (Bacterias, Arqueas y Eucariotas). El león está en Eukarya. El grupo de 'primos' es ENORME." } },
+  kingdom: { en: "Kingdom", es: "Reino", ex: "Animalia", fact: { en: "KINGDOM: a lion is in Kingdom Animalia (animals). The cousins are now every animal on Earth.", es: "REINO: un león está en el Reino Animalia (animales). Los primos son ahora todos los animales de la Tierra." } },
+  phylum: { en: "Phylum", es: "Filo", ex: "Chordata", fact: { en: "PHYLUM: Chordata, animals with a backbone or nerve cord. Insects and worms are no longer cousins.", es: "FILO: Chordata, animales con columna vertebral o cordón nervioso. Los insectos y los gusanos ya no son primos." } },
+  class: { en: "Class", es: "Clase", ex: "Mammalia", fact: { en: "CLASS: Mammalia, warm-blooded animals with fur that feed their young milk. Birds and fish drop out.", es: "CLASE: Mammalia, animales de sangre caliente con pelo que alimentan a sus crías con leche. Las aves y los peces quedan fuera." } },
+  order: { en: "Order", es: "Orden", ex: "Carnivora", fact: { en: "ORDER: Carnivora, mostly meat-eating mammals. Rabbits and whales drop out.", es: "ORDEN: Carnivora, mamíferos que en su mayoría comen carne. Los conejos y las ballenas quedan fuera." } },
+  family: { en: "Family", es: "Familia", ex: "Felidae", fact: { en: "FAMILY: Felidae, the cat family. Dogs and bears drop out.", es: "FAMILIA: Felidae, la familia de los gatos. Los perros y los osos quedan fuera." } },
+  genus: { en: "Genus", es: "Género", ex: "Panthera", fact: { en: "GENUS: Panthera, the big roaring cats (lion, tiger, jaguar, leopard). The first word of a scientific name is the genus.", es: "GÉNERO: Panthera, los grandes felinos que rugen (león, tigre, jaguar, leopardo). La primera palabra de un nombre científico es el género." } },
+  species: { en: "Species", es: "Especie", ex: "Panthera leo", fact: { en: "SPECIES: Panthera leo, the lion. This is the MOST specific level: individuals are so similar they can mate and produce fertile offspring. The second word of the scientific name is the species.", es: "ESPECIE: Panthera leo, el león. Este es el nivel MÁS específico: los individuos son tan parecidos que pueden aparearse y tener crías fértiles. La segunda palabra del nombre científico es la especie." } },
+};
+const RKK = Object.keys(RK);
+function buildRanks(mount, sim, onDone) {
+  const card = stationShell("1", "The Rank Funnel", "El Embudo de Rangos", "Classification zooms in from the broadest group to the most specific. Tap the levels of the funnel (in 3D or with the buttons) to follow a lion down from Domain to Species.", "La clasificación se acerca desde el grupo más amplio hasta el más específico. Toca los niveles del embudo (en 3D o con los botones) para seguir a un león desde el Dominio hasta la Especie.");
+  mount.append(card);
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A 3D funnel with eight layers from Domain at the top to Species at the bottom, and a lion photo", "Un embudo 3D con ocho capas desde el Dominio arriba hasta la Especie abajo, y una foto de un león")); card.append(stage);
+  const memo = document.createElement("div"); memo.className = "eco-fact"; memo.innerHTML = L("<b>Memory trick:</b> <b>D</b>ear <b>K</b>ing <b>P</b>hilip <b>C</b>ame <b>O</b>ver <b>F</b>or <b>G</b>ood <b>S</b>oup!", "<b>Truco de memoria:</b> <b>D</b>ominio, <b>R</b>eino, <b>F</b>ilo, <b>C</b>lase, <b>O</b>rden, <b>F</b>amilia, <b>G</b>énero, <b>E</b>species - en inglés: <b>D</b>ear <b>K</b>ing <b>P</b>hilip <b>C</b>ame <b>O</b>ver <b>F</b>or <b>G</b>ood <b>S</b>oup!"); card.append(memo);
+  let setHi = () => {}, addMark = () => {}, clearMarks = () => {};
+  const P = pickPanel(card, RKK, k => RK[k], (k, cap) => { cap.textContent = L(RK[k].fact.en, RK[k].fact.es) + " " + L("Example: ", "Ejemplo: ") + RK[k].ex + "."; burst(stage, 50, 50, ["#ffd24d", "#fff", "#7be08a"], 8); setHi(k); });
+  const clr = P.clear; P.clear = () => { clr(); setHi(null); };
+  const tasks = [
+    { en: "Follow the lion down the funnel: select the eight levels in order from the broadest to the most specific (8 picks), then lock in.", es: "Sigue al león por el embudo: selecciona los ocho niveles en orden, del más amplio al más específico (8 selecciones), y fija.", test: r => r.last8.join() === RKK.join() },
+    { en: "Select the BROADEST, most inclusive level of classification, then lock in.", es: "Selecciona el nivel de clasificación MÁS AMPLIO e inclusivo y fija.", test: r => r.last === "domain" },
+    { en: "Select the MOST SPECIFIC level, where individuals can mate and produce fertile offspring, then lock in.", es: "Selecciona el nivel MÁS ESPECÍFICO, donde los individuos pueden aparearse y tener crías fértiles, y fija.", test: r => r.last === "species" },
+    { en: "A scientific name has two parts. Select the two levels that make the name Panthera leo: first the genus, then the species, then lock in.", es: "Un nombre científico tiene dos partes. Selecciona los dos niveles que forman el nombre Panthera leo: primero el género, luego la especie, y fija.", test: r => r.last2.join() === "genus,species" },
+  ];
+  const ord = makeOrders(card, sim, "st1", tasks, () => { const pk = P.picks.slice(); return { last: pk[pk.length - 1], last2: pk.slice(-2), last8: pk.slice(-8), setting: L(`Selected ${pk.length} level(s)`, `Seleccionados ${pk.length} nivel(es)`), reading: pk.length ? pk.map(k => RK[k].en).join(" > ") : L("Nothing selected", "Nada seleccionado"), result: pk.length ? L("Lion example: " + RK[pk[pk.length - 1]].ex, "Ejemplo del león: " + RK[pk[pk.length - 1]].ex) : "-" }; },
+    L("Rank Funnel", "Embudo de Rangos"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("ranks", L("Master Taxonomist", "Maestro Taxónomo")); onDone(); });
+  const bClear = mkBtnG(L("Clear my picks", "Borrar mis selecciones"), true); bClear.addEventListener("click", () => P.clear());
+  card.__onOrder = () => { P.clear(); };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bClear, ord.lock); card.append(ord.bar, row);
+  const sp = makeSpace(stage, { fov: 38, dist: 12, pitch: 0.2, yaw: 0.4, ty: 3.2 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer, camera } = sp; renderer.toneMappingExposure = 1.05; scene.fog = new THREE.Fog(0x0a1220, 16, 34);
+    scene.add(new THREE.HemisphereLight(0xcfe6ff, 0x1a1024, 0.8)); const key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(3, 8, 6); scene.add(key); const rim = new THREE.PointLight(0x66ccff, 1.2, 20); rim.position.set(-4, 4, -3); scene.add(rim);
+    const bump = noiseTex(); const rings = [], reg = [];
+    RKK.forEach((k, i) => { const r = 3.4 - i * 0.36, hue = 0.58 - i * 0.07; const col = new THREE.Color().setHSL((hue + 1) % 1, 0.7, 0.55);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r - 0.18, 0.42, 48, 1, false), new THREE.MeshPhysicalMaterial({ color: col, roughness: 0.25, metalness: 0.1, clearcoat: 0.8, transparent: true, opacity: 0.78, bumpMap: bump, bumpScale: 0.3, emissive: col, emissiveIntensity: 0.15 })); m.position.y = 6.2 - i * 0.62; m.userData.k = k; scene.add(m); rings.push(m); reg.push(m);
+      const cnt = new THREE.Mesh(new THREE.TorusGeometry(r, 0.03, 8, 64), new THREE.MeshBasicMaterial({ color: 0xffffff })); cnt.rotation.x = Math.PI / 2; cnt.position.y = m.position.y + 0.22; scene.add(cnt); });
+    const tex = new THREE.TextureLoader().load(PH("lion")); tex.encoding = THREE.sRGBEncoding;
+    const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.45), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })); pic.position.set(0, 0.9, 0); scene.add(pic);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2, 0.25, 40), new THREE.MeshStandardMaterial({ color: C3(0x20324a), roughness: 0.4, metalness: 0.6 })); base.position.y = -0.1; scene.add(base);
+    const bead = new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 16), new THREE.MeshBasicMaterial({ color: 0xffd24d, toneMapped: false })); scene.add(bead); const bg = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#ffd24d"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); bg.scale.setScalar(2); bead.add(bg);
+    let target = null; setHi = k => { target = k; };
+    attachPick(renderer, camera, () => reg, k => P.pick(k));
+    const stars = new THREE.Points((() => { const g = new THREE.BufferGeometry(), n = 150, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() - 0.5) * 16; p[i * 3 + 1] = Math.random() * 9; p[i * 3 + 2] = (Math.random() - 0.5) * 10; } g.setAttribute("position", new THREE.BufferAttribute(p, 3)); return g; })(), new THREE.PointsMaterial({ color: 0x88ccff, size: 0.05, transparent: true, opacity: 0.6 })); stars.frustumCulled = false; scene.add(stars);
+    hooks.push((dt, t) => { const ty = target ? 6.2 - RKK.indexOf(target) * 0.62 + 0.45 : 7.1; bead.position.y += (ty - bead.position.y) * Math.min(1, dt * 4); bead.position.x = Math.sin(t * 1.5) * 0.15; bead.position.z = Math.cos(t * 1.5) * 0.15;
+      rings.forEach((m, i) => { const on = target === RKK[i]; m.material.emissiveIntensity = on ? 0.7 : 0.15; m.scale.setScalar(on ? 1.06 : 1); m.rotation.y += dt * (0.1 + i * 0.04); }); pic.rotation.y = Math.sin(t * 0.6) * 0.3; stars.rotation.y += dt * 0.03; });
+  }
+}
+
+/* ============================================================
+   STATION 2 - THE KINGDOM SORTER (real specimens)
+   ============================================================ */
+const KINGS = { animal: { en: "Animalia", es: "Animalia (animales)" }, plant: { en: "Plantae", es: "Plantae (plantas)" }, fungi: { en: "Fungi", es: "Hongos (Fungi)" }, protist: { en: "Protoctista", es: "Protoctistas" }, bact: { en: "Bacteria / Archaea", es: "Bacterias / Arqueas" } };
+const PGRP = { seedless: { en: "Seedless (moss, fern)", es: "Sin semillas (musgo, helecho)" }, gymno: { en: "Gymnosperm (naked seeds in cones)", es: "Gimnosperma (semillas desnudas en conos)" }, angio: { en: "Angiosperm (seeds in fruit or flowers)", es: "Angiosperma (semillas en frutos o flores)" } };
+const SPK = {
+  lion: { en: "Lion", es: "León", k: "animal", why: { en: "Multicellular, a heterotroph that eats other animals and moves: Kingdom Animalia.", es: "Multicelular, heterótrofo que come otros animales y se mueve: Reino Animalia." } },
+  coral: { en: "Coral", es: "Coral", k: "animal", why: { en: "Surprise! Coral polyps are animals: multicellular heterotrophs. They only stay attached as adults, but they move as larvae.", es: "¡Sorpresa! Los pólipos de coral son animales: heterótrofos multicelulares. Solo permanecen fijos de adultos, pero se mueven de larvas." } },
+  kelp: { en: "Giant kelp", es: "Alga kelp gigante", k: "protist", why: { en: "Algae are protoctists. Not all protists are tiny: kelp is huge, and algae make over half of the oxygen we breathe.", es: "Las algas son protoctistas. No todos los protistas son diminutos: el kelp es enorme y las algas producen más de la mitad del oxígeno que respiramos." } },
+  amoeba: { en: "Amoeba", es: "Ameba", k: "protist", why: { en: "A single-celled protist with a nucleus that moves by flowing its body, with no legs.", es: "Un protista unicelular con núcleo que se mueve haciendo fluir su cuerpo, sin patas." } },
+  fungus: { en: "Mushroom", es: "Hongo", k: "fungi", why: { en: "Fungi are decomposers: they absorb nutrients from dead matter and neither eat nor photosynthesize.", es: "Los hongos son descomponedores: absorben nutrientes de la materia muerta y ni comen ni hacen fotosíntesis." } },
+  ecoli: { en: "E. coli bacteria", es: "Bacteria E. coli", k: "bact", why: { en: "Prokaryotes: single cells with NO nucleus. Bacteria live in soil, water and your gut.", es: "Procariotas: células únicas SIN núcleo. Las bacterias viven en el suelo, el agua y tu intestino." } },
+  moss: { en: "Moss", es: "Musgo", k: "plant", g: "seedless", why: { en: "A plant (an autotroph that makes its own food) with no seeds: mosses and ferns are seedless plants.", es: "Una planta (autótrofa que fabrica su propio alimento) sin semillas: los musgos y los helechos son plantas sin semillas." } },
+  fern: { en: "Fern", es: "Helecho", k: "plant", g: "seedless", why: { en: "A plant that reproduces with spores, not seeds: a seedless plant.", es: "Una planta que se reproduce con esporas, no con semillas: una planta sin semillas." } },
+  pine: { en: "Pine", es: "Pino", k: "plant", g: "gymno", why: { en: "Gymno means 'naked': pine seeds sit in cones, not inside a fruit. A gymnosperm.", es: "Gymno significa 'desnudo': las semillas del pino están en conos, no dentro de un fruto. Una gimnosperma." } },
+  sunflower: { en: "Sunflower", es: "Girasol", k: "plant", g: "angio", why: { en: "A flowering plant whose seeds develop inside the flower: an angiosperm.", es: "Una planta con flores cuyas semillas se desarrollan dentro de la flor: una angiosperma." } },
+};
+const SPKK = Object.keys(SPK);
+function buildSorter(mount, sim, onDone) {
+  const card = stationShell("2", "The Kingdom Sorter", "El Clasificador de Reinos", "Real specimens are on the turntable. Pick one, choose its kingdom (and for plants, its type), then check. Careful: not everything is what it looks like!", "Hay muestras reales en el plato giratorio. Elige una, escoge su reino (y, si es una planta, su tipo) y comprueba. ¡Cuidado: no todo es lo que parece!");
+  mount.append(card);
+  const S = sim.state.ks || (sim.state.ks = { spec: "lion" }); S.k = null; S.g = null; S.res = null;
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A turntable with a ring of real specimen photos", "Un plato giratorio con un anillo de fotos de muestras reales")); card.append(stage);
+  const specRow = document.createElement("div"); specRow.className = "eco-chips"; specRow.innerHTML = `<b>${L("Specimen:", "Muestra:")}</b>`; const sb = {};
+  SPKK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.innerHTML = `<img src="${PH(k)}" alt=""><span>${L(SPK[k].en, SPK[k].es)}</span>`; b.addEventListener("click", () => selSpec(k)); specRow.append(b); sb[k] = b; });
+  const kRow = document.createElement("div"); kRow.className = "eco-chips"; kRow.innerHTML = `<b>${L("Kingdom:", "Reino:")}</b>`; const kb = {};
+  Object.keys(KINGS).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(KINGS[k].en, KINGS[k].es); b.addEventListener("click", () => { S.k = k; S.res = null; if (k !== "plant") S.g = null; paint(); }); kRow.append(b); kb[k] = b; });
+  const gRow = document.createElement("div"); gRow.className = "eco-chips"; gRow.innerHTML = `<b>${L("Plant type:", "Tipo de planta:")}</b>`; const gb = {};
+  Object.keys(PGRP).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(PGRP[k].en, PGRP[k].es); b.addEventListener("click", () => { S.g = k; S.res = null; paint(); }); gRow.append(b); gb[k] = b; });
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Pick a specimen and a kingdom, then press Check.", "Elige una muestra y un reino y pulsa Comprobar.");
+  function selSpec(k) { S.spec = k; S.k = null; S.g = null; S.res = null; sim.saveState(); paint(); }
+  function paint() { SPKK.forEach(k => sb[k].setAttribute("aria-pressed", String(S.spec === k))); Object.keys(kb).forEach(k => kb[k].setAttribute("aria-pressed", String(S.k === k))); Object.keys(gb).forEach(k => gb[k].setAttribute("aria-pressed", String(S.g === k))); gRow.style.display = S.k === "plant" ? "" : "none"; }
+  const bCheck = mkBtnG(L("Check", "Comprobar"));
+  bCheck.addEventListener("click", () => {
+    if (!S.k) { kRow.classList.remove("cyc-shake"); void kRow.offsetWidth; kRow.classList.add("cyc-shake"); fact.textContent = L("Choose a kingdom first.", "Elige primero un reino."); return; }
+    const sp = SPK[S.spec]; if (S.k === "plant" && !S.g) { gRow.classList.remove("cyc-shake"); void gRow.offsetWidth; gRow.classList.add("cyc-shake"); fact.textContent = L("It is a plant! Now choose which type of plant.", "¡Es una planta! Ahora elige qué tipo de planta."); return; }
+    const kOk = S.k === sp.k, gOk = sp.k !== "plant" || S.g === sp.g, ok = kOk && gOk; S.res = { spec: S.spec, k: S.k, g: S.g, ok };
+    fact.innerHTML = `<b>${ok ? L("Correct! ", "¡Correcto! ") : L("Not quite. ", "Casi. ")}</b>${L(sp.why.en, sp.why.es)}${ok ? "" : " " + L("Right answer: ", "Respuesta correcta: ") + L(KINGS[sp.k].en, KINGS[sp.k].es) + (sp.g ? " - " + L(PGRP[sp.g].en, PGRP[sp.g].es) : "") + "."}`;
+    if (ok) burst(stage, 50, 45, ["#7be08a", "#ffd24d", "#fff"], 18); else { stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); }
+    sim.recordTrial({ station: L("Kingdom Sorter", "Clasificador de Reinos"), setting: L(sp.en, sp.es), reading: L(KINGS[S.k].en, KINGS[S.k].es) + (S.g ? " / " + L(PGRP[S.g].en, PGRP[S.g].es) : ""), outcome: ok ? L("Correct", "Correcto") : L("Incorrect", "Incorrecto") }); document.dispatchEvent(new CustomEvent("eco-trial"));
+  });
+  const tasks = [
+    { en: "Classify the CORAL correctly (careful - it does not move as an adult!), then lock in.", es: "Clasifica correctamente el CORAL (¡cuidado: de adulto no se mueve!) y fija.", test: r => r.ok && r.spec === "coral" },
+    { en: "Classify the GIANT KELP correctly (it is huge, but is it a plant?), then lock in.", es: "Clasifica correctamente el KELP GIGANTE (es enorme, ¿pero es una planta?) y fija.", test: r => r.ok && r.spec === "kelp" },
+    { en: "Classify the PINE correctly, kingdom AND plant type (naked seeds in cones), then lock in.", es: "Clasifica correctamente el PINO, reino Y tipo de planta (semillas desnudas en conos), y fija.", test: r => r.ok && r.spec === "pine" },
+    { en: "Classify the E. COLI bacteria correctly (single cells with no nucleus), then lock in.", es: "Clasifica correctamente las bacterias E. COLI (células únicas sin núcleo) y fija.", test: r => r.ok && r.spec === "ecoli" },
+  ];
+  const ord = makeOrders(card, sim, "st2", tasks, () => { const r = S.res; return { ok: !!(r && r.ok), spec: r ? r.spec : S.spec, setting: L(SPK[S.spec].en, SPK[S.spec].es), reading: r ? L(KINGS[r.k].en, KINGS[r.k].es) + (r.g ? " / " + L(PGRP[r.g].en, PGRP[r.g].es) : "") : L("Not checked yet", "Aún sin comprobar"), result: r ? (r.ok ? L("Classified correctly", "Clasificado correctamente") : L("Classified incorrectly", "Clasificado incorrectamente")) : "-" }; },
+    L("Kingdom Sorter", "Clasificador de Reinos"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("sorter", L("Kingdom Keeper", "Guardián de Reinos")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bCheck, ord.lock);
+  card.append(specRow, kRow, gRow, fact, ord.bar, row); paint();
+  const sp3 = makeSpace(stage, { fov: 38, dist: 11.5, pitch: 0.3, yaw: 0, ty: 1.6 });
+  if (!sp3) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer, camera } = sp3; renderer.toneMappingExposure = 1.05; scene.fog = new THREE.Fog(0x0b1626, 15, 32);
+    scene.add(new THREE.HemisphereLight(0xdfeeff, 0x1a1030, 0.9)); const key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(2, 7, 6); scene.add(key); const rim = new THREE.PointLight(0x66ccff, 1.0, 18); rim.position.set(-4, 3, 3); scene.add(rim);
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.6, 0.3, 64), new THREE.MeshStandardMaterial({ color: C3(0x182a44), roughness: 0.3, metalness: 0.6, bumpMap: noiseTex(), bumpScale: 0.3 })); plate.position.y = -0.15; scene.add(plate);
+    const ringE = new THREE.Mesh(new THREE.TorusGeometry(5.3, 0.06, 8, 80), new THREE.MeshBasicMaterial({ color: 0x39d0ff })); ringE.rotation.x = Math.PI / 2; scene.add(ringE);
+    const ring = new THREE.Group(); scene.add(ring); const loader = new THREE.TextureLoader(), cards = [], reg = [];
+    SPKK.forEach((k, i) => { const a = (i / SPKK.length) * TAU, t = loader.load(PH(k)); t.encoding = THREE.sRGBEncoding; const g = new THREE.Group(); g.userData.k = k; g.userData.a = a;
+      const fr = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.75, 0.1), new THREE.MeshStandardMaterial({ color: C3(0x2c3e5a), roughness: 0.4, metalness: 0.7 })); const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.55), new THREE.MeshBasicMaterial({ map: t })); pic.position.z = 0.06; g.add(fr, pic); g.position.set(Math.sin(a) * 4.2, 1.3, Math.cos(a) * 4.2); g.rotation.y = a; ring.add(g); cards.push(g); reg.push(fr, pic); });
+    let rot = 0; attachPick(renderer, camera, () => reg, k => selSpec(k));
+    hooks.push((dt, t) => { const idx = SPKK.indexOf(S.spec), want = -(idx / SPKK.length) * TAU; let d = want - rot; d = ((d + Math.PI) % TAU + TAU) % TAU - Math.PI; rot += d * Math.min(1, dt * 4); ring.rotation.y = rot;
+      cards.forEach(g => { const on = g.userData.k === S.spec; g.scale.setScalar(g.scale.x + ((on ? 1.25 : 0.85) - g.scale.x) * Math.min(1, dt * 6)); g.position.y = 1.3 + (on ? Math.sin(t * 2) * 0.06 : 0); }); });
+  }
+}
+
+/* ============================================================
+   STATION 3 - THE MYSTERY CELL (key to the kingdoms)
+   ============================================================ */
+const MYS = {
+  A: { kind: "bact", k: "bact", nuc: false, wall: true, chl: false, single: true },
+  B: { kind: "amoeba", k: "protist", nuc: true, wall: false, chl: false, single: true },
+  C: { kind: "fungus", k: "fungi", nuc: true, wall: true, chl: false, single: false },
+  D: { kind: "plant", k: "plant", nuc: true, wall: true, chl: true, single: false },
+  E: { kind: "animal", k: "animal", nuc: true, wall: false, chl: false, single: false },
+};
+const MYK = Object.keys(MYS);
+const QS3 = {
+  nuc: { en: "Does it have a nucleus?", es: "¿Tiene núcleo?", yes: { en: "YES - a nucleus holds its DNA (eukaryote).", es: "SÍ - un núcleo guarda su ADN (eucariota)." }, no: { en: "NO - the DNA floats free (prokaryote).", es: "NO - el ADN flota libre (procariota)." } },
+  wall: { en: "Does it have a cell wall?", es: "¿Tiene pared celular?", yes: { en: "YES - a rigid wall surrounds the cell.", es: "SÍ - una pared rígida rodea la célula." }, no: { en: "NO - only a thin, flexible membrane.", es: "NO - solo una membrana fina y flexible." } },
+  chl: { en: "Does it have chloroplasts?", es: "¿Tiene cloroplastos?", yes: { en: "YES - green chloroplasts make food from sunlight (autotroph).", es: "SÍ - los cloroplastos verdes fabrican alimento con la luz solar (autótrofo)." }, no: { en: "NO - it cannot photosynthesize.", es: "NO - no puede hacer fotosíntesis." } },
+  single: { en: "Is it single-celled?", es: "¿Es unicelular?", yes: { en: "YES - one cell is the whole organism (unicellular).", es: "SÍ - una célula es todo el organismo (unicelular)." }, no: { en: "NO - it is built from many cells (multicellular).", es: "NO - está formado por muchas células (multicelular)." } },
+};
+function buildCellModel(kind) {
+  const g = new THREE.Group(), bump = noiseTex(), parts = { nuc: [], wall: [], chl: [], single: [] };
+  const M = (hex, o) => new THREE.MeshPhysicalMaterial(Object.assign({ color: C3(hex), roughness: 0.35, clearcoat: 0.6, bumpMap: bump, bumpScale: 0.3 }, o || {}));
+  const glass = (hex, op) => M(hex, { transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide });
+  const nucleus = (x, y, z, r) => { const n = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 18), M(0x6a4fd8, { emissive: C3(0x3a2a90), emissiveIntensity: 0.25 })); n.position.set(x, y, z); g.add(n); parts.nuc.push(n); const nu = new THREE.Mesh(new THREE.SphereGeometry(r * 0.35, 12, 10), M(0xc9b8ff)); nu.position.set(x + r * 0.2, y, z + r * 0.2); g.add(nu); parts.nuc.push(nu); };
+  const chloros = (cx, cy, cz, n, rad) => { for (let i = 0; i < n; i++) { const c = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 8), M(0x2fa84f, { emissive: C3(0x1b7a35), emissiveIntensity: 0.3 })); c.scale.set(1.6, 0.8, 1); const a = i * 2.4, b = i * 1.3; c.position.set(cx + Math.cos(a) * rad * Math.cos(b), cy + Math.sin(b) * rad * 0.7, cz + Math.sin(a) * rad * Math.cos(b)); c.rotation.set(a, b, 0); g.add(c); parts.chl.push(c); } };
+  if (kind === "bact") {
+    const body = new THREE.Mesh(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.8, 2.2, 8, 20) : new THREE.CylinderGeometry(0.8, 0.8, 3, 20), glass(0x8fd0a0, 0.45)); body.rotation.z = Math.PI / 2; g.add(body);
+    const wall = new THREE.Mesh(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.95, 2.2, 8, 20) : new THREE.CylinderGeometry(0.95, 0.95, 3.4, 20), new THREE.MeshPhysicalMaterial({ color: C3(0xd8c070), transparent: true, opacity: 0.32, roughness: 0.4, side: THREE.DoubleSide, depthWrite: false })); wall.rotation.z = Math.PI / 2; g.add(wall); parts.wall.push(wall);
+    const dna = new THREE.Mesh(new THREE.TorusKnotGeometry(0.42, 0.07, 80, 8, 2, 3), M(0xff7a59, { emissive: C3(0xc03a20), emissiveIntensity: 0.4 })); dna.rotation.y = 0.5; g.add(dna); parts.dna = dna;
+    parts.single.push(body); const fl = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.04, 6, 30, Math.PI * 3), M(0xd8c070)); fl.position.set(-2.1, 0, 0); fl.rotation.y = Math.PI / 2; g.add(fl);
+  } else if (kind === "amoeba") {
+    const geo = new THREE.SphereGeometry(1.5, 48, 36), p = geo.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.set(p.getX(i), p.getY(i), p.getZ(i)); const n = v.clone().normalize(); const d = 0.28 * Math.sin(3 * v.x + 1) * Math.sin(2.4 * v.y) + 0.22 * Math.sin(4 * v.z + v.x); v.copy(n.multiplyScalar(1.5 + d)); p.setXYZ(i, v.x, v.y, v.z); } geo.computeVertexNormals();
+    const body = new THREE.Mesh(geo, glass(0x9fd8e8, 0.55)); g.add(body); parts.single.push(body); nucleus(0.1, 0, 0, 0.5);
+    for (let i = 0; i < 4; i++) { const vac = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), glass(0xffffff, 0.5)); vac.position.set(Math.cos(i * 1.7) * 0.9, Math.sin(i * 2.3) * 0.6, Math.sin(i * 1.7) * 0.7); g.add(vac); }
+  } else if (kind === "fungus") {
+    [-1.7, 0, 1.7].forEach((x, i) => { const cell = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 1.5, 20), glass(0xe6c9a0, 0.5)); cell.rotation.z = Math.PI / 2; cell.position.x = x; g.add(cell); parts.single.push(cell);
+      const wall = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 1.55, 20, 1, true), new THREE.MeshPhysicalMaterial({ color: C3(0xb08a4a), transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false, roughness: 0.5 })); wall.rotation.z = Math.PI / 2; wall.position.x = x; g.add(wall); parts.wall.push(wall); nucleus(x, 0, 0, 0.28); });
+  } else if (kind === "plant") {
+    [-1.1, 1.1].forEach(x => { const wall = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.7, 1.7), new THREE.MeshPhysicalMaterial({ color: C3(0x6fbf5a), transparent: true, opacity: 0.35, roughness: 0.3, depthWrite: false })); wall.position.x = x; g.add(wall); parts.wall.push(wall); parts.single.push(wall);
+      const vac = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 16), glass(0xbfe8ff, 0.5)); vac.position.set(x, 0, 0); g.add(vac); nucleus(x - 0.1, 0.55, 0.2, 0.3); chloros(x, 0, 0, 6, 0.7); });
+  } else {
+    [[-1.3, 0.1, 0], [0.4, -0.3, 0.2], [1.5, 0.5, -0.1]].forEach(([x, y, z], i) => { const c = new THREE.Mesh(new THREE.SphereGeometry(0.95, 28, 20), glass(0xf2a9b4, 0.55)); c.position.set(x, y, z); g.add(c); parts.single.push(c); nucleus(x, y, z, 0.38); });
+  }
+  g.userData.parts = parts; return g;
+}
+function buildMystery(mount, sim, onDone) {
+  const card = stationShell("3", "The Mystery Cell Key", "La Clave de la Célula Misteriosa", "Five mystery organisms are under the 3D microscope. Ask the lab questions about each cell, then use what you learn to place it in the right kingdom.", "Cinco organismos misteriosos están bajo el microscopio 3D. Hazle preguntas al laboratorio sobre cada célula y usa lo que descubras para colocarla en el reino correcto.");
+  mount.append(card);
+  const S = sim.state.my || (sim.state.my = { spec: "A" }); S.rev = {}; S.k = null; S.res = null;
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A 3D view of a mystery cell under the microscope", "Una vista 3D de una célula misteriosa bajo el microscopio")); card.append(stage);
+  const specRow = document.createElement("div"); specRow.className = "eco-chips"; specRow.innerHTML = `<b>${L("Specimen:", "Muestra:")}</b>`; const sb = {};
+  MYK.forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L("Specimen ", "Muestra ") + k; b.addEventListener("click", () => { S.spec = k; S.k = null; S.res = null; sim.saveState(); paint(); swap(); }); specRow.append(b); sb[k] = b; });
+  const qRow = document.createElement("div"); qRow.className = "eco-chips"; qRow.innerHTML = `<b>${L("Ask the lab:", "Pregunta al laboratorio:")}</b>`; const qb = {};
+  Object.keys(QS3).forEach(q => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(QS3[q].en, QS3[q].es); b.addEventListener("click", () => ask(q)); qRow.append(b); qb[q] = b; });
+  const kRow = document.createElement("div"); kRow.className = "eco-chips"; kRow.innerHTML = `<b>${L("Kingdom:", "Reino:")}</b>`; const kb = {};
+  Object.keys(KINGS).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(KINGS[k].en, KINGS[k].es); b.addEventListener("click", () => { S.k = k; S.res = null; paint(); }); kRow.append(b); kb[k] = b; });
+  const log = document.createElement("div"); log.className = "eco-arrows"; const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Ask at least three questions about the specimen, then choose its kingdom and press Classify.", "Haz al menos tres preguntas sobre la muestra, elige su reino y pulsa Clasificar.");
+  let flash = null, swap = () => {};
+  function ask(q) { const m = MYS[S.spec], yes = q === "single" ? m.single : q === "nuc" ? m.nuc : q === "wall" ? m.wall : m.chl; S.rev[S.spec] = S.rev[S.spec] || {}; S.rev[S.spec][q] = yes; fact.textContent = L(QS3[q][yes ? "yes" : "no"].en, QS3[q][yes ? "yes" : "no"].es); flash = { q, t: 0 }; burst(stage, 50, 50, ["#ffd24d", "#fff"], 6); paint(); }
+  function paint() { MYK.forEach(k => sb[k].setAttribute("aria-pressed", String(S.spec === k))); const rv = S.rev[S.spec] || {}; Object.keys(qb).forEach(q => qb[q].setAttribute("aria-pressed", String(q in rv))); Object.keys(kb).forEach(k => kb[k].setAttribute("aria-pressed", String(S.k === k)));
+    log.innerHTML = ""; Object.keys(rv).forEach(q => { const s = document.createElement("span"); s.textContent = L(QS3[q].en, QS3[q].es) + " " + (rv[q] ? L("Yes", "Sí") : L("No", "No")); log.append(s); }); }
+  const bGo = mkBtnG(L("Classify", "Clasificar"));
+  bGo.addEventListener("click", () => {
+    const rv = S.rev[S.spec] || {}, n = Object.keys(rv).length;
+    if (n < 3) { qRow.classList.remove("cyc-shake"); void qRow.offsetWidth; qRow.classList.add("cyc-shake"); fact.textContent = L("Scientists gather evidence first! Ask the lab at least three questions about this specimen.", "¡Los científicos reúnen evidencia primero! Haz al menos tres preguntas al laboratorio sobre esta muestra."); return; }
+    if (!S.k) { kRow.classList.remove("cyc-shake"); void kRow.offsetWidth; kRow.classList.add("cyc-shake"); fact.textContent = L("Choose a kingdom first.", "Elige primero un reino."); return; }
+    const m = MYS[S.spec], ok = S.k === m.k; S.res = { spec: S.spec, k: S.k, ok, n };
+    const hint = { bact: { en: "No nucleus means a prokaryote: Bacteria (or Archaea).", es: "Sin núcleo es un procariota: Bacterias (o Arqueas)." }, protist: { en: "A nucleus, no cell wall and a single cell: a protoctist (the junk-drawer kingdom).", es: "Con núcleo, sin pared celular y de una sola célula: un protoctista (el reino cajón de sastre)." }, fungi: { en: "A nucleus and a cell wall but no chloroplasts: a fungus, which absorbs food from dead matter.", es: "Con núcleo y pared celular pero sin cloroplastos: un hongo, que absorbe alimento de la materia muerta." }, plant: { en: "A cell wall AND chloroplasts: a plant, which makes its own food.", es: "Pared celular Y cloroplastos: una planta, que fabrica su propio alimento." }, animal: { en: "A nucleus, no cell wall, no chloroplasts and many cells: an animal.", es: "Con núcleo, sin pared celular, sin cloroplastos y con muchas células: un animal." } }[m.k];
+    fact.innerHTML = `<b>${ok ? L("Correct! ", "¡Correcto! ") : L("Not quite. ", "Casi. ")}</b>${L(hint.en, hint.es)}${ok ? "" : " " + L("Right answer: ", "Respuesta correcta: ") + L(KINGS[m.k].en, KINGS[m.k].es) + "."}`;
+    if (ok) burst(stage, 50, 45, ["#7be08a", "#ffd24d", "#fff"], 18); else { stage.classList.remove("cyc-shake"); void stage.offsetWidth; stage.classList.add("cyc-shake"); }
+    sim.recordTrial({ station: L("Mystery Cell Key", "Clave de la Célula"), setting: L("Specimen ", "Muestra ") + S.spec + L(` (${n} questions asked)`, ` (${n} preguntas hechas)`), reading: Object.keys(rv).map(q => L(QS3[q].en, QS3[q].es) + " " + (rv[q] ? L("Yes", "Sí") : L("No", "No"))).join("; ") + " > " + L(KINGS[S.k].en, KINGS[S.k].es), outcome: ok ? L("Correct", "Correcto") : L("Incorrect", "Incorrecto") }); document.dispatchEvent(new CustomEvent("eco-trial"));
+  });
+  const tasks = [["A", "bacterium-like"], ["B", ""], ["C", ""], ["D", ""]].map(([s]) => ({ en: `Specimen ${s}: ask at least three questions, choose its kingdom, press Classify and get it right, then lock in.`, es: `Muestra ${s}: haz al menos tres preguntas, elige su reino, pulsa Clasificar, acierta y fija.`, test: r => r.ok && r.spec === s }));
+  const ord = makeOrders(card, sim, "st3", tasks, () => { const r = S.res; return { ok: !!(r && r.ok), spec: r ? r.spec : S.spec, setting: L("Specimen ", "Muestra ") + S.spec, reading: r ? L(KINGS[r.k].en, KINGS[r.k].es) + L(` (${r.n} questions asked)`, ` (${r.n} preguntas hechas)`) : L("Not classified yet", "Aún sin clasificar"), result: r ? (r.ok ? L("Classified correctly", "Clasificada correctamente") : L("Classified incorrectly", "Clasificada incorrectamente")) : "-" }; },
+    L("Mystery Cell", "Célula Misteriosa"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("cell", L("Cell Detective", "Detective de Células")); onDone(); });
+  card.__onOrder = idx => { if (idx < 4) { S.spec = MYK[idx]; S.k = null; S.res = null; paint(); swap(); } };
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bGo, ord.lock);
+  card.append(specRow, qRow, log, kRow, fact, ord.bar, row); paint();
+  const sp = makeSpace(stage, { fov: 38, dist: 8.5, pitch: 0.2, yaw: 0.3, ty: 0 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer } = sp; renderer.toneMappingExposure = 1.1; scene.fog = new THREE.Fog(0x061a24, 12, 26);
+    scene.add(new THREE.HemisphereLight(0xcff0ff, 0x102030, 0.9)); const key = new THREE.DirectionalLight(0xffffff, 1.3); key.position.set(3, 5, 6); scene.add(key); const rim = new THREE.PointLight(0x66ffcc, 1.2, 16); rim.position.set(-4, 2, -2); scene.add(rim);
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(4.6, 4.6, 0.1, 48), new THREE.MeshPhysicalMaterial({ color: C3(0x0c3a4a), roughness: 0.1, transparent: true, opacity: 0.5, clearcoat: 1 })); disc.position.y = -2.3; scene.add(disc);
+    let cell = null; swap = () => { if (cell) scene.remove(cell); cell = buildCellModel(MYS[S.spec].kind); scene.add(cell); }; swap();
+    const dust = new THREE.Points((() => { const g = new THREE.BufferGeometry(), n = 120, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { p[i * 3] = (Math.random() - 0.5) * 12; p[i * 3 + 1] = (Math.random() - 0.5) * 6; p[i * 3 + 2] = (Math.random() - 0.5) * 8; } g.setAttribute("position", new THREE.BufferAttribute(p, 3)); return g; })(), new THREE.PointsMaterial({ color: 0x9fe8ff, size: 0.06, transparent: true, opacity: 0.55 })); dust.frustumCulled = false; scene.add(dust);
+    hooks.push((dt, t) => { if (!cell) return; cell.rotation.y += dt * 0.25; cell.position.y = Math.sin(t * 1.1) * 0.1; dust.rotation.y += dt * 0.02; if (flash) { flash.t += dt; const p = cell.userData.parts, list = flash.q === "nuc" ? p.nuc : flash.q === "wall" ? p.wall : flash.q === "chl" ? p.chl : p.single; const s = 1 + Math.sin(Math.min(1, flash.t / 1.2) * Math.PI) * 0.18; list.forEach(m => { const s0 = m.userData.s0 || (m.userData.s0 = m.scale.x); m.scale.setScalar(s0 * s); }); if (flash.t > 1.2) { list.forEach(m => m.scale.setScalar(m.userData.s0 || 1)); flash = null; } } });
+  }
+}
+
+/* ============================================================
+   STATION 4 - THE EDGE OF LIFE (is a virus alive?)
+   ============================================================ */
+const VLACK = { cells: { en: "It is not made of cells", es: "No está hecho de células" }, energy: { en: "It does not use energy", es: "No usa energía" }, grow: { en: "It does not grow", es: "No crece" }, repro: { en: "It cannot reproduce on its own", es: "No puede reproducirse por sí solo" }, dna: { en: "It carries genetic material (DNA or RNA)", es: "Lleva material genético (ADN o ARN)" } };
+function buildVirus(mount, sim, onDone) {
+  const card = stationShell("4", "The Edge of Life", "El Borde de la Vida", "Are viruses alive? Watch a virus on its own, then give it a host cell, check which characteristics of life it lacks and make your verdict.", "¿Están vivos los virus? Observa un virus solo, luego dale una célula huésped, revisa qué características de la vida le faltan y da tu veredicto.");
+  mount.append(card);
+  const S = sim.state.vr || (sim.state.vr = {}); Object.assign(S, { host: false, tAlone: 0, tHost: 0, copies: 0, bursts: 0, picks: [], checked: false, verdict: null, reason: null, phase: "alone" });
+  const stage = document.createElement("div"); stage.className = "eco-fwstage ba-stage"; stage.setAttribute("aria-label", L("A virus particle beside an optional host cell", "Una partícula de virus junto a una célula huésped opcional")); card.append(stage);
+  const ro = document.createElement("div"); ro.className = "eco-readout"; ro.innerHTML = `<div>${L("Time alone", "Tiempo solo")}<b id="vr-a"></b></div><div>${L("Time with host", "Tiempo con huésped")}<b id="vr-h"></b></div><div>${L("Virus copies", "Copias del virus")}<b id="vr-c"></b></div><div>${L("Energy used / growth", "Energía usada / crecimiento")}<b id="vr-e" style="font-size:.9rem">0 / 0</b></div>`; card.append(ro);
+  const fact = document.createElement("div"); fact.className = "eco-fact"; fact.textContent = L("Leave the virus alone for a few seconds and watch what it does, then press 'Add a host cell'.", "Deja el virus solo unos segundos y observa qué hace; luego pulsa 'Añadir una célula huésped'.");
+  const bHost = mkBtnG(L("Add a host cell", "Añadir una célula huésped")), bReset = mkBtnG(L("Remove the host (reset)", "Quitar el huésped (reiniciar)"), true);
+  function paint() { ro.querySelector("#vr-a").textContent = S.tAlone.toFixed(0) + " s"; ro.querySelector("#vr-h").textContent = S.tHost.toFixed(0) + " s"; ro.querySelector("#vr-c").textContent = S.copies; }
+  bHost.addEventListener("click", () => { if (S.phase === "infect") return; S.host = true; S.phase = "infect"; S.tHost = 0; S.copies = 0; fact.textContent = L("The virus attaches to the host and injects its genetic material. The host cell is forced to build new viruses.", "El virus se une al huésped e inyecta su material genético. La célula huésped se ve obligada a fabricar nuevos virus."); burst(stage, 50, 50, ["#ff7a59", "#fff"], 10); });
+  bReset.addEventListener("click", () => { S.host = false; S.phase = "alone"; S.tAlone = 0; S.tHost = 0; S.copies = 0; fact.textContent = L("Back to the virus on its own. Without a host, nothing happens.", "De vuelta al virus solo. Sin huésped, no pasa nada."); paint(); });
+  const chips = document.createElement("div"); chips.className = "eco-chips"; chips.innerHTML = `<b>${L("Which does a virus LACK? (tick every one)", "¿Qué le FALTA a un virus? (marca todas)")}</b>`; const cb = {};
+  Object.keys(VLACK).forEach(k => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "from"; b.textContent = L(VLACK[k].en, VLACK[k].es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => { S.picks = S.picks.includes(k) ? S.picks.filter(x => x !== k) : S.picks.concat(k); S.checked = false; cb[k].setAttribute("aria-pressed", String(S.picks.includes(k))); }); chips.append(b); cb[k] = b; });
+  const bChk = mkBtnG(L("Confirm my checklist", "Confirmar mi lista"), true); bChk.addEventListener("click", () => { S.checked = true; const good = ["cells", "energy", "grow", "repro"], ok = good.every(k => S.picks.includes(k)) && !S.picks.includes("dna"); fact.textContent = ok ? L("Right: a virus is not made of cells, does not use energy, does not grow and cannot reproduce alone. It DOES carry genetic material, which is why it can hijack a cell.", "Correcto: un virus no está hecho de células, no usa energía, no crece y no puede reproducirse solo. SÍ lleva material genético, por eso puede secuestrar una célula.") : L("Not quite. Think about what you saw: alone it did nothing. Genetic material is something a virus HAS, not lacks.", "Casi. Piensa en lo que viste: solo, no hizo nada. El material genético es algo que un virus TIENE, no que le falte."); if (ok) burst(stage, 50, 50, ["#7be08a", "#fff"], 14); });
+  const vRow = document.createElement("div"); vRow.className = "eco-chips"; vRow.innerHTML = `<b>${L("Verdict:", "Veredicto:")}</b>`; const vb = {};
+  [["alive", "A virus IS alive", "Un virus ESTÁ vivo"], ["not", "Not alive: edge of life", "No vivo: borde de la vida"]].forEach(([k, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(en, es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => { S.verdict = k; Object.keys(vb).forEach(x => vb[x].setAttribute("aria-pressed", String(x === k))); }); vRow.append(b); vb[k] = b; });
+  const rRow = document.createElement("div"); rRow.className = "eco-chips"; rRow.innerHTML = `<b>${L("Best reason:", "Mejor razón:")}</b>`; const rb = {};
+  [["small", "It is too small to be alive", "Es demasiado pequeño para estar vivo"], ["host", "It cannot reproduce without a host cell", "No puede reproducirse sin una célula huésped"], ["sick", "It does not make people sick", "No enferma a las personas"]].forEach(([k, en, es]) => { const b = document.createElement("button"); b.type = "button"; b.className = "eco-tok dg-tok"; b.dataset.side = "to"; b.textContent = L(en, es); b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => { S.reason = k; Object.keys(rb).forEach(x => rb[x].setAttribute("aria-pressed", String(x === k))); if (k === "host") fact.textContent = L("Yes: no host, no copies. And it can still make you sick by hijacking your cells, even though it is not alive.", "Sí: sin huésped, no hay copias. Y aun así puede enfermarte secuestrando tus células, aunque no esté vivo."); }); rRow.append(b); rb[k] = b; });
+  const tasks = [
+    { en: "Leave the virus WITHOUT a host for at least 5 seconds and watch what it does, then lock in.", es: "Deja el virus SIN huésped al menos 5 segundos y observa qué hace, y fija.", test: r => r.tAlone >= 5 && r.phase === "alone" },
+    { en: "Add a host cell and wait until the virus has made at least 12 copies, then lock in.", es: "Añade una célula huésped y espera hasta que el virus haya hecho al menos 12 copias, y fija.", test: r => r.copies >= 12 },
+    { en: "Tick the FOUR things a virus lacks (and leave out the one it has), press Confirm my checklist, then lock in.", es: "Marca las CUATRO cosas que le faltan a un virus (y deja fuera la que sí tiene), pulsa Confirmar mi lista y fija.", test: r => r.checked && ["cells", "energy", "grow", "repro"].every(k => r.picks.includes(k)) && !r.picks.includes("dna") },
+    { en: "Give your verdict: 'Not alive: edge of life', with the best reason, then lock in.", es: "Da tu veredicto: 'No vivo: borde de la vida', con la mejor razón, y fija.", test: r => r.verdict === "not" && r.reason === "host" },
+  ];
+  const ord = makeOrders(card, sim, "st4", tasks, () => ({ tAlone: S.tAlone, phase: S.phase, copies: S.copies, checked: S.checked, picks: S.picks.slice(), verdict: S.verdict, reason: S.reason, setting: S.phase === "infect" ? L("Virus with a host cell", "Virus con célula huésped") : L("Virus alone", "Virus solo"), reading: L(`Alone ${S.tAlone.toFixed(0)} s, with host ${S.tHost.toFixed(0)} s, copies ${S.copies}; lacks ticked: ${S.picks.length}; verdict: ${S.verdict || "none"}`, `Solo ${S.tAlone.toFixed(0)} s, con huésped ${S.tHost.toFixed(0)} s, copias ${S.copies}; faltas marcadas: ${S.picks.length}; veredicto: ${S.verdict || "ninguno"}`), result: S.copies >= 12 ? L("Reproduced only inside a host", "Se reprodujo solo dentro de un huésped") : S.tAlone >= 5 && S.phase === "alone" ? L("Nothing happened without a host", "No pasó nada sin huésped") : L("In progress", "En curso") }),
+    L("Edge of Life", "Borde de la Vida"), () => { card.querySelector(".cyc-done").dataset.show = "true"; sim.award("virus", L("Virus Investigator", "Investigador de Virus")); onDone(); });
+  const row = document.createElement("div"); row.className = "cyc-row"; row.style.marginTop = ".6rem"; row.append(bHost, bReset, bChk, ord.lock);
+  card.append(fact, chips, vRow, rRow, ord.bar, row);
+  let last = performance.now();
+  const timer = setInterval(() => { if (!card.isConnected) { clearInterval(timer); return; } const now = performance.now(), dt = Math.min(0.3, (now - last) / 1000); last = now;
+    if (S.phase === "alone") S.tAlone += dt; else if (S.phase === "infect") { S.tHost += dt; S.copies = Math.min(30, Math.floor(S.tHost * 1.6)); if (S.copies >= 30) { S.phase = "burst"; S.bursts++; S.burstT = 0; fact.textContent = L("The host cell bursts, releasing new viruses that will infect more cells. The virus reproduced ONLY inside a host - it cannot do this alone.", "La célula huésped estalla y libera nuevos virus que infectarán más células. El virus se reprodujo SOLO dentro de un huésped: no puede hacerlo solo."); burst(stage, 50, 50, ["#ff7a59", "#ffd24d", "#fff"], 24); } } else if (S.phase === "burst") { S.burstT += dt; if (S.burstT > 3) { S.phase = "infect"; S.host = true; S.tHost = 0; S.copies = 0; } }
+    paint(); }, 100);
+  paint();
+  const sp = makeSpace(stage, { fov: 40, dist: 10, pitch: 0.15, yaw: 0.2, ty: 0 });
+  if (!sp) { stage.style.aspectRatio = "auto"; stage.style.minHeight = "3rem"; }
+  else {
+    const { scene, hooks, renderer } = sp; renderer.toneMappingExposure = 1.1; scene.fog = new THREE.Fog(0x14060a, 12, 28);
+    scene.add(new THREE.HemisphereLight(0xffd9d9, 0x1a0a14, 0.9)); const key = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(3, 5, 6); scene.add(key); const rim = new THREE.PointLight(0xff7a59, 1.3, 18); rim.position.set(-4, 2, 2); scene.add(rim);
+    const bump = noiseTex(); const vir = () => { const g = new THREE.Group(); const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), new THREE.MeshPhysicalMaterial({ color: C3(0xff6a4a), roughness: 0.3, clearcoat: 0.8, bumpMap: bump, bumpScale: 0.4, emissive: C3(0x802010), emissiveIntensity: 0.3, flatShading: true })); g.add(body);
+      for (let i = 0; i < 14; i++) { const phi = Math.acos(1 - 2 * (i + 0.5) / 14), th = Math.PI * (1 + Math.sqrt(5)) * i; const sp2 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.34, 6), new THREE.MeshStandardMaterial({ color: C3(0xffd24d) })); const d = new THREE.Vector3(Math.sin(phi) * Math.cos(th), Math.cos(phi), Math.sin(phi) * Math.sin(th)); sp2.position.copy(d.clone().multiplyScalar(0.62)); sp2.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d); g.add(sp2); const kn = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshStandardMaterial({ color: C3(0xffd24d) })); kn.position.copy(d.multiplyScalar(0.82)); g.add(kn); } return g; };
+    const hero = vir(); hero.scale.setScalar(1.6); hero.position.set(-2.4, 0, 0); scene.add(hero);
+    const host = new THREE.Group(); host.position.set(2.2, 0, 0); scene.add(host); const hm = new THREE.Mesh(new THREE.SphereGeometry(2, 40, 30), new THREE.MeshPhysicalMaterial({ color: C3(0x9fd8e8), transparent: true, opacity: 0.3, roughness: 0.1, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false })); host.add(hm); const hn = new THREE.Mesh(new THREE.SphereGeometry(0.6, 20, 16), new THREE.MeshPhysicalMaterial({ color: C3(0x6a4fd8), emissive: C3(0x3a2a90), emissiveIntensity: 0.3 })); hn.position.set(0.3, 0.3, 0); host.add(hn);
+    const pool = []; for (let i = 0; i < 30; i++) { const v = vir(); v.scale.setScalar(0.55); v.visible = false; const a = i * 2.4, r = 0.5 + (i % 5) * 0.22; v.userData.home = new THREE.Vector3(Math.cos(a) * r * 1.3, Math.sin(a * 1.7) * r * 1.1, Math.sin(a) * r * 0.9); v.userData.out = v.userData.home.clone().normalize().multiplyScalar(4.5); host.add(v); pool.push(v); }
+    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture("#ff6a4a"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); label.scale.setScalar(2.6); hero.add(label);
+    let hv = 0;
+    hooks.push((dt, t) => { hero.rotation.y += dt * 0.6; hero.rotation.x = Math.sin(t * 0.7) * 0.2; const on = S.phase !== "alone"; hv += ((on ? 1 : 0) - hv) * Math.min(1, dt * 3); host.scale.setScalar(0.25 + hv * 0.75); hm.material.opacity = 0.3 * hv; host.visible = hv > 0.02;
+      const dock = S.phase === "alone" ? 0 : 1; hero.position.x += ((S.phase === "alone" ? -2.4 : 0.1) - hero.position.x) * Math.min(1, dt * 1.5); hero.visible = !(S.phase === "infect" && hero.position.x > 0); const bt = S.phase === "burst" ? Math.min(1, (S.burstT || 0) / 2) : 0;
+      pool.forEach((v, i) => { const show = (S.phase === "infect" && i < S.copies) || S.phase === "burst"; v.visible = show && hv > 0.3; if (v.visible) { v.position.lerpVectors(v.userData.home, v.userData.out, bt); v.rotation.y += dt * 1.2; } }); hm.scale.setScalar(1 + (S.phase === "infect" ? Math.sin(t * 6) * 0.01 * S.copies / 6 : 0)); if (S.phase === "burst") hm.material.opacity = 0.3 * (1 - bt); });
+  }
+}
+
+/* ============================================================
+   BONUS - KINGDOM CANNON (launch-and-land)
+   Aim the cannon (angle + power) so the specimen lands in the right kingdom bin.
+   Real photos, physics arc. No penalty. 120 s on setInterval. Silent.
+   ============================================================ */
+function mountCannon(host, sim, onExit) {
+  const wrap = document.createElement("div"); wrap.className = "cyc-bonus eco-bonus"; host.append(wrap);
+  wrap.innerHTML = `<h3>${L("Bonus: Kingdom Cannon", "Bonus: El Cañón de Reinos")}</h3><p>${L("Fire real specimens into the right kingdom bin! Aim with Up/Down (angle) and Left/Right (power), then press Space or Fire. The bins swap places now and then, so read the labels. A miss costs nothing but time. Two minutes!", "¡Dispara muestras reales al contenedor del reino correcto! Apunta con Arriba/Abajo (ángulo) e Izquierda/Derecha (potencia) y pulsa Espacio o Disparar. Los contenedores cambian de lugar de vez en cuando, así que lee las etiquetas. Fallar no cuesta nada salvo tiempo. ¡Dos minutos!")}</p><div class="cyc-row"><button type="button" class="cyc-btn" id="kc-start">${L("Play", "Jugar")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="kc-skip">${L("Skip the bonus", "Saltar el bonus")}</button></div>`;
+  wrap.querySelector("#kc-skip").addEventListener("click", () => { wrap.remove(); onExit && onExit(null); });
+  wrap.querySelector("#kc-start").addEventListener("click", start);
+  function start() {
+    wrap.innerHTML = `<h3>${L("Kingdom Cannon", "El Cañón de Reinos")}</h3><div class="cyc-hud"><span id="kc-time"></span><span id="kc-score"></span><span id="kc-hit"></span></div><div class="cyc-target" id="kc-q"></div>
+      <canvas width="680" height="360" id="kc-cv" aria-label="${L("A cannon on the left and five kingdom bins on the right", "Un cañón a la izquierda y cinco contenedores de reinos a la derecha")}" tabindex="0"></canvas>
+      <div class="cyc-row" style="margin-top:.6rem"><button type="button" class="cyc-btn cyc-btn--ghost" id="kc-up">${L("Angle +", "Ángulo +")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="kc-dn">${L("Angle -", "Ángulo -")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="kc-pu">${L("Power +", "Potencia +")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="kc-pd">${L("Power -", "Potencia -")}</button><button type="button" class="cyc-btn" id="kc-fire" style="font-size:1.05rem;padding:.8rem 1.4rem">${L("Fire! (Space)", "¡Disparar! (Espacio)")}</button></div><div class="cyc-toast" id="kc-toast">${L("Aim and fire.", "Apunta y dispara.")}</div>`;
+    const q = s => wrap.querySelector(s), cv = q("#kc-cv"), c = cv.getContext("2d"), toast = q("#kc-toast");
+    const G = 520, CX = 56, CY = 300, GY = 310, BW = 62, BX = 280;
+    const say = (t, col) => { toast.textContent = t; toast.style.color = col || "#ffe08a"; };
+    const KC = { animal: "#e8766a", plant: "#4fbf6a", fungi: "#c98a3a", protist: "#4aa8d8", bact: "#b080e0" }, KS = { animal: "Animalia", plant: "Plantae", fungi: "Fungi", protist: "Protoctista", bact: "Bacteria" };
+    const R = { left: 120, score: 0, ang: 45, pow: 440, shots: 0, hits: 0, over: false, proj: null, res: 0, resT: 0, n: 0, order: shuffled(SPKK, 17), bins: Object.keys(KC), learn: [], imgs: {} };
+    SPKK.forEach(k => { const im = new Image(); im.src = PH(k); R.imgs[k] = im; });
+    const cur = () => SPK[R.order[R.n % R.order.length]], curK = () => R.order[R.n % R.order.length];
+    const reshuffle = () => { R.bins = shuffled(Object.keys(KC), 3 + R.n * 5); };
+    reshuffle();
+    function lab() { q("#kc-q").textContent = L("Target: ", "Objetivo: ") + L(cur().en, cur().es) + L(" - which kingdom?", " - ¿qué reino?"); }
+    function fire() {
+      if (R.over || R.proj) return; const a = R.ang * Math.PI / 180; R.proj = { x: CX + Math.cos(a) * 46, y: CY - Math.sin(a) * 46, vx: Math.cos(a) * R.pow, vy: -Math.sin(a) * R.pow, k: curK(), t: 0 }; R.shots++;
+    }
+    const adj = (da, dp) => { R.ang = Math.max(15, Math.min(80, R.ang + da)); R.pow = Math.max(250, Math.min(600, R.pow + dp)); };
+    const kd = e => { const k = e.key; if (k === " " || k === "Enter") { if (document.activeElement && document.activeElement.tagName === "BUTTON" && document.activeElement.id !== "kc-fire") return; e.preventDefault(); fire(); } else if (k === "ArrowUp") { e.preventDefault(); adj(3, 0); } else if (k === "ArrowDown") { e.preventDefault(); adj(-3, 0); } else if (k === "ArrowRight") { e.preventDefault(); adj(0, 12); } else if (k === "ArrowLeft") { e.preventDefault(); adj(0, -12); } };
+    window.addEventListener("keydown", kd);
+    q("#kc-fire").addEventListener("pointerdown", e => { e.preventDefault(); fire(); }); q("#kc-up").addEventListener("click", () => adj(3, 0)); q("#kc-dn").addEventListener("click", () => adj(-3, 0)); q("#kc-pu").addEventListener("click", () => adj(0, 12)); q("#kc-pd").addEventListener("click", () => adj(0, -12));
+    lab();
+    const last = { v: performance.now() };
+    const timer = setInterval(() => { const now = performance.now(), dt = Math.min(0.1, (now - last.v) / 1000); last.v = now; if (R.over) return; R.left -= dt; if (R.left <= 0) { finish(); return; }
+      const p = R.proj; if (p) { p.t += dt; p.vy += G * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+        if (p.y >= GY || p.x > 700) { R.proj = null; const bi = R.bins.findIndex((k, i) => p.x >= BX + i * (BW + 4) && p.x <= BX + i * (BW + 4) + BW), sp = SPK[p.k.length ? R.order[R.n % R.order.length] : ""];
+          const sK = SPK[R.order[R.n % R.order.length]].k, hitK = bi >= 0 ? R.bins[bi] : null;
+          if (hitK === sK) { R.hits++; R.score += 25; R.res = 1; say(L("Bullseye! " + SPK[R.order[R.n % R.order.length]].why.en, "¡Diana! " + SPK[R.order[R.n % R.order.length]].why.es), "#9dffb0"); }
+          else { R.res = 2; R.learn.push(R.order[R.n % R.order.length]); const s2 = SPK[R.order[R.n % R.order.length]]; say(hitK ? L(`That bin was ${KS[hitK]}. ${s2.en} belongs in ${KS[sK]}. ${s2.why.en}`, `Ese contenedor era ${KS[hitK]}. ${s2.es} va en ${KS[sK]}. ${s2.why.es}`) : L(`It missed every bin. ${s2.en} belongs in ${KS[sK]}. ${s2.why.en}`, `Falló todos los contenedores. ${s2.es} va en ${KS[sK]}. ${s2.why.es}`), "#ffb3a0"); cv.classList.remove("cyc-shake"); void cv.offsetWidth; cv.classList.add("cyc-shake"); }
+          R.resT = 0; R.lx = Math.min(p.x, 670); R.n++; if (R.n % 3 === 0) reshuffle(); lab(); } }
+      if (R.res) R.resT += dt;
+      q("#kc-time").textContent = L("Time ", "Tiempo ") + Math.max(0, Math.ceil(R.left)) + " s"; q("#kc-score").textContent = L("Score ", "Puntos ") + R.score; q("#kc-hit").textContent = L("Hits ", "Aciertos ") + R.hits + "/" + R.shots; }, 33);
+    function draw(now) {
+      if (!cv.isConnected || R.over) return; const t = now / 1000;
+      const bg = c.createLinearGradient(0, 0, 0, 360); bg.addColorStop(0, "#1b3a6a"); bg.addColorStop(1, "#8fc8ee"); c.fillStyle = bg; c.fillRect(0, 0, 680, 360);
+      for (let i = 0; i < 4; i++) { const cx = ((i * 190 + t * 8) % 780) - 50; c.fillStyle = "rgba(255,255,255,.35)"; c.beginPath(); c.ellipse(cx, 50 + i * 22, 44, 14, 0, 0, TAU); c.fill(); }
+      c.fillStyle = "#3f8f44"; c.fillRect(0, GY, 680, 50); c.fillStyle = "#2c6b33"; c.fillRect(0, GY, 680, 6);
+      R.bins.forEach((k, i) => { const x = BX + i * (BW + 4); c.fillStyle = KC[k]; c.beginPath(); c.moveTo(x, GY - 54); c.lineTo(x + BW, GY - 54); c.lineTo(x + BW - 8, GY); c.lineTo(x + 8, GY); c.closePath(); c.fill(); c.fillStyle = "rgba(0,0,0,.25)"; c.fillRect(x, GY - 54, BW, 8); c.fillStyle = "#fff"; c.font = "bold 11px sans-serif"; c.textAlign = "center"; c.fillText(KS[k], x + BW / 2, GY - 24); });
+      /* aim guide dots */ const a = R.ang * Math.PI / 180; c.fillStyle = "rgba(255,255,255,.7)"; for (let k = 1; k <= 7; k++) { const tt = k * 0.07, gx = CX + Math.cos(a) * 46 + Math.cos(a) * R.pow * tt, gy = CY - Math.sin(a) * 46 - Math.sin(a) * R.pow * tt + 0.5 * G * tt * tt; c.beginPath(); c.arc(gx, gy, 2.6, 0, TAU); c.fill(); }
+      /* cannon */ c.save(); c.translate(CX, CY); c.rotate(-a); c.fillStyle = "#39455c"; c.fillRect(0, -11, 52, 22); c.fillStyle = "#222c3e"; c.fillRect(44, -13, 10, 26); c.restore(); c.fillStyle = "#5b4630"; c.beginPath(); c.arc(CX, CY, 20, 0, TAU); c.fill(); c.fillRect(CX - 24, CY + 8, 48, 12);
+      /* power bar */ c.fillStyle = "#0008"; c.fillRect(10, 330, 140, 12); c.fillStyle = "#ffd24d"; c.fillRect(10, 330, 140 * (R.pow - 250) / 350, 12); c.fillStyle = "#fff"; c.font = "11px sans-serif"; c.textAlign = "left"; c.fillText(L("Angle ", "Ángulo ") + R.ang + "°  " + L("Power ", "Potencia ") + Math.round(R.pow), 10, 326);
+      /* target card */ const cs = SPK[R.order[R.n % R.order.length]], img = R.imgs[R.order[R.n % R.order.length]]; c.fillStyle = "#0009"; c.fillRect(10, 10, 118, 96); if (img && img.complete && img.naturalWidth) c.drawImage(img, 14, 14, 110, 70); c.fillStyle = "#fff"; c.font = "bold 12px sans-serif"; c.fillText(L(cs.en, cs.es), 16, 100);
+      const p = R.proj; if (p) { const pi = R.imgs[p.k]; c.save(); c.beginPath(); c.arc(p.x, p.y, 17, 0, TAU); c.clip(); if (pi && pi.complete && pi.naturalWidth) c.drawImage(pi, p.x - 17, p.y - 17, 34, 34); else { c.fillStyle = "#fff"; c.fillRect(p.x - 17, p.y - 17, 34, 34); } c.restore(); c.strokeStyle = "#fff"; c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, 17, 0, TAU); c.stroke(); }
+      if (R.res && R.resT < 0.8) { c.fillStyle = R.res === 1 ? "rgba(120,255,160," + (1 - R.resT) + ")" : "rgba(255,150,130," + (1 - R.resT) + ")"; c.font = "bold 26px sans-serif"; c.textAlign = "center"; c.fillText(R.res === 1 ? "+25" : "MISS", R.lx || 400, GY - 70 - R.resT * 30); }
+      requestAnimationFrame(draw);
+    }
+    R.left = 120; requestAnimationFrame(draw); cv.focus();
+    function finish() {
+      if (R.over) return; R.over = true; clearInterval(timer); window.removeEventListener("keydown", kd); const seen = {}, learn = R.learn.filter(k => (seen[k] ? false : (seen[k] = 1)));
+      wrap.innerHTML = `<h3>${L("Cannon round complete!", "¡Ronda del cañón completada!")}</h3><p>${L(`Hits: ${R.hits} of ${R.shots} shots. Score ${R.score}.`, `Aciertos: ${R.hits} de ${R.shots} disparos. Puntos ${R.score}.`)}</p>${learn.length ? `<p><b>${L("Worth another look:", "Vale la pena repasar:")}</b></p><ul>${learn.slice(0, 5).map(k => `<li>${L(SPK[k].en, SPK[k].es)}: <b>${KS[SPK[k].k]}</b> - ${L(SPK[k].why.en, SPK[k].why.es)}</li>`).join("")}</ul>` : `<p>${L("Every specimen sorted - brilliant!", "Todas las muestras clasificadas - ¡brillante!")}</p>`}<div class="cyc-row"><button type="button" class="cyc-btn" id="kc-again">${L("Play again", "Jugar otra vez")}</button><button type="button" class="cyc-btn cyc-btn--ghost" id="kc-close">${L("Close", "Cerrar")}</button></div>`;
+      wrap.querySelector("#kc-again").addEventListener("click", () => { wrap.remove(); mountCannon(host, sim, onExit); }); wrap.querySelector("#kc-close").addEventListener("click", () => wrap.remove());
+      onExit && onExit({ score: R.score, hits: R.hits });
+    }
+  }
+}
+
+/* ============================================================
+   INVESTIGATE
+   ============================================================ */
+function investigate(host, sim) {
+  sim.setScienceMethod({ variables: L(
+    "Independent: the levels of the rank funnel selected, the specimen and kingdom (and plant type) chosen, the questions asked about each mystery cell, whether a virus has a host cell, the characteristics ticked and the verdict given. Dependent: whether each classification was correct, the number of virus copies made, and how many questions were needed. Controlled: the same classification key (nucleus, cell wall, chloroplasts, single or many cells) is used for every specimen.",
+    "Independiente: los niveles del embudo seleccionados, la muestra y el reino (y tipo de planta) elegidos, las preguntas hechas sobre cada célula misteriosa, si un virus tiene célula huésped, las características marcadas y el veredicto dado. Dependiente: si cada clasificación fue correcta, el número de copias de virus producidas y cuántas preguntas hicieron falta. Controladas: se usa la misma clave de clasificación (núcleo, pared celular, cloroplastos, una o muchas células) para todas las muestras.") });
+  const bonusHost = document.createElement("div");
+  const check = () => { const s = sim.state; if (["st1", "st2", "st3", "st4"].every(k => s[k] && s[k].idx >= 4) && !host.querySelector(".cyc-complete")) { const c = document.createElement("div"); c.className = "cyc-complete"; c.textContent = L("Taxonomy Expedition complete! You zoomed from Domain to Species, sorted real specimens into kingdoms, used evidence to classify mystery cells and decided that a virus is at the edge of life. Now try the Kingdom Cannon bonus, then write your Explain and Apply answers.", "¡Expedición de Taxonomía completada! Hiciste zoom desde el Dominio hasta la Especie, clasificaste muestras reales en reinos, usaste evidencia para clasificar células misteriosas y decidiste que un virus está en el borde de la vida. Ahora prueba el bonus El Cañón de Reinos y luego escribe tus respuestas de Explicar y Aplicar."); host.insertBefore(c, bonusHost); } };
+  buildRanks(host, sim, check); buildSorter(host, sim, check); buildMystery(host, sim, check); buildVirus(host, sim, check); host.append(bonusHost);
+  const reflect = document.createElement("div"); reflect.className = "cyc-station";
+  reflect.innerHTML = `<div class="cyc-head"><h3 class="cyc-title">${L("Quick Reflection", "Reflexión Rápida")}</h3></div><div class="cyc-reflect"><p class="q__hint" style="margin:0">${L("How confident do you feel explaining how scientists sort living things into groups?", "¿Qué tan seguro te sientes explicando cómo los científicos ordenan los seres vivos en grupos?")}</p><div class="cyc-chiprow" id="cyc-r-conf"></div><p class="q__hint" style="margin:0">${L("What would you like to investigate next?", "¿Qué te gustaría investigar a continuación?")}</p><div class="cyc-chiprow" id="cyc-r-next"></div></div>`;
+  host.append(reflect); const rs = sim.state.reflect || {};
+  function row(sel, opts, key) { const el = reflect.querySelector(sel); opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "cyc-chip"; b.textContent = o.label; b.setAttribute("aria-pressed", String(rs[key] === o.id));
+    b.addEventListener("click", () => { el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); rs[key] = o.id; sim.state.reflect = rs; sim.saveState(); sim.setResult("reflection", { confidence: rs.conf, next_investigation: rs.next }); sim.mark("reflection_recorded", !!(rs.conf && rs.next)); }); el.append(b); }); }
+  row("#cyc-r-conf", [{ id: "low", label: L("Not very", "No mucho") }, { id: "mid", label: L("Fairly confident", "Bastante seguro") }, { id: "high", label: L("Very confident", "Muy seguro") }], "conf");
+  row("#cyc-r-next", [{ id: "plants", label: L("How plants and animals are related", "Cómo se relacionan las plantas y los animales") }, { id: "bact", label: L("How bacteria help and harm us", "Cómo nos ayudan y dañan las bacterias") }, { id: "dna", label: L("Using DNA to build a tree of life", "Usar el ADN para construir un árbol de la vida") }], "next");
+  host.append(creditLine());
+  document.addEventListener("eco-trial", () => paintBonus());
+  let bonusRendered = false;
+  function paintBonus() { if (sim.trials.length < 3 || bonusRendered) return; bonusRendered = true; mountCannon(bonusHost, sim, st => { if (st) sim.toast(L(`Bonus complete - score ${st.score}.`, `Bonus completo - ${st.score} puntos.`), "info"); }); }
+  check();
+}
+mountActivity({ simulation: { observation, orient, investigate } }).catch(e => { console.error("Activity failed to start:", e); const r = document.getElementById("lab-root"); if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>'; });
+</script>
+</body>
+</html>
