@@ -47,7 +47,7 @@
      disabled (it is the mechanic), but nothing about it is timed per-item.
    ========================================================================== */
 
-import { ttsEnabled, setTTS } from "./accessibility.js?v=18";
+import { ttsEnabled, setTTS } from "./accessibility.js?v=19";
 
 export const QUEST_DEFAULT_STRINGS = {
   title: "Field Quest",

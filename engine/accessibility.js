@@ -16,6 +16,7 @@
    ========================================================================== */
 
 import { t } from "./i18n.js?v=8";
+import { speakNatural, stopNatural, naturalSupported } from "./natural-voice.js?v=1";
 import { overrides, setUnits, setHemisphere, unitSystem, hemisphere } from "./locale.js?v=4";
 
 const ES = (() => { try { return (localStorage.getItem("dl-lang") || "en") === "es"; } catch { return false; } })();
@@ -25,7 +26,7 @@ const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
 const DYSLEXIA_CSS = new URL("vendor/fonts/dyslexia-font.css", ENGINE_URL).href;
 
-const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false, esRegion: "auto", esGender: "any", enAccent: "auto", enGender: "any", spacing: "normal", plain: false, ruler: false };
+const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false, esRegion: "auto", esGender: "any", enAccent: "auto", enGender: "any", natural: true, spacing: "normal", plain: false, ruler: false };
 
 const TEXT_SIZES = () => [
   ["s", t("a11y.size.s"), "A"], ["m", t("a11y.size.m"), "A"], ["l", t("a11y.size.l"), "A"], ["xl", t("a11y.size.xl"), "A"],
@@ -196,6 +197,35 @@ export function speak(text, forceLang) {
   speech.resume();
   let lang = forceLang || document.documentElement.lang || "en";
   if (!forceLang && lang.toLowerCase().indexOf("es") !== 0 && looksSpanish(text)) lang = "es";
+  const base = lang.toLowerCase().slice(0, 2);
+  const P = prefs || {};
+  if (P.natural !== false && naturalSupported() && (base === "es" || base === "en")) {
+    const isEs = base === "es";
+    const accent = isEs ? (P.esRegion === "latam" || P.esRegion === "spain" ? P.esRegion : guessRegion("es")) : (P.enAccent === "us" || P.enAccent === "uk" ? P.enAccent : guessRegion("en"));
+    const gender = (isEs ? P.esGender : P.enGender) === "male" ? "male" : "female";
+    voiceStatus(L("Loading natural voice…", "Cargando voz natural…"));
+    speakNatural(text, { lang: base, accent, gender, onStatus: m => voiceStatus(m === null ? null : L("Downloading voice (once only) ", "Descargando la voz (solo una vez) ") + m + "%") })
+      .then(ok => { voiceStatus(null); if (!ok) browserSpeak(text, lang); });
+    return;
+  }
+  browserSpeak(text, lang);
+}
+function guessRegion(l) {
+  let tz = ""; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { /* ignore */ }
+  if (l === "es") return /^America\//.test(tz) ? "latam" : "spain";
+  return /^(Europe\/(London|Dublin)|Australia|Pacific\/Auckland|Asia\/(Kolkata|Calcutta|Singapore))/.test(tz) ? "uk" : "us";
+}
+function voiceStatus(msg) {
+  let n = document.getElementById("dl-voice-status");
+  if (!msg) { if (n) n.remove(); return; }
+  if (!n) {
+    n = document.createElement("div"); n.id = "dl-voice-status"; n.setAttribute("role", "status");
+    n.style.cssText = "position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:9999;background:#222;color:#fff;padding:.5rem .9rem;border-radius:999px;font:600 .8rem system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3)";
+    document.body.appendChild(n);
+  }
+  n.textContent = msg;
+}
+function browserSpeak(text, lang) {
   if (lang === "en") { const a = (prefs && prefs.enAccent) || "auto"; lang = a === "uk" ? "en-GB" : a === "us" ? "en-US" : "en"; }
   if (lang === "es") { const r = (prefs && prefs.esRegion) || "auto"; lang = r === "spain" ? "es-ES" : r === "latam" ? "es-MX" : "es"; }
   setTimeout(() => {
@@ -206,7 +236,7 @@ export function speak(text, forceLang) {
     speech.speak(u);
   }, 0);
 }
-export function stopSpeaking() { if (speech) speech.cancel(); }
+export function stopSpeaking() { stopNatural(); if (speech) speech.cancel(); }
 
 /* A single, importable "silence everything" switch — so any sound-making
    feature anywhere on the site (a bonus game's HUD, an activity's own
@@ -350,6 +380,7 @@ function buildPanel(prefs, update) {
 
   /* Spanish read-aloud voice (shown when Spanish voices exist on this device) */
   if (speech) {
+    if (naturalSupported()) panel.append(toggleRow(L("Natural voice (free)", "Voz natural (gratis)"), L("Realistic voices that run on your device. Downloads about 60–80 MB the first time you use each voice, then works offline. Turn off to use your browser's own voice.", "Voces realistas que funcionan en tu dispositivo. Descarga unos 60–80 MB la primera vez que usas cada voz y luego funciona sin conexión. Desactívala para usar la voz de tu navegador."), prefs.natural !== false, on => update({ natural: on })));
     const vox = el("div", "a11y-loc");
     vox.append(segmented(L("Spanish voice accent", "Acento de la voz en español"), [
       ["auto", "Auto"], ["spain", L("Spain", "España")], ["latam", L("Latin America", "Latinoamérica")]], prefs.esRegion || "auto", v => update({ esRegion: v })));

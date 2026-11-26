@@ -10,7 +10,7 @@
    Rules honoured (CLAUDE.md §4/§6): bonus and skippable, no lives and no fail state, the round is
    time-boxed on wall-clock time (setInterval + Date.now, never rAF, which only draws), answers are real
    <button>s with keys 1-3 and arrow keys, reduced motion is respected, a mute button is always visible. */
-import { setTTS, ttsEnabled, speak } from "../../../../../../../engine/accessibility.js?v=18";
+import { setTTS, ttsEnabled, speak } from "../../../../../../../engine/accessibility.js?v=19";
 
 const CSS = `
 .hd{background:#06201f;border:1px solid #1f6a5f;border-radius:var(--radius-lg,14px);overflow:hidden;color:#eafff6;font-family:var(--font-data,monospace);}

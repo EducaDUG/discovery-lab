@@ -2092,3 +2092,16 @@ Implemented once in `engine/pdf-personal.js` and called from all three builders 
 
 ### 12.20 Restart button on every simulation (agreed 2026-11-24, standing rule)
 A student wanted to replay a simulation while keeping the quiz already done. Every simulation now has a **restart button in the signal colour (`btn--signal`) with a restart-arrow SVG icon**, built once in the shared engine so new activities get it free: `engine/engine.js` (standard Labs: "Reset investigation", clears trials and reruns Investigate, keeps prediction and written answers, via `sim.resetInvestigation()`) and `engine/external-activity.js` (simulation-only: "Restart the simulation", clears `state.sim`, keeps quiz answers and name). Rules for new work: keep all in-sim progress in `sim.state`/`api.state` (see 12.16) so the restart really clears it, never store sim progress in a separate localStorage key, and never remove or restyle the button per activity. When the engine files change, bump the `?v=` on all activity pages (and `_template`, `_external-template`).
+
+
+---
+
+## 22. Read-aloud voices: natural, accent- and gender-selectable (agreed 2026-11-26, standing rule)
+
+Diego: the browser's built-in voices sound "AI basic", and Spanish text must never be read by an English voice. Free only (no ElevenLabs: it is metered and this site has no server to hold a key).
+
+- **Built once, in the shared engine:** `engine/accessibility.js` (`speak()`, panel) + `engine/natural-voice.js` + vendored Piper runtime in `engine/vendor/piper/` (onnxruntime-web, piper-phonemize; MIT). Piper neural voices run in the student's browser through WebAssembly: free, no key, text never leaves the device. The model (60-80 MB) downloads once from Hugging Face on first use and is kept in Cache Storage (the disclosed exception to "no CDN", like Google sign-in on the admin page). Any failure falls back to the browser voice automatically. Voice map: Spain es_ES sharvard (M/F), Latin America es_MX ald (M) / claude (F), British en_GB alan (M) / alba (F), American en_US ryan (M) / amy (F).
+- **Student choices (saved per device in `dl-a11y-v1`):** Natural voice on/off; Spanish accent Auto/Spain/Latin America; Spanish voice Any/Female/Male; English accent Auto/British/American; English voice Any/Female/Male; test buttons. Auto accent uses the time zone.
+- **Spanish text is always read by a Spanish voice**, even on an English-language page (`looksSpanish()` detects it), and English by an English voice.
+- **For every new simulation:** route all read-aloud through `speak()` / `speakerButton()` from `accessibility.js`; never call `speechSynthesis` directly and never hardcode a voice or language. Any game that can make sound keeps its always-visible mute button (`setTTS`). Bump `accessibility.js?v=` on all pages when the engine changes (currently v19).
+- Not verified by ear in a real browser at build time (preview was blocked); first thing to check if a student reports silence.
