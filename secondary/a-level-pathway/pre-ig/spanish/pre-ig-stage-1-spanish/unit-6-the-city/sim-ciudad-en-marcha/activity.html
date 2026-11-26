@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spanish" data-age-band="lower-secondary" data-tint="paper" data-text-size="m">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tapas vs Tacos — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../../engine/style.css?v=35">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+.credit{font-size:.68rem;color:var(--ink-3);margin-top:.3em;text-align:right}.credit a{color:inherit}
+.rule-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--sp-3);margin-top:var(--sp-3)}
+.rule-card{border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:var(--sp-3);cursor:pointer;text-align:center;font:inherit;color:inherit;transition:transform .2s,box-shadow .2s}
+.rule-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-2)}
+.rule-card img{width:100%;height:110px;object-fit:cover;border-radius:10px;display:block;margin-bottom:.5em}
+.rule-card__big{font-family:var(--font-data);font-weight:800;font-size:1.25rem;color:var(--accent)}
+.rule-card__more{margin-top:.5em;font-size:.85rem;color:var(--ink-2);display:none;text-align:left}
+.rule-card.is-open{background:var(--wash);border-color:var(--accent)}.rule-card.is-open .rule-card__more{display:block}
+.ctab{width:100%;border-collapse:collapse;font-family:var(--font-data);margin-top:.4em}
+.ctab td{padding:.15em .3em;border-bottom:1px dotted var(--line)}.ctab td:first-child{color:var(--ink-3);font-size:.8rem}
+.ctab b{color:var(--accent);text-decoration:underline;text-decoration-thickness:2px}
+@media(max-width:600px){.rule-cards{grid-template-columns:1fr}}
+
+.pz-hud{display:flex;flex-wrap:wrap;gap:.5em;align-items:center;justify-content:space-between;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:14px;padding:.7em 1em}
+.pz-hud b{font-family:var(--font-data)}
+.pz-hud__rank{font-weight:800;font-size:1.05rem}
+.pz-hud__bar{flex:1 1 140px;height:8px;background:rgba(255,255,255,.3);border-radius:99px;overflow:hidden}
+.pz-hud__bar i{display:block;height:100%;background:#fff;transition:width .5s}
+.pz-tabs{display:flex;gap:.4em;flex-wrap:wrap;margin:var(--sp-3) 0}
+.pz-tab{border:2px solid var(--line);background:var(--paper);border-radius:99px;padding:.3em .8em;font-size:.82rem;font-family:var(--font-data)}
+.pz-tab.is-now{border-color:var(--accent);background:var(--accent);color:#fff}.pz-tab.is-done{border-color:var(--positive,#2e8b57);color:var(--positive,#2e8b57)}
+.pz-panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:var(--sp-4)}
+.pz-title{font-family:var(--font-data);font-weight:800;font-size:1.15rem;color:var(--accent);margin:0}
+.pz-how{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.6em 0;font-size:.92rem}
+.pz-count{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.es{font-family:var(--font-data);font-weight:700}
+.pz-chips{display:flex;flex-wrap:wrap;gap:.5em;margin:.3em 0 .8em}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:.5em .9em;font-family:var(--font-data);font-size:1rem;cursor:pointer;color:inherit;transition:transform .12s;min-height:44px}
+.chip:hover:not(:disabled){transform:translateY(-2px)}
+.chip.is-on{border-color:var(--accent);background:var(--wash)}
+.chip.is-ok{border-color:var(--positive,#2e8b57);background:color-mix(in srgb,var(--positive,#2e8b57) 16%,var(--paper))}
+.chip.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+.chip:disabled{cursor:default}
+@keyframes pzshake{0%,100%{transform:translateX(0)}30%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+[data-reduced-motion="on"] .chip.is-bad{animation:none;outline:3px solid var(--negative,#b3392c)}
+.row-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.preview{font-family:var(--font-data);font-size:1.3rem;font-weight:700;padding:.5em .8em;border-radius:10px;background:var(--wash);margin:.5em 0;min-height:2.4em}
+.preview u{color:var(--accent);text-decoration-thickness:2px}
+.fb{min-height:1.5em;font-weight:600;margin:.4em 0}.fb.good{color:var(--positive,#2e8b57)}.fb.bad{color:var(--negative,#b3392c)}
+.pz-next{margin-top:.6em}
+.vis{display:flex;justify-content:center;margin:.6em 0}
+.cphoto{border-radius:12px;object-fit:cover;border:2px solid var(--line);background:#fff;display:block}
+
+/* globe */
+.globe-wrap{position:relative;height:280px;border-radius:14px;overflow:hidden;background:radial-gradient(#10243f,#050a16);margin-bottom:var(--sp-3);touch-action:pan-y}
+.globe-wrap canvas{width:100%;height:100%;display:block;cursor:grab}
+.globe-tag{position:absolute;left:10px;top:10px;background:rgba(5,10,22,.7);color:#fff;border-radius:99px;padding:.25em .8em;font-family:var(--font-data);font-size:.85rem}
+.globe-key{position:absolute;left:10px;bottom:8px;color:#fff;font-size:.75rem;display:flex;gap:.4em;align-items:center;background:rgba(5,10,22,.7);padding:.2em .7em;border-radius:99px}.globe-key i{width:.9em;height:.9em;border-radius:50%;background:#ff9f1c;border:2px solid #d9480f}.globe-hint{position:absolute;right:10px;bottom:8px;color:#cfe3ff;font-size:.7rem}
+.globe-fallback{display:flex;height:100%;align-items:center;justify-content:center;color:#fff;font-family:var(--font-data);text-align:center;padding:1em}
+
+/* time machine & passport & suitcase */
+.tm{width:100%;max-width:300px}
+.tm .hand{transform-origin:60px 60px;transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+.tm.rew .hand{transform:rotate(-300deg)}
+.timeword{font-family:var(--font-data);font-weight:800;font-size:1.8rem;color:var(--accent)}
+.passport{display:flex;gap:1em;align-items:center;background:#16385c;color:#fff;border-radius:12px;padding:.8em;max-width:560px;width:100%;position:relative;overflow:hidden}
+.passport img{width:120px;height:90px;border-radius:8px;object-fit:cover;border:2px solid #fff6}
+.passport .meta{font-family:var(--font-data)}.passport .meta small{opacity:.8;display:block}
+.stamp{position:absolute;right:10px;top:8px;border:3px solid #ffd27a;color:#ffd27a;border-radius:10px;padding:.1em .5em;font-family:var(--font-data);font-weight:800;transform:rotate(-12deg) scale(3);opacity:0}
+.stamp.go{animation:thump .55s ease-out forwards}
+@keyframes thump{60%{transform:rotate(-12deg) scale(.9);opacity:1}100%{transform:rotate(-12deg) scale(1);opacity:1}}
+[data-reduced-motion="on"] .stamp.go{animation:none;opacity:1;transform:rotate(-12deg)}
+.suit{position:relative;width:200px;height:120px;margin:0 auto}
+.suit .case{position:absolute;bottom:0;left:0;right:0;height:70px;background:#8a4b22;border-radius:10px;border:3px solid #4b2710}
+.suit .case::before{content:"";position:absolute;top:-14px;left:70px;width:60px;height:14px;border:3px solid #4b2710;border-bottom:0;border-radius:8px 8px 0 0}
+.suit img{position:absolute;left:62px;top:-70px;width:76px;height:76px;object-fit:cover;border-radius:10px;border:2px solid #fff;z-index:2;animation:drop .7s cubic-bezier(.5,0,.8,.5) forwards}
+@keyframes drop{70%{top:34px}85%{top:24px}100%{top:30px;opacity:.95}}
+[data-reduced-motion="on"] .suit img{animation:none;top:30px}
+
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin:.6em 0}
+.pgrid button{border:3px solid var(--line);background:var(--paper);border-radius:12px;padding:0;overflow:hidden;cursor:pointer}
+.pgrid img{width:100%;height:120px;object-fit:cover;display:block}
+.pgrid button.is-ok{border-color:var(--positive,#2e8b57)}.pgrid button.is-bad{animation:pzshake .35s;border-color:var(--negative,#b3392c)}
+@media(min-width:700px){.pgrid{grid-template-columns:repeat(4,1fr)}}
+
+.chat{display:flex;flex-direction:column;gap:.4em;margin:.6em 0}
+.bubble{max-width:82%;padding:.5em .8em;border-radius:14px;font-family:var(--font-data)}
+.bubble small{display:block;font-size:.68rem;opacity:.75;text-transform:uppercase}
+.bubble.v{align-self:flex-start;background:#ffe3b5}.bubble.c{align-self:flex-end;background:#cde6ff}
+.bubble .en{display:none;font-family:var(--font-body,inherit);font-style:italic;font-weight:400;font-size:.8rem;margin-top:.2em}
+.show-en .bubble .en{display:block}
+.pool{display:flex;flex-direction:column;gap:.4em}.pool .chip{text-align:left}
+.postcard{background:#fff8ec;border:2px dashed #c58a12;border-radius:8px;padding:.8em 1em;font-family:var(--font-data);margin:.6em 0;display:flex;gap:1em;align-items:flex-start;flex-wrap:wrap}
+.postcard img{width:150px;height:112px;object-fit:cover;border-radius:6px}
+.postcard span.s{cursor:pointer;border-bottom:1px dotted var(--ink-3)}.postcard span.s:hover{background:#ffe3b5}
+.blog-en{font-size:.85rem;color:var(--ink-2);min-height:1.3em;font-style:italic}
+
+.done-card{text-align:center;background:linear-gradient(120deg,#0e3a5f,#1a7f8e 55%,#f0a030);color:#fff;border-radius:16px;padding:var(--sp-5)}
+.done-card h3{margin:0;font-size:1.6rem}.done-card .big{font-size:2.4rem;font-weight:800;font-family:var(--font-data)}
+.burst{position:absolute;pointer-events:none;width:8px;height:8px;border-radius:50%;animation:burst .8s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+[data-reduced-motion="on"] .burst{display:none}
+
+/* Past-Tense Express (3D runner) */
+.ex{background:#0e2238;color:#fff;border-radius:16px;padding:var(--sp-3);text-align:center}
+.ex h3{margin:0;color:#ffd27a}
+.ex-hud{display:flex;justify-content:space-between;font-family:var(--font-data);font-size:.9rem;margin:.3em 0}
+.ex-q{display:flex;gap:.8em;align-items:center;justify-content:center;background:#16385c;border-radius:10px;padding:.5em .8em;margin:.4em 0;text-align:left}
+.ex-q img{width:84px;height:63px;object-fit:cover;border-radius:8px}
+.ex-q .es{font-size:1.25rem}.ex-q small{display:block;opacity:.8}
+.ex-stage{position:relative;height:260px;border-radius:12px;overflow:hidden;background:#8ecbff}
+.ex-stage canvas{width:100%;height:100%;display:block}
+.ex-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em;margin:.5em 0}
+.ex-btns button{border:3px solid transparent;border-radius:10px;padding:.7em .3em;font-family:var(--font-data);font-weight:800;font-size:1.05rem;color:#fff;cursor:pointer;min-height:48px}
+.ex-btns button.sel{outline:4px solid #fff}
+.ex-msg{min-height:1.6em;font-weight:700;color:#ffd27a}
+.ex-flat{display:flex;align-items:center;justify-content:center;height:100%;color:#0e2238;font-weight:700;padding:1em}
+
+.photo-wrap{position:relative;max-width:340px;margin:var(--sp-3) auto 0;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.photo-wrap img{width:100%;display:block}
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid #fff;box-shadow:0 0 0 2px var(--accent),0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.hotspot i{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.hotspot.is-done{border-color:var(--positive,#2e8b57);box-shadow:0 0 0 2px var(--positive,#2e8b57)}.hotspot.is-done i{background:var(--positive,#2e8b57)}
+.hotspot.is-wrong{animation:hsshake .32s}
+@keyframes hsshake{0%,100%{transform:translate(-50%,-50%)}30%{transform:translate(calc(-50% - 6px),-50%)}60%{transform:translate(calc(-50% + 6px),-50%)}}
+.tin{font-family:var(--font-data);font-size:1.1rem;padding:.5em .8em;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:inherit;min-height:44px;max-width:100%}
+.tin.shake{animation:pzshake .35s}
+.chiprow{display:flex;gap:.5em;flex-wrap:wrap;align-items:center;margin:.5em 0}
+.sortbtns{display:grid;grid-template-columns:1fr 1fr;gap:.6em;margin:.6em 0}
+.sb{display:flex;flex-direction:column;align-items:center;padding:.9em .4em;font-size:1.1rem}.sb small{font-weight:400;opacity:.8}
+.sb--m{border-color:#2d62c8}.sb--f{border-color:#d2562b}
+.wordcard{font-size:2rem;padding:.8em 1.2em;background:var(--wash);border-radius:14px;border:2px solid var(--line)}
+.info{background:var(--wash);border-radius:10px;padding:.6em .8em;margin:.5em 0;min-height:2.6em}
+.listen{min-height:36px;padding:.2em .8em;font-size:.85rem;margin-top:.4em}
+.rule-card .listen{display:inline-block}
+.photo-wrap+.credit{text-align:center}
+
+
+.duelc{background:#16201c;color:#fff;border-radius:16px;padding:var(--sp-4);text-align:center}.duelc .pz-title{color:#ffd27a}.duelc .row-label{color:#bfe3d4}
+.duel-hud{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-data);margin-bottom:.4em}
+.rope{display:flex;align-items:center;gap:.6em;margin:.4em 0}.rope__l,.rope__r{font-family:var(--font-data);font-weight:800;font-size:.9rem}.rope__l{color:#6fa8ff}.rope__r{color:#ff9e6b}
+.rope__track{position:relative;flex:1;height:12px;border-radius:99px;background:linear-gradient(90deg,#2d62c8,#555 50%,#d2562b)}
+.rope__flag{position:absolute;top:-8px;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:#ffd23f;border:3px solid #fff;transition:left .5s cubic-bezier(.3,1.5,.5,1)}
+[data-reduced-motion="on"] .rope__flag{transition:none}
+.duel-q{font-size:1.5rem;margin:.4em 0}.duelc .chip{color:#fff;border-color:#4a5a52;background:#22302a}.duelc .fb.good{color:#7fe3a5}.duelc .fb.bad{color:#ff9e8f}
+
+.roomgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6em;margin:.6em 0}
+.roomtile{display:flex;flex-direction:column;align-items:center;gap:.2em;background:#22302a;border:3px solid #4a5a52;border-radius:12px;padding:.4em;color:#fff;cursor:pointer;font:inherit}
+.roomtile img{width:100%;max-width:130px;height:90px;object-fit:cover;border-radius:8px}
+.roomtile small{opacity:.7}.roomtile.is-ok{border-color:#7fe3a5}.roomtile.is-bad{border-color:#ff9e8f;animation:pzshake .35s}.roomtile:disabled{cursor:default}
+@media(max-width:520px){.roomgrid{gap:.35em}.roomtile img{height:70px}}
+
+.beatbar{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:.5em 0;height:64px}
+.beatseg{display:flex;align-items:center;justify-content:center;background:#22302a;border:3px solid #4a5a52;border-radius:10px;font-family:var(--font-data);font-weight:800;font-size:1.2rem;color:#fff}
+.beatseg.is-ok{border-color:#7fe3a5;background:#1e4a35}.beatseg.is-bad{border-color:#ff9e8f}
+.beatmark{position:absolute;top:-6px;bottom:-6px;width:6px;margin-left:-3px;background:#ffd23f;border-radius:4px;box-shadow:0 0 10px #ffd23f;pointer-events:none}
+
+.beatbar{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:.5em 0;height:64px}
+.beatseg{display:flex;align-items:center;justify-content:center;background:#22302a;border:3px solid #4a5a52;border-radius:10px;font-family:var(--font-data);font-weight:800;font-size:1.2rem;color:#fff}
+.beatseg.is-ok{border-color:#7fe3a5;background:#1e4a35}.beatseg.is-bad{border-color:#ff9e8f}
+.goal{position:relative;height:130px;margin:.4em 0;border:4px solid #fff;border-bottom:none;border-radius:8px 8px 0 0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 2px,transparent 2px 14px),repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 2px,transparent 2px 14px);overflow:hidden}
+.gkeeper{position:absolute;bottom:6px;left:50%;font-size:2.4rem;transform:translateX(-50%);transition:left .35s ease-out}
+.gball{position:absolute;z-index:3;bottom:-30px;left:50%;font-size:2rem;line-height:1;transform:translateX(-50%);transition:left .45s ease-out,bottom .45s ease-in}
+.goalbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em}
+[data-reduced-motion="on"] .gkeeper,[data-reduced-motion="on"] .gball{transition:none}
+.beatmark{position:absolute;top:-6px;bottom:-6px;width:6px;margin-left:-3px;background:#ffd23f;border-radius:4px;box-shadow:0 0 10px #ffd23f;pointer-events:none}
+
+.beatbar{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:.5em 0;height:64px}
+.beatseg{display:flex;align-items:center;justify-content:center;background:#22302a;border:3px solid #4a5a52;border-radius:10px;font-family:var(--font-data);font-weight:800;font-size:1.2rem;color:#fff}
+.beatseg.is-ok{border-color:#7fe3a5;background:#1e4a35}.beatseg.is-bad{border-color:#ff9e8f}
+.goal{position:relative;height:130px;margin:.4em 0;border:4px solid #fff;border-bottom:none;border-radius:8px 8px 0 0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 2px,transparent 2px 14px),repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 2px,transparent 2px 14px);overflow:hidden}
+.gkeeper{position:absolute;bottom:6px;left:50%;font-size:2.4rem;transform:translateX(-50%);transition:left .35s ease-out}
+.gball{position:absolute;z-index:3;bottom:-30px;left:50%;font-size:2rem;line-height:1;transform:translateX(-50%);transition:left .45s ease-out,bottom .45s ease-in}
+.goalbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em}
+[data-reduced-motion="on"] .gkeeper,[data-reduced-motion="on"] .gball{transition:none}
+.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;max-width:340px;margin:.4em auto}
+.cc{position:relative;aspect-ratio:1;background:#2b3a34;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.6rem;color:#fff;overflow:hidden}
+.cc--p img{border-radius:6px;object-fit:cover}.cc small{font-size:.55rem;line-height:1.1;text-align:center}.cs{text-align:center;font-size:1.2rem}
+.cc--mark{outline:3px solid #ffd23f}.cc--on{background:#44604f}
+.ctaxi{position:absolute;font-size:1.5rem;transition:transform .25s}
+.beatmark{position:absolute;top:-6px;bottom:-6px;width:6px;margin-left:-3px;background:#ffd23f;border-radius:4px;box-shadow:0 0 10px #ffd23f;pointer-events:none}
+</style>
+<meta name="description" content="True-beginner Spanish, Unit 6: The City & Navigation. Sounds, greetings, pronouns, the verb ser, el/la, numbers 0-30, adjectives and a TikTok-style video intro, with a 3D globe of the 21 Spanish-speaking nations.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Discovery Lab"><meta property="og:title" content="Tapas vs Tacos | Discovery Lab">
+<!-- seo:start -->
+<link rel="canonical" href="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/pre-ig/spanish/pre-ig-stage-1-spanish/unit-5-hobbies-and-sports/sim-pasion-deportiva/activity.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Discovery Lab">
+<meta property="og:title" content="Ciudad en Marcha | Discovery Lab">
+<meta property="og:description" content="This activity takes complete beginners through all of Pre-IG Stage 1 Spanish Unit 5, Hobbies &amp; Sports, in eight scaffolded game levels, and opens with a from-zero refresher of Units 1 to 4 (ser, estar, tener, -ar verbs, gustar, food and house words) so a student joining the course here is never...">
+<meta property="og:url" content="https://educadug.github.io/discovery-lab/secondary/a-level-pathway/pre-ig/spanish/pre-ig-stage-1-spanish/unit-5-hobbies-and-sports/sim-pasion-deportiva/activity.html">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Ciudad en Marcha", "description": "This activity takes complete beginners through all of Pre-IG Stage 1 Spanish Unit 5, Hobbies & Sports, in eight scaffolded game levels, and opens with a from-zero refresher of Units 1 to 4 (ser, estar, tener, -ar verbs, gustar, food and house words) so a student joining the course here is never lost. Learners name sports from real photographs and use jugar al + sport, compare baloncesto with básquetbol, conjugate regular -er verbs (comer, beber, correr, leer, aprender) and -ir verbs (vivir, escribir, abrir, compartir) and notice that nosotros is -emos for -er but -imos for -ir, learn about El Clásico and El Superclásico, master the stem-changing “boot” verbs jugar (u to ue) and querer (e to ie) with nosotros outside the boot, make plans with ¿te apetece? in Spain and ¿te late? in Mexico, compare móvil and celular, meet flamenco, reggaeton, Rosalía and Bad Bunny, and finish by building and typing an ideal weekend plan. A penalty-shootout bonus round, Tanda de Penaltis, drills verb forms. The Knowledge Check adapts to each student's level (Adaptive Levels L1-L5).", "url": "https://educadug.github.io/discovery-lab/secondary/a-level-pathway/pre-ig/spanish/pre-ig-stage-1-spanish/unit-5-hobbies-and-sports/sim-pasion-deportiva/activity.html", "learningResourceType": "interactive simulation", "interactivityType": "active", "isAccessibleForFree": true, "inLanguage": ["en", "es"], "educationalLevel": "Lower secondary (ages 11-14)", "teaches": ["Communication in a second language", "Grammatical accuracy", "Cultural awareness", "Retrieval of earlier learning", "Self-correction"], "educationalUse": "practice", "audience": {"@type": "EducationalAudience", "educationalRole": "student"}, "accessibilityFeature": ["largePrint", "highContrastDisplay", "readingOrder", "textToSpeech", "displayTransformability"], "accessibilityHazard": ["noFlashingHazard", "noMotionSimulationHazard"], "accessMode": ["textual", "visual"], "provider": {"@type": "EducationalOrganization", "name": "Discovery Lab", "url": "https://educadug.github.io/discovery-lab/"}, "author": {"@type": "Person", "name": "Diego Urrutia Guevara"}, "isPartOf": {"@type": "Course", "name": "Pre-IG Stage 1 Spanish"}}</script>
+<!-- seo:end -->
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+<main id="main" class="shell"><div id="lab-root"></div></main>
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span>Discovery Lab — <a href="../../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script type="module">
+import { mountActivity } from "../../../../../../../engine/engine.js?v=25";
+import { getLang } from "../../../../../../../engine/i18n.js?v=10";
+import { setTTS } from "../../../../../../../engine/accessibility.js?v=19";
+const THREE_URL = "../../../../../../../engine/vendor/three.min.js";
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstElementChild; };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const loadThree = () => new Promise((res, rej) => { if (window.THREE) return res(window.THREE); const s = document.createElement("script"); s.src = THREE_URL; s.onload = () => window.THREE ? res(window.THREE) : rej(new Error("no THREE")); s.onerror = rej; document.head.appendChild(s); });
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+
+/* ================= GLOBE (3D hero scene) ================= */
+function earthTexture(THREE, WORLD) {
+  const W = 4096, H = 2048, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  const X = (lon) => (lon + 180) / 360 * W, Y = (lat) => (90 - lat) / 180 * H;
+  const og = g.createLinearGradient(0, 0, 0, H); og.addColorStop(0, "#0b3a6e"); og.addColorStop(.5, "#0f6fb8"); og.addColorStop(1, "#0b3a6e"); g.fillStyle = og; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(255,255,255,${Math.random() * .035})`; g.fillRect(Math.random() * W, Math.random() * H, 20 + Math.random() * 90, 2 + Math.random() * 4); }
+  const path = (pl) => { g.beginPath(); pl.forEach(ring => ring.forEach(([lo, la], k) => k ? g.lineTo(X(lo), Y(la)) : g.moveTo(X(lo), Y(la)))); };
+  // coastal shallow-water halo
+  g.save(); g.shadowColor = "rgba(90,200,230,.9)"; g.shadowBlur = 26; g.fillStyle = "#2a9d8f";
+  WORLD.forEach(c0 => c0.p.forEach(pl => { path(pl); g.fill("evenodd"); })); g.restore();
+  // land: natural terrain by latitude for the rest of the world, vivid gold for the Spanish-speaking world
+  WORLD.forEach(c0 => c0.p.forEach(pl => {
+    path(pl);
+    const lg = g.createLinearGradient(0, 0, 0, H);
+    if (c0.s) { lg.addColorStop(0, "#ffd23f"); lg.addColorStop(.5, "#ff9f1c"); lg.addColorStop(1, "#ffd23f"); }
+    else { lg.addColorStop(0, "#e6ede6"); lg.addColorStop(.14, "#7a9a5a"); lg.addColorStop(.3, "#5f8a45"); lg.addColorStop(.48, "#4d8a3a"); lg.addColorStop(.58, "#c2a867"); lg.addColorStop(.68, "#5a9140"); lg.addColorStop(.88, "#8fa56a"); lg.addColorStop(1, "#f2f6f2"); }
+    g.fillStyle = lg; g.fill("evenodd");
+    g.lineWidth = c0.s ? 2.4 : 1.2; g.strokeStyle = c0.s ? "#d9480f" : "rgba(30,50,20,.55)"; g.lineJoin = "round"; g.stroke();
+  }));
+  // Equatorial Guinea is tiny: add a glowing ring so it still stands out
+  const gx = X(10.4), gy = Y(1.8); const rg = g.createRadialGradient(gx, gy, 4, gx, gy, 46); rg.addColorStop(0, "rgba(255,210,63,.95)"); rg.addColorStop(.4, "rgba(255,159,28,.55)"); rg.addColorStop(1, "rgba(255,159,28,0)"); g.fillStyle = rg; g.beginPath(); g.arc(gx, gy, 46, 0, 6.3); g.fill();
+  g.lineWidth = 4; g.strokeStyle = "#d9480f"; g.beginPath(); g.arc(gx, gy, 22, 0, 6.3); g.stroke();
+  const t = new THREE.CanvasTexture(c); if ("encoding" in t) t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+function cloudTexture(THREE) {
+  const W = 512, H = 256, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  for (let i = 0; i < 160; i++) { const x = Math.random() * W, y = 30 + Math.random() * (H - 60), r = 6 + Math.random() * 22; const rg = g.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, "rgba(255,255,255,.55)"); rg.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  return new THREE.CanvasTexture(c);
+}
+function glowTexture(THREE, col) {
+  const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const rg = g.createRadialGradient(64, 64, 20, 64, 64, 64); rg.addColorStop(0, col); rg.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = rg; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+}
+async function mountGlobe(wrap, tag) {
+  let WORLD = []; try { WORLD = await (await fetch("world.json")).json(); } catch (e) { WORLD = []; }
+  let THREE; try { THREE = await loadThree(); } catch (e) { THREE = null; }
+  const test = document.createElement("canvas"); const gl = test.getContext("webgl") || test.getContext("experimental-webgl");
+  const api = { flyTo() {}, dispose() {} };
+  if (!THREE || !gl) { wrap.innerHTML = `<div class="globe-fallback">Your device cannot show the 3D globe — no problem! Your plane still follows you: <br><b id="gf"></b></div>`; api.flyTo = (i) => { const f = wrap.querySelector("#gf"); if (f) f.textContent = "✈ " + STOPS[Math.min(i, STOPS.length - 1)].n; }; return api; }
+  const w = wrap.clientWidth || 600, h = wrap.clientHeight || 280;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(w, h);
+  if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  wrap.prepend(renderer.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(40, w / h, .1, 100); cam.position.set(0, 0, 6.2);
+  scene.add(new THREE.AmbientLight(0x6688aa, .6)); const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(4, 2, 5); scene.add(sun);
+  const stars = (() => { const n = 500, p = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const r = 30 + Math.random() * 20, a = Math.random() * 6.28, b = Math.acos(2 * Math.random() - 1); p[i * 3] = r * Math.sin(b) * Math.cos(a); p[i * 3 + 1] = r * Math.cos(b); p[i * 3 + 2] = r * Math.sin(b) * Math.sin(a); } const gm = new THREE.BufferGeometry(); gm.setAttribute("position", new THREE.BufferAttribute(p, 3)); const s = new THREE.Points(gm, new THREE.PointsMaterial({ color: 0xffffff, size: .12 })); scene.add(s); return s; })();
+  const globe = new THREE.Group(); scene.add(globe); const R = 2;
+  globe.add(new THREE.Mesh(new THREE.SphereGeometry(R, 64, 48), new THREE.MeshStandardMaterial({ map: earthTexture(THREE, WORLD), roughness: .85, metalness: 0 })));
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(R * 1.012, 48, 36), new THREE.MeshBasicMaterial({ map: cloudTexture(THREE), transparent: true, opacity: .55, depthWrite: false })); globe.add(clouds);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(110,180,255,.9)"), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(R * 3.1, R * 3.1, 1); scene.add(halo);
+  const ll = (lat, lon, r) => { const ph = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)); };
+  const pins = STOPS.map(s => { const m = new THREE.Mesh(new THREE.SphereGeometry(.05, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffd27a })); m.position.copy(ll(s.lat, s.lon, R * 1.01)); globe.add(m); const gl2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(THREE, "rgba(255,200,80,.9)"), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); gl2.scale.set(.4, .4, 1); gl2.position.copy(m.position); globe.add(gl2); return { m, gl2 }; });
+  const plane = new THREE.Group(); const body = new THREE.Mesh(new THREE.ConeGeometry(.045, .2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff })); body.rotation.x = Math.PI / 2; plane.add(body);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(.2, .01, .06), new THREE.MeshStandardMaterial({ color: 0xd2562b })); plane.add(wing); globe.add(plane); plane.position.copy(ll(STOPS[0].lat, STOPS[0].lon, R * 1.04));
+  const trailN = 60, trailPos = new Float32Array(trailN * 3), tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.BufferAttribute(trailPos, 3)); const trail = new THREE.Line(tg, new THREE.LineBasicMaterial({ color: 0xffd27a })); trail.frustumCulled = false; globe.add(trail);
+  let trailLen = 0; const pushTrail = (v) => { for (let i = Math.min(trailLen, trailN - 1); i > 0; i--) { trailPos[i * 3] = trailPos[(i - 1) * 3]; trailPos[i * 3 + 1] = trailPos[(i - 1) * 3 + 1]; trailPos[i * 3 + 2] = trailPos[(i - 1) * 3 + 2]; } trailPos[0] = v.x; trailPos[1] = v.y; trailPos[2] = v.z; trailLen = Math.min(trailLen + 1, trailN); tg.setDrawRange(0, trailLen); tg.attributes.position.needsUpdate = true; };
+  let cur = 0, fly = null, spin = 0, drag = null, userY = 0, userX = 0, focus = new THREE.Quaternion();
+  const faceQ = (i) => { const v = ll(STOPS[i].lat, STOPS[i].lon, 1).normalize(); const q = new THREE.Quaternion().setFromUnitVectors(v, new THREE.Vector3(0, .25, 1).normalize()); return q; };
+  focus.copy(faceQ(0)); globe.quaternion.copy(focus);
+  api.flyTo = (i) => { i = Math.min(i, STOPS.length - 1); if (i === cur) return; fly = { a: cur, b: i, t0: performance.now(), dur: reduced() ? 1 : 2600 }; tag.textContent = "✈ " + STOPS[cur].n + " → " + STOPS[i].n; cur = i; };
+  const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", e => { if (!drag) return; userY += (e.clientX - drag.x) * .008; userX += (e.clientY - drag.y) * .008; drag = { x: e.clientX, y: e.clientY }; });
+  const up = () => { drag = null; cv.style.cursor = "grab"; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  let alive = true, raf = 0, last = performance.now();
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), P = new THREE.Vector3();
+  const loop = (now) => {
+    if (!alive) return; raf = requestAnimationFrame(loop); const dt = Math.min(.05, (now - last) / 1000); last = now;
+    clouds.rotation.y += dt * (reduced() ? 0 : .05); stars.rotation.y += dt * (reduced() ? 0 : .01);
+    pins.forEach((p, i) => { const s = 1 + (reduced() ? 0 : .25 * Math.sin(now / 350 + i)); p.gl2.scale.set(.4 * s, .4 * s, 1); p.gl2.material.opacity = i <= cur ? 1 : .35; });
+    if (fly) {
+      const k = Math.min(1, (now - fly.t0) / fly.dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      A.copy(ll(STOPS[fly.a].lat, STOPS[fly.a].lon, 1)).normalize(); B.copy(ll(STOPS[fly.b].lat, STOPS[fly.b].lon, 1)).normalize();
+      const om = Math.acos(Math.max(-1, Math.min(1, A.dot(B)))) || .001; const sa = Math.sin((1 - e) * om) / Math.sin(om), sb = Math.sin(e * om) / Math.sin(om);
+      P.copy(A).multiplyScalar(sa).addScaledVector(B, sb).normalize(); const alt = 1.03 + Math.sin(e * Math.PI) * .22; const prev = plane.position.clone(); plane.position.copy(P).multiplyScalar(R * alt);
+      plane.lookAt(plane.position.clone().add(plane.position.clone().sub(prev).multiplyScalar(5))); pushTrail(plane.position);
+      const fq = faceQ(fly.a).slerp(faceQ(fly.b), e); focus.copy(fq);
+      if (k >= 1) { fly = null; tag.textContent = "📍 " + STOPS[cur].n; trailLen = 0; tg.setDrawRange(0, 0); }
+    }
+    const uq = new THREE.Quaternion().setFromEuler(new THREE.Euler(userX, userY, 0));
+    if (!drag && !fly) { userY *= .97; userX *= .97; if (!reduced()) { spin += dt * .12; } }
+    globe.quaternion.copy(uq).multiply(focus); globe.rotateY(0); if (!reduced()) globe.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0); const wob = reduced() ? 0 : Math.sin(spin * 3) * .04; globe.rotation.z += 0; cam.position.x = Math.sin(spin) * .15; cam.position.y = wob; cam.lookAt(0, 0, 0);
+    renderer.render(scene, cam);
+  };
+  raf = requestAnimationFrame(loop);
+  api.dispose = () => { alive = false; cancelAnimationFrame(raf); renderer.dispose(); };
+  const ro = new ResizeObserver(() => { const ww = wrap.clientWidth, hh = wrap.clientHeight; if (ww && hh) { renderer.setSize(ww, hh); cam.aspect = ww / hh; cam.updateProjectionMatrix(); } }); ro.observe(wrap);
+  tag.textContent = "📍 " + STOPS[0].n;
+  return api;
+}
+
+
+const L = (en, es) => (getLang() === "es" ? es : en);
+const strip = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¡!¿?.,]/g, "").replace(/\s+/g, " ").trim();
+/* ===== UNIT 6 CONTENT ===== */
+const IMG = (k, px = 130) => `<img class="cphoto" src="photos/ciudad/${k}.jpg" width="${px}" height="${px}" alt="${k}" style="object-fit:cover">`;
+const STOPS = [{ n:"Madrid", lat:40.4, lon:-3.7 }, { n:"Toledo", lat:39.86, lon:-4.02 }, { n:"Ciudad de México", lat:19.4, lon:-99.1 }, { n:"La Habana", lat:23.1, lon:-82.4 }, { n:"Buenos Aires", lat:-34.6, lon:-58.4 }, { n:"Barcelona", lat:41.4, lon:2.2 }, { n:"Lima", lat:-12.0, lon:-77.0 }, { n:"Bogotá", lat:4.7, lon:-74.1 }];
+const STOP = (n) => STOPS.findIndex(s => s.n === n);
+const STAGE_STOP = [STOP("Madrid"), STOP("Madrid"), STOP("Ciudad de México"), STOP("Buenos Aires"), STOP("Barcelona"), STOP("Lima"), STOP("Toledo"), STOP("La Habana")];
+const RANKS = [[0,"Turista"],[100,"Viajero/a"],[250,"Explorador/a"],[420,"Guía Local"],[600,"Maestro/a de la Ciudad"]];
+const rankFor = (xp) => RANKS.filter(r => xp >= r[0]).pop()[1];
+const mkOpts = (ok, pool, n = 3) => shuffle(pool.filter(x => x !== ok)).slice(0, n).concat([ok]);
+
+/* ---- tiny city grid (5 x 5) used by the route puzzles and the taxi bonus ---- */
+const PLACES6 = { parque:[0,1,"el parque"], museo:[4,1,"el museo"], cine:[2,0,"el cine"], escuela:[0,3,"la escuela"], tienda:[4,3,"la tienda"], restaurante:[2,2,"el restaurante"] };
+const START6 = [2, 4], DIRS = [[0,-1],[1,0],[0,1],[-1,0]], ARROW = ["↑","→","↓","←"];
+const MOVE_ES = { F:"Todo recto", R:"A la derecha", I:"A la izquierda" };
+const placeAt = (x, y) => Object.keys(PLACES6).find(k => PLACES6[k][0] === x && PLACES6[k][1] === y);
+function stepMove(pos, h, mv) { const nh = mv === "F" ? h : mv === "R" ? (h + 1) % 4 : (h + 3) % 4; const nx = pos[0] + DIRS[nh][0], ny = pos[1] + DIRS[nh][1]; if (nx < 0 || ny < 0 || nx > 4 || ny > 4) return null; return { pos:[nx, ny], h:nh }; }
+function runRoute(moves) { let pos = START6.slice(), h = 0; const cells = [pos.slice()]; for (const mv of moves) { const r = stepMove(pos, h, mv); if (!r) return null; pos = r.pos; h = r.h; cells.push(pos.slice()); } return { cells, end:pos, h }; }
+function genRoutes(n) {
+  let seed = 11; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff; const out = [], used = new Set();
+  for (let tries = 0; tries < 4000 && out.length < n; tries++) {
+    const len = 3 + Math.floor(rnd() * 2), mv = []; for (let i = 0; i < len; i++) mv.push("FRI"[Math.floor(rnd() * 3)]);
+    const r = runRoute(mv); if (!r) continue; const d = placeAt(r.end[0], r.end[1]); if (!d || used.has(d)) continue; used.add(d); out.push({ moves:mv, dest:d, cells:r.cells });
+  }
+  return out;
+}
+function gridHTML(trail, taxi, mark) {
+  let h = `<div class="cgrid">`;
+  for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
+    const p = placeAt(x, y), st = x === START6[0] && y === START6[1], on = trail && trail.some(c => c[0] === x && c[1] === y), tx = taxi && taxi.pos[0] === x && taxi.pos[1] === y;
+    h += `<div class="cc ${p ? "cc--p" : ""} ${on ? "cc--on" : ""} ${mark && mark === p ? "cc--mark" : ""}">${p ? `<img src="photos/ciudad/${p}.jpg" alt="" width="46" height="46"><small>${PLACES6[p][2]}</small>` : st ? `<span class="cs">🚉<small>la estación</small></span>` : ""}${tx ? `<span class="ctaxi" style="transform:rotate(${taxi.h * 90 - 90}deg)">🚕</span>` : ""}</div>`;
+  }
+  return h + `</div>`;
+}
+
+function drawOrient(host) {
+  const cards = [
+    [L("Hours 1–3","Horas 1–3"), L("Places & the verb IR","Lugares y el verbo IR"), L("Plaza Mayor vs Zócalo, the irregular verb IR (voy, vas, va…) and a + el = al.","Plaza Mayor vs Zócalo, el verbo irregular IR (voy, vas, va…) y a + el = al."), "Voy al parque"],
+    [L("Hours 4–7","Horas 4–7"), L("Transport & directions","Transporte y direcciones"), L("Autobús / camión / guagua / colectivo, the coger vs tomar danger zone, and left / right / straight on.","Autobús / camión / guagua / colectivo, la zona de peligro coger vs tomar, y izquierda / derecha / todo recto."), "Todo recto, a la derecha"],
+    [L("Hours 8–10","Horas 8–10"), L("Money & architecture","Dinero y arquitectura"), L("Numbers 100–1000, euros vs pesos, Gothic cathedrals vs colonial plazas, and your own tour.","Números 100–1000, euros vs pesos, catedrales góticas vs plazas coloniales y tu propia visita."), "Quinientos pesos"]
+  ];
+  host.innerHTML = `<p class="q__hint">${L("Tap each card and press Listen. Never done Units 1–5? No problem — Level 1 quickly teaches the essentials from zero.","Toca cada tarjeta y pulsa Escuchar. ¿No hiciste las Unidades 1–5? No pasa nada: el Nivel 1 enseña lo esencial desde cero.")}</p><div class="rule-cards"></div>`;
+  const wrap = host.querySelector(".rule-cards");
+  cards.forEach(([when, big, more, sp]) => {
+    const b = $(`<div class="rule-card" role="button" tabindex="0"><div class="row-label">${when}</div><div class="rule-card__big">${big}</div><div class="es" style="font-size:1.3rem">${sp}</div><div class="rule-card__more">${more}</div></div>`);
+    const open = () => { b.classList.toggle("is-open"); speak(sp); };
+    b.addEventListener("click", open); b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    wrap.append(b);
+  });
+}
+
+let muted = false;
+const speak = (txt, lang = "es-ES") => {
+  if (muted || !("speechSynthesis" in window)) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang = lang; u.rate = .8; setTimeout(() => speechSynthesis.speak(u), 60); } catch (e) {}
+};
+const listenBtn = (txt, lang) => { const b = $(`<button type="button" class="chip listen" aria-label="${L("Listen","Escuchar")}: ${txt}">🔊 ${L("Listen","Escuchar")}</button>`); b.addEventListener("click", () => speak(txt, lang)); return b; };
+
+
+
+
+
+
+/* ================= INVESTIGATE ================= */
+function drawInvestigate(host, sim) {
+  sim.state.custom = sim.state.custom || {};
+  const S = sim.state.custom;
+  S.stage = S.stage || 0; S.xp = S.xp || 0; S.streak = S.streak || 0; S.best = S.best || 0; S.p = S.p || {}; S.firstTry = S.firstTry || 0; S.answered = S.answered || 0; 
+  const STAGES = ["Repaso","La Ciudad","IR","Transporte","Direcciones","Dinero","Arquitectura","Mi Ruta"];
+
+  host.innerHTML = `<div class="globe-wrap" id="gw"><div class="globe-tag" id="gt"></div><div class="globe-hint">${L("drag to spin the globe","arrastra para girar el globo")}</div><div class="globe-key"><i></i>${L("Spanish-speaking world","Mundo hispanohablante")}</div></div><div class="pz-hud"><span class="pz-hud__rank" id="rk"></span><span class="pz-hud__bar"><i id="bar"></i></span><span><b id="xp"></b> XP · 🔥 <b id="st"></b> <button type="button" class="chip" id="mute" style="min-height:30px;padding:.1em .6em;font-size:.8rem" aria-pressed="false">🔊</button></span></div><div class="pz-tabs" id="tabs"></div><div id="body"></div><div id="bonus" style="margin-top:var(--sp-5)"></div>`;
+  const body = host.querySelector("#body");
+  let globe = { flyTo() {} };
+  mountGlobe(host.querySelector("#gw"), host.querySelector("#gt")).then(g => { globe = g; g.flyTo(STAGE_STOP[Math.min(S.stage, 7)]); });
+  host.querySelector("#mute").addEventListener("click", e => { muted = !muted; if (muted) { try { speechSynthesis.cancel(); } catch (x) {} setTTS(false); } e.currentTarget.textContent = muted ? "🔇" : "🔊"; e.currentTarget.setAttribute("aria-pressed", muted); e.currentTarget.setAttribute("aria-label", muted ? L("Sound off","Sonido desactivado") : L("Sound on","Sonido activado")); });
+
+  function hud() {
+    host.querySelector("#rk").textContent = rankFor(S.xp);
+    host.querySelector("#xp").textContent = S.xp; host.querySelector("#st").textContent = S.streak;
+    host.querySelector("#bar").style.width = Math.min(100, S.xp / 6.5) + "%";
+    host.querySelector("#tabs").innerHTML = STAGES.map((n, i) => `<span class="pz-tab ${i < S.stage ? "is-done" : i === S.stage ? "is-now" : ""}">${i + 1}. ${n}${i < S.stage ? " ✓" : ""}</span>`).join("");
+  }
+  function burst(el) {
+    if (reduced()) return;
+    const r = el.getBoundingClientRect(), root = el.closest(".pz-panel") || el, rr = root.getBoundingClientRect(); root.style.position = "relative";
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("i"); s.className = "burst";
+      s.style.left = (r.left - rr.left + r.width / 2) + "px"; s.style.top = (r.top - rr.top + r.height / 2) + "px";
+      s.style.background = ["#f0a030", "#1a7f8e", "#0e3a5f", "#2e8b57"][i % 4];
+      const a = Math.random() * 6.28, d = 30 + Math.random() * 50; s.style.setProperty("--dx", Math.cos(a) * d + "px"); s.style.setProperty("--dy", Math.sin(a) * d + "px");
+      root.append(s); setTimeout(() => s.remove(), 850);
+    }
+  }
+  function award(nivel, tarea, respuesta, tries, ok, anchor) {
+    if (ok) { S.xp += tries === 1 ? 10 + Math.min(S.streak, 5) * 2 : 5; S.streak = tries === 1 ? S.streak + 1 : 0; if (tries === 1) S.firstTry++; }
+    else S.streak = 0;
+    S.best = Math.max(S.best, S.streak); S.answered++;
+    sim.recordTrial({ nivel, tarea, respuesta, correcto: ok ? "Yes" : "No", intentos: tries });
+    if (ok && anchor) burst(anchor);
+    sim.saveState(); hud();
+  }
+  const panel = (title, how) => { const p = $(`<section class="pz-panel"><h3 class="pz-title">${title}</h3><div class="pz-how">${how}</div><div class="slot"></div></section>`); body.append(p); return p.querySelector(".slot"); };
+  const nextBtn = (slot, label, fn) => { const b = $(`<button type="button" class="btn btn--signal pz-next">${label}</button>`); b.addEventListener("click", fn); slot.append(b); };
+
+  /* run a list of parts one after another; progress persists */
+  function parts(slot, key, fns, done) {
+    const i = S.p[key] || 0;
+    if (i >= fns.length) { done(); return; }
+    slot.innerHTML = `<div class="pz-count">${L("Part","Parte")} ${i + 1} / ${fns.length}</div><div class="part"></div>`;
+    fns[i](slot.querySelector(".part"), () => { S.p[key] = i + 1; sim.saveState(); parts(slot, key, fns, done); });
+  }
+
+  /* ---- flip cards: learn first (scaffold) ---- */
+  const Cards = (cards, intro) => (slot, next) => {
+    slot.innerHTML = `${intro ? `<p>${intro}</p>` : ""}<div class="rule-cards"></div><div class="fb" role="status"></div>`;
+    const wrap = slot.querySelector(".rule-cards"); let seen = new Set(); const need = cards.length;
+    const fb = slot.querySelector(".fb");
+    cards.forEach((c, i) => {
+      const b = $(`<div class="rule-card" role="button" tabindex="0">${c.img ? `<img src="${c.img}" alt="" style="height:90px">` : ""}<div class="rule-card__big es">${c.front}</div>${c.sub ? `<div class="row-label">${c.sub}</div>` : ""}<div class="rule-card__more">${c.back}</div></div>`);
+      if (c.say) b.append(listenBtn(c.say, c.lang));
+      const open = (e) => { if (e.target.closest(".listen")) return; b.classList.toggle("is-open"); seen.add(i); fb.textContent = `${seen.size} / ${need} ${L("cards opened","tarjetas abiertas")}`; if (seen.size === need && !slot.querySelector(".pz-next")) { S.xp += 8; hud(); sim.saveState(); nextBtn(slot, L("Practise it →","¡A practicar! →"), next); } };
+      b.addEventListener("click", open); b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e); } });
+      wrap.append(b);
+    });
+  };
+
+  /* ---- one-question-at-a-time multiple choice ---- */
+  const Deck = (id, nivel, qs) => (slot, next) => deck(slot, id, nivel, qs, next);
+  function deck(slot, k, nivel, qs, done) {
+    const i = S.p[k] || 0;
+    if (i >= qs.length) { done(); return; }
+    const q = qs[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${qs.length}</div><div class="vis">${q.visual || ""}</div><p><b>${q.q}</b></p><div class="pz-chips"></div><div class="fb" role="status"></div>`;
+    const chips = slot.querySelector(".pz-chips"), fb = slot.querySelector(".fb");
+    if (q.say) slot.querySelector(".vis").append(listenBtn(q.say, q.lang));
+    shuffle(q.opts).forEach(o => {
+      const c = $(`<button type="button" class="chip es">${o}</button>`);
+      c.addEventListener("click", () => {
+        tries++;
+        if (o === q.ok) {
+          c.classList.add("is-ok"); chips.querySelectorAll("button").forEach(b => b.disabled = true);
+          fb.className = "fb good"; fb.textContent = L("¡Correcto! ","¡Correcto! ") + (q.why || "");
+          award(nivel, q.task || q.q, o, tries, true, c);
+          setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 1500);
+        } else {
+          c.classList.add("is-bad"); c.disabled = true;
+          if (tries >= 2) {
+            chips.querySelectorAll("button").forEach(b => { b.disabled = true; if (b.textContent === q.ok) b.classList.add("is-ok"); });
+            fb.className = "fb bad"; fb.textContent = L("The answer is: ","La respuesta es: ") + q.ok + ". " + (q.why || "");
+            award(nivel, q.task || q.q, o, tries, false);
+            setTimeout(() => { S.p[k] = i + 1; sim.saveState(); deck(slot, k, nivel, qs, done); }, 2800);
+          } else { fb.className = "fb bad"; fb.textContent = L("Not quite — try once more. ","Casi — inténtalo otra vez. ") + (q.hint || ""); }
+        }
+      });
+      chips.append(c);
+    });
+  }
+
+  /* ---- type-it practice (accent-tolerant) ---- */
+  const Typer = (id, nivel, items) => (slot, next) => typer(slot, id, nivel, items, next);
+  function typer(slot, k, nivel, items, done) {
+    const i = S.p[k] || 0;
+    if (i >= items.length) { done(); return; }
+    const it = items[i]; let tries = 0;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${items.length}</div>${it.visualHtml ? `<div class="vis">${it.visualHtml}</div>` : ""}<p><b>${it.q}</b></p><div class="chiprow"><input type="text" class="tin es" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${L("Type your answer","Escribe tu respuesta")}"> <button type="button" class="btn btn--signal go">${L("Check","Comprobar")}</button></div><div class="pz-chips acc"></div><div class="fb" role="status"></div>`;
+    const inp = slot.querySelector(".tin"), fb = slot.querySelector(".fb"), acc = slot.querySelector(".acc");
+    ["á","é","í","ó","ú","ñ","¿","¡"].forEach(ch => { const b = $(`<button type="button" class="chip" style="min-height:36px;padding:.2em .7em">${ch}</button>`); b.addEventListener("click", () => { inp.value += ch; inp.focus(); }); acc.append(b); });
+    const check = () => {
+      const v = strip(inp.value); if (!v) return; tries++;
+      const ok = it.a.some(a => strip(a) === v);
+      if (ok) {
+        fb.className = "fb good"; fb.textContent = "¡Correcto! " + (it.why || ""); inp.disabled = true; slot.querySelector(".go").disabled = true;
+        award(nivel, it.task || it.q, inp.value, tries, true, slot.querySelector(".go")); speak(it.a[0]);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); typer(slot, k, nivel, items, done); }, 1500);
+      } else if (tries >= 2) {
+        fb.className = "fb bad"; fb.textContent = L("The answer is: ","La respuesta es: ") + it.a[0] + ". " + (it.why || ""); inp.disabled = true; slot.querySelector(".go").disabled = true;
+        award(nivel, it.task || it.q, inp.value, tries, false);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); typer(slot, k, nivel, items, done); }, 3000);
+      } else { fb.className = "fb bad"; fb.textContent = L("Not quite — check the spelling and try once more. ","Casi — revisa la ortografía e inténtalo otra vez. ") + (it.hint || ""); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
+    };
+    slot.querySelector(".go").addEventListener("click", check);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  }
+
+  /* ---- Sorting Hat: el/un or la/una ---- */
+  const Sorter = (id, nivel, items) => (slot, next) => sorter(slot, id, nivel, items, next);
+  function sorter(slot, k, nivel, items, done) {
+    const i = S.p[k] || 0;
+    if (i >= items.length) { done(); return; }
+    const it = items[i]; let tries = 0;
+    const vis = it.photo ? `<img class="cphoto" src="${it.src || ("photos/clothes/" + it.n + ".jpg")}" width="150" height="150" alt="${it.en}">` : `<div class="wordcard es">${it.n}</div>`;
+    slot.innerHTML = `<div class="pz-count">${i + 1} / ${items.length}</div><div class="vis">${vis}</div><p style="text-align:center"><b class="es">${it.n}</b> <small>(${it.en})</small></p><div class="sortbtns"><button type="button" class="chip sb sb--m" data-a="el"><b>EL / UN</b><small>${L("masculine","masculino")}</small></button><button type="button" class="chip sb sb--f" data-a="la"><b>LA / UNA</b><small>${L("feminine","femenino")}</small></button></div><div class="fb" role="status"></div>`;
+    const fb = slot.querySelector(".fb");
+    slot.querySelectorAll(".sb").forEach(b => b.addEventListener("click", () => {
+      tries++;
+      if (b.dataset.a === it.a) {
+        slot.querySelectorAll(".sb").forEach(x => x.disabled = true); b.classList.add("is-ok");
+        fb.className = "fb good"; fb.textContent = `¡Correcto! ${it.a} ${it.n}. ${it.why || ""}`; award(nivel, `${it.n}: el or la?`, `${it.a} ${it.n}`, tries, true, b); speak(`${it.a} ${it.n}`);
+        setTimeout(() => { S.p[k] = i + 1; sim.saveState(); sorter(slot, k, nivel, items, done); }, 1400);
+      } else {
+        b.classList.add("is-bad"); b.disabled = true; fb.className = "fb bad"; fb.textContent = L("Not that one. ","Esa no. ") + (it.why || "");
+        if (tries >= 2) { award(nivel, `${it.n}: el or la?`, b.dataset.a + " " + it.n, tries, false); slot.querySelectorAll(".sb").forEach(x => { x.disabled = true; if (x.dataset.a === it.a) x.classList.add("is-ok"); }); setTimeout(() => { S.p[k] = i + 1; sim.saveState(); sorter(slot, k, nivel, items, done); }, 2600); }
+      }
+    }));
+  }
+
+
+
+  const AULA_HS = [{ key:"pizarra", fx:.08, fy:.22, es:"la pizarra", en:"the blackboard" }, { key:"ventana", fx:.40, fy:.12, es:"la ventana", en:"the window" }, { key:"sillas", fx:.60, fy:.72, es:"las sillas", en:"the chairs" }];
+  const AulaLabel = (slot, next) => {
+    const paint = () => {
+      const n = S.p.alab || 0; if (n >= AULA_HS.length) { next(); return; }
+      const t = AULA_HS[n];
+      slot.innerHTML = `<p><b>${L("Tap the photo where you see:","Toca la foto donde ves:")}</b> <span class="es">${t.es}</span> <small>(${t.en})</small></p><div class="photo-wrap" style="max-width:420px"><img src="photos/aula/pizarra.jpg" alt="${L("A classroom with a blackboard, windows and wooden chairs","Un aula con pizarra, ventanas y sillas de madera")}"></div><p class="credit">Photo: Tomwsulcer — Wikimedia Commons, CC0</p><p class="fb" role="status"></p>`;
+      const w = slot.querySelector(".photo-wrap"), f = slot.querySelector(".fb"); let wrong = 0;
+      AULA_HS.forEach((h, j) => {
+        const b = $(`<button type="button" class="hotspot" style="left:${h.fx * 100}%;top:${h.fy * 100}%" aria-label="${L("Spot","Punto")} ${j + 1}"><i></i></button>`);
+        if (j < n) b.classList.add("is-done");
+        b.addEventListener("click", () => {
+          if (h.key === t.key) { b.classList.add("is-done"); f.className = "fb good"; f.textContent = "¡Correcto! " + h.es; award("4 Foto", "Tap " + h.es, h.es, wrong + 1, true, b); S.p.alab = n + 1; sim.saveState(); setTimeout(paint, 800); }
+          else { wrong++; b.classList.remove("is-wrong"); void b.offsetWidth; b.classList.add("is-wrong"); f.className = "fb bad"; f.textContent = L("Not that one — look again for ","Esa no — busca de nuevo ") + t.en + "."; }
+        });
+        w.append(b);
+      });
+    };
+    paint();
+  };
+
+
+
+﻿
+
+﻿
+
+
+
+
+  const Q = (q, ok, pool, why, extra) => Object.assign({ q, ok, opts: mkOpts(ok, pool), why }, extra || {});
+  const T = (q, a, why) => ({ q, a: Array.isArray(a) ? a : [a], why: why || (Array.isArray(a) ? a[0] : a) });
+  const FORMS_SER = ["soy","eres","es","somos","sois","son"], FORMS_ESTAR = ["estoy","estás","está","estamos","estáis","están"], FORMS_IR = ["voy","vas","va","vamos","vais","van"];
+  const PL = { parque:"el parque", cine:"el cine", museo:"el museo", escuela:"la escuela", restaurante:"el restaurante", tienda:"la tienda" };
+
+  /* ===== LEVEL 1: Repaso Unidades 1-5 (from zero) ===== */
+  const recapCards = [
+    { front:"Hola · Me llamo… · Soy de…", say:"Hola, me llamo Ana, soy de España", back:L("Hello · My name is… · I am from… (SER for origin).","Hola · Me llamo… · Soy de… (SER para el origen).") },
+    { front:"SER · ESTAR · TENER", say:"soy, estoy, tengo", back:L("SER = who you are. ESTAR = where/how you are (location!). TENER = to have (tengo hambre).","SER = quién eres. ESTAR = dónde/cómo estás (¡ubicación!). TENER = tener (tengo hambre).") },
+    { front:"-ar · -er · -ir", say:"cenar, comer, vivir", back:L("Regular verbs: cenar (-o, -as, -a, -amos, -an), comer (-emos), vivir (-imos).","Verbos regulares: cenar (-o, -as, -a, -amos, -an), comer (-emos), vivir (-imos).") },
+    { front:"jugar · querer", say:"juego, quiero", back:L("Boot verbs: juego, juegas, juega, jugamos, juegan · quiero, quieres, quiere, queremos, quieren.","Verbos bota: juego, juegas, juega, jugamos, juegan · quiero, quieres, quiere, queremos, quieren.") },
+    { front:"me gusta · me gustan", say:"Me gusta la pizza. Me gustan los tacos.", back:L("One thing → gusta; several things → gustan.","Una cosa → gusta; varias cosas → gustan.") },
+    { front:"Spain 🇪🇸 vs Latin America 🌎", back:L("patatas/papas · camarero/mesero · móvil/celular · te apetece/te late · piso/depa.","patatas/papas · camarero/mesero · móvil/celular · te apetece/te late · piso/depa.") }
+  ];
+  const recapQs = [
+    Q(L("“Mi casa ___ en Madrid.” (location)","“Mi casa ___ en Madrid.” (ubicación)"), "está", FORMS_ESTAR, "ESTAR"),
+    Q(L("“Nosotros ___ (comer) a las dos.”","“Nosotros ___ (comer) a las dos.”"), "comemos", ["como","comes","come","comemos","comen"], "-er → -emos"),
+    Q(L("“Yo ___ (jugar) al fútbol.”","“Yo ___ (jugar) al fútbol.”"), "juego", ["juego","jugo","jugas","jugamos"], L("jugar: u → ue","jugar: u → ue")),
+    Q(L("“Me ___ los churros.”","“Me ___ los churros.”"), "gustan", ["gusta","gustan","gusto","gustas"], L("plural → gustan","plural → gustan")),
+    Q(L("“I am hungry” =","“I am hungry” ="), "Tengo hambre", ["Tengo hambre","Soy hambre","Estoy hambre","Tienes hambre"], L("Spanish HAS hunger","El español TIENE hambre")),
+    Q(L("Mexico’s “¿Te late…?” is Spain’s…","El “¿Te late…?” de México es en España…"), "¿Te apetece…?", ["¿Te apetece…?","¿Te llamas…?","¿Tienes…?","¿Eres…?"], "apetece · late"),
+    Q(L("The cell phone in Latin America is…","El móvil en Latinoamérica es…"), "el celular", ["el celular","el ordenador","la pluma","el piso"], "móvil · celular"),
+    Q(L("“My brothers” =","“My brothers” ="), "mis hermanos", ["mis hermanos","mi hermanos","mis hermano","mi hermano"], L("plural → mis","plural → mis"))
+  ];
+  const recapT = [T(L("Type: I am at home. (ESTAR)","Escribe: I am at home. (ESTAR)"), ["Estoy en casa","Yo estoy en casa"]), T(L("Type: We live in Madrid.","Escribe: We live in Madrid."), ["Vivimos en Madrid","Nosotros vivimos en Madrid"]), T(L("Type: Yo ___ (querer) jugar","Escribe: Yo ___ (querer) jugar"), ["quiero","yo quiero"])];
+
+  /* ===== LEVEL 2: La ciudad ===== */
+  const cityCards = [
+    { img:"photos/ciudad/plaza.jpg", front:"🇪🇸 la Plaza Mayor", back:L("Spain: la Plaza Mayor — the main square, surrounded by old buildings.","España: la Plaza Mayor: la plaza principal, rodeada de edificios antiguos."), say:"la Plaza Mayor" },
+    { img:"photos/ciudad/zocalo.jpg", front:"🌎 el Zócalo", back:L("Mexico City: el Zócalo — a massive open square.","Ciudad de México: el Zócalo: una plaza enorme y abierta."), say:"el Zócalo", lang:"es-MX" },
+    { img:"photos/ciudad/parque.jpg", front:"el parque", sub:L("park","parque"), back:L("el parque = the park","el parque"), say:"el parque" },
+    { img:"photos/ciudad/cine.jpg", front:"el cine", sub:L("cinema","cine"), back:L("el cine = the cinema","el cine"), say:"el cine" },
+    { img:"photos/ciudad/museo.jpg", front:"el museo", sub:L("museum","museo"), back:L("el museo = the museum","el museo"), say:"el museo" },
+    { img:"photos/ciudad/escuela.jpg", front:"la escuela", sub:L("school","escuela"), back:L("la escuela = the school","la escuela"), say:"la escuela" },
+    { img:"photos/ciudad/restaurante.jpg", front:"el restaurante", sub:L("restaurant","restaurante"), back:L("el restaurante = the restaurant","el restaurante"), say:"el restaurante" },
+    { img:"photos/ciudad/tienda.jpg", front:"la tienda", sub:L("shop","tienda"), back:L("la tienda = the shop","la tienda"), say:"la tienda" }
+  ];
+  const cityQs = [["cine","el cine","cinema"],["museo","el museo","museum"],["parque","el parque","park"],["escuela","la escuela","school"],["restaurante","el restaurante","restaurant"],["tienda","la tienda","shop"]].map(([k, w]) => Q(L("What is this place?","¿Qué lugar es?"), w, Object.values(PL), w, { visual:IMG(k, 150), say:w }))
+    .concat([Q(L("The main square in Spain is called…","La plaza principal en España se llama…"), "la Plaza Mayor", ["la Plaza Mayor","el Zócalo","el cine","la tienda"], "🇪🇸 Plaza Mayor", { visual:IMG("plaza", 150) }), Q(L("The huge main square of Mexico City is…","La enorme plaza de Ciudad de México es…"), "el Zócalo", ["el Zócalo","la Plaza Mayor","el parque","la escuela"], "🌎 Zócalo", { visual:IMG("zocalo", 150) })]);
+  const citySort = shuffle([["parque","el"],["cine","el"],["museo","el"],["escuela","la"],["restaurante","el"],["tienda","la"]].map(([k, a]) => ({ n:k, a, en:k, photo:true, src:`photos/ciudad/${k}.jpg`, why:"" }))
+    .concat([["plaza","la"],["calle","la"],["banco","el"],["estación","la"],["catedral","la"],["hotel","el"]].map(([n, a]) => ({ n, a, en:n, why:L("Learn the article with the place.","Aprende el artículo con el lugar.") }))));
+  const cityT = [T(L("Type “the park” with its article.","Escribe “the park” con su artículo."), "el parque"), T(L("Type “the school” with its article.","Escribe “the school” con su artículo."), "la escuela"), T(L("Type “the shop” with its article.","Escribe “the shop” con su artículo."), "la tienda"), T(L("Type “the museum” with its article.","Escribe “the museum” con su artículo."), "el museo")];
+
+  /* ===== LEVEL 3: IR ===== */
+  const irCards = [["Yo","voy","Yo voy al parque."],["Tú","vas","¿Vas a la plaza?"],["Él / Ella","va","Ella va al cine."],["Nosotros","vamos","Vamos a casa."],["Vosotros","vais","¿Vais al cine?"],["Ellos / Ustedes","van","Ellos van al museo."]].map(([p, f, ex]) => ({ front:`${p} → ${f}`, back:`<b>${ex}</b>`, say:ex }))
+    .concat([{ front:"IR + a + lugar", say:"Voy a la escuela", back:L("The golden formula: IR + a + place. Voy a la escuela. IR is irregular — memorise it!","La fórmula de oro: IR + a + lugar. Voy a la escuela. ¡IR es irregular: memorízalo!") }, { front:"a + el = AL", say:"Voy al parque", back:L("a + el = al: Voy al parque (not “a el parque”). With la it does NOT change: Voy a la playa.","a + el = al: Voy al parque (no “a el parque”). Con la NO cambia: Voy a la playa.") }]);
+  const irQs = [["Yo ___ al parque.","voy"],["Tú ___ a la plaza.","vas"],["Ella ___ al cine.","va"],["Nosotros ___ a casa.","vamos"],["Ellos ___ al museo.","van"],["Vosotros ___ al cine.","vais"]].map(([q, ok]) => Q(q, ok, FORMS_IR, `${q.replace("___", ok)}`))
+    .concat([Q(L("Choose: Voy ___ parque.","Elige: Voy ___ parque."), "al", ["al","a el","a la","en"], L("a + el = al","a + el = al")), Q(L("Choose: Voy ___ playa.","Elige: Voy ___ playa."), "a la", ["a la","al","a el","a lo"], L("la doesn’t contract","la no se contrae")), Q(L("Choose: Vamos ___ museo.","Elige: Vamos ___ museo."), "al", ["al","a la","a el","a lo"], L("a + el = al","a + el = al")), Q(L("Choose: Ella va ___ escuela.","Elige: Ella va ___ escuela."), "a la", ["a la","al","a el","en"], L("la escuela → a la","la escuela → a la"))]);
+  const irT = [T(L("Translate: I go to the park.","Traduce: I go to the park."), ["Voy al parque","Yo voy al parque"]), T(L("Translate: We go to the cinema.","Traduce: We go to the cinema."), ["Vamos al cine","Nosotros vamos al cine"]), T(L("Translate: She goes to the museum.","Traduce: She goes to the museum."), ["Ella va al museo","Va al museo"]), T(L("Translate: They go to school.","Traduce: They go to school."), ["Van a la escuela","Ellos van a la escuela"])];
+
+  /* ===== LEVEL 4: Transporte + danger zone ===== */
+  const trCards = [
+    { img:"photos/ciudad/autobus.jpg", front:"🇪🇸 el autobús", back:L("Spain: el autobús (also el bus).","España: el autobús (también el bus)."), say:"el autobús" },
+    { front:"🇲🇽 el camión", sub:"México", back:L("Mexico: el camión = the bus (not a lorry!).","México: el camión = el autobús (¡no el camión de carga!)."), say:"el camión", lang:"es-MX" },
+    { front:"🇨🇺 la guagua", sub:L("Caribbean","Caribe"), back:L("Caribbean (Cuba, Puerto Rico): la guagua = the bus.","Caribe (Cuba, Puerto Rico): la guagua = el autobús."), say:"la guagua" },
+    { front:"🇦🇷 el colectivo", sub:"Argentina", back:L("Argentina: el colectivo = the city bus.","Argentina: el colectivo = el autobús urbano."), say:"el colectivo", lang:"es-AR" },
+    { front:L("⚠️ DANGER ZONE","⚠️ ZONA DE PELIGRO"), sub:"coger vs tomar", back:L("Spain: coger = to take/catch (polite): Voy a coger el autobús. Latin America: “coger” is vulgar slang — ALWAYS use tomar: Voy a tomar el bus.","España: coger = tomar (educado): Voy a coger el autobús. Latinoamérica: “coger” es vulgar — usa SIEMPRE tomar: Voy a tomar el bus."), say:"Voy a tomar el bus" }
+  ];
+  const trQs = [
+    Q(L("The bus in Mexico is often called…","El autobús en México suele llamarse…"), "el camión", ["el camión","la guagua","el colectivo","el metro"], "🇲🇽 camión"),
+    Q(L("The bus in Argentina is often called…","El autobús en Argentina suele llamarse…"), "el colectivo", ["el colectivo","el camión","la guagua","el tren"], "🇦🇷 colectivo"),
+    Q(L("The bus in Cuba and Puerto Rico is…","El autobús en Cuba y Puerto Rico es…"), "la guagua", ["la guagua","el camión","el colectivo","el taxi"], "🌎 guagua"),
+    Q(L("(In Mexico) Voy a ___ el camión.","(En México) Voy a ___ el camión."), "tomar", ["tomar","coger","comer","cenar"], L("SAFE verb in Latin America: tomar","Verbo SEGURO en Latinoamérica: tomar")),
+    Q(L("(In Madrid) Voy a ___ el metro.","(En Madrid) Voy a ___ el metro."), "coger", ["coger","tomar","correr","beber"], L("In Spain coger is polite (tomar also works).","En España coger es educado (tomar también vale).")),
+    Q(L("(In Argentina) Voy a ___ el colectivo.","(En Argentina) Voy a ___ el colectivo."), "tomar", ["tomar","coger","jugar","vivir"], L("Always tomar in Latin America.","Siempre tomar en Latinoamérica.")),
+    Q(L("Why avoid “coger” in Latin America?","¿Por qué evitar “coger” en Latinoamérica?"), L("It is vulgar slang there","Es una palabra vulgar allí"), [L("It is vulgar slang there","Es una palabra vulgar allí"),L("It means “to run”","Significa “correr”"),L("It does not exist","No existe"),L("It is too formal","Es demasiado formal")], L("Use tomar!","¡Usa tomar!"))
+  ];
+  const trT = [T(L("Type the SAFE verb: (Mexico) Voy a ___ el camión.","Escribe el verbo SEGURO: (México) Voy a ___ el camión."), "tomar"), T(L("Type: I go to take the bus. (safe for Latin America)","Escribe: I go to take the bus. (seguro en Latinoamérica)"), ["Voy a tomar el bus","Voy a tomar el autobús"]), T(L("Type: I go to catch the metro. (Madrid)","Escribe: I go to catch the metro. (Madrid)"), ["Voy a coger el metro","Voy a tomar el metro"])];
+
+  /* ===== LEVEL 5: Direcciones (route puzzles on a map) ===== */
+  const dirCards = [
+    { front:"a la derecha", say:"a la derecha", back:L("to the right (turn right)","a la derecha (gira a la derecha)") },
+    { front:"a la izquierda", say:"a la izquierda", back:L("to the left (turn left)","a la izquierda (gira a la izquierda)") },
+    { front:"todo recto", say:"todo recto", back:L("straight on: Ve todo recto.","todo recto: Ve todo recto.") },
+    { front:"Ve · Gira", say:"Ve todo recto. Gira a la derecha.", back:L("Ve = go · Gira = turn. Ve todo recto. A la derecha. Ve al parque.","Ve = ve · Gira = gira. Ve todo recto. A la derecha. Ve al parque.") }
+  ];
+  const ROUTES = genRoutes(6);
+  const dirQs = ROUTES.map(r => Q(L("Start at the station, facing up ↑. Each step moves one block. Where do you end up?","Empiezas en la estación, mirando arriba ↑. Cada paso avanza una manzana. ¿Dónde acabas?"), PL[r.dest], Object.values(PL), L(`You end at ${PL[r.dest]}.`,`Acabas en ${PL[r.dest]}.`), { visual:`<div style="text-align:center"><div class="es" style="margin-bottom:.4em"><b>${r.moves.map(m => MOVE_ES[m]).join(". ")}.</b></div>${gridHTML(null, null, null)}</div>` }));
+  const dirT = [T(L("Translate: Go straight.","Traduce: Go straight."), ["Todo recto","Ve todo recto","Ve recto","Sigue todo recto"]), T(L("Translate: Turn right.","Traduce: Turn right."), ["A la derecha","Gira a la derecha"]), T(L("Translate: Turn left.","Traduce: Turn left."), ["A la izquierda","Gira a la izquierda"]), T(L("Translate: Go to the park.","Traduce: Go to the park."), ["Ve al parque","Vete al parque"])];
+
+  /* ===== LEVEL 6: Números 100-1000 y dinero ===== */
+  const HUND = [[100,"cien"],[200,"doscientos"],[300,"trescientos"],[400,"cuatrocientos"],[500,"quinientos"],[600,"seiscientos"],[700,"setecientos"],[800,"ochocientos"],[900,"novecientos"],[1000,"mil"]];
+  const numCards = HUND.map(([n, w]) => ({ front:String(n), back:`<b class="es">${w}</b>${n === 500 ? L(" — irregular!"," — ¡irregular!") : ""}`, say:w }))
+    .concat([{ img:"photos/ciudad/euros.jpg", front:"🇪🇸 el euro (€) · 🌎 el peso ($)", back:L("Spain (and most of Europe): el euro (€). Mexico, Argentina, Colombia…: el peso ($). ¿Cuánto cuesta? = How much is it? Cuesta quinientos euros.","España (y casi toda Europa): el euro (€). México, Argentina, Colombia…: el peso ($). ¿Cuánto cuesta? Cuesta quinientos euros."), say:"¿Cuánto cuesta? Cuesta quinientos euros." }]);
+  const numQs = shuffle(HUND).map(([n, w]) => Q(L(`Which word is ${n}?`,`¿Qué palabra es ${n}?`), w, HUND.map(x => x[1]), `${n} = ${w}`, { say:w }))
+    .slice(0, 7).concat([Q(L("Which number is irregular (500)?","¿Qué número es irregular (500)?"), "quinientos", ["quinientos","cincocientos","cinco cientos","quinientas"], L("500 = quinientos (not cincocientos)","500 = quinientos (no cincocientos)")), Q(L("Spain uses…","España usa…"), L("el euro (€)","el euro (€)"), [L("el euro (€)","el euro (€)"),L("el peso ($)","el peso ($)"),L("el dólar","el dólar"),L("la libra","la libra")], "🇪🇸 euro", { visual:IMG("euros", 150) }), Q(L("Mexico, Argentina and Colombia use…","México, Argentina y Colombia usan…"), "el peso ($)", ["el peso ($)","el euro (€)","la libra","el yen"], "🌎 peso")]);
+  const numT = [T(L("Type 500 in Spanish.","Escribe 500 en español."), "quinientos"), T(L("Type 700 in Spanish.","Escribe 700 en español."), "setecientos"), T(L("Type 900 in Spanish.","Escribe 900 en español."), "novecientos"), T(L("Type 1000 in Spanish.","Escribe 1000 en español."), "mil")];
+
+  /* ===== LEVEL 7: Arquitectura y cultura ===== */
+  const archCards = [
+    { img:"photos/ciudad/catedral.jpg", front:L("🇪🇸 Gothic","🇪🇸 Gótico"), back:L("Spain: Gothic cathedrals with pointed arches, stained glass and detailed stone carvings — very old and imposing (Toledo).","España: catedrales góticas con arcos apuntados, vidrieras y detalles tallados en piedra: muy antiguas e imponentes (Toledo)."), say:"la catedral gótica" },
+    { img:"photos/ciudad/bellasartes.jpg", front:L("🌎 Colonial mix","🌎 Mezcla colonial"), back:L("Latin America: Spanish colonial buildings (big plazas, red tiles) next to modern skyscrapers. Mexico City’s Palacio de Bellas Artes has an orange and yellow dome.","Latinoamérica: edificios coloniales españoles (grandes plazas, tejas rojas) junto a rascacielos modernos. El Palacio de Bellas Artes de México tiene una cúpula naranja y amarilla."), say:"el Palacio de Bellas Artes", lang:"es-MX" },
+    { img:"photos/ciudad/oso.jpg", front:"El Oso y el Madroño", sub:"Puerta del Sol, Madrid", back:L("The statue of the Bear and the Strawberry Tree in the Puerta del Sol, Madrid. La estatua está en la plaza.","La estatua del Oso y el Madroño en la Puerta del Sol, Madrid. La estatua está en la plaza."), say:"La estatua está en la plaza" },
+    { front:L("Future plans: ir + a","Planes futuros: ir + a"), say:"El sábado voy al cine. El domingo vamos al parque.", back:L("Use IR + a + place for plans: El sábado, voy al cine. El domingo, vamos al parque.","Usa IR + a + lugar para planes: El sábado, voy al cine. El domingo, vamos al parque.") }
+  ];
+  const OSO_HS = [{ key:"oso", fx:.52, fy:.7, es:"el oso", en:"the bear" }, { key:"arbol", fx:.36, fy:.2, es:"el árbol", en:"the tree" }];
+  const OsoLabel = (slot, next) => {
+    const paint = () => {
+      const n = S.p.olab || 0; if (n >= OSO_HS.length) { next(); return; }
+      const t = OSO_HS[n];
+      slot.innerHTML = `<p><b>${L("Tap the photo where you see:","Toca la foto donde ves:")}</b> <span class="es">${t.es}</span> <small>(${t.en})</small></p><div class="photo-wrap" style="max-width:380px"><img src="photos/ciudad/oso.jpg" alt="${L("The statue of the bear and the strawberry tree, Madrid","La estatua del oso y el madroño, Madrid")}"></div><p class="credit" id="cr"></p><p class="fb" role="status"></p>`;
+      const w = slot.querySelector(".photo-wrap"), f = slot.querySelector(".fb"); let wrong = 0;
+      fetch("photos/ciudad/credits.json").then(r => r.json()).then(c => { const x = c.oso; if (x) slot.querySelector("#cr").innerHTML = `Photo: ${x.author} — Wikimedia Commons, ${x.license}`; }).catch(() => {});
+      OSO_HS.forEach((h, j) => {
+        const b = $(`<button type="button" class="hotspot" style="left:${h.fx * 100}%;top:${h.fy * 100}%" aria-label="${L("Spot","Punto")} ${j + 1}"><i></i></button>`);
+        if (j < n) b.classList.add("is-done");
+        b.addEventListener("click", () => {
+          if (h.key === t.key) { b.classList.add("is-done"); f.className = "fb good"; f.textContent = "¡Correcto! " + h.es; award("7 Foto", "Tap " + h.es, h.es, wrong + 1, true, b); S.p.olab = n + 1; sim.saveState(); setTimeout(paint, 800); }
+          else { wrong++; b.classList.remove("is-wrong"); void b.offsetWidth; b.classList.add("is-wrong"); f.className = "fb bad"; f.textContent = L("Not that one — look again for ","Esa no — busca de nuevo ") + t.en + "."; }
+        });
+        w.append(b);
+      });
+    };
+    paint();
+  };
+  const archQs = [
+    Q(L("Gothic cathedrals (pointed arches, stained glass) are typical of…","Las catedrales góticas (arcos apuntados, vidrieras) son típicas de…"), L("Spain","España"), [L("Spain","España"),L("modern skyscrapers","rascacielos modernos"),L("Argentina only","solo Argentina"),L("Peru only","solo Perú")], L("Toledo cathedral is Gothic.","La catedral de Toledo es gótica."), { visual:IMG("catedral", 150) }),
+    Q(L("Latin American cities often mix…","Las ciudades latinoamericanas suelen mezclar…"), L("Spanish colonial buildings with modern skyscrapers","edificios coloniales españoles con rascacielos modernos"), [L("Spanish colonial buildings with modern skyscrapers","edificios coloniales españoles con rascacielos modernos"),L("only igloos","solo iglús"),L("only castles","solo castillos"),L("nothing old","nada antiguo")], L("Colonial + modern.","Colonial + moderno."), { visual:IMG("bellasartes", 150) }),
+    Q(L("Palacio de Bellas Artes is in…","El Palacio de Bellas Artes está en…"), L("Mexico City","Ciudad de México"), [L("Mexico City","Ciudad de México"),L("Madrid","Madrid"),L("Lima","Lima"),L("Buenos Aires","Buenos Aires")], "México"),
+    Q(L("The Bear and the Strawberry Tree statue is in the…","La estatua del Oso y el Madroño está en la…"), "Puerta del Sol", ["Puerta del Sol","Plaza Mayor de Lima","Zócalo","Bellas Artes"], L("Madrid","Madrid"), { visual:IMG("oso", 150) }),
+    Q(L("“El sábado, voy al cine.” is a…","“El sábado, voy al cine.” es un…"), L("plan (IR + a + place)","plan (IR + a + lugar)"), [L("plan (IR + a + place)","plan (IR + a + lugar)"),L("question","pregunta"),L("memory","recuerdo"),L("lie","mentira")], L("IR + a + place for plans","IR + a + lugar para planes"))
+  ];
+
+  /* ===== LEVEL 8: Mi Ruta (tour-guide builder) ===== */
+  const RouteBuilder = (slot, next) => {
+    const I = S.tour = S.tour || { name:"", city:"", region:"", transport:"", d1:"", d2:"", place:"", plan:"", price:"" };
+    const CITIES = ["Madrid","Toledo","Ciudad de México","Buenos Aires","Bogotá","Lima","Santiago","Nueva York","Londres","Tokio","París","Sídney","Toronto"];
+    const TR = { es:[["coger","el autobús"],["coger","el metro"]], la:[["tomar","el camión"],["tomar","el colectivo"],["tomar","el bus"]] };
+    const PLACES = [["al","parque"],["al","museo"],["al","cine"],["a la","tienda"],["a la","escuela"]];
+    const lines = () => {
+      const t = I.transport ? I.transport.split("|") : null, pl = PLACES.find(p => p[1] === I.place);
+      const cur = I.region === "es" ? "euros" : "pesos";
+      return [
+        `Me llamo ${I.name || "…"} y vivo en ${I.city || "…"}.`,
+        `Voy a ${t ? t[0] + " " + t[1] : "…"}.`,
+        `Ve ${I.d1 || "…"}. ${I.d2 ? I.d2[0].toUpperCase() + I.d2.slice(1) : "…"}. Ve ${pl ? pl[0] + " " + pl[1] : "…"}.`,
+        `El sábado, voy ${I.plan ? PLACES.find(p => p[1] === I.plan)[0] + " " + I.plan : "…"}.`,
+        `La entrada cuesta ${I.price || "…"} ${I.region ? cur : "…"}.`
+      ];
+    };
+    slot.innerHTML = `<p>${L("Be the tour guide! Choose Spain or Latin America, a SAFE transport verb, directions, a plan and a price. Then type it!","¡Sé el guía turístico! Elige España o Latinoamérica, un verbo de transporte SEGURO, direcciones, un plan y un precio. ¡Luego escríbelo!")}</p>
+      <p class="row-label">1 · ${L("Your name","Tu nombre")}</p><input type="text" class="tin es" id="nm" maxlength="14" value="${I.name}" aria-label="${L("Your name","Tu nombre")}">
+      <p class="row-label">2 · ${L("Where do you live? (vivir)","¿Dónde vives? (vivir)")}</p><select id="ct" class="tin es" aria-label="${L("City","Ciudad")}"><option value="">—</option>${CITIES.map(c => `<option ${I.city === c ? "selected" : ""}>${c}</option>`).join("")}<option value="__other">${L("Other city… (type it)","Otra ciudad… (escríbela)")}</option></select> <input type="text" id="cto" class="tin es" maxlength="24" style="display:none" placeholder="${L("Your city","Tu ciudad")}" aria-label="${L("Other city","Otra ciudad")}">
+      <p class="row-label">3 · ${L("Where is your tour?","¿Dónde es tu visita?")}</p><div class="pz-chips" id="rg"></div>
+      <p class="row-label">4 · ${L("Transport (the safe verb for that region)","Transporte (el verbo seguro de esa región)")}</p><div class="pz-chips" id="tr"></div>
+      <p class="row-label">5 · ${L("Directions","Direcciones")}</p><div class="pz-chips" id="d1"></div><div class="pz-chips" id="d2"></div>
+      <p class="row-label">6 · ${L("Place to visit","Lugar para visitar")}</p><div class="pz-chips" id="pl"></div>
+      <p class="row-label">7 · ${L("Your plan on Saturday","Tu plan el sábado")}</p><div class="pz-chips" id="pn"></div>
+      <p class="row-label">8 · ${L("Ticket price","Precio de la entrada")}</p><div class="pz-chips" id="pr"></div>
+      <div class="preview" id="pv"></div><div id="act"></div><div class="fb" role="status"></div>`;
+    const pv = slot.querySelector("#pv"), act = slot.querySelector("#act"), fb = slot.querySelector(".fb");
+    const set = (sel, arr, key, val, lab) => { slot.querySelector(sel).innerHTML = ""; arr.forEach(o => { const v = val(o), t = lab(o); const b = $(`<button type="button" class="chip es ${I[key] === v ? "is-on" : ""}">${t}</button>`); b.addEventListener("click", () => { I[key] = v; slot.querySelectorAll(sel + " .chip").forEach(x => x.classList.remove("is-on")); b.classList.add("is-on"); sim.saveState(); render(); speak(String(t)); }); slot.querySelector(sel).append(b); }); };
+    const paintTransport = () => set("#tr", I.region ? TR[I.region] : [], "transport", o => o[0] + "|" + o[1], o => `${o[0]} ${o[1]}`);
+    set("#rg", [["es","🇪🇸 España"],["la","🌎 Latinoamérica"]], "region", o => o[0], o => o[1]);
+    slot.querySelector("#rg").addEventListener("click", () => { I.transport = ""; paintTransport(); });
+    paintTransport();
+    set("#d1", ["todo recto","a la derecha","a la izquierda"], "d1", o => o, o => o); set("#d2", ["a la derecha","a la izquierda","todo recto"], "d2", o => o, o => o);
+    set("#pl", PLACES, "place", o => o[1], o => `${o[0]} ${o[1]}`); set("#pn", PLACES.slice(0, 3), "plan", o => o[1], o => `${o[0]} ${o[1]}`);
+    set("#pr", ["doscientos","quinientos","setecientos","novecientos"], "price", o => o, o => o);
+    const cto = slot.querySelector("#cto");
+    slot.querySelector("#nm").addEventListener("input", e => { I.name = e.target.value.trim(); sim.saveState(); render(); });
+    slot.querySelector("#ct").addEventListener("change", e => { if (e.target.value === "__other") { cto.style.display = ""; I.city = cto.value.trim(); cto.focus(); } else { cto.style.display = "none"; I.city = e.target.value; } sim.saveState(); render(); });
+    cto.addEventListener("input", () => { I.city = cto.value.trim(); sim.saveState(); render(); });
+    function render() {
+      const ls = lines(); pv.innerHTML = ls.join(" ");
+      const ready = I.name && I.city && I.region && I.transport && I.d1 && I.d2 && I.place && I.plan && I.price;
+      act.innerHTML = "";
+      if (ready) {
+        const script = ls.join(" ");
+        const w = $(`<div><p><b>${L("Now type your tour yourself (copy it from above).","Ahora escribe tu visita tú mismo (cópiala de arriba).")}</b></p><div class="chiprow"><input type="text" class="tin es" id="cp" style="min-width:min(100%,420px)" autocomplete="off" spellcheck="false" aria-label="${L("Type your script","Escribe tu guion")}"> <button type="button" class="btn btn--signal go">${L("Check","Comprobar")}</button></div></div>`);
+        w.querySelector(".go").addEventListener("click", () => {
+          if (strip(w.querySelector("#cp").value) === strip(script)) {
+            fb.className = "fb good"; fb.textContent = L("¡Genial! Your tour is ready.","¡Genial! Tu visita está lista."); speak(script);
+            award("8 Mi Ruta", "Tour guide script", script, 1, true, w.querySelector(".go")); act.innerHTML = ""; act.append(listenBtn(script));
+            nextBtn(act, L("Finish Unit 6 →","Terminar la Unidad 6 →"), next);
+          } else { fb.className = "fb bad"; fb.textContent = L("Not an exact match yet — check spelling, accents and full stops.","Aún no es idéntico — revisa ortografía, acentos y puntos."); }
+        });
+        act.append(w);
+      }
+    }
+    render();
+  };
+
+  /* ===== STAGES ===== */
+  const STAGE_DEFS = [
+    { t:"1 · Repaso", how:L("Level 1: A quick restart of Units 1–5 — ser, estar, tener, verbs, gustar — from zero. Never did them? Start here!","Nivel 1: repaso de las Unidades 1–5 — ser, estar, tener, verbos, gustar — desde cero. ¿No las hiciste? ¡Empieza aquí!"), parts:[Cards(recapCards), Deck("rc","1 Repaso",recapQs), Typer("rcT","1 Repaso",recapT)] },
+    { t:"2 · La Ciudad", how:L("Level 2: Plaza Mayor vs Zócalo and the places of a city, with real photos.","Nivel 2: Plaza Mayor vs Zócalo y los lugares de una ciudad, con fotos reales."), parts:[Cards(cityCards), Deck("cq","2 Ciudad",cityQs), Sorter("cs","2 Ciudad",citySort), Typer("cT","2 Ciudad",cityT)] },
+    { t:"3 · El verbo IR", how:L("Level 3: IR (to go) — voy, vas, va… — IR + a + place, and a + el = al.","Nivel 3: IR — voy, vas, va… — IR + a + lugar y a + el = al."), parts:[Cards(irCards), Deck("ir","3 IR",irQs), Typer("iT","3 IR",irT)] },
+    { t:"4 · Transporte", how:L("Level 4: Bus words around the world and the coger vs tomar danger zone.","Nivel 4: palabras para el autobús por el mundo y la zona de peligro coger vs tomar."), parts:[Cards(trCards), Deck("tq","4 Transporte",trQs), Typer("tT","4 Transporte",trT)] },
+    { t:"5 · Direcciones", how:L("Level 5: Directions — follow each route on the map and find where you end up.","Nivel 5: direcciones — sigue cada ruta en el mapa y encuentra dónde acabas."), parts:[Cards(dirCards), Deck("dq","5 Direcciones",dirQs), Typer("dT","5 Direcciones",dirT)] },
+    { t:"6 · Dinero", how:L("Level 6: Numbers 100–1000 and euros vs pesos.","Nivel 6: números 100–1000 y euros vs pesos."), parts:[Cards(numCards), Deck("nq","6 Dinero",numQs), Typer("nT","6 Dinero",numT)] },
+    { t:"7 · Arquitectura", how:L("Level 7: Gothic vs colonial architecture, a real photo to label, and future plans.","Nivel 7: arquitectura gótica vs colonial, una foto real para etiquetar y planes futuros."), parts:[Cards(archCards), OsoLabel, Deck("aq","7 Arquitectura",archQs)] },
+    { t:"8 · Mi Ruta", how:L("Final project: be the tour guide — safe transport, directions, a plan and a price.","Proyecto final: sé el guía — transporte seguro, direcciones, un plan y un precio."), parts:[RouteBuilder] }
+  ];
+
+  /* ---- bonus: Taxi Navigator (race / vehicle control on the city map, 2 min wall-clock) ---- */
+  const TAXI_TARGETS = Object.keys(PLACES6);
+  function bonusSection() {
+    const box = host.querySelector("#bonus"); if (!box || box.dataset.on) return; box.dataset.on = "1";
+    box.innerHTML = `<div class="duelc"><div class="row-label">${L("Bonus round","Ronda extra")}</div><h3 class="pz-title">${L("Taxi Navigator","Taxi Navigator")}</h3><p>${L("Drive the taxi! Each tourist says where to go (“Llévame al museo”). Use Todo recto / A la derecha / A la izquierda (or the arrow keys ↑ → ←) to reach the place. 2 minutes, no lives — walls just bump you back.","¡Conduce el taxi! Cada turista dice adónde ir (“Llévame al museo”). Usa Todo recto / A la derecha / A la izquierda (o las flechas ↑ → ←) para llegar. 2 minutos, sin vidas: las paredes solo te frenan.")}</p><button type="button" class="btn btn--signal" id="dgo">🎮 ${L("Play (2 min)","Jugar (2 min)")}</button> <button type="button" class="btn" id="dsk">${L("Skip →","Saltar →")}</button></div>`;
+    box.querySelector("#dsk").onclick = () => { box.innerHTML = ""; box.dataset.on = ""; };
+    box.querySelector("#dgo").onclick = () => play();
+    function play() {
+      const DUR = 120000, t0 = Date.now(); let score = 0, streak = 0, best = 0, arrived = 0, bumps = 0, steps = 0, taxi = { pos:START6.slice(), h:0 }, target = null, timer = null;
+      box.innerHTML = `<div class="duelc"><div class="duel-hud"><span>${L("Time","Tiempo")} <b id="dt">2:00</b></span><span>${L("Trips","Viajes")} <b id="ds">0</b></span><span>🔥 <b id="dk">0</b></span><button type="button" class="chip" id="dm" style="min-height:30px;padding:.1em .6em">${muted ? "🔇" : "🔊"}</button></div><p class="duel-q es" id="dq"></p><div id="map"></div><div class="goalbtns"><button type="button" class="chip es" data-m="I" style="min-height:52px">← ${MOVE_ES.I}</button><button type="button" class="chip es" data-m="F" style="min-height:52px">↑ ${MOVE_ES.F}</button><button type="button" class="chip es" data-m="R" style="min-height:52px">${MOVE_ES.R} →</button></div><div class="fb" id="df" role="status"></div></div>`;
+      const q = (s) => box.querySelector(s);
+      q("#dm").onclick = (e) => { muted = !muted; if (muted) { try { speechSynthesis.cancel(); } catch (x) {} setTTS(false); } e.currentTarget.textContent = muted ? "🔇" : "🔊"; };
+      const hudT = () => { const left = Math.max(0, DUR - (Date.now() - t0)); q("#dt").textContent = Math.floor(left / 60000) + ":" + String(Math.floor(left % 60000 / 1000)).padStart(2, "0"); q("#ds").textContent = arrived; q("#dk").textContent = streak; };
+      const draw = () => { q("#map").innerHTML = gridHTML(null, taxi, target); };
+      function pick() { const cur = placeAt(taxi.pos[0], taxi.pos[1]); const opts = TAXI_TARGETS.filter(k => k !== cur); target = opts[Math.floor(Math.random() * opts.length)]; q("#dq").textContent = `Llévame ${PLACES6[target][2].startsWith("el ") ? "al " + PLACES6[target][2].slice(3) : "a " + PLACES6[target][2]}.`; speak(q("#dq").textContent); draw(); }
+      function move(mv) {
+        if (Date.now() - t0 >= DUR) return; const r = stepMove(taxi.pos, taxi.h, mv); steps++;
+        if (!r) { bumps++; streak = 0; q("#df").className = "fb bad"; q("#df").textContent = L("Bump! That is the edge of the city — try another direction.","¡Choque! Es el borde de la ciudad: prueba otra dirección."); hudT(); return; }
+        taxi = { pos:r.pos, h:r.h }; q("#df").textContent = ""; draw();
+        if (placeAt(taxi.pos[0], taxi.pos[1]) === target) { arrived++; streak++; best = Math.max(best, streak); score += 10 + Math.min(streak, 5) * 2; q("#df").className = "fb good"; q("#df").textContent = "¡Llegamos! " + PLACES6[target][2]; sim.recordTrial({ nivel:"Bonus", tarea:"Taxi to " + PLACES6[target][2], respuesta:`${steps} steps`, correcto:"Yes", intentos:1 }); steps = 0; burst(q("#map")); hudT(); setTimeout(() => { if (Date.now() - t0 < DUR) pick(); }, 900); }
+      }
+      box.querySelectorAll(".goalbtns button").forEach(b => b.onclick = () => move(b.dataset.m));
+      const keyH = (e) => { if (!document.body.contains(box.querySelector(".duelc"))) { document.removeEventListener("keydown", keyH); return; } if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return; if (e.key === "ArrowUp") { e.preventDefault(); move("F"); } if (e.key === "ArrowRight") { e.preventDefault(); move("R"); } if (e.key === "ArrowLeft") { e.preventDefault(); move("I"); } };
+      document.addEventListener("keydown", keyH);
+      timer = setInterval(() => { hudT(); if (Date.now() - t0 >= DUR) { clearInterval(timer); document.removeEventListener("keydown", keyH); end(); } }, 250);
+      function end() {
+        box.innerHTML = `<div class="duelc"><h3 class="pz-title">${L("¡Fin del turno!","¡Fin del turno!")}</h3><p>${L("Trips","Viajes")} <b>${arrived}</b> · ${L("Best streak","Mejor racha")} <b>${best}</b> · ${L("Bumps","Choques")} <b>${bumps}</b></p><button type="button" class="btn btn--signal" id="dag">${L("Play again","Jugar otra vez")}</button> <button type="button" class="btn" id="dcl">${L("Close","Cerrar")}</button></div>`;
+        box.querySelector("#dag").onclick = () => play(); box.querySelector("#dcl").onclick = () => { box.innerHTML = ""; box.dataset.on = ""; };
+        sim.toast(L(`Taxi Navigator: ${arrived} trips.`, `Taxi Navigator: ${arrived} viajes.`), "info");
+      }
+      pick(); hudT();
+    }
+  }
+
+  function paint() {
+    body.innerHTML = ""; hud();
+    if (S.stage >= STAGE_DEFS.length) { finale(); return; }
+    const def = STAGE_DEFS[S.stage];
+    globe.flyTo(STAGE_STOP[S.stage]);
+    const slot = panel(def.t, def.how);
+    parts(slot, "st" + S.stage, def.parts, () => {
+      slot.innerHTML = `<p class="fb good">${L("¡Nivel completo!","¡Nivel completado!")}</p>`;
+      nextBtn(slot, S.stage < STAGE_DEFS.length - 1 ? L("Next level →","Siguiente nivel →") : L("Finish Unit 6 →","Terminar la Unidad 6 →"), () => { S.stage++; sim.saveState(); paint(); window.scrollTo({ top: host.offsetTop - 20, behavior: reduced() ? "auto" : "smooth" }); });
+    });
+  }
+  function finale() {
+    body.innerHTML = `<div class="done-card"><h3>¡Unidad 6 completa!</h3><div class="big">${rankFor(S.xp)}</div><p>${S.xp} XP · ${L("best streak","mejor racha")} ${S.best} · ${S.firstTry} ${L("first-try answers","respuestas a la primera")}</p><p>${L("Scroll down to check your Record, answer Explain and Apply, and generate your evidence PDF.","Baja para revisar tu Registro, responder Explica y Aplica, y generar tu PDF de evidencias.")}</p></div>`;
+    bonusSection();
+  }
+
+
+
+
+
+
+
+  paint();
+  fetch("photos/ciudad/credits.json").then(r => r.json()).then(c => {
+    const d = document.createElement("details"); d.className = "credit"; d.style.marginTop = "var(--sp-4)";
+    d.innerHTML = "<summary>Photo credits (Wikimedia Commons)</summary>" + Object.entries(c).map(([k, v]) => `<div>${k}: <a href="${v.page}" target="_blank" rel="noopener noreferrer">${v.file.replace("File:", "")}</a> — ${v.author || "unknown"} (${v.license})</div>`).join("");
+    host.append(d);
+  }).catch(() => {});
+}
+
+const simulation = { orient: drawOrient, investigate: drawInvestigate };
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
