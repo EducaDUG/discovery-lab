@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<!-- Primary 2 Science · Biology · Module 5 · Cell Explorer: Build, Divide and Copy.
+     Content lives here + config.json + marking.json only. Never edit the shared engine for a content change.
+     Mechanics: 3D Cell Builder (assembly), 3D Mitosis Photocopier (staged process), Reproduction Lab (real-photo
+     labelling + 3D binary fission), bonus "Cell Check Belt" = sorting conveyor. -->
+<html lang="en" data-theme="biology" data-age-band="primary" data-tint="paper" data-text-size="m" data-unit-convert>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cell Explorer: Build, Divide and Copy — Discovery Lab</title>
+<link rel="stylesheet" href="../../../../../../engine/style.css?v=35">
+<script>
+(function(){try{var p=JSON.parse(localStorage.getItem('dl-a11y-v1')||'{}');var r=document.documentElement;
+if(p.textSize)r.setAttribute('data-text-size',p.textSize);
+if(p.tint)r.setAttribute('data-tint',p.tint);
+if(p.dyslexia)r.setAttribute('data-dyslexia','on');
+if(p.motion==='on')r.setAttribute('data-reduced-motion','on');else if(p.motion==='off')r.setAttribute('data-reduced-motion','off');
+}catch(e){}})();
+</script>
+<style>
+  .cx-station { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: var(--sp-4); margin-top: var(--sp-5); position: relative; }
+  .cx-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  .cx-n { font-family: var(--font-data); font-size: .75rem; font-weight: 700; color: var(--accent); background: var(--accent-wash); border-radius: 999px; padding: .15rem .6rem; }
+  .cx-title { margin: 0; font-family: var(--font-display); font-size: var(--step-1); }
+  .cx-done { margin-left: auto; font-family: var(--font-data); font-size: .72rem; color: var(--accent); font-weight: 700; display: none; }
+  .cx-done[data-show="true"] { display: inline; }
+  .cx-order { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .6rem; padding: .55rem .8rem; border: 2px solid var(--accent); border-radius: 12px; background: var(--accent-wash); }
+  .cx-order__n { font-family: var(--font-data); font-size: .72rem; font-weight: 800; color: var(--accent); text-transform: uppercase; }
+  .cx-order__text { flex: 1 1 14rem; font-weight: 700; }
+  .cx-dots { display: inline-flex; gap: 4px; }
+  .cx-dots i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--accent); display: inline-block; }
+  .cx-dots i[data-on="true"] { background: var(--accent); }
+  .cx-shake { animation: cx-shake .35s ease; }
+  [data-reduced-motion="on"] .cx-shake { animation: none; }
+  @keyframes cx-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+  .cx-stage { position: relative; border-radius: 14px; overflow: hidden; margin-top: .7rem; aspect-ratio: 16/10; min-height: 230px; border: 1px solid #0b2a2a; background: radial-gradient(120% 120% at 50% 20%, #1c5f66 0%, #0f3340 55%, #071a26 100%); }
+  .cx-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .cx-stage canvas:active { cursor: grabbing; }
+  .cx-nogl { padding: 1rem; color: #cfe; font-size: .9rem; }
+  .cx-hud { position: absolute; left: .6rem; top: .5rem; font-family: var(--font-data); font-size: .72rem; color: #bff; background: #00000066; border-radius: 8px; padding: .2rem .55rem; pointer-events: none; }
+  .cx-chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .7rem; }
+  .cx-chip { flex: 1 1 7.5rem; display: flex; flex-direction: column; align-items: center; gap: .25rem; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: .5rem .3rem; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; color: var(--ink); min-height: 44px; }
+  .cx-chip svg { width: 34px; height: 34px; }
+  .cx-chip:hover, .cx-chip:focus-visible { border-color: var(--accent); outline: none; }
+  .cx-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
+  .cx-row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .7rem; }
+  .cx-cap { margin-top: .6rem; padding: .6rem .8rem; border-left: 4px solid var(--accent); background: var(--paper); border-radius: 0 10px 10px 0; font-size: .92rem; min-height: 2.6em; }
+  .cx-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: .6rem; }
+  @media (max-width: 720px) { .cx-grid2 { grid-template-columns: 1fr; } .cx-stage { aspect-ratio: 4/3; } }
+  .cx-photo { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: #dfe3e0; }
+  .cx-photo img { display: block; width: 100%; height: auto; }
+  .cx-spot { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; border: 3px solid #fff; background: #000000aa; color: #fff; font-family: var(--font-data); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #00000033; }
+  .cx-spot:hover, .cx-spot:focus-visible { background: var(--signal); outline: none; }
+  .cx-spot[data-solved="true"] { background: var(--accent); }
+  .cx-spot.cx-shake { background: var(--signal); }
+  .cx-credit { font-size: .74rem; color: var(--ink-3); margin-top: .4rem; }
+  .cx-particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 5; }
+  .cx-obs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 720px) { .cx-obs { grid-template-columns: 1fr; } }
+  .cx-obs-btns { display: grid; gap: .4rem; margin-top: .5rem; }
+  .cx-obs-btn { text-align: left; border: 2px dashed var(--line-strong, var(--line)); background: var(--paper); border-radius: 10px; padding: .5rem .7rem; font: inherit; font-size: .88rem; cursor: pointer; color: var(--ink); min-height: 44px; }
+  .cx-obs-btn.is-done { border-style: solid; border-color: var(--accent); background: var(--accent-wash); }
+  .cx-flip { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: .8rem; }
+  @media (max-width: 560px) { .cx-flip { grid-template-columns: 1fr; } }
+  .cx-flipcard { border: 2px solid var(--line); border-radius: 14px; background: var(--surface); padding: .6rem; text-align: center; font: inherit; cursor: pointer; color: var(--ink); }
+  .cx-flipcard:hover, .cx-flipcard:focus-visible { border-color: var(--accent); outline: none; }
+  .cx-flipcard svg { width: 100%; height: 120px; }
+  .cx-flipcard p { margin: .3rem 0 0; font-size: .85rem; }
+  .cx-complete { margin-top: var(--sp-5); padding: 1rem 1.2rem; border-radius: 14px; background: linear-gradient(135deg, var(--accent), #0e7c66); color: #fff; font-weight: 700; }
+  /* Bonus belt */
+  .cb { margin-top: var(--sp-5); border-radius: 16px; overflow: hidden; background: #0f2a2e; color: #e8fbf6; padding: .8rem; }
+  .cb h3 { margin: 0 0 .3rem; font-family: var(--font-display); color: #fff; }
+  .cb p { color: #cfe8e2; margin: .2rem 0; }
+  .cb__hud { display: flex; gap: .8rem; flex-wrap: wrap; font-family: var(--font-data); font-size: .82rem; margin: .4rem 0; color: #9ff0d6; }
+  .cb__belt { position: relative; height: 140px; border-radius: 12px; background: repeating-linear-gradient(90deg, #26373b 0 24px, #2f454a 24px 48px); overflow: hidden; border: 2px solid #4c6c70; }
+  .cb__item { position: absolute; top: 12px; width: 96px; height: 112px; margin-left: -48px; border-radius: 10px; background: #fff; color: #123; font-size: .72rem; font-weight: 800; text-align: center; overflow: hidden; border: 3px solid #fff; transition: left .12s linear, top .3s ease, opacity .3s ease, transform .3s ease; }
+  .cb__item img { display: block; width: 100%; height: 82px; object-fit: cover; }
+  .cb__item span { display: block; padding: 2px; }
+  .cb__item[data-active="true"] { border-color: #ffd24d; box-shadow: 0 0 0 3px #ffd24d88; }
+  .cb__item[data-gone="ok"] { top: 160px; opacity: 0; transform: scale(.6); }
+  .cb__item[data-gone="no"] { top: 160px; opacity: 0; transform: rotate(14deg) scale(.6); }
+  .cb__bins { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .6rem; }
+  .cb__bin { font: inherit; font-weight: 800; border-radius: 12px; border: 3px solid #fff; padding: .7rem .4rem; min-height: 56px; cursor: pointer; color: #fff; }
+  .cb__bin--yes { background: #1e8f5d; } .cb__bin--no { background: #8a4a2f; }
+  .cb__bin:focus-visible { outline: 3px solid #ffd24d; }
+  .cb__msg { min-height: 2.8em; margin-top: .5rem; padding: .4rem .6rem; border-radius: 8px; background: #0a1c1f; font-size: .88rem; }
+  .cb .btn { margin-top: .5rem; }
+  .cx-gp { position: relative; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-lang="en">Skip to content</a>
+<a class="skip-link" href="#main" data-lang="es" hidden>Ir al contenido</a>
+
+<header class="site-head">
+  <div class="shell site-head__inner">
+    <a class="wordmark" href="../../../../../../">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".28"/>
+        <circle cx="32" cy="32" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".18"/>
+        <path d="M32 32 A27 27 0 0 1 53 21" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="22" r="5" fill="var(--signal)"/>
+        <circle cx="32" cy="32" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="wordmark__text">Discovery&nbsp;Lab</span>
+    </a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="en">About Mr&nbsp;Guevara</a>
+    <a class="eyebrow" href="../../../../../../about/" style="text-decoration:none" data-lang="es" hidden>Sobre el Sr.&nbsp;Guevara</a>
+  </div>
+</header>
+
+<main id="main" class="shell">
+  <div id="lab-root"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="shell site-foot__inner">
+    <span data-lang="en">Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="es" hidden>Discovery Lab — <a href="../../../../../../about/">Diego Urrutia Guevara</a></span>
+    <span data-lang="en">Your work stays in your browser. Nothing is uploaded or stored on a server.</span>
+    <span data-lang="es" hidden>Tu trabajo se queda en tu navegador. No se sube ni se guarda nada en ningún servidor.</span>
+  </div>
+</footer>
+
+<script src="../../../../../../engine/vendor/three.min.js"></script>
+<script type="module">
+import { mountActivity } from "../../../../../../engine/engine.js?v=25";
+import { getLang } from "../../../../../../engine/i18n.js?v=10";
+
+const L = (en, es) => getLang() === "es" ? es : en;
+const THREE_OK = typeof THREE !== "undefined";
+const TAU = Math.PI * 2;
+const reduced = () => document.documentElement.getAttribute("data-reduced-motion") === "on";
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+function hasWebGL() { try { const c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); } catch (e) { return false; } }
+const PH = n => `photos/${n}.jpg`;
+
+/* ---------- small juice helpers ---------- */
+function burst(container, xPct, yPct, colors, count) {
+  if (reduced()) return;
+  container.style.position = container.style.position || "relative";
+  for (let i = 0; i < (count || 12); i++) {
+    const p = document.createElement("span"); p.className = "cx-particle"; const s = 4 + Math.random() * 6;
+    p.style.cssText += `width:${s}px;height:${s}px;left:${xPct}%;top:${yPct}%;background:${colors[i % colors.length]}`;
+    container.append(p);
+    const a = Math.random() * TAU, d = 30 + Math.random() * 60;
+    const an = p.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: `translate(${Math.cos(a) * d}px,${Math.sin(a) * d - 20}px) scale(.3)`, opacity: 0 }], { duration: 650 + Math.random() * 300, easing: "cubic-bezier(.2,.7,.3,1)" });
+    an.onfinish = () => p.remove();
+  }
+}
+function shake(node) { node.classList.remove("cx-shake"); void node.offsetWidth; node.classList.add("cx-shake"); }
+
+/* ---------- shared 3D stage: ACES, soft shadows, drifting dust, orbit drag, idle motion ---------- */
+function makeScene(stage, o) {
+  o = o || {};
+  if (!THREE_OK || !hasWebGL()) {
+    const n = document.createElement("div"); n.className = "cx-nogl";
+    n.textContent = L("3D view is not available on this device. The buttons and captions below still work.", "La vista 3D no está disponible en este dispositivo. Los botones y los textos de abajo siguen funcionando.");
+    stage.append(n); return null;
+  }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.append(renderer.domElement);
+  const cv = renderer.domElement;
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  const ob = { yaw: o.yaw || 0.5, pitch: o.pitch || 0.25, dist: o.dist || 6, fit: 1, idle: 0, last: 0 };
+  scene.add(new THREE.HemisphereLight(0xcdf3ff, 0x1b3a4a, 0.9));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.25); sun.position.set(3, 6, 4); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 1, far: 18 }); scene.add(sun);
+  const rim = new THREE.PointLight(0x66ffe0, 0.9, 20); rim.position.set(-4, 2, -3); scene.add(rim);
+  /* microscope-slide floor + drifting dust (dressing so the scene is never flat or still) */
+  const floor = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.7, 0.18, 64), new THREE.MeshStandardMaterial({ color: C3(0x12343d), roughness: 0.35, metalness: 0.55 }));
+  floor.position.y = -1.55; floor.receiveShadow = true; scene.add(floor);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3.5, 0.045, 12, 96), new THREE.MeshStandardMaterial({ color: C3(0x58f0cf), emissive: C3(0x1aa88a), roughness: 0.3 }));
+  ring.rotation.x = Math.PI / 2; ring.position.y = -1.45; scene.add(ring);
+  const N = 140, pos = new Float32Array(N * 3), seed = [];
+  for (let i = 0; i < N; i++) { pos[i * 3] = (Math.random() - 0.5) * 9; pos[i * 3 + 1] = (Math.random() - 0.5) * 5; pos[i * 3 + 2] = (Math.random() - 0.5) * 9; seed.push(Math.random() * TAU); }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const dust = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x9ffff0, size: 0.05, transparent: true, opacity: 0.55 })); dust.frustumCulled = false; scene.add(dust);
+  let drag = null, travel = 0;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; travel = 0; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; travel += Math.abs(dx) + Math.abs(dy); ob.yaw -= dx * 0.008; ob.pitch = clamp(ob.pitch + dy * 0.006, -0.35, 1.2); ob.idle = 3; });
+  const up = () => { drag = null; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  cv.addEventListener("wheel", e => { e.preventDefault(); ob.dist = clamp(ob.dist + e.deltaY * 0.004, 3.5, 9); }, { passive: false });
+  const hooks = []; let alive = true;
+  function resize() { const w = stage.clientWidth || 600, h = stage.clientHeight || 360; renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.25 / camera.aspect); camera.updateProjectionMatrix(); }
+  window.addEventListener("resize", resize); resize();
+  function frame(now) {
+    if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
+    const dt = Math.min(0.05, (now - (ob.last || now)) / 1000); ob.last = now;
+    if (!reduced()) { ob.idle = Math.max(0, ob.idle - dt); if (!drag && ob.idle <= 0) ob.yaw += dt * 0.18; }
+    const d = ob.dist * ob.fit;
+    camera.position.set(Math.sin(ob.yaw) * Math.cos(ob.pitch) * d, Math.sin(ob.pitch) * d, Math.cos(ob.yaw) * Math.cos(ob.pitch) * d); camera.lookAt(0, 0, 0);
+    const t = now / 1000; const a = pg.attributes.position;
+    if (!reduced()) { for (let i = 0; i < N; i++) { a.array[i * 3 + 1] += Math.sin(t * 0.6 + seed[i]) * 0.0016; } a.needsUpdate = true; }
+    hooks.forEach(h => h(dt, t));
+    renderer.render(scene, camera); requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  return { scene, camera, renderer, ob, onFrame: f => hooks.push(f), wasDrag: () => travel > 6 };
+}
+
+/* ---------- orders queue: persisted in sim.state (CLAUDE.md 12.16) ---------- */
+function makeOrders(card, sim, key, tasks, station) {
+  const st = sim.state[key] || (sim.state[key] = { idx: 0, tries: 0 });
+  const bar = document.createElement("div"); bar.className = "cx-order";
+  bar.innerHTML = `<span class="cx-order__n"></span><span class="cx-order__text"></span><span class="cx-dots"></span>`;
+  const dots = bar.querySelector(".cx-dots"); tasks.forEach(() => dots.append(document.createElement("i")));
+  const api = { st, bar, tasks, cur: () => tasks[st.idx], paint, onChange: null, onDone: null };
+  function paint() {
+    bar.querySelector(".cx-order__n").textContent = st.idx >= tasks.length ? L("All done", "¡Listo!") : L(`Job ${st.idx + 1} of ${tasks.length}`, `Tarea ${st.idx + 1} de ${tasks.length}`);
+    bar.querySelector(".cx-order__text").textContent = st.idx >= tasks.length ? L("Every job is complete. Keep exploring if you like.", "Todas las tareas están completas. Sigue explorando si quieres.") : L(tasks[st.idx].en, tasks[st.idx].es);
+    [...dots.children].forEach((d, i) => d.dataset.on = String(i < st.idx));
+    const dn = card.querySelector(".cx-done"); if (dn) dn.dataset.show = String(st.idx >= tasks.length);
+    api.onChange && api.onChange();
+  }
+  api.resolve = (ok, answer, hint, fxHost, fx) => {
+    const t = tasks[st.idx];
+    if (!t) { sim.toast(L("All jobs are already complete.", "Todas las tareas ya están completas."), "info"); return; }
+    st.tries++;
+    if (ok) {
+      sim.recordTrial({ station, task: L(t.short.en, t.short.es), answer: String(answer), tries: st.tries, result: L("Correct", "Correcto") });
+      st.idx++; st.tries = 0; sim.saveState(); paint();
+      burst(fxHost || card, fx ? fx[0] : 50, fx ? fx[1] : 14, ["#58f0cf", "#ffd24d", "#fff", "#ff8fb1"], 22);
+      sim.toast(L("Job complete! +1 piece of evidence logged.", "¡Tarea completa! +1 prueba registrada."), "correct");
+      if (st.idx >= tasks.length) api.onDone && api.onDone();
+    } else {
+      sim.saveState(); shake(bar);
+      sim.toast(L("Not yet. ", "Todavía no. ") + (hint || ""), "info");
+    }
+  };
+  paint(); return api;
+}
+function shell(n, en, es, hintEn, hintEs) {
+  const c = document.createElement("div"); c.className = "cx-station";
+  c.innerHTML = `<div class="cx-head"><span class="cx-n">${n}</span><h3 class="cx-title">${L(en, es)}</h3><span class="cx-done" data-show="false">${L("✓ Complete!", "✓ ¡Completo!")}</span></div><p class="q__hint">${L(hintEn, hintEs)}</p>`;
+  return c;
+}
+
+/* ---------- pop-in springs for 3D parts ---------- */
+function spring(obj, scaleVec) { return { obj, s: 0, v: 0, target: 0, base: scaleVec || new THREE.Vector3(1, 1, 1) }; }
+function stepSpring(p, dt) {
+  if (reduced()) { p.s = p.target; p.v = 0; } else { const k = 90, d = 11; p.v += ((p.target - p.s) * k - p.v * d) * dt; p.s += p.v * dt; }
+  const s = Math.max(0.0001, p.s); p.obj.scale.set(p.base.x * s, p.base.y * s, p.base.z * s); p.obj.visible = p.s > 0.01 || p.target > 0;
+}
+
+/* =====================================================================
+   ORIENT — studio apartment (prokaryote) vs house with rooms (eukaryote)
+   ===================================================================== */
+const simulation = {
+  orient(host) {
+    host.innerHTML = `<p class="q__hint">${L("Cells are the basic units of life. Robert Hooke gave them their name in 1665, when he looked at cork under a microscope. Tap each card.", "Las células son las unidades básicas de la vida. Robert Hooke les dio nombre en 1665, cuando miró corcho con un microscopio. Toca cada tarjeta.")}</p>
+      <div class="cx-flip">
+        <button type="button" class="cx-flipcard" data-k="pro" aria-live="polite">
+          <svg viewBox="0 0 160 120" aria-hidden="true"><rect x="20" y="30" width="120" height="76" rx="8" fill="#e8c27a" stroke="#6b4a1e" stroke-width="3"/><rect x="62" y="68" width="20" height="38" fill="#8a5a2b"/><rect x="95" y="46" width="24" height="20" fill="#bfe9ff" stroke="#6b4a1e" stroke-width="2"/><path d="M14 32 L80 6 L146 32Z" fill="#b5451f"/></svg>
+          <b>${L("Prokaryotic cell", "Célula procariota")}</b><p data-r>${L("Tap: a simple studio apartment.", "Toca: un apartamento tipo estudio, sencillo.")}</p></button>
+        <button type="button" class="cx-flipcard" data-k="euk" aria-live="polite">
+          <svg viewBox="0 0 160 120" aria-hidden="true"><rect x="14" y="36" width="132" height="72" rx="6" fill="#f3d9a4" stroke="#6b4a1e" stroke-width="3"/><path d="M8 38 L80 6 L152 38Z" fill="#b5451f"/><line x1="80" y1="38" x2="80" y2="108" stroke="#6b4a1e" stroke-width="3"/><line x1="14" y1="72" x2="146" y2="72" stroke="#6b4a1e" stroke-width="3"/><rect x="26" y="48" width="18" height="14" fill="#bfe9ff"/><rect x="104" y="48" width="18" height="14" fill="#bfe9ff"/><rect x="62" y="80" width="16" height="28" fill="#8a5a2b"/></svg>
+          <b>${L("Eukaryotic cell", "Célula eucariota")}</b><p data-r>${L("Tap: a house with different rooms.", "Toca: una casa con distintas habitaciones.")}</p></button>
+      </div>`;
+    const txt = { pro: L("A prokaryotic cell has no separate rooms: its DNA floats loose, like a one-room studio. Bacteria are like this.", "Una célula procariota no tiene habitaciones separadas: su ADN flota suelto, como en un estudio de una sola pieza. Las bacterias son así."),
+                  euk: L("A eukaryotic cell has rooms called organelles, and a nucleus that holds the DNA. Plants, animals and fungi are like this.", "Una célula eucariota tiene habitaciones llamadas orgánulos y un núcleo que guarda el ADN. Las plantas, los animales y los hongos son así.") };
+    host.querySelectorAll(".cx-flipcard").forEach(b => b.addEventListener("click", () => { b.querySelector("[data-r]").textContent = txt[b.dataset.k]; b.style.borderColor = "var(--accent)"; }));
+  },
+
+  /* ---------- OBSERVATION: two real micrographs, tap-to-reveal notices ---------- */
+  observation(host, sim) {
+    const SETS = [
+      { img: "plant-cell", name: L("A plant leaf cell (pondweed)", "Una célula de hoja de planta (elodea)"), notes: [
+        { en: "Many small green dots fill each box-shaped cell.", es: "Muchos puntitos verdes llenan cada célula en forma de caja." },
+        { en: "Each cell has a firm, straight edge, like bricks in a wall.", es: "Cada célula tiene un borde firme y recto, como ladrillos en un muro." },
+        { en: "The cells fit together in a neat, regular pattern.", es: "Las células encajan en un patrón ordenado y regular." }] },
+      { img: "animal-cell", name: L("Human cheek cells", "Células de la mejilla humana"), notes: [
+        { en: "The cells are thin and flat with soft, uneven edges.", es: "Las células son finas y planas, con bordes suaves e irregulares." },
+        { en: "Each cell has one dark dot near the middle.", es: "Cada célula tiene un punto oscuro cerca del centro." },
+        { en: "There are no green dots anywhere.", es: "No hay puntos verdes por ningún lado." }] }
+    ];
+    host.innerHTML = ""; const wrap = document.createElement("div"); wrap.className = "cx-obs"; host.append(wrap);
+    let revealed = 0, total = 6;
+    SETS.forEach(s => {
+      const col = document.createElement("div");
+      col.innerHTML = `<div class="cx-photo"><img src="${PH(s.img)}" alt="${s.name}"></div><p class="eyebrow" style="margin:.4rem 0 0">${s.name}</p><div class="cx-obs-btns"></div>`;
+      const box = col.querySelector(".cx-obs-btns");
+      s.notes.forEach((n, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "cx-obs-btn"; b.textContent = L(`Notice something #${i + 1}`, `Observa algo #${i + 1}`);
+        b.addEventListener("click", () => { if (b.classList.contains("is-done")) return; b.classList.add("is-done"); b.textContent = L(n.en, n.es); revealed++; sim.state.obs = revealed; sim.saveState(); if (revealed === total) sim.toast(L("Great noticing! Now: what question could we ask?", "¡Buenas observaciones! Ahora: ¿qué pregunta podemos hacer?"), "correct"); });
+        box.append(b);
+      }); wrap.append(col);
+    });
+    const cr = document.createElement("p"); cr.className = "cx-credit";
+    cr.innerHTML = L('Photos: pondweed leaf — Lilyviolet, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>; cheek cells — Krishna satya 333, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, via Wikimedia Commons.',
+      'Fotos: hoja de elodea — Lilyviolet, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>; células de la mejilla — Krishna satya 333, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, vía Wikimedia Commons.');
+    host.append(cr);
+  },
+
+  /* ---------- INVESTIGATE ---------- */
+  investigate(host, sim) {
+    host.innerHTML = "";
+    sim.setScienceMethod({ variables: L(
+      "Independent: which cell parts you place, which mitosis stage you set, how many minutes bacteria grow. Dependent: whether the cell, stage or count matches the job. Controlled: the same cell scenes and rules for every job.",
+      "Independiente: qué partes de la célula colocas, qué fase de la mitosis eliges, cuántos minutos crecen las bacterias. Dependiente: si la célula, la fase o el número coinciden con la tarea. Controladas: las mismas escenas y reglas para cada tarea.") });
+    const done = () => ["cb1", "cb2", "cb3"].every(k => sim.state[k] && sim.state[k].idx >= 4);
+    const complete = document.createElement("div");
+    const checkAll = () => { if (done() && !complete.textContent) { complete.className = "cx-complete"; complete.textContent = L("Cell Lab mission complete! You built animal, plant and bacterial cells, ran mitosis from start to finish and watched bacteria double. Now try the bonus Cell Check Belt, then reflect and write your Explain and Apply answers.", "¡Misión del Laboratorio Celular completada! Construiste células animales, vegetales y bacterianas, ejecutaste la mitosis de principio a fin y viste duplicarse a las bacterias. Ahora prueba la Cinta de Células extra, reflexiona y escribe tus respuestas de Explicar y Aplicar."); } };
+
+    host.append(stationBuilder(sim, checkAll), stationMitosis(sim, checkAll), stationRepro(sim, checkAll), complete);
+    host.append(reflection(sim));
+    host.append(bonusBelt(sim));
+  }
+};
+
+/* =====================================================================
+   STATION 1 — CELL BUILDER (3D assembly)
+   ===================================================================== */
+function stationBuilder(sim, onAny) {
+  const card = shell("1", "Cell Builder", "Constructor de células", "Switch parts on and off inside a 3D cell. Drag to turn it. Then press Check my cell.", "Activa y desactiva partes dentro de una célula 3D. Arrastra para girarla. Luego pulsa Comprobar mi célula.");
+  const PARTS = {
+    nucleus: { en: "Nucleus (DNA)", es: "Núcleo (ADN)", fact: { en: "The nucleus holds the DNA. It is the cell's control centre.", es: "El núcleo guarda el ADN. Es el centro de control de la célula." }, svg: '<circle cx="20" cy="20" r="14" fill="#b58cff"/><circle cx="24" cy="17" r="5" fill="#6b3fd1"/>' },
+    chloro: { en: "Chloroplasts", es: "Cloroplastos", fact: { en: "Chloroplasts are green and catch sunlight to make food. Only plant cells have them.", es: "Los cloroplastos son verdes y captan la luz del sol para fabricar alimento. Solo las células vegetales los tienen." }, svg: '<ellipse cx="20" cy="20" rx="15" ry="9" fill="#35b04a"/><path d="M8 20h24M12 16h16M12 24h16" stroke="#1d7a2e" stroke-width="2"/>' },
+    wall: { en: "Cell wall", es: "Pared celular", fact: { en: "The cell wall is a rigid fence that gives structure. Plant cells (and bacteria) have one; animal cells do not.", es: "La pared celular es una valla rígida que da estructura. Las células vegetales (y las bacterias) la tienen; las animales no." }, svg: '<rect x="5" y="5" width="30" height="30" rx="3" fill="none" stroke="#7a5a2b" stroke-width="5"/>' },
+    vbig: { en: "Large vacuole", es: "Vacuola grande", fact: { en: "A large vacuole stores water and keeps a plant cell firm. Animal cells have only small ones.", es: "Una vacuola grande guarda agua y mantiene firme la célula vegetal. Las células animales solo tienen vacuolas pequeñas." }, svg: '<circle cx="20" cy="20" r="15" fill="#7fd0ff" stroke="#2c86c4" stroke-width="2"/>' },
+    vsmall: { en: "Small vacuoles", es: "Vacuolas pequeñas", fact: { en: "Animal cells have small vacuoles for storing and moving things.", es: "Las células animales tienen vacuolas pequeñas para guardar y mover cosas." }, svg: '<circle cx="13" cy="14" r="6" fill="#7fd0ff"/><circle cx="27" cy="16" r="5" fill="#7fd0ff"/><circle cx="19" cy="28" r="6" fill="#7fd0ff"/>' },
+    dna: { en: "Loose DNA blob", es: "ADN suelto (mancha)", fact: { en: "Bacteria have no nucleus: their DNA is an unpacked blob floating in the cell.", es: "Las bacterias no tienen núcleo: su ADN es una mancha sin empaquetar que flota en la célula." }, svg: '<path d="M8 22c4-14 10 8 14-6s8 12 10-4" fill="none" stroke="#ffcf5a" stroke-width="5" stroke-linecap="round"/>' }
+  };
+  const KEYS = Object.keys(PARTS);
+  const TARGET = { animal: ["nucleus", "vsmall"], plant: ["nucleus", "chloro", "wall", "vbig"], bact: ["dna", "wall"], root: ["nucleus", "wall", "vbig"] };
+  const TASKS = [
+    { short: { en: "Build an animal cell", es: "Construir una célula animal" }, t: "animal", en: "Build an ANIMAL cell (like a cheek cell): switch on only the parts an animal cell has.", es: "Construye una célula ANIMAL (como una de la mejilla): activa solo las partes que tiene una célula animal." },
+    { short: { en: "Build a plant leaf cell", es: "Construir una célula de hoja" }, t: "plant", en: "Build a PLANT LEAF cell: it must make food, stay firm and hold a lot of water.", es: "Construye una célula de HOJA: debe fabricar alimento, mantenerse firme y guardar mucha agua." },
+    { short: { en: "Build a bacterium", es: "Construir una bacteria" }, t: "bact", en: "Build a BACTERIUM: its DNA is a loose blob (no nucleus) and it has a rigid outer wall.", es: "Construye una BACTERIA: su ADN es una mancha suelta (sin núcleo) y tiene una pared exterior rígida." },
+    { short: { en: "Build a root cell", es: "Construir una célula de raíz" }, t: "root", en: "Build a ROOT cell that lives underground in the dark: DNA in a nucleus, a rigid wall, a big water store, but no light-catchers.", es: "Construye una célula de RAÍZ que vive bajo tierra, en la oscuridad: ADN en un núcleo, pared rígida, una gran reserva de agua, pero sin captadores de luz." }
+  ];
+  const S = sim.state.cb1b || (sim.state.cb1b = { on: [] });
+  const stage = document.createElement("div"); stage.className = "cx-stage cx-gp";
+  const hud = document.createElement("div"); hud.className = "cx-hud"; stage.append(hud);
+  const orders = makeOrders(card, sim, "cb1", TASKS, L("Cell Builder", "Constructor de células"));
+  card.append(orders.bar, stage);
+  const chips = document.createElement("div"); chips.className = "cx-chips";
+  const chipBtn = {};
+  KEYS.forEach(k => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cx-chip"; b.setAttribute("aria-pressed", "false");
+    b.innerHTML = `<svg viewBox="0 0 40 40" aria-hidden="true">${PARTS[k].svg}</svg><span>${L(PARTS[k].en, PARTS[k].es)}</span>`;
+    b.addEventListener("click", () => {
+      const i = S.on.indexOf(k); if (i >= 0) S.on.splice(i, 1); else S.on.push(k);
+      sim.saveState(); paint(); cap.textContent = L(PARTS[k].fact.en, PARTS[k].fact.es);
+      burst(stage, 50, 50, ["#58f0cf", "#ffd24d", "#fff"], 12);
+    });
+    chipBtn[k] = b; chips.append(b);
+  });
+  const cap = document.createElement("div"); cap.className = "cx-cap"; cap.setAttribute("aria-live", "polite"); cap.textContent = L("Tap a part to switch it on or off and learn what it does.", "Toca una parte para activarla o desactivarla y saber qué hace.");
+  const row = document.createElement("div"); row.className = "cx-row";
+  const check = document.createElement("button"); check.type = "button"; check.className = "btn btn--signal"; check.textContent = L("Check my cell", "Comprobar mi célula");
+  const clear = document.createElement("button"); clear.type = "button"; clear.className = "btn"; clear.textContent = L("Clear the cell", "Vaciar la célula");
+  row.append(check, clear); card.append(chips, row, cap);
+  clear.addEventListener("click", () => { S.on = []; sim.saveState(); paint(); });
+  check.addEventListener("click", () => {
+    const t = orders.cur(); if (!t) { sim.toast(L("All jobs done!", "¡Todas las tareas hechas!"), "info"); return; }
+    const want = TARGET[t.t], have = S.on.slice();
+    const missing = want.filter(k => !have.includes(k)), extra = have.filter(k => !want.includes(k));
+    const ok = !missing.length && !extra.length;
+    const names = have.map(k => L(PARTS[k].en, PARTS[k].es)).join(" + ") || L("(empty)", "(vacía)");
+    let hint = "";
+    if (!ok) { const k = extra[0] || missing[0]; hint = (extra.length ? L("A part does not belong: ", "Una parte no pertenece: ") : L("A part is missing: ", "Falta una parte: ")) + L(PARTS[k].fact.en, PARTS[k].fact.es); }
+    orders.resolve(ok, names, hint, stage, [50, 50]); onAny();
+  });
+
+  /* ---- 3D ---- */
+  const sc = makeScene(stage, { dist: 6.3, pitch: 0.3 });
+  function paint() {
+    KEYS.forEach(k => chipBtn[k].setAttribute("aria-pressed", String(S.on.includes(k))));
+    hud.textContent = L("Parts on: ", "Partes: ") + (S.on.length || 0);
+    if (sc) sc.sync && sc.sync();
+  }
+  if (sc) {
+    const g = new THREE.Group(); g.position.y = 0.05; sc.scene.add(g);
+    const mem = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32), new THREE.MeshPhysicalMaterial({ color: C3(0xffb6c8), transparent: true, opacity: 0.3, roughness: 0.15, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false })); g.add(mem);
+    const cyto = new THREE.Mesh(new THREE.SphereGeometry(0.97, 32, 24), new THREE.MeshStandardMaterial({ color: C3(0xffe4a8), transparent: true, opacity: 0.22, roughness: 0.8, depthWrite: false })); g.add(cyto);
+    const wallBox = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 2.4), new THREE.MeshPhysicalMaterial({ color: C3(0x5fbf4a), transparent: true, opacity: 0.22, roughness: 0.3, clearcoat: 0.8, depthWrite: false })); wallBox.castShadow = true;
+    const wallEdges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(2.4, 2.4, 2.4)), new THREE.LineBasicMaterial({ color: C3(0x2f8f2a) })); wallBox.add(wallEdges);
+    const wallRod = new THREE.Mesh(new THREE.SphereGeometry(1.1, 40, 28), new THREE.MeshPhysicalMaterial({ color: C3(0xb08a4f), transparent: true, opacity: 0.35, roughness: 0.4, clearcoat: 0.6, side: THREE.DoubleSide, depthWrite: false }));
+    g.add(wallBox, wallRod);
+    const nuc = new THREE.Group(); const nEnv = new THREE.Mesh(new THREE.SphereGeometry(0.38, 32, 24), new THREE.MeshPhysicalMaterial({ color: C3(0xb58cff), transparent: true, opacity: 0.7, roughness: 0.3, clearcoat: 1 })); const nuc2 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 20, 16), new THREE.MeshStandardMaterial({ color: C3(0x5a2fc0), roughness: 0.5 })); nuc2.position.set(0.1, 0.05, 0.12); nuc.add(nEnv, nuc2); nuc.position.set(0.42, 0.05, 0.1); g.add(nuc);
+    const chl = new THREE.Group(); [[0.15, 0.72, 0.25], [-0.1, -0.72, 0.3], [0.78, -0.4, 0.3], [-0.78, 0.45, -0.2], [0.2, 0.2, -0.82]].forEach((p, i) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 14), new THREE.MeshStandardMaterial({ color: C3(0x35b04a), roughness: 0.45 })); m.scale.set(1.5, 0.8, 0.8); m.position.set(...p); m.rotation.z = i; m.userData.p = p; m.castShadow = true; chl.add(m); }); g.add(chl);
+    const vb = new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 24), new THREE.MeshPhysicalMaterial({ color: C3(0x7fd0ff), transparent: true, opacity: 0.55, roughness: 0.1, clearcoat: 1 })); vb.position.set(-0.45, -0.1, -0.12);
+    const vs = new THREE.Group(); [[-0.5, 0.3, 0.2], [-0.3, -0.5, 0.35], [0.2, -0.55, -0.4]].forEach(p => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.17, 18, 14), new THREE.MeshPhysicalMaterial({ color: C3(0x7fd0ff), transparent: true, opacity: 0.6, roughness: 0.1 })); m.position.set(...p); vs.add(m); });
+    const dna = new THREE.Mesh(new THREE.TorusKnotGeometry(0.28, 0.055, 90, 10, 2, 3), new THREE.MeshStandardMaterial({ color: C3(0xffcf5a), roughness: 0.35, emissive: C3(0x6a4a00) })); dna.position.set(0.15, 0, 0.1);
+    g.add(vb, vs, dna);
+    const sp = { nucleus: spring(nuc), chloro: spring(chl), wall: spring(wallBox), wallRod: spring(wallRod), vbig: spring(vb), vsmall: spring(vs), dna: spring(dna) };
+    const shapeT = new THREE.Vector3(1, 1, 1), shape = new THREE.Vector3(1, 1, 1);
+    sc.sync = () => {
+      const on = k => S.on.includes(k), bact = on("dna") && !on("nucleus");
+      sp.nucleus.target = on("nucleus") ? 1 : 0; sp.chloro.target = on("chloro") ? 1 : 0; sp.vbig.target = on("vbig") ? 1 : 0; sp.vsmall.target = on("vsmall") ? 1 : 0; sp.dna.target = on("dna") ? 1 : 0;
+      sp.wall.target = on("wall") && !bact ? 1 : 0; sp.wallRod.target = on("wall") && bact ? 1 : 0;
+      shapeT.set(bact ? 1.25 : 1, bact ? 0.7 : 1, bact ? 0.7 : 1);
+    };
+    sc.onFrame((dt, t) => {
+      Object.values(sp).forEach(p => stepSpring(p, dt));
+      shape.lerp(shapeT, reduced() ? 1 : Math.min(1, dt * 5)); g.scale.copy(shape);
+      if (!reduced()) { g.rotation.y += dt * 0.12; chl.children.forEach((m, i) => { m.position.y = m.userData.p[1] + Math.sin(t * 1.3 + i) * 0.05; m.rotation.x += dt * 0.5; }); nuc2.rotation.y += dt; dna.rotation.x += dt * 0.6; vs.children.forEach((m, i) => { m.position.x += Math.sin(t + i * 2) * 0.0015; }); }
+    });
+  }
+  paint(); if (sc && sc.sync) sc.sync(); card.__onOrder = null;
+  return card;
+}
+
+/* =====================================================================
+   STATION 2 — MITOSIS PHOTOCOPIER (3D staged process)
+   ===================================================================== */
+function stationMitosis(sim, onAny) {
+  const card = shell("2", "Mitosis Photocopier", "Fotocopiador de mitosis", "Step the cell through its stages with the buttons. Drag the 3D cell to look from any side. Read the caption, then lock in the stage the job asks for.", "Avanza la célula por sus fases con los botones. Arrastra la célula 3D para mirarla desde cualquier lado. Lee el texto y fija la fase que pide la tarea.");
+  const STAGES = [
+    { k: "inter", en: "Interphase", es: "Interfase", d: { en: "Interphase: the cell grows, stores energy and takes in nutrients, and copies its DNA. The DNA is still loose and thread-like inside the nucleus. Fun fact: about 90% of a cell's life is spent here.", es: "Interfase: la célula crece, guarda energía, toma nutrientes y copia su ADN. El ADN todavía está suelto, como hilos, dentro del núcleo. Dato curioso: alrededor del 90% de la vida de una célula transcurre aquí." } },
+    { k: "pro", en: "Prophase", es: "Profase", d: { en: "Prophase: the DNA packs itself into chromosomes, like packing a suitcase. Each chromosome is now an X shape: two identical copies joined together. The nucleus wall fades away.", es: "Profase: el ADN se empaqueta en cromosomas, como hacer una maleta. Cada cromosoma tiene forma de X: dos copias idénticas unidas. La pared del núcleo desaparece." } },
+    { k: "meta", en: "Metaphase", es: "Metafase", d: { en: "Metaphase: the chromosomes line up in a neat row across the middle of the cell.", es: "Metafase: los cromosomas se alinean en una fila ordenada por el centro de la célula." } },
+    { k: "ana", en: "Anaphase", es: "Anafase", d: { en: "Anaphase: each X is pulled apart. One copy goes to each end of the cell, so both ends get a full set.", es: "Anafase: cada X se separa. Una copia va a cada extremo de la célula, así que ambos extremos reciben un juego completo." } },
+    { k: "telo", en: "Telophase", es: "Telofase", d: { en: "Telophase: the cell pinches in two. A new nucleus forms around each set of chromosomes. Result: two daughter cells, identical to the parent and to each other.", es: "Telofase: la célula se estrangula en dos. Se forma un núcleo nuevo alrededor de cada juego de cromosomas. Resultado: dos células hijas, idénticas a la madre y entre sí." } }
+  ];
+  const TASKS = [
+    { short: { en: "Find prophase", es: "Hallar la profase" }, st: 1, en: "Find the stage where the DNA packs into X-shaped chromosomes, like packing a suitcase, and the nucleus wall fades.", es: "Encuentra la fase en que el ADN se empaqueta en cromosomas en forma de X, como hacer una maleta, y la pared del núcleo desaparece." },
+    { short: { en: "Find metaphase", es: "Hallar la metafase" }, st: 2, en: "Find the stage where the chromosomes line up in a row across the middle of the cell.", es: "Encuentra la fase en que los cromosomas se alinean en una fila por el centro de la célula." },
+    { short: { en: "Find anaphase", es: "Hallar la anafase" }, st: 3, en: "Find the stage where each X is pulled apart and the copies travel to opposite ends.", es: "Encuentra la fase en que cada X se separa y las copias viajan a extremos opuestos." },
+    { short: { en: "Finish and count", es: "Terminar y contar" }, st: 4, count: 4, en: "Set the stage where two new cells form, then count the chromosomes in ONE daughter cell (the parent had 4).", es: "Elige la fase en que se forman dos células nuevas y cuenta los cromosomas de UNA célula hija (la madre tenía 4)." }
+  ];
+  const S = sim.state.cb2b || (sim.state.cb2b = { stage: 0 });
+  const stage = document.createElement("div"); stage.className = "cx-stage cx-gp";
+  const hud = document.createElement("div"); hud.className = "cx-hud"; stage.append(hud);
+  const orders = makeOrders(card, sim, "cb2", TASKS, L("Mitosis Photocopier", "Fotocopiador de mitosis"));
+  card.append(orders.bar, stage);
+  const chips = document.createElement("div"); chips.className = "cx-chips"; const cb = [];
+  STAGES.forEach((s, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "cx-chip"; b.innerHTML = `<b>${i + 1}</b><span>${L(s.en, s.es)}</span>`; b.addEventListener("click", () => go(i)); cb.push(b); chips.append(b); });
+  const row = document.createElement("div"); row.className = "cx-row";
+  const prev = document.createElement("button"); prev.type = "button"; prev.className = "btn"; prev.textContent = L("◀ Back", "◀ Atrás");
+  const next = document.createElement("button"); next.type = "button"; next.className = "btn"; next.textContent = L("Next stage ▶", "Siguiente fase ▶");
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "btn btn--signal"; lock.textContent = L("Lock in this stage", "Fijar esta fase");
+  const cnt = document.createElement("span"); cnt.className = "cx-row"; cnt.style.margin = "0";
+  let chosen = null;
+  cnt.innerHTML = `<span>${L("Chromosomes in one daughter cell:", "Cromosomas en una célula hija:")}</span>`;
+  [2, 4, 8].forEach(n => { const b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.textContent = n; b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => { chosen = n; [...cnt.querySelectorAll("button")].forEach(x => x.setAttribute("aria-pressed", String(x === b))); cnt.querySelectorAll("button").forEach(x => x.style.outline = x === b ? "3px solid var(--accent)" : "none"); }); cnt.append(b); });
+  row.append(prev, next, lock, cnt);
+  const cap = document.createElement("div"); cap.className = "cx-cap"; cap.setAttribute("aria-live", "polite");
+  card.append(chips, row, cap);
+  const sampleCap = () => { cap.textContent = L(STAGES[S.stage].d.en, STAGES[S.stage].d.es); };
+  function go(i) { S.stage = clamp(i, 0, 4); sim.saveState(); paint(); sampleCap(); burst(stage, 50, 50, ["#ff8fb1", "#58f0cf", "#ffd24d"], 10); }
+  function paint() { cb.forEach((b, i) => b.setAttribute("aria-pressed", String(i === S.stage))); hud.textContent = (S.stage + 1) + " / 5  " + L(STAGES[S.stage].en, STAGES[S.stage].es); prev.disabled = S.stage === 0; next.disabled = S.stage === 4; cnt.style.display = orders.st.idx === 3 ? "flex" : "none"; }
+  orders.onChange = () => { cnt.style.display = orders.st.idx === 3 ? "flex" : "none"; };
+  prev.addEventListener("click", () => go(S.stage - 1)); next.addEventListener("click", () => go(S.stage + 1));
+  lock.addEventListener("click", () => {
+    const t = orders.cur(); if (!t) { sim.toast(L("All jobs done!", "¡Todas las tareas hechas!"), "info"); return; }
+    let ok = S.stage === t.st, hint = ok ? "" : L("Read the clue again, then step through the stages and read each caption.", "Lee otra vez la pista y recorre las fases leyendo cada texto.");
+    let ans = L(STAGES[S.stage].en, STAGES[S.stage].es);
+    if (ok && t.count) { if (chosen === null) { ok = false; hint = L("Now pick how many chromosomes ONE daughter cell has.", "Ahora elige cuántos cromosomas tiene UNA célula hija."); } else if (chosen !== t.count) { ok = false; hint = L("Mitosis makes identical copies: each daughter cell gets the same number of chromosomes as the parent.", "La mitosis hace copias idénticas: cada célula hija recibe el mismo número de cromosomas que la madre."); ans += ", " + chosen + " " + L("chromosomes", "cromosomas"); } else ans += ", " + chosen + " " + L("chromosomes each", "cromosomas cada una"); }
+    orders.resolve(ok, ans, hint, stage, [50, 50]); onAny();
+  });
+
+  const sc = makeScene(stage, { dist: 6.6, pitch: 0.18, yaw: 0.2 });
+  if (sc) {
+    const g = new THREE.Group(); sc.scene.add(g);
+    const sph = (r, col, op, rough) => new THREE.Mesh(new THREE.SphereGeometry(r, 40, 28), new THREE.MeshPhysicalMaterial({ color: C3(col), transparent: true, opacity: op, roughness: rough || 0.15, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false }));
+    const parent = sph(1.25, 0xffb6c8, 0.28); const cyto = sph(1.2, 0xffe4a8, 0.16, 0.8); g.add(parent, cyto);
+    const dL = sph(0.95, 0xffb6c8, 0.3), dR = sph(0.95, 0xffb6c8, 0.3); g.add(dL, dR);
+    const nucP = sph(0.62, 0xb58cff, 0.5), nL = sph(0.45, 0xb58cff, 0.5), nR = sph(0.45, 0xb58cff, 0.5); g.add(nucP, nL, nR);
+    const chromatin = new THREE.Mesh(new THREE.TorusKnotGeometry(0.3, 0.035, 120, 8, 3, 5), new THREE.MeshStandardMaterial({ color: C3(0xffcf5a), roughness: 0.4, transparent: true })); g.add(chromatin);
+    const COLS = [0xff5a7a, 0x4aa3ff, 0xff5a7a, 0x4aa3ff];
+    const chrom = [];
+    COLS.forEach((col, i) => {
+      for (let c = 0; c < 2; c++) {
+        const grp = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.46, 12), new THREE.MeshStandardMaterial({ color: C3(col), roughness: 0.35 })); body.castShadow = true;
+        const e1 = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), body.material), e2 = e1.clone(); e1.position.y = 0.23; e2.position.y = -0.23; grp.add(body, e1, e2); g.add(grp); chrom.push({ grp, i, c });
+      }
+    });
+    /* keyframes per stage: scattered (pro), row (meta), poles (ana), clusters (telo) */
+    const SCAT = [[-0.5, 0.3, 0.2], [0.45, 0.4, -0.2], [-0.35, -0.4, -0.25], [0.5, -0.3, 0.25]];
+    const ROW_Y = [0.62, 0.21, -0.21, -0.62];
+    const kf = (i, c, st) => {
+      const sgn = c ? 1 : -1, tilt = 0.32 * sgn;
+      if (st === 0) return { p: [SCAT[i][0] * 0.4, SCAT[i][1] * 0.4, SCAT[i][2] * 0.4], r: tilt, s: 0 };
+      if (st === 1) return { p: SCAT[i], r: tilt, s: 1 };
+      if (st === 2) return { p: [0, ROW_Y[i], (i % 2 ? 0.12 : -0.12)], r: tilt, s: 1 };
+      if (st === 3) return { p: [sgn * 0.85, ROW_Y[i] * 1.05, (i % 2 ? 0.12 : -0.12)], r: 0, s: 1 };
+      return { p: [sgn * 0.95 + (i % 2 ? 0.1 : -0.1) * 0, ROW_Y[i] * 0.65, (i % 2 ? 0.15 : -0.15)], r: 0, s: 0.9 };
+    };
+    let u = S.stage;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    sc.onFrame((dt, t) => {
+      const tg = S.stage; u = reduced() ? tg : u + (tg - u) * Math.min(1, dt * 3.2);
+      const a = Math.floor(clamp(u, 0, 3.9999)), f = smooth(u - a);
+      chrom.forEach(ch => { const k0 = kf(ch.i, ch.c, a), k1 = kf(ch.i, ch.c, Math.min(4, a + 1)); ch.grp.position.set(lerp(k0.p[0], k1.p[0], f), lerp(k0.p[1], k1.p[1], f), lerp(k0.p[2], k1.p[2], f)); ch.grp.rotation.z = lerp(k0.r, k1.r, f); const s = lerp(k0.s, k1.s, f); ch.grp.scale.setScalar(Math.max(0.0001, s)); ch.grp.visible = s > 0.02; });
+      const tel = smooth(u - 3), nuc = clamp(1 - u * 1.3, 0, 1), ch0 = clamp(1 - u * 1.6, 0, 1), reform = smooth((u - 3.5) * 2);
+      parent.material.opacity = 0.28 * (1 - tel); cyto.material.opacity = 0.16 * (1 - tel); parent.scale.set(1 + 0.22 * smooth(u - 2) , 1, 1); cyto.scale.copy(parent.scale);
+      dL.position.x = -0.95 * tel; dR.position.x = 0.95 * tel; [dL, dR].forEach(d => { d.material.opacity = 0.3 * tel; d.scale.setScalar(Math.max(0.0001, tel)); });
+      nucP.material.opacity = 0.5 * nuc; nucP.scale.setScalar(Math.max(0.0001, nuc * 1 + 0.0001));
+      nL.position.x = -0.95; nR.position.x = 0.95; [nL, nR].forEach(n => { n.material.opacity = 0.45 * reform; n.scale.setScalar(Math.max(0.0001, reform)); });
+      chromatin.material.opacity = ch0; chromatin.visible = ch0 > 0.02;
+      if (!reduced()) { chromatin.rotation.y += dt * 0.5; g.position.y = Math.sin(t * 0.9) * 0.04; }
+    });
+  }
+  sampleCap(); paint();
+  return card;
+}
+
+/* =====================================================================
+   STATION 3 — REPRODUCTION LAB (real flower photo labelling + 3D binary fission)
+   ===================================================================== */
+function stationRepro(sim, onAny) {
+  const card = shell("3", "Reproduction Lab", "Laboratorio de reproducción", "Left: tap the parts of a real flower (sexual reproduction). Right: watch one bacterium copy itself (asexual reproduction).", "Izquierda: toca las partes de una flor real (reproducción sexual). Derecha: mira cómo una bacteria se copia sola (reproducción asexual).");
+  const SPOTS = [
+    { id: "stigma", x: 0.455, y: 0.135, en: "Pistil (female)", es: "Pistilo (femenino)", fact: { en: "The pistil is the female part. Its sticky red tip catches pollen.", es: "El pistilo es la parte femenina. Su punta roja y pegajosa atrapa el polen." } },
+    { id: "anther", x: 0.70, y: 0.32, en: "Stamen (male)", es: "Estambre (masculino)", fact: { en: "The stamen is the male part. Its yellow tips are covered in pollen.", es: "El estambre es la parte masculina. Sus puntas amarillas están cubiertas de polen." } },
+    { id: "petal", x: 0.2, y: 0.8, en: "Petal", es: "Pétalo", fact: { en: "Colourful petals attract bees, which carry pollen from flower to flower.", es: "Los pétalos de colores atraen a las abejas, que llevan el polen de flor en flor." } }
+  ];
+  const TASKS = [
+    { short: { en: "Tap the male part", es: "Tocar la parte masculina" }, kind: "spot", want: "anther", en: "Tap the MALE part of the flower (the one that makes pollen).", es: "Toca la parte MASCULINA de la flor (la que fabrica polen)." },
+    { short: { en: "Tap the female part", es: "Tocar la parte femenina" }, kind: "spot", want: "stigma", en: "Now tap the FEMALE part (the one that catches pollen).", es: "Ahora toca la parte FEMENINA (la que atrapa el polen)." },
+    { short: { en: "8 bacteria", es: "8 bacterias" }, kind: "dish", want: (n, t) => n === 8, en: "Set the clock so the dish holds exactly 8 bacteria. Each bacterium splits in two every 20 minutes.", es: "Ajusta el reloj para que el plato tenga exactamente 8 bacterias. Cada bacteria se divide en dos cada 20 minutos." },
+    { short: { en: "At least 32 bacteria", es: "Al menos 32 bacterias" }, kind: "dish", want: (n, t) => n >= 32 && t === 100, en: "A jar is left overnight. What is the SHORTEST time (in minutes) for the dish to hold at least 32 bacteria?", es: "Se deja un frasco toda la noche. ¿Cuál es el tiempo MÁS CORTO (en minutos) para que el plato tenga al menos 32 bacterias?" }
+  ];
+  const S = sim.state.cb3b || (sim.state.cb3b = { t: 0, solved: [] });
+  const orders = makeOrders(card, sim, "cb3", TASKS, L("Reproduction Lab", "Laboratorio de reproducción"));
+  card.append(orders.bar);
+  const grid = document.createElement("div"); grid.className = "cx-grid2"; card.append(grid);
+  /* left: photo */
+  const left = document.createElement("div");
+  const ph = document.createElement("div"); ph.className = "cx-photo cx-gp"; ph.innerHTML = `<img src="${PH("flower")}" alt="${L("Close-up of a hibiscus flower showing the red pistil and yellow stamens", "Primer plano de una flor de hibisco con el pistilo rojo y los estambres amarillos")}">`;
+  const fcap = document.createElement("div"); fcap.className = "cx-cap"; fcap.setAttribute("aria-live", "polite"); fcap.textContent = L("Tap a numbered dot. Each one is a real part of this flower.", "Toca un punto numerado. Cada uno es una parte real de esta flor.");
+  SPOTS.forEach((s, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "cx-spot"; b.textContent = i + 1; b.style.left = s.x * 100 + "%"; b.style.top = s.y * 100 + "%"; b.setAttribute("aria-label", L("Part " + (i + 1), "Parte " + (i + 1)));
+    b.addEventListener("click", () => {
+      const t = orders.cur();
+      if (t && t.kind === "spot") { const ok = s.id === t.want; if (!ok) { shake(b); fcap.textContent = L(`That is the ${s.en}. `, `Eso es el ${s.es}. `) + L(s.fact.en, s.fact.es) + L(" Try another dot.", " Prueba otro punto."); } else { b.dataset.solved = "true"; fcap.textContent = L(s.fact.en, s.fact.es); } orders.resolve(ok, L(s.en, s.es), L("Read the job again and try another dot.", "Lee otra vez la tarea y prueba otro punto."), ph, [s.x * 100, s.y * 100]); onAny(); }
+      else { fcap.textContent = L(s.en + ": ", s.es + ": ") + L(s.fact.en, s.fact.es); burst(ph, s.x * 100, s.y * 100, ["#fff", "#ffd24d"], 8); }
+    });
+    ph.append(b);
+  });
+  const fcr = document.createElement("p"); fcr.className = "cx-credit"; fcr.innerHTML = L('Photo: "Close up (2) to flowers" by Ahmed elkastawy, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>, via <a href="https://commons.wikimedia.org/wiki/File:Close_up_(2)_to_flowers.JPG" target="_blank" rel="noopener">Wikimedia Commons</a>.', 'Foto: "Close up (2) to flowers" de Ahmed elkastawy, <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.es" target="_blank" rel="noopener">CC BY-SA 3.0</a>, vía <a href="https://commons.wikimedia.org/wiki/File:Close_up_(2)_to_flowers.JPG" target="_blank" rel="noopener">Wikimedia Commons</a>.');
+  left.append(ph, fcap, fcr);
+  /* right: bacteria dish */
+  const right = document.createElement("div");
+  const stage = document.createElement("div"); stage.className = "cx-stage cx-gp"; stage.style.marginTop = "0";
+  const hud = document.createElement("div"); hud.className = "cx-hud"; stage.append(hud);
+  const dcap = document.createElement("div"); dcap.className = "cx-cap"; dcap.setAttribute("aria-live", "polite");
+  const slider = document.createElement("input"); slider.type = "range"; slider.min = 0; slider.max = 120; slider.step = 20; slider.className = "input"; slider.style.accentColor = "var(--accent)"; slider.style.flex = "1 1 10rem"; slider.setAttribute("aria-label", L("Minutes of growth", "Minutos de crecimiento"));
+  const lab = document.createElement("label"); lab.textContent = L("Minutes:", "Minutos:"); lab.style.fontWeight = "700";
+  const plus = document.createElement("button"); plus.type = "button"; plus.className = "btn"; plus.textContent = L("+20 min ▶", "+20 min ▶");
+  const lock = document.createElement("button"); lock.type = "button"; lock.className = "btn btn--signal"; lock.textContent = L("Lock in this time", "Fijar este tiempo");
+  const drow = document.createElement("div"); drow.className = "cx-row"; drow.append(lab, slider, plus, lock);
+  right.append(stage, drow, dcap);
+  grid.append(left, right);
+  const count = () => Math.pow(2, Math.round(S.t / 20));
+  function paintDish() {
+    slider.value = S.t; const n = count();
+    hud.textContent = `${S.t} min  ·  ${n} ${L(n === 1 ? "bacterium" : "bacteria", n === 1 ? "bacteria" : "bacterias")}`;
+    dcap.textContent = S.t === 0 ? L("Start: 1 bacterium. Binary fission = it copies its DNA and splits into two. No partner needed: this is asexual reproduction.", "Inicio: 1 bacteria. Fisión binaria = copia su ADN y se divide en dos. No necesita pareja: esto es reproducción asexual.")
+      : L(`After ${S.t} minutes there are ${n}. That is ${Math.round(S.t / 20)} splits, and the number doubles each time.`, `Tras ${S.t} minutos hay ${n}. Son ${Math.round(S.t / 20)} divisiones, y el número se duplica cada vez.`);
+    if (sc && sc.sync) sc.sync();
+  }
+  function setT(v) { v = clamp(Math.round(v / 20) * 20, 0, 120); const grew = v > S.t; S.t = v; sim.saveState(); paintDish(); if (grew) burst(stage, 50, 55, ["#ffd24d", "#7be08a", "#fff"], 14); }
+  slider.addEventListener("input", () => setT(+slider.value)); plus.addEventListener("click", () => setT(S.t >= 120 ? 0 : S.t + 20));
+  lock.addEventListener("click", () => {
+    const t = orders.cur(); if (!t) { sim.toast(L("All jobs done!", "¡Todas las tareas hechas!"), "info"); return; }
+    if (t.kind !== "dish") { shake(orders.bar); sim.toast(L("This job is about the flower: tap a dot on the photo.", "Esta tarea es sobre la flor: toca un punto en la foto."), "info"); return; }
+    const n = count(), ok = t.want(n, S.t);
+    orders.resolve(ok, `${S.t} min = ${n}`, ok ? "" : L("Double the number for every 20 minutes: 1, 2, 4, 8, 16, 32…", "Duplica el número cada 20 minutos: 1, 2, 4, 8, 16, 32…"), stage, [50, 50]); onAny();
+  });
+  const sc = makeScene(stage, { dist: 6.4, pitch: 0.55 });
+  if (sc) {
+    const g = new THREE.Group(); sc.scene.add(g);
+    const dish = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.7, 0.16, 56), new THREE.MeshPhysicalMaterial({ color: C3(0xffd9a0), roughness: 0.4, clearcoat: 0.6, transparent: true, opacity: 0.9 })); dish.position.y = -1.3; g.add(dish);
+    const lid = new THREE.Mesh(new THREE.TorusGeometry(2.7, 0.06, 10, 80), new THREE.MeshStandardMaterial({ color: C3(0xbfe9ff), roughness: 0.15 })); lid.rotation.x = Math.PI / 2; lid.position.y = -1.2; g.add(lid);
+    const bact = []; const MAX = 64;
+    const rng = (() => { let s = 11; return () => (s = (s * 9301 + 49297) % 233280) / 233280; })();
+    const pts = []; let guard = 0;
+    while (pts.length < MAX && guard++ < 4000) { const a = rng() * TAU, r = Math.sqrt(rng()) * 2.3, p = [Math.cos(a) * r, Math.sin(a) * r]; if (pts.every(q => Math.hypot(q[0] - p[0], q[1] - p[1]) > (guard < 2500 ? 0.5 : 0.3))) pts.push(p); }
+    while (pts.length < MAX) pts.push([(rng() - .5) * 4, (rng() - .5) * 4]);
+    pts.sort((a, b) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1]));
+    for (let i = 0; i < MAX; i++) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 14), new THREE.MeshPhysicalMaterial({ color: C3(i % 3 ? 0x8bd96a : 0x6ec3a0), roughness: 0.3, clearcoat: 0.8 })); m.scale.set(1.5, 0.8, 0.8); m.castShadow = true;
+      m.position.set(pts[i][0], -1.1, pts[i][1]); m.rotation.y = rng() * TAU; g.add(m); bact.push(Object.assign(spring(m, new THREE.Vector3(1.5, 0.8, 0.8)), { ph: rng() * TAU, x: pts[i][0], z: pts[i][1] }));
+    }
+    sc.sync = () => { const n = count(); bact.forEach((b, i) => { b.target = i < n ? 1 : 0; }); };
+    sc.onFrame((dt, t) => { bact.forEach(b => { stepSpring(b, dt); if (!reduced()) { b.obj.position.x = b.x + Math.sin(t * 0.8 + b.ph) * 0.06; b.obj.rotation.y += dt * 0.3; } }); });
+  }
+  paintDish();
+  return card;
+}
+
+/* =====================================================================
+   REFLECTION (scientific-method stage 9)
+   ===================================================================== */
+function reflection(sim) {
+  const card = document.createElement("div"); card.className = "cx-station";
+  const R = sim.state.reflect || (sim.state.reflect = {});
+  card.innerHTML = `<h3 class="cx-title">${L("Think about your thinking", "Piensa sobre tu pensamiento")}</h3><p class="q__hint">${L("Be honest: there are no wrong answers here.", "Sé sincero: aquí no hay respuestas incorrectas.")}</p>`;
+  const groups = [
+    { key: "conf", q: L("How sure are you that all living things are made of cells?", "¿Qué tan seguro estás de que todos los seres vivos están hechos de células?"), o: [["high", L("Very sure", "Muy seguro")], ["mid", L("Fairly sure", "Bastante seguro")], ["low", L("Not sure yet", "Aún no estoy seguro")]] },
+    { key: "next", q: L("What would you like to investigate next?", "¿Qué te gustaría investigar después?"), o: [["dna", L("What DNA is made of", "De qué está hecho el ADN")], ["sex", L("How a flower makes seeds", "Cómo hace semillas una flor")], ["size", L("How big or small cells can be", "Qué tan grandes o pequeñas pueden ser las células")]] }
+  ];
+  function save() { sim.state.reflect = R; sim.saveState(); sim.setResult("reflection", { confidence: R.conf, next_investigation: R.next }); sim.mark("reflection_recorded", !!(R.conf && R.next)); }
+  groups.forEach(gp => {
+    const wrap = document.createElement("div"); wrap.innerHTML = `<p class="eyebrow" style="margin:.7rem 0 .3rem">${gp.q}</p>`; const row = document.createElement("div"); row.className = "cx-row"; row.style.marginTop = "0";
+    gp.o.forEach(([id, lbl]) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.textContent = lbl; b.setAttribute("aria-pressed", String(R[gp.key] === id)); if (R[gp.key] === id) b.style.outline = "3px solid var(--accent)";
+      b.addEventListener("click", () => { R[gp.key] = id; [...row.children].forEach(x => { x.setAttribute("aria-pressed", "false"); x.style.outline = "none"; }); b.setAttribute("aria-pressed", "true"); b.style.outline = "3px solid var(--accent)"; save(); }); row.append(b); });
+    wrap.append(row); card.append(wrap);
+  });
+  return card;
+}
+
+/* =====================================================================
+   BONUS — CELL CHECK BELT (sorting conveyor; 120 s wall-clock, no fail state, silent)
+   ===================================================================== */
+function bonusBelt(sim) {
+  const ITEMS = [
+    { id: "dog", y: 1, en: "Dog", es: "Perro", hook: { en: "Dogs are animals, so they are built from cells (about 37 trillion in a human!).", es: "Los perros son animales, así que están hechos de células (¡unos 37 billones en un humano!)." }, cr: "Kintaiyo, CC BY 3.0" },
+    { id: "sunflower", y: 1, en: "Sunflower", es: "Girasol", hook: { en: "Plants are made of cells, with walls and chloroplasts.", es: "Las plantas están hechas de células, con paredes y cloroplastos." }, cr: "SwarmCheng, CC BY-SA 4.0" },
+    { id: "mushroom", y: 1, en: "Mushroom", es: "Champiñón", hook: { en: "A mushroom is a fungus: alive and made of cells.", es: "Un champiñón es un hongo: está vivo y hecho de células." }, cr: "Mike Pennington, CC BY-SA 2.0" },
+    { id: "bacteria", y: 1, en: "Bacteria", es: "Bacterias", hook: { en: "Each bacterium is ONE whole cell, too small to see without a microscope.", es: "Cada bacteria es UNA célula entera, demasiado pequeña para verse sin microscopio." }, cr: "Janice Haney Carr / CDC, public domain" },
+    { id: "yeast", y: 1, en: "Yeast", es: "Levadura", hook: { en: "Yeast cells are alive. They copy themselves by budding.", es: "Las levaduras están vivas. Se copian por gemación." }, cr: "Masur, public domain" },
+    { id: "ladybug", y: 1, en: "Ladybird", es: "Mariquita", hook: { en: "Every insect is made of cells.", es: "Todo insecto está hecho de células." }, cr: "Shyamli kashyap, CC BY-SA 4.0" },
+    { id: "car", y: 0, en: "Toy car", es: "Coche", hook: { en: "A car is made by people from metal and plastic. It is not alive and has no cells.", es: "Un coche lo fabrican las personas con metal y plástico. No está vivo ni tiene células." }, cr: "TudorTulok, CC0" },
+    { id: "fire", y: 0, en: "Fire", es: "Fuego", hook: { en: "Fire moves and grows, but it has no cells, so it is not alive.", es: "El fuego se mueve y crece, pero no tiene células, así que no está vivo." }, cr: "Free Nature Stock, CC0" },
+    { id: "salt", y: 0, en: "Salt crystal", es: "Cristal de sal", hook: { en: "Salt is a mineral. Crystals grow, but they have no cells.", es: "La sal es un mineral. Los cristales crecen, pero no tienen células." }, cr: "James St. John, CC BY 2.0" },
+    { id: "telescope", y: 0, en: "Telescope", es: "Telescopio", hook: { en: "A telescope is a machine: no cells, not alive.", es: "Un telescopio es una máquina: sin células, no está vivo." }, cr: "NOIRLab / P. Marenfeld, CC BY 4.0" }
+  ];
+  const root = document.createElement("div"); root.className = "cb";
+  const DUR = 120000, SPAWN = 4600, TRAVEL = 11000;
+  root.innerHTML = `<h3>${L("Bonus round: Cell Check Belt", "Ronda extra: Cinta de Células")}</h3>
+    <p>${L("Optional and skippable. Things ride the belt for two minutes. Send each to the right bin: does it have cells (alive) or no cells? Press 1 or 2, or tap a bin. A mistake only costs a memory hook, never a life.", "Opcional y se puede saltar. Cosas pasan por la cinta durante dos minutos. Envía cada una al cajón correcto: ¿tiene células (vivo) o no tiene células? Pulsa 1 o 2, o toca un cajón. Un error solo te da una pista, nunca te quita nada.")}</p>
+    <div data-launch></div>`;
+  const launch = root.querySelector("[data-launch]");
+  const play = document.createElement("button"); play.type = "button"; play.className = "btn btn--signal"; play.textContent = L("Play Cell Check Belt", "Jugar Cinta de Células");
+  const skip = document.createElement("button"); skip.type = "button"; skip.className = "btn"; skip.textContent = L("Skip bonus round", "Saltar ronda extra"); skip.style.marginLeft = ".5rem";
+  const credit = document.createElement("p"); credit.className = "cx-credit"; credit.style.color = "#9bb"; credit.innerHTML = L("Photos from Wikimedia Commons: ", "Fotos de Wikimedia Commons: ") + ITEMS.map(i => `${L(i.en, i.es)} (${i.cr})`).join("; ") + ".";
+  launch.append(play, skip, credit);
+  skip.addEventListener("click", () => { root.remove(); });
+  play.addEventListener("click", () => { launch.remove(); start(); });
+  function start() {
+    root.insertAdjacentHTML("beforeend", `<div class="cb__hud"><span data-t></span><span data-s></span><span data-k></span></div><div class="cb__belt" data-belt></div>
+      <div class="cb__bins"><button type="button" class="cb__bin cb__bin--yes" data-b="1">1 · ${L("Has cells (alive)", "Tiene células (vivo)")}</button><button type="button" class="cb__bin cb__bin--no" data-b="0">2 · ${L("No cells", "Sin células")}</button></div><div class="cb__msg" aria-live="polite" data-m>${L("Sort the glowing item. Go!", "Clasifica el objeto resaltado. ¡Ya!")}</div>`);
+    const belt = root.querySelector("[data-belt]"), tEl = root.querySelector("[data-t]"), sEl = root.querySelector("[data-s]"), kEl = root.querySelector("[data-k]"), mEl = root.querySelector("[data-m]");
+    let score = 0, streak = 0, best = 0, right = 0, total = 0, over = false, nextIdx = 0, lastSpawn = -SPAWN;
+    const queue = []; const missed = new Set();
+    const order = ITEMS.map(i => i).sort(() => Math.random() - 0.5);
+    const t0 = Date.now();
+    const act = () => queue.find(q => !q.done && Date.now() - q.born > 600);
+    function resolve(q, ans) {
+      if (!q || q.done) return; q.done = true; total++;
+      const ok = ans === q.it.y;
+      if (ans === null) { streak = 0; mEl.textContent = L(`It passed by: ${q.it.en}. `, `Se pasó: ${q.it.es}. `) + L(q.it.hook.en, q.it.hook.es); missed.add(q.it.id); }
+      else if (ok) { right++; streak++; best = Math.max(best, streak); score += 10 + Math.min(streak, 5) * 2; mEl.textContent = L("Correct! ", "¡Correcto! ") + L(q.it.hook.en, q.it.hook.es); }
+      else { streak = 0; missed.add(q.it.id); mEl.textContent = L(`Not this time: ${q.it.en} ${q.it.y ? "HAS" : "has NO"} cells. `, `Esta vez no: ${q.it.es} ${q.it.y ? "TIENE" : "NO tiene"} células. `) + L(q.it.hook.en, q.it.hook.es); }
+      q.node.dataset.gone = ans === null ? "no" : ok ? "ok" : "no"; q.node.dataset.active = "false"; setTimeout(() => q.node.remove(), 400);
+      if (ok) burst(root, 50, 40, ["#58f0cf", "#ffd24d", "#fff"], 14);
+    }
+    const choose = a => { if (!over) resolve(act(), a); };
+    root.querySelectorAll("[data-b]").forEach(b => b.addEventListener("click", () => choose(+b.dataset.b)));
+    const key = e => { if (!root.isConnected) { document.removeEventListener("keydown", key); return; } if (e.target && /input|textarea/i.test(e.target.tagName)) return; if (e.key === "1") choose(1); if (e.key === "2") choose(0); };
+    document.addEventListener("keydown", key);
+    const timer = setInterval(() => {
+      const now = Date.now(), el = now - t0;
+      if (el >= DUR) { clearInterval(timer); finish(); return; }
+      if (el - lastSpawn >= SPAWN) { lastSpawn = el; const it = order[nextIdx++ % order.length]; const n = document.createElement("div"); n.className = "cb__item"; n.innerHTML = `<img src="${PH(it.id)}" alt=""><span>${L(it.en, it.es)}</span>`; belt.append(n); queue.push({ it, node: n, born: now, done: false }); }
+      queue.forEach(q => { if (q.done) return; const p = (now - q.born) / TRAVEL; q.node.style.left = (-5 + p * 110) + "%"; if (p >= 1.02) resolve(q, null); });
+      const a = act(); queue.forEach(q => { if (!q.done) q.node.dataset.active = String(q === a); });
+      const s = Math.ceil((DUR - el) / 1000); tEl.textContent = L("Time ", "Tiempo ") + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); sEl.textContent = L("Score ", "Puntos ") + score; kEl.textContent = L("Streak ", "Racha ") + streak;
+    }, 100);
+    function finish() {
+      over = true; document.removeEventListener("keydown", key);
+      const review = [...missed].map(id => ITEMS.find(i => i.id === id)).filter(Boolean);
+      root.innerHTML = `<h3>${L("Belt finished!", "¡Cinta terminada!")}</h3><p>${L(`Score ${score}. You sorted ${right} of ${total} correctly. Best streak ${best}.`, `Puntos ${score}. Clasificaste ${right} de ${total} correctamente. Mejor racha ${best}.`)}</p>` + (review.length ? `<p>${L("Worth another look: ", "Para repasar: ")}${review.map(r => L(r.en, r.es)).join(", ")}.</p>` : `<p>${L("Perfect belt. Nothing to review.", "Cinta perfecta. Nada que repasar.")}</p>`);
+      sim.toast(L("Bonus round complete!", "¡Ronda extra completa!"), "info");
+      const again = document.createElement("button"); again.type = "button"; again.className = "btn btn--signal"; again.textContent = L("Play again", "Jugar de nuevo"); again.addEventListener("click", () => { root.innerHTML = ""; start(); }); root.append(again);
+    }
+  }
+  return root;
+}
+
+mountActivity({ simulation }).catch(e => {
+  console.error("Activity failed to start:", e);
+  const r = document.getElementById("lab-root");
+  if (r) r.innerHTML = '<p class="nav-empty">Something went wrong. Please refresh.</p>';
+});
+</script>
+</body>
+</html>
