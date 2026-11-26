@@ -25,7 +25,7 @@ const STORE = "dl-a11y-v1";
 const ENGINE_URL = new URL(".", import.meta.url);           // .../engine/
 const DYSLEXIA_CSS = new URL("vendor/fonts/dyslexia-font.css", ENGINE_URL).href;
 
-const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false, spacing: "normal", plain: false, ruler: false };
+const DEFAULTS = { textSize: "m", dyslexia: false, tint: "paper", motion: "auto", tts: false, esRegion: "auto", esGender: "any", spacing: "normal", plain: false, ruler: false };
 
 const TEXT_SIZES = () => [
   ["s", t("a11y.size.s"), "A"], ["m", t("a11y.size.m"), "A"], ["l", t("a11y.size.l"), "A"], ["xl", t("a11y.size.xl"), "A"],
@@ -131,25 +131,61 @@ export function ttsEnabled() { return ttsOn && !!speech; }
    do nothing in another with no visible cause. resume() clears the stuck
    state and the setTimeout(0) lets Chrome's internal queue settle after
    cancel() before the new utterance is queued. */
+/* Spanish voices: the student picks Spain / Latin America and female / male once
+   (stored in prefs, so it stays for every activity on this device). Browsers do
+   not report a voice's gender, so it is guessed from well-known voice names. */
+const FEMALE_RE = /(helena|laura|sabina|paulina|monica|mónica|elvira|dalia|salome|salomé|paloma|marisol|lucia|lucía|elena|camila|catalina|valentina|female|mujer|google español|google espa|jorge-no)/i;
+const MALE_RE = /(pablo|raul|raúl|jorge|diego|alvaro|álvaro|juan|carlos|enrique|miguel|jaime|arnau|male|hombre|alberto|gonzalo)/i;
+function voiceGender(v) { const n = v.name; if (MALE_RE.test(n) && !FEMALE_RE.test(n)) return "male"; if (FEMALE_RE.test(n)) return "female"; return "?"; }
+function isSpainVoice(v) { return /^es[-_]ES/i.test(v.lang); }
+export function spanishVoices() {
+  if (!speech) return [];
+  return speech.getVoices().filter(v => /^es([-_]|$)/i.test(v.lang));
+}
+/* Looks Spanish? (used when a Spanish course shows Spanish text on an English-language page) */
+function looksSpanish(text) {
+  const s = String(text);
+  if (/[¿¡ñ]/.test(s)) return true;
+  const w = s.toLowerCase().match(/[a-záéíóúü]+/g) || [];
+  if (w.length < 3) return false;
+  const es = new Set(["el","la","los","las","un","una","es","son","de","del","que","y","en","con","para","por","qué","cómo","yo","tú","mi","tu","se","no","muy","está","hay","soy","tengo","me","te","al","lo"]);
+  const en = new Set(["the","is","are","and","of","to","in","that","you","it","for","with","this","what","how","a","an","your","i","we"]);
+  let a = 0, b = 0; w.forEach(x => { if (es.has(x)) a++; if (en.has(x)) b++; });
+  return a >= 2 && a > b;
+}
 function pickVoiceFor(lang) {
   if (!speech) return null;
   const voices = speech.getVoices();
   if (!voices.length) return null;
   const prefix = lang.split("-")[0].toLowerCase();
+  if (prefix === "es") {
+    let pool = voices.filter(v => /^es([-_]|$)/i.test(v.lang));
+    if (!pool.length) return null;
+    const p = prefs || {};
+    const region = p.esRegion || "auto";
+    if (region === "spain") pool = pool.filter(isSpainVoice).length ? pool.filter(isSpainVoice) : pool;
+    else if (region === "latam") pool = pool.filter(v => !isSpainVoice(v)).length ? pool.filter(v => !isSpainVoice(v)) : pool;
+    const g = p.esGender || "any";
+    if (g !== "any") { const m = pool.filter(v => voiceGender(v) === g); if (m.length) pool = m; }
+    const score = v => (/natural|neural|online/i.test(v.name) ? 3 : 0) + (/google/i.test(v.name) ? 2 : 0) + (v.localService ? 0 : 1);
+    return pool.slice().sort((a, b) => score(b) - score(a))[0];
+  }
   return voices.find(v => v.lang.toLowerCase() === lang.toLowerCase())
     || voices.find(v => v.lang.toLowerCase().startsWith(prefix))
     || null;
 }
-export function speak(text) {
+export function speak(text, forceLang) {
   if (!speech || !text) return;
   speech.cancel();
   speech.resume();
-  const lang = document.documentElement.lang || "en";
+  let lang = forceLang || document.documentElement.lang || "en";
+  if (!forceLang && lang.toLowerCase().indexOf("es") !== 0 && looksSpanish(text)) lang = "es";
+  if (lang === "es") { const r = (prefs && prefs.esRegion) || "auto"; lang = r === "spain" ? "es-ES" : r === "latam" ? "es-MX" : "es"; }
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(String(text));
     u.rate = 0.96; u.pitch = 1; u.lang = lang;
     const voice = pickVoiceFor(lang);
-    if (voice) u.voice = voice;
+    if (voice) { u.voice = voice; u.lang = voice.lang; }
     speech.speak(u);
   }, 0);
 }
@@ -294,6 +330,20 @@ function buildPanel(prefs, update) {
     tile("ruler", L("Reading ruler", "Regla de lectura"), L("Dims the page except a band that follows your pointer or finger.", "Oscurece la página salvo una franja que sigue tu puntero o dedo."), prefs.ruler, on => update({ ruler: on })),
     tile("tts", t("a11y.read-aloud"), speech ? t("a11y.tts-hint") : t("a11y.tts-unavailable"), prefs.tts, on => update({ tts: on }), !speech));
   panel.append(grid);
+
+  /* Spanish read-aloud voice (shown when Spanish voices exist on this device) */
+  if (speech) {
+    const vox = el("div", "a11y-loc");
+    vox.append(segmented(L("Spanish voice accent", "Acento de la voz en español"), [
+      ["auto", "Auto"], ["spain", L("Spain", "España")], ["latam", L("Latin America", "Latinoamérica")]], prefs.esRegion || "auto", v => update({ esRegion: v })));
+    vox.append(segmented(L("Spanish voice", "Voz en español"), [
+      ["any", L("Any", "Cualquiera")], ["female", L("Female", "Mujer")], ["male", L("Male", "Hombre")]], prefs.esGender || "any", v => update({ esGender: v })));
+    const test = el("button", "a11y-panel__reset", L("▶ Test Spanish voice", "▶ Probar la voz en español"));
+    test.type = "button";
+    test.addEventListener("click", () => { ttsOn = true; speak("Hola, soy tu voz en español. ¿Cómo estás hoy?", "es"); });
+    vox.append(test);
+    panel.append(vox);
+  }
 
   panel.append(segmented(t("a11y.motion"), MOTIONS(), prefs.motion, v => update({ motion: v })));
 
