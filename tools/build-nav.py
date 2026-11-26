@@ -79,7 +79,7 @@ SHELL = """<!DOCTYPE html>
 """
 
 ASSET_VERSION = "26"
-STYLE_VERSION = "35"
+STYLE_VERSION = "36"
 
 
 LEAF_TYPES = {"simulation", "guide"}  # own hand-written page; never gets a generated nav shell

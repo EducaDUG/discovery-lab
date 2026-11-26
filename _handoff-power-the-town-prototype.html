@@ -1,0 +1,332 @@
+<title>Power the Town</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;900&family=Figtree:wght@400;600;700&display=swap">
+<style>
+/* Concept: one living island scene. The sky follows the clock, the sources you build appear on the island, and the town's windows light up only when you generate enough power. A flat, bold poster look. The display face is wide and loud; the body is quiet. */
+:root{
+  --ink:#0b1020; --card:#131a33; --card2:#1b2447; --line:#2b3668; --txt:#f6f1e6; --mute:#a2acd0;
+  --sun:#ffc233; --coral:#ff5e4d; --teal:#2ee6c5; --blue:#4c8dff; --lime:#b6f04a; --pink:#ff8fb8;
+  --display:'Unbounded','Arial Black',system-ui,sans-serif; --body:'Figtree',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--ink);color:var(--txt);font:16px/1.5 var(--body);margin:0;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:16px}
+h1{font:900 clamp(1.9rem,6.5vw,3.6rem)/1 var(--display);margin:0;text-transform:uppercase;letter-spacing:-.02em;text-wrap:balance}
+h1 em{font-style:normal;color:var(--sun)}
+.sub{color:var(--mute);margin:10px 0 0;max-width:62ch}
+.top{display:flex;flex-wrap:wrap;gap:14px;align-items:end;justify-content:space-between}
+.lvls{display:flex;gap:6px;flex-wrap:wrap}
+button{font:600 .95rem var(--body);cursor:pointer;border:2px solid var(--line);background:var(--card2);color:var(--txt);border-radius:999px;padding:8px 16px;min-height:42px;transition:transform .12s,border-color .12s,background .12s}
+button:hover:not(:disabled){border-color:var(--txt);transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--sun);border-color:var(--sun);color:var(--ink);font-weight:700}
+.stage{border-radius:20px;overflow:hidden;border:2px solid var(--line);background:#000;position:relative}
+canvas{display:block;width:100%}
+#scene{aspect-ratio:960/430}
+.bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px;background:var(--card);border-top:2px solid var(--line)}
+.go{background:var(--coral);border-color:var(--coral);color:var(--ink);font:900 .9rem var(--display);text-transform:uppercase;padding:10px 20px}
+.go:hover:not(:disabled){border-color:var(--sun)}
+input[type=range]{width:100%;accent-color:var(--sun);height:28px}
+.clock{font:900 1.3rem var(--display);min-width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+.speed{display:flex;gap:4px}
+.speed button{padding:6px 10px;min-height:34px;font-size:.8rem}
+.cols{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:16px}
+@media(max-width:780px){.cols{grid-template-columns:minmax(0,1fr)}.bar{grid-template-columns:1fr 1fr}.bar input{grid-column:1/-1;order:3}}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;min-width:0}
+.lab{font:700 .72rem var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 12px;display:flex;justify-content:space-between;gap:8px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{border-radius:14px;padding:12px;background:var(--card2);border:2px solid var(--line);display:grid;gap:6px;position:relative;overflow:hidden}
+.tile::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--c)}
+.tile b{font:900 .85rem var(--display);text-transform:uppercase;color:var(--c)}
+.tile small{color:var(--mute);font-size:.8rem;line-height:1.3}
+.tile .cost{font-size:.75rem;color:var(--txt);opacity:.8}
+.ctr{display:flex;align-items:center;justify-content:space-between;margin-top:2px}
+.ctr button{width:42px;padding:0;font-size:1.3rem;font-weight:700}
+.ctr output{font:900 1.6rem var(--display);font-variant-numeric:tabular-nums}
+.wx{display:flex;flex-wrap:wrap;gap:8px}
+.money{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:14px}
+.money strong{font:900 1.3rem var(--display)}
+.meter{height:12px;background:var(--card2);border-radius:8px;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;width:0;background:var(--sun);transition:width .25s;border-radius:8px}
+#chart{height:200px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.stat{background:var(--card2);border-radius:12px;padding:10px}
+.stat b{display:block;font:900 1.25rem var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:.75rem;color:var(--mute)}
+.msg{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--card2);min-height:3.2em}
+.stars{font-size:1.8rem;letter-spacing:.18em;color:var(--sun)}
+.quiz{display:grid;gap:10px}
+.quiz h3{font:900 1rem/1.3 var(--display);margin:0;text-transform:uppercase}
+.opts{display:grid;gap:8px}
+.opts button{border-radius:14px;text-align:left;padding:10px 14px}
+.opts button.ok{background:var(--teal);border-color:var(--teal);color:var(--ink);font-weight:700}
+.opts button.no{background:var(--coral);border-color:var(--coral);color:var(--ink)}
+.fact{color:var(--mute);font-size:.9rem}
+.foot{color:var(--mute);font-size:.82rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Power the <em>Town</em></h1>
+      <p class="sub">Renewable energy never runs out and pollutes far less. But the sun sets and the wind drops. Build the right mix and keep every light on for 24 hours.</p>
+    </div>
+    <div class="lvls" role="group" aria-label="Level">
+      <button data-lv="0" aria-pressed="true">Village</button>
+      <button data-lv="1" aria-pressed="false">Town</button>
+      <button data-lv="2" aria-pressed="false">City</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="scene" role="img" aria-label="Animated island with the energy sources you built and a town whose windows light up when it has power"></canvas>
+    <div class="bar">
+      <button class="go" id="go">Start the day</button>
+      <input type="range" id="scrub" min="0" max="24" step="0.05" value="6" aria-label="Time of day">
+      <div style="display:flex;gap:10px;align-items:center;justify-content:flex-end">
+        <div class="speed" id="speed" role="group" aria-label="Speed"><button data-s="1.5" aria-pressed="false">1x</button><button data-s="3" aria-pressed="true">2x</button><button data-s="6" aria-pressed="false">4x</button></div>
+        <div class="clock" id="clock">06:00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <p class="lab"><span>1. Build your energy mix</span><span id="mission"></span></p>
+      <div class="tiles" id="tiles"></div>
+      <div class="money"><span class="lab" style="margin:0">Budget used</span><strong id="spent">0 / 0</strong></div>
+      <div class="meter"><i id="mbar"></i></div>
+      <p class="lab" style="margin-top:18px"><span>2. Choose the weather</span></p>
+      <div class="wx" id="wx" role="group" aria-label="Weather"></div>
+    </div>
+    <div class="panel">
+      <p class="lab"><span>The whole day at a glance</span></p>
+      <canvas id="chart" role="img" aria-label="Chart of power supplied against town demand over 24 hours"></canvas>
+      <div class="legend" id="legend"></div>
+      <div class="stats">
+        <div class="stat"><b id="sHours">-</b><span>hours powered</span></div>
+        <div class="stat"><b id="sWaste">-</b><span>energy wasted</span></div>
+        <div class="stat"><b id="sBio">-</b><span>from biomass</span></div>
+      </div>
+      <div class="msg" id="msg" aria-live="polite">Drag the time slider to peek at any hour, or press Start the day to watch it play.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="quizBox" hidden>
+    <p class="lab"><span>Quick check</span><span id="badges"></span></p>
+    <div class="quiz" id="quiz"></div>
+  </div>
+  <p class="foot">Each unit is 1 megawatt of capacity. Costs and output curves are simplified for learning.</p>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const SRC=[
+ {id:'solar',n:'Solar',c:'--sun',cost:8,how:'Sunlight. Strong at midday, nothing at night.'},
+ {id:'wind',n:'Wind',c:'--teal',cost:6,how:'Wind turns turbines. Cheap, but moody.'},
+ {id:'hydro',n:'Hydroelectric',c:'--blue',cost:12,how:'Moving water drives generators. Loves rain.'},
+ {id:'geo',n:'Geothermal',c:'--coral',cost:15,how:'Heat from inside the Earth. Steady all day and night.'},
+ {id:'bio',n:'Biomass',c:'--lime',cost:10,how:'Plants and waste. Always ready, but burning makes smoke.'}
+];
+const WX=[
+ {id:'sunny',n:'Sunny',sun:1,wind:.4,hydro:.7},
+ {id:'windy',n:'Windy',sun:.5,wind:1,hydro:.8},
+ {id:'rainy',n:'Rainy',sun:.2,wind:.6,hydro:1},
+ {id:'still',n:'Still and dry',sun:.8,wind:.1,hydro:.45}
+];
+const LV=[
+ {scale:12,budget:150,mission:'Mission: a quiet village',msg:'A quiet village. Easy start.'},
+ {scale:18,budget:230,mission:'Mission: a growing town',msg:'A growing town needs more power.'},
+ {scale:26,budget:340,mission:'Mission: a big city, surprise weather',msg:'A big city. The weather is a surprise and storms can hit mid-day.'}
+];
+const QZ=[
+ {q:'What makes an energy source renewable?',a:'It is replenished naturally, so it will not run out',w:['It only works at night','It is made from oil and coal'],f:'Renewable resources are replenished naturally, so they will not run out.'},
+ {q:'Which source uses heat from inside the Earth?',a:'Geothermal energy',w:['Solar energy','Wind energy'],f:'Geothermal energy comes from heat inside the Earth.'},
+ {q:'Which source is made from plants and waste?',a:'Biomass',w:['Hydroelectric energy','Solar energy'],f:'Biomass comes from plants and waste.'},
+ {q:'What drives the generators in a hydroelectric plant?',a:'Moving water',w:['Sunlight','Underground steam only'],f:'Moving water drives the generators.'},
+ {q:'Why are renewable resources better for the environment?',a:'They cause less pollution',w:['They never need any equipment','They only work in cities'],f:'They are better for the environment because there is less pollution.'},
+ {q:'Which source stops producing when the sun goes down?',a:'Solar energy',w:['Geothermal energy','Biomass'],f:'Solar energy depends on sunlight, so it needs backup at night.'}
+];
+let S={lv:0,wx:0,counts:{solar:2,wind:2},hour:6,playing:false,tracking:false,speed:3,evs:[],w:WX[0],rot:0,t:0,res:null,quizN:0,badges:0,confetti:[]};
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const mix=(a,b,t)=>{const A=hex(a),B=hex(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
+const SKY=[[0,'#070b22','#16224f'],[5,'#1d1f5c','#e0705a'],[7,'#4f9be0','#ffd9a0'],[12,'#2a85e8','#b4e3ff'],[17,'#4a8fe0','#ffc27a'],[19,'#4a2466','#ff7a5a'],[21,'#070b22','#16224f'],[24,'#070b22','#16224f']];
+function sky(h){for(let i=0;i<SKY.length-1;i++){const a=SKY[i],b=SKY[i+1];if(h>=a[0]&&h<=b[0]){const t=(h-a[0])/(b[0]-a[0]);return[mix(a[1],b[1],t),mix(a[2],b[2],t)]}}return[SKY[0][1],SKY[0][2]]}
+const dayF=h=>Math.max(0,Math.min(1,Math.sin(Math.PI*(h-6)/12)*1.6));
+const gauss=(h,m,s)=>Math.exp(-((h-m)**2)/(2*s*s));
+const demand=h=>LV[S.lv].scale*(.5+.3*gauss(h,8,2)+.5*gauss(h,19,2.6));
+const getW=()=>S.lv===2?S.w:WX[S.wx];
+function evAt(h){const e={cloud:false,calm:false};S.evs.forEach(v=>{if(h>=v.from&&h<v.to)e[v.type]=true});return e}
+function out(id,h,w,ev){
+  const k=S.counts[id]||0;
+  if(id==='solar')return k*Math.max(0,Math.sin(Math.PI*(h-6)/12))*w.sun*(ev.cloud?.25:1);
+  if(id==='wind')return k*w.wind*(.65+.35*Math.sin(h*.8+1))*(ev.calm?.1:1);
+  if(id==='hydro')return k*w.hydro;
+  return k;
+}
+const parts=h=>{const w=getW(),ev=evAt(h);return SRC.map(s=>out(s.id,h,w,ev))};
+const spent=()=>SRC.reduce((a,s)=>a+s.cost*(S.counts[s.id]||0),0);
+function compute(){const rows=[];let ok=0,waste=0,tot=0,bio=0;
+  for(let h=0;h<24;h++){const p=parts(h+.5),sup=p.reduce((a,b)=>a+b,0),d=demand(h+.5);
+    if(sup>=d-.001)ok++;waste+=Math.max(0,sup-d);tot+=sup;bio+=p[4];rows.push({p,sup,d})}
+  return{rows,ok,waste:tot?waste/tot:0,bio:tot?bio/tot:0}}
+
+/* ---------- UI ---------- */
+function buildUI(){
+  $('tiles').innerHTML=SRC.map(s=>`<div class="tile" style="--c:var(${s.c})"><b>${s.n}</b><small>${s.how}</small><span class="cost">${s.cost} coins per unit</span>
+  <div class="ctr"><button aria-label="Remove ${s.n}" data-d="-1" data-s="${s.id}">&minus;</button><output id="n-${s.id}">0</output><button aria-label="Add ${s.n}" data-d="1" data-s="${s.id}">+</button></div></div>`).join('');
+  $('tiles').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+    const id=b.dataset.s,d=+b.dataset.d,n=(S.counts[id]||0)+d;
+    if(n<0||n>10)return;
+    if(d>0&&spent()+SRC.find(s=>s.id===id).cost>LV[S.lv].budget){say('Out of budget. Remove something or choose a cheaper source.');return}
+    S.counts[id]=n;resetRun();refresh()};
+  $('wx').innerHTML=WX.map((x,i)=>`<button data-i="${i}" aria-pressed="false">${x.n}</button>`).join('');
+  $('wx').onclick=e=>{const b=e.target.closest('button');if(!b||S.lv===2)return;S.wx=+b.dataset.i;resetRun();refresh()};
+  $('legend').innerHTML=SRC.map(s=>`<span><i style="background:var(${s.c})"></i>${s.n}</span>`).join('')+'<span><i style="background:#fff"></i>Town needs</span>';
+}
+function refresh(){
+  SRC.forEach(s=>$('n-'+s.id).textContent=S.counts[s.id]||0);
+  const sp=spent(),b=LV[S.lv].budget;$('spent').textContent=sp+' / '+b;$('mbar').style.width=Math.min(100,sp/b*100)+'%';
+  [...$('wx').children].forEach((x,i)=>{x.setAttribute('aria-pressed',S.lv===2?false:i===S.wx);x.disabled=S.lv===2});
+  $('mission').textContent=LV[S.lv].mission;
+  $('badges').textContent=S.badges?('Energy Expert badges: '+S.badges):'';
+}
+const say=t=>$('msg').innerHTML=t;
+function resetRun(){S.playing=false;S.tracking=false;S.res=null;$('go').textContent='Start the day';['sHours','sWaste','sBio'].forEach(i=>$(i).textContent='-')}
+document.querySelectorAll('.lvls button').forEach(b=>b.onclick=()=>{
+  S.lv=+b.dataset.lv;document.querySelectorAll('.lvls button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  S.counts={};S.evs=[];S.w=WX[0];S.hour=6;resetRun();$('quizBox').hidden=true;refresh();say(LV[S.lv].msg+' Build your mix, then start the day.')});
+document.querySelectorAll('#speed button').forEach(b=>b.onclick=()=>{S.speed=+b.dataset.s;document.querySelectorAll('#speed button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+$('scrub').oninput=e=>{S.hour=+e.target.value;S.playing=false;S.tracking=false;$('go').textContent='Start the day'};
+$('go').onclick=()=>{
+  if(S.playing){S.playing=false;$('go').textContent='Resume';return}
+  if(!S.tracking||S.hour>=24){
+    S.hour=0;S.tracking=true;$('quizBox').hidden=true;S.res=null;
+    if(S.lv===2){S.w=WX[Math.floor(Math.random()*WX.length)];const a=8+Math.floor(Math.random()*5),b=15+Math.floor(Math.random()*5);S.evs=[{type:'cloud',from:a,to:a+3},{type:'calm',from:b,to:b+3}]}
+    else S.evs=[];
+    say('The day begins...')
+  }
+  S.playing=true;$('go').textContent='Pause';
+};
+function finishDay(){
+  const c=compute();S.res=c;const bioP=Math.round(c.bio*100),waste=Math.round(c.waste*100),miss=24-c.ok;
+  $('sHours').textContent=c.ok+' / 24';$('sWaste').textContent=waste+'%';$('sBio').textContent=bioP+'%';
+  let stars=0;if(miss===0){stars=1;if(waste<=35)stars++;if(bioP<=30)stars++}
+  let t;
+  if(miss===0){t=`<span class="stars">${'&#9733;'.repeat(stars)}${'&#9734;'.repeat(3-stars)}</span><br>Lights on all day. `+(stars===3?'Clean, efficient and reliable. Excellent engineering!':(waste>35?'You built more than the town needs. Try wasting less.':'Try burning less biomass and using more sun, wind, water and heat.'));
+    if(stars===3&&!reduce)for(let i=0;i<120;i++)S.confetti.push({x:480+Math.random()*60-30,y:300,vx:(Math.random()-.5)*380,vy:-Math.random()*420-120,c:['--sun','--coral','--teal','--blue','--lime','--pink'][i%6],l:2.6})}
+  else{const first=c.rows.findIndex(r=>r.sup<r.d-.001),night=first<6||first>20,w=getW();
+    t=`Blackout in ${miss} hour${miss>1?'s':''}, starting at ${first}:00. `+(S.evs.length&&evAt(first+.5).cloud?'A cloud front cut your solar. Spread the risk with other sources.':night&&!(S.counts.geo||0)?'Solar sleeps at night. Add geothermal or biomass for steady power.':w.wind<.3&&(S.counts.wind||0)>(S.counts.geo||0)?'The wind dropped. Do not rely on one source.':'Add capacity where the white line rises above the bars.')}
+  say(t);S.tracking=false;$('go').textContent='Start the day';showQuiz();
+}
+function showQuiz(){
+  const q=QZ[S.quizN++%QZ.length],opts=[q.a,...q.w].sort(()=>Math.random()-.5);
+  $('quizBox').hidden=false;
+  $('quiz').innerHTML=`<h3>${q.q}</h3><div class="opts">${opts.map(o=>`<button>${o}</button>`).join('')}</div><p class="fact" id="fact"></p>`;
+  $('quiz').querySelector('.opts').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+    const right=b.textContent===q.a;[...$('quiz').querySelectorAll('.opts button')].forEach(x=>{x.disabled=true;if(x.textContent===q.a)x.classList.add('ok')});
+    if(!right)b.classList.add('no');else{S.badges++;refresh()}
+    $('fact').textContent=(right?'Correct! ':'Not quite. ')+q.f}
+}
+
+/* ---------- Scene ---------- */
+const sc=$('scene'),sx=sc.getContext('2d'),ch=$('chart'),cx=ch.getContext('2d');
+const BH=[52,78,60,96,70,84,58,90,66,80,56,72],BC=['#ff8a65','#ffd166','#06d6a0','#4cc9f0','#f78fb3','#ffb74d'];
+const stars=Array.from({length:70},(_,i)=>[(i*137.5)%960,(i*53)%230,.6+(i%3)*.5]);
+const midY=x=>300+Math.sin(x*.012+1)*20;
+function size(c){const d=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(c.width!==Math.round(w*d)||c.height!==Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d)}return[w,h,d]}
+function hill(c,W,y,amp,fr,ph,col){c.fillStyle=col;c.beginPath();c.moveTo(0,430);for(let x=0;x<=W;x+=12)c.lineTo(x,y+Math.sin(x*fr+ph)*amp);c.lineTo(W,430);c.fill()}
+function cloud(c,x,y,s,col,a){c.globalAlpha=a;c.fillStyle=col;[[0,0,22],[24,-8,28],[52,0,22],[26,6,26]].forEach(([dx,dy,r])=>{c.beginPath();c.arc(x+dx*s,y+dy*s,r*s,0,7);c.fill()});c.globalAlpha=1}
+function drawScene(dt){
+  const[Wp,Hp,d]=size(sc),k=Wp/960;sx.setTransform(d*k,0,0,d*k,0,0);
+  const c=sx,h=S.hour%24||(S.hour>=24?23.99:0),w=getW(),ev=evAt(h),df=dayF(h),night=1-df*.9;
+  const[t1,t2]=sky(h);const g=c.createLinearGradient(0,0,0,340);g.addColorStop(0,t1);g.addColorStop(1,t2);c.fillStyle=g;c.fillRect(0,0,960,430);
+  if(df<.5){c.fillStyle='#fff';stars.forEach(([x,y,r])=>{c.globalAlpha=(.5-df)*1.6*(.5+.5*Math.sin(S.t*2+x));c.fillRect(x,y,r,r)});c.globalAlpha=1}
+  // sun and moon
+  const up=h>=6&&h<=18,tt=up?(h-6)/12:(((h+6)%24)/12);const bx=60+tt*840,by=300-Math.sin(Math.PI*Math.min(1,Math.max(0,tt)))*230;
+  if(up){const gg=c.createRadialGradient(bx,by,10,bx,by,90);gg.addColorStop(0,'rgba(255,214,102,.65)');gg.addColorStop(1,'rgba(255,214,102,0)');c.fillStyle=gg;c.fillRect(bx-100,by-100,200,200);c.fillStyle='#ffd45e';c.beginPath();c.arc(bx,by,26,0,7);c.fill()}
+  else{c.fillStyle='#f3f1e0';c.beginPath();c.arc(bx,by,20,0,7);c.fill();c.fillStyle=t1;c.beginPath();c.arc(bx+8,by-4,18,0,7);c.fill()}
+  // clouds
+  const nc=ev.cloud?7:({sunny:2,windy:4,rainy:7,still:1})[w.id];const cc=mix('#ffffff',w.id==='rainy'||ev.cloud?'#5c688a':'#dfe8ff',1);
+  for(let i=0;i<nc;i++){const x=((i*173+S.t*(6+w.wind*26))%1160)-130,y=36+(i*41)%100;cloud(c,x,y,.8+(i%3)*.25,mix(cc,'#0b1020',night*.65),.9)}
+  // hills
+  hill(c,960,262,26,.008,0,mix('#4f6fb0','#10183a',night));hill(c,960,300,20,.012,1,mix('#36a76b','#0f2a30',night));
+  // pond
+  c.fillStyle=mix('#3a8ee6','#102a5c',night);c.beginPath();c.roundRect(600,326,340,22,10);c.fill();
+  // hydro dams
+  const nh=Math.min(S.counts.hydro||0,6),flow=w.hydro;
+  for(let i=0;i<nh;i++){const x=612+i*52,y=midY(x)-4;c.fillStyle=mix('#cfd6e6','#2a3350',night*.8);c.fillRect(x,y,40,26);c.fillStyle=css('--blue');c.globalAlpha=.9;
+    for(let j=0;j<5;j++){const yy=y+((S.t*60*flow+j*9)%26);c.fillRect(x+6+j*7,yy,3,8)}c.globalAlpha=1;
+    c.fillStyle=css('--blue');c.fillRect(x+3,y-5,34,5)}
+  // geothermal
+  const ng=Math.min(S.counts.geo||0,6);
+  for(let i=0;i<ng;i++){const x=270+i*26,y=midY(x);c.fillStyle=mix('#e6dfd0','#2a3350',night*.8);c.fillRect(x,y-14,20,18);c.fillStyle=css('--coral');c.fillRect(x+3,y-20,6,6);
+    for(let j=0;j<4;j++){const p=((S.t*.7+j*.25+i*.13)%1);c.globalAlpha=(1-p)*.7;c.fillStyle='#fff';c.beginPath();c.arc(x+6+Math.sin(p*5+i)*5,y-22-p*50,5+p*9,0,7);c.fill()}c.globalAlpha=1}
+  // biomass
+  const nb=Math.min(S.counts.bio||0,5);
+  for(let i=0;i<nb;i++){const x=440+i*32,y=midY(x);c.fillStyle=mix('#d6c29a','#2a3350',night*.8);c.fillRect(x,y-16,26,20);c.fillStyle=mix('#7a6a50','#1a2038',night*.6);c.fillRect(x+16,y-34,7,20);
+    for(let j=0;j<5;j++){const p=((S.t*.45+j*.2+i*.17)%1);c.globalAlpha=(1-p)*.6;c.fillStyle=mix('#9aa0b0','#20263c',night*.6);c.beginPath();c.arc(x+20+p*30,y-38-p*46,4+p*10,0,7);c.fill()}c.globalAlpha=1}
+  // turbines
+  const nw=Math.min(S.counts.wind||0,10),wf=nw?w.wind*(ev.calm?.1:1)*(.65+.35*Math.sin(h*.8+1)):0;
+  if(!reduce)S.rot+=dt*(.3+9*wf);
+  for(let i=0;i<nw;i++){const x=24+i*23,y=midY(x)+(i%2?6:0),th=44+(i%3)*8;c.strokeStyle=mix('#f2f4ff','#3a4468',night*.7);c.lineWidth=2.5;c.beginPath();c.moveTo(x,y);c.lineTo(x,y-th);c.stroke();
+    for(let b=0;b<3;b++){const a=S.rot+b*2.094+i;c.beginPath();c.moveTo(x,y-th);c.lineTo(x+Math.cos(a)*20,y-th+Math.sin(a)*20);c.stroke()}}
+  // ground
+  c.fillStyle=mix('#2f9b5e','#0d2a26',night);c.fillRect(0,340,960,90);
+  // solar
+  const ns=Math.min(S.counts.solar||0,12),sg=dayF(h)*w.sun*(ev.cloud?.25:1);
+  for(let i=0;i<ns;i++){const col=i%6,row=Math.floor(i/6),x=20+col*42+row*14,y=356+row*28;c.fillStyle=mix('#1d3b8f','#0a1330',night*.7);c.beginPath();c.moveTo(x+6,y);c.lineTo(x+40,y);c.lineTo(x+34,y+18);c.lineTo(x,y+18);c.fill();
+    c.strokeStyle='rgba(255,255,255,.25)';c.lineWidth=1;c.beginPath();c.moveTo(x+23,y);c.lineTo(x+17,y+18);c.moveTo(x+3,y+9);c.lineTo(x+37,y+9);c.stroke();
+    if(sg>.15){c.fillStyle='rgba(255,230,140,'+(sg*.7)+')';c.beginPath();c.arc(x+10+(S.t*14+i*9)%24,y+5,2.5,0,7);c.fill()}}
+  // power now
+  const p=parts(h),sup=p.reduce((a,b)=>a+b,0),dem=demand(h),lit=Math.min(1,sup/dem),blackout=sup<dem-.001;
+  // town
+  for(let b=0;b<12;b++){const x=330+b*51,bh=BH[b],y=418-bh;c.fillStyle=mix(BC[b%6],'#0b1020',night*.62);c.fillRect(x,y,44,bh);
+    const rows=Math.floor((bh-8)/16);
+    for(let r=0;r<rows;r++)for(let q=0;q<3;q++){const wr=((b*13+r*7+q*5)%17)/17;let on=wr<lit;if(!on&&blackout&&Math.sin(S.t*9+b*3+r+q)>.97)on=true;
+      c.fillStyle=on?'#ffe08a':mix('#2a3350','#0b1020',night*.5);c.fillRect(x+6+q*12,y+8+r*16,8,10)}}
+  // rain
+  if(w.id==='rainy'||ev.cloud&&w.id!=='sunny'){c.strokeStyle='rgba(190,215,255,.55)';c.lineWidth=1.5;c.beginPath();for(let i=0;i<70;i++){const x=(i*47+S.t*40)%960,y=((i*91+S.t*380)%330);c.moveTo(x,y);c.lineTo(x-4,y+12)}c.stroke()}
+  // HUD
+  c.fillStyle='rgba(11,16,32,.72)';c.beginPath();c.roundRect(14,14,170,52,14);c.fill();
+  c.fillStyle='#f6f1e6';c.font='900 30px Unbounded,Arial Black,sans-serif';c.textBaseline='middle';
+  const hh=Math.floor(h),mm=Math.floor((h-hh)*60);c.fillText(String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'),28,41);
+  c.fillStyle='rgba(11,16,32,.72)';c.beginPath();c.roundRect(700,14,246,66,14);c.fill();
+  c.font='700 13px Figtree,sans-serif';c.fillStyle='#a2acd0';c.fillText('SUPPLY',714,32);c.fillText('NEEDS',830,32);
+  c.font='900 20px Unbounded,sans-serif';c.fillStyle=blackout?css('--coral'):css('--teal');c.fillText(sup.toFixed(1),714,54);c.fillStyle='#fff';c.fillText(dem.toFixed(1),830,54);
+  c.fillStyle='#2b3668';c.fillRect(714,68,218,5);c.fillStyle=blackout?css('--coral'):css('--teal');c.fillRect(714,68,218*lit,5);
+  if(blackout){c.globalAlpha=.55+.45*Math.sin(S.t*8);c.fillStyle=css('--coral');c.beginPath();c.roundRect(380,16,200,32,16);c.fill();c.globalAlpha=1;c.fillStyle='#0b1020';c.font='900 14px Unbounded,sans-serif';c.textAlign='center';c.fillText('BLACKOUT',480,32);c.textAlign='left'}
+  if(ev.cloud||ev.calm){c.fillStyle='rgba(11,16,32,.8)';c.beginPath();c.roundRect(300,56,360,30,15);c.fill();c.fillStyle=css('--sun');c.font='700 14px Figtree,sans-serif';c.textAlign='center';c.fillText(ev.cloud?'Cloud front: solar output drops':'Wind lull: turbines slow',480,71);c.textAlign='left'}
+  // confetti
+  S.confetti=S.confetti.filter(f=>f.l>0);S.confetti.forEach(f=>{f.vy+=600*dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.l-=dt;c.fillStyle=css(f.c);c.fillRect(f.x,f.y,7,4)});
+}
+function drawChart(){
+  const[W,H,d]=size(ch),c=cx;c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,W,H);
+  const L=30,B=20,T=6,R=4,pw=W-L-R,ph=H-B-T;const cp=compute(),rows=cp.rows;
+  const mx=Math.max(10,...rows.map(r=>Math.max(r.sup,r.d)))*1.1,X=x=>L+x/24*pw,Y=v=>T+ph-v/mx*ph;
+  c.font='11px Figtree,sans-serif';c.fillStyle=css('--mute');c.strokeStyle=css('--line');c.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=Y(mx*i/4);c.beginPath();c.moveTo(L,y);c.lineTo(W-R,y);c.stroke();c.fillText(Math.round(mx*i/4),2,y+4)}
+  [0,6,12,18,24].forEach(h=>c.fillText(h,X(h)-4,H-5));
+  const bw=pw/24*.82;
+  rows.forEach((r,i)=>{let y0=0;r.p.forEach((v,j)=>{c.fillStyle=css(SRC[j].c);c.fillRect(X(i)+(pw/24-bw)/2,Y(y0+v),bw,Y(y0)-Y(y0+v));y0+=v});
+    if(r.sup<r.d-.001){c.fillStyle=css('--coral');c.fillRect(X(i)+(pw/24-bw)/2,Y(r.d)-3,bw,3)}});
+  c.strokeStyle='#fff';c.lineWidth=2.5;c.setLineDash([6,4]);c.beginPath();rows.forEach((r,i)=>{const x=X(i+.5),y=Y(r.d);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.setLineDash([]);
+  c.strokeStyle=css('--sun');c.lineWidth=2;c.beginPath();c.moveTo(X(S.hour),T);c.lineTo(X(S.hour),T+ph);c.stroke();
+}
+let last=0;
+function frame(t){
+  const dt=Math.min(.05,(t-last)/1000||0);last=t;S.t+=dt;
+  if(S.playing){S.hour+=dt*S.speed;if(S.hour>=24){S.hour=24;S.playing=false;$('scrub').value=24;if(S.tracking)finishDay()}$('scrub').value=S.hour}
+  const h=S.hour%24,hh=Math.floor(h),mm=Math.floor((h-hh)*60);$('clock').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  drawScene(dt);drawChart();requestAnimationFrame(frame)
+}
+buildUI();refresh();$('scrub').value=S.hour;requestAnimationFrame(frame);
+</script>
