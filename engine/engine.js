@@ -513,18 +513,33 @@ export async function mountActivity({ simulation = {} } = {}) {
   const recFab = el("button", "recfab no-print", ""); recFab.type = "button"; recFab.hidden = true; recFab.setAttribute("aria-expanded", "false");
   const recDrawer = el("aside", "recdrawer no-print"); recDrawer.hidden = true; recDrawer.setAttribute("aria-label", rl("My records", "Mis registros"));
   const recHead = el("div", "recdrawer__head"); const recClose = el("button", "btn btn--ghost", rl("Close", "Cerrar")); recClose.type = "button";
-  recHead.append(el("strong", null, rl("My records", "Mis registros")), recClose);
-  const recBody = el("div", "recdrawer__body"); recBody._open = true; evWraps.push(recBody);
-  recDrawer.append(recHead, recBody); document.body.append(recFab, recDrawer);
+  recHead.append(el("strong", null, rl("My records and goals", "Mis registros y metas")), recClose);
+  const recNotes = el("div", "recdrawer__notes"); const recBody = el("div", "recdrawer__body"); recBody._open = true; evWraps.push(recBody);
+  recDrawer.append(recHead, recNotes, recBody); document.body.append(recFab, recDrawer);
   function setRecDrawer(open) { recDrawer.hidden = !open; recFab.setAttribute("aria-expanded", String(open)); document.body.classList.toggle("recdrawer-open", open); if (open) recClose.focus(); else if (!recFab.hidden) recFab.focus(); }
-  recFab.addEventListener("click", () => setRecDrawer(recDrawer.hidden));
+  recFab.addEventListener("click", () => { updateRecDrawer(); setRecDrawer(recDrawer.hidden); });
   recClose.addEventListener("click", () => setRecDrawer(false));
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !recDrawer.hidden) setRecDrawer(false); });
+  function renderRecNotes(id) {
+    recNotes.textContent = "";
+    const goals = (config.orient || {}).successCriteria || [];
+    if (goals.length) {
+      const d = el("details", "evpanel card"); d.append(el("summary", "evpanel__sum", rl("What I am aiming for", "A qué apunto")));
+      const ul = el("ul"); goals.forEach(g => ul.append(el("li", null, g))); d.append(ul); recNotes.append(d);
+    }
+    if (id === "apply" && state.explain) {
+      const d = el("details", "evpanel card"); d.open = true; d.append(el("summary", "evpanel__sum", rl("My Explain answer", "Mi respuesta de Explicar")));
+      d.append(el("p", null, state.explain)); recNotes.append(d);
+    }
+  }
   function updateRecDrawer() {
     const id = (STAGES[state.stage || 0] || [])[0];
-    const show = state.trials.length > 0 && ((config.record || {}).columns || []).length > 0 && id && id !== "record" && id !== "evidence";
-    recFab.hidden = !show; recFab.textContent = rl("My records", "Mis registros") + " (" + state.trials.length + ")";
+    const hasRec = state.trials.length > 0 && ((config.record || {}).columns || []).length > 0;
+    const hasGoals = ((config.orient || {}).successCriteria || []).length > 0;
+    const show = (hasRec || hasGoals) && id && id !== "record" && id !== "evidence" && id !== "orient";
+    recFab.hidden = !show; recFab.textContent = hasRec ? rl("My records", "Mis registros") + " (" + state.trials.length + ")" : rl("My goals", "Mis metas");
     if (!show && !recDrawer.hidden) setRecDrawer(false);
+    renderRecNotes(id);
   }
   buildOrient(stageEls.orient);
   if (hasExpandedMethod) { buildObservation(stageEls.observation); buildQuestion(stageEls.question); }
@@ -1950,6 +1965,8 @@ function injectEngineStyles() {
   .recfab[hidden],.recdrawer[hidden]{display:none}
   .recdrawer{position:fixed;top:0;right:0;bottom:0;z-index:70;width:min(420px,100vw);display:flex;flex-direction:column;background:var(--paper,#fff);border-left:3px solid var(--accent);box-shadow:-10px 0 28px rgba(0,0,0,.22)}
   .recdrawer__head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line,#ccd)}
+  .recdrawer__notes{padding:12px 12px 0;overflow:auto;max-height:40vh}
+  .recdrawer__notes .evpanel{margin-bottom:var(--sp-3)}
   .recdrawer__body{flex:1;overflow:auto;padding:12px}
   .recdrawer__body .evpanel{margin-bottom:0}
   @media(min-width:1100px){body.recdrawer-open #main{padding-right:440px}}
