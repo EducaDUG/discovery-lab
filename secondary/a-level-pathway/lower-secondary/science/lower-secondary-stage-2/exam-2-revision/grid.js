@@ -3,7 +3,7 @@
    - Game state runs on setInterval wall-clock time, never requestAnimationFrame.
    - No lives and no fail state: a blackout hour just scores fewer points and names how to fix it.
    - Source cards are real <button>s with real photos (keys 1-7 mirror them). Has its own mute button. */
-import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=20";
+import { ttsEnabled, setTTS } from "../../../../../../engine/accessibility.js?v=21";
 import { T } from "../../../../../../engine/revision-kit.js?v=12";
 
 const HOUR_MS = 5000, HOURS = 24;

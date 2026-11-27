@@ -380,7 +380,7 @@ function buildPanel(prefs, update) {
 
   /* Spanish read-aloud voice (shown when Spanish voices exist on this device) */
   if (speech) {
-    if (naturalSupported()) panel.append(toggleRow(L("Natural voice (free)", "Voz natural (gratis)"), L("Realistic voices that run on your device. Downloads about 60–80 MB the first time you use each voice, then works offline. Turn off to use your browser's own voice.", "Voces realistas que funcionan en tu dispositivo. Descarga unos 60–80 MB la primera vez que usas cada voz y luego funciona sin conexión. Desactívala para usar la voz de tu navegador."), prefs.natural !== false, on => update({ natural: on })));
+    if (naturalSupported()) panel.append(toggleRow(L("Natural voice", "Voz natural"), L("Realistic voices that run on your device. Downloads about 60–80 MB the first time you use each voice, then works offline. Turn off to use your browser's own voice.", "Voces realistas que funcionan en tu dispositivo. Descarga unos 60–80 MB la primera vez que usas cada voz y luego funciona sin conexión. Desactívala para usar la voz de tu navegador."), prefs.natural !== false, on => update({ natural: on })));
     const voxEs = el("div", "a11y-loc"), voxEn = el("div", "a11y-loc");
     voxEs.append(segmented(L("Spanish voice accent", "Acento de la voz en español"), [
       ["auto", "Auto"], ["spain", L("Spain", "España")], ["latam", L("Latin America", "Latinoamérica")]], prefs.esRegion || "auto", v => update({ esRegion: v })));
