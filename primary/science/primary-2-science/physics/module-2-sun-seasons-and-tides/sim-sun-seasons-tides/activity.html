@@ -234,7 +234,7 @@ function loadTex(url) { const t = texLoader().load(url); t.encoding = THREE.sRGB
 function makeSpace(stage, o) {
   if (!THREE_OK || !hasWebGL()) { const n = document.createElement("div"); n.className = "ssl-nogl"; n.textContent = L("3D view not available on this device — the controls and readings below still work.", "La vista 3D no está disponible en este dispositivo — los controles y las lecturas de abajo siguen funcionando."); stage.append(n); return null; }
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2));
   renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
   renderer.domElement.className = "ssl-gl"; stage.append(renderer.domElement);
   const scene = new THREE.Scene(); scene.add(makeStarField(1600, 90));
@@ -251,7 +251,7 @@ function makeSpace(stage, o) {
     const w = stage.clientWidth || 600, h = stage.clientHeight || 360;
     renderer.setSize(w, h, false); camera.aspect = w / h; ob.fit = Math.max(1, 1.15 / camera.aspect); camera.updateProjectionMatrix();
   }
-  window.addEventListener("resize", resize); resize();
+  window.addEventListener("resize", resize); resize(); if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
   function frame(now) {
     if (!stage.isConnected) { alive = false; renderer.dispose(); return; }
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
