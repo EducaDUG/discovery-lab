@@ -504,6 +504,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     toast,
   };
 
+  const evWraps = []; /* live copies of the Record on Explain/Apply (see evidencePanel) */
   buildOrient(stageEls.orient);
   if (hasExpandedMethod) { buildObservation(stageEls.observation); buildQuestion(stageEls.question); }
   buildPredict(stageEls.predict);
@@ -774,7 +775,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     const empty = document.getElementById("record-empty");
     if (!table) return;
     table.textContent = "";
-    if (!state.trials.length) { empty.hidden = false; table.hidden = true; return; }
+    if (!state.trials.length) { empty.hidden = false; table.hidden = true; evWraps.forEach(fillEvidencePanel); return; }
     empty.hidden = true; table.hidden = false;
     const thead = el("thead"); const htr = el("tr");
     htr.append(el("th", null, "#"));
@@ -788,17 +789,28 @@ export async function mountActivity({ simulation = {} } = {}) {
       tb.append(tr);
     });
     table.append(tb);
+    evWraps.forEach(fillEvidencePanel);
   }
 
   /* Read-only copy of the Investigation Record shown on Explain/Apply so the
      student never flips back (CLAUDE.md §12.15). Rows can be pinned ("Use as
      evidence"); once any are pinned only those show, with a toggle for all. */
   function evidencePanel(host) {
+    const wrap = el("div", "evpanel-wrap"); host.append(wrap);
+    wrap._showAll = null; wrap._open = true; evWraps.push(wrap);
+    fillEvidencePanel(wrap);
+  }
+  /* Redrawn every time the trial log changes, so a student who does the
+     activity in one sitting (no trials when the page loaded) still sees their
+     records on Explain/Apply. Open/closed and "show all" are remembered. */
+  function fillEvidencePanel(wrap) {
     const cols = (config.record || {}).columns || [];
+    wrap.textContent = "";
     if (!state.trials.length || !cols.length) return;
     state.pinned = (state.pinned || []).filter(i => i < state.trials.length);
-    let showAll = !state.pinned.length;
-    const det = el("details", "evpanel card"); det.open = true;
+    if (wrap._showAll === null || !state.pinned.length) wrap._showAll = !state.pinned.length;
+    const det = el("details", "evpanel card"); det.open = wrap._open;
+    det.addEventListener("toggle", () => { wrap._open = det.open; });
     det.append(el("summary", "evpanel__sum", t("evpanel.title")));
     det.append(el("p", "evpanel__hint", t("evpanel.hint")));
     const bar = el("div", "cluster no-print");
@@ -806,7 +818,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     bar.append(tog);
     const scroll = el("div", "table-scroll");
     const table = el("table", "data-table");
-    scroll.append(table); det.append(bar, scroll); host.append(det);
+    scroll.append(table); det.append(bar, scroll); wrap.append(det);
     function draw() {
       table.textContent = "";
       const htr = el("tr"); htr.append(el("th", null, "#"));
@@ -816,7 +828,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       const tb = el("tbody");
       state.trials.forEach((row, i) => {
         const pinned = state.pinned.includes(i);
-        if (!showAll && !pinned) return;
+        if (!wrap._showAll && !pinned) return;
         const tr = el("tr"); if (pinned) tr.className = "evpanel__row--on";
         tr.append(el("td", null, String(i + 1)));
         cols.forEach(c => tr.append(el("td", null, row[c.key] == null ? "—" : String(row[c.key]))));
@@ -827,16 +839,16 @@ export async function mountActivity({ simulation = {} } = {}) {
         b.addEventListener("click", () => {
           const k = state.pinned.indexOf(i);
           if (k >= 0) state.pinned.splice(k, 1); else state.pinned.push(i);
-          if (!state.pinned.length) showAll = true;
-          save(); draw();
+          if (!state.pinned.length) wrap._showAll = true;
+          save(); evWraps.forEach(fillEvidencePanel);
         });
         td.append(b); tr.append(td); tb.append(tr);
       });
       table.append(tb);
       tog.hidden = !state.pinned.length;
-      tog.textContent = showAll ? t("evpanel.only", { n: state.pinned.length }) : t("evpanel.all");
+      tog.textContent = wrap._showAll ? t("evpanel.only", { n: state.pinned.length }) : t("evpanel.all");
     }
-    tog.addEventListener("click", () => { showAll = !showAll; draw(); });
+    tog.addEventListener("click", () => { wrap._showAll = !wrap._showAll; draw(); });
     draw();
   }
 

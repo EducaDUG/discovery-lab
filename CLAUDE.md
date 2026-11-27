@@ -1965,6 +1965,7 @@ Feedback: the Record stage (Investigation Record) and the Explain stage are sepa
 - **Selected-records carry-over:** where an activity's Record stage asks the student to pick/select a few records (key trials, best evidence), Explain and Apply show ONLY those selected records (with a small "show all records" toggle for reference). Activities with no selection step show the full compact records panel. The Record page itself stays unchanged.
 - **BUILT 2026-11-04 (engine v21):** `evidencePanel()` in `engine/engine.js` shows the records on Explain and Apply for every activity with `record.columns`. Students tap "Use" on trials; picks persist in `state.pinned` and later visits show only those, with a "Show all" toggle. Record page unchanged. Strings `evpanel.*` in `i18n.js` (en/es).
 - Implement once in `engine/engine.js` (shared evidence panel fed from the existing trial log), never per activity.
+- **Bug fixed 2026-11-27 (engine v26):** the panel was built once at page load and silently skipped when the trial log was empty, so a student who did the whole activity in one sitting never saw it on Explain/Apply (only after a reload). `fillEvidencePanel()` now redraws every panel from `refreshRecord()` whenever trials change. Lesson: any stage that mirrors live data must redraw on change, never be built once at load; test it by doing the activity then opening the stage, not by reloading.
 
 ### 12.16 Lesson from `sim-orchard-market-fraction-review` feedback - in-stage progress was lost on reopen (2026-11-04, standing rule)
 
