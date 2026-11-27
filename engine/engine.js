@@ -505,6 +505,27 @@ export async function mountActivity({ simulation = {} } = {}) {
   };
 
   const evWraps = []; /* live copies of the Record on Explain/Apply (see evidencePanel) */
+
+  /* "My records" side panel (CLAUDE.md §12.15 extension, built 2026-11-27): the
+     student's Record stays one tap away on EVERY stage, so they never leave the
+     page they are working on to look something up. Same live, pinnable table. */
+  const rl = (en, es) => getLang() === "es" ? es : en;
+  const recFab = el("button", "recfab no-print", ""); recFab.type = "button"; recFab.hidden = true; recFab.setAttribute("aria-expanded", "false");
+  const recDrawer = el("aside", "recdrawer no-print"); recDrawer.hidden = true; recDrawer.setAttribute("aria-label", rl("My records", "Mis registros"));
+  const recHead = el("div", "recdrawer__head"); const recClose = el("button", "btn btn--ghost", rl("Close", "Cerrar")); recClose.type = "button";
+  recHead.append(el("strong", null, rl("My records", "Mis registros")), recClose);
+  const recBody = el("div", "recdrawer__body"); recBody._open = true; evWraps.push(recBody);
+  recDrawer.append(recHead, recBody); document.body.append(recFab, recDrawer);
+  function setRecDrawer(open) { recDrawer.hidden = !open; recFab.setAttribute("aria-expanded", String(open)); document.body.classList.toggle("recdrawer-open", open); if (open) recClose.focus(); else if (!recFab.hidden) recFab.focus(); }
+  recFab.addEventListener("click", () => setRecDrawer(recDrawer.hidden));
+  recClose.addEventListener("click", () => setRecDrawer(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !recDrawer.hidden) setRecDrawer(false); });
+  function updateRecDrawer() {
+    const id = (STAGES[state.stage || 0] || [])[0];
+    const show = state.trials.length > 0 && ((config.record || {}).columns || []).length > 0 && id && id !== "record" && id !== "evidence";
+    recFab.hidden = !show; recFab.textContent = rl("My records", "Mis registros") + " (" + state.trials.length + ")";
+    if (!show && !recDrawer.hidden) setRecDrawer(false);
+  }
   buildOrient(stageEls.orient);
   if (hasExpandedMethod) { buildObservation(stageEls.observation); buildQuestion(stageEls.question); }
   buildPredict(stageEls.predict);
@@ -568,6 +589,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       railSteps[idx].querySelector(".rail__dot").textContent = idx < i ? "✓" : String(idx + 1);
     });
     if (STAGES[i][0] === "record") refreshRecord();
+    updateRecDrawer();
     if (STAGES[i][0] === "investigate") state._investigateSeen = true;
     back.disabled = i === 0;
     next.style.visibility = i === STAGES.length - 1 ? "hidden" : "";
@@ -775,7 +797,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     const empty = document.getElementById("record-empty");
     if (!table) return;
     table.textContent = "";
-    if (!state.trials.length) { empty.hidden = false; table.hidden = true; evWraps.forEach(fillEvidencePanel); return; }
+    if (!state.trials.length) { empty.hidden = false; table.hidden = true; evWraps.forEach(fillEvidencePanel); updateRecDrawer(); return; }
     empty.hidden = true; table.hidden = false;
     const thead = el("thead"); const htr = el("tr");
     htr.append(el("th", null, "#"));
@@ -789,7 +811,7 @@ export async function mountActivity({ simulation = {} } = {}) {
       tb.append(tr);
     });
     table.append(tb);
-    evWraps.forEach(fillEvidencePanel);
+    evWraps.forEach(fillEvidencePanel); updateRecDrawer();
   }
 
   /* Read-only copy of the Investigation Record shown on Explain/Apply so the
@@ -1924,6 +1946,13 @@ function injectEngineStyles() {
   .evpanel__sum{cursor:pointer;font-weight:700;color:var(--ink);}
   .evpanel__hint{font-size:var(--step--1);color:var(--ink-2);margin:var(--sp-2) 0;}
   .evpanel__row--on td{background:var(--accent-wash);}
+  .recfab{position:fixed;right:16px;bottom:16px;z-index:60;min-height:44px;padding:.65em 1.2em;border:0;border-radius:999px;background:var(--signal,#d9822b);color:#fff;font:inherit;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation}
+  .recfab[hidden],.recdrawer[hidden]{display:none}
+  .recdrawer{position:fixed;top:0;right:0;bottom:0;z-index:70;width:min(420px,100vw);display:flex;flex-direction:column;background:var(--paper,#fff);border-left:3px solid var(--accent);box-shadow:-10px 0 28px rgba(0,0,0,.22)}
+  .recdrawer__head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line,#ccd)}
+  .recdrawer__body{flex:1;overflow:auto;padding:12px}
+  .recdrawer__body .evpanel{margin-bottom:0}
+  @media(min-width:1100px){body.recdrawer-open #main{padding-right:440px}}
   .lab-nav{display:flex;align-items:center;gap:var(--sp-4);margin-top:var(--sp-7);
     padding-top:var(--sp-5);border-top:1px solid var(--line);}
   .orient-grid{display:grid;gap:var(--sp-5);grid-template-columns:1fr;}
