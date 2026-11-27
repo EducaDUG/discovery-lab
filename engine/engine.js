@@ -1259,12 +1259,18 @@ export async function mountActivity({ simulation = {} } = {}) {
     const autoScore = state.kcScore ? state.kcScore.got : 0;
     const autoMax = state.kcScore ? state.kcScore.max : kcList().reduce((n, q) => n + (q.marks || 1), 0);
 
+    /* readable answers for the PDF: option ids (a, b, c...) -> the option text the student saw */
+    const optLabel = (q, v) => {
+      if (!q || !Array.isArray(q.options) || v == null) return v;
+      const m = id => { const o = q.options.find(x => x.id === id); return o ? o.label : id; };
+      return Array.isArray(v) ? v.map(m) : (typeof v === "string" ? m(v) : v);
+    };
     const autoMarked = kcList().map(q => {
       const ctl = controllers.kc.find(k => k.q.id === q.id)?.ctl;
       const ans = state.kc[q.id];
       return {
         id: q.id, question: q.prompt, type: q.type, level: q.level || null,
-        student_answer: ans, correct_answer: q.answer,
+        student_answer: ans, student_answer_text: (q.type === "mc" || q.type === "multi") ? optLabel(q, ans) : ans, correct_answer: q.answer,
         marks_available: q.marks || 1,
         marks_awarded: ctl ? round1(ctl.score()) : 0,
       };
@@ -1273,7 +1279,7 @@ export async function mountActivity({ simulation = {} } = {}) {
     const predictCfg = config.predict || {};
     const prediction = {
       question: predictCfg.prompt,
-      student_prediction: state.predict,
+      student_prediction: state.predict, student_prediction_text: optLabel(config.predict, state.predict),
       recorded_before_testing: !!state.evidence.prediction_recorded_before_testing,
       revised_after_testing: !!state.evidence.prediction_revised,
     };
@@ -1539,7 +1545,7 @@ function buildPDF(jsPDF, p) {
   // Mission / prediction
   h(t("pdf.prediction"));
   para(p.prediction.question, 10, "italic", mut, 3);
-  para(t("pdf.your-prediction") + fmt(p.prediction.student_prediction), 10);
+  para(t("pdf.your-prediction") + fmt(p.prediction.student_prediction_text != null ? p.prediction.student_prediction_text : p.prediction.student_prediction), 10);
   para(t("pdf.recorded-before", {
     a: p.prediction.recorded_before_testing ? t("pdf.yes") : t("pdf.no"),
     b: p.prediction.revised_after_testing ? t("pdf.yes") : t("pdf.no"),
@@ -1579,7 +1585,7 @@ function buildPDF(jsPDF, p) {
     doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
     const q = doc.splitTextToSize(pdfSafe(`${i + 1}. ${a.question}`), CW - 40); doc.text(q, M, y); y += q.length * 12;
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); setColor(mut);
-    const ansLines = doc.splitTextToSize(pdfSafe(t("pdf.your-answer") + fmt(a.student_answer)), CW - 40);
+    const ansLines = doc.splitTextToSize(pdfSafe(t("pdf.your-answer") + fmt(a.student_answer_text != null ? a.student_answer_text : a.student_answer)), CW - 40);
     doc.text(ansLines, M + 10, y); y += ansLines.length * 12;
     const ok = a.marks_awarded >= a.marks_available;
     setColor(ok ? accent : [163, 44, 30]);
@@ -1754,7 +1760,7 @@ function buildStudentPDF(jsPDF, p) {
 
   h(t("pdf.prediction"));
   para(p.prediction.question, 10, "italic", mut, 3);
-  para(t("pdf.your-prediction") + fmt(p.prediction.student_prediction), 10);
+  para(t("pdf.your-prediction") + fmt(p.prediction.student_prediction_text != null ? p.prediction.student_prediction_text : p.prediction.student_prediction), 10);
 
   const smLabels = {
     observation: t("pdf.observation"), question: t("pdf.question"), hypothesis: t("pdf.hypothesis"),
@@ -1787,7 +1793,7 @@ function buildStudentPDF(jsPDF, p) {
     doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); setColor(ink);
     const q = doc.splitTextToSize(pdfSafe(`${i + 1}. ${a.question}`), CW - 40); doc.text(q, M, y); y += q.length * 12;
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); setColor(mut);
-    const ansLines = doc.splitTextToSize(pdfSafe(t("pdf.your-answer") + fmt(a.student_answer)), CW - 40);
+    const ansLines = doc.splitTextToSize(pdfSafe(t("pdf.your-answer") + fmt(a.student_answer_text != null ? a.student_answer_text : a.student_answer)), CW - 40);
     doc.text(ansLines, M + 10, y); y += ansLines.length * 12;
     const ok = a.marks_awarded >= a.marks_available;
     setColor(ok ? accent : [163, 44, 30]);

@@ -588,6 +588,7 @@ This extends the amendment above — same schema, same engine — with the parts
   use the exact same schema, just different words in `criterion`/`accept`. Never special-case rendering
   logic in `engine.js` for a specific subject or activity; if a new kind of assessed question doesn't
   fit the schema, extend the schema (and this section), not the PDF code for one activity.
+- **Multiple-choice answers print as the answer TEXT, never the option id (engine v29, 2026-11-27).** `buildPayload` adds `student_answer_text` / `student_prediction_text` (ids mapped to labels) and both PDF builders use them, so a marker reading only the PDF sees what the student actually chose. New question types must provide a readable text form the same way.
 - **Never truncate assessment evidence in the PDF.** `drawTrials()` in `engine/engine.js` used to
   `.slice(0, 16)`/`.slice(0, 18)` header and cell text — a genuine bug against this standard, fixed
   2026-09-18 to wrap every header and cell with `splitTextToSize` and grow row height to fit, with the
